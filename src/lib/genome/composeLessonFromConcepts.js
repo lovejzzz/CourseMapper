@@ -36,7 +36,8 @@ function citationLabel(anchor) {
   // the depth A/B: the deep lit arm shipped it inside an exit ticket and
   // graded 98 to flat's 99). Milne/Open Geology prefixes get the same
   // readable treatment as OpenStax/UH OER.
-  const src = anchor.src
+  const wikiTitle = String(anchor.src).match(/^https?:\/\/[^/]+\/wiki\/([^#?]+)/i)?.[1];
+  const src = (wikiTitle ? decodeURIComponent(wikiTitle).replace(/_/g, ' ') : anchor.src)
     .replace(/#.*$/, '')
     .replace(/:reference$/i, '')
     .replace(/^openstax:/, 'OpenStax ')
@@ -54,10 +55,14 @@ function citationLabel(anchor) {
  *
  * @param {object[]} conceptKernels — resolved concept kernels (kernelSchema shape)
  * @param {object} courseLayer — { scenario, discussionPrompt, assignmentCore } (optional)
- * @param {object} options — { itemPlan, getArchetype, mcOffsets, excludeWorkedExampleConcepts }
+ * @param {object} options — { itemPlan, getArchetype, mcOffsets, singleMcBank, excludeWorkedExampleConcepts }
  *   - mcOffsets: Map (or plain object) conceptId → first unused mcBank index.
  *     v0.14.1 (4.6): the linker's course-level cursor — a concept repeated in
  *     a later lesson draws the NEXT unused items instead of restarting at 0.
+ *   - singleMcBank: when true, the first non-exhausted relevance-ranked
+ *     concept owns this lesson's source-backed assessment seats. Secondary
+ *     concepts still contribute facts and terms, but their banks remain
+ *     available for later lessons where they may be the primary concept.
  *   - excludeWorkedExampleConcepts: Set of conceptIds whose worked example
  *     already shipped in an earlier lesson (first-occurrence-only).
  * @returns {{ payload, conceptProvenance, consumption }|null}
@@ -156,7 +161,10 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   // fill un-overlaid slots downstream.
   const mc = [];
   const mcSourceConcepts = []; // parallel to mc: which concept supplied each item
-  for (const kernel of kernels) {
+  const assessmentKernels = options.singleMcBank
+    ? kernels.filter((kernel) => (kernel.mcBank || []).length > offsetFor(kernel.id)).slice(0, 1)
+    : kernels;
+  for (const kernel of assessmentKernels) {
     for (const item of (kernel.mcBank || []).slice(offsetFor(kernel.id))) {
       const explanation =
         item.explanationFactRef != null
@@ -315,7 +323,9 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
  *    the terms, so the dedup unions them too.
  *  - quizItems: genome-first within each item type, deduped by stem, slotted
  *    back onto the item plan's indices (the quiz overlay maps strictly by
- *    slot index and type); leftovers append after the plan.
+ *    slot index and type). A model item shadowed by a genome item in the same
+ *    seat is discarded instead of being appended as a duplicate alternative;
+ *    genuine genome overflow still ships because its linker cursor has moved.
  *  - genome-only blocks (reasoningScaffolds, prerequisitePrimers, structural
  *    bridges, worked example) are preserved; scaffolds union by archetype.
  *  - enrichmentSource becomes 'genome-augmented' and conceptProvenance is
@@ -350,24 +360,32 @@ export function mergeLessonPayloads(genomePartial, modelPayload) {
   const stemKey = (item) => cleanText(item?.question).toLowerCase();
   const queuesByType = new Map();
   const seenStems = new Set();
-  for (const item of [...(genomePartial.quizItems || []), ...(modelPayload.quizItems || [])]) {
-    const key = stemKey(item);
-    if (!key || seenStems.has(key)) continue;
-    seenStems.add(key);
-    const type = item.type || 'multiple_choice';
-    if (!queuesByType.has(type)) queuesByType.set(type, []);
-    queuesByType.get(type).push(item);
+  for (const [origin, items] of [
+    ['genome', genomePartial.quizItems || []],
+    ['model', modelPayload.quizItems || []],
+  ]) {
+    for (const item of items) {
+      const key = stemKey(item);
+      if (!key || seenStems.has(key)) continue;
+      seenStems.add(key);
+      const type = item.type || 'multiple_choice';
+      if (!queuesByType.has(type)) queuesByType.set(type, []);
+      queuesByType.get(type).push({ item, origin });
+    }
   }
   const quizItems = [];
   const slotIndices = [...slotTypeByIndex.keys()].sort((a, b) => a - b);
   for (const index of slotIndices) {
     const queue = queuesByType.get(slotTypeByIndex.get(index)) || [];
-    const item = queue.shift();
-    if (item) quizItems.push({ ...item, index });
+    const entry = queue.shift();
+    if (entry) quizItems.push({ ...entry.item, index });
   }
   let overflowIndex = slotIndices.length > 0 ? slotIndices[slotIndices.length - 1] + 1 : 0;
   for (const queue of queuesByType.values()) {
-    for (const item of queue) quizItems.push({ ...item, index: overflowIndex++ });
+    for (const entry of queue) {
+      if (entry.origin !== 'genome') continue;
+      quizItems.push({ ...entry.item, index: overflowIndex++ });
+    }
   }
 
   const genomeScaffolds = genomePartial.reasoningScaffolds || [];
@@ -397,6 +415,7 @@ export function mergeLessonPayloads(genomePartial, modelPayload) {
     ...(!modelPayload.assignmentCore && genomePartial.assignmentCore
       ? { assignmentCore: genomePartial.assignmentCore }
       : {}),
+    ...(!modelPayload.studyGuide && genomePartial.studyGuide ? { studyGuide: genomePartial.studyGuide } : {}),
     ...(reasoningScaffolds.length > 0 ? { reasoningScaffolds } : {}),
     ...(genomePartial.prerequisitePrimers ? { prerequisitePrimers: genomePartial.prerequisitePrimers } : {}),
     ...(genomePartial.structuralConnections ? { structuralConnections: genomePartial.structuralConnections } : {}),

@@ -261,6 +261,75 @@ function addProgressDots(pptx, slide, theme, slideIndex, totalSlides, isDark) {
   }
 }
 
+// Font-free seven-segment glyphs for the slide-number badge. A previous 5x7
+// pixel implementation was technically complete in OOXML, but LibreOffice
+// intermittently omitted individual 0.025-inch rectangles. Thick native lines
+// need far fewer objects and survive both PowerPoint and LibreOffice rendering.
+const SLIDE_COUNTER_SEGMENTS = {
+  0: ['a', 'b', 'c', 'd', 'e', 'f'],
+  1: ['b', 'c'],
+  2: ['a', 'b', 'g', 'e', 'd'],
+  3: ['a', 'b', 'g', 'c', 'd'],
+  4: ['f', 'g', 'b', 'c'],
+  5: ['a', 'f', 'g', 'c', 'd'],
+  6: ['a', 'f', 'g', 'e', 'c', 'd'],
+  7: ['a', 'b', 'c'],
+  8: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+  9: ['a', 'b', 'c', 'd', 'f', 'g'],
+};
+
+function addSlideCounterBadge(pptx, slide, label, backgroundColor, glyphColor, x, y, w, h) {
+  slide.addShape(pptx.ShapeType.roundRect, {
+    x,
+    y,
+    w,
+    h,
+    fill: { color: backgroundColor },
+    line: { color: backgroundColor, transparency: 100 },
+    altText: `Slide ${label.replace('/', ' of ')}`,
+    objectName: `slide-counter-${label.replace('/', '-of-')}`,
+  });
+  const digitW = 0.105;
+  const digitH = 0.205;
+  const advance = 0.205;
+  const slashW = 0.09;
+  const slashAdvance = 0.17;
+  const totalGlyphW = [...label].reduce((sum, character) => sum + (character === '/' ? slashAdvance : advance), 0);
+  let cursorX = x + (w - totalGlyphW) / 2;
+  const glyphY = y + (h - digitH) / 2;
+  const segmentCoords = {
+    a: [0, 0, digitW, 0],
+    b: [digitW, 0, 0.001, digitH / 2],
+    c: [digitW, digitH / 2, 0.001, digitH / 2],
+    d: [0, digitH, digitW, 0],
+    e: [0, digitH / 2, 0.001, digitH / 2],
+    f: [0, 0, 0.001, digitH / 2],
+    g: [0, digitH / 2, digitW, 0],
+  };
+  const addCounterLine = (shapeType, lineX, lineY, lineW, lineH) => {
+    slide.addShape(shapeType, {
+      x: lineX,
+      y: lineY,
+      w: lineW,
+      h: lineH,
+      line: { color: glyphColor, width: 2.25, beginArrowType: 'none', endArrowType: 'none' },
+      altText: 'Decorative counter segment',
+    });
+  };
+  [...label].forEach((character) => {
+    if (character === '/') {
+      addCounterLine(pptx.ShapeType.lineInv, cursorX, glyphY + 0.01, slashW, digitH - 0.02);
+      cursorX += slashAdvance;
+      return;
+    }
+    (SLIDE_COUNTER_SEGMENTS[character] || SLIDE_COUNTER_SEGMENTS[0]).forEach((segment) => {
+      const [segmentX, segmentY, segmentW, segmentH] = segmentCoords[segment];
+      addCounterLine(pptx.ShapeType.line, cursorX + segmentX, glyphY + segmentY, segmentW, segmentH);
+    });
+    cursorX += advance;
+  });
+}
+
 // ── Native visual rendering (v0.12.1) ──────────────────────────────────────
 // The v0.12 audit found 464/708 speaker notes carrying a "SUGGESTED VISUAL"
 // descriptor and 0 native pictures/tables/charts on the slides themselves.
@@ -336,17 +405,17 @@ export const CONCEPT_MAP_GEOMETRY = {
 // visual zone the evidence table uses on content slides.
 export const WE_PLOT_GEOMETRY = { x: 4.95, y: 1.35, w: 4.65, h: 3.45 };
 
-// Shape text obeys the 3-word rule: labels of ≤3 words render verbatim,
-// longer ones cut to three words with the deck's ellipsis discipline (single
-// '…', never a stranded connective).
+// Concept-map spokes have enough room for short teaching phrases. Preserve up
+// to seven words so labels such as "Triads and seventh chords" stay complete;
+// genuinely long labels still use the deck's single-ellipsis discipline.
 const SPOKE_TRAILING_CONNECTIVE = /^(?:and|or|of|to|in|on|for|with|the|a|an|vs|via|at|by|from)$/i;
-function spokeShapeLabel(text) {
+function spokeShapeLabel(text, maxWords = 7) {
   const words = String(text || '')
     .trim()
     .split(/\s+/)
     .filter(Boolean);
-  if (words.length <= 3) return words.join(' ');
-  const kept = words.slice(0, 3);
+  if (words.length <= maxWords) return words.join(' ');
+  const kept = words.slice(0, maxWords);
   while (kept.length > 1 && SPOKE_TRAILING_CONNECTIVE.test(kept[kept.length - 1])) kept.pop();
   return `${kept.join(' ')}…`;
 }
@@ -535,6 +604,9 @@ function addEvidenceTable(pptx, slide, theme, plan, visKind, tracker) {
     border: { type: 'solid', pt: 0.5, color: 'D5DEEA' },
     fontFace: FONT_BODY,
     margin: 0.06,
+    // pptxgenjs otherwise chooses a single-line default row height even when
+    // evidence wraps to 2-3 lines, which makes adjacent rows collide.
+    rowH: 0.72,
     autoPage: false,
     // v0.14.5 (C3): cmViz name — counts as a native visual in the grader bar.
     objectName: 'cmVizTable',
@@ -598,8 +670,8 @@ function addDecisionMatrix(pptx, slide, theme, plan, tracker) {
  * (deterministic positions by spoke count, never auto-layout). The hub
  * carries the theme accent fill with dark primary text — the deck's
  * accent-chip rule (accent backgrounds always take theme.primary text, see
- * the ACTIVITY badge). Spokes are white ellipses with ≤3-word labels under
- * the ellipsis discipline. Every shape is named with the 'cmViz' prefix so
+ * the ACTIVITY badge). Spokes are white ellipses with concise complete labels
+ * under the ellipsis discipline. Every shape is named with the 'cmViz' prefix so
  * the package grader can tell feature-bearing decks from pre-v0.14.5
  * artifacts (the C3 arming rule). Shape text runs go through the same
  * fontFace pipeline as every text box, so stripLatinEastAsiaOverrides
@@ -653,7 +725,11 @@ function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
   }
 
   // Hub on top — centered ellipse, accent fill, dark text.
-  const hubSize = autoFitFontSize(plan.hub, hub.w - 0.35, hub.h - 0.25, FONT_HEADING, 14, 9, 1.1);
+  // Long hyphenated concepts can fool the width estimate and let PowerPoint
+  // split a word across lines ("Human-center" / "ed design"). Cap the
+  // starting size for long hubs so the rendered text remains word-shaped.
+  const hubMaxSize = String(plan.hub || '').length > 24 ? 11 : 14;
+  const hubSize = autoFitFontSize(plan.hub, hub.w - 0.35, hub.h - 0.25, FONT_HEADING, hubMaxSize, 8, 1.1);
   slide.addText(plan.hub, {
     shape: pptx.ShapeType.ellipse,
     x: hub.x,
@@ -688,7 +764,7 @@ function addConceptMapGroup(pptx, slide, theme, plan, tracker) {
  */
 function addWorkedExamplePlot(pptx, slide, theme, plan, tracker) {
   const box = WE_PLOT_GEOMETRY;
-  const labels = plan.pairs.map((pair) => spokeShapeLabel(pair.label));
+  const labels = plan.pairs.map((pair) => spokeShapeLabel(pair.label, 3));
   const values = plan.pairs.map((pair) => pair.value);
   slide.addChart(pptx.ChartType.bar, [{ name: 'Worked example values', labels, values }], {
     x: box.x,
@@ -828,9 +904,9 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
     // Main title — large, bold (auto-fit from 40pt down to 24pt)
     const titleText = deck.lessonTitle || s.title || 'Untitled Lesson';
-    const titleBoxW = W - 4,
-      titleBoxH = 2.2;
-    const titleFontSize = autoFitFontSize(titleText, titleBoxW, titleBoxH, FONT_HEADING, 40, 24, 1.15);
+    const titleBoxW = W - 3.2,
+      titleBoxH = 2.35;
+    const titleFontSize = autoFitFontSize(titleText, titleBoxW, titleBoxH, FONT_HEADING, 36, 20, 1.1);
     const titleResult = await maybeProcessLatex(titleText, hasLatex, {
       color: theme.titleText,
       fontSizePt: titleFontSize,
@@ -846,7 +922,8 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       bold: true,
       align: 'left',
       valign: 'middle',
-      lineSpacingMultiple: 1.15,
+      lineSpacingMultiple: 1.1,
+      fit: 'shrink',
     });
     tracker.add({ x: 0.7, y: 1.15, w: titleBoxW, h: titleBoxH, label: 'title' });
     // Add LaTeX display images for title if any
@@ -1157,8 +1234,11 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       altText: 'Decorative',
     });
 
-    // "LAST TIME" label
-    slide.addText('LAST TIME', {
+    const bridgeTitleText = s.title || 'Bridge to Today';
+    const bridgeLeadLabel = /course throughline/i.test(bridgeTitleText) ? 'COURSE ARC' : 'LAST TIME';
+
+    // Lesson 1 has no previous meeting; its bridge is the course arc.
+    slide.addText(bridgeLeadLabel, {
       x: 0.4,
       y: 0.35,
       w: splitX - 0.6,
@@ -1171,10 +1251,9 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     });
 
     // Recap title (auto-fit from 20pt down to 14pt)
-    const bridgeTitleText = s.title || 'Bridge to Today';
     const bridgeTitleW = splitX - 0.6,
-      bridgeTitleH = 0.7;
-    const bridgeTitleSize = autoFitFontSize(bridgeTitleText, bridgeTitleW, bridgeTitleH, FONT_HEADING, 20, 14, 1.2);
+      bridgeTitleH = 1.65;
+    const bridgeTitleSize = autoFitFontSize(bridgeTitleText, bridgeTitleW, bridgeTitleH, FONT_HEADING, 20, 12, 1.15);
     slide.addText(bridgeTitleText, {
       x: 0.4,
       y: 0.75,
@@ -1185,7 +1264,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       color: theme.titleText,
       bold: true,
       valign: 'top',
-      lineSpacingMultiple: 1.2,
+      lineSpacingMultiple: 1.15,
       fit: 'shrink', // v0.12.1: audited overflow box ("LAST TIME" panel headline, ~0.7in)
     });
     tracker.add({ x: 0.4, y: 0.75, w: bridgeTitleW, h: bridgeTitleH, label: 'bridge-title' });
@@ -1207,12 +1286,13 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       }));
       slide.addText(recapText, {
         x: 0.4,
-        y: 1.6,
+        y: 2.5,
         w: splitX - 0.7,
-        h: H - 2.2,
+        h: H - 3.1,
         fontFace: FONT_BODY,
         valign: 'top',
       });
+      tracker.add({ x: 0.4, y: 2.5, w: splitX - 0.7, h: H - 3.1, label: 'bridge-recap' });
     }
 
     // Right panel — "TODAY" label
@@ -1226,20 +1306,6 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
       color: theme.primary,
       bold: true,
       charSpacing: 4,
-    });
-
-    // Arrow transition indicator
-    slide.addText('Transition to today', {
-      x: splitX - 0.4,
-      y: H / 2 - 0.4,
-      w: 1.1,
-      h: 0.6,
-      fontSize: 10,
-      fontFace: FONT_LABEL,
-      color: theme.accent,
-      bold: true,
-      align: 'center',
-      valign: 'middle',
     });
 
     // Today bullets on right
@@ -1265,6 +1331,13 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
           h: H - 1.4,
           fontFace: FONT_BODY,
           valign: 'top',
+        });
+        tracker.add({
+          x: splitX + 0.35,
+          y: 0.85,
+          w: W - splitX - 0.7,
+          h: H - 1.4,
+          label: 'bridge-today',
         });
       }
     }
@@ -1353,8 +1426,16 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
     // Example content
     if (s.bullets?.length > 0) {
       const lastIdx = s.bullets.length - 1;
-      const mainBullets = s.bullets.slice(0, lastIdx);
-      const takeaway = ensureTerminalPunctuation(s.bullets[lastIdx]);
+      // A one-bullet example needs an example body, not an empty canvas with
+      // only a bottom banner. For richer examples, the final seat remains the
+      // takeaway; strip labels the exporter already supplies.
+      const mainBullets = s.bullets.length === 1 ? s.bullets : s.bullets.slice(0, lastIdx);
+      const takeaway =
+        s.bullets.length === 1
+          ? ''
+          : ensureTerminalPunctuation(
+              String(s.bullets[lastIdx] || '').replace(/^(?:key takeaway|key insight)\s*:\s*/i, ''),
+            );
 
       if (mainBullets.length > 0) {
         const bulletText = mainBullets.map((b) => ({
@@ -1383,7 +1464,8 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         slide.addShape(pptx.ShapeType.roundRect, {
           x: 0.5,
           y: H - 1.2,
-          w: W - 1,
+          // Keep the highlight clear of the bottom-right slide-number chip.
+          w: W - 1.75,
           h: 0.8,
           fill: { color: theme.light },
           line: { color: theme.accent, pt: 1.5 },
@@ -1393,7 +1475,7 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
         slide.addText(`Key Takeaway: ${takeaway}`, {
           x: 0.7,
           y: H - 1.2,
-          w: W - 1.4,
+          w: W - 2.15,
           h: 0.8,
           fontSize: 13,
           fontFace: FONT_BODY,
@@ -2063,35 +2145,41 @@ async function buildSlideForDeck(pptx, deck, theme, slideIndex, totalSlides, opt
 
   // ── Slide number badge (bottom right) ────────────────────────────────
   const isDarkSlide = slideType === 'title' || slideType === 'summary' || slideType === 'question';
-  slide.addShape(pptx.ShapeType.roundRect, {
-    x: W - 0.95,
-    y: H - 0.44,
-    w: 0.68,
-    h: 0.34,
-    fill: { color: isDarkSlide ? theme.accent : theme.primary },
-    line: { width: 0 },
-    rectRadius: 0.05,
-    altText: 'Decorative',
-    // v0.14.5 (C3) arming marker: every deck's FIRST slide stamps the
-    // visual-layer feature name into its XML (an invisible cNvPr name). The
-    // grader's native-visual bar arms only on packages carrying a cmViz
-    // marker, so decks exported before this feature are never graded on
-    // visuals — and a feature-era deck that renders zero visuals still
-    // carries the marker and CAN be flagged.
-    ...(slideIndex === 0 ? { objectName: 'cmVizLayer' } : {}),
-  });
-  slide.addText(`${slideIndex + 1}/${totalSlides}`, {
-    x: W - 0.95,
-    y: H - 0.44,
-    w: 0.68,
-    h: 0.34,
-    fontSize: 9,
-    color: isDarkSlide ? theme.primary : 'FFFFFF',
-    align: 'center',
-    valign: 'middle',
-    fontFace: FONT_BODY,
-    bold: true,
-  });
+  const slideNumberX = W - 1.75;
+  // The bridge layout owns a full-width bottom accent band, so seat its badge
+  // just above that band.
+  const slideNumberY = slideType === 'bridge' ? H - 0.85 : H - 0.46;
+  const slideNumberW = 1.5;
+  const slideNumberH = 0.36;
+  const slideNumberLabel = `${slideIndex + 1}/${totalSlides}`;
+  const slideNumberFill = isDarkSlide ? theme.accent : theme.primary;
+  const slideNumberColor = isDarkSlide ? theme.primary : 'FFFFFF';
+  addSlideCounterBadge(
+    pptx,
+    slide,
+    slideNumberLabel,
+    slideNumberFill,
+    slideNumberColor,
+    slideNumberX,
+    slideNumberY,
+    slideNumberW,
+    slideNumberH,
+  );
+  // v0.14.5 (C3) arming marker: every deck's FIRST slide stamps the
+  // visual-layer feature name into its XML. The grader's native-visual bar
+  // arms only on packages carrying a cmViz marker.
+  if (slideIndex === 0) {
+    slide.addShape(pptx.ShapeType.rect, {
+      x: 0,
+      y: 0,
+      w: 0.001,
+      h: 0.001,
+      fill: { color: slideNumberFill, transparency: 100 },
+      line: { color: slideNumberFill, transparency: 100 },
+      objectName: 'cmVizLayer',
+      altText: 'Scion native visual marker',
+    });
+  }
 
   // ── Element validation ─────────────────────────────────────────────────
   const warnings = tracker.validate();

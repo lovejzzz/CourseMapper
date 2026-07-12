@@ -1279,6 +1279,34 @@ function extractDeliverableText(deliverables, featureId) {
   return extractDeliverableReadabilityPayload(deliverables, featureId).text;
 }
 
+/**
+ * Diagnostic companion to validateReadability. It exposes the same scoped
+ * student-facing corpus, score, sentence metrics, and longest contributing
+ * strings so compiler work can fix the source instead of weakening a gate.
+ */
+export function inspectDeliverableReadability(deliverables) {
+  return Object.keys(READABLE_NAMES)
+    .map((featureId) => {
+      const { text } = extractDeliverableReadabilityPayload(deliverables, featureId);
+      if (!text || text.length < 180) return null;
+      const contributingStrings = text
+        .split(/(?<=[.!?])\s+/)
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .map((value) => ({ text: value, words: readabilityWordCount(value) }))
+        .sort((a, b) => b.words - a.words)
+        .slice(0, 8);
+      return {
+        featureId,
+        displayName: READABLE_NAMES[featureId],
+        grade: Number(readability.fleschKincaidGrade(text).toFixed(1)),
+        ...readabilitySupportMetrics(text),
+        longestStrings: contributingStrings,
+      };
+    })
+    .filter(Boolean);
+}
+
 export function validateReadability(courseMap, deliverables) {
   const findings = [];
   if (!deliverables) return findings;

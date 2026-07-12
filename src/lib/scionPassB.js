@@ -57,6 +57,13 @@ export async function runScionPasses({
   }
   async function applyPasses() {
     const generateJson = async ({ system, user, schemaProfile, maxOutputTokens, temperature }) => {
+      recordEvent({
+        type: 'pipelineDecision',
+        label: 'Scion pass call',
+        detail: schemaProfile?.name || 'unknown',
+        featureId: 'blueprintEnrichment',
+        task: 'scionPass',
+      });
       const passResult = await streamProvider(provider, apiKey, modelId, system, user, {
         modelCapabilities,
         generationPlan,
@@ -81,7 +88,10 @@ export async function runScionPasses({
         type: 'pipelineDecision',
         label: 'Scion quality passes',
         detail: passOutcome.events
-          .map((event) => `${event.pass}:${event.lessonId}${event.action ? ` ${event.action}` : ''}`)
+          .map(
+            (event) =>
+              `${event.pass}:${event.lessonId}${event.action ? ` ${event.action}` : ''}${event.reason ? ` [${event.reason}]` : ''}`,
+          )
           .join(' · '),
         featureId: 'blueprintEnrichment',
         task: 'scionPass',

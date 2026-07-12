@@ -45,7 +45,7 @@ import { compactBlueprintForStorage, compileBlueprintDeliverables } from '../src
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // ── Fixture: the WS-G geology map, compiled for real (no compiler mocks) ────
-function geologyMap(lessonCount = 4) {
+function geologyMap(lessonCount = 4, { includeTasks = true } = {}) {
   const topics = ['Minerals', 'Igneous Rocks', 'Sedimentary Rocks', 'Metamorphic Rocks', 'Weathering'].slice(
     0,
     lessonCount,
@@ -60,7 +60,10 @@ function geologyMap(lessonCount = 4) {
           topicSection: `${index + 1}.1: ${title}`,
           learningGoals: `1. Build field-ready understanding of ${title.toLowerCase()}.`,
           learningObjectives: `Analyze ${title.toLowerCase()} using specimen evidence.\nEvaluate identification keys for ${title.toLowerCase()}.`,
-          weeklyAssessments: `Quiz: ${title.toLowerCase()} identification`,
+          weeklyAssessments: [
+            `Quiz: ${title.toLowerCase()} identification`,
+            ...(includeTasks ? [`Task: ${title.toLowerCase()} field evidence memo`] : []),
+          ].join('\n'),
           asyncActivities: `Read the assigned chapter on ${title.toLowerCase()}.`,
           syncActivities: `Workshop: ${title.toLowerCase()} case analysis.`,
           supportingResources: `OpenStax geology chapter on ${title.toLowerCase()}`,
@@ -72,8 +75,8 @@ function geologyMap(lessonCount = 4) {
 
 const VOICE_FEATURES = ['assignments', 'discussions', 'studyGuides'];
 
-function compiledFixture(lessonCount = 4) {
-  const courseMap = geologyMap(lessonCount);
+function compiledFixture(lessonCount = 4, options = {}) {
+  const courseMap = geologyMap(lessonCount, options);
   const graph = deriveCourseGraphFromCourseMap(courseMap);
   const blueprint = compactBlueprintForStorage(buildBlueprintFromGraph(graph, {}));
   const compiled = compileBlueprintDeliverables(blueprint, VOICE_FEATURES, { configMap: {} });
@@ -169,6 +172,14 @@ describe('selectVoiceSurfaces — asymmetric, capped, kernel-aware', () => {
     const surfaces = selectVoiceSurfaces({ deliverables, courseMap, maxSurfaces: 3 });
     expect(surfaces).toHaveLength(3);
     expect(surfaces.map((surface) => surface.surfaceId)).toContain('assignments:lesson-1:overview');
+  });
+
+  it('uses the real quiz brief when a quiz-only course has no richer task', () => {
+    const quizOnly = compiledFixture(4, { includeTasks: false });
+    const surfaces = selectVoiceSurfaces(quizOnly);
+    expect(surfaces.length).toBeGreaterThan(0);
+    expect(surfaces.map((surface) => surface.surfaceId)).toContain('assignments:lesson-1:overview');
+    expect(surfaces.every((surface) => surface.originalText.length > 20)).toBe(true);
   });
 
   it('accepts store-shaped entries ({ status, data }) as well as raw compiled data', () => {

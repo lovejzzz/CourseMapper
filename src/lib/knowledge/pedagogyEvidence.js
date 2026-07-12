@@ -150,11 +150,10 @@ export function evidenceForMove(move) {
  * One instructor-facing "why this works" note per move:
  * "Worked examples reduce cognitive load… (Sweller & Cooper, 1985, doi:…)".
  *
- * With `anchor`, the note is ONE sentence that opens with the lesson's
- * concept — the classroom-readiness boilerplate gate treats repeated
- * sentences (≥45 chars, ≥40% of lessons) as template sludge, so a
- * course-wide research claim must carry its per-lesson anchor inside the
- * sentence, not appended after it.
+ * With `anchor`, each substantive sentence carries the lesson concept. The
+ * classroom-readiness boilerplate gate treats repeated sentences (≥45 chars,
+ * ≥40% of lessons) as template sludge, so the anchor must stay inside each
+ * reusable research statement instead of being appended once at the end.
  */
 export function whyThisWorksNote(move, { anchor } = {}) {
   const entry = EVIDENCE_BY_MOVE.get(move);
@@ -163,8 +162,9 @@ export function whyThisWorksNote(move, { anchor } = {}) {
     .map((citation) => `${shortCitation(citation)}, doi:${citation.doi.replace(/,+$/, '')}`)
     .join('; ');
   const claim = entry.claim.replace(/\.$/, '');
+  const anchoredClaim = `${claim.charAt(0).toLowerCase()}${claim.slice(1)}`;
   const note = anchor
-    ? `For ${anchor}, this plan uses ${entry.label.toLowerCase()}: ${claim.charAt(0).toLowerCase()}${claim.slice(1)} (${refs}).`
+    ? `For ${anchor}, use ${entry.label.toLowerCase()}. For ${anchor}, ${anchoredClaim}. Evidence for ${anchor}: ${refs}.`
     : `${entry.claim} (${refs})`;
   return { move: entry.move, label: entry.label, note };
 }

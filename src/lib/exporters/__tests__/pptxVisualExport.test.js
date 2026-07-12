@@ -415,6 +415,72 @@ describe('PPTX export — visual placeholders', () => {
     expect(slideXml).toContain('Compact bullets render');
     expect(notesXml).toContain('compact generated speaker notes');
   });
+
+  it('keeps a one-bullet example in the body and removes nested takeaway labels', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: Example Layout',
+            slides: [
+              {
+                title: 'One inspectable example',
+                type: 'example',
+                bullets: ['A specification document details interaction flows and component states.'],
+              },
+              {
+                title: 'A complete evidence example',
+                type: 'example',
+                bullets: [
+                  'Identify one source detail students can inspect.',
+                  'Key insight: strong answers explain how evidence changes the decision.',
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      'Test Course',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const oneBulletXml = await zip.file('ppt/slides/slide1.xml').async('string');
+    const takeawayXml = await zip.file('ppt/slides/slide2.xml').async('string');
+    expect(oneBulletXml).toContain('A specification document details interaction flows');
+    expect(oneBulletXml).not.toContain('Key Takeaway');
+    expect(oneBulletXml).toContain('slide-counter-1-of-2');
+    expect(takeawayXml).toContain('slide-counter-2-of-2');
+    expect(Object.keys(zip.files).filter((path) => /^ppt\/media\/.+/.test(path))).toHaveLength(0);
+    expect(takeawayXml).toContain('Key Takeaway:');
+    expect(takeawayXml).toContain('strong answers explain how evidence changes the decision');
+    expect(takeawayXml).not.toContain('Key Takeaway: Key insight:');
+  });
+
+  it('labels a first-lesson throughline as the course arc rather than last time', async () => {
+    const blob = await buildSlideDeckPptxBlob(
+      {
+        decks: [
+          {
+            lessonTitle: 'Lesson 1: Foundations',
+            slides: [
+              {
+                title: 'Foundations course throughline',
+                type: 'bridge',
+                bullets: ['This course: what we will build', 'Today: choose the evidence move', 'Next: application'],
+              },
+            ],
+          },
+        ],
+      },
+      'Test Course',
+      0,
+    );
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const xml = await zip.file('ppt/slides/slide1.xml').async('string');
+
+    expect(xml).toContain('COURSE ARC');
+    expect(xml).not.toContain('LAST TIME');
+  });
 });
 
 describe('PPTX export — native visuals (v0.12.1)', () => {
@@ -433,6 +499,9 @@ describe('PPTX export — native visuals (v0.12.1)', () => {
     expect(xml).toContain('Price signal');
     expect(xml).toContain('shows willingness to pay at the margin');
     expect(xml).toContain('reveals the producer break-even point');
+    const rowHeights = [...xml.matchAll(/<a:tr h="(\d+)"/g)].map((match) => Number(match[1]));
+    expect(rowHeights).toHaveLength(4);
+    expect(Math.min(...rowHeights)).toBeGreaterThanOrEqual(650000);
     // Lead assertion stays on the slide as text
     expect(xml).toContain('Each evidence row names the signal');
   });
@@ -496,16 +565,17 @@ describe('PPTX export — native visuals (v0.12.1)', () => {
     expect(count(xml, 'prst="ellipse"')).toBeGreaterThanOrEqual(4); // hub + 3 spokes (+ progress dots)
     // …and one connector line per spoke
     expect(count(xml, 'prst="line"')).toBeGreaterThanOrEqual(3);
-    // Spoke text obeys the 3-word ellipsis rule
-    expect(xml).toContain('Includes non-money costs…');
-    expect(xml).toContain('Drives the shape…');
+    // Short teaching phrases remain complete instead of ending in an
+    // unexplained ellipsis inside the visual.
+    expect(xml).toContain('Includes non-money costs like time');
+    expect(xml).toContain('Drives the shape of the production frontier');
     // The definition still renders in the concept card
     expect(xml).toContain('next-best alternative');
   });
 
   it('baseline keyTerm slide (non concept-map kind) has no connector lines', () => {
     // Fixture slide index 3 = keyTerm with kind 'chart' — text layout kept
-    expect(count(slideXmls[3], 'prst="line"')).toBe(0);
+    expect(count(slideXmls[3], 'name="cmVizConn"')).toBe(0);
     expect(slideXmls[3]).not.toMatch(NATIVE_TABLE_XML);
   });
 

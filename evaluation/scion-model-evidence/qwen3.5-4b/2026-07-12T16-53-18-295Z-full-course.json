@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "scion-model-bakeoff-v1",
+  "candidateId": "qwen3.5-4b",
+  "servingModelId": "mlx-community/Qwen3.5-4B-4bit",
+  "evidenceType": "crucible-full-course",
+  "observedAt": "2026-07-12T16:53:18.295Z",
+  "roundDir": "verification-output/crucible/round-2026-07-12T15-35-35-677Z",
+  "fullCourses": [
+    {
+      "domain": "ux-design-studio",
+      "courseId": "ux-design-studio",
+      "lessonCount": 12,
+      "packageGrade": 99,
+      "packageLetterGrade": "A",
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "packageValid": true,
+      "durationMs": 382232,
+      "extractedFiles": 101,
+      "scionPassCalls": 85,
+      "blueprintEnrichmentCalls": 12,
+      "totalInputTokens": 50577,
+      "totalOutputTokens": 42414,
+      "readinessBlockers": 0,
+      "readinessWarnings": 0,
+      "compilerBurden": {
+        "schemaVersion": 1,
+        "lessonCount": 12,
+        "provider": {
+          "requests": 98,
+          "responses": 98,
+          "errors": 0,
+          "retries": 0,
+          "unpairedRequests": 0,
+          "taskCalls": {
+            "nativeSkeleton": 1,
+            "blueprintEnrichment": 12,
+            "scionPass": 85
+          }
+        },
+        "scion": {
+          "calls": 85,
+          "callsPerLesson": 7.08,
+          "attributedCalls": 0,
+          "unattributedCalls": 85,
+          "byCallType": {},
+          "qualityActions": 59,
+          "unparsedQualityActions": 0,
+          "actionsPerLesson": 4.92,
+          "byPass": {
+            "appliedDepth": 33,
+            "polish": 12,
+            "admissionGate": 11,
+            "mcVerify": 1,
+            "topicGate": 2
+          },
+          "byAction": {
+            "rejected": 35,
+            "done": 12,
+            "regenerated": 12
+          },
+          "rejectionReasons": {
+            "not-applied": 27,
+            "explanation-key-conflict": 1,
+            "off-topic": 3,
+            "clang-association-cue": 12,
+            "key-verification:1": 1,
+            "1!=0": 1
+          }
+        }
+      },
+      "sourceArtifact": "verification-output/crucible/round-2026-07-12T15-35-35-677Z/ux-design-studio--quiet--local"
+    }
+  ]
+}

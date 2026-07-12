@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "runId": "2026-07-12-music-theory-scion-source-backed",
+  "generatedAt": "2026-07-12T00:44:55.609Z",
+  "appVersion": "0.16.2",
+  "course": { "title": "Music Theory Fundamentals", "domain": "music-theory", "lessonCount": 7 },
+  "provider": { "family": "local-scion", "mode": "live", "simulated": false },
+  "requests": { "total": 37, "successful": 37, "httpStatuses": [] },
+  "generation": {
+    "lessonsProduced": 7,
+    "lessonsEnriched": 7,
+    "duplicateTopics": 0,
+    "genomeLinkedLessons": 7,
+    "sourceCitations": 19,
+    "repairsApplied": 11
+  },
+  "package": {
+    "sha256": "b14e646381ccf6b0dd3bc2dc56ddfef42219c8aa89a7aa15e8a3db72a6d2d5cc",
+    "fileCount": 61,
+    "manifestDeliverables": 59,
+    "bytes": 1138732,
+    "officeStructuralValidation": "pass"
+  },
+  "quality": { "score": 99, "grade": "A", "p0": 0, "p1": 0, "p2": 0, "textureScore": 95 },
+  "evidence": {
+    "traceSha256": "2de5cd71525a92b88c18476ec9ae3ad8e828ff556f121b7563af3623f0f967b3",
+    "consoleLogSha256": "0454fc7c22915de6bdb894a16035fee8f66479db3c80851ecb390a77125470b6",
+    "requestCompletionEvidence": { "starts": 37, "completions": 37, "failures": 0 },
+    "retention": { "status": "retained", "location": "artifacts/2026-07-12-music-theory-scion-source-backed" },
+    "visualQa": {
+      "status": "pass",
+      "reviewedAt": "2026-07-12T00:49:01Z",
+      "scope": "Rendered and inspected all 14 Lesson 4 slides and all 3 Lesson 4 quiz pages at original resolution. Flattened alpha-bearing PNGs before review to avoid transparency-preview false positives. slides_test warnings on slides 1, 4, 12, 13, and 14 are limited to intentional off-canvas decorative ellipses; no classroom text is clipped or overlapped."
+    },
+    "artifacts": {
+      "zip": {
+        "path": "artifacts/2026-07-12-music-theory-scion-source-backed/package.zip",
+        "sha256": "b14e646381ccf6b0dd3bc2dc56ddfef42219c8aa89a7aa15e8a3db72a6d2d5cc"
+      },
+      "trace": {
+        "path": "artifacts/2026-07-12-music-theory-scion-source-backed/trace.json",
+        "sha256": "2de5cd71525a92b88c18476ec9ae3ad8e828ff556f121b7563af3623f0f967b3"
+      },
+      "consoleLog": {
+        "path": "artifacts/2026-07-12-music-theory-scion-source-backed/console.log",
+        "sha256": "0454fc7c22915de6bdb894a16035fee8f66479db3c80851ecb390a77125470b6"
+      }
+    },
+    "artifactValidation": { "allMatch": true, "validatedAt": "2026-07-12T00:49:40.985Z" }
+  },
+  "notes": [
+    "This is a real browser-driven local Scion run, not a fixture or simulated provider response.",
+    "All 7 lessons were genome-linked and model-enriched before deterministic compilation; the package finished ready with zero warnings.",
+    "The local provider emits completion events rather than upstream HTTP status metadata, so request success is supported by 37 paired provider start and completion events and zero failure events.",
+    "Rendered QA exposed defects that the 99/A grader missed; the retained run is the post-repair rerun with ledger syntax, chopped misconception copy, bridge overlap, and takeaway-chip overlap removed.",
+    "Local Scion evidence expands domain coverage, but it does not replace the policy requirement for at least one public-scion canary.",
+    "The ZIP, trace, and console log are hash-matched and retained in the durable production-canary store."
+  ]
+}

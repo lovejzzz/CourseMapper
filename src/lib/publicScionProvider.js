@@ -5,10 +5,11 @@
 // endpoint, which is public, CORS-enabled, and aggressively rate-limited.
 
 import { jsonrepair } from 'jsonrepair';
+import { APP_VERSION } from './appVersion.js';
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
-export const PUBLIC_SCION_MODEL_NAME = 'Scion Draft';
+export const PUBLIC_SCION_MODEL_NAME = `Scion V${APP_VERSION}`;
 // Pollinations accepts this legacy request alias but may route it to a
 // different anonymous backing model. UI/docs must not present it as a fixed
 // foundation-model identity.
@@ -32,33 +33,23 @@ export function isPublicScionProvider(provider) {
   return provider === PUBLIC_SCION_PROVIDER_ID;
 }
 
-const ANSWER_ALIGNMENT_STOP_WORDS = new Set([
-  'a',
-  'an',
+// Keep this lightweight copy local to the public provider. Importing the full
+// Scion preference gate here would promote local-only quality passes and their
+// item-lint dependencies into the first landing-page download.
+const PUBLIC_ALIGNMENT_STOP_WORDS = new Set([
   'and',
   'are',
-  'as',
-  'at',
-  'be',
   'because',
-  'by',
   'for',
   'from',
-  'in',
-  'is',
-  'it',
-  'of',
-  'on',
-  'or',
   'that',
   'the',
   'this',
-  'to',
-  'which',
   'with',
+  'while',
 ]);
 
-function answerAlignmentTokens(value) {
+function publicAlignmentTokens(value) {
   return new Set(
     String(value || '')
       .toLowerCase()
@@ -66,11 +57,30 @@ function answerAlignmentTokens(value) {
       .split(/\s+/)
       .map((token) => {
         if (/^(?:ask|asks|asked|asking|question|questions)$/.test(token)) return 'question';
-        if (token.length > 4 && token.endsWith('s') && !token.endsWith('ss')) return token.slice(0, -1);
-        return token;
+        return token.length > 4 && token.endsWith('s') && !token.endsWith('ss') ? token.slice(0, -1) : token;
       })
-      .filter((token) => token.length >= 3 && !ANSWER_ALIGNMENT_STOP_WORDS.has(token)),
+      .filter((token) => token.length >= 3 && !PUBLIC_ALIGNMENT_STOP_WORDS.has(token)),
   );
+}
+
+function findPublicScionExplanationKeyConflict(item) {
+  const options = Array.isArray(item?.op) ? item.op : Array.isArray(item?.options) ? item.options : [];
+  const explanation = String(item?.ex ?? item?.explanation ?? '').trim();
+  const currentIndex = Number(item?.ai ?? item?.answerIndex);
+  if (options.length !== 4 || !explanation || !Number.isInteger(currentIndex)) return null;
+  const affirmativeLead = explanation.split(/\b(?:by contrast|in contrast|whereas|while|rather than|unlike)\b/i)[0];
+  const explanationTokens = publicAlignmentTokens(affirmativeLead);
+  const scores = options.map((option) => {
+    const optionTokens = publicAlignmentTokens(option);
+    return [...optionTokens].filter((token) => explanationTokens.has(token)).length;
+  });
+  const bestScore = Math.max(...scores);
+  const bestIndices = scores.map((score, index) => (score === bestScore ? index : -1)).filter((index) => index >= 0);
+  const currentScore = scores[currentIndex] || 0;
+  if (bestScore >= 2 && bestIndices.length === 1 && bestIndices[0] !== currentIndex && bestScore >= currentScore + 1) {
+    return { supportedIndex: bestIndices[0] };
+  }
+  return null;
 }
 
 function alignPublicScionAnswerIndices(parsed) {
@@ -78,23 +88,11 @@ function alignPublicScionAnswerIndices(parsed) {
   for (const lesson of parsed.lessons) {
     if (!Array.isArray(lesson?.mc)) continue;
     for (const item of lesson.mc) {
-      const options = Array.isArray(item?.op) ? item.op : Array.isArray(item?.options) ? item.options : [];
-      const explanation = item?.ex ?? item?.explanation;
-      if (options.length !== 4 || !explanation) continue;
-      const explanationTokens = answerAlignmentTokens(explanation);
-      const scores = options.map((option) => {
-        const optionTokens = answerAlignmentTokens(option);
-        return [...optionTokens].filter((token) => explanationTokens.has(token)).length;
-      });
-      const currentIndex = Number(item?.ai ?? item?.answerIndex);
-      const bestScore = Math.max(...scores);
-      const bestIndices = scores
-        .map((score, index) => (score === bestScore ? index : -1))
-        .filter((index) => index >= 0);
-      const currentScore = Number.isInteger(currentIndex) && currentIndex >= 0 ? scores[currentIndex] || 0 : 0;
-      if (bestScore >= 2 && bestIndices.length === 1 && bestScore >= currentScore + 1) {
-        if ('ai' in item) item.ai = bestIndices[0];
-        else item.answerIndex = bestIndices[0];
+      const conflict = findPublicScionExplanationKeyConflict(item);
+      if (conflict) {
+        if ('ai' in item) item.ai = conflict.supportedIndex;
+        if ('answerIndex' in item) item.answerIndex = conflict.supportedIndex;
+        if (!('ai' in item) && !('answerIndex' in item)) item.ai = conflict.supportedIndex;
       }
     }
   }
@@ -389,11 +387,20 @@ function buildPublicScionKernelPrompt(userPrompt) {
     discussionPrompt: {
       pr: 'A genuinely debatable question grounded in the subject?',
       tn: 'Why informed people can reasonably disagree.',
-      po: ['One defensible position with a reason.', 'A contrasting defensible position with a reason.'],
+      po: [
+        'One defensible position with a reason.',
+        'A contrasting defensible position with a reason.',
+        'A conditional or synthesis position with a reason.',
+      ],
     },
     assignmentCore: {
       td: 'Two concrete sentences naming the case or material students analyze and the response they produce.',
-      pa: ['A measurable scope or length constraint.', 'A specific source, method, or format constraint.'],
+      pa: [
+        'A measurable scope constraint.',
+        'A specific submission format.',
+        'The evidence or source students must use.',
+        'A realistic length or time boundary.',
+      ],
     },
     mc: [
       {
@@ -457,8 +464,8 @@ ${
 - Write 3 keyTerms per lesson. Every df is at least 40 characters; eg is concrete; mi is a plausible misconception; cx directly corrects mi.
 - Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable decision or problem, at least 2 inspectable observations/results/records/artifacts, and a real tension or constraint. su has exactly 2 specific sentences; ma names the evidence packet rather than saying "scenario evidence" or "course materials". Evidence may live in ma instead of being repeated in su.
 - Keep each scenario focused on one construct or decision target. Do not mix accessibility, usability, preference, learning, or performance evidence unless the task explicitly asks students to compare those constructs.
-- Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, po has 2-3 defensible positions.
-- Write one assignmentCore: td is at least 60 characters and names the actual case, data, design, or text plus what students produce; pa has 2-4 concrete constraints.
+- Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, and po has exactly 3 defensible positions — a main position, a contrast, and a conditional or synthesis position. The third position must add real reasoning, not split the difference mechanically.
+- Write one assignmentCore: td is at least 60 characters and names the actual case, data, design, or text plus what students produce; pa has exactly 4 distinct parameters covering scope, submission format, required evidence/source, and a realistic length or time boundary.
 - Write exactly 4 mc items: one concept distinction, one concrete case application, one field-note evidence analysis, and one flawed-method evaluation.
 - At least 3 mc stems include specific observed behavior or evidence. Options are parallel, plausible methodological claims or actions; distractors reflect real misconceptions. Every q is 25-50 words; op has exactly 4 options; ai is 0-3; ex explains why the key wins and the closest distractor fails.
 - Never infer motive from one ambiguous behavior. Pair behavior with context, a quote, a second observation, or an outcome so exactly one option is supported.

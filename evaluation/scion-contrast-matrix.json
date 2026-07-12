@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "claimStatus": "diagnostic-retained-evidence",
+  "pairs": [
+    {
+      "id": "ux-design-public-vs-luna",
+      "domain": "user-experience-design",
+      "candidateRoute": "public-scion",
+      "candidateModel": "Scion Public",
+      "referenceModel": "GPT-5.6-Luna",
+      "artifactStatus": "retained-project-pair",
+      "candidate": "evaluation/scion-contrast-evidence/ux-design-public-scion.json",
+      "reference": "evaluation/scion-contrast-evidence/ux-design-luna.json"
+    },
+    {
+      "id": "ux-design-local-current-vs-luna",
+      "domain": "user-experience-design",
+      "candidateRoute": "local-scion-current",
+      "candidateModel": "Scion-1 current",
+      "referenceModel": "GPT-5.6-Luna",
+      "artifactStatus": "retained-current-capture-source-backed-ux-slice-with-prototype-allocation-and-derived-scenarios-99A-zero-p0-p1",
+      "candidate": "evaluation/scion-contrast-evidence/ux-design-local-current.json",
+      "reference": "evaluation/scion-contrast-evidence/ux-design-luna.json"
+    },
+    {
+      "id": "python-local-vs-gpt54mini",
+      "domain": "computer-science",
+      "candidateRoute": "local-scion-1.2",
+      "candidateModel": "Scion 1.2",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "retained-cross-snapshot",
+      "candidate": "evaluation/scion-contrast-evidence/python-scion-1.2.json",
+      "reference": "evaluation/scion-contrast-evidence/python-gpt-5.4-mini.json"
+    },
+    {
+      "id": "geology-local-vs-gpt54mini",
+      "domain": "geology",
+      "candidateRoute": "local-scion-1.2",
+      "candidateModel": "Scion 1.2",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "retained-cross-snapshot",
+      "candidate": "evaluation/scion-contrast-evidence/geology-scion-1.2.json",
+      "reference": "evaluation/scion-contrast-evidence/geology-gpt-5.4-mini.json"
+    },
+    {
+      "id": "music-theory-local-vs-gpt54mini",
+      "domain": "music-theory",
+      "candidateRoute": "local-scion-current",
+      "candidateModel": "Scion-1 current",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "retained-current-capture-vs-saved-reference",
+      "candidate": "evaluation/scion-contrast-evidence/music-theory-local-current.json",
+      "reference": "evaluation/scion-contrast-evidence/music-theory-gpt-5.4-mini.json"
+    },
+    {
+      "id": "world-literature-local-vs-gpt54mini",
+      "domain": "world-literature",
+      "candidateRoute": "local-scion-1.2",
+      "candidateModel": "Scion 1.2",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "retained-cross-snapshot",
+      "candidate": "evaluation/scion-contrast-evidence/world-literature-scion-1.2.json",
+      "reference": "evaluation/scion-contrast-evidence/world-literature-gpt-5.4-mini.json"
+    }
+  ]
+}

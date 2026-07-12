@@ -60,7 +60,9 @@ describe('iteration 7 — genome spans deployed disciplines', () => {
     // contributed through the commons round-trip); v0.15.5 adds physics for
     // the live Electricity and Magnetism miss; v0.15.6 adds anatomy for the
     // live Anatomy and Physiology miss; v0.15.14+ adds research-methods for
-    // common methods courses.
+    // common methods courses; v0.16.2 adds music theory with a source-backed
+    // assessment bank and production fixture coverage; v0.16.3 adds UX from
+    // retained government and W3C guidance.
     expect(disciplines).toEqual(
       new Set([
         'anatomy',
@@ -77,9 +79,11 @@ describe('iteration 7 — genome spans deployed disciplines', () => {
         'cs',
         'geo',
         'math',
+        'music',
         'lang',
         'physics',
         'research-methods',
+        'ux',
       ]),
     );
   });

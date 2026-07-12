@@ -354,7 +354,7 @@ function selectRetryActionsWithinCallBudget(
 }
 
 function normalizeProjectProvider(provider) {
-  if (provider === 'free' || provider === 'webllm' || provider === 'local') return PUBLIC_SCION_PROVIDER_ID;
+  if (provider === 'free' || provider === 'webllm') return PUBLIC_SCION_PROVIDER_ID;
   return provider;
 }
 

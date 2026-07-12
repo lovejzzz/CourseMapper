@@ -1,0 +1,258 @@
+import { lintItemAdmission } from './itemAdmissionLint.js';
+import { analyzeDecisionScenario } from './scenarioContract.js';
+import { findScionExplanationKeyConflict, normalizeScionMcItem } from './scionAnswerKeyAlignment.js';
+import { isAppliedQuizStem } from './quality/quizItemDepth.js';
+
+export { findScionExplanationKeyConflict } from './scionAnswerKeyAlignment.js';
+
+const PROCESS_LEAK_RE =
+  /\b(?:assessment criteria|activities include|key elements include|the lesson|this course|students will learn)\b/i;
+const META_SURFACE_RE =
+  /\b(?:evidence move|success criteri\w*|course evidence|lesson evidence|rubric|the (?:Week\s*\d+|weekly) \w+|this (?:course|lesson)|the lesson|artifact|submission|checkpoint)\b/i;
+const TERMINAL_PUNCT_RE = /[.!?][\])}"']?$/;
+const NON_DISTINCTIVE_GROUNDING = new Set([
+  'and',
+  'claim',
+  'evidence',
+  'excerpt',
+  'lines',
+  'materials',
+  'notes',
+  'provided',
+  'scenario',
+  'staff',
+  'the',
+]);
+const TRAINABLE_PREFERENCE_EVIDENCE_KINDS = new Set([
+  'double-blind-key-repair',
+  'admission-and-key-repair',
+  'applied-depth-and-key-repair',
+  'blind-instructor-preference',
+]);
+
+function clean(value) {
+  return String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function stringInBand(value, min, max) {
+  const normalized = clean(value);
+  return normalized.length >= min && normalized.length <= max;
+}
+
+function unique(values) {
+  return new Set(values.map((value) => clean(value).toLowerCase())).size === values.length;
+}
+
+function containsGroundingToken(value, token) {
+  const normalized = clean(token).toLowerCase();
+  if (!/^[a-z][a-z0-9]{2,}$/.test(normalized)) return false;
+  if (NON_DISTINCTIVE_GROUNDING.has(normalized)) return false;
+  return new RegExp(`\\b${normalized}\\b`, 'i').test(String(value || ''));
+}
+
+/**
+ * Conservative, deterministic admission gate for preference data and repaired
+ * Scion quiz items. Passing means the item is safe enough to consider after a
+ * separate answer-key verification; it is not a claim of semantic correctness.
+ */
+export function assessScionMcItem(item, { topicWords = [] } = {}) {
+  const normalized = normalizeScionMcItem(item);
+  const issues = [];
+  if (!stringInBand(normalized.question, 25, 300)) issues.push('stem-length');
+  if (normalized.options.length !== 4) issues.push('option-count');
+  if (normalized.options.length === 4 && normalized.options.some((option) => !stringInBand(option, 5, 95))) {
+    issues.push('option-length');
+  }
+  if (normalized.options.length === 4) {
+    const optionLengths = normalized.options.map((option) => clean(option).length);
+    if (Math.max(...optionLengths) > Math.min(...optionLengths) * 3 + 20) issues.push('option-homogeneity');
+  }
+  if (normalized.options.length === 4 && !unique(normalized.options)) issues.push('duplicate-options');
+  if (!Number.isInteger(normalized.answerIndex) || normalized.answerIndex < 0 || normalized.answerIndex > 3) {
+    issues.push('answer-index');
+  }
+  if (!stringInBand(normalized.explanation, 20, 300)) issues.push('explanation-length');
+  if (normalized.explanation && !TERMINAL_PUNCT_RE.test(normalized.explanation)) issues.push('truncated-explanation');
+  if (PROCESS_LEAK_RE.test([normalized.question, ...normalized.options, normalized.explanation].join(' '))) {
+    issues.push('process-leakage');
+  }
+  if (META_SURFACE_RE.test([normalized.question, ...normalized.options, normalized.explanation].join(' '))) {
+    issues.push('meta-surface');
+  }
+  if (/\b(?:all|none) of the above\b/i.test(normalized.options.join(' '))) issues.push('all-none-of-above');
+  if (findScionExplanationKeyConflict(normalized)) issues.push('explanation-key-conflict');
+  if (topicWords.length > 0) {
+    const combined = [normalized.question, ...normalized.options, normalized.explanation].join(' ').toLowerCase();
+    if (!topicWords.some((word) => combined.includes(clean(word).toLowerCase()))) issues.push('off-topic');
+  }
+  issues.push(...lintItemAdmission(normalized));
+  const deduped = [...new Set(issues)];
+  return {
+    eligible: deduped.length === 0,
+    issues: deduped,
+    score: Math.max(0, 100 - deduped.length * 15),
+    normalized,
+  };
+}
+
+export function assessScionKeyTerm(term = {}, { lessonTitle = '' } = {}) {
+  const issues = [];
+  for (const [key, min, max] of [
+    ['tr', 3, 60],
+    ['df', 45, 380],
+    ['eg', 12, 300],
+    ['mi', 12, 300],
+    ['cx', 12, 300],
+  ]) {
+    if (!stringInBand(term?.[key], min, max)) issues.push(`${key}-length`);
+  }
+  const name = clean(term?.tr);
+  const definition = clean(term?.df);
+  const normalizedLessonTitle = clean(lessonTitle)
+    .replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, '')
+    .toLowerCase();
+  if (name && normalizedLessonTitle && name.toLowerCase() === normalizedLessonTitle)
+    issues.push('term-is-lesson-title');
+  if (name.length > 6 && definition.split(/\s+/).slice(0, 6).join(' ').toLowerCase().includes(name.toLowerCase())) {
+    issues.push('circular-definition');
+  }
+  if (META_SURFACE_RE.test(`${definition} ${clean(term?.eg)}`)) issues.push('meta-definition');
+  if (clean(term?.df).toLowerCase() === clean(term?.cx).toLowerCase()) issues.push('correction-repeats-definition');
+  return { eligible: issues.length === 0, issues, score: Math.max(0, 100 - issues.length * 15) };
+}
+
+/** Validate the full compact kernel contract used by the Scion training seat. */
+export function assessScionKernelLesson(lesson = {}) {
+  const issues = [];
+  const facts = Array.isArray(lesson?.facts) ? lesson.facts : [];
+  if (facts.length < 5 || facts.length > 8) issues.push('facts-count');
+  if (facts.some((fact) => !stringInBand(fact, 25, 140))) issues.push('fact-length');
+
+  const keyTerms = Array.isArray(lesson?.keyTerms) ? lesson.keyTerms : [];
+  if (keyTerms.length < 3 || keyTerms.length > 6) issues.push('key-terms-count');
+  keyTerms.forEach((term, index) => {
+    for (const issue of assessScionKeyTerm(term).issues) issues.push(`key-term-${index}:${issue}`);
+  });
+
+  const scenario = lesson?.scenario || {};
+  const scenarioResult = analyzeDecisionScenario({ setup: scenario.su, materials: scenario.ma });
+  if (!scenarioResult.ready) issues.push(...scenarioResult.issues.map((issue) => `scenario:${issue}`));
+
+  const discussion = lesson?.discussionPrompt || {};
+  if (!stringInBand(discussion.pr, 20, 300)) issues.push('discussion-prompt');
+  if (!stringInBand(discussion.tn, 12, 300)) issues.push('discussion-tension');
+  if (!Array.isArray(discussion.po) || discussion.po.length < 2 || discussion.po.length > 3) {
+    issues.push('discussion-positions');
+  }
+
+  const assignment = lesson?.assignmentCore || {};
+  if (!stringInBand(assignment.td, 45, 500)) issues.push('assignment-task');
+  if (!Array.isArray(assignment.pa) || assignment.pa.length < 2 || assignment.pa.length > 4) {
+    issues.push('assignment-parameters');
+  }
+
+  const studyGuide = lesson?.studyGuide || {};
+  if (!stringInBand(studyGuide.sm, 70, 550)) issues.push('study-guide-summary');
+  if (!stringInBand(studyGuide.rs, 35, 380)) issues.push('study-guide-strategy');
+
+  const mc = Array.isArray(lesson?.mc) ? lesson.mc : [];
+  if (mc.length !== 4) issues.push('mc-count');
+  mc.forEach((item, index) => {
+    for (const issue of assessScionMcItem(item).issues) issues.push(`mc-${index}:${issue}`);
+  });
+
+  const deduped = [...new Set(issues)];
+  return { eligible: deduped.length === 0, issues: deduped, score: Math.max(0, 100 - deduped.length * 5) };
+}
+
+/**
+ * A preference pair is trainable only with pair-level evidence. Model identity
+ * or an aggregate benchmark never proves that every response from that model
+ * is the chosen response.
+ */
+export function assessScionPreferencePair({ kind, chosen, rejected, preferenceEvidence } = {}) {
+  let chosenResult;
+  let rejectedResult;
+  if (kind === 'mc-item') {
+    chosenResult = assessScionMcItem(chosen);
+    rejectedResult = assessScionMcItem(rejected);
+  } else if (kind === 'key-term') {
+    chosenResult = assessScionKeyTerm(chosen);
+    rejectedResult = assessScionKeyTerm(rejected);
+  } else if (kind === 'lesson') {
+    chosenResult = assessScionKernelLesson(chosen);
+    rejectedResult = assessScionKernelLesson(rejected);
+  } else {
+    return { eligible: false, issues: ['unsupported-pair-kind'] };
+  }
+
+  const issues = [];
+  if (!chosenResult.eligible) issues.push(...chosenResult.issues.map((issue) => `chosen:${issue}`));
+  if (!preferenceEvidence?.kind) issues.push('missing-pair-level-evidence');
+  else if (!TRAINABLE_PREFERENCE_EVIDENCE_KINDS.has(preferenceEvidence.kind)) {
+    issues.push('unsupported-preference-evidence-kind');
+  }
+  if (preferenceEvidence?.verified !== true) issues.push('unverified-preference-evidence');
+  if (
+    ['double-blind-key-repair', 'admission-and-key-repair'].includes(preferenceEvidence?.kind) &&
+    new Set(Array.isArray(preferenceEvidence?.verifierIds) ? preferenceEvidence.verifierIds.filter(Boolean) : []).size <
+      2
+  ) {
+    issues.push('missing-independent-verifier-diversity');
+  }
+  if (preferenceEvidence?.kind === 'applied-depth-and-key-repair' && preferenceEvidence?.reviewStatus !== 'approved') {
+    issues.push('missing-review-approval');
+  }
+  const blindInstructorMargin =
+    preferenceEvidence?.kind === 'blind-instructor-preference' &&
+    preferenceEvidence?.preferred === 'chosen' &&
+    preferenceEvidence?.unanimous === true &&
+    new Set(Array.isArray(preferenceEvidence?.reviewerIds) ? preferenceEvidence.reviewerIds.filter(Boolean) : [])
+      .size >= 2 &&
+    new Set(Array.isArray(preferenceEvidence?.reviewHashes) ? preferenceEvidence.reviewHashes.filter(Boolean) : [])
+      .size >= 2 &&
+    Array.isArray(preferenceEvidence?.reviewerRoles) &&
+    preferenceEvidence.reviewerRoles.length >= 2 &&
+    preferenceEvidence.reviewerRoles.every((role) => role === 'working-instructor');
+  if (preferenceEvidence?.kind === 'blind-instructor-preference' && !blindInstructorMargin) {
+    issues.push('invalid-blind-instructor-evidence');
+  }
+  if (
+    preferenceEvidence?.kind === 'admission-and-key-repair' &&
+    Object.prototype.hasOwnProperty.call(preferenceEvidence, 'declaredAnswer')
+  ) {
+    issues.push('post-hoc-key-realignment-not-trainable');
+  }
+  const appliedDepthMargin =
+    kind === 'mc-item' &&
+    preferenceEvidence?.kind === 'applied-depth-and-key-repair' &&
+    preferenceEvidence?.rejectedApplied === false &&
+    preferenceEvidence?.chosenApplied === true &&
+    Array.isArray(preferenceEvidence?.chosenAnswers) &&
+    preferenceEvidence.chosenAnswers.length === 2 &&
+    preferenceEvidence.chosenAnswers.every((answer) => answer === Number(chosen?.ai ?? chosen?.answerIndex)) &&
+    Array.isArray(preferenceEvidence?.groundingTokens) &&
+    preferenceEvidence.groundingTokens.length >= 2 &&
+    preferenceEvidence.groundingTokens.every((token) => containsGroundingToken(chosen?.q || chosen?.question, token)) &&
+    preferenceEvidence.groundingTokens.some(
+      (token) => !containsGroundingToken(rejected?.q || rejected?.question, token),
+    ) &&
+    !isAppliedQuizStem(rejected?.q || rejected?.question) &&
+    isAppliedQuizStem(chosen?.q || chosen?.question);
+  if (
+    rejectedResult.eligible &&
+    chosenResult.score <= rejectedResult.score &&
+    !appliedDepthMargin &&
+    !blindInstructorMargin
+  ) {
+    issues.push('no-deterministic-quality-margin');
+  }
+  return {
+    eligible: issues.length === 0,
+    issues,
+    chosen: chosenResult,
+    rejected: rejectedResult,
+  };
+}

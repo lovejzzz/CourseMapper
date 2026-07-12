@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.2
+**Current release:** v0.16.3
 
 ---
 
@@ -18,8 +18,8 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 5. **Cascade editing.** Edit one deliverable and the system automatically detects which other deliverables are affected and surgically regenerates just those lessons — no full regeneration.
 6. **Pedagogical validation.** Built-in Bloom's taxonomy alignment, objective coverage, cognitive load assessment, readability scoring, and difficulty progression checks — with auto-fix for common issues.
 7. **One-click package finalizer.** Export runs deterministic repair, targeted retry, readiness checks, and file verification before a package is marked ready. Save/load complete sessions as `.coursemapper` project files.
-8. **Multi-model support — including a free Scion path.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider, plus **Scion Draft**, the keyless Course Mapper authoring route (see “Scion” below). Auto-detects key format and auto-rotates through compatible cloud models on failure.
-9. **Privacy-first BYOK path.** There is no Course Mapper application backend in the default bring-your-own-key flow; project data is stored in your browser unless you explicitly enable a connected service. API keys go directly to the selected provider. Scion Draft is a separate public route: it needs no key, but sends the generation prompt to its third-party anonymous text endpoint.
+8. **Multi-model support — including a free Scion path.** Supports OpenAI, Anthropic, Google, and DeepSeek with native tool calling per provider, plus **Scion**, the keyless Course Mapper authoring route (see “Scion” below). Auto-detects key format and auto-rotates through compatible cloud models on failure.
+9. **Privacy-first BYOK path.** There is no Course Mapper application backend in the default bring-your-own-key flow; project data is stored in your browser unless you explicitly enable a connected service. API keys go directly to the selected provider. Public Scion is a separate keyless route that sends the generation prompt to its third-party anonymous text endpoint.
 
 > **What Course Mapper does NOT claim:** It does not fact-check content or verify citations. It does not replace instructor expertise. It is a drafting and productivity tool — it generates the scaffold, the instructor refines it.
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site currently exposes **Scion Draft (free)**. It is a keyless, experimental route through Pollinations' anonymous legacy text endpoint. Course Mapper requests Pollinations' `openai-fast` alias, but Pollinations chooses and may change the actual anonymous backing model; Scion therefore does not promise a fixed foundation-model identity. Scion Draft plans the course and authors compact lesson kernels; Course Mapper then compiles those kernels in the browser into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.3**. Those are intentionally simple product labels for EduTool's customized course-building AI system; they are not a claim that EduTool trained or hosts new foundation-model weights. Today, the public keyless route still uses Pollinations' anonymous legacy text endpoint and requests its `openai-fast` alias. Pollinations chooses and may change the anonymous backing model. Scion plans the course and authors compact lesson kernels, then Course Mapper's browser compiler turns those kernels into the selected deliverables.
 
 No API key is required and Course Mapper prices the route at $0. It is not an offline or private route: the prompt and relevant uploaded text are sent to the third-party endpoint. The service can also be rate-limited or unavailable. Do not send sensitive material, and review every generated course before using it with students.
 
@@ -42,26 +42,46 @@ Scion is a system rather than one model call:
 1. **Constrained authoring.** The model writes a compact course map and one lesson-specific knowledge kernel at a time instead of attempting nine finished deliverables in free-form prose.
 2. **One evidence-to-decision contract.** A scenario is accepted only when it has concrete context, an actionable decision or problem, inspectable evidence, a real tension or constraint, and specific materials. The same explainable contract drives prompting, admission, projection, and evaluation.
 3. **Admission and grounded recovery.** Course Mapper repairs narrowly defined response-shape defects, aligns recoverable answer keys, and rejects weak quiz atoms, unsupported inferences, and malformed content. If an authored scenario fails, the compiler may build a zero-call fallback only from already-admitted facts, examples, and misconception/correction atoms; the saved scenario records that provenance.
-4. **Deterministic compilation.** The same accepted kernel is projected into lesson plans, slides, assignments, rubrics, quizzes, discussions, study guides, and the package manifest. Structure, numbering, answer-key rotation, alignment, rationale framing, and file generation are compiler-owned.
-5. **Layered evaluation.** Contract fixtures catch compiler regressions; a strict paired diagnostic measures applied reasoning, supported inference, rationale contrast, scenario coverage/readiness, and cue-free claim-evidence-boundary answers; independent instructors and retained production canaries are still required before Course Mapper can claim independent validation or production proof.
+4. **Deterministic compilation.** The same accepted kernel is projected into lesson plans, slides, assignments, rubrics, quizzes, discussions, study guides, and the package manifest. Structure, numbering, answer-key rotation, alignment, rationale framing, and file generation are compiler-owned. For source-backed quizzes, one relevance-ranked genome concept owns each lesson's assessment bank; its verified items fill shared seats once, and shadow model alternatives are discarded instead of doubling the quiz.
+5. **Layered evaluation.** Contract fixtures catch compiler regressions; a strict paired diagnostic measures applied reasoning, supported inference, explanation-key agreement, rationale contrast, scenario coverage/readiness, and cue-free claim-evidence-boundary answers. Its lesson-level ledger classifies each matched behavior as `learn`, `preserve`, `repair`, `parity`, or `uncertain` without automatically turning a model difference into training data. The separate retained production-canary gate now passes; independent instructors are still required before Course Mapper can claim independent validation or instructor readiness.
 
-The current paired diagnostic does **not** show that Scion “beats” a named reference model. On one final User Experience Design Studio pair, Scion measured 67.6% vs. 59.1% on applied multiple-choice reasoning, 100% vs. 100% on supported inference, 100% vs. 9.1% on contrastive rationales, and 100% vs. 58.3% on decision-ready scenarios. Scion's cue-free and claim-evidence-boundary short answers were 100% vs. 0% in that saved pair. No measured reference advantage cleared the diagnostic's 10-point learning threshold; that is directional evidence about one pair, not a general model ranking. An earlier order-reversed advisory judge also showed position bias, so its apparent winner was correctly marked inconclusive.
+The current paired diagnostic does **not** show that Scion “beats” a named reference model. In one retained User Experience Design Studio pair, the fresh public Scion run (`round-2026-07-11T02-12-21-181Z`) reached 99/A with zero P0/P1 findings, 12/12 enriched lessons, and reported cost $0. The strict quiz comparison measured 67.6% vs. 59.1% applied multiple-choice reasoning, 100% vs. 100% supported inference, 100% vs. 9.1% contrastive rationales, 100% vs. 58.3% decision-ready scenarios, and 100% vs. 0% for both cue-free and claim-evidence-boundary short answers. The repaired Scion graph is now 37/37 on explanation-key alignment; the reference is 44/44. Scion has four aggregate quiz advantages and no aggregate quiz disadvantage on that pair. The 120-record quiz ledger contains 2 `learn`, 44 `preserve`, 2 `repair`, and 72 `parity` outcomes.
 
-See [evaluation/README.md](evaluation/README.md) for the gate definitions, claim boundary, and `npm run audit:quiz:contrast -- --strict ...` workflow.
+The same audit now emits a separate 72-record multi-surface ledger. It found authentic assignment cores and real discussion tensions on all 12 Scion lessons, plus authored study strategies on 9/12 lessons versus 0/12 in the reference. It also found two consistent reference advantages: four distinct assignment constraints (scope, format, evidence, and time/length) and a conditional or synthesis third discussion position. Those gaps now shape the Scion authoring prompt, but remain diagnostic-only until a fresh generation and human review verify improvement. This is strong directional evidence about one matched course, not a general model ranking or an instructor verdict. An earlier order-reversed advisory judge also showed position bias, so its apparent winner remains inconclusive.
+
+The evaluation matrix keeps Scion routes separate across five local artifact pairs and five domains (`npm run audit:scion:matrix`). The final production-safe local music-theory run (`round-2026-07-11T19-20-32-320Z`) captured the live source-of-truth graph, extracted 61 files, graded 59 at 99/A with zero P0/P1/P2 findings, completed 38/38 export checks without a failure or warning, reported $0, and finished in 254 seconds across 38 provider calls. Its readiness gate reported zero blockers, zero warnings, and no readability flags. All seven lessons were genome-augmented. Every lesson contains exactly four source-backed case questions: 28/28 multiple-choice items are applied, source-matched, supported, contrastively explained, answer-key aligned, and free of the admission lints. The current matrix row has zero `repair` records across quiz, multi-surface, and cross-artifact ledgers. Its only strict release-bar failure is scope—7 lessons observed versus the required 12—not a content-dimension failure.
+
+The current 12-lesson local UX capture (`round-2026-07-11T20-41-02-548Z`) closes that scope gap with an independent source-backed UX shard built from Digital.gov, the UK Government Service Manual, and W3C guidance. The real browser run reached 99/A, zero P0/P1, 101 extracted files, 38/38 export checks, six genome-linked lessons, and a strict paired-matrix pass across all 12 lessons. Against the retained GPT-5.6-Luna artifact, Scion produces the same count of applied MC items (27) but a lower rate because it ships 48 total MC items instead of 44 (56.3% vs. 61.4%). It matches supported inference and explanation-key alignment at 100%, matches scenario coverage and concrete materials at 100%, and leads on contrastive rationales (100% vs. 9.1%), decision-ready scenarios (100% vs. 58.3%), cue-free short answers (100% vs. 0%), and claim-evidence-boundary short answers (100% vs. 0%). This is a passed compiler-route comparison on one course, not a general model-superiority or instructor-readiness claim.
+
+The experiments also established an important limit. An aggressive model-backfill trial produced doubled option labels and several factually wrong music answers even though the same local model agreed with itself in two cold solves. That path is disabled in production. The 99/A grade verifies package structure and export quality; it is not a factual-correctness certificate. These results support a promising compiler pipeline—not a pooled claim that local Scion beats paid models.
+
+A separate frozen factual-canary gate now measures the gap the package grade missed. Across 25 source-anchored questions in five domains, GPT-5.4-mini scored 25/25 cold and Scion-1 scored 23/25 cold. When Scion received the complete verified Curriculum Genome support bundle, it also scored 25/25. The production key verifier now solves one item at a time and returns exact option text under a constrained enum instead of translating an answer into an error-prone zero-based index. This is evidence that the source-backed Scion system can close this narrow factual gap at $0; it is not evidence that the raw model beats GPT or that either system produces a more teachable course. The separate production-canary gate now **passes at 3/3 proof-eligible runs across two domains**, including the required public-Scion family. The third retained run is a compiler-hardened 12-lesson local-Scion UX package whose 39 sampled slides and 12 quiz pages passed fresh rendered inspection after machine enum and source-locator residue were removed.
+
+Foundation-model selection is now measured instead of assumed. `npm run audit:scion:model-bakeoff` registers Gemma 4 E2B, Qwen3.5 4B, Gemma 4 E4B, Qwen3.5 2B, and SmolLM3 3B under one fail-closed protocol. The Gemma screen scored 23/25 cold and 25/25 source-grounded twice; Qwen3.5 4B produced the same scores twice. An exact-provenance Qwen UX run then reached 99/A with zero P0/P1, 101 extracted files, and $0 in 382 seconds, but required 85 Scion quality-pass calls versus 50 in the legacy control. That control predates exact source-weight capture and therefore informs compiler burden without satisfying the new matched-control promotion gate. Qwen remains a challenger, not the default: it has one of five required full-course domains and no qualifying browser-device or independent-instructor evidence. The gate refuses to turn a public benchmark, a renamed endpoint, or one clean package into a promotion.
+
+`npm run audit:scion:compiler-burden -- --candidate <course-dir> --control <course-dir>` turns the same model run into a pipeline audit. The retained Qwen/control pair exposed 1.70× Scion-call amplification, 14 additional rejected quality actions, and shared applied-depth rewrite waste. Future runs attribute each Scion subcall by schema, promotion rejects more than 1.25× matched-control amplification, and the corrected applied-reasoning detector avoids 17/33 unnecessary rewrite targets on the saved Qwen inputs.
+
+That source-backed route now reaches the shipped music course path directly. Every one of the seven music kernels contains four anchored MC items with balanced answer positions—28 verified seats total. Genome items are merged before model items, so a partial music match still fills all four planned MC slots with the source-backed bank instead of allowing an unverified model key to replace them.
+
+Scion's preference flywheel is fail-closed. `npm run audit:scion:corpus` currently admits **0 of 411 rows**. Answer repairs need agreement from at least two distinct verifier identities, unknown evidence kinds are rejected, applied-stem repairs need explicit review approval, and post-hoc key realignment can never become training data. `npm run audit:scion:review-packet` derives neutral pairs from matched artifacts and prepares 50 anonymized A/B cases, balanced ten each across computer science, geology, music theory, user-experience design, and world literature. Every domain packet includes a self-contained offline review page that saves drafts locally and downloads packet-bound JSON without sending data to a server or revealing the organizer key. Two distinct working instructors who currently teach that domain must independently agree, attest no conflict of interest, and clear factual-correctness and teachability floors before `audit:scion:reviews` can write an approved row. Raw rows remain an evidence ledger; only the separate curated split can reach the ORPO launcher, which refuses to train below 3,000 verified pairs. See [docs/SCION_NEXT_LEVEL_PLAN.md](docs/SCION_NEXT_LEVEL_PLAN.md) for the verified-learning roadmap and promotion gates.
+
+See [evaluation/README.md](evaluation/README.md) for the gate definitions, claim boundary, paired contrast workflow, and route-separated matrix.
 
 ### Local research route
 
-The repository also contains a separate experimental local Scion server built around an open-weight Gemma research harness:
+The repository also contains a separate experimental, model-neutral local Scion server. Gemma 4 E2B remains the control; registered challengers must pass the same factual, full-course, browser-device, and instructor gates before becoming a default:
 
 ```bash
 npm run local-model # serves the local Scion-compatible endpoint at http://127.0.0.1:8799
+npm run audit:scion:model-bakeoff:list
+npm run audit:scion:model-bakeoff
 ```
 
-That local route is for development and evaluation and is not the Scion Draft option in the hosted provider picker. When it is run fully on-device, its prompts stay on that device; its hardware, model, and speed trade-offs are different from the public website route.
+`SCION_MODEL` may point the server at another registered MLX-compatible model for a controlled experiment. The server publishes both its friendly ID and exact source-weight ID; Crucible refuses source-mismatched evidence. That local route is for development and evaluation and is not the Scion Draft option in the hosted provider picker. When it is run fully on-device, its prompts stay on that device; its hardware, model, and speed trade-offs are different from the public website route.
 
 ---
 
-## Current Pipeline (v0.16.2)
+## Current Pipeline (v0.16.3)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -171,7 +191,7 @@ The full architecture lives in [docs/CURRICULUMOS_V1_DESIGN.md](docs/CURRICULUMO
 
 Go to [edutool.dev](https://edutool.dev). On the landing page:
 
-- **Scion Draft (free)** — Generate without an API key through the experimental public Scion route. Your prompt is sent to the route's third-party anonymous text endpoint, so do not use it for sensitive material.
+- **Scion** — Generate without an API key through the experimental public Scion route. Your prompt is sent to the route's third-party anonymous text endpoint, so do not use it for sensitive material.
 - **Bring your own key** — Select your provider (OpenAI, Anthropic, Google, or DeepSeek) and paste your API key. The app auto-detects key format and switches the provider dropdown.
 - Restored workspaces can reconfigure a missing or expired key in place from the Agent header by clicking the current model/config label.
 
@@ -485,6 +505,10 @@ npm run quality:browser:smoke     # browser generate/finish/export smoke
 npm run quality:agent:browser:smoke # real-browser agent quality smoke
 npm run audit:agent:openai        # private live OpenAI agent probe suite (needs OPENAI_API_KEY)
 npm run audit:agent               # live multi-agent suite (provider keys required)
+npm run audit:scion:matrix        # route-separated five-domain Scion/reference diagnostics
+npm run audit:scion:corpus        # fail-closed preference corpus curation
+npm run audit:scion:factual-canaries # frozen source-anchored factual packet
+npm run audit:scion:review-packet # balanced blind instructor-review packet
 ```
 
 Normal pushes to `main` are guarded by **Fast verification** in `.github/workflows/ci.yml`: format, lint, release-history audit, unit/closed-loop tests, blueprint fast quality, deliverable audit, pipeline audit, gold smoke, build, and bundle budgets.

@@ -501,7 +501,7 @@ function buildShortAnswerItem(kernel, index, seed = 0) {
         `Name the most defensible course lens, explain what the case supports, point to ${evidenceRequirement}, and state one boundary or next piece of evidence.`,
         `Choose the relevant concept or method without inferring hidden motives, use ${evidenceRequirement} to justify the conclusion, and name one limitation.`,
         `Identify the course principle that should guide the decision, cite ${evidenceRequirement}, distinguish support from assumption, and request one next piece of evidence.`,
-        `Which course method best explains the evidence? State a case-bounded conclusion, reference ${evidenceRequirement}, and name an alternative or limitation.`,
+        `Identify the course method that best explains the evidence, state a case-bounded conclusion, reference ${evidenceRequirement}, and name one alternative or limitation.`,
       ])
     : `Identify the most relevant course concept or method, explain the best-supported conclusion, cite ${evidenceRequirement}, and name one boundary or next piece of evidence.`;
   return {

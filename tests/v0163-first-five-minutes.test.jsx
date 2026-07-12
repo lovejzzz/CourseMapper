@@ -96,4 +96,11 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     expect(css).toMatch(/min-height:\s*44px/);
     expect(css).toMatch(/min-width:\s*44px/);
   });
+
+  it('keeps the real browser harness on the primary full-course journey', () => {
+    const harness = read('scripts/lib/crucibleBrowser.mjs');
+    expect(harness).toContain("page.getByTestId('landing-quick-start')");
+    expect(harness).toContain('Test the real primary journey when available.');
+    expect(harness).toContain('Customize package');
+  });
 });

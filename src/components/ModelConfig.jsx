@@ -19,7 +19,8 @@ import {
   readEnrichmentPreference,
   saveEnrichmentPreference,
 } from '../lib/enrichmentPreference';
-import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
+import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
+import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -291,7 +292,7 @@ export default function ModelConfig() {
   // Browser/local model providers are no longer selectable in the public app.
   // Redirect stale saved values before any local runtime work starts.
   useEffect(() => {
-    if (provider === 'webllm' || provider === 'free' || provider === 'local') {
+    if (provider === 'webllm' || provider === 'free' || (provider === 'local' && !isLocalProviderOptInEnabled())) {
       setProvider(PUBLIC_SCION_PROVIDER_ID);
       return;
     }
@@ -412,7 +413,11 @@ export default function ModelConfig() {
       Boolean(cachedState.modelId) &&
       cachedState.availableModels.some((model) => model.id === cachedState.modelId);
     const isRestoredLocalProvider =
-      provider === 'local' && !providerChanged && !apiKeyChanged && localProbeAttempt === 0;
+      provider === 'local' &&
+      !providerChanged &&
+      !apiKeyChanged &&
+      localProbeAttempt === 0 &&
+      !isLocalProviderOptInEnabled();
 
     if (!hasSelectableCachedModel) {
       setApiStatus('idle');
@@ -667,7 +672,7 @@ export default function ModelConfig() {
               onChange={(e) => setProvider(e.target.value)}
               className="input-glass w-full rounded-xl px-3.5 py-2.5 pr-9 text-sm text-slate-700 focus:outline-none appearance-none cursor-pointer"
             >
-              <option value="public">Scion Draft (free)</option>
+              <option value="public">Scion</option>
               <option value="openai">OpenAI</option>
               <option value="anthropic">Anthropic</option>
               <option value="google">Google</option>
@@ -737,37 +742,20 @@ export default function ModelConfig() {
             </>
           ) : provider === PUBLIC_SCION_PROVIDER_ID ? (
             <>
-              <div className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase">Draft mode</div>
-              {apiStatus === 'connected' ? (
-                <div className="flex w-full items-center gap-2 rounded-squircle-xs border border-amber-200/70 bg-amber-50/60 px-3.5 py-2.5 text-sm text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">
-                  <svg
-                    className="h-4 w-4 shrink-0 text-amber-500 dark:text-amber-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2.5}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                    />
-                  </svg>
-                  No key needed · review drafts before publishing
-                </div>
-              ) : apiStatus === 'validating' ? (
-                <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-500">
-                  Preparing Scion…
-                </div>
-              ) : apiStatus === 'error' ? (
-                <div className="w-full rounded-squircle-xs bg-red-50/40 border border-red-200/50 px-3.5 py-2.5 text-sm text-red-600">
-                  {validationErrorLabel}
-                </div>
-              ) : (
-                <div className="w-full rounded-squircle-xs bg-slate-50/60 border border-slate-200/40 px-3.5 py-2.5 text-sm text-slate-500">
-                  No setup needed
-                </div>
-              )}
+              <label
+                htmlFor={apiKeyId}
+                className="block text-xs font-medium text-slate-500 mb-1.5 tracking-wide uppercase"
+              >
+                API
+              </label>
+              <input
+                id={apiKeyId}
+                type="text"
+                disabled
+                value="No API key required"
+                aria-label="API"
+                className="w-full cursor-not-allowed rounded-squircle-xs border border-slate-200/70 bg-slate-100/80 px-3.5 py-2.5 text-sm text-slate-400 opacity-90 dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-500"
+              />
             </>
           ) : provider === 'webllm' ? (
             <>
@@ -933,9 +921,7 @@ export default function ModelConfig() {
             >
               {availableModels.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {provider === PUBLIC_SCION_PROVIDER_ID
-                    ? 'Scion Draft · planner + lesson writer'
-                    : describeModelOption(m)}
+                  {provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_MODEL_NAME : describeModelOption(m)}
                 </option>
               ))}
             </select>
@@ -952,7 +938,7 @@ export default function ModelConfig() {
                   : apiStatus === 'error'
                     ? validationErrorLabel
                     : provider === PUBLIC_SCION_PROVIDER_ID
-                      ? 'Scion Draft ready'
+                      ? PUBLIC_SCION_MODEL_NAME
                       : 'Enter API key first'}
             </div>
           )}
@@ -986,11 +972,11 @@ export default function ModelConfig() {
       )}
       {hasSelectableModels && provider === PUBLIC_SCION_PROVIDER_ID && (
         <div
-          className="mt-4 rounded-squircle-xs border border-amber-200/70 bg-amber-50/60 px-3.5 py-3 text-xs leading-relaxed text-amber-900 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100"
+          className="mt-4 rounded-squircle-xs border border-indigo-100/80 bg-indigo-50/50 px-3.5 py-3 text-xs leading-relaxed text-slate-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-200"
           data-testid="scion-draft-boundary"
         >
-          Scion Draft plans the course, writes compact lesson knowledge kernels, and compiles the package locally. Its
-          anonymous model can still make mistakes, so review and revise materials before publishing.
+          Scion is EduTool&apos;s customized course-building AI. It combines a compact model with a teaching-focused
+          compiler to create aligned course materials.
         </div>
       )}
       {hasSelectableModels && provider !== PUBLIC_SCION_PROVIDER_ID && (

@@ -1,5 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from '../projectSnapshotSanitizer';
+import {
+  prepareProjectSnapshotForRestore,
+  restoreAuthoredOverlayForSnapshot,
+  sanitizeProjectSnapshot,
+} from '../projectSnapshotSanitizer';
+
+describe('restoreAuthoredOverlayForSnapshot', () => {
+  it('reattaches the compiler-owned overlay when a re-derived graph lost it', () => {
+    const graph = { sessions: [{ id: 's1', number: 1 }], enrichmentOverlay: null };
+    const overlay = { lessonContent: { 'lesson-1': { quizItems: [{ type: 'short_answer' }] } } };
+    expect(restoreAuthoredOverlayForSnapshot(graph, overlay)).toEqual({ ...graph, enrichmentOverlay: overlay });
+    expect(restoreAuthoredOverlayForSnapshot({ ...graph, enrichmentOverlay: { kept: true } }, overlay)).toEqual({
+      ...graph,
+      enrichmentOverlay: { kept: true },
+    });
+  });
+});
 
 describe('sanitizeProjectSnapshot', () => {
   it('removes secret fields recursively without dropping model configuration', () => {

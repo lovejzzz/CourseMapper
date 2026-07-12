@@ -1648,7 +1648,7 @@
         {
           "stem": "A natural experiment supports a causal claim only when",
           "options": [
-            "the two groups were comparable apart from the change",
+            "the groups differed only by the change",
             "the sample is very large",
             "the policy was popular",
             "the data are recent"

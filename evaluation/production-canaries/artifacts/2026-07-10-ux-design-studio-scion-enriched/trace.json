@@ -1,0 +1,131 @@
+{
+  "digestVersion": 1,
+  "appVersion": "0.16.1",
+  "runId": "run-1783667231682",
+  "finishRunId": "finish-mrelf9g6-mfbao",
+  "at": "2026-07-10T07:07:27.153Z",
+  "elapsedMs": 15471,
+  "run": {
+    "provider": "public",
+    "models": [
+      "scion-public"
+    ],
+    "lessonCount": 12,
+    "features": [
+      "courseMap",
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "providerCalls": 17
+  },
+  "pipeline": {
+    "courseIRAuthoring": "skipped: Scion Draft uses the compact course-map contract; native skeleton authoring is unavailable",
+    "courseMap": "scion-public: lessons 10-12",
+    "examine": "skipped: Deterministic checks passed",
+    "genomeLinker": "0 genome + 0 cached of 12 lessons (0 concepts, 0 citations, 0 bridges)",
+    "judgment": "not evaluated (0 genome-linked lessons)",
+    "enrichmentModelStage": "ran (12 lessons enriched) (linker: ran)",
+    "knowledgeBackbone": "0/12 lessons genome-linked · 8 cited open resources (openalex: 5, source-finder: 3) · 12/12 lessons with readings",
+    "courseGraph": "12 sessions · 12 concepts (0 genome-linked, 12 authored) · 24 outcomes",
+    "groundingMetrics": "overall 49.4% · syllabus 4% · lessonPlans 2% · slideDecks 26% · assignments 99% · rubrics 16% · discussions 98% · quizBank 36% · studyGuides 9% · courseFaq 38%",
+    "voicePass": "voiced 8 surface(s), 0 fallback(s) (~$0.010) — voice-surface texture 98→100 (improved)",
+    "enrichment": "ran (12 lessons enriched)"
+  },
+  "compilerSavings": {
+    "featureIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "source": "enriched-blueprint",
+    "compiledFeatureCount": 9,
+    "savedProviderCalls": 31,
+    "lastAt": 1783667242158
+  },
+  "cost": {
+    "totalUsd": 0,
+    "totalDisplay": "$0.00",
+    "inputTokens": 17292,
+    "outputTokens": 12091,
+    "reasoningOutputTokens": 0,
+    "cachedInputTokens": 0,
+    "accuracy": "tokens provider-reported; cost from published per-token rates",
+    "byTask": [
+      {
+        "task": "blueprintEnrichment",
+        "calls": 12,
+        "inputTokens": 10851,
+        "outputTokens": 9309,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "repair",
+        "calls": 3,
+        "inputTokens": 3154,
+        "outputTokens": 1799,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "voicePass",
+        "calls": 1,
+        "inputTokens": 2311,
+        "outputTokens": 561,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "course-map",
+        "calls": 1,
+        "inputTokens": 976,
+        "outputTokens": 422,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      }
+    ]
+  },
+  "gates": {
+    "finalStatus": "ready",
+    "blockers": 0,
+    "warnings": 0,
+    "repairsApplied": 12,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "qualityStatus": "graded",
+    "qualityScore": 99,
+    "qualityGrade": "A",
+    "qualityP0": 0,
+    "qualityP1": 0,
+    "qualityP2": 0,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": []
+  }
+}

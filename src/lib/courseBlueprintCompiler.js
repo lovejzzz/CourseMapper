@@ -4,6 +4,9 @@ import {
   cleanText,
   dedupeNumberedAssessmentEcho,
   escapeRegexLiteral,
+  humanizeClassroomSourceCue,
+  humanizeQuizText,
+  humanSourceCueLabel,
   removeNumberedAssessmentEchoes,
   isObjectiveStemOnly,
   normalizeObjectiveText,
@@ -32,6 +35,8 @@ import {
   normalizeInstructorPreferenceProfile,
   summarizeInstructorPreferenceProfile,
 } from './instructorPreferenceProfile';
+
+export { humanSourceCueLabel };
 
 export const BLUEPRINT_COMPILED_FEATURES = new Set([
   'syllabus',
@@ -309,9 +314,29 @@ function joinCriteriaSentence(criteria = []) {
   const parts = asArray(criteria)
     .map((criterion) => stripTerminalPunctuation(criterion))
     .filter(Boolean)
-    .map((criterion) => criterion.charAt(0).toLowerCase() + criterion.slice(1));
+    .map((criterion) => sentenceCase(criterion));
   if (parts.length === 0) return 'meets the published success criteria.';
-  return `${parts.join('; ')}.`;
+  return parts.map((criterion) => `${criterion}.`).join(' ');
+}
+
+// Preserve the authored misconception/correction while keeping compiler
+// surfaces readable. Long model clauses are shortened only at a sentence or
+// clause boundary; the complete source atom remains in the genome and graph.
+function readableMisconception(value) {
+  const text = stripTerminalPunctuation(cleanText(value));
+  return conciseClause(text, text || 'the common misunderstanding', 150);
+}
+
+function readableCorrection(value) {
+  const text = stripTerminalPunctuation(cleanText(value).replace(/^in fact[,:]?\s*/i, ''));
+  return conciseClause(text, text || 'use the documented correction', 140);
+}
+
+function readableSentences(value) {
+  return cleanText(value)
+    .replace(/\s*;\s*/g, '. ')
+    .replace(/\s+—\s+/g, '. ')
+    .replace(/\.\s*\./g, '.');
 }
 
 function sanitizeAssignmentParameterForStudent(value) {
@@ -409,12 +434,33 @@ function highRiskEnrichmentIdentityTokenSet(enrichment = {}) {
   );
 }
 
+function supportingEnrichmentIdentityTokenSet(enrichment = {}) {
+  if (!enrichment || typeof enrichment !== 'object') return new Set();
+  return new Set(
+    [
+      ...(enrichment.keyTerms || []).map((term) => term?.term),
+      ...(enrichment.kernel?.facts || []),
+      ...(enrichment.slideContent || []).map((slide) => slide?.title),
+    ].flatMap(identityTokens),
+  );
+}
+
 function enrichmentMatchesLessonIdentity(lesson = {}, enrichment = null) {
   if (!enrichment || typeof enrichment !== 'object') return true;
   const lessonTokens = lessonIdentityTokenSet(lesson);
   const highRiskTokens = highRiskEnrichmentIdentityTokenSet(enrichment);
   if (lessonTokens.size === 0 || highRiskTokens.size === 0) return true;
-  return [...highRiskTokens].some((token) => lessonTokens.has(token));
+  if ([...highRiskTokens].some((token) => lessonTokens.has(token))) return true;
+
+  // A well-grounded generated kernel can describe a concrete scenario whose
+  // vocabulary intentionally differs from the lesson title (for example, a
+  // smart-appliance case in Human-Centered Design). Do not discard that
+  // subject matter merely because the scenario nouns differ. Two overlaps in
+  // the kernel's terms/facts/slide claims are strong enough to establish the
+  // lesson identity while still rejecting a stale cross-lesson payload.
+  const supportingTokens = supportingEnrichmentIdentityTokenSet(enrichment);
+  const supportingOverlap = [...supportingTokens].filter((token) => lessonTokens.has(token));
+  return new Set(supportingOverlap).size >= 2;
 }
 
 function blueprintDomainText(blueprint = {}) {
@@ -532,59 +578,6 @@ function compactSourceCue(value, fallback = 'assigned source materials', maxWord
 function compactFallbackEvidencePacket(title, lessonNumber) {
   const focus = compactSourceCue(stripLessonPrefix(title), `Lesson ${lessonNumber} source`, 4);
   return `${focus} source packet`;
-}
-
-// ── v0.16 citation-splice fix ───────────────────────────────────────────────
-// A source cue that is really a LEDGER CITATION ("Wikipedia contributors.
-// Independent politician. Wikipedia: https://…") must never be spliced into
-// sentence prose — the URL truncates mid-scheme ("Wikipedia: https: evidence")
-// and an author name reads as a noun ("the clearest Mieke De Cock use").
-// Reduce a citation-shaped cue to its source TITLE; a cue that is only an
-// author name falls back to the caller's neutral label.
-const CITATION_AUTHOR_SIGNAL_RE = /\b(?:contributors?|et\s+al)\b/i;
-const NAME_PARTICLE_RE = /(?:^|\s)(?:van|von|de|da|der|den|del|di|la|le|el|bin|ibn|mac|mc|st)(?:\s|$)/i;
-
-function looksLikePersonNameCue(value) {
-  const text = cleanText(value);
-  if (!text || /[\d:/@]/.test(text)) return false;
-  const words = text.split(/\s+/);
-  if (words.length < 2 || words.length > 4) return false;
-  if (!words.every((word) => /^[A-Z][\w'’.-]*$/.test(word))) return false;
-  // Only flag shapes that carry a NAME signal (a particle like "De"/"van" or
-  // a bare initial) — plain title-case phrases ("Linear Algebra") stay cues.
-  return NAME_PARTICLE_RE.test(text) || words.some((word) => /^[A-Z]\.$/.test(word));
-}
-
-function isCitationShapedSourceCue(text) {
-  if (/https?:|www\./i.test(text)) return true;
-  if (CITATION_AUTHOR_SIGNAL_RE.test(text)) return true;
-  // Author. Title. Publisher: locator — three or more sentence-ish segments
-  // with a colon-led locator tail is citation punctuation, not prose.
-  return text.split(/\.\s+/).length >= 3 && /:\s*\S/.test(text);
-}
-
-export function humanSourceCueLabel(value, fallback) {
-  const text = stripTerminalPunctuation(cleanText(value));
-  if (!text) return fallback;
-  if (looksLikePersonNameCue(text)) return fallback;
-  if (!isCitationShapedSourceCue(text)) return text;
-  const segments = text
-    .split(/\.\s+/)
-    .map((segment) =>
-      stripTerminalPunctuation(cleanText(segment))
-        .replace(/:\s*https?.*$/i, '')
-        .trim(),
-    )
-    .filter(
-      (segment) =>
-        segment &&
-        !/https?:|www\./i.test(segment) &&
-        !/^(?:available|retrieved|accessed)\b/i.test(segment) &&
-        !CITATION_AUTHOR_SIGNAL_RE.test(segment) &&
-        !looksLikePersonNameCue(segment),
-    );
-  const title = segments.find((segment) => wordCount(segment) >= 2);
-  return title || fallback;
 }
 
 const PROMPT_ARTIFACT_EVIDENCE_LABELS = [
@@ -4918,6 +4911,7 @@ function buildModelContrast({ title, concepts, artifact, evidencePlan }) {
 
 function buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan, lessonNumber }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
+  const shortTitle = stripLessonPrefix(title);
   const artifactName = stripTerminalPunctuation(artifact);
   const sourceCue = humanSourceCueLabel(evidencePlan?.sourceCue, `${stripLessonPrefix(title)} course materials`);
   const lessonStub = lessonStubFromTitle(title, artifact);
@@ -4929,7 +4923,7 @@ function buildReadinessSupportPlan({ title, concepts, artifact, evidencePlan, le
       `Use a two-minute readiness prompt: what does ${sourceCue} prove, limit, or complicate about ${concept}?`,
     ]),
     readinessEvidence: `Students are ready when they can cite inspectable evidence, explain why it matters, and connect it to ${artifactName}.`,
-    supportMove: `If students cannot cite evidence for ${concept}, give them a worked sentence frame and have them annotate one detail from ${sourceCue} before drafting ${artifactName}.`,
+    supportMove: `In ${shortTitle}, give students a worked sentence frame if they cannot cite evidence for ${concept}. Have them mark one detail from ${sourceCue} before drafting ${artifactName}.`,
     extensionMove: `If students are ready, ask them to compare two possible evidence choices and justify which one makes ${artifactName} more defensible.`,
     groupingCue: lessonVariant({ title, lessonNumber }, [
       `Use the ${concept} warm-up evidence to decide who can draft ${artifactName}, who needs comparison examples, and who needs a support frame.`,
@@ -5241,6 +5235,7 @@ function lessonArtifactGenre(lesson = {}) {
 }
 
 function safeLessonPlanArtifact(lesson = {}, fallbackKind = 'artifact') {
+  if (lessonArtifactGenre(lesson) === 'autograded-quiz') return weekScopedArtifactReference(lesson, 'quiz');
   const labeledKind = promptLabeledArtifactKind(lesson?.studentArtifact);
   if (labeledKind) return weekScopedArtifactReference(lesson, labeledKind);
   const artifact = safeLessonArtifact(lesson, fallbackKind);
@@ -7109,19 +7104,19 @@ function contextualizeModalityRoutine(kind, base, { lesson = {}, concept = '', a
       `${title} adapts the course pattern: ${routine}, focused on ${concept}.`,
     ],
     evidenceRoutine: [
-      `${sentenceCase(routine)}; in ${title}, the checkout is a visible ${concept} evidence move in ${artifact}.`,
-      `For ${title}, ${routine}; students label the ${secondary} detail that makes ${artifact} credible.`,
-      `${sentenceCase(routine)} while students show which ${concept} evidence changes the ${artifact} decision.`,
+      `${ensureSentenceCompiler(`During ${title} ${routine}`)} The checkout is a visible ${concept} evidence move in ${artifact}.`,
+      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Students label the ${secondary} detail that makes ${artifact} credible.`,
+      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Students show which ${concept} evidence changes the ${artifact} decision.`,
     ],
     feedbackRoutine: [
-      `${sentenceCase(routine)}; calibrate feedback against ${concept}, ${secondary}, and ${artifact}.`,
-      `For ${title}, ${routine}; the feedback target is the most fragile evidence link in ${artifact}.`,
-      `${sentenceCase(routine)} and require one revision that makes ${concept} reasoning inspectable.`,
+      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Check feedback against ${concept}, ${secondary}, and ${artifact}.`,
+      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Target the weakest evidence link in ${artifact}.`,
+      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Require one revision that makes ${concept} reasoning inspectable.`,
     ],
     instructorMove: [
-      `${sentenceCase(routine)} for ${title}, then ask which ${concept} evidence changes ${artifact}.`,
-      `Model the ${title} decision by using the routine to test ${secondary} evidence before students revise ${artifact}.`,
-      `${sentenceCase(routine)}; close by having students name the next ${concept} move in ${artifact}.`,
+      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Ask which ${concept} evidence changes ${artifact}.`,
+      `Model the ${title} decision. Use the routine to test ${secondary} evidence before students revise ${artifact}.`,
+      `${ensureSentenceCompiler(`During ${title} ${routine}`)} Close by having students name the next ${concept} move in ${artifact}.`,
     ],
   };
   return rotatedLessonTemplate(templates[kind] || [`${sentenceCase(routine)} for ${title}.`], lesson, kind.length);
@@ -8239,10 +8234,10 @@ function buildArtifactGenreDecode(lesson = {}, profile = {}, modalityDecode = {}
     reviewProtocol: `${details.reviewProtocol} for ${stripLessonPrefix(lesson.title)}.`,
     commonFailure: details.commonFailure,
     revisionMove: lessonVariant(lesson, [
-      `Revise ${artifact} by strengthening one ${concept} evidence link, naming what feedback changed, and using this feedback routine: ${feedbackRoutine}.`,
-      `After feedback, return to ${artifact}, name what feedback changed, and make the weakest ${concept} evidence link inspectable through this routine: ${feedbackRoutine}.`,
-      `Use ${feedbackRoutine} to revise ${artifact}; the revision note should state what feedback changed and which ${concept} claim now has better support.`,
-      `For ${artifact}, convert feedback into one visible ${concept} revision: identify what feedback changed, then point to the evidence link that improved.`,
+      `Revise ${artifact} by strengthening one ${concept} evidence link. Name what feedback changed. Use this routine: ${ensureSentenceCompiler(conciseClause(feedbackRoutine, feedbackRoutine, 150))}`,
+      `After feedback, return to ${artifact} and name what changed. Make the weakest ${concept} evidence link inspectable. Use this routine: ${ensureSentenceCompiler(conciseClause(feedbackRoutine, feedbackRoutine, 150))}`,
+      `Use this routine to revise ${artifact}: ${ensureSentenceCompiler(conciseClause(feedbackRoutine, feedbackRoutine, 150))} State what feedback changed. Name the ${concept} claim that now has better support.`,
+      `For ${artifact}, convert feedback into one visible ${concept} revision. Identify what changed. Then point to the evidence link that improved.`,
     ]),
     modalityFit: `This ${genre} should be reviewed inside the ${profile.primaryMode || 'course'} pattern, not as a generic submission.`,
   };
@@ -12849,7 +12844,7 @@ function buildLessonLearnerContextCue(profile = {}, lesson = {}) {
     lesson?.readinessSupport?.supportMove ||
     profile.supportAssumptions?.[0] ||
     'provide a concrete model before asking students to work independently';
-  return `${stripLessonPrefix(lesson?.title)} treats students as ${role}s: they need to connect ${concept} ${evidenceNoun} to ${artifact}, make a ${decisionNoun}, and use support such as ${support}`;
+  return `${stripLessonPrefix(lesson?.title)} treats students as ${role}s. They connect ${concept} ${evidenceNoun} to ${artifact} and make a ${decisionNoun}. Support move: ${ensureSentenceCompiler(conciseClause(support, support, 150))}`;
 }
 
 function lessonLearnerContextCue(blueprint, lesson) {
@@ -13579,7 +13574,7 @@ function buildAssessmentCriteria(lesson) {
       `${artifact} evidence choices that make ${concept} inspectable`,
       `Accuracy of the ${concept} claim and supporting evidence`,
     ]),
-    `Analysis logic that connects ${concept} to the lesson decision`,
+    `Analysis logic for ${concept}`,
     `Professional communication organized around ${stripLessonPrefix(lesson.title)}`,
     revisionCriteria[seed % revisionCriteria.length],
   ];
@@ -13595,12 +13590,12 @@ function buildAssessmentValidityEvidence(lesson) {
     authenticPerformance: `The task asks students to produce ${artifact}, not only recall vocabulary, so performance evidence comes from applied reasoning in ${stripLessonPrefix(lesson.title)}.`,
     validityThreat: `A polished but unsupported ${artifact} could hide weak ${concept} reasoning if scoring does not require inspectable evidence from ${sourceCue}.`,
     calibrationCheck: lessonVariant(lesson, [
-      `Before scoring ${title}, compare one strong and one partial ${artifact} sample; the stronger sample should cite ${sourceCue}, explain the ${concept} decision, and name a limitation.`,
-      `Start calibration for ${title} with two ${artifact} anchors. Score the stronger one for source use from ${sourceCue}, visible ${concept} reasoning, and a bounded claim.`,
-      `Use a strong and developing ${artifact} example for ${title}; the higher-scoring response should make the ${sourceCue} evidence and ${concept} decision easy to inspect.`,
-      `Norm scoring for ${title} by contrasting two ${artifact} samples, then identify which ${sourceCue} detail makes the stronger ${concept} decision defensible.`,
-      `Before assigning points for ${title}, have scorers explain why one ${artifact} anchor uses ${sourceCue} more precisely and states the ${concept} limit more clearly.`,
-      `Calibrate ${title} with paired ${artifact} anchors: one should show explicit ${sourceCue} evidence, a clear ${concept} decision, and an honest boundary.`,
+      `Before scoring ${title}, compare one strong and one partial ${artifact} sample. The stronger sample should cite ${sourceCue}. It should explain the ${concept} decision and name a limit.`,
+      `Start calibration for ${title} with two ${artifact} anchors. The stronger one should use ${sourceCue}, show the ${concept} reasoning, and bound its claim.`,
+      `Use a strong and developing ${artifact} example for ${title}. The higher score should make the ${sourceCue} evidence and ${concept} decision easy to inspect.`,
+      `Norm scoring for ${title} with two ${artifact} samples. Identify which ${sourceCue} detail makes the stronger ${concept} decision defensible.`,
+      `Before assigning points for ${title}, compare two ${artifact} anchors. Ask which one uses ${sourceCue} more precisely and states the ${concept} limit clearly.`,
+      `Calibrate ${title} with two ${artifact} anchors. One should show clear ${sourceCue} evidence, a sound ${concept} decision, and an honest boundary.`,
     ]),
   };
 }
@@ -13652,25 +13647,25 @@ function buildCriterionEvidenceMap(lesson, criteria, validityEvidence) {
   return criteria.map((criterion, index) => ({
     criterion,
     evidenceNeeded: lessonVariant(lesson, [
-      `For "${criterion}", look for an inspectable ${concept} detail from ${sourceCue} that changes a visible choice in ${artifact}.`,
-      `For "${criterion}", the scorer should be able to locate the ${sourceCue} evidence and explain the ${artifact} decision it affects.`,
-      `Evidence for "${criterion}" should make the ${concept} reasoning in ${artifact} observable, not implied.`,
-      `Use "${criterion}" to check whether a concrete ${sourceCue} detail changes the claim, limit, or revision in ${artifact}.`,
+      `Criterion: ${criterion}. Look for one inspectable ${concept} detail from ${sourceCue}. It must change a visible choice in ${artifact}.`,
+      `Criterion: ${criterion}. Locate the evidence in ${sourceCue}. Explain which ${artifact} decision it affects.`,
+      `Criterion: ${criterion}. Make the ${concept} reasoning in ${artifact} visible rather than implied.`,
+      `Criterion: ${criterion}. Check whether one detail from ${sourceCue} changes the claim, limit, or revision in ${artifact}.`,
     ]),
     strongSignal:
       index === 0 && keyTerm
-        ? `Strong work uses ${keyTerm.term} correctly — ${lowercaseSentenceLead(stripTerminalPunctuation(keyTerm.definition))} — and applies it to a concrete case in ${artifact}.`
+        ? `Strong work uses ${keyTerm.term} correctly. Definition: ${ensureSentenceCompiler(conciseClause(keyTerm.definition, keyTerm.definition, 140))} Apply it to a concrete case in ${artifact}.`
         : index === 0
           ? `Strong evidence names the relevant ${concept} detail, explains why it matters, and connects it directly to ${artifact}.`
           : lessonVariant(lesson, [
-              `Strong evidence connects ${criterion.toLowerCase()} to a specific decision, limitation, or revision in ${artifact}.`,
-              `Look for ${criterion.toLowerCase()} evidence that changes a concrete choice, boundary, or next revision in ${artifact}.`,
-              `A strong signal shows how ${criterion.toLowerCase()} affects the ${artifact} decision and names the evidence limit.`,
-              `Evidence is strongest when ${criterion.toLowerCase()} makes a visible ${artifact} revision or constraint easier to judge.`,
+              `Strong evidence addresses ${criterion.toLowerCase()}. It supports a specific decision, limit, or revision in ${artifact}.`,
+              `Look for evidence about ${criterion.toLowerCase()}. It must change a choice, boundary, or next revision in ${artifact}.`,
+              `A strong signal addresses ${criterion.toLowerCase()}. It affects the ${artifact} decision and names the evidence limit.`,
+              `Strong evidence addresses ${criterion.toLowerCase()}. It makes a visible ${artifact} revision or constraint easier to judge.`,
             ]),
     partialSignal:
       index === 0 && misconceptionTerm
-        ? `Weak work shows the common misunderstanding — ${lowercaseSentenceLead(stripTerminalPunctuation(misconceptionTerm.misconception))} — or uses ${misconceptionTerm.term} without applying it; score it below full credit and point to the correction.`
+        ? `Weak work shows the common misunderstanding. ${ensureSentenceCompiler(readableMisconception(misconceptionTerm.misconception))} It may also name ${misconceptionTerm.term} without applying it. Score below full credit and point to the correction.`
         : `Partial evidence mentions ${concept} or ${artifact} but leaves the reasoning, limitation, or criterion connection implicit.`,
     feedbackMove: buildCriterionFeedbackMove({ lesson, criterion, index }),
     calibrationQuestion: buildCriterionCalibrationQuestion({ lesson, criterion, index, validityEvidence }),
@@ -13706,7 +13701,7 @@ function buildCriterionFeedbackMove({ lesson = {}, criterion = '', index = 0 }) 
   const sourceCue = safeLessonEvidenceCue(lesson);
   const criterionLabel = cleanText(criterion, `criterion ${index + 1}`);
   if (index === 0 || /\b(accuracy|evidence|source)\b/i.test(criterionLabel)) {
-    return `Revise ${artifact} by tying the ${concept} evidence for "${criterionLabel}" to ${sourceCue}, one limitation, and the visible decision.`;
+    return `Revise ${artifact} for this criterion: ${criterionLabel}. Start by tying the ${concept} evidence to ${sourceCue}. Name one limit and show the decision.`;
   }
   if (index === 1 || /\b(analysis|logic|reasoning|decision)\b/i.test(criterionLabel)) {
     return `Strengthen "${criterionLabel}" by adding the missing reasoning step between the ${concept} evidence, the tradeoff, and the ${artifact} decision.`;
@@ -13996,10 +13991,10 @@ function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, v
     `Partial evidence mentions ${concept} or ${artifact} but leaves the reasoning implicit.`;
   return {
     strongSample: lessonVariant(lesson, [
-      `Strong ${artifact} anchor: cites a concrete detail from ${sourceCue}, explains how it changes the ${concept} decision, names one limitation, and states the revision made before submission.`,
-      `Strong ${artifact} anchor: points to ${sourceCue}, explains the ${concept} evidence move, identifies a limit, and makes the revision visible.`,
-      `Strong ${artifact} anchor: uses ${sourceCue} to support the ${concept} decision, shows why the evidence matters, and records the final improvement.`,
-      `Strong ${artifact} anchor: grounds the claim in ${sourceCue}, separates evidence from assumption, and names the feedback-informed edit.`,
+      `Strong ${artifact} anchor. It cites one detail from ${sourceCue}. It explains the ${concept} decision, names one limit, and shows the revision.`,
+      `Strong ${artifact} anchor. It points to ${sourceCue} and explains the ${concept} evidence move. It identifies a limit and shows the revision.`,
+      `Strong ${artifact} anchor. It uses ${sourceCue} to support the ${concept} decision. It explains the evidence and records the final improvement.`,
+      `Strong ${artifact} anchor. It grounds the claim in ${sourceCue}. It separates evidence from assumption and names the feedback-based edit.`,
     ]),
     partialSample: lessonVariant(lesson, [
       `Partial ${artifact} anchor: summarizes ${concept}, mentions ${sourceCue} generally, but does not make the evidence link, limitation, or revision decision inspectable.`,
@@ -14010,8 +14005,8 @@ function buildAssessmentAnchorExamples(lesson, criteria, criterionEvidenceMap, v
     criterionFocus: primaryCriterion,
     strongSignal,
     partialSignal,
-    scoringRationale: `Score the strong anchor higher because the evidence is inspectable, tied to ${primaryCriterion}, and aligned with ${validityEvidence?.targetConstruct || `${artifact} performance evidence`}.`,
-    revisionPrompt: `Revise the partial ${artifact} anchor by making the ${primaryCriterion} evidence from ${sourceCue} inspectable, naming one limitation, and stating what changed before submission.`,
+    scoringRationale: `In ${stripLessonPrefix(lesson.title)}, score the strong ${artifact} anchor higher because its evidence is inspectable. It addresses ${primaryCriterion}. Target evidence: ${ensureSentenceCompiler(conciseClause(validityEvidence?.targetConstruct || `${artifact} performance evidence`, `${artifact} performance evidence`, 150))}`,
+    revisionPrompt: `Revise the partial ${artifact} anchor by making the ${primaryCriterion} evidence inspectable. Use ${sourceCue}. For ${stripLessonPrefix(lesson.title)}, name one limit and state what changed before submission.`,
     scorerCalibrationUse: `Before grading, scorers compare the strong and partial ${artifact} anchors, point to the exact evidence difference, and reconcile disagreements before scoring student work.`,
     studentFacingUse: lessonVariant(lesson, [
       `Review the strong and partial ${artifact} samples before you submit, then self-check your ${concept} evidence, reasoning, limitation, and revision quality.`,
@@ -14322,6 +14317,9 @@ function buildExamRubricHandoffEntry(assessment) {
     title: `${assessment.title} — Answer Key Handoff`,
     ...(assessment.registryId ? { assessmentId: assessment.registryId } : {}),
     ...(Number.isInteger(lessonNumber) ? { lessonNumber } : {}),
+    ...(assessment.registryId && Number.isInteger(lessonNumber)
+      ? { courseMapRef: `Course Map L${lessonNumber} · ${assessment.registryId} · ${assessment.weightPercent}%` }
+      : {}),
     lessonTitle: (assessment.relatedLessons || []).join(', '),
     gradedWork: assessment.artifact || assessment.title,
     assessmentType: 'Exam (scored by answer key)',
@@ -14332,6 +14330,29 @@ function buildExamRubricHandoffEntry(assessment) {
     taskDirections: note,
     teacherNotes: `Open the Lesson ${lessonNumber} Quiz & Exam Bank document for the full exam paper, answer key, and per-question point values. The syllabus grading table carries the exam's ${assessment.weight} course weight.`,
     tags: unique(['rubric-handoff', 'exam', assessment.title, ...(assessment.relatedLessons || [])], 8),
+  };
+}
+
+function buildQuizRubricHandoffEntry(assessment) {
+  const lessonNumber = assessment.lessonNumbers?.[0];
+  const note = `This assessment is a quiz — the answer key and scoring guidance live in the Quiz & Exam Bank for Lesson ${lessonNumber}. Score the quiz from that key; no criterion rubric applies.`;
+  return {
+    title: `${assessment.title} — Answer Key Handoff`,
+    ...(assessment.registryId ? { assessmentId: assessment.registryId } : {}),
+    ...(Number.isInteger(lessonNumber) ? { lessonNumber } : {}),
+    ...(assessment.registryId && Number.isInteger(lessonNumber)
+      ? { courseMapRef: `Course Map L${lessonNumber} · ${assessment.registryId} · ${assessment.weightPercent}%` }
+      : {}),
+    lessonTitle: (assessment.relatedLessons || []).join(', '),
+    gradedWork: assessment.artifact || assessment.title,
+    assessmentType: 'Quiz (scored by answer key)',
+    totalPoints: assessment.points,
+    percentOfGrade: assessment.weight,
+    weightPercent: assessment.weightPercent,
+    answerKeyHandoffNote: note,
+    taskDirections: note,
+    teacherNotes: `Open the Lesson ${lessonNumber} Quiz & Exam Bank document for the questions, answer key, explanations, and scoring guidance.`,
+    tags: unique(['rubric-handoff', 'quiz', assessment.title, ...(assessment.relatedLessons || [])], 8),
   };
 }
 
@@ -15279,7 +15300,7 @@ function buildSourcesAndLicenses(blueprint) {
       origin,
       label,
       entries: entries.map((resource) => ({
-        citation: resource.citation,
+        citation: cleanText(resource.citation).replace(/\s*\(open textbook.*$/i, ''),
         license: resource.license,
         attribution: resource.attribution,
         url: resource.url,
@@ -15292,7 +15313,7 @@ function buildSourcesAndLicenses(blueprint) {
       origin: 'other',
       label: 'Other course resources',
       entries: other.map((resource) => ({
-        citation: resource.citation,
+        citation: cleanText(resource.citation).replace(/\s*\(open textbook.*$/i, ''),
         license: resource.license,
         attribution: resource.attribution,
         url: resource.url,
@@ -15351,7 +15372,7 @@ function buildRequiredTextsFromKnowledge(blueprint) {
         author: resource.attribution || 'Open textbook authors',
         edition: '',
         isbn: '',
-        note: `Open textbook (${resource.license})${resource.url ? ` — ${resource.url}` : ''}. Free to read and redistribute with attribution.`,
+        note: `Open textbook (${resource.license})${resource.url ? ` — ${resource.url}` : ''}.`,
       });
     } else if (resource.kind === 'book') {
       const book = cleanText(resource.citation);
@@ -15836,13 +15857,44 @@ function buildSpeakingPrompts({ lesson, assessment, lens }) {
   ];
 }
 
+// Registry kind intentionally stays coarse (`graded-artifact`) for backward
+// compatibility, but delivery routing must still respect the authored head
+// noun. A quiz/test belongs in the Quiz & Exam Bank; compiling it again as a
+// 100-point prototype, memo, or lab brief creates a persuasive-looking fake
+// assignment and can hide the lesson's real task.
+const QUIZ_LIKE_ASSESSMENT_TITLE_RE =
+  /^(?:weekly\s+)?(?:quiz(?:zes)?|test|knowledge check|concept check|retrieval check)\b/i;
+
+function assessmentHasSubstantiveSibling(assessment = {}, assessments = []) {
+  const lessonNumber = Number.isInteger(assessment.dueSession) ? assessment.dueSession : assessment.lessonNumbers?.[0];
+  if (!Number.isInteger(lessonNumber)) return false;
+  return assessments.some(
+    (candidate) =>
+      candidate !== assessment &&
+      (Number.isInteger(candidate.dueSession) ? candidate.dueSession : candidate.lessonNumbers?.[0]) === lessonNumber &&
+      candidate.kind !== 'exam' &&
+      !QUIZ_LIKE_ASSESSMENT_TITLE_RE.test(cleanText(candidate.title || candidate.artifact)),
+  );
+}
+
+function assessmentNeedsStandaloneAssignmentBrief(assessment = {}, _index = 0, assessments = []) {
+  if (assessment.kind === 'exam') return false;
+  if (assessment.kind === 'oral') return true;
+  if (!QUIZ_LIKE_ASSESSMENT_TITLE_RE.test(cleanText(assessment.title || assessment.artifact))) return true;
+  // A quiz-only lesson still needs its structured student directions. In a
+  // mixed lesson, however, the richer task owns the standalone brief and the
+  // quiz routes to the bank; otherwise shared lesson machinery turns the quiz
+  // into a convincing but false copy of the task artifact.
+  return !assessmentHasSubstantiveSibling(assessment, assessments);
+}
+
 function compileAssignments(blueprint) {
   const lens = blueprintLens(blueprint);
   const preference = featurePreference(blueprint, 'assignments');
   // v0.14.1 (3.2b): exam-kind registry assessments compile as REAL exam
   // documents in the quiz bank, not as assignment briefs. Legacy anchors
   // carry no kind and all keep their briefs.
-  const briefAssessments = blueprint.assessments.filter((assessment) => assessment.kind !== 'exam');
+  const briefAssessments = blueprint.assessments.filter(assessmentNeedsStandaloneAssignmentBrief);
   return {
     courseAssignmentMap: blueprint.assessments.map((assessment) => ({
       week: assessment.lessonNumbers[0],
@@ -15859,7 +15911,9 @@ function compileAssignments(blueprint) {
       expectedFile:
         assessment.kind === 'exam'
           ? 'Exam paper with answer key — see the Quiz & Exam Bank document'
-          : 'Document, presentation, or course-site submission as assigned',
+          : QUIZ_LIKE_ASSESSMENT_TITLE_RE.test(cleanText(assessment.title || assessment.artifact))
+            ? 'Quiz with answer key — see the Quiz & Exam Bank document'
+            : 'Document, presentation, or course-site submission as assigned',
       length: 'Course-appropriate length with enough evidence to address every criterion',
       nextPortfolioUse: assessment.feedbackUse,
     })),
@@ -16022,7 +16076,11 @@ function compileAssignments(blueprint) {
               ]
             : []),
           ...(assignmentParameters.length > 0
-            ? [`Meet these submission requirements: ${assignmentParameters.join('; ')}.`]
+            ? [
+                `Meet these submission requirements. ${assignmentParameters
+                  .map((parameter) => `${sentenceCase(stripTerminalPunctuation(parameter))}.`)
+                  .join(' ')}`,
+              ]
             : []),
           assignmentMaterialReviewInstruction({ lesson, assessment }),
           assignmentEvidenceSelectionInstruction({ lesson, assessment, lens }),
@@ -16423,6 +16481,12 @@ function compileRubrics(blueprint) {
     rubrics: rubricAssessments.map((assessment) => {
       if (assessment.kind === 'exam') {
         return buildExamRubricHandoffEntry(assessment);
+      }
+      if (
+        QUIZ_LIKE_ASSESSMENT_TITLE_RE.test(cleanText(assessment.title || assessment.artifact)) &&
+        assessmentHasSubstantiveSibling(assessment, rubricAssessments)
+      ) {
+        return buildQuizRubricHandoffEntry(assessment);
       }
       // Registry-linked assessments only — twins exist only on the registry
       // path; legacy compiles are untouched.
@@ -16939,12 +17003,12 @@ function compileStudyGuides(blueprint) {
         .filter((term) => term.misconception)
         .slice(0, 3)
         .map((term) => ({
-          misconception: term.misconception,
+          misconception: readableMisconception(term.misconception),
           // v0.13.3: the correction is the corrective statement when the
           // kernel/genome supplies one — never the definition restated. The
           // fallback phrases the definition as a counter, which at least
           // reads as a correction instead of a glossary entry.
-          correction: term.correction || `In fact: ${stripTerminalPunctuation(term.definition)}.`,
+          correction: readableCorrection(term.correction || term.definition),
         }));
       const misconceptionMap =
         enrichedMisconceptions.length > 0
@@ -17421,7 +17485,7 @@ function correctLetterForQuestion(lesson, index) {
 }
 
 function labelQuizOption(letter, text) {
-  return `${letter}. ${cleanText(text)}`;
+  return `${letter}. ${humanizeQuizText(text)}`;
 }
 
 function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }) {
@@ -17475,7 +17539,7 @@ function quizCorrectExplanation({ answer, concept, artifact, objective, lesson, 
 
 function buildMultipleChoiceOptions({ lesson, index, concept, artifact, use, correct }) {
   const correctLetter = correctLetterForQuestion(lesson, index);
-  const sourceCue = lesson?.evidencePlan?.sourceCue || 'the assigned course materials';
+  const sourceCue = humanizeClassroomSourceCue(lesson?.evidencePlan?.sourceCue, 'the assigned course materials');
   const lessonFocus = stripLessonPrefix(lesson?.title || 'this lesson');
   // Rotating pools of plausible-but-flawed moves, phrased in parallel with
   // typical correct options so the right answer is not the stylistic odd one
@@ -17618,11 +17682,13 @@ function buildMultipleChoiceQuestion({
       points: 2,
       objectiveAligned: objective,
       intendedUse: quizIntendedUse({ lesson, index, use, artifact }),
-      question: prompt,
+      question: humanizeQuizText(prompt),
       options,
       answer,
-      distractorRationale: `${sentenceCase(use)} distractors test evidence use, example fit, recommendation timing, and reasoning quality for ${specificity.week} ${stripLessonPrefix(lesson.title)} question ${index + 1} on ${concept}.`,
-      explanation: quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index }),
+      distractorRationale: humanizeQuizText(
+        `${sentenceCase(use)} distractors test evidence use, example fit, recommendation timing, and reasoning quality for ${specificity.week} ${stripLessonPrefix(lesson.title)} question ${index + 1} on ${concept}.`,
+      ),
+      explanation: humanizeQuizText(quizCorrectExplanation({ answer, concept, artifact, objective, lesson, index })),
       tags: quizTags(lesson, 'multiple_choice', bloom, use),
       // v0.15.188: a distractor built from the concept's documented
       // misconception is grounded content — tag it so the grounded-fraction
@@ -17767,7 +17833,7 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   // the lesson's scenario seed and evidence plan — the old instructor-meta
   // frames ("Which instructor question…", "Which feedback move…") shipped
   // verbatim whenever enrichment did not overlay those slots.
-  const evidenceCue = lesson.evidencePlan?.sourceCue || 'the assigned course materials';
+  const evidenceCue = humanizeClassroomSourceCue(lesson.evidencePlan?.sourceCue, 'the assigned course materials');
   const lessonFocus = stripLessonPrefix(lesson.title);
   const decisionNoun = stripTerminalPunctuation(cleanText(lens.decisionNoun || 'decision'));
   const quizDecision = lessonFocus.toLowerCase().includes(decisionNoun.toLowerCase())
@@ -17970,13 +18036,13 @@ function appendBankExtensionQuizAtoms(atoms, lesson) {
           points: 2,
           objectiveAligned: objective,
           intendedUse: `Retrieval practice extension for ${lesson.title}; drawn from the lesson's unused authored item bank.`,
-          question: enriched.question,
+          question: humanizeQuizText(enriched.question),
           options: ordered.map((text, optionIndex) => labelQuizOption(QUIZ_ANSWER_LETTERS[optionIndex], text)),
           answer,
           ...(enriched.distractorRationales?.length > 0
-            ? { distractorRationale: enriched.distractorRationales.join(' ') }
+            ? { distractorRationale: humanizeQuizText(enriched.distractorRationales.join(' ')) }
             : {}),
-          ...(enriched.explanation ? { explanation: `${answer}. ${enriched.explanation}` } : {}),
+          ...(enriched.explanation ? { explanation: humanizeQuizText(`${answer}. ${enriched.explanation}`) } : {}),
           tags: quizTags(lesson, 'multiple_choice', bloom, 'retrieval practice'),
           enrichmentSource: 'kernel-bank-extension',
         },
@@ -18034,7 +18100,11 @@ function enrichedItemIsCompleteMC(item) {
 }
 
 function overlayCompleteMCItem(atom, enriched) {
-  const next = { ...atom, question: enriched.question, enrichmentSource: 'lesson-content-enrichment' };
+  const next = {
+    ...atom,
+    question: humanizeQuizText(enriched.question),
+    enrichmentSource: 'lesson-content-enrichment',
+  };
   const keyText = enriched.options[enriched.answerIndex];
   const distractors = enriched.options.filter((_, optionIndex) => optionIndex !== enriched.answerIndex);
   // Preserve the compiler's deterministic key rotation.
@@ -18045,9 +18115,11 @@ function overlayCompleteMCItem(atom, enriched) {
   next.options = ordered.map((text, optionIndex) => labelQuizOption(QUIZ_ANSWER_LETTERS[optionIndex], text));
   next.answer = targetLetter;
   if (enriched.distractorRationales?.length > 0) {
-    next.distractorRationale = enriched.distractorRationales.join(' ');
+    next.distractorRationale = humanizeQuizText(enriched.distractorRationales.join(' '));
   }
-  if (enriched.explanation) next.explanation = `${next.answer}. ${enriched.explanation}`;
+  if (enriched.explanation) {
+    next.explanation = humanizeQuizText(`${next.answer}. ${enriched.explanation}`);
+  }
   return next;
 }
 
@@ -19425,8 +19497,18 @@ function slideLessonTitle(lesson) {
 }
 
 function slideArtifact(lesson) {
+  // Registry titles for machine-scored checks are authoring metadata, not a
+  // classroom artifact noun ("Weekly autograded quizzes" became chopped
+  // phrases such as "in Weekly" and "changes Weekly"). Use the same scoped
+  // noun as lesson-plan surfaces.
+  if (lessonArtifactGenre(lesson) === 'autograded-quiz') {
+    return weekScopedArtifactReference(lesson, 'quiz');
+  }
   const parts = cleanText(lesson?.studentArtifact)
-    .split(/\s*;\s*/)
+    // Some imported assessment lists arrive as "1. Title 2. Title" without
+    // semicolons. Keep the first real deliverable instead of leaking the next
+    // list number into every slide.
+    .split(/\s*;\s*|\s+(?=\d+\.\s+)/)
     .map(stripTerminalPunctuation)
     .map(dedupeNumberedAssessmentEcho)
     .map((part) => lessonDisplayArtifact(part, lesson))
@@ -19457,11 +19539,65 @@ function slideSourceCue(lesson) {
   // lesson.readings (the syllabus lists real materials first), so decks read
   // it from the evidence plan explicitly — deck guidance keeps per-lesson
   // specificity while student-facing materials lists stay clean.
+  const fallback = `${primarySlideConcept(lesson)} course materials`;
   return (
     asArray([lesson?.evidencePlan?.sourceCue, ...asArray(lesson?.readings)])
       .map(normalizeSlidePhrase)
-      .find((part) => !isWeakSlidePhrase(part)) || `${primarySlideConcept(lesson)} course materials`
+      // Genome ledger cues can include machine-oriented locators such as
+      // "Seventh chord §extract (open textbook, open license)". Those are
+      // valuable in provenance metadata but read like broken citations on a
+      // classroom slide. Keep the human title and discard the locator.
+      // normalizeSlidePhrase may already have shortened the parenthesized
+      // license note. Strip from the ledger marker onward so both the full
+      // and display-compacted forms stay classroom-readable.
+      .map((part) => part.replace(/\s*§.*$/u, '').trim())
+      .map((part) => part.replace(/\s*\((?:open textbook|open license)[^)]*\)?\s*$/i, '').trim())
+      .map((part) => humanSourceCueLabel(part, ''))
+      // Kernel locators keep compact provider ids for provenance. Classroom
+      // slides use the provider's public name and a readable title instead
+      // of leaking labels such as "Digitalgov:task Flow".
+      .map((part) => {
+        const match = /^(digitalgov|govuk|w3c)\s*:\s*(.+)$/i.exec(part);
+        if (!match) return part;
+        const provider = {
+          digitalgov: 'Digital.gov',
+          govuk: 'GOV.UK',
+          w3c: 'W3C',
+        }[match[1].toLowerCase()];
+        const title = match[2]
+          .replace(/-/g, ' ')
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((word, index) => {
+            if (/^[A-Z0-9.]+$/.test(word)) return word;
+            if (index > 0 && /^(?:a|an|and|for|in|of|the|to)$/i.test(word)) return word.toLowerCase();
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+          })
+          .join(' ');
+        return `${provider}: ${title}`;
+      })
+      // Quiz-projection labels are internal provenance for a derived fallback,
+      // not sources an instructor can assign or a student can inspect.
+      .find((part) => !isWeakSlidePhrase(part) && !/\bverified[- ]quiz[- ]projection\b/i.test(part)) || fallback
   );
+}
+
+function slideFeedbackFallback(concept) {
+  const focus = conciseClause(concept, 'lesson focus', 32);
+  return `Name one ${focus} source detail, one limitation, and the revision it supports.`;
+}
+
+function completeSlideFeedbackRoutine(value, { concept }) {
+  const routine = stripTerminalPunctuation(cleanText(value));
+  const visiblyChopped =
+    !routine ||
+    /[,;:]\s*(?:evidence|risk|assumption|constraint|mark|choice|decision)$/i.test(routine) ||
+    /\b(?:students?|teams?|pairs?)\s+(?:mark|name|explain|compare|identify|choose)$/i.test(routine) ||
+    /\b(?:and|or|but|by|for|from|in|of|to|with|which|that|because)\s*$/i.test(routine);
+  if (visiblyChopped) {
+    return slideFeedbackFallback(concept);
+  }
+  return ensureSentenceCompiler(routine);
 }
 
 function slideSuccessCriterion(lesson) {
@@ -19660,7 +19796,12 @@ function slideVisual(lesson, slide) {
   }
   const concept = primarySlideConcept(lesson);
   const secondary = secondarySlideConcept(lesson, concept);
-  const artifact = slideArtifact(lesson);
+  // Visual metadata sits next to explanatory speaker notes. Preserve specific
+  // authored artifacts (for example, "Policy memo checkpoint 1") while
+  // normalizing prompt labels and autograded quizzes to a lesson-scoped genre.
+  // This keeps the visual plan concrete without leaking registry labels such
+  // as "Weekly autograded quizzes" into the classroom-facing surface.
+  const artifact = safeLessonPlanArtifact(lesson);
   const source = slideSourceCue(lesson);
   const modality = lesson.modalityDecode || {};
   const artifactGenre = lesson.artifactGenre || {};
@@ -20276,17 +20417,17 @@ function slideNotes({ lesson, title, type, bullets, nextCue, lens }) {
   const criterion = slideSuccessCriterion(lesson);
   const activitySequence =
     type === 'activity'
-      ? `Detailed activity sequence: ${bullets
-          .map((bullet) => stripTerminalPunctuation(bullet))
+      ? `Detailed activity sequence. ${bullets
+          .map((bullet) => ensureSentenceCompiler(stripTerminalPunctuation(bullet)))
           .filter(Boolean)
           .join(' ')}`
       : '';
   const note = [
-    `${focus.opening} ${slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson })}`,
-    focus.evidence,
-    `${focus.misconception} ${slideNoteCriterionCue(type, criterion, lesson)}`,
+    `${ensureSentenceCompiler(focus.opening)} ${ensureSentenceCompiler(slideNoteAnchor({ type, anchor, concept, artifact, displayTitle, lesson }))}`,
+    ensureSentenceCompiler(focus.evidence),
+    `${ensureSentenceCompiler(focus.misconception)} ${ensureSentenceCompiler(slideNoteCriterionCue(type, criterion, lesson))}`,
     activitySequence,
-    slideNoteTransition({ type, nextCue, lens, concept, artifact, lesson }),
+    ensureSentenceCompiler(slideNoteTransition({ type, nextCue, lens, concept, artifact, lesson })),
   ]
     .filter(Boolean)
     .join(' ');
@@ -20375,6 +20516,18 @@ function bulletLeadsWithConceptTail(bulletText, concept) {
 
 function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   const type = cleanText(slide?.type).toLowerCase();
+  // Discussion prompts are already authored as short classroom questions or
+  // directions. Running them through splitList() treats rhetorical commas as
+  // list separators and shipped fragments such as "Explain which evidence,
+  // risk". Preserve complete prompts that fit; only the feedback seat gets a
+  // deterministic complete fallback when it is genuinely too long.
+  if (type === 'discussion') {
+    const fullPrompt = stripTerminalPunctuation(cleanText(bullet));
+    if (fullPrompt.length <= 118) return punctuateDisplayBullet(fullPrompt, bullet);
+    if (index === 2) {
+      return slideFeedbackFallback(primarySlideConcept(lesson));
+    }
+  }
   const fullLength = type === 'activity' || type === 'discussion' ? 78 : 112;
   // v0.14.1: the "Practice:"-style label is part of the rendered bullet, so
   // it spends the same budget — compute the cap net of the prepended label
@@ -20402,9 +20555,17 @@ function compactSlideDisplayBullet(slide, bullet, index, lesson) {
   const conceptAlreadyNamed =
     cleanText(compact).toLowerCase().includes(cleanText(concept).toLowerCase()) ||
     bulletLeadsWithConceptTail(compact, concept);
-  const needsLessonCue = !conceptAlreadyNamed && (type === 'activity' || type === 'discussion' || compact.length >= 70);
+  const hasDisplayLabel = /^(?:today|next|last time|this course|success criterion|evidence cue|decision cue):/i.test(
+    compact,
+  );
+  const needsLessonCue =
+    !conceptAlreadyNamed &&
+    !hasDisplayLabel &&
+    type !== 'objectives' &&
+    type !== 'bridge' &&
+    (type === 'activity' || type === 'discussion' || compact.length >= 70);
   const lessonSpecific = needsLessonCue
-    ? conciseClause(`${concept}: ${compact}`, compact, maxLength, { ellipsis: true })
+    ? conciseClause(`${sentenceCase(concept)}: ${compact}`, compact, maxLength, { ellipsis: true })
     : conciseClause(compact, fallback, maxLength, { ellipsis: true });
   if (type !== 'activity') return punctuateDisplayBullet(lessonSpecific, bullet);
   const activityCue =
@@ -20876,10 +21037,10 @@ function buildDiscussionFacilitationTips(lesson, protocol) {
       `Ask the group to separate the strongest evidence from the biggest uncertainty before accepting the current ${artifact} decision.`,
     ]),
     closure: lessonVariant(lesson, [
-      `Close by naming one claim the class can defend with evidence, one unresolved limitation in ${concept}, and one revision students should make before completing ${artifact}: ${protocol.reviewFocus}.`,
-      `Close by having students record the claim they trust, the evidence that supports it, and the revision it triggers for ${artifact}: ${protocol.reviewFocus}.`,
-      `End with a quick commitment: which ${concept} claim is now stronger, what still needs checking, and how will ${artifact} change? ${protocol.reviewFocus}.`,
-      `Finish by asking each student to name one evidence-backed decision and one uncertainty to carry into ${artifact}: ${protocol.reviewFocus}.`,
+      `Close with one claim the class can defend and one unresolved limit in ${concept}. Ask students to record one revision for ${artifact}. Review: ${protocol.reviewFocus}.`,
+      `Have students record the claim they trust and the evidence that supports it. Then name the revision it triggers for ${artifact}. Review: ${protocol.reviewFocus}.`,
+      `End with a quick commitment. Which ${concept} claim is stronger? What still needs checking? How will ${artifact} change? Review: ${protocol.reviewFocus}.`,
+      `Ask each student to name one evidence-backed decision. Then record one uncertainty to carry into ${artifact}. Review: ${protocol.reviewFocus}.`,
     ]),
     revisionCapture:
       lesson.feedbackCycle?.closureCheck ||
@@ -20970,13 +21131,13 @@ function buildDiscussionGuidelinesForFormat(lesson, protocol) {
     `ask one evidence-focused follow-up that helps a peer strengthen their ${artifact}`,
   ]);
   const reviewCue = lessonVariant(lesson, [
-    `Participation is judged by evidence use, reasoning, peer response quality, ${protocol.reviewFocus}, and whether you name a limitation or revision move tied to ${concept}.`,
+    `Participation is judged by evidence use, reasoning, and peer response quality. Also name one limit or revision tied to ${concept}. Review: ${protocol.reviewFocus}.`,
     `Your contribution should make the evidence visible, respond to a peer, and name one uncertainty in ${concept} worth testing.`,
     `Credit depends on using specific evidence, explaining the reasoning, and turning one peer exchange into a next step for ${artifact}.`,
     `A strong response cites a source detail, tests a classmate's claim, and closes with one improvement to carry into ${artifact}.`,
   ]);
   const preparationCue = lessonVariant(lesson, [
-    `For ${lessonFocus}, bring one brief ${concept} evidence note to class, contribute at least twice during the ${format}, and ${peerResponseCue}.`,
+    `For ${lessonFocus}, bring one brief ${concept} evidence note. Contribute at least twice during the ${format}, and ${peerResponseCue}.`,
     `Before the ${format}, identify one ${concept} detail worth testing, then make two evidence-based contributions and ${peerResponseCue}.`,
     `Arrive ready to cite one ${concept} example, use the ${format} for two substantive contributions, and ${peerResponseCue}.`,
     `During ${lessonFocus}, use one prepared ${concept} evidence note, make two visible contributions in the ${format}, and ${peerResponseCue}.`,
@@ -20998,7 +21159,19 @@ function overlayEnrichedSlideContent(slides, lesson) {
     const content = enriched[index];
     if (!content || !content.title || !Array.isArray(content.bullets) || content.bullets.length === 0) return;
     slide.title = content.title;
-    slide.bullets = content.bullets.slice(0, 4);
+    const concept = cleanText(primarySlideConcept(lesson)).toLowerCase();
+    const titleKey = stripTerminalPunctuation(cleanText(content.title)).toLowerCase();
+    slide.bullets = content.bullets
+      .slice(0, 4)
+      .map((bullet) => {
+        const text = cleanText(bullet);
+        return concept && text.toLowerCase().startsWith(concept) ? sentenceCase(text) : text;
+      })
+      // Model slide atoms sometimes repeat the assertion title verbatim as
+      // the final bullet. The exporter treats that seat as a takeaway, so the
+      // echo becomes a giant empty example plus a duplicated claim.
+      .filter((bullet) => stripTerminalPunctuation(bullet).toLowerCase() !== titleKey);
+    if (slide.bullets.length === 0) slide.bullets = [sentenceCase(content.title)];
     if (content.notes) slide.notes = content.notes;
     slide.enrichmentSource = 'lesson-content-enrichment';
   });
@@ -21107,6 +21280,11 @@ function lessonMisconceptionPairs(lesson) {
   const seen = new Set();
   const pairs = [];
   for (const term of lesson?.enrichment?.keyTerms || []) {
+    // These pairs are synthesized from a quiz distractor and its answer-key
+    // explanation. They are useful fallback metadata, but they are not an
+    // authored misconception/correction pair and can produce circular or
+    // chopped classroom prose on a pitfalls slide.
+    if (/\bverified[- ]quiz[- ]projection\b/i.test(cleanText(term?.source))) continue;
     const misconception = cleanText(term?.misconception);
     if (!misconception) continue;
     const key = misconception.toLowerCase();
@@ -21166,7 +21344,8 @@ function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
       'Ask teams to accept, revise, or reject each claim before the correction appears.',
     ])} ${pairs
       .map(
-        (pair) => `${ensureSentenceCompiler(pair.misconception)} In fact: ${ensureSentenceCompiler(pair.corrective)}`,
+        (pair) =>
+          `${ensureSentenceCompiler(readableMisconception(pair.misconception))} Correction: ${ensureSentenceCompiler(readableCorrection(pair.corrective))}`,
       )
       .join(' ')} ${closePrompt}`,
     minutes: 4,
@@ -21179,14 +21358,17 @@ function applyCommonPitfallsSlide(slides, lesson, { concept, objective }) {
 
 function pitfallBullet({ lesson, index = 0, tempting, corrective, fallback }) {
   const lessonNumber = Math.max(1, Number(lesson?.lessonNumber || 1));
-  const temptingLead = lowercaseClauseLead(tempting);
+  const temptingLead = lowercaseClauseLead(tempting).replace(
+    /^students?\s+(?:(?:often|sometimes|may)\s+)?(?:think|believe|assume|mistake)\s+/i,
+    '',
+  );
   const correctiveLead = lowercaseClauseLead(corrective);
   const variants = [
-    `It's tempting to think ${temptingLead} — in fact ${correctiveLead}`,
-    `A common trap is to think ${temptingLead} — in fact ${correctiveLead}`,
-    `Students may assume ${temptingLead}; the correction is ${correctiveLead}`,
-    `The quick but weak claim is ${temptingLead}; stronger reasoning is ${correctiveLead}`,
-    `Watch for the idea that ${temptingLead}; evidence should show ${correctiveLead}`,
+    `Tempting claim: ${sentenceCase(temptingLead)}. Correction: ${sentenceCase(correctiveLead)}`,
+    `Common misconception: ${sentenceCase(temptingLead)}. Better reasoning: ${sentenceCase(correctiveLead)}`,
+    `Students may assume ${temptingLead}. Corrective check: ${sentenceCase(correctiveLead)}`,
+    `Weak claim: ${sentenceCase(temptingLead)}. Stronger reasoning: ${sentenceCase(correctiveLead)}`,
+    `Watch for this idea: ${sentenceCase(temptingLead)}. Evidence should show ${correctiveLead}`,
   ];
   return punctuateDisplayBullet(variants[(lessonNumber - 1 + index) % variants.length], fallback);
 }
@@ -21552,7 +21734,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const teachingMoves = lessonTeachingMoves(blueprint, lesson);
   const preference = featurePreference(blueprint, 'slideDecks');
   const phrase = slideDeckPhrase(blueprint, lesson);
-  const titleContext = collapseRepeatedSlideLead(phrase.context);
+  const titleContext = sentenceCase(collapseRepeatedSlideLead(phrase.context));
   const previous = blueprint.lessons[index - 1];
   const next = blueprint.lessons[index + 1];
   const assessment =
@@ -21588,6 +21770,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
   const objectiveTwo =
     lesson.outcomes.find((outcome) => outcome !== objectiveOne && !/\b(TBD|to be determined)\b/i.test(outcome)) ||
     `Evaluate how ${secondary} evidence changes ${artifact}.`;
+  const discussionFeedbackRoutine = completeSlideFeedbackRoutine(modality.feedbackRoutine, { concept });
   const slides = [
     {
       type: 'title',
@@ -21619,13 +21802,13 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       type: 'objectives',
       title: 'Objectives',
       bullets: [
-        objectiveOne,
-        objectiveTwo,
+        sentenceCase(objectiveOne),
+        sentenceCase(objectiveTwo),
         lessonVariant(lesson, [
-          `Use feedback to strengthen ${lesson.studentArtifact}.`,
-          `Turn feedback into one revision move for ${lesson.studentArtifact}.`,
-          `Identify the feedback that would make ${lesson.studentArtifact} stronger.`,
-          `Apply one evidence-based suggestion to revise ${lesson.studentArtifact}.`,
+          `Use feedback to strengthen ${artifact}.`,
+          `Turn feedback into one revision move for ${artifact}.`,
+          `Identify the feedback that would make ${artifact} stronger.`,
+          `Apply one evidence-based suggestion to revise ${artifact}.`,
         ]),
       ],
       minutes: 3,
@@ -21635,14 +21818,16 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     },
     {
       type: 'bridge',
-      title: `${sentenceCase(concept)} carries the evidence thread forward`,
+      title: previous
+        ? `From ${sentenceCase(primarySlideConcept(previous))} to ${sentenceCase(concept)}`
+        : `${sentenceCase(concept)} course throughline`,
       bullets: [
         // v0.16 E4 (Prof department catch): Lesson 1 has no "last time" — a
         // continuity reference in the first session reads as unproofed.
         previous
           ? `Last time: ${primarySlideConcept(previous)}`
           : `This course: ${blueprint.courseName} — what we'll build across the semester`,
-        `Today: ${phrase.decisionMove}`,
+        `Today: ${sentenceCase(phrase.decisionMove)}`,
         next ? `Next: ${primarySlideConcept(next)}` : `Next: final synthesis and revision planning`,
       ],
       minutes: 4,
@@ -21660,8 +21845,8 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
           `${concept}: the reasoning move behind ${artifact}.`,
           `${concept}: a way to test which evidence belongs in ${artifact}.`,
         ]),
-        `Evidence cue: ${phrase.evidenceMove}.`,
-        `Decision cue: ${phrase.decisionMove}.`,
+        `Lesson ${index + 1} evidence cue. ${phrase.evidenceMove}.`,
+        `Lesson ${index + 1} decision cue. ${phrase.decisionMove}.`,
       ],
       minutes: 5,
       bloom: 'Understand',
@@ -21674,7 +21859,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
       bullets: [
         `${concept} focuses attention on evidence quality, not just topic coverage.`,
         `${secondary} helps students avoid unsupported claims in ${artifact}.`,
-        successCriterion,
+        `Success criterion: ${lowercaseClauseLead(successCriterion)}`,
       ],
       minutes: 6,
       bloom: 'Analyze',
@@ -21696,7 +21881,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
         hasRealSource
           ? `Identify the ${concept} evidence students can actually inspect in ${sourceCue}.`
           : `Identify the ${concept} evidence students can actually inspect.`,
-        `Key insight: the strongest answer explains why the evidence changes ${artifact}.`,
+        `Strong answers explain how evidence changes ${artifact}.`,
       ],
       minutes: 7,
       bloom: 'Analyze',
@@ -21756,7 +21941,7 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
         [
           `Students name what ${secondary} evidence does not prove yet.`,
           `The claim becomes stronger when its boundary is visible in ${artifact}.`,
-          `Feedback should ask where the ${secondary} evidence needs one more test.`,
+          `Ask which ${secondary} claim needs another source check.`,
         ],
         [
           `Students separate supported ${secondary} evidence from assumptions.`,
@@ -21798,22 +21983,22 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
         [
           `Compare two evidence choices for ${artifact}.`,
           `Vote on the stronger choice and explain why.`,
-          modality.feedbackRoutine,
+          discussionFeedbackRoutine,
         ],
         [
           `Test the strongest ${concept} evidence claim for ${artifact}.`,
           `Name what makes the weaker choice less defensible.`,
-          modality.feedbackRoutine,
+          discussionFeedbackRoutine,
         ],
         [
           `Rank two possible ${artifact} revisions by evidence quality.`,
           `Defend the ranking with one source detail and one limitation.`,
-          modality.feedbackRoutine,
+          discussionFeedbackRoutine,
         ],
         [
           `Choose the ${concept} move that should survive into ${artifact}.`,
           `Explain which evidence, risk, or assumption changed the choice.`,
-          modality.feedbackRoutine,
+          discussionFeedbackRoutine,
         ],
       ]),
       minutes: 8,
@@ -21880,12 +22065,12 @@ function buildSlideDeckIrForLesson(blueprint, lesson, index) {
     tags: unique(['slide deck', displayTitle, ...slideConceptCandidates(lesson), lens.domain], 8),
     sequenceGuide: {
       accessibilityStandards:
-        `${lesson.accessibilityPlan?.representation || `${displayTitle} should offer spoken, written, and visual entry points around ${phrase.context}`}; ${lesson.accessibilityPlan?.participationProtocol || 'visuals include alt text, activity directions can be completed without color-only cues, and speaker notes identify how to support learners who need more processing time or text-first participation'}; ${lesson.accessibilityPlan?.accommodationReviewCue || ''}`.trim(),
+        `${ensureSentenceCompiler(lesson.accessibilityPlan?.representation || `${displayTitle} should offer spoken, written, and visual entry points around ${phrase.context}`)} ${ensureSentenceCompiler(lesson.accessibilityPlan?.participationProtocol || 'Visuals include alt text. Activity directions do not rely on color alone. Speaker notes support text-first participation.')} ${ensureSentenceCompiler(lesson.accessibilityPlan?.accommodationReviewCue || '')}`.trim(),
       localReviewAction: lessonLocalReviewAction(lesson),
       cumulativeAssessmentMap: [
-        `${displayTitle} prepares students for ${sequenceArtifact}; the deck moves from ${phrase.evidenceMove} to ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}, while practice slides reinforce ${sequenceCriterion} and the ${artifactGenre.label || artifactGenre.genre || 'artifact'} quality focus before feedback carries into the next artifact.`,
-        `${displayTitle} builds toward ${sequenceArtifact}: the deck opens with ${phrase.evidenceMove}, then ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}; practice slides rehearse ${sequenceCriterion} so feedback transfers into the next artifact.`,
-        `Across this deck, ${sequenceArtifact} stays the visible product for ${displayTitle}; slides progress from ${phrase.evidenceMove} toward ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}, with ${sequenceCriterion} as the practice focus before the next artifact.`,
+        `${displayTitle} prepares students for ${sequenceArtifact}. The deck begins with ${phrase.evidenceMove}. It then asks students to ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}. The practice slides reinforce ${sequenceCriterion} before feedback carries forward.`,
+        `${displayTitle} builds toward ${sequenceArtifact}. The deck opens with ${phrase.evidenceMove}. Students then ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}. The practice slides rehearse ${sequenceCriterion} before the next artifact.`,
+        `${sequenceArtifact} stays visible throughout ${displayTitle}. Slides move from ${phrase.evidenceMove} toward ${stripTerminalPunctuation(phrase.decisionMove).toLowerCase()}. The practice focus is ${sequenceCriterion}.`,
       ][(Number(lesson.lessonNumber) || 1) % 3],
       pacingBridge: `${lesson.pacing?.bridgeFrom || ''} ${lesson.pacing?.bridgeTo || ''}`.trim(),
       classSessionPlan,
@@ -22144,10 +22329,12 @@ function safeCourseFaqEvidenceCue(lesson, lens) {
 
 function safeCourseFaqAnchorContrast(lesson, lens) {
   const raw = stripTerminalPunctuation(cleanText(lesson?.assessmentAnchorExamples?.strongSample));
-  if (raw && !isUnsafeCourseFaqPhrase(raw)) return raw;
+  if (raw && !isUnsafeCourseFaqPhrase(raw)) {
+    return raw.replace(/,\s+(?=(?:explains|shows|identifies|separates)\b)/i, '. It ');
+  }
   const focus = stripLessonPrefix(lesson?.title) || 'lesson';
   const concept = safeCourseFaqPrimaryConcept(lesson) || focus;
-  return `A strong ${focus} example cites a concrete detail from ${safeCourseFaqEvidenceCue(lesson, lens)}, explains how it changes the ${concept} decision, names one limitation, and states the revision made before submission`;
+  return `A strong ${focus} example cites a concrete detail from ${safeCourseFaqEvidenceCue(lesson, lens)}. It explains the ${concept} decision, names one limit, and states the revision`;
 }
 
 function safeCourseFaqMaterialsReview(lesson, lens) {
@@ -22220,7 +22407,7 @@ function compileCourseFaq(blueprint, config = {}) {
       if (!term) return null;
       const correction = cleanText(term.correction || '');
       return {
-        q: `I thought ${lowercaseSentenceLead(stripTerminalPunctuation(cleanText(term.misconception)))} — is that wrong? How does ${term.term} actually work?`,
+        q: `I thought ${readableMisconception(term.misconception)}. Is that wrong? How does ${term.term} actually work?`,
         an: `${correction ? `${stripTerminalPunctuation(correction)}. ` : ''}${term.definition ? `${sentenceCase(term.term)} means ${lowercaseSentenceLead(stripTerminalPunctuation(term.definition))}.` : ''}${term.example ? ` For example: ${lowercaseSentenceLead(stripTerminalPunctuation(term.example))}.` : ''}`.trim(),
         ca: 'Common Confusion',
         rc: [term.term],
@@ -22352,7 +22539,7 @@ function compileCourseFaq(blueprint, config = {}) {
         (term) => cleanText(term?.misconception) && cleanText(term?.correction),
       );
       if (contested) {
-        const correction = stripTerminalPunctuation(cleanText(contested.correction));
+        const correction = readableCorrection(contested.correction);
         const term = cleanText(contested.term);
         // Authored corrections often LEAD with the term ("Dictionaries are
         // accessed by key…") — "the trap for X: X …" would mint the exact
@@ -22363,7 +22550,7 @@ function compileCourseFaq(blueprint, config = {}) {
           : `That is the trap for ${term}: ${correction}.`;
         return {
           q: `What common mistake should I avoid in ${stripLessonPrefix(lesson.title)}?`,
-          an: `${stripTerminalPunctuation(cleanText(contested.misconception))}. ${trapSentence} Check your work against that correction before submitting ${safeCourseFaqStudentArtifact(lesson)}.`,
+          an: `${ensureSentenceCompiler(readableMisconception(contested.misconception))} ${trapSentence} Check your work against that correction before submitting ${safeCourseFaqStudentArtifact(lesson)}.`,
           ca: 'Assessment Prep',
           rc: unique([cleanText(contested.term), ...safeCourseFaqConcepts(lesson)], 4),
           df: 'Advanced',
@@ -22616,10 +22803,10 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       type: 'Warm-up',
       description: kernelMisconception
         ? lessonVariant(lesson, [
-            `Misconception poll: display “${stripTerminalPunctuation(kernelMisconception.misconception)}” and have students vote true or false, then defend the vote with one observation or example.`,
-            `Start with a misconception check on “${stripTerminalPunctuation(kernelMisconception.misconception)}”; students choose a side and cite one detail that supports or challenges it.`,
-            `Post “${stripTerminalPunctuation(kernelMisconception.misconception)}” as a quick claim test; students mark agree, revise, or reject and explain the evidence.`,
-            `Use “${stripTerminalPunctuation(kernelMisconception.misconception)}” as the launch prompt; students predict what would prove or disprove it before the lesson evidence arrives.`,
+            `Misconception poll. Display this claim: ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Students vote true or false. Then they defend the vote with one observation or example.`,
+            `Start with this misconception. ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Students choose a side and cite one supporting or challenging detail.`,
+            `Post a quick claim test. ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Students mark agree, revise, or reject. Then they explain the evidence.`,
+            `Use this claim as the launch prompt. ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Students predict what would prove or disprove it before the lesson evidence arrives.`,
           ])
         : lessonVariant(lesson, [
             `Students respond to a short prompt that asks them to ${phrase.decisionMove} using prior source evidence before the day's lesson work begins.`,
@@ -22631,7 +22818,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             `Students jot one remembered example, one missing detail, and one question that should guide the ${concept} lesson.`,
           ]),
       instructorNotes: kernelMisconception
-        ? `Reveal the correction only after the vote: ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. Connect the discussion to ${lesson.outcomes[0]}.`
+        ? `Reveal the correction only after the vote. Correction: ${readableCorrection(kernelMisconception.correction || kernelMisconception.definition)}. Connect the discussion to ${lesson.outcomes[0]}.`
         : `Collect two fast examples about ${concept}, name the evidence move worth imitating, and connect the prompt to ${lesson.outcomes[0]}.`,
       instructorRole: `Facilitate retrieval, surface misconceptions about ${concept}, and set the purpose for ${stripLessonPrefix(lesson.title)}.`,
       grouping: lessonVariant(lesson, [
@@ -22652,12 +22839,12 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
         ? `Work the example step by step on the board: ${stripTerminalPunctuation(kernelWorkedExample.problem)}.`
         : kernelFact
           ? lessonVariant(lesson, [
-              `Introduce ${concept} from its anchor fact — “${stripTerminalPunctuation(kernelFact)}” — and build the explanation students will reuse in ${artifact}.`,
-              `Start with the anchor fact “${stripTerminalPunctuation(kernelFact)},” then model how students can turn it into a defensible ${artifact} move.`,
-              `Use “${stripTerminalPunctuation(kernelFact)}” as the evidence anchor; students annotate the reasoning step before applying it in ${artifact}.`,
-              `Frame ${concept} through the fact “${stripTerminalPunctuation(kernelFact)},” then show where the evidence changes a choice in ${artifact}.`,
-              `Name the anchor fact — “${stripTerminalPunctuation(kernelFact)}” — and demonstrate the transfer move students should adapt for ${artifact}.`,
-              `Work from “${stripTerminalPunctuation(kernelFact)}” to a concise model explanation, pausing where students must choose evidence for ${artifact}.`,
+              `Introduce ${concept} with its anchor fact. ${ensureSentenceCompiler(stripTerminalPunctuation(kernelFact))} Build the explanation students will reuse in ${artifact}.`,
+              `Start with the anchor fact. ${ensureSentenceCompiler(stripTerminalPunctuation(kernelFact))} Model how students can turn it into a defensible ${artifact} move.`,
+              `Use this fact as the evidence anchor. ${ensureSentenceCompiler(stripTerminalPunctuation(kernelFact))} Students mark the reasoning step before applying it in ${artifact}.`,
+              `Frame ${concept} with this fact. ${ensureSentenceCompiler(stripTerminalPunctuation(kernelFact))} Show where the evidence changes a choice in ${artifact}.`,
+              `Name the anchor fact. ${ensureSentenceCompiler(stripTerminalPunctuation(kernelFact))} Show the transfer move students should adapt for ${artifact}.`,
+              `Start from this fact. ${ensureSentenceCompiler(stripTerminalPunctuation(kernelFact))} Build a short model explanation. Pause where students must choose evidence for ${artifact}.`,
             ])
           : lessonVariant(lesson, [
               `Introduce ${concept} with a concise worked example that shows how ${lens.learnerRole}s ${phrase.evidenceMove}.`,
@@ -22679,8 +22866,8 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       // the reading can still do today's work. The recap is the reading's
       // content, compressed — not a replacement for it.
       catchUpPlan: kernelFact
-        ? `Open with a two-minute recap for students who missed the reading: state “${stripTerminalPunctuation(kernelFact)}” and one concrete example before the model begins, so no one works today's task cold.`
-        : `Open with a two-minute recap of the reading's central idea about ${concept} for students who missed the reading, so no one works today's task cold.`,
+        ? `For ${concept}, start with a two-minute recap for students who missed the reading. State this fact: ${ensureSentenceCompiler(stripTerminalPunctuation(kernelFact))} Give one concrete example before the model begins.`
+        : `For ${concept}, start with a two-minute recap for students who missed the reading. Explain the central idea about ${concept}. Give one example before the model begins.`,
       instructorRole: `Model thinking aloud and annotate the exemplar for ${concept}.`,
       grouping: lessonVariant(lesson, [
         'Instructor model with guided notes',
@@ -22707,7 +22894,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             `Students choose the constraint that matters first and name the evidence behind that choice.`,
             `Students test the available evidence against the next ${artifact} decision.`,
           ])}`,
-      instructorNotes: `${stripTerminalPunctuation(modality.instructorMove)}; press for ${artifact} evidence about ${concept}. Watch for this misconception: ${misconception?.misconception || `students may use ${concept} without evidence`}.`,
+      instructorNotes: `${ensureSentenceCompiler(readableSentences(modality.instructorMove))} Press for ${artifact} evidence about ${concept}. Watch for this misconception. ${ensureSentenceCompiler(readableMisconception(misconception?.misconception || `students may use ${concept} without evidence`))}`,
       instructorRole: `Coach ${modalityEvidenceRoutineLabel(modality.mode)} and press for specificity in ${artifact}.`,
       grouping: lessonVariant(lesson, [
         'Pairs with instructor check-ins',
@@ -22736,8 +22923,8 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
             `Groups prepare a brief answer to “${stripTerminalPunctuation(kernelDiscussion.prompt)}” and name the evidence that would change their view.`,
           ])
         : lessonVariant(lesson, [
-            `Teams apply ${concept} to a new scenario, compare options, and use this routine: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
-            `Teams test ${concept} in a fresh case, choose the strongest option, and document how the evidence changed their decision: ${stripTerminalPunctuation(cleanText(modality.evidenceRoutine)).replace(/^For [^,]{2,70},\s*/i, '')}.`,
+            `Teams apply ${concept} to a new scenario and compare options. Routine: ${ensureSentenceCompiler(conciseClause(cleanText(modality.evidenceRoutine).replace(/^For [^,]{2,70},\s*/i, ''), 'compare the evidence', 145))}`,
+            `Teams test ${concept} in a fresh case and choose the strongest option. They document how the evidence changed the decision. Routine: ${ensureSentenceCompiler(conciseClause(cleanText(modality.evidenceRoutine).replace(/^For [^,]{2,70},\s*/i, ''), 'compare the evidence', 145))}`,
             `Small groups transfer ${concept} to a different situation, rank the options, and cite the evidence move that made the ranking credible.`,
             `Teams work a parallel case for ${concept}, compare the consequences of two choices, and prepare one evidence-backed report-out.`,
           ]),
@@ -22817,10 +23004,10 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       instructorNotes:
         deep && kernelMisconception
           ? lessonVariant(lesson, [
-              `Conference against the kernel bar for ${artifact}: redirect drafts drifting toward “${stripTerminalPunctuation(kernelMisconception.misconception)}” to the correction — ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`,
-              `Use conferences to catch drafts that still assume “${stripTerminalPunctuation(kernelMisconception.misconception)}”; have students revise one line so it reflects ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`,
-              `During spot coaching, ask students to point to the sentence in ${artifact} where the misconception disappears. The corrected idea should read as ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`,
-              `When a draft repeats the tempting idea — “${stripTerminalPunctuation(kernelMisconception.misconception)}” — require one evidence-backed correction before the student moves on: ${stripTerminalPunctuation(kernelMisconception.correction || `in fact, ${kernelMisconception.definition}`)}. ${modality.artifactCheck}`,
+              `Conference against the kernel bar for ${artifact}. Flag this idea. ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Ask for this correction. ${ensureSentenceCompiler(readableCorrection(kernelMisconception.correction || kernelMisconception.definition))} ${modality.artifactCheck}`,
+              `Use conferences to catch this assumption. ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Have students revise one line. Correction: ${ensureSentenceCompiler(readableCorrection(kernelMisconception.correction || kernelMisconception.definition))} ${modality.artifactCheck}`,
+              `During spot coaching, ask students to point to the sentence in ${artifact} where the misconception disappears. The corrected idea is: ${readableCorrection(kernelMisconception.correction || kernelMisconception.definition)}. ${modality.artifactCheck}`,
+              `When a draft repeats this idea, require one evidence-based correction. Misconception: ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} Correction: ${ensureSentenceCompiler(readableCorrection(kernelMisconception.correction || kernelMisconception.definition))} ${modality.artifactCheck}`,
             ])
           : `Conference with students who need support on ${artifact}; redirect them to the exact ${concept} criterion and this modality check: ${modality.artifactCheck}`,
       instructorRole: `Provide targeted feedback on ${artifact} and confirm readiness for submission.`,
@@ -22844,9 +23031,9 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       description:
         deep && kernelMisconception
           ? lessonVariant(lesson, [
-              `Closure note: revisit the warm-up vote — students explain in their own words why “${stripTerminalPunctuation(kernelMisconception.misconception)}” fails, citing one piece of evidence from today’s work on ${artifact}.`,
-              `Students rewrite “${stripTerminalPunctuation(kernelMisconception.misconception)}” as a corrected claim and attach one evidence note from today's ${artifact} work.`,
-              `Students name the evidence that changed their view of “${stripTerminalPunctuation(kernelMisconception.misconception)}” and connect it to the next ${artifact} move.`,
+              `Closure note: revisit the warm-up vote. Students explain why this idea fails: ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} They cite one piece of evidence from today’s ${artifact} work.`,
+              `Students rewrite this misconception as a correct claim: ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} They attach one evidence note from today's ${artifact} work.`,
+              `Students name the evidence that changed their view. Initial idea: ${ensureSentenceCompiler(readableMisconception(kernelMisconception.misconception))} They connect the change to the next ${artifact} move.`,
               `Students explain what the warm-up claim missed, then cite the lesson evidence that makes the correction useful for ${artifact}.`,
             ])
           : lessonVariant(lesson, [
@@ -22860,7 +23047,7 @@ function buildLessonPlanOutline(blueprint, lesson, { depth = 'flat' } = {}) {
       instructorNotes:
         deep && kernelMisconception
           ? lessonVariant(lesson, [
-              `A secure ticket restates the correction in the student’s own words${kernelCitation ? ` and can point to ${kernelCitation}` : ''}; sort tickets into secure, partial, and reteach piles to set the next lesson’s warm-up for ${concept}.`,
+              `A secure ticket restates the correction in the student’s own words${kernelCitation ? ` and points to ${kernelCitation}` : ''}. Sort tickets into secure, partial, and reteach groups. Use them to plan the next ${concept} warm-up.`,
               `Read tickets for whether students can explain the correction without copying the model${kernelCitation ? ` while naming ${kernelCitation}` : ''}; use the partial group to plan the next ${concept} warm-up.`,
               `Sort closure notes by correction quality: secure responses explain the failed idea, partial responses need one more ${concept} example, and weak responses trigger reteaching.`,
               `Use the closure notes as misconception evidence: keep examples that show the correction clearly, flag partial reasoning, and choose the next ${concept} retrieval prompt from the pattern.`,
@@ -22999,7 +23186,10 @@ function compileLessonPlans(blueprint, options = {}) {
           `Students should know the core terms from earlier course materials and be ready to connect them to ${stripLessonPrefix(lesson.title)}.`,
         commonMisconceptions:
           misconceptionMap.length > 0
-            ? misconceptionMap.map((item) => `${item.misconception} ${item.correction}`)
+            ? misconceptionMap.map(
+                (item) =>
+                  `${ensureSentenceCompiler(readableMisconception(item.misconception))} Correction: ${ensureSentenceCompiler(readableCorrection(item.correction))}`,
+              )
             : [
                 `Treating ${concept} as summary work instead of a decision-making process.`,
                 `Listing evidence without explaining why it matters for ${artifact}.`,
@@ -23007,7 +23197,7 @@ function compileLessonPlans(blueprint, options = {}) {
               ],
         weeklySubmissionCriteria:
           `Submit ${artifact} with concrete evidence, a clear claim or recommendation, and one explicit revision move based on feedback. ${artifactGenre.evidenceRequirement || ''} Quality focus: ${artifactGenre.qualityFocus || 'concept accuracy, evidence specificity, decision logic, and revision quality'}.`.trim(),
-        localCaseReplacementNote: `If the named case for ${stripLessonPrefix(lesson.title)} is not locally relevant, replace it with a comparable ${lens.exampleNoun} that still requires students to use evidence about ${concept} and defend the same decision moves.`,
+        localCaseReplacementNote: `Check whether the named case for ${stripLessonPrefix(lesson.title)} fits the local setting. If ${stripLessonPrefix(lesson.title)} does not fit, replace it with a similar ${lens.exampleNoun}. Students must still use ${concept} evidence and defend the same decision moves.`,
         // v0.14.1 (3.2d): the lesson plan lists EVERY registry assessment for
         // this lesson — graded artifacts with their weights, in-class
         // activities marked as such — so map promises are visible where the
@@ -23148,10 +23338,10 @@ function compileLessonPlans(blueprint, options = {}) {
           );
           if (exitFact) {
             return lessonVariant(lesson, [
-              `Exit ticket: students restate “${exitFact}” in their own words and name where today's work on ${artifact} used it.`,
-              `Close with a one-line check: is “${exitFact}” true, and what evidence from today's ${artifact} work shows it?`,
-              `End by asking students to explain “${exitFact}” to a classmate who missed class, using one example from today.`,
-              `Exit ticket: students write why “${exitFact}” matters for ${artifact} and one question they still have about it.`,
+              `Exit ticket: restate this fact in your own words. ${ensureSentenceCompiler(exitFact)} Name where today's work on ${artifact} used it.`,
+              `Close with a one-line check. Is this fact true? ${ensureSentenceCompiler(exitFact)} Cite evidence from today's ${artifact} work.`,
+              `Explain this fact to a classmate who missed class. ${ensureSentenceCompiler(exitFact)} Use one example from today.`,
+              `Exit ticket: explain why this fact matters for ${artifact}. ${ensureSentenceCompiler(exitFact)} Add one question you still have.`,
             ]);
           }
           return lessonVariant(lesson, [

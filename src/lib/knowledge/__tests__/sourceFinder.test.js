@@ -101,7 +101,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v2');
+    expect(first.id).toContain('source-finder-v3');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);
@@ -168,6 +168,41 @@ describe('source finder mini-shard', () => {
     expect(titles).not.toContain('Special Functions of Mathematical Physics');
     expect(titles).not.toContain('Extremely randomized trees');
   }, 15000);
+
+  it('rejects the military Staff homonym for a music-notation lesson', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Music Theory Fundamentals' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Staff and Notation',
+        sections: [{ topic: '1.1: The staff, clefs, and pitch notation' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c1', term: 'Staff notation' }];
+    graph.edges.teaches = [{ from: 's1', to: 'c1' }];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'Staff (military)', {
+            abstract: 'A military staff is a group of officers supporting a commanding officer and military unit.',
+          }),
+          source('wikipedia', 'Staff (music)', {
+            abstract: 'In Western musical notation, the staff carries notes whose position indicates pitch and clef.',
+          }),
+        ]),
+      },
+    });
+
+    expect(miniShard.topics[0].sources.map((item) => item.title)).toEqual(['Staff (music)']);
+  });
 
   it('rejects generic Crossref hits for genetics topics when they lack a genetics anchor', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'Genetics and Society' });

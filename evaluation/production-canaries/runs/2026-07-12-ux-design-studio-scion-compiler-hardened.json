@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "runId": "2026-07-12-ux-design-studio-scion-compiler-hardened",
+  "generatedAt": "2026-07-12T04:40:08.966Z",
+  "appVersion": "0.16.2",
+  "course": { "title": "User Experience Design Studio", "domain": "studio-lab", "lessonCount": 12 },
+  "provider": { "family": "local-scion", "mode": "live", "simulated": false },
+  "requests": { "total": 63, "successful": 63, "httpStatuses": [] },
+  "generation": {
+    "lessonsProduced": 12,
+    "lessonsEnriched": 12,
+    "duplicateTopics": 0,
+    "genomeLinkedLessons": 6,
+    "sourceCitations": 31,
+    "repairsApplied": 12
+  },
+  "package": {
+    "sha256": "d4c92a42a97ffd594569311d7bba90a0beae8254da9a014403abe4390e793cae",
+    "fileCount": 101,
+    "manifestDeliverables": 99,
+    "bytes": 1951935,
+    "officeStructuralValidation": "pass"
+  },
+  "quality": { "score": 99, "grade": "A", "p0": 0, "p1": 0, "p2": 0, "textureScore": 96 },
+  "evidence": {
+    "traceSha256": "a80e03882a85534eb55bd52d2ea914b244f5c454f7fcbfcba95de6215f58f31f",
+    "consoleLogSha256": "1767e81127835fb165080e42bb9fd94a732e67d6863df5b1bef90703d98f7936",
+    "requestCompletionEvidence": { "starts": 63, "completions": 63, "failures": 0 },
+    "retention": { "status": "retained", "location": "artifacts/2026-07-12-ux-design-studio-scion-compiler-hardened" },
+    "visualQa": {
+      "status": "pass",
+      "reviewedAt": "2026-07-12T04:48:00Z",
+      "scope": "Rendered and inspected all 13 slides and all 4 quiz pages for Lessons 1, 8, and 12: 39 slides and 12 pages total. Verified complete 1/13 through 13/13 counters, no classroom-text clipping or overlap, a populated one-bullet Lesson 12 example, Test_Hypothesis removal in Lesson 1, and Digital.gov: Task Flow cleanup in Lesson 8. slides_test warnings on Lessons 1 and 8 are limited to intentional off-canvas decorative ellipses; Lesson 12 passed without overflow warnings."
+    },
+    "artifacts": {
+      "zip": {
+        "path": "artifacts/2026-07-12-ux-design-studio-scion-compiler-hardened/package.zip",
+        "sha256": "d4c92a42a97ffd594569311d7bba90a0beae8254da9a014403abe4390e793cae"
+      },
+      "trace": {
+        "path": "artifacts/2026-07-12-ux-design-studio-scion-compiler-hardened/trace.json",
+        "sha256": "a80e03882a85534eb55bd52d2ea914b244f5c454f7fcbfcba95de6215f58f31f"
+      },
+      "consoleLog": {
+        "path": "artifacts/2026-07-12-ux-design-studio-scion-compiler-hardened/console.log",
+        "sha256": "1767e81127835fb165080e42bb9fd94a732e67d6863df5b1bef90703d98f7936"
+      }
+    },
+    "artifactValidation": { "allMatch": true, "validatedAt": "2026-07-12T04:48:06.869Z" }
+  },
+  "notes": [
+    "This is a real browser-driven local Scion run, not a fixture or simulated provider response.",
+    "The run enriched all 12 lessons and exported a 101-file package with zero warnings and no P0 or P1 findings.",
+    "The local provider emits completion events rather than upstream HTTP status metadata, so request success is supported by 63 paired provider start and response-done events and zero failure events.",
+    "Rendered QA caught and blocked machine enum and source-locator residue in the predecessor package; this retained run is the post-repair regeneration.",
+    "This canary proves a retained studio-lab workflow, not general superiority over paid models or independent instructor validation.",
+    "The ZIP, trace, and console log are hash-matched and retained in the durable production-canary store."
+  ]
+}

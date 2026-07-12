@@ -285,7 +285,7 @@ describe('3.1 — registry schema (derive)', () => {
 describe('3.2 — compiler consumes the registry (Geology)', () => {
   const { graph, blueprint, compiled } = compileFromMap(geologyCourseMap());
 
-  it('gives the quiz atom a brief with the VERBATIM registry title', () => {
+  it('gives a quiz-only lesson a brief with the VERBATIM registry title', () => {
     const titles = compiled.assignments.assignments.map((brief) => brief.title);
     expect(titles).toContain('Quiz: plate boundary evidence');
     // The pre-registry fusion shape never ships again.
@@ -360,6 +360,7 @@ describe('3.2 — compiler consumes the registry (Geology)', () => {
     // Rubrics attach per graded assessment id.
     const quizRubric = compiled.rubrics.rubrics.find((rubric) => rubric.title.startsWith('Quiz: plate boundary'));
     expect(quizRubric.assessmentId).toBe('A7.1');
+    expect(quizRubric.criteria.length).toBeGreaterThan(0);
   });
 
   it('lists in-class items in the lesson plan assessment block and names them in the study guide', () => {

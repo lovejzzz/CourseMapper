@@ -691,6 +691,12 @@ export function _buildDocxContentShared(featureId, data, children, docx) {
           children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
           continue;
         }
+        if (r.answerKeyHandoffNote) {
+          children.push(makeBold('Answer-Key Handoff', r.answerKeyHandoffNote));
+          if (r.teacherNotes) children.push(makeBold('Teacher Notes', r.teacherNotes));
+          children.push(new Paragraph({ spacing: { before: 200, after: 100 }, children: [] }));
+          continue;
+        }
         if (r.taskDirections) children.push(makeBold('Task Directions', r.taskDirections));
         if (r.instructorFacilitationNote)
           children.push(makeBold('Instructor Facilitation', r.instructorFacilitationNote));

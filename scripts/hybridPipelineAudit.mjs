@@ -70,25 +70,32 @@ export async function loadHybridPipelineAuditRuntime() {
       cacheDir: path.join(ROOT, 'node_modules', '.vite', `audit-${process.pid}`),
       logLevel: 'error',
       optimizeDeps: { entries: [], noDiscovery: true },
-      server: { middlewareMode: true, hmr: false, ws: false },
+      server: {
+        middlewareMode: true,
+        hmr: false,
+        ws: false,
+        watch: {
+          // The audit runtime only loads source modules explicitly. Watching retained
+          // ZIPs, model runs, and prior reports makes startup scale with evidence
+          // volume and can stall a release audit before the first fixture begins.
+          ignored: [
+            /(^|[/\\])verification-output([/\\]|$)/,
+            /(^|[/\\])trellis[/\\]runs([/\\]|$)/,
+            /(^|[/\\])trellis[/\\]tendril[/\\]distill[/\\](models|runs|tutor)([/\\]|$)/,
+          ],
+        },
+      },
     });
-    const [
-      apiCostControl,
-      courseBlueprintCompiler,
-      classroomReadiness,
-      deliverableReadiness,
-      deliverableQualityScorer,
-      deliverablePostProcess,
-      publishabilityPlaceholders,
-    ] = await Promise.all([
-      server.ssrLoadModule('/src/lib/apiCostControl.js'),
-      server.ssrLoadModule('/src/lib/courseBlueprintCompiler.js'),
-      server.ssrLoadModule('/src/lib/classroomReadiness.js'),
-      server.ssrLoadModule('/src/lib/deliverableReadiness.js'),
-      server.ssrLoadModule('/src/lib/deliverableQualityScorer.js'),
-      server.ssrLoadModule('/src/lib/deliverablePostProcess.js'),
-      server.ssrLoadModule('/src/lib/publishabilityPlaceholders.js'),
-    ]);
+    // Load these modules in a stable order. Several of them converge on the
+    // Firebase/gRPC CommonJS graph; parallel SSR evaluation can observe a
+    // partially initialized CJS export and strand the audit before fixture 1.
+    const apiCostControl = await server.ssrLoadModule('/src/lib/apiCostControl.js');
+    const courseBlueprintCompiler = await server.ssrLoadModule('/src/lib/courseBlueprintCompiler.js');
+    const classroomReadiness = await server.ssrLoadModule('/src/lib/classroomReadiness.js');
+    const deliverableReadiness = await server.ssrLoadModule('/src/lib/deliverableReadiness.js');
+    const deliverableQualityScorer = await server.ssrLoadModule('/src/lib/deliverableQualityScorer.js');
+    const deliverablePostProcess = await server.ssrLoadModule('/src/lib/deliverablePostProcess.js');
+    const publishabilityPlaceholders = await server.ssrLoadModule('/src/lib/publishabilityPlaceholders.js');
     return {
       server,
       buildApiCostPlan: apiCostControl.buildApiCostPlan,

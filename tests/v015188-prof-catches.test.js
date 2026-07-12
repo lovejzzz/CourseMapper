@@ -49,6 +49,23 @@ describe('Prof catch #1 — autograded quizzes are machine-scorable', () => {
   it('the promise-detection is title-driven and case-insensitive', () => {
     expect(weeklyQuizItems('Weekly AUTOGRADED check').types.essay || 0).toBe(0);
   });
+
+  it('lesson-plan routines use a lesson-scoped quiz noun instead of the generic registry label', () => {
+    const blueprint = buildCourseBlueprint(course('Weekly autograded quizzes'));
+    const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans']);
+    // Source traces must preserve the instructor's exact registry label. The
+    // regression is only about classroom-facing routine and submission prose.
+    const text = JSON.stringify(
+      compiled.lessonPlans.lessonPlans.map((plan) => ({
+        outline: plan.outline,
+        studentFacingSummary: plan.studentFacingSummary,
+        homework: plan.homework,
+        weeklySubmissionCriteria: plan.weeklySubmissionCriteria,
+      })),
+    );
+    expect(text).not.toMatch(/for Weekly autograded quizzes/i);
+    expect(text).toMatch(/Week 1 quiz/i);
+  });
 });
 
 describe('Prof catch #5 — quiz distractors catch the documented misconception', () => {

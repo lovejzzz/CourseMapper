@@ -140,6 +140,10 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(req.body.messages[1].content).toContain('one decision-ready scenario');
     expect(req.body.messages[1].content).toContain('at least 2 inspectable observations');
     expect(req.body.messages[1].content).toContain('focused on one construct or decision target');
+    expect(req.body.messages[1].content).toContain('po has exactly 3 defensible positions');
+    expect(req.body.messages[1].content).toContain('pa has exactly 4 distinct parameters');
+    expect(req.body.messages[1].content).toContain('conditional or synthesis position');
+    expect(req.body.messages[1].content).toContain('required evidence/source');
     expect(req.body.messages[1].content).toContain('Also return one compact courseLevel object');
     expect(req.body.messages[1].content).not.toContain('compact CourseMapper lessons');
 

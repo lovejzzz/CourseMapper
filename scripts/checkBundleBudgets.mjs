@@ -54,7 +54,10 @@ const lazyChunkBudgets = [
   // ~0.5/0.7 KiB margin over the reference platform. Same documented-exception
   // discipline as v0.15.187; the useDeliverables split remains the claw-back
   // lane.
-  { prefix: 'AppFlow-', rawKiB: 257, gzipKiB: 78, gzipSlackBytes: 256 },
+  // v0.16.2: +0.25 KiB raw (gzip unchanged) keeps the authored Scion overlay
+  // in full project snapshots after map/finalizer re-derivation. This is the
+  // source-of-truth fix behind non-stale paired evaluation, not UI growth.
+  { prefix: 'AppFlow-', rawKiB: 257.25, gzipKiB: 78, gzipSlackBytes: 256 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
@@ -71,7 +74,11 @@ const lazyChunkBudgets = [
   // (logistics plan / cumulative study guide / short review deck), and
   // code-lab rubric/brief scaffolds. The trend-DOWN goal still stands: this is
   // a one-time correctness bump, not a licence for more template variants.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 752, gzipKiB: 206 },
+  // v0.16.2: +1 KiB raw for classroom-boundary humanization of source
+  // locators and model enum tokens. The shared parsing bodies live in the
+  // compilerText chunk; this allowance covers the compiler's quiz-field
+  // applications while gzip remains below the existing 206 KiB ceiling.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 753, gzipKiB: 206 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +
@@ -98,7 +105,11 @@ const lazyChunkBudgets = [
   // fresh ZIP audit where "evidence check: Studio critique (9%)" became lesson
   // titles and filenames. Still lazy and still within the 40–60 KiB roadmap
   // range named when this chunk was introduced.
-  { prefix: 'deepQualityGrader-', rawKiB: 57, gzipKiB: 20 },
+  // v0.16.2: source-bank assessment depth plus the inline-source citation
+  // boundary add 1.4 KiB to this lazy-only audit chunk. The production proof
+  // uses both checks to reject recall-heavy banks without misclassifying
+  // classroom activity cues as off-discipline readings.
+  { prefix: 'deepQualityGrader-', rawKiB: 59, gzipKiB: 21 },
   // The finalize-time grading seam AppFlow lazy-imports (assembles the file
   // map via packageZipExporter and returns the badge data; measured at
   // 1.1 KiB raw / 0.6 gzip).

@@ -26,6 +26,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { buildLessonKernelPrompt } from '../../../src/lib/blueprintEnrichmentPass.js';
+import { assessScionPreferencePair } from '../../../src/lib/scionPreferenceGate.js';
 import { resolveCourses } from '../../../scripts/crucible/courses.mjs';
 import { loadApiKey } from '../../../scripts/lib/crucibleBrowser.mjs';
 import { sGenerate, stopS } from '../sModel.mjs';
@@ -96,27 +97,63 @@ function tokenOverlap(a, b) {
   return hit / Math.min(ta.size, tb.size);
 }
 
+export function buildDeterministicPreferencePair({ kind, prompt, chosen, rejected, metadata = {} }) {
+  const chosenValue = typeof chosen === 'string' ? JSON.parse(chosen) : chosen;
+  const rejectedValue = typeof rejected === 'string' ? JSON.parse(rejected) : rejected;
+  const chosenAssessment = kind === 'lesson' ? (chosenValue?.lessons?.[0] ?? chosenValue) : chosenValue;
+  const rejectedAssessment = kind === 'lesson' ? (rejectedValue?.lessons?.[0] ?? rejectedValue) : rejectedValue;
+  const initial = assessScionPreferencePair({ kind, chosen: chosenAssessment, rejected: rejectedAssessment });
+  const rejectedFailed = initial.rejected?.eligible === false;
+  const preferenceEvidence = rejectedFailed
+    ? {
+        kind: 'deterministic-contract-margin',
+        verified: true,
+        rejectedIssues: initial.rejected.issues,
+      }
+    : null;
+  const result = assessScionPreferencePair({
+    kind,
+    chosen: chosenAssessment,
+    rejected: rejectedAssessment,
+    preferenceEvidence,
+  });
+  if (!result.eligible) return { row: null, issues: result.issues };
+  return {
+    row: {
+      kind,
+      prompt,
+      chosen: typeof chosen === 'string' ? chosen : JSON.stringify(chosen),
+      rejected: typeof rejected === 'string' ? rejected : JSON.stringify(rejected),
+      preferenceEvidence,
+      ...metadata,
+    },
+    issues: [],
+  };
+}
+
 function atomPairs(prompt, chosenLesson, rejectedLesson) {
   const pairs = [];
   const cMc = Array.isArray(chosenLesson?.mc) ? chosenLesson.mc : [];
   const rMc = Array.isArray(rejectedLesson?.mc) ? rejectedLesson.mc : [];
   for (let i = 0; i < Math.min(cMc.length, rMc.length); i += 1) {
-    pairs.push({
+    const candidate = buildDeterministicPreferencePair({
       kind: 'mc-item',
       prompt: `${prompt}\nWrite ONE multiple-choice item (q, op[4], ai, ex) for this lesson as JSON.`,
-      chosen: JSON.stringify(cMc[i]),
-      rejected: JSON.stringify(rMc[i]),
+      chosen: cMc[i],
+      rejected: rMc[i],
     });
+    if (candidate.row) pairs.push(candidate.row);
   }
   const cKt = Array.isArray(chosenLesson?.keyTerms) ? chosenLesson.keyTerms : [];
   const rKt = Array.isArray(rejectedLesson?.keyTerms) ? rejectedLesson.keyTerms : [];
   for (let i = 0; i < Math.min(cKt.length, rKt.length); i += 1) {
-    pairs.push({
+    const candidate = buildDeterministicPreferencePair({
       kind: 'key-term',
       prompt: `${prompt}\nWrite ONE keyTerm (tr, df, eg, mi, cx) for this lesson as JSON.`,
-      chosen: JSON.stringify(cKt[i]),
-      rejected: JSON.stringify(rKt[i]),
+      chosen: cKt[i],
+      rejected: rKt[i],
     });
+    if (candidate.row) pairs.push(candidate.row);
   }
   return pairs;
 }
@@ -126,7 +163,14 @@ export async function buildPairs(courseIds) {
   const ledger = fs.existsSync(LEDGER) ? JSON.parse(fs.readFileSync(LEDGER, 'utf8')) : { done: {}, spendUsd: 0 };
   const apiKey = await loadApiKey(undefined, 'openai');
   const courses = resolveCourses(courseIds.join(','));
-  const stats = { pairs: 0, droppedIdentity: 0, droppedBadChosen: 0, droppedBadRejected: 0, spendUsd: 0 };
+  const stats = {
+    pairs: 0,
+    droppedIdentity: 0,
+    droppedBadChosen: 0,
+    droppedBadRejected: 0,
+    droppedUnprovenPreference: 0,
+    spendUsd: 0,
+  };
 
   for (const course of courses) {
     const courseMap = courseMapFromCourse(course);
@@ -134,12 +178,18 @@ export async function buildPairs(courseIds) {
     for (let index = 0; index < lessonCount; index += 1) {
       const doneKey = `${course.id}|lesson-${index + 1}`;
       if (ledger.done[doneKey]) continue;
+      const markDone = (status) => {
+        ledger.done[doneKey] = status;
+        fs.writeFileSync(LEDGER, JSON.stringify(ledger, null, 2));
+      };
       const { systemPrompt, userPrompt } = buildLessonKernelPrompt(courseMap, [index]);
       let chosenText = '';
       try {
         const mini = await miniKernel(apiKey, systemPrompt, userPrompt);
         chosenText = mini.text;
         stats.spendUsd += mini.costUsd;
+        ledger.spendUsd = Number(ledger.spendUsd || 0) + mini.costUsd;
+        fs.writeFileSync(LEDGER, JSON.stringify(ledger, null, 2));
       } catch (error) {
         console.error(`[pairs] ${doneKey} mini failed: ${error.message}`);
         continue;
@@ -152,7 +202,7 @@ export async function buildPairs(courseIds) {
       }
       if (!chosenLesson) {
         stats.droppedBadChosen += 1;
-        ledger.done[doneKey] = 'bad-chosen';
+        markDone('bad-chosen');
         continue;
       }
       let rejectedText = '';
@@ -181,23 +231,32 @@ export async function buildPairs(courseIds) {
       }
       if (!rejectedLesson) {
         stats.droppedBadRejected += 1;
-        ledger.done[doneKey] = 'bad-rejected';
+        markDone('bad-rejected');
         continue;
       }
       if (tokenOverlap(chosenText, rejectedText) >= 0.9) {
         stats.droppedIdentity += 1;
-        ledger.done[doneKey] = 'near-identity';
+        markDone('near-identity');
         continue;
       }
-      const rows = [
-        { kind: 'lesson', prompt: `${systemPrompt}\n\n${userPrompt}`, chosen: chosenText, rejected: rejectedText },
-        ...atomPairs(`${systemPrompt}\n\n${userPrompt}`, chosenLesson, rejectedLesson),
-      ].map((row) => ({ ...row, courseId: course.id, lessonId: `lesson-${index + 1}` }));
+      const pairPrompt = `${systemPrompt}\n\n${userPrompt}`;
+      const lessonPair = buildDeterministicPreferencePair({
+        kind: 'lesson',
+        prompt: pairPrompt,
+        chosen: chosenText,
+        rejected: rejectedText,
+      });
+      const rows = [lessonPair.row, ...atomPairs(pairPrompt, chosenLesson, rejectedLesson)]
+        .filter(Boolean)
+        .map((row) => ({ ...row, courseId: course.id, lessonId: `lesson-${index + 1}` }));
+      if (rows.length === 0) {
+        stats.droppedUnprovenPreference += 1;
+        markDone('no-pair-level-preference-evidence');
+        continue;
+      }
       fs.appendFileSync(TRAIN, rows.map((row) => JSON.stringify(row)).join('\n') + '\n');
       stats.pairs += rows.length;
-      ledger.done[doneKey] = rows.length;
-      ledger.spendUsd += stats.spendUsd;
-      fs.writeFileSync(LEDGER, JSON.stringify(ledger, null, 2));
+      markDone(rows.length);
       console.error(`[pairs] ${doneKey}: +${rows.length} pairs (total ${stats.pairs}, $${stats.spendUsd.toFixed(3)})`);
     }
   }

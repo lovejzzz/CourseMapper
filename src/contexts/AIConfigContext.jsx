@@ -8,6 +8,7 @@ import {
   PUBLIC_SCION_PROVIDER_ID,
   publicScionModelOption,
 } from '../lib/publicScionProvider';
+import { isLocalProviderOptInEnabled } from '../lib/localProvider';
 
 const AIConfigContext = createContext(null);
 const ACTIVE_API_KEY_STORAGE_KEY = 'coursemapper-apikey';
@@ -18,6 +19,7 @@ function isKeylessProvider(provider) {
 }
 
 function normalizeStoredProvider(provider) {
+  if (provider === 'local' && isLocalProviderOptInEnabled()) return 'local';
   if (provider === 'webllm' || provider === 'free' || provider === 'local') return PUBLIC_SCION_PROVIDER_ID;
   return provider || PUBLIC_SCION_PROVIDER_ID;
 }

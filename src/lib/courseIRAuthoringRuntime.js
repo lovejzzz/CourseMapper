@@ -323,7 +323,7 @@ export async function runNativeAuthoring(input = [], output = []) {
       type: 'pipelineDecision',
       stage: 'courseIRAuthoring',
       label: 'Native authoring plan',
-      detail: 'skipped: Scion Draft uses the compact course-map contract; native skeleton authoring is unavailable',
+      detail: 'skipped: public Scion uses the compact course-map contract; native skeleton authoring is unavailable',
     });
     return null;
   }

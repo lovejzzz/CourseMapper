@@ -6,6 +6,7 @@ import {
   projectKernelToSurfaces,
 } from '../kernelProjection.js';
 import {
+  assessProjectedKernelCoverage,
   buildLessonKernelPrompt,
   buildQuizItemPlan,
   lintEnrichedQuizItem,
@@ -16,6 +17,7 @@ import {
 } from '../blueprintEnrichmentPass.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../courseBlueprintCompiler.js';
 import { auditSubstance } from '../contentQualityChecks.js';
+import { isClaimEvidenceBoundaryShortAnswer } from '../quality/quizItemDepth.js';
 
 const COURSE_MAP = {
   courseName: 'Climate Justice and Community Resilience',
@@ -173,6 +175,49 @@ describe('buildSlideContentFromKernel', () => {
     // Bullets ending on content words stay period-free (bullet style).
     const content = bullets.find((bullet) => bullet.includes('one at a time in a loop'));
     expect(content).toBe('Generators produce items one at a time in a loop');
+  });
+});
+
+describe('native kernel coverage contract', () => {
+  it('distinguishes a present-but-partial payload from a complete lesson kernel', () => {
+    const completeKernel = {
+      ...KERNEL,
+      discussionPrompt: {
+        ...KERNEL.discussionPrompt,
+        positions: [...KERNEL.discussionPrompt.positions, 'Sequence both investments against an explicit trigger.'],
+      },
+      assignmentCore: {
+        ...KERNEL.assignmentCore,
+        parameters: [...KERNEL.assignmentCore.parameters, 'submit one bounded recommendation'],
+      },
+      mc: [0, 1, 2, 3].map((index) => ({
+        ...MC_ITEM,
+        question: `${MC_ITEM.question} Case ${index + 1}?`,
+      })),
+    };
+    const payload = projectKernelToSurfaces(completeKernel, { itemPlan: buildQuizItemPlan(6) });
+    payload.studyGuide = {
+      summary: 'Compare the local temperature record with the emissions evidence before making a bounded claim.',
+      reviewStrategy: 'Rehearse the greenhouse mechanism and the alternative land-use explanation.',
+    };
+    expect(assessProjectedKernelCoverage(payload, { requiredMcCount: 4 })).toMatchObject({
+      complete: true,
+      issues: [],
+      mcCount: 4,
+      keyTermCount: 3,
+    });
+
+    const partial = {
+      ...payload,
+      quizItems: payload.quizItems.filter((item) => item.type !== 'multiple_choice').concat(payload.quizItems[0]),
+      keyTerms: payload.keyTerms.slice(0, 1),
+      studyGuide: {},
+    };
+    const result = assessProjectedKernelCoverage(partial, { requiredMcCount: 4 });
+    expect(result.complete).toBe(false);
+    expect(result.issues).toEqual(
+      expect.arrayContaining(['mc-coverage:1/4', 'key-term-coverage:1/3', 'study-guide-coverage']),
+    );
   });
 });
 
@@ -444,6 +489,8 @@ describe('kernel parse → project → compile (end to end)', () => {
   it('parses the kernel, validates atoms, and projects the full surface payload', () => {
     const prompt = buildLessonKernelPrompt(COURSE_MAP, [0], { includeCourseLevel: true });
     expect(prompt.systemPrompt).toContain('Return JSON matching this shape');
+    expect(prompt.systemPrompt).toContain('exactly three defensible positions');
+    expect(prompt.systemPrompt).toContain('exactly four distinct parameters');
     // v0.15.186 static-prefix discipline: the courseLevel schema lives in the
     // USER prompt so every chunk shares a byte-identical system prompt (the
     // provider prompt-cache prefix). Chunk-varying content never enters the
@@ -465,6 +512,51 @@ describe('kernel parse → project → compile (end to end)', () => {
     const courseLevel = normalizeAbsorbedCourseLevel(parsed.courseLevel, prompt.lessons);
     expect(courseLevel.signatureTerms).toContain('greenhouse effect');
     expect(courseLevel.quality.source).toBe('kernel-chunk-1');
+  });
+
+  it('realigns a decisively contradicted MC key at canonical kernel admission and records a trainable pair', () => {
+    const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    const response = JSON.parse(shortKeyResponse);
+    response.lessons[0].mc = [
+      {
+        q: 'During card sorting, 70% placed Winter Jackets under Clothing while 30% chose Outdoor Gear. Which next step best supports user-centered design?',
+        op: [
+          'Conduct a second card sorting session with a larger sample.',
+          'Add a new top-level Outdoor Gear category to the sitemap.',
+          'Merge Clothing and Outdoor Gear into a single category.',
+          'Remove Winter Jackets from the product catalog.',
+        ],
+        ai: 0,
+        ex: 'Adding a new top-level Outdoor Gear category addresses the split grouping, while a second session merely confirms the same split.',
+      },
+    ];
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(response), { prompt });
+    const repairedItem = parsed.lessons['lesson-1'].quizItems.find((item) => item.type === 'multiple_choice');
+    expect(repairedItem.answerIndex).toBe(1);
+    expect(parsed.repairs).toHaveLength(1);
+    expect(parsed.repairs[0]).toMatchObject({
+      kind: 'mc-item',
+      pass: 'explanationKeyAlignment',
+      trainingEligible: true,
+      rejected: { answerIndex: 0 },
+      chosen: { answerIndex: 1 },
+      preferenceEvidence: { verified: true, supportedIndex: 1 },
+    });
+  });
+
+  it('keeps every deterministic short-answer variant explicit about concept, evidence, and boundary', () => {
+    const itemPlan = buildQuizItemPlan(6);
+    for (let index = 0; index < 80; index += 1) {
+      const variedKernel = {
+        ...KERNEL,
+        scenario: { ...KERNEL.scenario, setup: `${KERNEL.scenario.setup} Case variation ${index}.` },
+      };
+      const shortAnswer = projectKernelToSurfaces(variedKernel, { itemPlan }).quizItems.find(
+        (item) => item.type === 'short_answer',
+      );
+      expect(isClaimEvidenceBoundaryShortAnswer(shortAnswer.question)).toBe(true);
+    }
   });
 
   it('makes recovery prompts cache-distinct and rotates across missing lessons', () => {

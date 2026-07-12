@@ -239,6 +239,14 @@ export function inferCourseDisciplines(courseMap) {
       /\b(?:u\.?s\.?|american|united states|world|european|western|modern|global) history|\bhistory of\b|\bhistory\s+(?:course|survey|since|to)\b|\bcivilization\b|\bprimary sources?\b|\breconstruction era|\bradical reconstruction|\bgilded age|\bprogressive era|\bnew deal\b|\bgreat depression|\bworld war\b|\bcivil war\b|\bcold war\b|\bcivil rights movement|\b(?:american|french|industrial) revolution/,
     ],
     ['lit', /\bliterat|literary|poetry|poem|novel|fiction|close reading|rhetoric|composition/],
+    [
+      'music',
+      /\bmusic theory\b|\bmusicianship\b|\bear training\b|\bsight singing\b|\bsolf[eè]ge\b|\b(?:staff|clef|interval|scale|triad|seventh chord|rhythm|meter|harmony|chord progression|musical form)s?\b/,
+    ],
+    [
+      'ux',
+      /\buser experience\b|\bux design\b|\bhuman[- ]centered design\b|\buser research\b|\bpersona(?:s)?\b|\bjourney map(?:ping|s)?\b|\bservice blueprint(?:ing|s)?\b|\binformation architecture\b|\btask flow(?:s)?\b|\bwirefram(?:e|es|ing)\b|\busability test(?:ing)?\b|\bdesign handoff\b/,
+    ],
     ['cs', /\bcomputer science|algorithm|programming|data structure/],
     // v0.14.1 (4.2): geology + world-language inference. The v0.14 audit's
     // Physical Geology and Mandarin courses inferred NOTHING — no regex

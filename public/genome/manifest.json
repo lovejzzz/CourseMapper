@@ -1,7 +1,7 @@
 {
-  "version": "2026-07-07",
+  "version": "2026-07-12",
   "generator": "curriculumos-foundry-v1",
-  "conceptCount": 271,
+  "conceptCount": 284,
   "shards": [
     {
       "id": "anatomy-intro",
@@ -17,7 +17,7 @@
       "level": "intro",
       "path": "astro-intro.json",
       "conceptCount": 12,
-      "hash": "333a47a8811429c4"
+      "hash": "754548b2e5617bf0"
     },
     {
       "id": "bio-intro",
@@ -49,7 +49,7 @@
       "level": "intro",
       "path": "econ-intro.json",
       "conceptCount": 16,
-      "hash": "77c7c52c1d2e49c8"
+      "hash": "80169c3278f2f189"
     },
     {
       "id": "geo-intro",
@@ -90,6 +90,14 @@
       "path": "math-intro.json",
       "conceptCount": 38,
       "hash": "8f633ffa2ed161a3"
+    },
+    {
+      "id": "music-intro",
+      "discipline": "music",
+      "level": "intro",
+      "path": "music-intro.json",
+      "conceptCount": 7,
+      "hash": "0acd827673397b71"
     },
     {
       "id": "nursing-intro",
@@ -138,6 +146,14 @@
       "path": "stats-intro.json",
       "conceptCount": 5,
       "hash": "d043fca784ae8f65"
+    },
+    {
+      "id": "ux-intro",
+      "discipline": "ux",
+      "level": "intro",
+      "path": "ux-intro.json",
+      "conceptCount": 6,
+      "hash": "97184a577a92ba3e"
     }
   ],
   "archetypeShard": {
@@ -170,9 +186,101 @@
       "displayTitle": "An Introduction to Geology",
       "sourceUrl": "https://opengeology.org/textbook/"
     },
+    "https://en.wikipedia.org/wiki/Staff_(music)": {
+      "displayTitle": "Staff (music)",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Staff_(music)"
+    },
+    "https://en.wikipedia.org/wiki/Clef": {
+      "displayTitle": "Clef",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Clef"
+    },
+    "https://en.wikipedia.org/wiki/Interval_(music)": {
+      "displayTitle": "Interval (music)",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Interval_(music)"
+    },
+    "https://en.wikipedia.org/wiki/List_of_pitch_intervals": {
+      "displayTitle": "List of pitch intervals",
+      "sourceUrl": "https://en.wikipedia.org/wiki/List_of_pitch_intervals"
+    },
+    "https://en.wikipedia.org/wiki/Scale_(music)": {
+      "displayTitle": "Scale (music)",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Scale_(music)"
+    },
+    "https://en.wikipedia.org/wiki/Key_signature": {
+      "displayTitle": "Key signature",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Key_signature"
+    },
+    "https://en.wikipedia.org/wiki/Seventh_chord": {
+      "displayTitle": "Seventh chord",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Seventh_chord"
+    },
+    "https://en.wikipedia.org/wiki/Triad_(music)": {
+      "displayTitle": "Triad (music)",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Triad_(music)"
+    },
+    "https://en.wikipedia.org/wiki/Metre_(music)": {
+      "displayTitle": "Metre (music)",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Metre_(music)"
+    },
+    "https://en.wikipedia.org/wiki/Rhythm": {
+      "displayTitle": "Rhythm",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Rhythm"
+    },
+    "https://en.wikipedia.org/wiki/Metre_(poetry)": {
+      "displayTitle": "Metre (poetry)",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Metre_(poetry)"
+    },
+    "https://en.wikipedia.org/wiki/Chord_progression": {
+      "displayTitle": "Chord progression",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Chord_progression"
+    },
+    "https://en.wikipedia.org/wiki/Harmony": {
+      "displayTitle": "Harmony",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Harmony"
+    },
+    "https://en.wikipedia.org/wiki/Fantasia_(musical_form)": {
+      "displayTitle": "Fantasia (musical form)",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Fantasia_(musical_form)"
+    },
+    "https://en.wikipedia.org/wiki/Musical_form": {
+      "displayTitle": "Musical form",
+      "sourceUrl": "https://en.wikipedia.org/wiki/Musical_form"
+    },
     "openstax:university-physics-volume-2": {
       "displayTitle": "University Physics Volume 2",
       "sourceUrl": "https://openstax.org/details/books/university-physics-volume-2"
+    },
+    "govuk:plan-user-research": {
+      "displayTitle": "Plan a round of user research",
+      "sourceUrl": "https://www.gov.uk/service-manual/user-research/plan-round-of-user-research"
+    },
+    "govuk:user-needs": {
+      "displayTitle": "Learning about users and their needs",
+      "sourceUrl": "https://www.gov.uk/service-manual/user-research/start-by-learning-user-needs"
+    },
+    "govuk:whole-journey": {
+      "displayTitle": "Map and understand a user's whole problem",
+      "sourceUrl": "https://www.gov.uk/service-manual/design/map-a-users-whole-problem"
+    },
+    "digitalgov:task-flow": {
+      "displayTitle": "User interactions: task flow analyses",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/designing/user-interaction"
+    },
+    "digitalgov:prototypes": {
+      "displayTitle": "Prototypes",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/designing/prototyping"
+    },
+    "digitalgov:usability": {
+      "displayTitle": "Usability testing",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/testing/usability"
+    },
+    "w3c:wcag22": {
+      "displayTitle": "Web Content Accessibility Guidelines (WCAG) 2.2",
+      "sourceUrl": "https://www.w3.org/TR/WCAG22/"
+    },
+    "w3c:involving-users": {
+      "displayTitle": "Involving Users in Evaluating Web Accessibility",
+      "sourceUrl": "https://www.w3.org/WAI/test-evaluate/involving-users/"
     }
   }
 }

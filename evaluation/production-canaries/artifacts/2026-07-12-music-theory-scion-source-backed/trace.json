@@ -1,0 +1,122 @@
+{
+  "digestVersion": 1,
+  "appVersion": "0.16.2",
+  "runId": "run-1783816829056",
+  "finishRunId": "finish-mrh2n1zo-krvu4",
+  "at": "2026-07-12T00:44:55.609Z",
+  "elapsedMs": 266553,
+  "run": {
+    "provider": "local",
+    "models": [
+      "scion-1"
+    ],
+    "lessonCount": 7,
+    "features": [
+      "courseMap",
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "providerCalls": 37
+  },
+  "pipeline": {
+    "courseIRAuthoring": "skipped: Scion time-planner (direct authoring never passes acceptance; skeleton path is the measured optimum)",
+    "courseMap": "scion-1 · typed skeleton (sessions, assessments, readings, resources)",
+    "examine": "skipped: native authoring — Pass B authors lesson content next",
+    "genomeLinker": "7 genome + 0 cached of 7 lessons (9 concepts, 19 citations, 0 bridges)",
+    "judgment": "no gaps across 9 linked concepts",
+    "stage": "admissionGate:lesson-6 rejected [off-topic] · admissionGate:lesson-6 regenerated · topicGate:lesson-6 regenerated · appliedDepth:lesson-6 rejected [not-applied] · appliedDepth:lesson-6 rejected [not-applied] · appliedDepth:lesson-6 rejected [not-applied] · polish:lesson-6 done",
+    "enrichmentModelStage": "ran (7 lessons enriched) (linker: ran)",
+    "nativeAuthoring": "assembled 7 sessions onto Pass A entity ids · Pass B authored 7 lesson(s) · 0 registry readings · CurriculumV1 source 7 lessons",
+    "knowledgeBackbone": "7/7 lessons genome-linked · 17 cited open resources (genome: 14, openalex: 3) · 7/7 lessons with readings",
+    "courseGraph": "7 sessions · 17 concepts (7 genome-linked, 0 authored) · 17 outcomes",
+    "groundingMetrics": "overall 43.8% · syllabus 4% · lessonPlans 3% · slideDecks 28% · assignments 99% · rubrics 22% · discussions 97% · quizBank 42% · studyGuides 13% · courseFaq 37%",
+    "enrichment": "ran (7 lessons enriched)"
+  },
+  "compilerSavings": {
+    "featureIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "source": "enriched-blueprint",
+    "compiledFeatureCount": 9,
+    "savedProviderCalls": 16,
+    "lastAt": 1783817092408
+  },
+  "cost": {
+    "totalUsd": 0,
+    "totalDisplay": "$0.00",
+    "inputTokens": 19623,
+    "outputTokens": 14717,
+    "reasoningOutputTokens": 0,
+    "cachedInputTokens": 0,
+    "accuracy": "estimated — provider did not report token usage for some calls",
+    "byTask": [
+      {
+        "task": "blueprintEnrichment",
+        "calls": 7,
+        "inputTokens": 9215,
+        "outputTokens": 9658,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "scionPass",
+        "calls": 29,
+        "inputTokens": 9222,
+        "outputTokens": 4449,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "nativeSkeleton",
+        "calls": 1,
+        "inputTokens": 1186,
+        "outputTokens": 610,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      }
+    ]
+  },
+  "gates": {
+    "finalStatus": "ready",
+    "blockers": 0,
+    "warnings": 0,
+    "repairsApplied": 11,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "qualityStatus": "graded",
+    "qualityScore": 99,
+    "qualityGrade": "A",
+    "qualityP0": 0,
+    "qualityP1": 0,
+    "qualityP2": 0,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": []
+  }
+}

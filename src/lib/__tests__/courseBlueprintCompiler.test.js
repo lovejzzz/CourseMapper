@@ -6820,7 +6820,10 @@ describe('courseBlueprintCompiler', () => {
       },
     });
 
-    expect(result.warnings.some((issue) => issue.message.includes('repeats the same boilerplate'))).toBe(false);
+    expect(
+      result.warnings.some((issue) => issue.message.includes('repeats the same boilerplate')),
+      JSON.stringify(result.warnings, null, 2),
+    ).toBe(false);
     expect(compiled.slideDecks.decks[0].slideDeckSequenceGuide.cumulativeAssessmentMap).toMatch(
       /practice slides (reinforce|rehearse)|practice focus/,
     );

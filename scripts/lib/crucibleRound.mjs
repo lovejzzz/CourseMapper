@@ -872,7 +872,7 @@ export const AUTHORING_COST_CUT_TARGET = 0.2;
  * same compiled state, export twin zips). Anything else throws.
  */
 export function parseVoiceFlag(raw) {
-  if (raw === undefined || raw === null || raw === true || raw === '') return 'off';
+  if (raw === undefined || raw === null || raw === true || raw === '') return 'default';
   const value = String(raw).toLowerCase();
   if (value === 'off' || value === 'on' || value === 'both' || value === 'ab') return value;
   throw new Error(`--voice must be off, on, both, or ab (got "${raw}")`);
@@ -889,11 +889,13 @@ export function parseVoiceFlag(raw) {
  * voiced) — that is what de-confounds the comparison. The voiced twin entry
  * is fabricated by the round loop from the second zip.
  */
-export function expandCoursesForVoice(courses, voice = 'off') {
+export function expandCoursesForVoice(courses, voice = 'default') {
   const list = Array.isArray(courses) ? courses : [];
-  if (voice === 'off') {
-    // v0.15.1 F2 (post-flip): the default round carries NO voice tag — the
-    // app default (on) applies. An EXPLICIT quiet arm comes from 'both'/'ab'.
+  if (voice === 'default') {
+    // Omitted --voice follows the current app default and preserves the
+    // historical unsuffixed run directory. Explicit --voice off below is a
+    // real quiet run, so compiler-only audits do not wait on an unrelated
+    // optional provider pass.
     return list.map((course) => ({ ...course }));
   }
   if (voice === 'ab') {

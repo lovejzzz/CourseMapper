@@ -62,6 +62,12 @@ async function startRoute(route, { timeoutMs = 120_000 } = {}) {
   const pending = new Map();
   const entry = { proc, pending };
   servers.set(route, entry);
+  // Always drain stderr. Model loaders and Hugging Face progress reporters can
+  // emit enough startup diagnostics to fill an unread pipe, deadlocking the
+  // child before it writes the JSON `ready` record on stdout.
+  proc.stderr.on('data', (chunk) => {
+    if (process.env.TENDRIL_SERVER_DEBUG === '1') process.stderr.write(`[tendril-s:${route}] ${chunk}`);
+  });
   let buffer = '';
   proc.stdout.on('data', (chunk) => {
     buffer += chunk.toString();
@@ -93,7 +99,13 @@ async function startRoute(route, { timeoutMs = 120_000 } = {}) {
   });
   await new Promise((resolve, reject) => {
     pending.set('ready', { resolve, reject });
-    setTimeout(() => reject(new Error(`tendril-s [${route}] did not start (venv built?)`)), timeoutMs);
+    setTimeout(() => {
+      if (!pending.has('ready')) return;
+      pending.delete('ready');
+      servers.delete(route);
+      proc.kill();
+      reject(new Error(`tendril-s [${route}] did not start within ${Math.round(timeoutMs / 1000)}s`));
+    }, timeoutMs);
   });
   return entry;
 }
@@ -110,7 +122,10 @@ export async function sGenerate(
   { timeoutMs = 180_000 } = {},
 ) {
   const route = resolveRoute(task);
-  const entry = await startRoute(route);
+  // The items route may need to download or cold-load several GB of weights.
+  // Its caller already supplies a queue-inclusive timeout; use the same budget
+  // for startup instead of misclassifying a slow first load after 120 seconds.
+  const entry = await startRoute(route, { timeoutMs });
   const id = String(nextId++);
   const promise = new Promise((resolve, reject) => {
     entry.pending.set(id, { resolve, reject });

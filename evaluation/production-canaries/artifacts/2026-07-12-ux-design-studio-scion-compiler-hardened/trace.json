@@ -1,0 +1,122 @@
+{
+  "digestVersion": 1,
+  "appVersion": "0.16.2",
+  "runId": "run-1783830839104",
+  "finishRunId": "finish-mrhb1i1l-kti04",
+  "at": "2026-07-12T04:40:08.966Z",
+  "elapsedMs": 369862,
+  "run": {
+    "provider": "local",
+    "models": [
+      "scion-1"
+    ],
+    "lessonCount": 12,
+    "features": [
+      "courseMap",
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "providerCalls": 63
+  },
+  "pipeline": {
+    "courseIRAuthoring": "skipped: Scion time-planner (direct authoring never passes acceptance; skeleton path is the measured optimum)",
+    "courseMap": "scion-1 · typed skeleton (sessions, assessments, readings, resources)",
+    "examine": "skipped: native authoring — Pass B authors lesson content next",
+    "genomeLinker": "6 genome + 0 cached of 12 lessons (10 concepts, 31 citations, 0 bridges)",
+    "judgment": "no gaps across 10 linked concepts",
+    "stage": "admissionGate:lesson-12 rejected [explanation-key-conflict] · admissionGate:lesson-12 regenerated · appliedDepth:lesson-12 rejected [explanation-key-conflict,not-applied] · appliedDepth:lesson-12 rejected [not-applied,not-distinctively-scenario-grounded] · appliedDepth:lesson-12 rejected [not-applied] · polish:lesson-12 done",
+    "enrichmentModelStage": "ran (12 lessons enriched) (linker: ran)",
+    "nativeAuthoring": "assembled 12 sessions onto Pass A entity ids · Pass B authored 12 lesson(s) · 0 registry readings · recorded 12 missing resource signals · CurriculumV1 source 12 lessons",
+    "knowledgeBackbone": "6/12 lessons genome-linked · 11 cited open resources (genome: 11) · 12/12 lessons with readings",
+    "courseGraph": "12 sessions · 35 concepts (6 genome-linked, 6 authored) · 36 outcomes",
+    "groundingMetrics": "overall 42.2% · syllabus 3% · lessonPlans 3% · slideDecks 17% · assignments 99% · rubrics 22% · discussions 98% · quizBank 39% · studyGuides 14% · courseFaq 30%",
+    "enrichment": "ran (12 lessons enriched)"
+  },
+  "compilerSavings": {
+    "featureIds": [
+      "syllabus",
+      "lessonPlans",
+      "slideDecks",
+      "assignments",
+      "rubrics",
+      "discussions",
+      "quizBank",
+      "studyGuides",
+      "courseFaq"
+    ],
+    "source": "enriched-blueprint",
+    "compiledFeatureCount": 9,
+    "savedProviderCalls": 23,
+    "lastAt": 1783831203155
+  },
+  "cost": {
+    "totalUsd": 0,
+    "totalDisplay": "$0.00",
+    "inputTokens": 36554,
+    "outputTokens": 29301,
+    "reasoningOutputTokens": 0,
+    "cachedInputTokens": 0,
+    "accuracy": "estimated — provider did not report token usage for some calls",
+    "byTask": [
+      {
+        "task": "blueprintEnrichment",
+        "calls": 12,
+        "inputTokens": 15787,
+        "outputTokens": 19807,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "scionPass",
+        "calls": 50,
+        "inputTokens": 19527,
+        "outputTokens": 8530,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      },
+      {
+        "task": "nativeSkeleton",
+        "calls": 1,
+        "inputTokens": 1240,
+        "outputTokens": 964,
+        "reasoningOutputTokens": 0,
+        "cachedInputTokens": 0,
+        "costUsd": 0,
+        "costKnown": true
+      }
+    ]
+  },
+  "gates": {
+    "finalStatus": "ready",
+    "blockers": 0,
+    "warnings": 0,
+    "repairsApplied": 12,
+    "retryCallCount": 0,
+    "repairRetryCallCount": 0,
+    "finishRetryCallCount": 0,
+    "exportStatus": "passed",
+    "exportChecked": 38,
+    "exportFailed": 0,
+    "exportWarnings": 0,
+    "qualityStatus": "graded",
+    "qualityScore": 99,
+    "qualityGrade": "A",
+    "qualityP0": 0,
+    "qualityP1": 0,
+    "qualityP2": 0,
+    "compiledWithoutEnrichment": false,
+    "enrichmentCoverage": 1,
+    "flaggedChecks": []
+  }
+}

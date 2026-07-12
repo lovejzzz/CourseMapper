@@ -4,7 +4,13 @@ coverage
 playwright-report
 test-results
 verification-output
+evaluation/production-canaries/artifacts
 .firebase
+.claude
+**/.venv*/
+trellis/runs
+trellis/tendril/models
+trellis/tendril/tutor
 package-lock.json
 scripts/internalDeliverableQualityLoop.mjs
 scripts/internalJudge12WeekCourse.mjs
@@ -29,6 +35,10 @@ trellis/tendril/cache
 trellis/tendril/outputs
 trellis/tendril/distill/data-g4
 trellis/tendril/distill/data-g4-orpo
+trellis/tendril/distill/adapters*
+trellis/tendril/distill/s2-*
+trellis/tendril/distill/stance-model
+trellis/tendril/distill/stance-onnx
 trellis/tendril/distill/*.json
 trellis/researcher/*.json
 trellis/composer/*-run*.json

@@ -1,0 +1,791 @@
+{
+  "_comment": "Source-backed UX studio shard. Generated EduTool deliverables are excluded as source evidence.",
+  "references": {
+    "govuk:plan-user-research": {
+      "displayTitle": "Plan a round of user research",
+      "sourceUrl": "https://www.gov.uk/service-manual/user-research/plan-round-of-user-research"
+    },
+    "govuk:user-needs": {
+      "displayTitle": "Learning about users and their needs",
+      "sourceUrl": "https://www.gov.uk/service-manual/user-research/start-by-learning-user-needs"
+    },
+    "govuk:whole-journey": {
+      "displayTitle": "Map and understand a user's whole problem",
+      "sourceUrl": "https://www.gov.uk/service-manual/design/map-a-users-whole-problem"
+    },
+    "digitalgov:task-flow": {
+      "displayTitle": "User interactions: task flow analyses",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/designing/user-interaction"
+    },
+    "digitalgov:prototypes": {
+      "displayTitle": "Prototypes",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/designing/prototyping"
+    },
+    "digitalgov:usability": {
+      "displayTitle": "Usability testing",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/testing/usability"
+    },
+    "w3c:wcag22": {
+      "displayTitle": "Web Content Accessibility Guidelines (WCAG) 2.2",
+      "sourceUrl": "https://www.w3.org/TR/WCAG22/"
+    },
+    "w3c:involving-users": {
+      "displayTitle": "Involving Users in Evaluating Web Accessibility",
+      "sourceUrl": "https://www.w3.org/WAI/test-evaluate/involving-users/"
+    }
+  },
+  "sourceSnapshots": {
+    "govuk:plan-user-research": "Each round of user research should have clear objectives. Keep your objectives actionable and to the point. Work with your team to agree what you want to learn from a round of research. Your prototype or beta service needs to work from end-to-end and be usable and accessible from the research venue. Run through the test tasks on the day before the research. To make sure your research goes smoothly, consider running through the session with a team member.",
+    "govuk:user-needs": "Present what you've learned in a way that's easy for others to understand and share. For example: experience maps that show how users interact with existing or future services and the needs they have at each stage; user profiles or personas that describe groups of users with similar behaviour and needs. User needs tend to be high-level, broad in scope and stable over time. As you design your service, you'll use them to write user stories. These describe the specific features and content you need to create for your service to meet your users' needs. When writing a user story, you should keep track of the user needs it relates to. This traceability allows you to track related activities and determine how well you're meeting a particular user need.",
+    "govuk:whole-journey": "It's important for teams to make sure the thing they're building forms a coherent part of a user's wider journey. Start by talking to your users to learn more about the steps they have to take and the transactions involved. What you learn should help you put together an experience map. The map should show which bits of the journey users are struggling with and the areas you might want to focus on improving. Your service landscape and experience map should help you spot things that are not working as well as they could. These could be things like: dead ends in the user journey; users not understanding whether they should use a particular transaction, or which one of several similar looking transactions they should use; confusing or duplicative content; online and offline elements of the transaction not joining up in an intuitive way.",
+    "digitalgov:task-flow": "A task flow analysis is a step-by-step diagram showing how a user interacts with a system to reach a goal. Task flow analyses help: Validate your understanding of users' goals, common scenarios, and tasks; Illustrate the overall flow of tasks through which a user progresses to accomplish a goal; Surface obstacles in the way of users achieving their goal. The diagram traces a user's possible paths through sequences of tasks and decision points to meet their goal. In collaboration with users and subject matter experts, annotate the task flow diagram to pinpoint areas of interest, risk, or potential frustration.",
+    "digitalgov:prototypes": "A prototype is an interactive (high-fidelity) version of the experience you are planning to build. It shows how the design will look and work, without full detail. Combined with other methods like usability testing or a cognitive walkthrough, prototypes help you test whether a design concept will work. Static prototypes, like wireframes, help you get feedback on users' intentions and various design elements. Functional prototypes help you observe how users interact with the product. Unlike wireframes, prototypes show interaction. Show the major interactions. Not all interactions need to be functional. Prototypes are often used for usability testing. Iterate. Prototypes should be quick to create and even quicker to discard.",
+    "digitalgov:usability": "A usability test observes users as they attempt to use a product or service while thinking out loud. Choose what you will test that might help users accomplish their goals. This could be a sketch, prototype, or even a competitor's product. Plan the test. Ensure your team aligns on: The scenarios the test will focus on; Which users should participate and how you will recruit them; Which team members will moderate and observe. Discuss the results. Schedule a collaborative synthesis meeting to discuss any issues you observed and questions these tests raise concerning user needs.",
+    "w3c:wcag22": "Web Content Accessibility Guidelines (WCAG) 2.2 defines how to make web content more accessible to people with disabilities. Principles - At the top are four principles that provide the foundation for web accessibility: perceivable, operable, understandable, and robust. WCAG 2.2 is designed to apply broadly to different web technologies now and in the future, and to be testable with a combination of automated testing and human evaluation.",
+    "w3c:involving-users": "Evaluating with users with disabilities and with older users identifies usability issues that are not discovered by conformance evaluation alone. Conducting informal evaluations throughout development is more effective than only formal usability testing at the end of a project. Formal usability testing of a website follows established protocols to gather quantitative and qualitative data from representative users performing specific tasks. Caution: Carefully consider all input. Avoid assuming that input from one person with a disability applies to all people with disabilities."
+  },
+  "kernels": [
+    {
+      "id": "ux/research-planning",
+      "term": "Research planning",
+      "aliases": ["UX research planning", "plan user research", "research plan", "usability testing prep"],
+      "tags": ["user research", "research objectives", "practice session", "prototype readiness"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+        "anchor": {
+          "src": "govuk:plan-user-research",
+          "loc": "Set your research objectives",
+          "quote": "Each round of user research should have clear objectives. Keep your objectives actionable and to the point."
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "The team should agree what it wants to learn from the research round before selecting study details.",
+          "anchor": {
+            "src": "govuk:plan-user-research",
+            "loc": "Set your research objectives",
+            "quote": "Work with your team to agree what you want to learn from a round of research."
+          },
+          "tier": 2
+        },
+        {
+          "text": "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+          "anchor": {
+            "src": "govuk:plan-user-research",
+            "loc": "Prepare the prototype",
+            "quote": "Your prototype or beta service needs to work from end-to-end and be usable and accessible from the research venue."
+          },
+          "tier": 2
+        },
+        {
+          "text": "Researchers should run through test tasks on the day before the research session.",
+          "anchor": {
+            "src": "govuk:plan-user-research",
+            "loc": "Prepare the prototype",
+            "quote": "Run through the test tasks on the day before the research."
+          },
+          "tier": 2
+        },
+        {
+          "text": "A practice session with a team member can expose procedure problems before participants arrive.",
+          "anchor": {
+            "src": "govuk:plan-user-research",
+            "loc": "Run a practice session",
+            "quote": "To make sure your research goes smoothly, consider running through the session with a team member."
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students often treat a research plan as a calendar and participant count rather than a chain from decision to evidence.",
+          "corrective": "Start with an actionable learning objective, then choose participants, tasks, capture roles, and rehearsal checks that can answer it."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A team rehearses a remote usability study and discovers that the prototype fails midway on the participant device before recruitment begins.",
+          "domain": "research planning"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A product team lists interviews, surveys, and testing without stating what decision the results should inform. What should the team do first?",
+          "options": [
+            "Agree on an actionable learning objective",
+            "Recruit the largest available sample",
+            "Polish the final presentation deck",
+            "Choose the most familiar research tool"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A team finds that its remote test prototype works on the designer's laptop but fails midway on participant devices. What should the team fix first?",
+          "options": [
+            "The findings lack a slide template",
+            "The prototype is not usable end-to-end in context",
+            "The study includes too few interface colors",
+            "The facilitator has not ranked competitors"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "The research team discovers during the first session that the final task link is broken. Which step would most directly have caught this?",
+          "options": [
+            "Increasing the incentive amount",
+            "Adding more demographic questions",
+            "Rehearsing every task the day before",
+            "Replacing observation with a survey"
+          ],
+          "answerIndex": 2,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A new research team reports uncertainty about introducing tasks and handing questions to observers. Which next step is the best low-cost risk check?",
+          "options": [
+            "Publish the untested script",
+            "Skip the introduction section",
+            "Ask participants to design the protocol",
+            "Rehearse the session with a team member"
+          ],
+          "answerIndex": 3,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "Open Government Licence v3.0",
+      "attribution": ["UK Government Service Manual"]
+    },
+    {
+      "id": "ux/evidence-based-personas",
+      "term": "Personas",
+      "aliases": ["persona creation", "user personas", "user profiles", "user profiling", "empathy mapping"],
+      "tags": ["user needs", "research synthesis", "behavior groups"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+        "anchor": {
+          "src": "govuk:user-needs",
+          "loc": "Share your user needs",
+          "quote": "user profiles or personas that describe groups of users with similar behaviour and needs"
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Personas are one way to present research findings so other people can understand and share them.",
+          "anchor": {
+            "src": "govuk:user-needs",
+            "loc": "Share your user needs",
+            "quote": "Present what you've learned in a way that's easy for others to understand and share."
+          },
+          "tier": 2
+        },
+        {
+          "text": "User needs are generally higher-level and more stable over time than individual interface requests.",
+          "anchor": {
+            "src": "govuk:user-needs",
+            "loc": "Linking user needs",
+            "quote": "User needs tend to be high-level, broad in scope and stable over time."
+          },
+          "tier": 2
+        },
+        {
+          "text": "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+          "anchor": {
+            "src": "govuk:user-needs",
+            "loc": "Linking user needs",
+            "quote": "These describe the specific features and content you need to create for your service to meet your users' needs."
+          },
+          "tier": 2
+        },
+        {
+          "text": "Keeping each user story linked to its source need enables evaluation of whether the need is being met.",
+          "anchor": {
+            "src": "govuk:user-needs",
+            "loc": "Linking user needs",
+            "quote": "This traceability allows you to track related activities and determine how well you're meeting a particular user need."
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students often decorate personas with names, stock photos, and preferences that were never observed in research.",
+          "corrective": "Group users by evidenced behavior and needs, label uncertainty, and trace design stories back to the research."
+        }
+      ],
+      "examples": [
+        {
+          "text": "Research on interrupted applications supports a persona need for resuming work, which the team traces into a resumable-flow user story.",
+          "domain": "persona synthesis"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "Interview evidence reveals recurring behavior-and-need patterns, but the team proposes personas based only on age bands. Which revision is strongest?",
+          "options": [
+            "Group the profiles by evidenced behavior and needs",
+            "Add more decorative biographical details",
+            "Choose one average user for every feature",
+            "Replace research notes with stakeholder opinions"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "One participant asks for a blue button, while several sessions show difficulty confirming whether a submission succeeded. What should the persona preserve?",
+          "options": [
+            "The requested color as a permanent need",
+            "The stable need for clear submission feedback",
+            "The participant's device brand only",
+            "Every isolated feature suggestion"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A team finds evidence that users need to resume an interrupted application. Which next action moves to the appropriate level of design detail?",
+          "options": [
+            "Invent a new demographic segment",
+            "Write a generic mission statement",
+            "Create user stories for resumable features and content",
+            "Freeze the persona without implementation links"
+          ],
+          "answerIndex": 2,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "During review, a team cannot explain which research finding supports a persona's notification feature. Which change restores the missing control?",
+          "options": [
+            "A larger stock-photo library",
+            "A second persona name",
+            "A color-coded presentation theme",
+            "A direct story-to-need link"
+          ],
+          "answerIndex": 3,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "Open Government Licence v3.0",
+      "attribution": ["UK Government Service Manual"]
+    },
+    {
+      "id": "ux/journey-mapping",
+      "term": "Journey mapping",
+      "aliases": [
+        "journey maps",
+        "experience map",
+        "experience mapping",
+        "service blueprinting",
+        "service blueprints",
+        "pain point analysis"
+      ],
+      "tags": ["end-to-end journey", "touchpoints", "service landscape"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+        "anchor": {
+          "src": "govuk:whole-journey",
+          "loc": "Whole problem",
+          "quote": "It's important for teams to make sure the thing they're building forms a coherent part of a user's wider journey."
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "anchor": {
+            "src": "govuk:whole-journey",
+            "loc": "User point of view",
+            "quote": "Start by talking to your users to learn more about the steps they have to take and the transactions involved."
+          },
+          "tier": 2
+        },
+        {
+          "text": "An experience map should make struggle points and candidate improvement areas visible.",
+          "anchor": {
+            "src": "govuk:whole-journey",
+            "loc": "User point of view",
+            "quote": "The map should show which bits of the journey users are struggling with and the areas you might want to focus on improving."
+          },
+          "tier": 2
+        },
+        {
+          "text": "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "anchor": { "src": "govuk:whole-journey", "loc": "What to change", "quote": "dead ends in the user journey" },
+          "tier": 2
+        },
+        {
+          "text": "Journey analysis should include gaps between online and offline parts of a service.",
+          "anchor": {
+            "src": "govuk:whole-journey",
+            "loc": "What to change",
+            "quote": "online and offline elements of the transaction not joining up in an intuitive way"
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students often draw a polished ideal path and call it a journey map even when it contains no observed breakdowns or cross-channel evidence.",
+          "corrective": "Map the researched current journey first, mark evidence and pain points, then distinguish proposed improvements from observations."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A journey map connects an online form to the mailed verification code required later and marks the unsupported transition as a service gap.",
+          "domain": "journey mapping"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A team maps only its mobile screens, although users begin by calling a help desk and finish by visiting an office. What should it add first?",
+          "options": [
+            "The researched steps and transactions across the full journey",
+            "More visual decoration inside the mobile screens",
+            "A competitor logo at each app screen",
+            "An ideal path invented by the product owner"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Research notes show repeated abandonment during identity verification. How should that evidence appear on the journey map?",
+          "options": [
+            "As an unverified persona preference",
+            "As a struggle point linked to an improvement opportunity",
+            "As a hidden implementation detail",
+            "As proof that every user dislikes verification"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Users reach a confirmation page but receive no instruction for correcting a rejected application. Which finding best describes this?",
+          "options": [
+            "A successful service handoff",
+            "A complete future-state journey",
+            "A dead end in the current journey",
+            "A validated accessibility claim"
+          ],
+          "answerIndex": 2,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A team maps an online form that requires a code mailed on paper, but the map ends at submission. Which finding most weakens the analysis?",
+          "options": [
+            "The absence of interface color tokens",
+            "The lack of a second app prototype",
+            "The missing competitor feature list",
+            "The disconnected online and offline service steps"
+          ],
+          "answerIndex": 3,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "Open Government Licence v3.0",
+      "attribution": ["UK Government Service Manual"]
+    },
+    {
+      "id": "ux/task-flow-analysis",
+      "term": "Task flow analysis",
+      "aliases": [
+        "task flows",
+        "task flow mapping",
+        "interaction patterns",
+        "user flows",
+        "user flow",
+        "interaction design"
+      ],
+      "tags": ["decision points", "user goals", "interaction sequence"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+        "anchor": {
+          "src": "digitalgov:task-flow",
+          "loc": "What",
+          "quote": "A task flow analysis is a step-by-step diagram showing how a user interacts with a system to reach a goal."
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "anchor": {
+            "src": "digitalgov:task-flow",
+            "loc": "Why",
+            "quote": "Validate your understanding of users' goals, common scenarios, and tasks"
+          },
+          "tier": 2
+        },
+        {
+          "text": "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "anchor": {
+            "src": "digitalgov:task-flow",
+            "loc": "Why",
+            "quote": "Illustrate the overall flow of tasks through which a user progresses to accomplish a goal"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "anchor": {
+            "src": "digitalgov:task-flow",
+            "loc": "Why",
+            "quote": "Surface obstacles in the way of users achieving their goal"
+          },
+          "tier": 2
+        },
+        {
+          "text": "The diagram may include multiple possible paths, task sequences, and decision points.",
+          "anchor": {
+            "src": "digitalgov:task-flow",
+            "loc": "Why",
+            "quote": "The diagram traces a user's possible paths through sequences of tasks and decision points to meet their goal."
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students often mistake a screen inventory for a task flow, even though it lacks a user goal, decisions, alternate paths, and failure states.",
+          "corrective": "Name the goal, connect user actions to system responses, and show decisions, obstacles, and recovery paths."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A benefits task flow shows the income-document decision point, the expired-code obstacle, and a recovery path instead of only the happy path.",
+          "domain": "interaction flow"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A designer lists six checkout screen names but never states what the user is trying to accomplish. Which change is most important?",
+          "options": [
+            "Define the user goal and connect each interaction step to it",
+            "Add a brand color to every screen label",
+            "Replace decisions with a single straight line",
+            "Sort the screens by file creation date"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A team wants to compare how returning and first-time applicants reach the same submission goal. What should the diagram emphasize?",
+          "options": [
+            "The designers assigned to each screen",
+            "The task sequences each user follows toward the goal",
+            "The visual style of the final confirmation",
+            "The number of comments in the design file"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Usability notes show that users cannot recover after entering an expired code. How should the task flow represent this evidence?",
+          "options": [
+            "Remove the error state from the diagram",
+            "Treat the issue as a persona biography",
+            "Mark the obstacle and add a recovery route for testing",
+            "Assume users will restart without support"
+          ],
+          "answerIndex": 2,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A team finds that a benefits application branches when income documents are unavailable. Which approach best preserves the real interaction?",
+          "options": [
+            "A gallery of unrelated interface screenshots",
+            "A single happy path with the branch removed",
+            "A list of stakeholder preferences",
+            "Connected paths with the document decision point shown"
+          ],
+          "answerIndex": 3,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["Digital.gov, U.S. General Services Administration"]
+    },
+    {
+      "id": "ux/interactive-prototyping",
+      "term": "Interactive prototyping",
+      "aliases": ["prototyping tools", "functional prototypes", "prototype interactions", "interactive prototype"],
+      "tags": ["prototype testing", "major interactions", "iteration", "user flows"],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+        "anchor": {
+          "src": "digitalgov:prototypes",
+          "loc": "What",
+          "quote": "A prototype is an interactive (high-fidelity) version of the experience you are planning to build. It shows how the design will look and work, without full detail."
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "anchor": {
+            "src": "digitalgov:prototypes",
+            "loc": "Why",
+            "quote": "Combined with other methods like usability testing or a cognitive walkthrough, prototypes help you test whether a design concept will work."
+          },
+          "tier": 2
+        },
+        {
+          "text": "Functional prototypes allow a team to observe how users interact with a product.",
+          "anchor": {
+            "src": "digitalgov:prototypes",
+            "loc": "Why",
+            "quote": "Functional prototypes help you observe how users interact with the product."
+          },
+          "tier": 2
+        },
+        {
+          "text": "A prototype should show the major interactions even when not every interaction is functional.",
+          "anchor": {
+            "src": "digitalgov:prototypes",
+            "loc": "How to do it",
+            "quote": "Show the major interactions. Not all interactions need to be functional."
+          },
+          "tier": 2
+        },
+        {
+          "text": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them.",
+          "anchor": {
+            "src": "digitalgov:prototypes",
+            "loc": "How to do it",
+            "quote": "Iterate. Prototypes should be quick to create and even quicker to discard."
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students often treat visual polish and complete functionality as prerequisites for useful prototype evidence.",
+          "corrective": "Build only enough interaction to test the decision, observe the user path, and revise or discard the prototype after learning."
+        }
+      ],
+      "examples": [
+        {
+          "text": "A team links the major steps of an appointment flow, tests the interactive path, and discards a polished transition after users miss the confirmation state.",
+          "domain": "interactive prototyping"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A team finds that its polished static prototype cannot test recovery from a failed payment. What should it add first?",
+          "options": [
+            "The recovery interaction and system response",
+            "A complete production database",
+            "More decorative transition effects",
+            "Every possible future feature"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A designer observes hesitation during a multistep booking sequence. Which prototype choice best supports further testing?",
+          "options": [
+            "A mood board with no navigation",
+            "A clickable sequence for participants",
+            "A static list of brand colors",
+            "A production-ready backend without screens"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A team prepares a four-hour test of a new checkout concept. Which approach preserves the most useful interaction evidence?",
+          "options": [
+            "Implement every minor settings screen",
+            "Finish visual styling before navigation",
+            "Connect major interactions and leave minor paths static",
+            "Delay testing until every interaction works"
+          ],
+          "answerIndex": 2,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "Testing shows that users repeatedly miss the prototype's confirmation state. Which next action best follows an iterative prototyping approach?",
+          "options": [
+            "Defend the current transition because it is polished",
+            "Freeze the design before more evidence arrives",
+            "Add unrelated features to increase realism",
+            "Revise or discard the transition and retest"
+          ],
+          "answerIndex": 3,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "U.S. Government Work",
+      "attribution": ["Digital.gov, U.S. General Services Administration"]
+    },
+    {
+      "id": "ux/accessibility-usability-evaluation",
+      "term": "Accessibility and usability evaluation",
+      "aliases": [
+        "accessibility standards",
+        "usability evaluation",
+        "usability testing",
+        "heuristic evaluation",
+        "accessibility testing"
+      ],
+      "tags": ["WCAG 2.2", "disabled users", "conformance", "representative tasks"],
+      "level": "intro",
+      "difficulty": 3,
+      "bloomCeiling": "Evaluate",
+      "definition": {
+        "text": "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+        "anchor": {
+          "src": "w3c:wcag22",
+          "loc": "Introduction",
+          "quote": "WCAG 2.2 is designed to apply broadly to different web technologies now and in the future, and to be testable with a combination of automated testing and human evaluation."
+        },
+        "tier": 2
+      },
+      "facts": [
+        {
+          "text": "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "anchor": {
+            "src": "w3c:wcag22",
+            "loc": "Layers of Guidance",
+            "quote": "perceivable, operable, understandable, and robust"
+          },
+          "tier": 2
+        },
+        {
+          "text": "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "anchor": {
+            "src": "w3c:involving-users",
+            "loc": "Introduction",
+            "quote": "Evaluating with users with disabilities and with older users identifies usability issues that are not discovered by conformance evaluation alone."
+          },
+          "tier": 2
+        },
+        {
+          "text": "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "anchor": {
+            "src": "digitalgov:usability",
+            "loc": "What",
+            "quote": "A usability test observes users as they attempt to use a product or service while thinking out loud."
+          },
+          "tier": 2
+        },
+        {
+          "text": "A single disabled participant's experience should not be generalized to all people with disabilities.",
+          "anchor": {
+            "src": "w3c:involving-users",
+            "loc": "Basics",
+            "quote": "Avoid assuming that input from one person with a disability applies to all people with disabilities."
+          },
+          "tier": 2
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students often treat an automated accessibility scan as proof that a product is accessible and usable for everyone.",
+          "corrective": "Use conformance checks and expert review, then evaluate realistic tasks with appropriately recruited users and bound conclusions to the evidence."
+        }
+      ],
+      "examples": [
+        {
+          "text": "After an automated check passes, a team observes keyboard users completing a dialog task and records where visible focus becomes unclear.",
+          "domain": "accessibility evaluation"
+        }
+      ],
+      "mcBank": [
+        {
+          "stem": "A team receives an audit that groups every failure only by page URL, making the barrier type unclear. Which approach would improve the analysis?",
+          "options": [
+            "Classify barriers as perceivable, operable, understandable, or robust",
+            "Rank pages by the designer who created them",
+            "Replace criteria with visual preference scores",
+            "Count only issues found by one browser"
+          ],
+          "answerIndex": 0,
+          "explanationFactRef": 0,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A prototype passes an automated checker, but keyboard users cannot tell where focus moves in a dialog. Which next step provides stronger evidence?",
+          "options": [
+            "Declare the prototype fully accessible",
+            "Observe relevant users completing the dialog task",
+            "Remove keyboard support from the scope",
+            "Replace the dialog with a static screenshot"
+          ],
+          "answerIndex": 1,
+          "explanationFactRef": 1,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "A team wants evidence about whether people can complete a revised appointment-booking flow. Which method directly captures interaction difficulty?",
+          "options": [
+            "A stakeholder preference vote",
+            "A review of brand adjectives",
+            "A think-aloud usability test on realistic tasks",
+            "A count of design-file layers"
+          ],
+          "answerIndex": 2,
+          "explanationFactRef": 2,
+          "rationaleRefs": [0]
+        },
+        {
+          "stem": "One screen-reader user completes a task quickly, and the team claims that every disabled user will succeed. Which next action best corrects the inference?",
+          "options": [
+            "Treat completion speed as universal proof",
+            "Remove disability from the research notes",
+            "Replace user testing with color inspection",
+            "Recruit more relevant users before generalizing"
+          ],
+          "answerIndex": 3,
+          "explanationFactRef": 3,
+          "rationaleRefs": [0]
+        }
+      ],
+      "edges": {},
+      "license": "W3C Document License and U.S. Government Work",
+      "attribution": ["W3C Web Accessibility Initiative", "Digital.gov, U.S. General Services Administration"]
+    }
+  ]
+}

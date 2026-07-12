@@ -101,6 +101,90 @@ export function stripTerminalPunctuation(value) {
   return cleanText(value).replace(/[.!?]+$/g, '');
 }
 
+// Source labels and model enums cross several classroom-facing boundaries.
+// Keep their normalization in this dependency-free text leaf so the compiler
+// can reuse one rule without inflating its already budgeted lazy chunk.
+const CITATION_AUTHOR_SIGNAL_RE = /\b(?:contributors?|et\s+al)\b/i;
+const NAME_PARTICLE_RE = /(?:^|\s)(?:van|von|de|da|der|den|del|di|la|le|el|bin|ibn|mac|mc|st)(?:\s|$)/i;
+const CLASSROOM_SOURCE_LABELS = {
+  digitalgov: 'Digital.gov',
+  govuk: 'GOV.UK',
+  w3c: 'W3C',
+};
+
+function looksLikePersonNameCue(value) {
+  const text = cleanText(value);
+  if (!text || /[\d:/@]/.test(text)) return false;
+  const words = text.split(/\s+/);
+  if (words.length < 2 || words.length > 4) return false;
+  if (!words.every((word) => /^[A-Z][\w'’.-]*$/.test(word))) return false;
+  return NAME_PARTICLE_RE.test(text) || words.some((word) => /^[A-Z]\.$/.test(word));
+}
+
+function isCitationShapedSourceCue(text) {
+  if (/https?:|www\./i.test(text)) return true;
+  if (CITATION_AUTHOR_SIGNAL_RE.test(text)) return true;
+  return text.split(/\.\s+/).length >= 3 && /:\s*\S/.test(text);
+}
+
+export function humanSourceCueLabel(value, fallback) {
+  const text = stripTerminalPunctuation(cleanText(value));
+  if (!text) return fallback;
+  if (looksLikePersonNameCue(text)) return fallback;
+  if (!isCitationShapedSourceCue(text)) return text;
+  const segments = text
+    .split(/\.\s+/)
+    .map((segment) =>
+      stripTerminalPunctuation(cleanText(segment))
+        .replace(/:\s*https?.*$/i, '')
+        .trim(),
+    )
+    .filter(
+      (segment) =>
+        segment &&
+        !/https?:|www\./i.test(segment) &&
+        !/^(?:available|retrieved|accessed)\b/i.test(segment) &&
+        !CITATION_AUTHOR_SIGNAL_RE.test(segment) &&
+        !looksLikePersonNameCue(segment),
+    );
+  const title = segments.find((segment) => wordCount(segment) >= 2);
+  return title || fallback;
+}
+
+function humanizeMachineTokens(value) {
+  return cleanText(value).replace(/\b[A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_]+\b/g, (token) => token.replace(/_/g, ' '));
+}
+
+export function humanizeClassroomSourceCue(value, fallback = 'the assigned course materials') {
+  const withoutLocator = humanizeMachineTokens(
+    humanSourceCueLabel(value, fallback)
+      .replace(/\s*§\s*[A-Za-z0-9_-]+/g, '')
+      .replace(/\s*\((?:open textbook|open license)(?:\s*,[^)]*)?\)/gi, ''),
+  );
+  const match = withoutLocator.match(/^(digitalgov|govuk|w3c)\s*:\s*(.+)$/i);
+  if (!match) return withoutLocator || fallback;
+  const publisher = CLASSROOM_SOURCE_LABELS[match[1].toLowerCase()];
+  const title = match[2]
+    .replace(/[-_]+/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}`)
+    .join(' ');
+  return title ? `${publisher}: ${title}` : publisher;
+}
+
+export function humanizeQuizText(value) {
+  const sourceSafe = cleanText(value).replace(
+    /\b(digitalgov|govuk|w3c)\s*:\s*([^§(]+?)(?=\s*§|\s*\((?:open textbook|open license)|$)/gi,
+    (match) => humanizeClassroomSourceCue(match, match),
+  );
+  return humanizeMachineTokens(
+    sourceSafe
+      .replace(/\s*§\s*[A-Za-z0-9_-]+/g, '')
+      .replace(/\s*\((?:open textbook|open license)(?:\s*,[^)]*)?\)/gi, ''),
+  );
+}
+
 export function escapeRegexLiteral(value) {
   return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

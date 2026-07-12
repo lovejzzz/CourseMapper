@@ -5,6 +5,7 @@ import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGra
 import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/deriveFromCourseMap.js';
 import { buildQuizItemPlan } from '../src/lib/blueprintEnrichmentPass.js';
 import { projectKernelToSurfaces } from '../src/lib/kernelProjection.js';
+import { findPromptArtifactContamination } from '../src/lib/quality/artifactDefectPatterns.js';
 import {
   isClaimEvidenceBoundaryShortAnswer,
   isConceptCuedCompilerShortAnswer,
@@ -32,6 +33,12 @@ function studioCourseMap() {
 }
 
 describe('v0.16.3 compiler texture', () => {
+  it('authors three of four multiple-choice seats from inspectable case evidence', () => {
+    const mcPlan = buildQuizItemPlan(6).filter((slot) => slot.type === 'multiple_choice');
+    expect(mcPlan).toHaveLength(4);
+    expect(mcPlan.filter((slot) => /concrete|case evidence/i.test(slot.note))).toHaveLength(3);
+  });
+
   it('varies evidence-bounded short-answer frames without weakening the reasoning contract', () => {
     const items = Array.from({ length: 12 }, (_, index) => {
       const topic = `Evidence pattern ${index + 1}`;
@@ -95,6 +102,61 @@ describe('v0.16.3 compiler texture', () => {
 
     expect(graph.assessments.map((assessment) => assessment.weightPct)).toEqual([50, 50]);
     expect(blueprint.lessons[0].studentArtifact).toBe('Task: create empathy map');
+  });
+
+  it('keeps generic quiz registry labels out of slide visual metadata', () => {
+    const courseMap = studioCourseMap();
+    courseMap.lessons[3] = {
+      ...courseMap.lessons[3],
+      title: 'Lesson 4: Affinity mapping and insight synthesis',
+      sections: courseMap.lessons[3].sections.map((section) => ({
+        ...section,
+        topicSection: 'Affinity mapping and insight synthesis',
+        weeklyAssessments: 'Weekly autograded quizzes',
+      })),
+    };
+    const compiled = compileBlueprintDeliverables(buildCourseBlueprint(courseMap), ['slideDecks']);
+    const visualMetadata = compiled.slideDecks.decks[3].slides.map(
+      (slide) => `${slide.visual?.description || ''} ${slide.visual?.altText || ''}`,
+    );
+    expect(visualMetadata.map(findPromptArtifactContamination).filter(Boolean)).toEqual([]);
+    expect(JSON.stringify(visualMetadata)).toMatch(/Week 4 quiz/i);
+  });
+
+  it('routes quiz checks to the quiz bank instead of minting fake assignment briefs', () => {
+    const courseMap = studioCourseMap();
+    courseMap.lessons = [
+      {
+        ...courseMap.lessons[0],
+        sections: [
+          {
+            ...courseMap.lessons[0].sections[0],
+            weeklyAssessments: '1. Quiz: define principles\n2. Task: create empathy map',
+          },
+        ],
+      },
+    ];
+    const blueprint = buildBlueprintFromGraph(deriveCourseGraphFromCourseMap(courseMap));
+    const compiled = compileBlueprintDeliverables(blueprint, ['assignments', 'rubrics'], {
+      skipLanguageFinalizer: true,
+    });
+
+    expect(compiled.assignments.courseAssignmentMap).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ artifact: 'Quiz: define principles', expectedFile: expect.stringMatching(/Quiz/) }),
+      ]),
+    );
+    expect(compiled.assignments.assignments.map((assignment) => assignment.title)).toEqual([
+      'Task: create empathy map',
+    ]);
+    const quizRubric = compiled.rubrics.rubrics.find((rubric) => rubric.title.startsWith('Quiz:'));
+    const taskRubric = compiled.rubrics.rubrics.find((rubric) => rubric.title.startsWith('Task: create empathy map'));
+    expect(quizRubric).toMatchObject({
+      assessmentType: 'Quiz (scored by answer key)',
+      answerKeyHandoffNote: expect.stringMatching(/Quiz & Exam Bank/),
+    });
+    expect(quizRubric.criteria).toBeUndefined();
+    expect(taskRubric?.criteria?.length).toBeGreaterThan(0);
   });
 
   it('respects fully explicit source weights when choosing the central artifact', () => {

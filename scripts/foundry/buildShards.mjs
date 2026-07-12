@@ -88,6 +88,21 @@ function main() {
     console.log(`[foundry] ${file}: admitted ${admitted.length}/${(raw.kernels || []).length}`);
   }
 
+  // Admission may keep a kernel while dropping one or more lint-failing MC
+  // items. That is useful for interactive contribution review, but a release
+  // build must never report "admitted N/N" while silently shrinking a shipped
+  // assessment bank. Fail before writing any shard when that happens.
+  const droppedAssessmentItems = fullReport.filter(
+    (entry) => entry.admitted && entry.rejections?.some((reason) => reason.startsWith('mc[')),
+  );
+  if (droppedAssessmentItems.length > 0) {
+    console.error(`[foundry] ${droppedAssessmentItems.length} kernel(s) would lose assessment items:`);
+    for (const entry of droppedAssessmentItems) {
+      console.error(`  - ${entry.file} · ${entry.id}: ${entry.rejections.join('; ')}`);
+    }
+    process.exit(1);
+  }
+
   // Group by discipline + level into shards.
   const shardGroups = new Map();
   for (const kernel of allAdmitted) {

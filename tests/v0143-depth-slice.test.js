@@ -224,15 +224,15 @@ describe('D1a — common pitfalls slide from real misconception pairs', () => {
     const openingFamilies = new Set();
     for (const bullet of pitfalls.bullets) {
       const opener = bullet.match(
-        /^(It's tempting to think|A common trap is to think|Students may assume|The quick but weak claim is|Watch for the idea that) .+/,
+        /^(Tempting claim:|Common misconception:|Students may assume|Weak claim:|Watch for this idea:) .+/,
       );
       expect(opener).toBeTruthy();
       openingFamilies.add(opener[1]);
     }
     expect(openingFamilies.size).toBeGreaterThan(1);
     // The pairs are the lesson's own atoms, recomposed verbatim-adjacent.
-    expect(pitfalls.bullets[0]).toContain('streak always matches the specimen color');
-    expect(pitfalls.bullets[0]).toContain('powder color is often different');
+    expect(pitfalls.bullets[0]).toMatch(/streak always matches the specimen color/i);
+    expect(pitfalls.bullets[0]).toMatch(/powder color is often different/i);
   });
 
   it('places the pitfalls slide directly after the key-concept/evidence/example cluster', () => {

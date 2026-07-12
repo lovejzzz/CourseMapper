@@ -1437,4 +1437,32 @@ describe('source-ledger quality checks', () => {
     const evidence = citationFindings.map((finding) => finding.evidence || '').join(' ');
     expect(evidence).toMatch(/Independent politician|Lewis acids and bases/);
   });
+
+  it('does not reinterpret an inline source cue in an activity as a reading citation', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Music Theory Fundamentals',
+          lessonScope: 'all',
+          requestedFeatures: ['lessonPlans'],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          files: [{ path: 'Lesson Plans/Lesson 01 - Staff and Notation - Lesson Plans.txt', feature: 'lessonPlans' }],
+        }),
+        'Lesson Plans/Lesson 01 - Staff and Notation - Lesson Plans.txt': [
+          'LESSON PLANS',
+          'Music Theory Fundamentals - Lesson 01 - Staff and Notation',
+          "Teams take a position on the lesson's live question and defend it with evidence from https://en.wikipedia.org/wiki/Staff_(music) §extract.",
+        ].join('\n'),
+      }),
+      course: { title: 'Music Theory Fundamentals', featureIds: ['lessonPlans'] },
+    });
+
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.dimension === 'citations' &&
+          finding.detail === 'citation shares zero vocabulary with the course discipline (possible off-topic reading)',
+      ),
+    ).toBe(false);
+  });
 });

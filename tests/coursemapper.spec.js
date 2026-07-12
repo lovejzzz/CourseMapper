@@ -153,8 +153,12 @@ test.describe('Landing Page', () => {
     await page.getByRole('button', { name: 'Edit' }).click();
     const options = await page.getByLabel('Provider').locator('option').allTextContents();
 
-    expect(options).toEqual(['Scion Draft (free)', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek']);
+    expect(options).toEqual(['Scion', 'OpenAI', 'Anthropic', 'Google', 'DeepSeek']);
     expect(options.join(' ')).not.toContain('Local');
+    await expect(page.getByLabel('API')).toBeDisabled();
+    await expect(page.getByLabel('API')).toHaveValue('No API key required');
+    await expect(page.getByLabel('Model')).toHaveValue('scion-public');
+    await expect(page.getByLabel('Model').locator('option')).toHaveText('Scion V0.16.3');
   });
 
   test('Resume restores the saved project model instead of the landing-page model', async ({ page }) => {

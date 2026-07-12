@@ -18,6 +18,7 @@ const PORT = Number(process.argv[2] ?? 8799);
 const BODY_LOG = process.env.SHIM_BODY_LOG || '';
 let calls = 0;
 let failures = 0;
+let lastGenerationError = '';
 
 function readBody(req) {
   return new Promise((resolve) => {
@@ -124,12 +125,12 @@ function kernelLessonSchema({ mcCount, keyTermCount }) {
       },
       discussionPrompt: {
         type: 'object',
-        properties: { pr: str(20, 300), tn: str(12, 300), po: arr(str(8, 200), 2, 3) },
+        properties: { pr: str(20, 300), tn: str(12, 300), po: arr(str(8, 200), 3, 3) },
         required: ['pr', 'tn', 'po'],
       },
       assignmentCore: {
         type: 'object',
-        properties: { td: str(45, 500), pa: arr(str(8, 160), 2, 4) },
+        properties: { td: str(45, 500), pa: arr(str(8, 160), 4, 4) },
         required: ['td', 'pa'],
       },
       mc: arr(
@@ -528,12 +529,12 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
         scenario: { type: 'object', properties: { su: str(45, 500), ma: str(10, 300) }, required: ['su', 'ma'] },
         discussionPrompt: {
           type: 'object',
-          properties: { pr: str(20, 300), tn: str(12, 300), po: arr(str(8, 200), 2, 3) },
+          properties: { pr: str(20, 300), tn: str(12, 300), po: arr(str(8, 200), 3, 3) },
           required: ['pr', 'tn', 'po'],
         },
         assignmentCore: {
           type: 'object',
-          properties: { td: str(45, 500), pa: arr(str(8, 160), 2, 4) },
+          properties: { td: str(45, 500), pa: arr(str(8, 160), 4, 4) },
           required: ['td', 'pa'],
         },
         studyGuide: { type: 'object', properties: { sm: str(70, 550), rs: str(35, 380) }, required: ['sm', 'rs'] },
@@ -882,6 +883,7 @@ function requestedMaxTokens(body) {
 // generations must not trip the app's 120s stream-inactivity timeout.
 const LOCAL_MODEL_ID = process.env.LOCAL_MODEL_ID || 'scion-1';
 const LOCAL_MODEL_NAME = process.env.LOCAL_MODEL_NAME || 'Scion-1';
+const LOCAL_SOURCE_MODEL_ID = process.env.SCION_MODEL || process.env.G4_MODEL || 'google/gemma-4-e2b-it';
 
 function corsHeaders() {
   return {
@@ -897,13 +899,35 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   if (req.method === 'GET') {
+    if (req.url.includes('/health')) {
+      res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders() });
+      res.end(
+        JSON.stringify({
+          ready: true,
+          modelId: LOCAL_MODEL_ID,
+          modelName: LOCAL_MODEL_NAME,
+          sourceModelId: LOCAL_SOURCE_MODEL_ID,
+          calls,
+          failures,
+          lastGenerationError,
+        }),
+      );
+      return;
+    }
     if (req.url.includes('/models')) {
       res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders() });
       res.end(
         JSON.stringify({
           object: 'list',
           data: [
-            { id: LOCAL_MODEL_ID, object: 'model', created: 1, owned_by: 'local', display_name: LOCAL_MODEL_NAME },
+            {
+              id: LOCAL_MODEL_ID,
+              object: 'model',
+              created: 1,
+              owned_by: 'local',
+              display_name: LOCAL_MODEL_NAME,
+              source_model: LOCAL_SOURCE_MODEL_ID,
+            },
           ],
         }),
       );
@@ -923,11 +947,27 @@ const server = http.createServer(async (req, res) => {
     const rawBody = await readBody(req);
     try {
       const payload = JSON.parse(rawBody);
-      const rows = (payload?.events ?? []).map((event) => ({
-        ...event,
-        context: payload?.context ?? {},
-        at: new Date().toISOString(),
-      }));
+      const rows = (payload?.events ?? [])
+        .filter(
+          (event) =>
+            event?.trainingEligible === true &&
+            event?.preferenceEvidence?.verified === true &&
+            event?.prompt &&
+            event?.chosen &&
+            event?.rejected,
+        )
+        .map((event) => ({
+          kind: 'mc-item',
+          prompt: event.prompt,
+          chosen: JSON.stringify(event.chosen),
+          rejected: JSON.stringify(event.rejected),
+          preferenceEvidence: event.preferenceEvidence,
+          source: 'app-flywheel',
+          pass: event.pass,
+          lessonId: event.lessonId,
+          context: payload?.context ?? {},
+          at: new Date().toISOString(),
+        }));
       if (rows.length > 0) {
         const flywheelPath = new URL('../../trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl', import.meta.url)
           .pathname;
@@ -1019,6 +1059,7 @@ const server = http.createServer(async (req, res) => {
   }
   if (!kernel && (contract.schema || contract.jsonMode)) system += RICHNESS_DIRECTIVE;
   let text = '';
+  let generationError = '';
   try {
     text = kernel
       ? await kernelChunkedGenerate({ system, user, kernel, temperature })
@@ -1030,14 +1071,21 @@ const server = http.createServer(async (req, res) => {
           ...(declaredTemperature > 0 ? { temperature: declaredTemperature } : temperature > 0 ? { temperature } : {}),
         });
     if (isSkeleton && text) text = await shortenSkeletonTitles(text);
-  } catch {
+    lastGenerationError = '';
+  } catch (error) {
     failures += 1;
+    generationError = String(error?.message || error).slice(0, 500);
+    lastGenerationError = generationError;
+    console.error(JSON.stringify({ localModelError: generationError, call: calls, modelId: LOCAL_MODEL_ID }));
     text = '';
   }
   if (!text) failures += 1;
   if (BODY_LOG) {
     try {
-      fs.appendFileSync(BODY_LOG, `${JSON.stringify({ url: req.url, system, user, response: text })}\n`);
+      fs.appendFileSync(
+        BODY_LOG,
+        `${JSON.stringify({ url: req.url, system, user, response: text, ...(generationError ? { error: generationError } : {}) })}\n`,
+      );
     } catch {
       /* empty */
     }

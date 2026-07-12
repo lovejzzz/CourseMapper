@@ -3,6 +3,7 @@ import { expandKeys } from './keyMaps';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
 import { lintDecisionScenario } from './scenarioContract';
+import { buildScionAnswerKeyRepair, findScionExplanationKeyConflict } from './scionAnswerKeyAlignment';
 
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
@@ -741,6 +742,7 @@ const LESSON_CONTENT_SYSTEM_PROMPT = [
   'Write disciplinary content — facts, mechanisms, examples, misconceptions of the SUBJECT — never descriptions of the course process.',
   'Never mention: artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this course", or weekly checks.',
   'Multiple-choice rules (Haladyna): the stem poses one complete, content-bearing problem; exactly 4 options; one defensibly correct answer;',
+  'Except for the single Remember item, every multiple-choice stem must present concrete case evidence that students inspect before choosing; do not write disguised definition recall.',
   'distractors are plausible misconceptions of the SUBJECT, homogeneous with the key in length and grammar; never use "all of the above" or "none of the above".',
   'Grounding: rely only on the listed readings/topics; do not invent citations, URLs, page numbers, statistics, or named studies beyond them.',
   'Return strict JSON only — no markdown fences, no commentary.',
@@ -776,12 +778,62 @@ export function buildQuizItemPlan(questionsPerLesson) {
   const count = Math.max(5, Math.min(7, Number(questionsPerLesson) || 6));
   return [
     { index: 0, type: 'multiple_choice', bloom: 'Remember', note: 'foundational fact or definition' },
-    { index: 1, type: 'multiple_choice', bloom: 'Apply', note: 'apply the concept to a concrete scenario' },
-    { index: 2, type: 'multiple_choice', bloom: 'Analyze', note: 'compare/diagnose using the concept' },
+    {
+      index: 1,
+      type: 'multiple_choice',
+      bloom: 'Apply',
+      note: 'apply the concept to a concrete scenario with named evidence',
+    },
+    {
+      index: 2,
+      type: 'multiple_choice',
+      bloom: 'Analyze',
+      note: 'diagnose a concrete case by comparing its evidence',
+    },
     { index: 3, type: 'short_answer', bloom: 'Analyze', note: 'short written analysis with model answer' },
-    { index: 4, type: 'multiple_choice', bloom: 'Evaluate', note: 'judge a claim or method' },
+    {
+      index: 4,
+      type: 'multiple_choice',
+      bloom: 'Evaluate',
+      note: 'judge a claim or method using concrete case evidence',
+    },
     { index: 5, type: 'essay', bloom: 'Create', note: 'synthesis task with sample answer and scoring guidance' },
   ].slice(0, count);
+}
+
+/**
+ * A parsed payload can exist while most of its authored atoms were linted
+ * out. Treat that as incomplete so native Pass B recovery repairs the lesson
+ * instead of quietly shipping a two-question template under a green package.
+ */
+export function assessProjectedKernelCoverage(payload, { requiredMcCount = 4 } = {}) {
+  const quizItems = asArray(payload?.quizItems);
+  const mcCount = quizItems.filter((item) => item?.type === 'multiple_choice').length;
+  const keyTermCount = asArray(payload?.keyTerms).length;
+  const slideCount = asArray(payload?.slideContent).length;
+  const discussionPositionCount = asArray(payload?.discussionPrompt?.positions).length;
+  const assignmentParameterCount = asArray(payload?.assignmentCore?.parameters).length;
+  const scenario = payload?.kernel?.scenario || {};
+  const studyGuide = payload?.studyGuide || {};
+  const issues = [];
+  if (mcCount < requiredMcCount) issues.push(`mc-coverage:${mcCount}/${requiredMcCount}`);
+  if (keyTermCount < 3) issues.push(`key-term-coverage:${keyTermCount}/3`);
+  if (slideCount < 3) issues.push(`slide-coverage:${slideCount}/3`);
+  if (discussionPositionCount !== 3) issues.push(`discussion-positions:${discussionPositionCount}/3`);
+  if (assignmentParameterCount !== 4) issues.push(`assignment-parameters:${assignmentParameterCount}/4`);
+  if (!cleanText(scenario.setup) || !cleanText(scenario.materials)) issues.push('scenario-coverage');
+  if (!cleanText(studyGuide.summary) || !cleanText(studyGuide.reviewStrategy)) issues.push('study-guide-coverage');
+  const passedChecks = 7 - issues.length;
+  return {
+    complete: issues.length === 0,
+    issues,
+    score: passedChecks,
+    mcCount,
+    keyTermCount,
+    slideCount,
+    discussionPositionCount,
+    assignmentParameterCount,
+  };
 }
 
 export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, options = {}) {
@@ -829,11 +881,11 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
         discussionPrompt: {
           pr: 'a genuinely debatable disciplinary question',
           tn: 'one sentence naming why reasonable positions disagree',
-          po: ['2-3 defensible positions, one short sentence each'],
+          po: ['exactly 3 defensible positions: main, contrast, and conditional or synthesis'],
         },
         assignmentCore: {
           td: '2-3 sentences: the actual case/dataset/text students work on and what they produce',
-          pa: ['2-4 concrete parameters: length, data source, format, constraints'],
+          pa: ['exactly 4 distinct parameters: scope, format, required evidence/source, length or time'],
         },
         studyGuide: {
           sm: '2-3 sentence subject-matter summary of what this lesson teaches, written in disciplinary language (never meta-language about the course or its materials)',
@@ -848,6 +900,7 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
     `Write assessment content for ${lessons.length} lesson(s). For each lesson produce exactly ${itemPlan.length} quizItems following this plan:`,
     JSON.stringify(itemPlan),
     `…and ${keyTermsPerLesson} keyTerms drawn from the lesson topics/objectives, plus 3 slideContent entries, one discussionPrompt, and one assignmentCore per lesson.`,
+    'Every discussionPrompt uses exactly three defensible positions: main, contrast, and a conditional or synthesis position. Every assignmentCore uses four distinct parameters: scope, format, required evidence/source, and length or time.',
     // v0.14.1 round-2 (fix 4): same romanization contract as the kernel path.
     ...(courseUsesNonLatinScript(courseMap) ? [ROMANIZATION_PROMPT_LINE] : []),
     'Question difficulty and cognitive level must match the plan. Use the objectives verbatim as the knowledge targets.',
@@ -1101,11 +1154,15 @@ function buildKernelSchema() {
         discussionPrompt: {
           pr: 'a genuinely debatable disciplinary question',
           tn: 'one sentence naming why reasonable positions disagree',
-          po: ['2-3 defensible positions, one short sentence each'],
+          po: ['exactly 3 defensible positions: main, contrast, and conditional or synthesis'],
         },
         assignmentCore: {
           td: '2-3 sentences: the actual case/dataset/text students work on and what they produce',
-          pa: ['2-4 concrete parameters: length, data source, format, constraints'],
+          pa: ['exactly 4 distinct parameters: scope, format, required evidence/source, length or time'],
+        },
+        studyGuide: {
+          sm: '2-3 sentence subject-matter summary in disciplinary language',
+          rs: 'one review strategy naming the specific concepts, methods, or cases to rehearse',
         },
         mc: [
           {
@@ -1163,6 +1220,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
       .map((slot) => `${slot.bloom} (${slot.note})`)
       .join('; ')}.`,
     'Scenario contract: setup gives a concrete context, an actionable decision or problem, inspectable evidence, and a real tension or constraint; materials names the specific evidence packet. Do not use generic labels such as "scenario evidence" or "course materials".',
+    'Surface depth contract: discussionPrompt has exactly three defensible positions (main, contrast, conditional or synthesis); assignmentCore has exactly four distinct parameters (scope, format, required evidence/source, length or time).',
     KERNEL_KEY_LEGEND,
     // v0.14.1 round-2 (fix 4): language courses pair every non-Latin term
     // with its romanization (rm) so study guides can render "你好 (nǐ hǎo)".
@@ -1328,6 +1386,7 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
   );
   const lessons = {};
   const issues = [];
+  const repairs = [];
 
   for (const [entryIndex, entry] of parsed.lessons.entries()) {
     const lessonId = cleanText(entry?.lessonId);
@@ -1433,14 +1492,24 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
 
     const mc = [];
     asArray(entry?.mc).forEach((item, index) => {
-      const problems = lintEnrichedQuizItem({ ...item, type: 'multiple_choice' }, { groundingText });
+      // A syntactically valid key can still contradict the model's own
+      // affirmative explanation. Repair only decisive, unique lexical
+      // conflicts here, at the canonical admission boundary, so every
+      // provider path (including repaired/nested anonymous responses) gets
+      // the same protection before projection and caching.
+      const keyConflict = findScionExplanationKeyConflict(item);
+      const admittedItem = keyConflict ? { ...item, answerIndex: keyConflict.supportedIndex } : item;
+      const problems = lintEnrichedQuizItem({ ...admittedItem, type: 'multiple_choice' }, { groundingText });
       if (problems.length > 0) issues.push({ lessonId, surface: 'mc', index, problems });
       else {
+        if (keyConflict) {
+          repairs.push(buildScionAnswerKeyRepair({ item, lessonId, itemIndex: index, conflict: keyConflict }));
+        }
         mc.push({
-          question: cleanText(item.question),
-          options: asArray(item.options).map(cleanText).filter(Boolean),
-          answerIndex: Number(item.answerIndex) || 0,
-          explanation: cleanText(item.explanation),
+          question: cleanText(admittedItem.question),
+          options: asArray(admittedItem.options).map(cleanText).filter(Boolean),
+          answerIndex: Number(admittedItem.answerIndex) || 0,
+          explanation: cleanText(admittedItem.explanation),
         });
       }
     });
@@ -1509,5 +1578,5 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
   }
 
   if (Object.keys(lessons).length === 0) return null;
-  return { lessons, issues, courseLevel: parsed.courseLevel || null };
+  return { lessons, issues, repairs, courseLevel: parsed.courseLevel || null };
 }

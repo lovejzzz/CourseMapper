@@ -106,6 +106,10 @@ export function runGenomeLinker({
           itemPlan,
           getArchetype: library.getArchetype ? (id) => library.getArchetype(id) : undefined,
           mcOffsets: mcBankOffsets,
+          // One relevance-ranked concept owns the lesson's assessment bank.
+          // This prevents a secondary concept from being exhausted on an
+          // earlier lesson before it becomes the primary topic later.
+          singleMcBank: true,
           excludeWorkedExampleConcepts: shippedWorkedExampleConcepts,
         },
       );

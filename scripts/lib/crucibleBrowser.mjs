@@ -129,16 +129,20 @@ async function newestMtimeUnder(rootDir) {
   return newest;
 }
 
-// dist/ is considered fresh when its newest file is at least as new as the
-// newest source input (src/**, index.html, vite.config.js, package.json).
-export async function isDistFresh() {
-  const distDir = path.join(repoRoot, 'dist');
+// dist/ is considered fresh when its newest file is at least as new as every
+// production input. public/** matters: Foundry writes genome shards there,
+// and reusing a bundle older than those shards silently audits old knowledge.
+export async function isDistFresh(root = repoRoot) {
+  const distDir = path.join(root, 'dist');
   const distIndex = await fs.stat(path.join(distDir, 'index.html')).catch(() => null);
   if (!distIndex) return false;
   const distNewest = await newestMtimeUnder(distDir);
-  let srcNewest = await newestMtimeUnder(path.join(repoRoot, 'src'));
+  let srcNewest = Math.max(
+    await newestMtimeUnder(path.join(root, 'src')),
+    await newestMtimeUnder(path.join(root, 'public')),
+  );
   for (const extra of ['index.html', 'vite.config.js', 'package.json']) {
-    const stat = await fs.stat(path.join(repoRoot, extra)).catch(() => null);
+    const stat = await fs.stat(path.join(root, extra)).catch(() => null);
     if (stat && stat.mtimeMs > srcNewest) srcNewest = stat.mtimeMs;
   }
   return distNewest >= srcNewest;
@@ -366,12 +370,47 @@ function parseDigestLine(text) {
   }
 }
 
-// ── E2B shim reroute (--llm e2b) ─────────────────────────────────────────────
+// ── Local-model shim reroute (--llm local; legacy alias: e2b) ────────────────
 // Forward one intercepted api.openai.com request to the local shim. GET
-// /v1/models (the "Connected" key validation) is answered inline — the shim
-// only speaks POST. A stray stream:true call gets the shim's full JSON reply
-// re-wrapped as minimal SSE in the shape the app parses
-// (parseOpenAIResponsesStreamChunk / chat.completion.chunk deltas).
+// /v1/models (the "Connected" key validation) is answered inline. Streaming
+// shim replies pass through byte-for-byte; non-streaming replies are wrapped
+// only when a compatibility shim returns JSON despite stream:true.
+export function normalizeLlmShimResponse({ bodyText, contentType = '', wantsStream, isResponses, status = 200 }) {
+  if (!wantsStream) return { status, contentType: 'application/json', body: bodyText };
+  if (String(contentType).toLowerCase().includes('text/event-stream')) {
+    return { status, contentType: 'text/event-stream', body: bodyText };
+  }
+  let payload = {};
+  try {
+    payload = JSON.parse(bodyText);
+  } catch {
+    /* malformed compatibility response becomes an empty model delta */
+  }
+  const text = isResponses ? (payload.output_text ?? '') : (payload.choices?.[0]?.message?.content ?? '');
+  const events = isResponses
+    ? [
+        { type: 'response.output_text.delta', delta: text },
+        { type: 'response.completed', response: payload },
+      ]
+    : [
+        {
+          id: 'local-shim',
+          object: 'chat.completion.chunk',
+          choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }],
+        },
+        {
+          id: 'local-shim',
+          object: 'chat.completion.chunk',
+          choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+        },
+      ];
+  return {
+    status,
+    contentType: 'text/event-stream',
+    body: `${events.map((event) => `data: ${JSON.stringify(event)}`).join('\n\n')}\n\ndata: [DONE]\n\n`,
+  };
+}
+
 async function forwardToLlmShim(route, llmShimUrl) {
   const request = route.request();
   const url = new URL(request.url());
@@ -406,37 +445,16 @@ async function forwardToLlmShim(route, llmShimUrl) {
       body: postData,
     });
     const bodyText = await upstream.text();
-    if (!wantsStream) {
-      await route.fulfill({ status: upstream.status, contentType: 'application/json', body: bodyText });
-      return;
-    }
-    let payload = {};
-    try {
-      payload = JSON.parse(bodyText);
-    } catch {
-      /* empty */
-    }
     const isResponses = url.pathname.includes('/responses');
-    const text = isResponses ? (payload.output_text ?? '') : (payload.choices?.[0]?.message?.content ?? '');
-    const events = isResponses
-      ? [
-          { type: 'response.output_text.delta', delta: text },
-          { type: 'response.completed', response: payload },
-        ]
-      : [
-          {
-            id: 'e2b-shim',
-            object: 'chat.completion.chunk',
-            choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }],
-          },
-          {
-            id: 'e2b-shim',
-            object: 'chat.completion.chunk',
-            choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
-          },
-        ];
-    const sse = `${events.map((event) => `data: ${JSON.stringify(event)}`).join('\n\n')}\n\ndata: [DONE]\n\n`;
-    await route.fulfill({ status: 200, contentType: 'text/event-stream', body: sse });
+    await route.fulfill(
+      normalizeLlmShimResponse({
+        bodyText,
+        contentType: upstream.headers.get('content-type') || '',
+        wantsStream,
+        isResponses,
+        status: upstream.status,
+      }),
+    );
   } catch (error) {
     await route.fulfill({
       status: 502,
@@ -486,6 +504,9 @@ export async function runCourseInBrowser({
   // (scripts/crucible/e2bOpenAIShim.mjs) — the app compiler runs with the
   // on-device model as its ONLY LLM, zero src/ changes, zero paid spend.
   llmShimUrl = null,
+  // Real Local-provider route. Unlike llmShimUrl, this is called directly by
+  // the page so SSE keep-alive heartbeats are not buffered by Playwright.
+  localEndpoint = null,
 }) {
   const startedAt = Date.now();
   const deadlineAt = startedAt + overallTimeoutMs;
@@ -542,7 +563,7 @@ export async function runCourseInBrowser({
     phase = 'loading-landing';
     // localStorage seeding borrowed from scripts/liveBrowserQualityLoop.mjs (runCourse).
     await page.addInitScript(
-      ({ key, selectedModelId, selectedModelName, authoring, voice, selectedProvider }) => {
+      ({ key, selectedModelId, selectedModelName, authoring, voice, selectedProvider, selectedLocalEndpoint }) => {
         localStorage.clear();
         sessionStorage.clear();
         // E1: the app reads the provider from 'coursemapper-provider' and the
@@ -553,6 +574,10 @@ export async function runCourseInBrowser({
         localStorage.setItem(`coursemapper-apikey-provider:${selectedProvider}`, key);
         localStorage.setItem('coursemapper-modelid', selectedModelId);
         localStorage.setItem('coursemapper-modelname', selectedModelName);
+        if (selectedProvider === 'local') {
+          localStorage.setItem('coursemapper-enable-local-provider', 'true');
+          if (selectedLocalEndpoint) localStorage.setItem('coursemapper-local-endpoint', selectedLocalEndpoint);
+        }
         // v0.15.1 (post-flip): the app defaults are native + voiced. Plain
         // rounds seed NOTHING (test what users get); explicit arms seed
         // their mode, including the opt-outs ('prose', 'off') that the
@@ -569,6 +594,7 @@ export async function runCourseInBrowser({
         authoring: authoringMode || null,
         voice: voiceMode || null,
         selectedProvider: provider || 'openai',
+        selectedLocalEndpoint: localEndpoint || null,
       },
     );
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
@@ -580,32 +606,44 @@ export async function runCourseInBrowser({
     phase = 'submitting-prompt';
     // aria-label "Describe your course" — src/screens/Landing.jsx:567.
     await page.getByLabel('Describe your course').fill(course.prompt);
-    // v0.14.7 WS-F2: with a key + prompt present the primary relabels to
-    // "Adjust setup" (quick start sits beside it) — same deliberate path.
-    const landingContinue = page.getByRole('button', { name: /^(Continue|Adjust setup)$/ }).last();
-    await expect(landingContinue).toBeEnabled({ timeout: remaining(10_000) });
-    await landingContinue.click();
-
-    phase = 'selecting-package-contents';
-    // data-testid feature-select-continue — src/screens/FeatureSelect.jsx:814.
-    await page.getByTestId('feature-select-continue').waitFor({ timeout: remaining(60_000) });
-    const selectAll = page.getByRole('button', { name: /^Select all$/ });
-    if (
-      (await selectAll.count()) > 0 &&
-      (await selectAll
+    const quickStart = page.getByTestId('landing-quick-start');
+    const canQuickStart =
+      (await quickStart.count()) > 0 &&
+      (await quickStart
         .first()
         .isVisible()
-        .catch(() => false))
-    ) {
-      await selectAll.first().click();
-    }
-    await page.getByTestId('feature-select-continue').click();
+        .catch(() => false));
+    if (canQuickStart) {
+      // v0.16.3: the full-course action is the primary first-run path and
+      // selects the same complete package this harness used to choose across
+      // FeatureSelect + Config. Test the real primary journey when available.
+      await expect(quickStart).toBeEnabled({ timeout: remaining(10_000) });
+      await quickStart.click();
+    } else {
+      // Compatibility path for historical release checkouts.
+      const landingContinue = page.getByRole('button', { name: /^(Continue|Adjust setup|Customize package)$/ }).last();
+      await expect(landingContinue).toBeEnabled({ timeout: remaining(10_000) });
+      await landingContinue.click();
 
-    phase = 'configuring-generation';
-    // data-testid config-generate-button ("Generate workspace") — src/screens/Config.jsx:2137.
-    const generateButton = page.getByTestId('config-generate-button');
-    await expect(generateButton).toBeEnabled({ timeout: remaining(60_000) });
-    await generateButton.click();
+      phase = 'selecting-package-contents';
+      await page.getByTestId('feature-select-continue').waitFor({ timeout: remaining(60_000) });
+      const selectAll = page.getByRole('button', { name: /^Select all$/ });
+      if (
+        (await selectAll.count()) > 0 &&
+        (await selectAll
+          .first()
+          .isVisible()
+          .catch(() => false))
+      ) {
+        await selectAll.first().click();
+      }
+      await page.getByTestId('feature-select-continue').click();
+
+      phase = 'configuring-generation';
+      const generateButton = page.getByTestId('config-generate-button');
+      await expect(generateButton).toBeEnabled({ timeout: remaining(60_000) });
+      await generateButton.click();
+    }
 
     phase = 'generating-workspace';
     // Generation can take 5+ minutes; bounded by the overall budget. On-device
@@ -662,6 +700,10 @@ export async function runCourseInBrowser({
     // versions and any judged difference is the compiler's, with generation
     // variance cancelled. Failure runs already dump this for forensics;
     // success runs need it for measurement.
+    // Project autosave is deliberately debounced by 3s. Wait through that
+    // boundary so the captured graph and deliverables describe the finished
+    // package rather than the earlier `streaming` render.
+    await page.waitForTimeout(3500);
     const projectAtSuccess = await page.evaluate(() => localStorage.getItem('coursemapper-project')).catch(() => null);
     if (projectAtSuccess) {
       await fs.writeFile(path.join(outDir, 'project.json'), projectAtSuccess).catch(() => {});

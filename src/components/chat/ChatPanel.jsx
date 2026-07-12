@@ -1014,7 +1014,7 @@ const PROVIDER_LABELS = {
   anthropic: 'Anthropic',
   google: 'Google',
   deepseek: 'DeepSeek',
-  public: 'Scion Draft',
+  public: 'Scion',
   webllm: 'Local AI',
 };
 

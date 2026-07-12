@@ -19,10 +19,13 @@
 set -e
 cd "$(dirname "$0")/../../.."
 
-PAIRS=$(wc -l < trellis/tendril/distill/data-g4-orpo/train.jsonl 2>/dev/null || echo 0)
+node scripts/scionPreferenceCorpusAudit.mjs
+CURATED=trellis/tendril/distill/data-g4-orpo/curated/train.jsonl
+PAIRS=$(wc -l < "$CURATED" 2>/dev/null || echo 0)
 if [ "$PAIRS" -lt 3000 ] && [ "$1" != "--smoke" ]; then
-  echo "REFUSING: $PAIRS pairs < 3000 (the pre-registered training gate)."
+  echo "REFUSING: $PAIRS verified pairs < 3000 (the pre-registered training gate)."
   echo "Grow the corpus: PAIRS=run npx vite-node trellis/tendril/distill/buildTeacherPairs.mjs extended"
+  echo "Rows without pair-level preference evidence remain quarantined and never train Scion."
   echo "(--smoke overrides for a 10-iter mechanical check only — never adopt a smoke adapter.)"
   exit 1
 fi
@@ -32,7 +35,7 @@ ITERS=${ITERS:-600}
 
 trellis/tendril/.venv-g4/bin/python -m mlx_vlm.lora \
   --model-path google/gemma-4-e2b-it \
-  --dataset trellis/tendril/distill/data-g4-orpo \
+  --dataset trellis/tendril/distill/data-g4-orpo/curated \
   --split train \
   --train-mode orpo \
   --iters "$ITERS" \

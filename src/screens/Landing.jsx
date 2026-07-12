@@ -8,7 +8,7 @@ import DarkModeToggle from '../components/DarkModeToggle';
 import AppLogo from '../components/AppLogo';
 import SetupProgress from '../components/SetupProgress';
 import { LATEST_RELEASE } from '../lib/latestRelease';
-import { PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
+import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
 
 const ACCEPTED_EXTENSIONS = [
   '.doc',
@@ -464,10 +464,7 @@ export default function Landing({
     if (provider === 'anthropic') return `Anthropic · ${modelName || modelId || 'Claude'}`;
     if (provider === 'google') return `Google · ${modelName || modelId || 'Gemini'}`;
     if (provider === 'deepseek') return `DeepSeek · ${modelName || modelId || 'V3'}`;
-    if (provider === PUBLIC_SCION_PROVIDER_ID) {
-      const label = modelName || modelId || '';
-      return !label || /^Scion Draft/i.test(label) ? 'Scion Draft' : `Scion Draft · ${label}`;
-    }
+    if (provider === PUBLIC_SCION_PROVIDER_ID) return modelName || PUBLIC_SCION_MODEL_NAME;
     if (provider === 'local') return `Scion Local · ${modelName || modelId || 'Scion-1'}`;
     return modelName || modelId || provider || 'AI Model';
   })();

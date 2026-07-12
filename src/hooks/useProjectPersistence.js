@@ -135,7 +135,14 @@ export default function useProjectPersistence({
         // of truth; v1 projects (no graph) derive one on restore.
         formatVersion: 2,
         courseMap: safeCourseMap,
-        ...(courseGraph ? { courseGraph } : {}),
+        ...(courseGraph
+          ? {
+              courseGraph: {
+                ...courseGraph,
+                enrichmentOverlay: courseGraph.enrichmentOverlay || deliv.enrichmentOverlay,
+              },
+            }
+          : {}),
         columns,
         hasGenerated: true,
         provider,

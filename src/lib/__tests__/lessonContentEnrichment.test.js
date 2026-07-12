@@ -66,6 +66,8 @@ describe('lesson content enrichment contracts', () => {
     expect(prompt.userPrompt).toContain('IPCC summary materials');
     expect(prompt.itemPlan).toHaveLength(6);
     expect(prompt.systemPrompt).toMatch(/never use "all of the above"/i);
+    expect(prompt.userPrompt).toContain('exactly three defensible positions');
+    expect(prompt.userPrompt).toContain('four distinct parameters');
   });
 
   it('lint accepts a well-formed disciplinary item and rejects meta/process items', () => {
@@ -295,6 +297,66 @@ describe('enriched compile (end to end with mock payload)', () => {
     expect(lessonTwoText).toMatch(/files and exceptions/i);
     expect(lessonTwoText).not.toMatch(/key-value mapping/i);
     expect(lessonTwoText).not.toMatch(/retrieve one value by key/i);
+  });
+
+  it('keeps lesson-grounded enrichment when the scenario uses different case vocabulary', () => {
+    const studioMap = {
+      courseName: 'User Experience Design Studio',
+      lessons: [
+        {
+          title: 'Lesson 1: Human-centered Design Foundations',
+          sections: [
+            {
+              topicSection: '1.1: Human-centered Design',
+              learningObjectives: 'Define human-centered principles.\nApply empathy mapping.',
+              weeklyAssessments: 'Task: create empathy map',
+            },
+          ],
+        },
+      ],
+    };
+    const enrichment = {
+      source: 'scion-public',
+      lessonContent: {
+        'lesson-1': {
+          keyTerms: [
+            {
+              term: 'Empathy Mapping',
+              definition: 'A structured visual tool that organizes user evidence into feelings, thoughts, and actions.',
+              example: 'A map of commuter frustrations and observed behavior.',
+            },
+            {
+              term: 'Human-Centered Design',
+              definition:
+                'An iterative approach that keeps human needs and observed behavior central to design decisions.',
+              example: 'A navigation revision tested with representative users.',
+            },
+          ],
+          kernel: {
+            facts: [
+              'Human-centered design prioritizes user needs over product features.',
+              'Empathy mapping captures user feelings, thoughts, and motivations.',
+            ],
+          },
+          assignmentCore: {
+            taskDescription:
+              'Analyze prototype testing data for a smart kitchen appliance and propose either a menu redesign or tutorial overlay.',
+            parameters: ['Complete the proposal in two iterative sprints.'],
+          },
+        },
+      },
+    };
+
+    const blueprint = buildCourseBlueprint(studioMap, { enrichment });
+    expect(blueprint.lessons[0].enrichment?.keyTerms?.[0]?.term).toBe('Empathy Mapping');
+
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides'], {});
+    expect(compiled.studyGuides.studyGuides[0].keyTerms).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ term: 'Empathy Mapping', definition: expect.stringMatching(/user evidence/i) }),
+        expect.objectContaining({ term: 'Human-Centered Design' }),
+      ]),
+    );
   });
 });
 

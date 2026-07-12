@@ -18,8 +18,10 @@ import {
   diffLedger,
   expandCoursesForAuthoring,
   expandCoursesForProvider,
+  expandCoursesForVoice,
   findingProvider,
   parseProviderFlag,
+  parseVoiceFlag,
   diffSections,
   digestCostUsd,
   docxStyledParagraphs,
@@ -50,6 +52,18 @@ import {
 
 const digestOf = (totalUsd) => ({ cost: { totalUsd } });
 
+describe('voice isolation', () => {
+  it('distinguishes the omitted app default from an explicit quiet run', () => {
+    const course = { id: 'ux-design-studio' };
+    expect(parseVoiceFlag(undefined)).toBe('default');
+    expect(expandCoursesForVoice([course], 'default')).toEqual([course]);
+    expect(parseVoiceFlag('off')).toBe('off');
+    expect(expandCoursesForVoice([course], 'off')).toEqual([
+      { id: 'ux-design-studio--quiet', baseId: 'ux-design-studio', voice: 'off' },
+    ]);
+  });
+});
+
 describe('E2 — spend guard accounting', () => {
   it('defaults match the roadmap ($2.50 cap, $0.20 next-course estimate)', () => {
     expect(DEFAULT_MAX_SPEND_USD).toBe(2.5);
@@ -60,6 +74,13 @@ describe('E2 — spend guard accounting', () => {
     expect(spendGuardDecision({ spentUsd: 0, maxSpendUsd: 2.5 })).toEqual({ abort: false, reason: null });
     // 2.29 + 0.20 = 2.49 <= 2.50 — the next course may start.
     expect(spendGuardDecision({ spentUsd: 2.29, maxSpendUsd: 2.5 }).abort).toBe(false);
+  });
+
+  it('allows zero-cost Scion rounds under a deliberately tiny cap', () => {
+    expect(spendGuardDecision({ spentUsd: 0, maxSpendUsd: 0.01, estimateUsd: 0 })).toEqual({
+      abort: false,
+      reason: null,
+    });
   });
 
   it('aborts when the sum already meets/exceeds the cap', () => {

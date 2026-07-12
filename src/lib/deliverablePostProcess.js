@@ -2491,7 +2491,9 @@ export function normalizeRubricAssessmentAlignment(data, courseMap, assignmentsD
   const rows = rubrics.map((rubric, originalIndex) => {
     // v0.16.1: exam answer-key handoff entries are deliberate placeholders
     // (the key lives in the quiz bank) — never rewrite them into rubrics.
-    if (rubric?.examHandoffNote) return { rubric, originalIndex, anchorIndex: null, patch: null };
+    if (rubric?.examHandoffNote || rubric?.answerKeyHandoffNote) {
+      return { rubric, originalIndex, anchorIndex: null, patch: null };
+    }
     const anchorIndex = inferRubricAnchorIndex(rubric, anchors, originalIndex, rubrics.length);
     const anchor =
       anchorIndex === null ? null : anchors.find((item) => (item.anchorIndex ?? item.lessonIndex) === anchorIndex);

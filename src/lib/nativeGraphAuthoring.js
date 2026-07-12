@@ -34,7 +34,13 @@
  * behavior.
  */
 
-import { buildLessonKernelPrompt, parseLessonKernelResponse } from './blueprintEnrichmentPass';
+import {
+  assessProjectedKernelCoverage,
+  buildLessonKernelPrompt,
+  lintEnrichedAssignmentCore,
+  lintEnrichedDiscussionPrompt,
+  parseLessonKernelResponse,
+} from './blueprintEnrichmentPass';
 // Specific courseGraph modules (not the index) so this module never drags
 // blueprintFromGraph→courseBlueprintCompiler into a chunk that lacks it.
 import { deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMap.js';
@@ -64,6 +70,207 @@ function cleanText(value, max = 300) {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, max);
+}
+
+export function isNativeContentSourcedKernel(payload, partialOverlay) {
+  return Boolean(
+    payload &&
+    !partialOverlay &&
+    (payload.enrichmentSource === 'genome-linked' || assessProjectedKernelCoverage(payload).complete),
+  );
+}
+
+export function selectNativeContentSources(lessonIndices, lessonContent = {}, partialOverlays = {}) {
+  return asArray(lessonIndices)
+    .map((lessonIndex) => `lesson-${lessonIndex + 1}`)
+    .filter((lessonId) => isNativeContentSourcedKernel(lessonContent[lessonId], partialOverlays[lessonId]));
+}
+
+export function pickNativeKernel(previous, candidate) {
+  if (!previous) return candidate;
+  return assessProjectedKernelCoverage(candidate).score >= assessProjectedKernelCoverage(previous).score
+    ? candidate
+    : previous;
+}
+
+/**
+ * A weak-model kernel may pass atomic admission while one optional authored
+ * surface was dropped by its own linter. Complete those surfaces from the
+ * admitted lesson facts and canonical map row, without another provider call.
+ * The fallback is explicit in `surfaceFallbacks`; it never masquerades as
+ * model-authored preference evidence.
+ */
+export function completeNativeKernelSurfaces(payload, courseMapLesson = {}) {
+  if (!payload || typeof payload !== 'object') return payload;
+  const sections = asArray(courseMapLesson?.sections);
+  const title = cleanText(courseMapLesson?.title, 140).replace(/^lesson\s+\d+\s*[:.-]\s*/i, '');
+  const topic = sections
+    .map((section) => cleanText(section?.topicSection, 120).replace(/^\d+(?:\.\d+)*\s*[:.-]\s*/i, ''))
+    .find(Boolean);
+  const concept = cleanText(payload?.keyTerms?.[0]?.term || topic || title || 'the central concept', 80);
+  const definition = cleanText(payload?.keyTerms?.[0]?.definition, 260);
+  const facts = asArray(payload?.kernel?.facts)
+    .map((fact) => cleanText(fact, 220))
+    .filter(Boolean);
+  const anchorFact = facts[0] || definition || `${concept} requires a claim grounded in inspectable details.`;
+  const anchorClause = anchorFact.replace(/[.!?]+$/, '');
+  const scenario = payload?.kernel?.scenario || {};
+  const materials = cleanText(scenario?.materials, 180) || `${concept} examples and the named reading or activity`;
+  const assessment = sections
+    .flatMap((section) => {
+      const value = section?.weeklyAssessments;
+      return Array.isArray(value) ? value : value ? [value] : [];
+    })
+    .map((value) => cleanText(value, 140))
+    .find(Boolean);
+  const product = assessment || `${concept} analysis`;
+  const fallbackFields = [];
+  const keyTermFallbacks = [];
+  const wordCount = (value) => cleanText(value, 1000).match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g)?.length || 0;
+  const substantiveTerm = (term) =>
+    wordCount(term?.definition) >= 8 &&
+    wordCount(term?.example) >= 5 &&
+    wordCount(term?.misconception) >= 5 &&
+    wordCount(term?.correction) >= 5;
+  const keyTerms = asArray(payload.keyTerms).map((term) => ({ ...term }));
+  const scenarioExample = cleanText(scenario?.setup, 300);
+  for (const term of keyTerms) {
+    if (wordCount(term.example) >= 5 || wordCount(scenarioExample) < 5) continue;
+    term.example = scenarioExample;
+    keyTermFallbacks.push({ type: 'example', term: cleanText(term.term, 60), source: 'admitted-scenario' });
+  }
+  const seenTerms = new Set(keyTerms.map((term) => cleanText(term?.term, 60).toLowerCase()).filter(Boolean));
+  if (keyTerms.filter(substantiveTerm).length < 3) {
+    for (const item of asArray(payload.quizItems)) {
+      if (item?.type !== 'multiple_choice' || !Array.isArray(item.options)) continue;
+      const answerIndex = Number(item.answerIndex);
+      if (!Number.isInteger(answerIndex) || answerIndex < 0 || answerIndex >= item.options.length) continue;
+      const term = cleanText(item.options[answerIndex], 80)
+        .replace(/^(?:a|an|the)\s+/i, '')
+        .replace(/[.!?]+$/, '');
+      const termWords = wordCount(term);
+      if (
+        term.length < 3 ||
+        term.length > 60 ||
+        termWords < 1 ||
+        termWords > 6 ||
+        /^\d/.test(term) ||
+        /\b(?:is|are|was|were|should|would|could|must|does|do|did|because|when|while)\b/i.test(term) ||
+        seenTerms.has(term.toLowerCase())
+      ) {
+        continue;
+      }
+      const definition = cleanText(item.explanation, 380).split(/(?<=[.!?])\s+/)[0];
+      const example = cleanText(item.question, 300);
+      if (wordCount(definition) < 8 || wordCount(example) < 5) continue;
+      const wrongOption = cleanText(
+        item.options.find((option, optionIndex) => optionIndex !== answerIndex && cleanText(option)),
+        90,
+      );
+      const derived = {
+        term,
+        definition,
+        example,
+        misconception: `A common error is choosing ${wrongOption || 'a nearby distractor'} without checking the details named in the question.`,
+        correction: `The admitted explanation supports ${term} after the named details are checked against every option.`,
+        source: 'verified-quiz-projection',
+        tier: 1,
+        derivedFromQuizIndex: Number(item.index) || 0,
+      };
+      if (!substantiveTerm(derived)) continue;
+      keyTerms.push(derived);
+      seenTerms.add(term.toLowerCase());
+      keyTermFallbacks.push({
+        type: 'term',
+        term,
+        source: 'verified-quiz-projection',
+        quizIndex: Number(item.index) || 0,
+      });
+      if (keyTerms.filter(substantiveTerm).length >= 3) break;
+    }
+  }
+  const completed = {
+    ...payload,
+    keyTerms,
+    ...(keyTermFallbacks.length > 0
+      ? { keyTermFallbacks: [...(payload.keyTermFallbacks || []), ...keyTermFallbacks] }
+      : {}),
+  };
+
+  if (!completed.discussionPrompt) {
+    const discussionPrompt = {
+      prompt: `Which interpretation of ${concept} is best supported by ${materials}, and what detail could change that conclusion?`,
+      tension: `One position prioritizes the strongest observed ${concept} pattern, while another prioritizes the remaining uncertainty.`,
+      positions: [
+        `Use ${anchorClause} as the leading interpretation.`,
+        `Prefer an alternative explanation until the uncertainty about ${concept} is resolved.`,
+        `Use a conditional conclusion that changes when the missing ${concept} detail becomes available.`,
+      ],
+    };
+    if (lintEnrichedDiscussionPrompt(discussionPrompt).length === 0) {
+      completed.discussionPrompt = discussionPrompt;
+      fallbackFields.push('discussionPrompt');
+    }
+  }
+
+  if (!completed.assignmentCore) {
+    const assignmentCore = {
+      taskDescription: `Analyze ${materials} through ${concept}. Produce ${product} that states the best-supported conclusion, cites the decisive detail, and names one limit.`,
+      parameters: [
+        `Scope: use the named ${concept} case or example only.`,
+        `Format: submit ${product} in the instructor-approved format.`,
+        `Required Evidence/Source: cite at least one detail from ${materials}.`,
+        'Length or Time: follow the local requirement confirmed by the instructor before release.',
+      ],
+    };
+    if (lintEnrichedAssignmentCore(assignmentCore).length === 0) {
+      completed.assignmentCore = assignmentCore;
+      fallbackFields.push('assignmentCore');
+    }
+  }
+  if (completed.assignmentCore && assessment && !completed.assignmentCore.canonicalAssessment) {
+    completed.assignmentCore = {
+      ...completed.assignmentCore,
+      canonicalAssessment: assessment,
+    };
+  }
+
+  if (!completed.studyGuide) {
+    const summaryBase = [definition, anchorFact].filter(Boolean).join(' ');
+    completed.studyGuide = {
+      summary: cleanText(
+        `${summaryBase} Connect ${concept} to ${materials} and keep the conclusion within the evidence boundary.`,
+        600,
+      ),
+      reviewStrategy: `Rehearse ${concept} by explaining why ${anchorClause}. Then test the explanation against ${materials}.`,
+    };
+    fallbackFields.push('studyGuide');
+  }
+
+  return fallbackFields.length > 0
+    ? {
+        ...completed,
+        surfaceFallbacks: [...new Set([...(payload.surfaceFallbacks || []), ...fallbackFields])],
+      }
+    : completed;
+}
+
+/** Complete admitted optional surfaces across a lesson-content overlay. */
+export function completeNativeLessonSurfaces(lessonContent, courseMapLessons = [], lessonIndices = [], onComplete) {
+  let completed = 0;
+  for (const lessonIndex of lessonIndices) {
+    const lessonId = `lesson-${lessonIndex + 1}`;
+    const payload = lessonContent?.[lessonId];
+    if (!payload) continue;
+    const next = completeNativeKernelSurfaces(payload, courseMapLessons?.[lessonIndex]);
+    completed += Math.max(0, (next?.surfaceFallbacks || []).length - (payload?.surfaceFallbacks || []).length);
+    lessonContent[lessonId] = next;
+  }
+  const message = completed
+    ? `Completed ${completed} missing authored surface${completed === 1 ? '' : 's'} from admitted lesson evidence`
+    : '';
+  if (message && typeof onComplete === 'function') onComplete(message, 'progress');
+  return message;
 }
 
 const MODALITY_ONLY_SECTION_TITLES = new Set([
@@ -550,7 +757,13 @@ export function parseNativePassBResponse(text, { prompt, expectedLessonIds, cont
     authored[lessonId] = { goal, outcomes, asyncActivities, syncActivities };
   }
 
-  return { kernels, authored, issues, courseLevel: kernelResult?.courseLevel || null };
+  return {
+    kernels,
+    authored,
+    issues,
+    repairs: kernelResult?.repairs || [],
+    courseLevel: kernelResult?.courseLevel || null,
+  };
 }
 
 // ── Assembly ────────────────────────────────────────────────────────────────

@@ -9,7 +9,17 @@ import { scionFlywheelEnabled } from './scionContracts';
 
 export function postFlywheelEvents(events, context = {}) {
   if (!scionFlywheelEnabled()) return;
-  const rows = (events || []).filter(Boolean);
+  // Only pair-level, verified improvements are training data. Telemetry such
+  // as a completed polish pass remains visible in the pipeline log but must
+  // never be mislabeled as an ORPO preference.
+  const rows = (events || []).filter(
+    (event) =>
+      event?.trainingEligible === true &&
+      event?.preferenceEvidence?.verified === true &&
+      event?.prompt &&
+      event?.chosen &&
+      event?.rejected,
+  );
   if (rows.length === 0) return;
   try {
     fetch(`${getLocalEndpoint()}/v1/flywheel`, {

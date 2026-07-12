@@ -1,0 +1,213 @@
+{
+  "version": "0.16.3",
+  "date": "July 12, 2026",
+  "title": "Scion, Clearly: a simpler product and a harder model test",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:evaluation:main",
+      "npm run audit:scion:matrix",
+      "npm run audit:scion:corpus",
+      "npm run audit:scion:model-bakeoff",
+      "npm run audit:scion:compiler-burden -- --candidate verification-output/crucible/round-2026-07-12T15-35-35-677Z/ux-design-studio--quiet--local --control verification-output/crucible/round-2026-07-12T04-33-57-020Z/ux-design-studio--quiet--local",
+      "npm run audit:scion:review-packet",
+      "npx playwright test tests/scion-reviewer-html.spec.js --workers=1",
+      "npx playwright test tests/coursemapper.spec.js tests/local-ai-runtime.spec.js --grep 'provider picker|connected Scion|stale Local|cloud provider' --workers=1"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification runs on the pushed v0.16.3 commit; the workflow result is verified before the release handoff is complete."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The full deterministic suite, release-history audit, production build, bundle budgets, evaluation gates, and focused browser checks run locally before push. Deep proof remains on its normal GitHub schedule."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages build and deploy runs after v0.16.3 reaches main and is verified before handoff."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The retained production-canary audit passes 3/3 across UX and music theory. The exact-weight Qwen challenger produced a separate 12-lesson 99/A package with zero P0/P1, while the current branded public route remains the keyless Pollinations-backed Scion path."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No independent instructor review, new-weight claim, or general model-superiority claim is made. Offline review packets are ready, but the approved instructor count remains zero."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0163-clear-scion-configuration",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The public configuration presents one product identity: Provider Scion, a disabled no-key API field, and the versioned Scion V0.16.3 model. The description is concise, while technical provider and model provenance remains in code, diagnostics, and evidence artifacts.",
+      "anchors": [
+        "src/components/ModelConfig.jsx",
+        "src/screens/Landing.jsx",
+        "src/lib/publicScionProvider.js",
+        "src/lib/appVersion.js",
+        "tests/coursemapper.spec.js",
+        "tests/local-ai-runtime.spec.js",
+        "tests/public-scion-provider.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/public-scion-provider.test.js",
+        "npx playwright test tests/coursemapper.spec.js tests/local-ai-runtime.spec.js --grep 'provider picker|connected Scion|stale Local|cloud provider' --workers=1"
+      ],
+      "proofScopes": ["unit", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v0163-first-five-minutes",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The landing and setup flow is brief-first, guided by Brief, Materials, and Generate, supplies a recommended package, explains blocked and ready actions, collapses optional tuning, preserves sticky mobile handoffs, and raises touch targets without claiming the mobile workspace table is solved.",
+      "anchors": [
+        "docs/V0.16.3_FIRST_FIVE_MINUTES_ROADMAP.md",
+        "src/screens/Landing.jsx",
+        "src/AppFlow.jsx",
+        "tests/v0163-first-five-minutes.test.jsx",
+        "tests/coursemapper.spec.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0163-first-five-minutes.test.jsx",
+        "npx playwright test tests/coursemapper.spec.js --workers=1"
+      ],
+      "proofScopes": ["unit", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v0163-compiler-texture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Compiler-distributed assessment priority favors richer performance artifacts, fully explicit source weights remain authoritative, and lesson-seeded FAQ, lesson-plan, slide, and short-answer variants reduce repeated phrase families while preserving evidence-bounded assessment contracts.",
+      "anchors": [
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/compilerText.js",
+        "src/lib/compiledLanguageFinalizer.js",
+        "tests/v0163-compiler-texture.test.js",
+        "src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0163-compiler-texture.test.js src/lib/__tests__/courseBlueprintCompiler.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v0163-source-backed-system-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Source-backed music and UX kernels survive the live compiler and export path. Retained runs demonstrate 28 verified music MC seats, a 12-lesson 99/A UX package with zero P0/P1 and 101 files, and a passing 3/3 production-canary aggregate across two domains.",
+      "anchors": [
+        "public/genome/music-intro.json",
+        "public/genome/ux-intro.json",
+        "src/lib/genome/composeLessonFromConcepts.js",
+        "src/lib/genome/runGenomeLinker.js",
+        "evaluation/production-canaries/policy.json",
+        "evaluation/README.md",
+        "src/lib/genome/__tests__/musicQuizBank.test.js",
+        "src/lib/genome/__tests__/uxQuizBank.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:canary",
+        "npx vitest run src/lib/genome/__tests__/musicQuizBank.test.js src/lib/genome/__tests__/uxQuizBank.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v0163-matched-luna-diagnostic",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The matched UX matrix reports both strengths and gaps: Scion ties Luna's applied-item count but trails its rate, matches inference, answer alignment, scenario coverage, and materials, and leads the retained pair on rationale contrast, decision readiness, and cue-free claim-evidence-boundary answers without making a general superiority claim.",
+      "anchors": [
+        "evaluation/scion-contrast-matrix.json",
+        "scripts/scionContrastMatrixAudit.mjs",
+        "src/lib/quality/scionContrastMatrix.js",
+        "src/lib/quality/quizContrast.js",
+        "src/lib/quality/__tests__/scionContrastMatrix.test.js",
+        "src/lib/quality/__tests__/quizContrast.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:matrix",
+        "npx vitest run src/lib/quality/__tests__/scionContrastMatrix.test.js src/lib/quality/__tests__/quizContrast.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v0163-fail-closed-learning",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "All 411 unverified preference rows remain quarantined under an explicit evidence-kind allowlist. The five-domain blind packet supplies offline zero-network reviewer pages and packet-bound forms, while ingestion requires exact packet identity, independent domain-qualified reviewers, no conflict, high factual and teachability scores, and contract-clean winning atoms.",
+      "anchors": [
+        "src/lib/scionPreferenceGate.js",
+        "scripts/scionPreferenceCorpusAudit.mjs",
+        "scripts/scionBlindReviewPacket.mjs",
+        "scripts/scionMatchedReviewCandidates.mjs",
+        "tests/scion-preference-gate.test.js",
+        "tests/scion-reviewer-html.spec.js",
+        "evaluation/README.md"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:corpus",
+        "npm run audit:scion:review-packet",
+        "npx vitest run tests/scion-preference-gate.test.js",
+        "npx playwright test tests/scion-reviewer-html.spec.js --workers=1"
+      ],
+      "proofScopes": ["unit", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v0163-model-neutral-bakeoff",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "A registered exact-provenance protocol separates repeated factual screening from promotion. Gemma 4 E2B and Qwen3.5 4B tie on two cold and two source-grounded screens; Qwen adds one exact-weight 12-lesson 99/A UX run but remains unpromoted pending four more domains, browser classes, matched controls, and independent instructor evidence.",
+      "anchors": [
+        "evaluation/scion-model-candidates.json",
+        "scripts/scionModelBakeoff.mjs",
+        "scripts/crucible.mjs",
+        "scripts/crucible/e2bOpenAIShim.mjs",
+        "scripts/lib/crucibleBrowser.mjs",
+        "trellis/tendril/sModel.mjs",
+        "trellis/tendril/distill/serve_g4.py",
+        "tests/scion-model-bakeoff.test.js",
+        "tests/crucible-browser-freshness.test.js",
+        "tests/local-provider.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:model-bakeoff",
+        "npx vitest run tests/scion-model-bakeoff.test.js tests/crucible-browser-freshness.test.js tests/local-provider.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live", "live-provider", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v0163-compiler-burden-and-runtime",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The model bakeoff also audits Scion itself. It measures call amplification and rejected repair actions, attributes future subcalls by schema, gates promotion above 1.25x matched-control amplification, avoids unnecessary applied-depth rewrites, hardens the prompt against answer leakage, preserves native SSE and heartbeats, drains loader stderr, clears timed-out starts, records exact source weights, and keeps all 40 compiler contracts deterministic as retained evidence grows.",
+      "anchors": [
+        "scripts/lib/scionCompilerBurden.mjs",
+        "scripts/scionCompilerBurdenAudit.mjs",
+        "src/lib/scionPassB.js",
+        "src/lib/scionPasses.js",
+        "src/lib/quality/quizItemDepth.js",
+        "scripts/lib/crucibleBrowser.mjs",
+        "scripts/hybridPipelineAudit.mjs",
+        "scripts/independentBenchmarkAudit.mjs",
+        "src/lib/courseBlueprintCompiler.js",
+        "trellis/tendril/sModel.mjs",
+        "tests/scion-compiler-burden.test.js",
+        "src/lib/quality/__tests__/quizItemDepth.test.js",
+        "tests/scion-compiler.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:evaluation:main",
+        "npm run audit:scion:compiler-burden -- --candidate verification-output/crucible/round-2026-07-12T15-35-35-677Z/ux-design-studio--quiet--local --control verification-output/crucible/round-2026-07-12T04-33-57-020Z/ux-design-studio--quiet--local",
+        "npx vitest run tests/scion-compiler-burden.test.js src/lib/quality/__tests__/quizItemDepth.test.js tests/scion-compiler.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live", "compiled-output", "static-audit"]
+    }
+  ]
+}

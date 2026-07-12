@@ -1251,8 +1251,14 @@ export default function useDeliverables({
           }
           try {
             const [
-              { buildNativePassBPrompt, parseNativePassBResponse },
-              { buildBlueprintEnrichmentPayload, normalizeAbsorbedCourseLevel },
+              {
+                buildNativePassBPrompt,
+                completeNativeLessonSurfaces,
+                parseNativePassBResponse,
+                pickNativeKernel,
+                selectNativeContentSources,
+              },
+              { assessProjectedKernelCoverage, buildBlueprintEnrichmentPayload, normalizeAbsorbedCourseLevel },
               nativeBatching,
             ] = await Promise.all([
               import('../lib/nativeGraphAuthoring'),
@@ -1265,13 +1271,12 @@ export default function useDeliverables({
             const genomeLinkPowers = genomeLink?.powers || null;
             const nativeAuthored = {};
             const lessonIdOf = (lessonIdx) => `lesson-${lessonIdx + 1}`;
+            const kernelIsComplete = (payload) => assessProjectedKernelCoverage(payload).complete;
             // Fully genome-resolved lessons skip kernel authorship (the
             // augment/displace rules); partial overlays still buy the model
             // kernel and merge the cited genome terms back in below.
             const contentSourcedSet = new Set(
-              allLessonIndices
-                .map(lessonIdOf)
-                .filter((lessonId) => lessonContent[lessonId] && !partialOverlays[lessonId]),
+              selectNativeContentSources(allLessonIndices, lessonContent, partialOverlays),
             );
             let absorbedCourseLevel = null;
             const chunkSize = nativeBatching.getAdaptiveNativePassBBatchSize({
@@ -1292,7 +1297,11 @@ export default function useDeliverables({
             const runPassBBatch = async (chunk, { includeCourseLevel, recoveryLabel = null, recoveryAttempt = 0 }) => {
               const expectedLessonIds = chunk.map(lessonIdOf);
               const contentSourcedLessonIds = recoveryLabel
-                ? expectedLessonIds.filter((lessonId) => Boolean(lessonContent[lessonId]))
+                ? expectedLessonIds.filter(
+                    (lessonId) =>
+                      lessonContent[lessonId] &&
+                      (contentSourcedSet.has(lessonId) || kernelIsComplete(lessonContent[lessonId])),
+                  )
                 : expectedLessonIds.filter((lessonId) => contentSourcedSet.has(lessonId));
               const prompt = buildNativePassBPrompt(blueprintCourseMap, chunk, {
                 questionsPerLesson: getGenerationConfig('quizBank')?.questionsPerLesson,
@@ -1368,11 +1377,11 @@ export default function useDeliverables({
                 contentSourcedLessonIds,
               });
               for (const [lessonId, payload] of Object.entries(parsed.kernels)) {
-                lessonContent[lessonId] = payload;
-                if (lessonKernelCache) {
+                lessonContent[lessonId] = pickNativeKernel(lessonContent[lessonId], payload);
+                if (lessonKernelCache && kernelIsComplete(lessonContent[lessonId])) {
                   const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
                   const lesson = blueprintCourseMap.lessons?.[lessonIdx];
-                  if (lesson) lessonKernelCache.set(lesson, payload);
+                  if (lesson) lessonKernelCache.set(lesson, lessonContent[lessonId]);
                 }
               }
               for (const [lessonId, authored] of Object.entries(parsed.authored)) {
@@ -1385,10 +1394,7 @@ export default function useDeliverables({
                 );
               }
               if (parsed.issues.length > 0) {
-                appendLog(
-                  `Native Pass B dropped ${parsed.issues.length} atom(s) that failed item-writing or grounding checks`,
-                  'progress',
-                );
+                appendLog(`Native Pass B dropped ${parsed.issues.length} atom(s) that failed admission`, 'progress');
               }
             };
 
@@ -1423,7 +1429,9 @@ export default function useDeliverables({
 
             // Recovery (same budget discipline as the prose kernel stage,
             // v0.14.1 P2.3): ≤2 extra sequential calls for lessons whose
-            // kernel OR authored outcomes never arrived.
+            // kernel OR authored outcomes never arrived. Sparse admitted
+            // kernels keep the compiler's deterministic surface fallback;
+            // retrying them in the foreground proved slower and less safe.
             const listMissingKernelIndices = () =>
               allLessonIndices.filter((lessonIdx) => !lessonContent[lessonIdOf(lessonIdx)]);
             const listMissingAuthoredIndices = () =>
@@ -1461,13 +1469,10 @@ export default function useDeliverables({
               });
               if (afterSignature === beforeSignature) {
                 if (nativeRecoveryCalls >= 2 || !hasProviderCallBudget()) {
-                  appendLog('⚠ Native Pass B recovery made no progress; templates kept', 'warn');
+                  appendLog('⚠ Native Pass B stalled; template kept', 'warn');
                   break;
                 }
-                appendLog(
-                  '⚠ Native Pass B recovery made no progress; retrying once with stricter kernel instructions',
-                  'warn',
-                );
+                appendLog('⚠ Native Pass B stalled; retrying with stricter instructions', 'warn');
               }
             }
 
@@ -1489,6 +1494,13 @@ export default function useDeliverables({
                 }
               }
             }
+
+            // Scion next-level: atomic admission can drop an optional model
+            // surface while retaining a strong kernel. Complete those holes
+            // deterministically from the admitted facts + canonical map row,
+            // and retain explicit provenance so no fallback becomes a model
+            // preference record.
+            completeNativeLessonSurfaces(lessonContent, blueprintCourseMap.lessons, allLessonIndices, appendLog);
 
             const missingLessonNumbers = listMissingKernelIndices().map((lessonIdx) => lessonIdx + 1);
             if (missingLessonNumbers.length > 0) {
@@ -1649,6 +1661,7 @@ export default function useDeliverables({
           // payload below overwrites the thin one and the merge after the
           // loops folds the cited genome terms back in.
           const lessonContent = { ...(genomeLink?.lessonContent || {}) };
+          const semanticRepairs = [];
           let absorbedCourseLevel = null;
           const genomeTelemetry = genomeLink?.telemetry || null;
           const genomeLinkPowers = genomeLink?.powers || null;
@@ -1714,6 +1727,7 @@ export default function useDeliverables({
               });
               if (parsedKernels) {
                 Object.assign(lessonContent, parsedKernels.lessons);
+                semanticRepairs.push(...(parsedKernels.repairs || []));
                 if (isFirstChunk && parsedKernels.courseLevel) {
                   absorbedCourseLevel = normalizeAbsorbedCourseLevel(
                     parsedKernels.courseLevel,
@@ -1732,6 +1746,12 @@ export default function useDeliverables({
                 if (parsedKernels.issues.length > 0) {
                   appendLog(
                     `Content enrichment dropped ${parsedKernels.issues.length} atom(s) that failed item-writing or grounding checks`,
+                    'progress',
+                  );
+                }
+                if (parsedKernels.repairs?.length > 0) {
+                  appendLog(
+                    `Safely realigned ${parsedKernels.repairs.length} quiz answer key${parsedKernels.repairs.length === 1 ? '' : 's'} to the authored explanation`,
                     'progress',
                   );
                 }
@@ -1855,6 +1875,7 @@ export default function useDeliverables({
                 expectedLessonIds: retryChunk.map((lessonIdx) => `lesson-${lessonIdx + 1}`),
               });
               if (recoveredKernels) {
+                semanticRepairs.push(...(recoveredKernels.repairs || []));
                 const restoredNumbers = [];
                 const romanizedNumbers = [];
                 for (const [lessonId, payload] of Object.entries(recoveredKernels.lessons)) {
@@ -1949,6 +1970,7 @@ export default function useDeliverables({
             styleNotes: absorbedCourseLevel?.styleNotes || [],
             quality: absorbedCourseLevel?.quality || { source: 'kernel-only' },
             lessonContent,
+            ...(semanticRepairs.length > 0 ? { semanticRepairs } : {}),
             coverage: {
               requestedLessons: allLessonIndices.length,
               enrichedLessons: enrichedLessonCount,
@@ -5466,6 +5488,10 @@ export default function useDeliverables({
     // v0.14.7 WS-G2: the recompile-and-diff blast radius recompiles with the
     // SAME per-feature configs generation used, or its diffs would be noise.
     getGenerationConfig,
+    // The persistence boundary must be able to serialize the exact authored
+    // kernels used by the compiler even if a map/finalizer write-back has
+    // temporarily re-derived the visible CourseGraph without its overlay.
+    enrichmentOverlay: lastEnrichmentOverlayRef.current,
     // v0.14.9 C2: the same-generation voice A/B hook (driver surface).
     runVoicePassPostHoc,
     optimisticUpdate,

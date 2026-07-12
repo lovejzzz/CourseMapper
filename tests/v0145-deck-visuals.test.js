@@ -525,13 +525,13 @@ describe('C1/C2 — native rendering through the real exporter', () => {
     expect(count(xml, 'name="cmVizConn"')).toBe(5);
     // Hub + spokes are real ellipse geometry (progress dots add more).
     expect(count(xml, 'prst="ellipse"')).toBeGreaterThanOrEqual(6);
-    expect(count(xml, 'prst="line"')).toBe(5);
-    // Hub text present; spoke labels obey the 3-word ellipsis rule —
-    // ≤3-word labels render verbatim, longer ones cut with '…'.
+    // Native seven-segment slide counters also use line geometry; the named
+    // connector count above is the stable concept-map invariant.
+    expect(count(xml, 'prst="line"')).toBeGreaterThanOrEqual(5);
+    // Hub text and concise spoke labels remain complete.
     expect(xml).toContain('Stream discharge');
     expect(xml).toContain('Cross-section area');
-    expect(xml).toContain('Gauging station flood…');
-    expect(xml).not.toContain('Gauging station flood record');
+    expect(xml).toContain('Gauging station flood record');
   });
 
   it('keeps every cmViz shape inside the slide bounds (geometry from the XML)', () => {

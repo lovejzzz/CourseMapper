@@ -22,7 +22,11 @@ import { isCourseAwareWeakSource, isLicenseAmbiguous } from './sourceLedger.js';
 
 export const SOURCE_FINDER_ORIGIN = 'source-finder';
 
-const SOURCE_FINDER_VERSION = 'source-finder-v2';
+// v3 invalidates v2 mini-shards after the discipline-anchor hardening below.
+// Cached sources are already ranked/filtered, so reusing a v2 shard would
+// keep known homonym failures (for example "Staff (military)" in music
+// theory) even after the live filter became stricter.
+const SOURCE_FINDER_VERSION = 'source-finder-v3';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -174,6 +178,11 @@ const TOPICAL_MISMATCH_GATES = [
 ];
 
 const DISCIPLINE_ANCHOR_GATES = [
+  {
+    applies: /\b(?:music theory|musical|notation|pitch|clefs?|rhythm|meter|melody|harmony|chords?|scales?)\b/i,
+    source:
+      /\b(?:music|musical|notation|pitch|clefs?|rhythm|meter|melody|harmony|chords?|scales?|intervals?|staff notation|sheet music)\b/i,
+  },
   {
     applies:
       /\b(?:project\s+management|pmbok|project\s+charter|scope\s+management|work\s+breakdown|critical\s+path|risk\s+register|stakeholder\s+analysis|project\s+scheduling|project\s+life\s+cycle)\b/i,

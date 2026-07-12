@@ -8,7 +8,9 @@ import {
   DEFAULT_LOCAL_ENDPOINT,
   LOCAL_MODEL_ID,
   LOCAL_MODEL_NAME,
+  LOCAL_PROVIDER_OPT_IN_STORAGE_KEY,
   getLocalEndpoint,
+  isLocalProviderOptInEnabled,
   localModelOption,
 } from '../src/lib/localProvider';
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
@@ -31,6 +33,18 @@ describe('local provider — the house model surface', () => {
     globalThis.localStorage = { getItem: (k) => store.get(k) ?? null };
     try {
       expect(getLocalEndpoint()).toBe('http://127.0.0.1:9999');
+    } finally {
+      delete globalThis.localStorage;
+    }
+  });
+
+  it('requires an explicit local-only opt-in before internal UI state may retain the provider', () => {
+    expect(isLocalProviderOptInEnabled()).toBe(false);
+    globalThis.localStorage = {
+      getItem: (key) => (key === LOCAL_PROVIDER_OPT_IN_STORAGE_KEY ? 'true' : null),
+    };
+    try {
+      expect(isLocalProviderOptInEnabled()).toBe(true);
     } finally {
       delete globalThis.localStorage;
     }
@@ -71,7 +85,8 @@ describe('local provider — the house model surface', () => {
   it('source wiring: local runtime stays internal and off the public provider picker', () => {
     const modelConfig = fs.readFileSync('src/components/ModelConfig.jsx', 'utf8');
     expect(modelConfig).not.toContain('<option value="local">');
-    expect(modelConfig).toContain("provider === 'webllm' || provider === 'free' || provider === 'local'");
+    expect(modelConfig).toContain("provider === 'local' && !isLocalProviderOptInEnabled()");
+    expect(modelConfig).toContain('!isLocalProviderOptInEnabled();');
     expect(modelConfig).toContain('if (isKeylessProvider(provider)) return true;'); // checkCredits
     expect(modelConfig).toContain('!isKeylessProvider(provider) && trimmedKey.length < 10'); // keyless validation gate
     expect(modelConfig).toContain('npm run local-model'); // the not-running hint
@@ -82,11 +97,20 @@ describe('local provider — the house model surface', () => {
 
     const aiConfig = fs.readFileSync('src/contexts/AIConfigContext.jsx', 'utf8');
     expect(aiConfig).toContain("provider === 'webllm' || provider === 'free' || provider === 'local'");
+    expect(aiConfig).toContain("provider === 'local' && isLocalProviderOptInEnabled()");
+
+    const crucible = fs.readFileSync('scripts/lib/crucibleBrowser.mjs', 'utf8');
+    expect(crucible).toContain("localStorage.setItem('coursemapper-enable-local-provider', 'true')");
+    expect(crucible).toContain('await page.waitForTimeout(3500)');
 
     const landing = fs.readFileSync('src/screens/Landing.jsx', 'utf8');
     expect(landing).toContain("if (provider === 'local') return `Scion Local ·");
 
     const packageJson = fs.readFileSync('package.json', 'utf8');
     expect(packageJson).toContain('"local-model": "node scripts/crucible/e2bOpenAIShim.mjs"');
+
+    const localServer = fs.readFileSync('scripts/crucible/e2bOpenAIShim.mjs', 'utf8');
+    expect(localServer).toContain('source_model: LOCAL_SOURCE_MODEL_ID');
+    expect(localServer).toContain('process.env.SCION_MODEL || process.env.G4_MODEL');
   });
 });

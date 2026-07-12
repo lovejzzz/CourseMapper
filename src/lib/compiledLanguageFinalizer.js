@@ -29,7 +29,7 @@ const REPLACEMENT_EXEMPT_KEY_RE =
 const ARTIFACT_KIND_PATTERNS = [
   [/\bdiscussion\b.*\bquiz\b|\bquiz\b.*\bdiscussion\b/, 'discussion-and-quiz'],
   [/\bdiscussion post\b|\bdiscussion\b/, 'discussion post'],
-  [/\bquiz\b/, 'quiz'],
+  [/\bquiz(?:zes)?\b/, 'quiz'],
   [/\bcheck for understanding\b|\blow-stakes check\b|\bcheck-in\b|\bcheck\b/, 'check'],
   [/\bmemo\b/, 'memo'],
   [/\bpresentation\b/, 'presentation'],

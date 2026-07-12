@@ -46,6 +46,12 @@ function isPlainObject(value) {
   return prototype === Object.prototype || prototype === null;
 }
 
+export function restoreAuthoredOverlayForSnapshot(courseGraph, authoredOverlay) {
+  if (!courseGraph || typeof courseGraph !== 'object') return courseGraph;
+  if (courseGraph.enrichmentOverlay || !authoredOverlay || typeof authoredOverlay !== 'object') return courseGraph;
+  return { ...courseGraph, enrichmentOverlay: authoredOverlay };
+}
+
 export function sanitizeProjectSnapshot(value) {
   if (Array.isArray(value)) return value.map(sanitizeProjectSnapshot);
 

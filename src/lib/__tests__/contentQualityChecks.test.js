@@ -335,6 +335,7 @@ describe('compiledLanguageFinalizer', () => {
 
   it('builds week-anchored short references by artifact kind', () => {
     expect(shortArtifactReference('Low-stakes check for understanding aligned to 2.1', 2)).toBe('the Week 2 check');
+    expect(shortArtifactReference('Weekly autograded quizzes', 4)).toBe('the Week 4 quiz');
     expect(shortArtifactReference('Notebook check and discussion post', 1)).toBe('the Week 1 discussion post');
     expect(shortArtifactReference('Introductory discussion post and short diagnostic quiz', 1)).toBe(
       'the Week 1 discussion and quiz',

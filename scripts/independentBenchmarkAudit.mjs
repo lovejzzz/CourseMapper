@@ -311,10 +311,13 @@ async function writeReviewForms(cases, policy, outputDir) {
       requiredEdits: [{ artifact: '', location: '', change: '', reason: '' }],
       notes: '',
     };
-    await fs.writeFile(
-      path.join(formsDir, `${benchmarkCase.id}.review.template.json`),
-      `${JSON.stringify(form, null, 2)}\n`,
-    );
+    const formPath = path.join(formsDir, `${benchmarkCase.id}.review.template.json`);
+    const serialized = `${JSON.stringify(form, null, 2)}\n`;
+    const existing = await fs.readFile(formPath, 'utf8').catch((error) => {
+      if (error?.code === 'ENOENT') return '';
+      throw error;
+    });
+    if (existing !== serialized) await fs.writeFile(formPath, serialized);
   }
 }
 

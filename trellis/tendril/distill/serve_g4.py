@@ -21,10 +21,10 @@ import sys
 from mlx_vlm import load, generate
 from mlx_vlm.prompt_utils import apply_chat_template
 
-MODEL = os.environ.get("G4_MODEL", "google/gemma-4-e2b-it")
+MODEL = os.environ.get("SCION_MODEL", os.environ.get("G4_MODEL", "google/gemma-4-e2b-it"))
 # V2.1 A4: house adapters ride an env var — base weights stay untouched and
 # rollback is unsetting G4_ADAPTERS (checkpoint gates decide adoption).
-ADAPTERS = os.environ.get("G4_ADAPTERS", "")
+ADAPTERS = os.environ.get("SCION_ADAPTERS", os.environ.get("G4_ADAPTERS", ""))
 model, processor = load(MODEL, **({"adapter_path": ADAPTERS} if ADAPTERS else {}))
 config = model.config
 

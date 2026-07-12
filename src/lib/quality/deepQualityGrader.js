@@ -1919,7 +1919,12 @@ function isScholarlyCitationLine(line) {
   // reading and scored citations 100/100 because these lines carry no
   // author-head/year/DOI and were INVISIBLE to the relevance gate. A line that
   // names a Wikipedia/LoC/Internet Archive source is a checkable citation.
-  if (/\bwikipedia contributors\b|\bwikipedia\.org\b|\barchive\.org\b|\bloc\.gov\b/i.test(text)) return true;
+  // A bare archive/encyclopedia URL is citation-like only when it begins the
+  // paragraph. Activity directions can legitimately cite a source inline
+  // ("defend it with evidence from https://..."); treating the entire activity
+  // sentence as a reading title creates a false off-discipline finding.
+  if (/\bwikipedia contributors\b|^https?:\/\/(?:en\.|www\.)?(?:wikipedia\.org|archive\.org|loc\.gov)\b/i.test(text))
+    return true;
   // Raw shard-key leaks are a hygiene-only citation signal (checked separately).
   if (/:reference\s*§/i.test(text)) return true;
   return false;
@@ -1970,14 +1975,14 @@ function citationTokens(text) {
 }
 
 // Overlap with discipline vocab, tolerating simple inflection via a shared
-// 6-char prefix ("sediments" ↔ "sediment", "silicates" ↔ "silicate").
+// 5-char prefix ("scales" ↔ "scale", "sediments" ↔ "sediment").
 function overlapsVocab(tokens, vocab) {
   for (const token of tokens) {
     if (vocab.has(token)) return true;
-    if (token.length >= 6) {
-      const stem = token.slice(0, 6);
+    if (token.length >= 5) {
+      const stem = token.slice(0, 5);
       for (const term of vocab) {
-        if (term.length >= 6 && term.slice(0, 6) === stem) return true;
+        if (term.length >= 5 && term.slice(0, 5) === stem) return true;
       }
     }
   }

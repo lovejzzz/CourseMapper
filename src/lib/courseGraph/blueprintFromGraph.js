@@ -13,6 +13,7 @@
  */
 
 import { buildCourseBlueprint } from '../courseBlueprintCompiler.js';
+import { repairScionEnrichmentAnswerKeys } from '../scionAnswerKeyAlignment.js';
 import { renderCourseMapFromGraph } from './renderCourseMap.js';
 
 /**
@@ -22,8 +23,9 @@ import { renderCourseMapFromGraph } from './renderCourseMap.js';
  */
 export function enrichmentFromGraph(graph) {
   if (!graph || typeof graph !== 'object') return null;
-  const overlay =
+  const storedOverlay =
     graph.enrichmentOverlay && typeof graph.enrichmentOverlay === 'object' ? { ...graph.enrichmentOverlay } : {};
+  const { enrichment: overlay } = repairScionEnrichmentAnswerKeys(storedOverlay);
   const lessonContent = { ...(overlay.lessonContent || {}) };
 
   // Concepts carrying kernels contribute to the sessions that teach them.
@@ -63,10 +65,13 @@ const GENOME_PAYLOAD_SOURCES = new Set(['genome-linked', 'genome-augmented']);
 export function attachEnrichmentToGraph(graph, enrichment) {
   if (!graph || typeof graph !== 'object') return graph;
   if (!enrichment || typeof enrichment !== 'object') return graph;
-  graph.enrichmentOverlay = enrichment;
+  const { enrichment: alignedEnrichment } = repairScionEnrichmentAnswerKeys(enrichment);
+  graph.enrichmentOverlay = alignedEnrichment;
 
   const lessonContent =
-    enrichment.lessonContent && typeof enrichment.lessonContent === 'object' ? enrichment.lessonContent : {};
+    alignedEnrichment.lessonContent && typeof alignedEnrichment.lessonContent === 'object'
+      ? alignedEnrichment.lessonContent
+      : {};
   const sessionByNumber = new Map((graph.sessions || []).map((session) => [session.number, session]));
   const sessionById = new Map((graph.sessions || []).map((session) => [session.id, session]));
   const conceptsById = new Map((graph.concepts || []).map((concept) => [concept.id, concept]));
@@ -83,7 +88,7 @@ export function attachEnrichmentToGraph(graph, enrichment) {
     const concept = conceptId ? conceptsById.get(conceptId) : null;
     if (concept) {
       concept.kernel = payload;
-      concept.source = concept.source || enrichment.quality?.source || enrichment.source || 'enrichment';
+      concept.source = concept.source || alignedEnrichment.quality?.source || alignedEnrichment.source || 'enrichment';
       // v0.14.1 (4.4): write the genomeLink edges. Created empty at
       // schema.js:41 and read by courseGraphStats, but written by nobody —
       // the v0.14 audit's "(0 genome-linked)" digest lie while the linker

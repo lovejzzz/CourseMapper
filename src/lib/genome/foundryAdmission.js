@@ -16,8 +16,8 @@
  * See docs/CURRICULUMOS_V1_DESIGN.md §6, §7.2.
  */
 
-import { normalizeConceptKernel, TRUST_TIERS } from './kernelSchema';
-import { lintItemAdmission } from '../itemAdmissionLint';
+import { normalizeConceptKernel, TRUST_TIERS } from './kernelSchema.js';
+import { lintItemAdmission } from '../itemAdmissionLint.js';
 
 function normalizeForMatch(text) {
   return String(text ?? '')

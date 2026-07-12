@@ -38,10 +38,14 @@ import {
   briefNamesResources,
   buildNativePassBPrompt,
   buildNativeWireMap,
+  completeNativeKernelSurfaces,
+  completeNativeLessonSurfaces,
   isDegenerateNativeGraph,
+  isNativeContentSourcedKernel,
   matchEntityIds,
   parseNativePassBResponse,
   parseNativeSkeletonResponse,
+  pickNativeKernel,
   readAuthoringMode,
   recoverMissingSkeletonResources,
   resolveNativeAssembly,
@@ -335,6 +339,26 @@ describe('skeleton stash handoff', () => {
 // ── B2: Pass B prompt + parser ──────────────────────────────────────────────
 
 describe('Pass B contract (B2)', () => {
+  it('only exempts real genome content or complete caches from kernel authoring', () => {
+    const sparse = { enrichmentSource: 'own-kernel-cache', quizItems: [], keyTerms: [] };
+    expect(isNativeContentSourcedKernel(sparse, null)).toBe(false);
+    expect(isNativeContentSourcedKernel({ ...sparse, enrichmentSource: 'genome-linked' }, null)).toBe(true);
+    expect(isNativeContentSourcedKernel({ ...sparse, enrichmentSource: 'genome-linked' }, {})).toBe(false);
+
+    const complete = {
+      quizItems: Array.from({ length: 4 }, () => ({ type: 'multiple_choice' })),
+      keyTerms: [{}, {}, {}],
+      slideContent: [{}, {}, {}],
+      discussionPrompt: { positions: ['one', 'two', 'three'] },
+      assignmentCore: { parameters: ['scope', 'format', 'evidence', 'length'] },
+      kernel: { scenario: { setup: 'A concrete decision context.', materials: 'An inspectable evidence packet.' } },
+      studyGuide: { summary: 'A substantive summary.', reviewStrategy: 'A specific review strategy.' },
+    };
+    expect(isNativeContentSourcedKernel(complete, null)).toBe(true);
+    expect(pickNativeKernel(complete, sparse)).toBe(complete);
+    expect(pickNativeKernel(sparse, complete)).toBe(complete);
+  });
+
   const wireMap = buildNativeWireMap(parsedSkeleton());
 
   it('rides the existing kernel contract plus the native authoring addition', () => {
@@ -361,6 +385,89 @@ describe('Pass B contract (B2)', () => {
     expect(prompt.userPrompt).toContain('include complete kernel atoms');
     expect(prompt.userPrompt).toContain('Do not summarize this request');
     expect(prompt.recoveryAttempt).toBe(1);
+  });
+
+  it('completes dropped authored surfaces from admitted facts without another model call', () => {
+    const sparse = {
+      keyTerms: [
+        {
+          term: 'Musical interval',
+          definition: 'A musical interval is the pitch distance between two notes.',
+          example: '',
+          misconception: 'Students may treat every pitch distance as the same named interval.',
+          correction: 'Interval names depend on the measured pitch relationship between the notes.',
+        },
+      ],
+      kernel: {
+        facts: ['An interval can be melodic when notes sound in sequence or harmonic when they sound together.'],
+        scenario: {
+          setup: 'A student compares two short melodies and must classify the heard intervals.',
+          materials: 'two labeled audio clips and their notated excerpts',
+        },
+      },
+      quizItems: [
+        {
+          index: 0,
+          type: 'multiple_choice',
+          question: 'What are the intervals between successive notes of a scale called?',
+          options: ['Scale steps', 'Clef marks', 'Dynamic levels', 'Phrase endings'],
+          answerIndex: 0,
+          explanation: 'Intervals between successive notes of a scale are known as scale steps.',
+        },
+        {
+          index: 1,
+          type: 'multiple_choice',
+          question: 'Which label describes two notes that sound at the same time?',
+          options: ['Melodic interval', 'Harmonic interval', 'Scale degree', 'Key signature'],
+          answerIndex: 1,
+          explanation: 'A harmonic interval contains two notes that sound at the same time.',
+        },
+      ],
+    };
+    const completed = completeNativeKernelSurfaces(sparse, {
+      title: 'Lesson 2: Intervals and Hearing',
+      sections: [
+        {
+          topicSection: '2.1: Musical intervals',
+          weeklyAssessments: ['Week 2 listening and notation exercise'],
+        },
+      ],
+    });
+
+    expect(completed.surfaceFallbacks).toEqual(['discussionPrompt', 'assignmentCore', 'studyGuide']);
+    expect(completed.discussionPrompt.positions).toHaveLength(3);
+    expect(completed.assignmentCore.parameters).toHaveLength(4);
+    expect(completed.assignmentCore.taskDescription).toContain('Week 2 listening and notation exercise');
+    expect(completed.assignmentCore.canonicalAssessment).toBe('Week 2 listening and notation exercise');
+    expect(completed.studyGuide.summary).toContain('Musical interval');
+    expect(completed.studyGuide.reviewStrategy).toContain('audio clips');
+    expect(completed.keyTerms.filter((term) => term.example)).toHaveLength(3);
+    expect(completed.keyTermFallbacks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'example', term: 'Musical interval', source: 'admitted-scenario' }),
+        expect.objectContaining({ type: 'term', term: 'Scale steps', source: 'verified-quiz-projection' }),
+        expect.objectContaining({ type: 'term', term: 'Harmonic interval', source: 'verified-quiz-projection' }),
+      ]),
+    );
+
+    const authored = {
+      ...completed,
+      assignmentCore: { taskDescription: 'Instructor-authored assignment stays intact.', parameters: ['one', 'two'] },
+      surfaceFallbacks: [],
+    };
+    expect(completeNativeKernelSurfaces(authored, {}).assignmentCore).toBe(authored.assignmentCore);
+
+    const overlay = { 'lesson-1': sparse };
+    expect(
+      completeNativeLessonSurfaces(
+        overlay,
+        [{ title: 'Lesson 1: Intervals', sections: [{ weeklyAssessments: 'Listening check' }] }],
+        [0],
+      ),
+    ).toBe('Completed 3 missing authored surfaces from admitted lesson evidence');
+    expect(overlay['lesson-1']).toEqual(
+      expect.objectContaining({ discussionPrompt: expect.any(Object), assignmentCore: expect.any(Object) }),
+    );
   });
 
   it('parses kernels through the existing linters and rejects out-of-chunk ids', () => {

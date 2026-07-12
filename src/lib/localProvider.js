@@ -14,6 +14,15 @@ export const LOCAL_PROVIDER_ID = 'local';
 export const DEFAULT_LOCAL_ENDPOINT = 'http://127.0.0.1:8799';
 export const LOCAL_MODEL_ID = 'scion-1';
 export const LOCAL_MODEL_NAME = 'Scion-1';
+export const LOCAL_PROVIDER_OPT_IN_STORAGE_KEY = 'coursemapper-enable-local-provider';
+
+export function isLocalProviderOptInEnabled() {
+  try {
+    return localStorage.getItem(LOCAL_PROVIDER_OPT_IN_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
 
 export function getLocalEndpoint() {
   try {
