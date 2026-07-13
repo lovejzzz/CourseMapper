@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.9",
+  "version": "0.16.10",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -48,6 +48,7 @@
     "audit:scion:corpus": "node scripts/scionPreferenceCorpusAudit.mjs",
     "audit:scion:review-candidates": "node scripts/scionMatchedReviewCandidates.mjs",
     "audit:scion:review-packet": "node scripts/scionMatchedReviewCandidates.mjs && node scripts/scionBlindReviewPacket.mjs --per-domain 40 --receipt verification-output/scion-blind-review/campaign-receipt.json",
+    "audit:scion:reviewer-browser": "node scripts/scionReviewerBrowserSmoke.mjs",
     "audit:scion:reviews": "node scripts/scionBlindReviewPacket.mjs --ingest",
     "audit:scion:factual-canaries": "node scripts/scionFactualCanaryAudit.mjs",
     "audit:scion:model-bakeoff": "node scripts/scionModelBakeoff.mjs",

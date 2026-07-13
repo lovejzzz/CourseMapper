@@ -15,16 +15,20 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification must pass on the exact v0.16.9 release head before merge."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29249630882",
+      "commit": "63ac855173f8e33c9d1b0fa3b2d6e15db9767881",
+      "note": "Fast verification passed on the exact v0.16.9 merge commit on main."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The release exercises input matching, campaign integrity, domain-balanced research-tier manifests, group-stratified splits, and fail-closed ingestion locally. A real local-browser smoke also verified the 40-case form shape, native incomplete-field validation, draft persistence across reload, digest-bound JSON download, and zero auxiliary network requests. No completed instructor review or trained research adapter is claimed."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages deploys only after Fast verification succeeds on main."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29251075021",
+      "commit": "63ac855173f8e33c9d1b0fa3b2d6e15db9767881",
+      "note": "GitHub Pages deployed the exact v0.16.9 merge commit after Fast verification succeeded on main."
     },
     "liveProvider": {
       "status": "not-used",

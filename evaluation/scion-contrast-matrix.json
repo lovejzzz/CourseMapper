@@ -5,6 +5,7 @@
     {
       "id": "ux-design-public-vs-luna",
       "domain": "user-experience-design",
+      "courseGroupId": "ux-design-studio",
       "candidateRoute": "public-scion",
       "candidateModel": "Scion Public",
       "referenceModel": "GPT-5.6-Luna",
@@ -15,6 +16,7 @@
     {
       "id": "ux-design-local-current-vs-luna",
       "domain": "user-experience-design",
+      "courseGroupId": "ux-design-studio",
       "candidateRoute": "local-scion-current",
       "candidateModel": "Scion-1 current",
       "referenceModel": "GPT-5.6-Luna",
@@ -25,6 +27,7 @@
     {
       "id": "python-local-vs-gpt54mini",
       "domain": "computer-science",
+      "courseGroupId": "python-foundations",
       "candidateRoute": "local-scion-1.2",
       "candidateModel": "Scion 1.2",
       "referenceModel": "GPT-5.4-mini",
@@ -35,6 +38,7 @@
     {
       "id": "geology-local-vs-gpt54mini",
       "domain": "geology",
+      "courseGroupId": "geology-foundations",
       "candidateRoute": "local-scion-1.2",
       "candidateModel": "Scion 1.2",
       "referenceModel": "GPT-5.4-mini",
@@ -45,6 +49,7 @@
     {
       "id": "music-theory-local-vs-gpt54mini",
       "domain": "music-theory",
+      "courseGroupId": "music-theory-foundations",
       "candidateRoute": "local-scion-current",
       "candidateModel": "Scion-1 current",
       "referenceModel": "GPT-5.4-mini",
@@ -55,6 +60,7 @@
     {
       "id": "world-literature-local-vs-gpt54mini",
       "domain": "world-literature",
+      "courseGroupId": "world-literature-survey",
       "candidateRoute": "local-scion-1.2",
       "candidateModel": "Scion 1.2",
       "referenceModel": "GPT-5.4-mini",

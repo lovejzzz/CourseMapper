@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-blind-instructor-review-v3",
+  "status": "reviewable-incomplete-coverage",
+  "generatedAt": "2026-07-13T12:56:28.107Z",
+  "packetId": "scion-review-e04565e442af2a5ac262",
+  "packetDigest": "e04565e442af2a5ac26254ae0320ad1906a5b7efd99aa8050ec0b37125081513",
+  "organizerDigest": "9638337611ca1d10c95a561fa3138f33a7a91bb4000bac70e7b8c574be79a596",
+  "selectedCases": 160,
+  "availableCandidates": 309,
+  "requiredIndependentReviews": 320,
+  "domains": ["computer-science", "geology", "music-theory", "user-experience-design"],
+  "domainCounts": {
+    "computer-science": 40,
+    "geology": 40,
+    "music-theory": 40,
+    "user-experience-design": 40
+  },
+  "courseGroupCount": 4,
+  "domainGroupCounts": {
+    "computer-science": 1,
+    "geology": 1,
+    "music-theory": 1,
+    "user-experience-design": 1
+  },
+  "targetCourseGroupsPerDomain": 3,
+  "groupCoverageStatus": "needs-more-course-groups",
+  "researchCoverageStatus": "needs-more-course-groups",
+  "coverageStatus": "needs-more-domains-and-course-groups",
+  "kindCounts": {
+    "mc-item": 93,
+    "key-term": 67
+  },
+  "heldOutBenchmark": {
+    "path": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+    "sha256": "e3f07d2ccdf197315556e0205b97b30aee7a447399e14c440d6c1865e11b08a5",
+    "domains": ["astronomy", "nutrition", "psychology", "world-languages", "world-literature"],
+    "excluded": {},
+    "excludedCount": 0
+  },
+  "excludedInvalidCourseGroups": [],
+  "sourceFiles": [
+    {
+      "source": "evaluation/scion-review-candidates.jsonl",
+      "sha256": "39642b19a9720af219e6ac6f6f03e8f6fc4a899b909b0398c8e6ec81e12f8f49"
+    }
+  ],
+  "claimBoundary": "This receipt proves a frozen, holdout-disjoint, hash-bound blind-review packet exists. It proves no instructor judgment, approved training pair, adapter quality, or promotion result."
+}

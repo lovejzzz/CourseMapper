@@ -1,0 +1,98 @@
+{
+  "version": "0.16.10",
+  "date": "July 13, 2026",
+  "title": "Many Roots: Scion counts distinct courses, not repeated atoms",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/scion-preference-gate.test.js",
+      "npm run audit:scion:reviewer-browser",
+      "npm run audit:scion:review-packet",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact v0.16.10 release head before merge."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The local proof covers input-bound group derivation, explicit-label collision rejection, group-balanced packet selection, end-to-end group-hash integrity, offline reviewer export, and truthful incomplete-coverage reporting. No completed instructor review or trained adapter is claimed."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages deploys only after Fast verification succeeds on main."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "This release tightens offline evidence identity and campaign readiness rather than changing hosted inference; public Scion remains the verified browser-local base-only route."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "The corrected packet remains available for instructor review, but it contains only one distinct course group per current domain and zero completed judgments."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01610-input-bound-course-groups",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Every neutral candidate receives a stable readable course-group ID and SHA-256 bound to its exact canonical course input; same-input model variants share a group, while one explicit label reused across different inputs excludes every affected pair.",
+      "anchors": [
+        "scripts/lib/scionCourseGroup.mjs",
+        "scripts/scionMatchedReviewCandidates.mjs",
+        "evaluation/scion-contrast-matrix.json",
+        "evaluation/scion-review-candidates.jsonl",
+        "tests/scion-preference-gate.test.js"
+      ],
+      "proofCommands": ["npm run audit:scion:review-candidates", "npx vitest run tests/scion-preference-gate.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01610-course-group-bound-reviews",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Blind packet sampling balances domain, course-group hash, and atom kind; protocol v3 binds the public case and reviewer JSON to a private organizer digest covering the exact source row and A/B mapping, and ingestion carries the verified group into approved corpus rows.",
+      "anchors": [
+        "scripts/scionBlindReviewPacket.mjs",
+        "scripts/scionReviewerBrowserSmoke.mjs",
+        "tests/scion-preference-gate.test.js",
+        "tests/scion-reviewer-html.spec.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-preference-gate.test.js", "npm run audit:scion:reviewer-browser"],
+      "proofScopes": ["unit", "browser-smoke", "static-audit"]
+    },
+    {
+      "id": "v01610-honest-course-depth",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The current 309 candidates and 160 selected cases resolve to four course groups, exactly one per domain; the committed receipt reports those counts and remains reviewable but incomplete until every domain has at least three distinct groups and the domain target is met.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/review-campaign-v0.16.10.json",
+        "scripts/scionBlindReviewPacket.mjs",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/README.md"
+      ],
+      "proofCommands": ["npm run audit:scion:review-packet", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01610-no-adapter-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Course-group auditing reveals a smaller effective evidence base rather than promoting a model: completed instructor reviews remain zero, research training remains blocked, and public Scion stays on the pinned local Gemma base plus model-neutral compiler.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/scion-adapters/evidence/review-campaign-v0.16.10.json",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm run audit:scion:review-packet", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}
