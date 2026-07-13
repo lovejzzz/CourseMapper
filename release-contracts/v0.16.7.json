@@ -109,7 +109,7 @@
       "id": "v0167-promotion-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 3,
-      "summary": "Both smoke adapters are explicitly non-promotable: the legacy artifact is base-mismatched, while the exact-QAT artifact uses smoke-only structural evidence and has no normal-scale quality proof. The product remains base-only until a real candidate passes every corpus, quality, efficiency, factual, device, export, and instructor gate.",
+      "summary": "Both smoke adapters are explicitly non-promotable, and future promotion requires five unique hash-paired adapter/base courses on identical clean compiler, input, source, grader, base-weight, and scale contracts. The legacy artifact is base-mismatched, while the exact-QAT artifact uses smoke-only structural evidence and has no normal-scale quality proof. The product remains base-only until a real candidate passes every corpus, pairing, quality, efficiency, factual, device, export, and instructor gate.",
       "anchors": [
         "src/lib/scionAdapterManifest.js",
         "src/lib/scionAdapterRegistry.js",

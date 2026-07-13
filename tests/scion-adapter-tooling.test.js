@@ -216,31 +216,57 @@ describe('Scion adapter tooling', () => {
       },
     };
     const domains = ['ethics', 'music', 'ux', 'geology', 'literature'];
+    const pairedComparison = (domain, index, variant) => ({
+      protocolVersion: 1,
+      pairId: `scion-adapter-${domain}`,
+      courseInputSha256: String(index + 1).repeat(64),
+      sourcePacketSha256: String(index + 2).repeat(64),
+      compilerCommit: 'a'.repeat(40),
+      compilerConfigSha256: 'b'.repeat(64),
+      graderVersion: 'deep-quality-v1',
+      activeWeightSha256: 'c'.repeat(64),
+      compilerTreeDirty: false,
+      variant,
+    });
     const candidateEvidence = [
       {
-        fullCourses: domains.map((domain) => ({
+        fullCourses: domains.map((domain, index) => ({
           domain,
+          courseId: `${domain}-course`,
+          lessonCount: 12,
           packageValid: true,
           packageGrade: 99,
           p0: 0,
           p1: 0,
+          p2: 0,
           scionPassCalls: 75,
           adapterActive: true,
           adapterId: manifest.adapter.id,
           adapterManifestSha256: manifestSha256,
           baseRevision: manifest.base.revision,
+          adapterScale: 1,
+          comparison: pairedComparison(domain, index, 'adapter'),
         })),
       },
     ];
     const baseEvidence = [
       {
-        fullCourses: domains.map((domain) => ({
+        fullCourses: domains.map((domain, index) => ({
           domain,
+          courseId: `${domain}-course`,
+          lessonCount: 12,
           packageValid: true,
           packageGrade: 99,
           p0: 0,
           p1: 0,
+          p2: 0,
           scionPassCalls: 100,
+          adapterActive: false,
+          adapterId: null,
+          adapterManifestSha256: null,
+          baseRevision: manifest.base.revision,
+          adapterScale: 0,
+          comparison: pairedComparison(domain, index, 'base-only'),
         })),
       },
     ];
@@ -259,6 +285,23 @@ describe('Scion adapter tooling', () => {
     });
     expect(report).toMatchObject({ status: 'pass', promotable: true, efficiency: { medianReduction: 0.25 } });
 
+    baseEvidence[0].fullCourses[0].packageGrade = 100;
+    const qualityRegression = assessScionAdapterPromotion({
+      manifest,
+      manifestSha256,
+      candidateEvidence,
+      baseEvidence,
+      verifiedExternalEvidence: Object.fromEntries(
+        ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map((type) => [
+          type,
+          true,
+        ]),
+      ),
+    });
+    expect(qualityRegression).toMatchObject({ status: 'blocked', promotable: false });
+    expect(qualityRegression.courseChecks[0].qualityNonRegression).toBe(false);
+    baseEvidence[0].fullCourses[0].packageGrade = 99;
+
     candidateEvidence[0].fullCourses[0].adapterManifestSha256 = '0'.repeat(64);
     const mismatched = assessScionAdapterPromotion({
       manifest,
@@ -274,5 +317,89 @@ describe('Scion adapter tooling', () => {
     });
     expect(mismatched).toMatchObject({ status: 'blocked', promotable: false });
     expect(mismatched.failedGates).toContain('courseQuality');
+  });
+
+  it('rejects unpaired, dirty, duplicate, or scale-mismatched adapter course evidence', () => {
+    const manifestSha256 = 'c'.repeat(64);
+    const manifest = {
+      schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
+      adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.7', format: 'mlx-lora-safetensors' },
+      base: { ...SCION_GEMMA4_E2B_BASE, exactRevisionRequired: true },
+      training: {
+        method: 'orpo-lora',
+        datasetManifestSha256: 'd'.repeat(64),
+        datasetStatus: 'ready',
+        pairCount: 3200,
+        domainCount: 5,
+      },
+      files: [{ path: 'adapters.safetensors', bytes: 1024, sha256: 'e'.repeat(64) }],
+      runtime: { supported: ['mlx-vlm'] },
+      promotion: {
+        status: 'candidate',
+        promotable: false,
+        evidence: ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map(
+          (type) => ({ type, status: 'pass', sha256: 'f'.repeat(64) }),
+        ),
+      },
+    };
+    const comparison = (variant) => ({
+      protocolVersion: 1,
+      pairId: 'duplicate-pair',
+      courseInputSha256: '1'.repeat(64),
+      sourcePacketSha256: '2'.repeat(64),
+      compilerCommit: 'a'.repeat(40),
+      compilerConfigSha256: 'b'.repeat(64),
+      graderVersion: 'deep-quality-v1',
+      activeWeightSha256: 'c'.repeat(64),
+      compilerTreeDirty: false,
+      variant,
+    });
+    const course = (domain, variant) => ({
+      domain,
+      courseId: `${domain}-course`,
+      lessonCount: 12,
+      packageValid: true,
+      packageGrade: 99,
+      p0: 0,
+      p1: 0,
+      p2: 0,
+      scionPassCalls: variant === 'adapter' ? 75 : 100,
+      adapterActive: variant === 'adapter',
+      adapterId: variant === 'adapter' ? manifest.adapter.id : null,
+      adapterManifestSha256: variant === 'adapter' ? manifestSha256 : null,
+      baseRevision: manifest.base.revision,
+      adapterScale: variant === 'adapter' ? 1 : 0,
+      comparison: comparison(variant),
+    });
+    const domains = ['ethics', 'music', 'ux', 'geology', 'literature'];
+    const candidateCourses = domains.map((domain) => course(domain, 'adapter'));
+    const baseCourses = domains.map((domain) => course(domain, 'base-only'));
+    candidateCourses[0].comparison.compilerTreeDirty = true;
+    candidateCourses[1].adapterScale = 4;
+    candidateCourses.push({ ...candidateCourses[2] });
+    candidateCourses.push(course('history', 'adapter'));
+
+    const report = assessScionAdapterPromotion({
+      manifest,
+      manifestSha256,
+      candidateEvidence: [{ fullCourses: candidateCourses }],
+      baseEvidence: [{ fullCourses: baseCourses }],
+      verifiedExternalEvidence: Object.fromEntries(
+        ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map((type) => [
+          type,
+          true,
+        ]),
+      ),
+    });
+
+    expect(report).toMatchObject({
+      status: 'blocked',
+      promotable: false,
+      pairing: { uniquePairIds: false, unmatchedCandidateDomains: ['history'] },
+    });
+    expect(report.failedGates).toEqual(expect.arrayContaining(['pairedEvidence', 'courseQuality']));
+    expect(report.courseChecks.find((entry) => entry.domain === 'ethics')?.pairing.contractShapePass).toBe(false);
+    expect(report.courseChecks.find((entry) => entry.domain === 'music')?.pairing.scalePass).toBe(false);
+    expect(report.courseChecks.find((entry) => entry.domain === 'ux')?.uniqueEvidencePass).toBe(false);
   });
 });
