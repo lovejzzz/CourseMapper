@@ -7,15 +7,16 @@ import { pathToFileURL } from 'node:url';
 
 import { assessCorpusRow } from './scionPreferenceCorpusAudit.mjs';
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
+import { deriveScionCourseGroup, SHA256_PATTERN } from './lib/scionCourseGroup.mjs';
 
 const DEFAULT_SOURCES = ['evaluation/scion-review-candidates.jsonl'];
 const DEFAULT_OUTPUT = 'verification-output/scion-blind-review';
 const DEFAULT_APPROVED = 'evaluation/scion-reviewed-preferences.jsonl';
 const DEFAULT_HELD_OUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v1.json';
-const REVIEW_PROTOCOL = 'scion-blind-instructor-review-v2';
+const REVIEW_PROTOCOL = 'scion-blind-instructor-review-v3';
 const REVIEW_ROLES = new Set(['working-instructor']);
 const REVIEW_CHOICES = new Set(['A', 'B', 'tie', 'both-bad']);
-const SHA256 = /^[a-f0-9]{64}$/;
+const SHA256 = SHA256_PATTERN;
 
 function hash(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
@@ -31,16 +32,31 @@ function parseJson(value) {
   }
 }
 
-function stablePairId(row) {
+function stablePairId(row, courseGroupSha256) {
   const first = row.chosen ?? row.left;
   const second = row.rejected ?? row.right;
-  return `scion-${hash(JSON.stringify({ kind: row.kind, prompt: row.prompt, first, second })).slice(0, 20)}`;
+  return `scion-${hash(JSON.stringify({ courseGroupSha256, kind: row.kind, prompt: row.prompt, first, second })).slice(0, 20)}`;
 }
 
 function canonicalDomain(value) {
   const domain = String(value || '').trim();
   if (domain === 'cs-python') return 'computer-science';
   return domain;
+}
+
+function resolveCandidateCourseGroup(row, domain) {
+  const group = deriveScionCourseGroup({
+    domain,
+    courseGroupId: row.courseGroupId || row.courseId,
+    courseInputSha256: row.pairSource?.courseInputSha256 || row.courseInputSha256,
+    prompt: row.prompt,
+  });
+  const declaredSha256 = String(row.courseGroupSha256 || '');
+  return {
+    ...group,
+    valid: !declaredSha256 || declaredSha256 === group.sha256,
+    declaredSha256,
+  };
 }
 
 function payloadAssessment(kind, value) {
@@ -82,6 +98,7 @@ function publicCaseDigest(caseRow) {
       protocol: REVIEW_PROTOCOL,
       pairId: caseRow.pairId,
       domain: caseRow.domain,
+      courseGroupSha256: caseRow.courseGroupSha256,
       lessonId: caseRow.lessonId,
       kind: caseRow.kind,
       prompt: caseRow.prompt,
@@ -91,14 +108,58 @@ function publicCaseDigest(caseRow) {
   );
 }
 
-function packetDigest(cases) {
-  return hash(JSON.stringify({ protocol: REVIEW_PROTOCOL, cases }));
+function organizerKeyDigest(keys) {
+  return hash(
+    JSON.stringify({
+      protocol: REVIEW_PROTOCOL,
+      keys: keys.map((key) => ({
+        pairId: key.pairId,
+        caseDigest: key.caseDigest,
+        mapping: key.mapping,
+        source: key.source,
+        sourceSha256: key.sourceSha256,
+        sourceRowSha256: key.sourceRowSha256,
+        line: key.line,
+        domain: key.domain,
+        courseGroupId: key.courseGroupId,
+        courseGroupSha256: key.courseGroupSha256,
+        sourceRow: key.sourceRow,
+      })),
+    }),
+  );
+}
+
+function packetDigest(cases, organizerDigest) {
+  return hash(JSON.stringify({ protocol: REVIEW_PROTOCOL, organizerDigest, cases }));
+}
+
+function organizerKeyIntegrity(key) {
+  if (!key?.case || key.caseDigest !== key.case.caseDigest || key.caseDigest !== publicCaseDigest(key.case)) {
+    return false;
+  }
+  if (key.pairId !== key.case.pairId || key.domain !== key.case.domain) return false;
+  if (!key.sourceRow || key.sourceRowSha256 !== hash(JSON.stringify(key.sourceRow))) return false;
+  if (!SHA256.test(String(key.sourceSha256 || ''))) return false;
+  const group = resolveCandidateCourseGroup(key.sourceRow, key.domain);
+  if (
+    !group.valid ||
+    key.courseGroupId !== group.id ||
+    key.courseGroupSha256 !== group.sha256 ||
+    key.case.courseGroupSha256 !== group.sha256
+  ) {
+    return false;
+  }
+  return ['A', 'B'].every((side) => {
+    const role = key.mapping?.[side];
+    if (!['left', 'right', 'chosen', 'rejected'].includes(role)) return false;
+    return JSON.stringify(parseJson(key.sourceRow[role])) === JSON.stringify(key.case[side]);
+  });
 }
 
 function roundRobin(candidates, limit) {
   const buckets = new Map();
   for (const candidate of candidates) {
-    const key = `${candidate.domain}|${candidate.kind}`;
+    const key = `${candidate.domain}|${candidate.courseGroupSha256}|${candidate.kind}`;
     if (!buckets.has(key)) buckets.set(key, []);
     buckets.get(key).push(candidate);
   }
@@ -124,6 +185,7 @@ export function createBlankScionReview(caseRow, reviewPacketId = '', reviewPacke
     pairId: caseRow.pairId,
     caseDigest: caseRow.caseDigest,
     domain: caseRow.domain,
+    courseGroupSha256: caseRow.courseGroupSha256,
     reviewPacketId,
     reviewPacketDigest,
     reviewerId: '',
@@ -224,6 +286,7 @@ export async function buildScionBlindReviewPacket({
   const seen = new Set();
   const candidates = [];
   const excludedHeldOut = {};
+  const excludedInvalidCourseGroups = [];
   for (const { row, source, sourceSha256, line } of loaded) {
     if (!['mc-item', 'key-term'].includes(row?.kind)) continue;
     const domain = canonicalDomain(row.domain || row.courseId);
@@ -241,12 +304,26 @@ export async function buildScionBlindReviewPacket({
     if (!String(row.prompt || '').trim() || !first || !second) continue;
     if (!payloadAssessment(row.kind, first).eligible) continue;
     if (neutral && !payloadAssessment(row.kind, second).eligible) continue;
-    const pairId = stablePairId(row);
+    const courseGroup = resolveCandidateCourseGroup(row, domain);
+    if (!courseGroup.valid) {
+      excludedInvalidCourseGroups.push({
+        source,
+        line,
+        courseGroupId: courseGroup.id,
+        declaredSha256: courseGroup.declaredSha256,
+        expectedSha256: courseGroup.sha256,
+      });
+      continue;
+    }
+    const pairId = stablePairId(row, courseGroup.sha256);
     if (seen.has(pairId)) continue;
     seen.add(pairId);
     candidates.push({
       pairId,
       domain,
+      courseGroupId: courseGroup.id,
+      courseGroupSha256: courseGroup.sha256,
+      courseGroupSource: courseGroup.source,
       lessonId: String(row.lessonId || ''),
       kind: row.kind,
       prompt: row.prompt,
@@ -290,6 +367,7 @@ export async function buildScionBlindReviewPacket({
     const caseRow = {
       pairId: candidate.pairId,
       domain: candidate.domain,
+      courseGroupSha256: candidate.courseGroupSha256,
       lessonId: candidate.lessonId,
       kind: candidate.kind,
       prompt: candidate.prompt,
@@ -308,6 +386,9 @@ export async function buildScionBlindReviewPacket({
       sourceRowSha256: candidate.sourceRowSha256,
       line: candidate.line,
       domain: candidate.domain,
+      courseGroupId: candidate.courseGroupId,
+      courseGroupSha256: candidate.courseGroupSha256,
+      courseGroupSource: candidate.courseGroupSource,
       sourceRow: candidate.sourceRow,
     });
   }
@@ -316,15 +397,53 @@ export async function buildScionBlindReviewPacket({
   const domainCounts = Object.fromEntries(
     domains.map((domain) => [domain, cases.filter((row) => row.domain === domain).length]),
   );
+  const selectedCourseGroups = [
+    ...new Map(
+      keys.map((key) => [
+        key.courseGroupSha256,
+        {
+          domain: key.domain,
+          courseGroupId: key.courseGroupId,
+          courseGroupSha256: key.courseGroupSha256,
+        },
+      ]),
+    ).values(),
+  ].sort((left, right) =>
+    `${left.domain}|${left.courseGroupId}`.localeCompare(`${right.domain}|${right.courseGroupId}`),
+  );
+  const domainGroupCounts = Object.fromEntries(
+    domains.map((domain) => [domain, selectedCourseGroups.filter((group) => group.domain === domain).length]),
+  );
   const kindCounts = Object.fromEntries(
     ['mc-item', 'key-term'].map((kind) => [kind, cases.filter((row) => row.kind === kind).length]),
   );
-  const reviewPacketDigest = packetDigest(cases);
+  const reviewOrganizerDigest = organizerKeyDigest(keys);
+  const reviewPacketDigest = packetDigest(cases, reviewOrganizerDigest);
   const packetId = `scion-review-${reviewPacketDigest.slice(0, 20)}`;
+  const targetResearchDomainCount = 4;
+  const targetDomainCount = 5;
+  const targetCourseGroupsPerDomain = 3;
+  const researchDomainCoverageStatus = domains.length >= targetResearchDomainCount ? 'ready' : 'needs-more-domains';
+  const domainCoverageStatus = domains.length >= targetDomainCount ? 'ready' : 'needs-more-domains';
+  const groupCoverageStatus =
+    domains.length > 0 && Object.values(domainGroupCounts).every((count) => count >= targetCourseGroupsPerDomain)
+      ? 'ready'
+      : 'needs-more-course-groups';
+  const combinedCoverageStatus = (domainStatus) =>
+    domainStatus === 'ready' && groupCoverageStatus === 'ready'
+      ? 'ready'
+      : domainStatus !== 'ready' && groupCoverageStatus !== 'ready'
+        ? 'needs-more-domains-and-course-groups'
+        : domainStatus !== 'ready'
+          ? domainStatus
+          : groupCoverageStatus;
+  const researchCoverageStatus = combinedCoverageStatus(researchDomainCoverageStatus);
+  const coverageStatus = combinedCoverageStatus(domainCoverageStatus);
   const meta = {
     protocol: REVIEW_PROTOCOL,
     packetId,
     packetDigest: reviewPacketDigest,
+    organizerDigest: reviewOrganizerDigest,
     generatedAt: new Date().toISOString(),
     requestedCases: Number(perDomainLimit) > 0 ? candidateDomains.length * Number(perDomainLimit) : Number(limit) || 50,
     perDomainLimit: Number(perDomainLimit) > 0 ? Number(perDomainLimit) : null,
@@ -334,10 +453,20 @@ export async function buildScionBlindReviewPacket({
     requiredIndependentReviewsPerCase: 2,
     domains,
     domainCounts,
+    courseGroupCount: selectedCourseGroups.length,
+    domainGroupCounts,
+    targetCourseGroupsPerDomain,
+    groupCoverageStatus,
     kindCounts,
     domainCount: domains.length,
-    targetDomainCount: 5,
-    coverageStatus: domains.length >= 5 ? 'ready' : 'needs-more-domains',
+    targetResearchDomainCount,
+    researchDomainCoverageStatus,
+    researchCoverageStatus,
+    researchCampaignReady: researchCoverageStatus === 'ready',
+    targetDomainCount,
+    domainCoverageStatus,
+    coverageStatus,
+    campaignReady: coverageStatus === 'ready',
     heldOutBenchmark: {
       path: benchmark.path,
       sha256: benchmark.sha256,
@@ -345,6 +474,7 @@ export async function buildScionBlindReviewPacket({
       excluded: excludedHeldOut,
       excludedCount: Object.values(excludedHeldOut).reduce((sum, count) => sum + count, 0),
     },
+    excludedInvalidCourseGroups,
     sourceFiles: [...new Map(loaded.map((entry) => [entry.source, entry.sourceSha256])).entries()]
       .map(([source, sha256]) => ({ source, sha256 }))
       .sort((left, right) => left.source.localeCompare(right.source)),
@@ -362,7 +492,21 @@ export async function buildScionBlindReviewPacket({
     return [
       fs.writeFile(
         path.join(domainDir, 'packet.json'),
-        `${JSON.stringify({ meta: { ...meta, selectedCases: domainCases.length, domains: [domain] }, cases: domainCases }, null, 2)}\n`,
+        `${JSON.stringify(
+          {
+            meta: {
+              ...meta,
+              selectedCases: domainCases.length,
+              domains: [domain],
+              domainCounts: { [domain]: domainCases.length },
+              courseGroupCount: domainGroupCounts[domain],
+              domainGroupCounts: { [domain]: domainGroupCounts[domain] },
+            },
+            cases: domainCases,
+          },
+          null,
+          2,
+        )}\n`,
       ),
       fs.writeFile(
         path.join(domainDir, 'review-form-1.json'),
@@ -398,19 +542,34 @@ export async function buildScionBlindReviewPacket({
   ]);
   if (receiptOutput) {
     const receipt = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       protocol: REVIEW_PROTOCOL,
-      status: cases.length > 0 ? 'ready-for-independent-review' : 'blocked-no-cases',
+      status:
+        cases.length === 0
+          ? 'blocked-no-cases'
+          : meta.campaignReady
+            ? 'ready-for-independent-review'
+            : meta.researchCampaignReady
+              ? 'ready-for-research-review'
+              : 'reviewable-incomplete-coverage',
       generatedAt: meta.generatedAt,
       packetId,
       packetDigest: reviewPacketDigest,
+      organizerDigest: reviewOrganizerDigest,
       selectedCases: cases.length,
       availableCandidates: candidates.length,
       requiredIndependentReviews: cases.length * meta.requiredIndependentReviewsPerCase,
       domains,
       domainCounts,
+      courseGroupCount: meta.courseGroupCount,
+      domainGroupCounts,
+      targetCourseGroupsPerDomain,
+      groupCoverageStatus,
+      researchCoverageStatus,
+      coverageStatus,
       kindCounts,
       heldOutBenchmark: meta.heldOutBenchmark,
+      excludedInvalidCourseGroups,
       sourceFiles: meta.sourceFiles,
       claimBoundary:
         'This receipt proves a frozen, holdout-disjoint, hash-bound blind-review packet exists. It proves no instructor judgment, approved training pair, adapter quality, or promotion result.',
@@ -459,6 +618,7 @@ export function validateScionBlindReview(review) {
   const issues = [];
   if (!String(review?.pairId || '').trim()) issues.push('missing-pair-id');
   if (!SHA256.test(String(review?.caseDigest || ''))) issues.push('invalid-case-digest');
+  if (!SHA256.test(String(review?.courseGroupSha256 || ''))) issues.push('invalid-course-group-sha256');
   if (!String(review?.reviewPacketId || '').trim()) issues.push('missing-review-packet-id');
   if (!SHA256.test(String(review?.reviewPacketDigest || ''))) issues.push('invalid-review-packet-digest');
   if (!String(review?.reviewerId || '').trim()) issues.push('missing-reviewer-id');
@@ -487,15 +647,16 @@ export async function ingestScionBlindReviews({
   const keyPacket = JSON.parse(await fs.readFile(path.join(outputDir, 'organizer', 'key.json'), 'utf8'));
   const keys = Array.isArray(keyPacket?.keys) ? keyPacket.keys : [];
   const keyCases = keys.map((key) => key.case);
+  const recomputedOrganizerDigest = organizerKeyDigest(keys);
   const keyIntegrityPass =
     keyPacket?.meta?.protocol === REVIEW_PROTOCOL &&
     SHA256.test(String(keyPacket?.meta?.packetDigest || '')) &&
+    SHA256.test(String(keyPacket?.meta?.organizerDigest || '')) &&
     keys.length > 0 &&
     keyCases.length === keys.length &&
-    keys.every(
-      (key) => key?.case && key.caseDigest === key.case.caseDigest && key.caseDigest === publicCaseDigest(key.case),
-    ) &&
-    keyPacket.meta.packetDigest === packetDigest(keyCases) &&
+    keys.every(organizerKeyIntegrity) &&
+    keyPacket.meta.organizerDigest === recomputedOrganizerDigest &&
+    keyPacket.meta.packetDigest === packetDigest(keyCases, recomputedOrganizerDigest) &&
     keyPacket.meta.packetId === `scion-review-${keyPacket.meta.packetDigest.slice(0, 20)}`;
   if (!keyIntegrityPass) throw new Error('Blind review organizer packet failed integrity verification');
   const keyById = new Map(keys.map((row) => [row.pairId, row]));
@@ -510,6 +671,7 @@ export async function ingestScionBlindReviews({
       if (review?.reviewPacketId !== keyPacket.meta.packetId) issues.push('review-packet-id-mismatch');
       if (review?.reviewPacketDigest !== keyPacket.meta.packetDigest) issues.push('review-packet-digest-mismatch');
       if (review?.caseDigest !== key.caseDigest) issues.push('review-case-digest-mismatch');
+      if (review?.courseGroupSha256 !== key.courseGroupSha256) issues.push('review-course-group-mismatch');
       if (review?.domain !== key.domain) issues.push('review-case-domain-mismatch');
       if (review?.reviewerDomain !== key.domain) issues.push('reviewer-domain-mismatch');
     }
@@ -548,7 +710,9 @@ export async function ingestScionBlindReviews({
       prompt: sourceRow.prompt,
       chosen: sourceRow[winnerRole],
       rejected: sourceRow[loserRole],
-      courseId: sourceRow.courseId,
+      courseId: key.courseGroupId,
+      courseGroupId: key.courseGroupId,
+      courseGroupSha256: key.courseGroupSha256,
       lessonId: sourceRow.lessonId,
       reviewPairId: pairId,
       reviewPacketId: keyPacket.meta.packetId,
@@ -562,6 +726,7 @@ export async function ingestScionBlindReviews({
         reviewHashes: unique.map((review) => hash(JSON.stringify(review))),
         winningSideInBlindPacket: winner,
         caseDigest: key.caseDigest,
+        courseGroupSha256: key.courseGroupSha256,
         reviewPacketDigest: keyPacket.meta.packetDigest,
         sourceRowSha256: key.sourceRowSha256,
       },
@@ -652,6 +817,9 @@ async function main() {
   const packet = await buildScionBlindReviewPacket(args);
   console.log(`Scion blind review packet: ${packet.meta.selectedCases}/${packet.meta.requestedCases} cases`);
   console.log(`Domains: ${packet.meta.domains.join(', ') || 'none'} (${packet.meta.coverageStatus})`);
+  console.log(
+    `Course groups: ${packet.meta.courseGroupCount} (${packet.meta.groupCoverageStatus}; target ${packet.meta.targetCourseGroupsPerDomain}/domain)`,
+  );
   console.log(`Reviewer folders: ${path.join(args.outputDir, 'reviewer', 'by-domain')}`);
 }
 

@@ -8,6 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { parseSavedCourseGraph } from '../src/lib/quality/quizContrast.js';
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
 import { normalizeScionMcItem } from '../src/lib/scionAnswerKeyAlignment.js';
+import { deriveScionCourseGroup } from './lib/scionCourseGroup.mjs';
 
 const DEFAULT_MANIFEST = 'evaluation/scion-contrast-matrix.json';
 const DEFAULT_OUTPUT = 'evaluation/scion-review-candidates.jsonl';
@@ -178,7 +179,7 @@ function addPairs(rows, seen, { pair, match, kind, leftItems, rightItems }) {
     const right = rightItems[index];
     if (JSON.stringify(left) === JSON.stringify(right)) continue;
     const row = {
-      schemaVersion: 2,
+      schemaVersion: 3,
       kind,
       prompt: promptFor({
         domain: pair.domain,
@@ -189,7 +190,9 @@ function addPairs(rows, seen, { pair, match, kind, leftItems, rightItems }) {
       left: JSON.stringify(left),
       right: JSON.stringify(right),
       domain: pair.domain,
-      courseId: pair.domain,
+      courseId: pair.courseGroupId,
+      courseGroupId: pair.courseGroupId,
+      courseGroupSha256: pair.courseGroupSha256,
       lessonId: match.left.lessonId,
       pairSource: {
         pairId: pair.id,
@@ -201,11 +204,22 @@ function addPairs(rows, seen, { pair, match, kind, leftItems, rightItems }) {
         titleMatch: match.titleMatch,
         matchMethod: match.matchMethod,
         courseInputSha256: pair.courseInputSha256,
+        courseGroupId: pair.courseGroupId,
+        courseGroupSha256: pair.courseGroupSha256,
+        courseGroupSource: pair.courseGroupSource,
         candidateArtifactSha256: pair.candidateArtifactSha256,
         referenceArtifactSha256: pair.referenceArtifactSha256,
       },
     };
-    const id = hash(JSON.stringify({ kind, prompt: row.prompt, left: row.left, right: row.right }));
+    const id = hash(
+      JSON.stringify({
+        courseGroupSha256: row.courseGroupSha256,
+        kind,
+        prompt: row.prompt,
+        left: row.left,
+        right: row.right,
+      }),
+    );
     if (seen.has(id)) continue;
     seen.add(id);
     rows.push(row);
@@ -216,8 +230,36 @@ export function buildMatchedReviewCandidates(pairs = []) {
   const rows = [];
   const seen = new Set();
   const pairReports = [];
-  for (const pair of pairs) {
+  const preparedPairs = pairs.map((pair) => {
     const input = inspectPairInput(pair);
+    const courseGroup = input.pass
+      ? deriveScionCourseGroup({
+          domain: pair.domain,
+          courseGroupId: pair.courseGroupId,
+          courseInputSha256: input.sha256,
+        })
+      : null;
+    return { pair, input, courseGroup };
+  });
+  const inputHashesByGroupLabel = new Map();
+  for (const { pair, input, courseGroup } of preparedPairs) {
+    if (!input.pass || !courseGroup) continue;
+    const key = `${pair.domain}|${courseGroup.id}`;
+    if (!inputHashesByGroupLabel.has(key)) inputHashesByGroupLabel.set(key, new Set());
+    inputHashesByGroupLabel.get(key).add(input.sha256);
+  }
+  const courseGroupIdCollisions = [...inputHashesByGroupLabel.entries()]
+    .filter(([, inputHashes]) => inputHashes.size > 1)
+    .map(([key, inputHashes]) => {
+      const [domain, ...idParts] = key.split('|');
+      return { domain, courseGroupId: idParts.join('|'), courseInputSha256: [...inputHashes].sort() };
+    })
+    .sort((left, right) =>
+      `${left.domain}|${left.courseGroupId}`.localeCompare(`${right.domain}|${right.courseGroupId}`),
+    );
+  const collidingKeys = new Set(courseGroupIdCollisions.map((row) => `${row.domain}|${row.courseGroupId}`));
+
+  for (const { pair, input, courseGroup } of preparedPairs) {
     if (!input.pass) {
       pairReports.push({
         id: pair.id,
@@ -231,7 +273,28 @@ export function buildMatchedReviewCandidates(pairs = []) {
       });
       continue;
     }
-    const qualifiedPair = { ...pair, courseInputSha256: input.sha256 };
+    if (collidingKeys.has(`${pair.domain}|${courseGroup.id}`)) {
+      pairReports.push({
+        id: pair.id,
+        domain: pair.domain,
+        status: 'excluded',
+        issues: ['course-group-id-input-mismatch'],
+        courseInputSha256: input.sha256,
+        courseGroupId: courseGroup.id,
+        courseGroupSha256: courseGroup.sha256,
+        courseGroupSource: courseGroup.source,
+        matchedLessons: 0,
+        candidates: 0,
+      });
+      continue;
+    }
+    const qualifiedPair = {
+      ...pair,
+      courseInputSha256: input.sha256,
+      courseGroupId: courseGroup.id,
+      courseGroupSha256: courseGroup.sha256,
+      courseGroupSource: courseGroup.source,
+    };
     const leftGraph = parseSavedCourseGraph(pair.candidateProject);
     const rightGraph = parseSavedCourseGraph(pair.referenceProject);
     const matches = matchLessons(lessonRows(leftGraph), lessonRows(rightGraph));
@@ -258,11 +321,27 @@ export function buildMatchedReviewCandidates(pairs = []) {
       status: 'included',
       issues: [],
       courseInputSha256: input.sha256,
+      courseGroupId: courseGroup.id,
+      courseGroupSha256: courseGroup.sha256,
+      courseGroupSource: courseGroup.source,
       matchedLessons: matches.length,
       candidates: rows.length - before,
     });
   }
   const domains = [...new Set(rows.map((row) => row.domain))].sort();
+  const courseGroups = [
+    ...new Map(
+      rows.map((row) => [
+        row.courseGroupSha256,
+        { domain: row.domain, courseGroupId: row.courseGroupId, courseGroupSha256: row.courseGroupSha256 },
+      ]),
+    ).values(),
+  ].sort((left, right) =>
+    `${left.domain}|${left.courseGroupId}`.localeCompare(`${right.domain}|${right.courseGroupId}`),
+  );
+  const domainGroupCounts = Object.fromEntries(
+    domains.map((domain) => [domain, courseGroups.filter((group) => group.domain === domain).length]),
+  );
   return {
     rows,
     summary: {
@@ -272,6 +351,16 @@ export function buildMatchedReviewCandidates(pairs = []) {
       candidates: rows.length,
       domains,
       domainCount: domains.length,
+      courseGroups,
+      courseGroupCount: courseGroups.length,
+      domainGroupCounts,
+      courseGroupIdCollisions,
+      groupIntegrityStatus: courseGroupIdCollisions.length === 0 ? 'pass' : 'blocked-course-group-id-collision',
+      targetCourseGroupsPerDomain: 3,
+      groupCoverageStatus:
+        domains.length > 0 && Object.values(domainGroupCounts).every((count) => count >= 3)
+          ? 'ready'
+          : 'needs-more-course-groups',
       kinds: Object.fromEntries(
         ['mc-item', 'key-term'].map((kind) => [kind, rows.filter((row) => row.kind === kind).length]),
       ),
@@ -321,7 +410,7 @@ function parseArgs(argv) {
 async function main() {
   const result = await run(parseArgs(process.argv.slice(2)));
   console.log(
-    `Scion matched review candidates: ${result.summary.candidates} across ${result.summary.domainCount} domains`,
+    `Scion matched review candidates: ${result.summary.candidates} across ${result.summary.domainCount} domains / ${result.summary.courseGroupCount} course groups`,
   );
   for (const pair of result.summary.pairReports) {
     console.log(`${pair.domain}: ${pair.matchedLessons} matched lessons / ${pair.candidates} candidates`);

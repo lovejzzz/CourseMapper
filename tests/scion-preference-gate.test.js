@@ -413,7 +413,14 @@ describe('Scion preference admission gate', () => {
       })}\n`,
     );
     const packet = await buildScionBlindReviewPacket({ sources: [source], outputDir, limit: 1 });
-    expect(packet.meta).toMatchObject({ selectedCases: 1, blind: true, coverageStatus: 'needs-more-domains' });
+    expect(packet.meta).toMatchObject({
+      selectedCases: 1,
+      blind: true,
+      coverageStatus: 'needs-more-domains-and-course-groups',
+      groupCoverageStatus: 'needs-more-course-groups',
+      researchCampaignReady: false,
+      domainGroupCounts: { 'interaction-design': 1 },
+    });
     const caseRow = packet.cases[0];
     const domainDir = path.join(outputDir, 'reviewer', 'by-domain', 'interaction-design');
     const html = await fs.readFile(path.join(domainDir, 'review.html'), 'utf8');
@@ -425,6 +432,7 @@ describe('Scion preference admission gate', () => {
     expect(blankForm[0]).toMatchObject({
       pairId: caseRow.pairId,
       caseDigest: caseRow.caseDigest,
+      courseGroupSha256: caseRow.courseGroupSha256,
       reviewPacketId: packet.meta.packetId,
       reviewPacketDigest: packet.meta.packetDigest,
       independent: false,
@@ -434,6 +442,7 @@ describe('Scion preference admission gate', () => {
     const makeReview = (reviewerId) => ({
       pairId: caseRow.pairId,
       caseDigest: caseRow.caseDigest,
+      courseGroupSha256: caseRow.courseGroupSha256,
       domain: 'interaction-design',
       reviewPacketId: packet.meta.packetId,
       reviewPacketDigest: packet.meta.packetDigest,
@@ -490,13 +499,31 @@ describe('Scion preference admission gate', () => {
       approvedOutput,
     });
     expect(rejectedCase.invalidReviews[0].issues).toContain('review-case-digest-mismatch');
+    const wrongGroupReview = path.join(root, 'review-wrong-group.json');
+    await fs.writeFile(
+      wrongGroupReview,
+      JSON.stringify([{ ...makeReview('instructor-wrong-group'), courseGroupSha256: '0'.repeat(64) }]),
+    );
+    const rejectedGroup = await ingestScionBlindReviews({
+      outputDir,
+      reviewFiles: [wrongGroupReview, reviewB],
+      approvedOutput,
+    });
+    expect(rejectedGroup.invalidReviews[0].issues).toContain('review-course-group-mismatch');
     const report = await ingestScionBlindReviews({
       outputDir,
       reviewFiles: [reviewA, reviewB],
       approvedOutput,
     });
     expect(report).toMatchObject({ reviewedCases: 1, approved: 1, quarantined: 0 });
-    expect(assessCorpusRow(JSON.parse((await fs.readFile(approvedOutput, 'utf8')).trim())).eligible).toBe(true);
+    const approvedRow = JSON.parse((await fs.readFile(approvedOutput, 'utf8')).trim());
+    expect(assessCorpusRow(approvedRow).eligible).toBe(true);
+    expect(approvedRow).toMatchObject({
+      courseId: 'interaction-design',
+      courseGroupId: 'interaction-design',
+      courseGroupSha256: caseRow.courseGroupSha256,
+      preferenceEvidence: { courseGroupSha256: caseRow.courseGroupSha256 },
+    });
     const repeated = await ingestScionBlindReviews({
       outputDir,
       reviewFiles: [reviewA, reviewB],
@@ -506,11 +533,105 @@ describe('Scion preference admission gate', () => {
     expect((await fs.readFile(approvedOutput, 'utf8')).trim().split('\n')).toHaveLength(1);
     const organizerPath = path.join(outputDir, 'organizer', 'key.json');
     const organizer = JSON.parse(await fs.readFile(organizerPath, 'utf8'));
-    organizer.keys[0].case.prompt = 'Tampered review prompt';
-    await fs.writeFile(organizerPath, JSON.stringify(organizer));
+    const tamperedCase = structuredClone(organizer);
+    tamperedCase.keys[0].case.prompt = 'Tampered review prompt';
+    await fs.writeFile(organizerPath, JSON.stringify(tamperedCase));
     await expect(
       ingestScionBlindReviews({ outputDir, reviewFiles: [reviewA, reviewB], approvedOutput }),
     ).rejects.toThrow('integrity verification');
+    const tamperedSource = structuredClone(organizer);
+    tamperedSource.keys[0].sourceRow.left = JSON.stringify(goodMc({ q: 'A substituted training question.' }));
+    await fs.writeFile(organizerPath, JSON.stringify(tamperedSource));
+    await expect(
+      ingestScionBlindReviews({ outputDir, reviewFiles: [reviewA, reviewB], approvedOutput }),
+    ).rejects.toThrow('integrity verification');
+    const tamperedMapping = structuredClone(organizer);
+    tamperedMapping.keys[0].mapping = { A: 'right', B: 'left' };
+    await fs.writeFile(organizerPath, JSON.stringify(tamperedMapping));
+    await expect(
+      ingestScionBlindReviews({ outputDir, reviewFiles: [reviewA, reviewB], approvedOutput }),
+    ).rejects.toThrow('integrity verification');
+  });
+
+  it('balances packet selection across input-bound course groups and rejects forged group hashes', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-group-balance-'));
+    const source = path.join(root, 'source.jsonl');
+    const outputDir = path.join(root, 'packet');
+    const rows = [
+      ['interaction-a', '1'.repeat(64), 'Which repeated task failure most directly supports revising navigation?'],
+      ['interaction-a', '1'.repeat(64), 'Which repeated search failure most directly supports revising navigation?'],
+      ['interaction-a', '1'.repeat(64), 'Which repeated labeling failure most directly supports revising navigation?'],
+      [
+        'interaction-b',
+        '2'.repeat(64),
+        'Which repeated wayfinding failure most directly supports revising navigation?',
+      ],
+    ].map(([courseGroupId, courseInputSha256, question], index) => ({
+      kind: 'mc-item',
+      prompt: `Write evidence-bearing navigation question ${index + 1}.`,
+      left: JSON.stringify(goodMc({ q: question })),
+      right: JSON.stringify(goodMc({ q: `${question} Choose the strongest observation.` })),
+      domain: 'interaction-design',
+      courseGroupId,
+      pairSource: { courseInputSha256 },
+      lessonId: `lesson-${index + 1}`,
+    }));
+    await fs.writeFile(source, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+
+    const packet = await buildScionBlindReviewPacket({ sources: [source], outputDir, limit: 2 });
+    expect(packet.cases).toHaveLength(2);
+    expect(new Set(packet.cases.map((row) => row.courseGroupSha256)).size).toBe(2);
+    expect(packet.meta).toMatchObject({
+      courseGroupCount: 2,
+      domainGroupCounts: { 'interaction-design': 2 },
+      groupCoverageStatus: 'needs-more-course-groups',
+    });
+
+    const forgedSource = path.join(root, 'forged.jsonl');
+    await fs.writeFile(forgedSource, `${JSON.stringify({ ...rows[0], courseGroupSha256: '0'.repeat(64) })}\n`);
+    const forgedPacket = await buildScionBlindReviewPacket({
+      sources: [forgedSource],
+      outputDir: path.join(root, 'forged-packet'),
+      limit: 1,
+    });
+    expect(forgedPacket.meta).toMatchObject({ selectedCases: 0, availableCandidates: 0 });
+    expect(forgedPacket.meta.excludedInvalidCourseGroups).toHaveLength(1);
+  });
+
+  it('separates four-domain research coverage from the stricter five-domain production target', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-research-coverage-'));
+    const source = path.join(root, 'source.jsonl');
+    const domains = ['computer-science', 'geology', 'music-theory', 'user-experience-design'];
+    const rows = domains.flatMap((domain, domainIndex) =>
+      [1, 2, 3].map((groupIndex) => ({
+        kind: 'mc-item',
+        prompt: `Write one evidence-bearing item for ${domain} course ${groupIndex}.`,
+        left: JSON.stringify(goodMc({ q: `Which evidence best supports ${domain} decision ${groupIndex}?` })),
+        right: JSON.stringify(
+          goodMc({ q: `Which observation most directly supports ${domain} decision ${groupIndex}?` }),
+        ),
+        domain,
+        courseGroupId: `${domain}-course-${groupIndex}`,
+        pairSource: { courseInputSha256: String(domainIndex * 3 + groupIndex).padStart(64, '0') },
+        lessonId: 'lesson-1',
+      })),
+    );
+    await fs.writeFile(source, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+    const packet = await buildScionBlindReviewPacket({
+      sources: [source],
+      outputDir: path.join(root, 'packet'),
+      limit: rows.length,
+    });
+    expect(packet.meta).toMatchObject({
+      domainCount: 4,
+      courseGroupCount: 12,
+      groupCoverageStatus: 'ready',
+      researchCoverageStatus: 'ready',
+      researchCampaignReady: true,
+      coverageStatus: 'needs-more-domains',
+      campaignReady: false,
+    });
+    expect(Object.values(packet.meta.domainGroupCounts)).toEqual([3, 3, 3, 3]);
   });
 
   it('derives neutral review candidates from matched real-project shapes without declaring a winner', () => {
@@ -542,6 +663,7 @@ describe('Scion preference admission gate', () => {
       {
         id: 'design-pair',
         domain: 'interaction-design',
+        courseGroupId: 'interaction-design-evidence',
         candidateRoute: 'scion-test',
         candidateModel: 'Scion',
         referenceModel: 'Reference',
@@ -555,7 +677,14 @@ describe('Scion preference admission gate', () => {
         ),
       },
     ]);
-    expect(result.summary).toMatchObject({ pairs: 1, candidates: 2, domainCount: 1 });
+    expect(result.summary).toMatchObject({
+      pairs: 1,
+      candidates: 2,
+      domainCount: 1,
+      courseGroupCount: 1,
+      domainGroupCounts: { 'interaction-design': 1 },
+      groupCoverageStatus: 'needs-more-course-groups',
+    });
     expect(result.rows).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ kind: 'mc-item', left: expect.any(String), right: expect.any(String) }),
@@ -564,6 +693,9 @@ describe('Scion preference admission gate', () => {
     );
     expect(result.rows.every((row) => !('chosen' in row) && !('rejected' in row))).toBe(true);
     expect(result.rows.every((row) => row.pairSource.courseInputSha256?.length === 64)).toBe(true);
+    expect(result.rows.every((row) => row.courseGroupId === 'interaction-design-evidence')).toBe(true);
+    expect(result.rows.every((row) => row.courseGroupSha256?.length === 64)).toBe(true);
+    expect(result.rows.every((row) => row.pairSource.courseGroupSha256 === row.courseGroupSha256)).toBe(true);
   });
 
   it('excludes mismatched course inputs and permits numbered fallback only for repeated generic titles', () => {
@@ -619,6 +751,46 @@ describe('Scion preference admission gate', () => {
       issues: ['course-input-mismatch'],
     });
     expect(result.rows.every((row) => row.pairSource.matchMethod === 'lesson-number-generic-title-fallback')).toBe(
+      true,
+    );
+  });
+
+  it('excludes every pair when one explicit course-group label hides different course inputs', () => {
+    const project = (promptText, question) => ({
+      promptText,
+      fileNames: [],
+      courseGraphJson: JSON.stringify({
+        sessions: [{ number: 1, title: 'Lesson 1: Evidence-Based Navigation Design' }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': { quizItems: [{ ...goodMc({ q: question }), type: 'multiple_choice' }], keyTerms: [] },
+          },
+        },
+      }),
+    });
+    const makePair = (id, promptText) => ({
+      id,
+      domain: 'interaction-design',
+      courseGroupId: 'reused-group-label',
+      candidateRoute: 'scion-test',
+      candidateModel: 'Scion',
+      referenceModel: 'Reference',
+      candidateProject: project(promptText, `Which observation best supports navigation decision ${id}?`),
+      referenceProject: project(promptText, `Which evidence best supports navigation decision ${id}?`),
+    });
+    const result = buildMatchedReviewCandidates([
+      makePair('pair-a', 'Course A about navigation labels.'),
+      makePair('pair-b', 'Course B about navigation hierarchy.'),
+    ]);
+    expect(result.summary).toMatchObject({
+      pairs: 2,
+      eligiblePairs: 0,
+      excludedPairs: 2,
+      candidates: 0,
+      groupIntegrityStatus: 'blocked-course-group-id-collision',
+    });
+    expect(result.summary.courseGroupIdCollisions).toHaveLength(1);
+    expect(result.summary.pairReports.every((pair) => pair.issues.includes('course-group-id-input-mismatch'))).toBe(
       true,
     );
   });
