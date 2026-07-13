@@ -1,6 +1,9 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "rubricVersion": "1.0.0",
+  "rubricPath": "evaluation/quality-benchmark/v1/rubric.json",
+  "rubricSha256": "508486c8e2db26c6a146903caa20e2f39384437d2066ec040fe206ff757382bd",
+  "reviewSchemaVersion": 2,
   "targetCases": 8,
   "minimumCompletedCases": 6,
   "minimumUsableRate": 0.8,
@@ -8,13 +11,25 @@
   "requiredScopes": [5, 8, 14],
   "maximumMedianEditMinutesPerLesson": 15,
   "maximumDimensionSpread": 1.5,
+  "minimumKrippendorffAlpha": 0.667,
+  "minimumReliabilityUnits": 12,
+  "evidencePolicy": {
+    "qualifiedReviewersPerCase": 2,
+    "blindToModelIdentity": true,
+    "renderedPackageInspectionRequired": true,
+    "preAdjudicationRatingsRetained": true,
+    "modelOrSimulatedReviewsCountAsHuman": false
+  },
   "dimensions": [
     "instructional-alignment",
-    "teachability",
-    "assessment-authenticity",
-    "feedback-and-revision",
-    "student-readiness",
-    "source-fidelity"
+    "accuracy-source-fidelity",
+    "assessment-feedback",
+    "teaching-learning-usability",
+    "student-clarity-support",
+    "inclusion-accessibility",
+    "integrity-safety-rights",
+    "professional-craft",
+    "cross-artifact-coherence"
   ],
   "cases": [
     {

@@ -115,7 +115,9 @@ import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 // caveats, and any P1 major review finding caps the package below the A band.
 // 1.10.0 — quiz substance now verifies that Apply/Analyze/Evaluate MC items
 // contain a concrete case or evidence to reason from, rather than trusting tags.
-export const GRADER_VERSION = '1.10.0';
+// 1.10.1 — offline package grading now falls back to the manifest course name
+// for discipline checks, matching the course identity used by in-app grading.
+export const GRADER_VERSION = '1.10.1';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -3366,6 +3368,8 @@ export async function grade({
     throw new Error('grade({ extractedDir }) needs shim or fileProvider.');
   }
   const pkg = await extractPackage(fileProvider);
+  // Offline regrading may only have the manifest's authoritative course name.
+  course.title ||= pkg.manifest?.courseName;
   const findings = createFindings();
 
   checkStructure(findings, pkg, course);
@@ -3477,22 +3481,21 @@ export async function grade({
 
 export function renderReportMarkdown(result, { courseTitle = 'Course', baselineResult = null } = {}) {
   if (!result) return '';
-  const lines = [];
-  lines.push(`# Crucible Deep Quality Report — ${courseTitle}`);
-  lines.push('');
-  lines.push(
+  const lines = [
+    `# Crucible Deep Quality Report — ${courseTitle}`,
+    '',
     `**Overall: ${result.overall.score}/100 (${result.overall.grade})** · ${result.stats.findingCount} findings (${result.stats.p0} P0 · ${result.stats.p1} P1 · ${result.stats.p2} P2) · ${result.stats.fileCount} files`,
-  );
-  lines.push('');
+    '',
+  ];
 
   // Score table (with baseline delta when given).
   const hasBaseline = Boolean(baselineResult);
-  lines.push(`## Scores`);
-  lines.push('');
   lines.push(
+    '## Scores',
+    '',
     hasBaseline ? '| Dimension | Weight | Score | Grade | Δ baseline |' : '| Dimension | Weight | Score | Grade |',
+    hasBaseline ? '| --- | ---: | ---: | :---: | ---: |' : '| --- | ---: | ---: | :---: |',
   );
-  lines.push(hasBaseline ? '| --- | ---: | ---: | :---: | ---: |' : '| --- | ---: | ---: | :---: |');
   for (const dimension of DIMENSIONS) {
     const score = result.scores[dimension];
     const grade = result.grades[dimension];

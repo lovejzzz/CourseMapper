@@ -5,6 +5,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
+import { aggregateQualityReviews, flattenRubric, validateQualityReview } from './lib/qualityBenchmark.mjs';
+
 const ROOT = process.cwd();
 const DEFAULT_MANIFEST = path.join(ROOT, 'evaluation', 'independent-benchmark', 'manifest.json');
 const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'independent-benchmark');
@@ -46,6 +48,62 @@ function concreteText(value, minLength = 8) {
 }
 
 export function evaluateInstructorReview(review, benchmarkCase, policy) {
+  if (policy?.schemaVersion >= 2 && policy?.qualityRubric) {
+    const expectedSourceSha256 = benchmarkCase.source?.observedSha256 || benchmarkCase.source?.sha256 || '';
+    const expectedPackageSha256 = benchmarkCase.package?.observedSha256 || benchmarkCase.package?.sha256 || '';
+    const validation = validateQualityReview(review, policy.qualityRubric, {
+      benchmarkCase: {
+        id: benchmarkCase.id,
+        source: { sha256: expectedSourceSha256 },
+        artifactSha256: expectedPackageSha256,
+      },
+    });
+    const criteria = flattenRubric(policy.qualityRubric);
+    const scoredCriteria = criteria
+      .map((criterion) => ({ criterion, rating: review?.ratings?.[criterion.id] }))
+      .filter((row) => row.rating?.state === 'scored' && Number.isFinite(Number(row.rating.score)));
+    const criterionScores = scoredCriteria.map((row) => Number(row.rating.score));
+    const dimensionScores = Object.fromEntries(
+      policy.qualityRubric.dimensions.map((dimension) => {
+        const rows = scoredCriteria.filter((row) => row.criterion.dimensionId === dimension.id);
+        const weight = rows.reduce((sum, row) => sum + row.criterion.normalizedWeight, 0);
+        const score = weight
+          ? rows.reduce((sum, row) => sum + Number(row.rating.score) * row.criterion.normalizedWeight, 0) / weight
+          : 0;
+        return [dimension.id, score];
+      }),
+    );
+    const estimatedEditMinutes = Number(review?.overall?.estimatedEditMinutes);
+    const editMinutesPerLesson =
+      Number.isFinite(estimatedEditMinutes) && benchmarkCase.scope > 0
+        ? estimatedEditMinutes / benchmarkCase.scope
+        : Infinity;
+    const scoredWeight = scoredCriteria.reduce((sum, row) => sum + row.criterion.normalizedWeight, 0);
+    const profileScore = scoredWeight
+      ? (scoredCriteria.reduce((sum, row) => sum + Number(row.rating.score) * row.criterion.normalizedWeight, 0) /
+          scoredWeight) *
+        25
+      : 0;
+    const minimumScore = criterionScores.length ? Math.min(...criterionScores) : 0;
+    const usable =
+      validation.valid &&
+      review.overall?.wouldUse === true &&
+      USABLE_VERDICTS.has(review.overall?.editVerdict) &&
+      editMinutesPerLesson <= policy.maximumMedianEditMinutesPerLesson &&
+      profileScore >= 80 &&
+      (review.criticalFailures || []).length === 0;
+    return {
+      reviewerId: review?.evaluator?.id || '',
+      valid: validation.valid,
+      qualifiedHuman: validation.qualifiedHuman,
+      usable,
+      findings: validation.issues,
+      meanScore: Number(profileScore.toFixed(2)),
+      minimumScore,
+      editMinutesPerLesson: Number.isFinite(editMinutesPerLesson) ? Number(editMinutesPerLesson.toFixed(2)) : null,
+      scores: dimensionScores,
+    };
+  }
   const findings = [];
   if (!review || typeof review !== 'object') findings.push('review is missing');
   if (!concreteText(review?.reviewerId, 3)) findings.push('reviewerId must be a concrete pseudonymous identifier');
@@ -136,10 +194,12 @@ export function evaluateInstructorReview(review, benchmarkCase, policy) {
 export function evaluateBenchmarkCase(benchmarkCase, reviews, policy) {
   const evaluatedReviews = reviews.map((review) => evaluateInstructorReview(review, benchmarkCase, policy));
   const validReviews = evaluatedReviews.filter((review) => review.valid);
-  const uniqueReviewers = new Set(validReviews.map((review) => review.reviewerId));
+  const eligibleReviews =
+    policy?.schemaVersion >= 2 ? validReviews.filter((review) => review.qualifiedHuman) : validReviews;
+  const uniqueReviewers = new Set(eligibleReviews.map((review) => review.reviewerId));
   const dimensionSpreads = Object.fromEntries(
     policy.dimensions.map((dimension) => {
-      const scores = validReviews.map((review) => review.scores[dimension]).filter(Number.isFinite);
+      const scores = eligibleReviews.map((review) => review.scores[dimension]).filter(Number.isFinite);
       return [dimension, scores.length > 0 ? Math.max(...scores) - Math.min(...scores) : null];
     }),
   );
@@ -152,10 +212,39 @@ export function evaluateBenchmarkCase(benchmarkCase, reviews, policy) {
     benchmarkCase.source?.available === true &&
     SHA256_PATTERN.test(String(benchmarkCase.source?.observedSha256 || '')) &&
     benchmarkCase.source?.hashMatches !== false;
-  const complete = packageReady && sourceReady && validReviews.length >= 2 && uniqueReviewers.size >= 2;
-  const agreementPass = complete && maxDimensionSpread <= policy.maximumDimensionSpread;
-  const usable = complete && agreementPass && validReviews.every((review) => review.usable);
-  const editMinutes = validReviews.map((review) => review.editMinutesPerLesson).filter(Number.isFinite);
+  const renderedQaReady = policy?.schemaVersion >= 2 ? benchmarkCase.package?.renderedQaVerified === true : true;
+  const complete =
+    packageReady && sourceReady && renderedQaReady && eligibleReviews.length >= 2 && uniqueReviewers.size >= 2;
+  const qualityScorecard =
+    policy?.schemaVersion >= 2 && policy?.qualityRubric && reviews.length
+      ? aggregateQualityReviews(reviews, policy.qualityRubric, {
+          benchmarkCase: {
+            id: benchmarkCase.id,
+            split: 'independent',
+            source: {
+              sha256: benchmarkCase.source?.observedSha256 || benchmarkCase.source?.sha256 || '',
+              verified: sourceReady,
+            },
+            artifactSha256: benchmarkCase.package?.observedSha256 || benchmarkCase.package?.sha256 || '',
+            exportVerified: benchmarkCase.package?.renderedQaVerified === true,
+          },
+          bootstrapSamples: 1000,
+        })
+      : null;
+  const agreementPass =
+    complete &&
+    (qualityScorecard
+      ? qualityScorecard.validation.reliabilityPass
+      : maxDimensionSpread <= policy.maximumDimensionSpread);
+  const usable =
+    complete &&
+    agreementPass &&
+    eligibleReviews.every((review) => review.usable) &&
+    (!qualityScorecard ||
+      (qualityScorecard.scores.reportedScore >= 80 &&
+        qualityScorecard.criticalFailures.length === 0 &&
+        qualityScorecard.validation.tier === 'independently-validated'));
+  const editMinutes = eligibleReviews.map((review) => review.editMinutesPerLesson).filter(Number.isFinite);
 
   return {
     caseId: benchmarkCase.id,
@@ -165,8 +254,9 @@ export function evaluateBenchmarkCase(benchmarkCase, reviews, policy) {
     intakeStatus: benchmarkCase.status,
     packageReady,
     sourceReady,
+    renderedQaReady,
     reviewCount: reviews.length,
-    validReviewCount: validReviews.length,
+    validReviewCount: eligibleReviews.length,
     uniqueReviewerCount: uniqueReviewers.size,
     complete,
     agreementPass,
@@ -174,6 +264,7 @@ export function evaluateBenchmarkCase(benchmarkCase, reviews, policy) {
     maxDimensionSpread: Number(maxDimensionSpread.toFixed(2)),
     dimensionSpreads,
     medianEditMinutesPerLesson: Number(median(editMinutes).toFixed(2)),
+    qualityScorecard,
     reviewFindings: evaluatedReviews.flatMap((review) =>
       review.findings.map((finding) => `${review.reviewerId}: ${finding}`),
     ),
@@ -258,7 +349,7 @@ export function buildIndependentBenchmarkSummary(caseResults, policy) {
 function renderMarkdown(report) {
   const rows = report.cases.map(
     (row) =>
-      `| ${row.caseId} | ${row.scope} | ${row.modality} | ${row.intakeStatus} | ${row.sourceReady ? 'yes' : 'no'} | ${row.packageReady ? 'yes' : 'no'} | ${row.validReviewCount}/2 | ${row.complete ? 'yes' : 'no'} | ${row.agreementPass ? 'yes' : 'no'} | ${row.usable ? 'yes' : 'no'} | ${row.medianEditMinutesPerLesson} |`,
+      `| ${row.caseId} | ${row.scope} | ${row.modality} | ${row.intakeStatus} | ${row.sourceReady ? 'yes' : 'no'} | ${row.packageReady ? 'yes' : 'no'} | ${row.renderedQaReady ? 'yes' : 'no'} | ${row.validReviewCount}/2 | ${row.complete ? 'yes' : 'no'} | ${row.agreementPass ? 'yes' : 'no'} | ${row.usable ? 'yes' : 'no'} | ${row.medianEditMinutesPerLesson} |`,
   );
   return [
     '# Independent Instructor Benchmark',
@@ -277,8 +368,8 @@ function renderMarkdown(report) {
     '',
     `> ${report.summary.claimBoundary}`,
     '',
-    '| Case | Scope | Modality | Intake | Source | Package | Valid Reviews | Complete | Agreement | Usable | Median Edit Min/Lesson |',
-    '| --- | ---: | --- | --- | --- | --- | ---: | --- | --- | --- | ---: |',
+    '| Case | Scope | Modality | Intake | Source | Package | Rendered QA | Valid Reviews | Complete | Agreement | Usable | Median Edit Min/Lesson |',
+    '| --- | ---: | --- | --- | --- | --- | --- | ---: | --- | --- | --- | ---: |',
     ...rows,
     '',
     'Review forms are written to `verification-output/independent-benchmark/review-forms/`. Do not fill them with simulated or model-generated reviewer evidence.',
@@ -290,27 +381,70 @@ async function writeReviewForms(cases, policy, outputDir) {
   const formsDir = path.join(outputDir, 'review-forms');
   await fs.mkdir(formsDir, { recursive: true });
   for (const benchmarkCase of cases) {
-    const form = {
-      schemaVersion: 1,
-      rubricVersion: policy.rubricVersion,
-      caseId: benchmarkCase.id,
-      reviewerId: 'PSEUDONYMOUS_REVIEWER_ID',
-      reviewerRole: 'external-instructor',
-      independent: true,
-      conflictOfInterest: false,
-      reviewedAt: 'YYYY-MM-DD',
-      reviewedPackageVersion: benchmarkCase.package?.appVersion || '',
-      sourceSha256: benchmarkCase.source?.observedSha256 || benchmarkCase.source?.sha256 || '',
-      packageSha256: benchmarkCase.package?.observedSha256 || benchmarkCase.package?.sha256 || '',
-      wouldTeach: false,
-      minimalEditVerdict: 'major-edits',
-      estimatedEditMinutes: 0,
-      dimensionScores: Object.fromEntries(
-        policy.dimensions.map((dimension) => [dimension, { score: 0, evidence: '' }]),
-      ),
-      requiredEdits: [{ artifact: '', location: '', change: '', reason: '' }],
-      notes: '',
-    };
+    const form =
+      policy?.schemaVersion >= 2 && policy?.qualityRubric
+        ? {
+            schemaVersion: 2,
+            rubricVersion: policy.qualityRubric.rubricVersion,
+            caseId: benchmarkCase.id,
+            artifactId: `${benchmarkCase.id}-package`,
+            artifactType: 'package',
+            sourceSha256: benchmarkCase.source?.observedSha256 || benchmarkCase.source?.sha256 || '',
+            artifactSha256: benchmarkCase.package?.observedSha256 || benchmarkCase.package?.sha256 || '',
+            reviewedAt: 'YYYY-MM-DDTHH:MM:SSZ',
+            evaluator: {
+              id: 'PSEUDONYMOUS_REVIEWER_ID',
+              evidenceClass: 'human-qualified',
+              qualified: true,
+              independent: true,
+              conflictOfInterest: false,
+              domainMatch: true,
+              currentTeachingRole: '',
+              model: '',
+              modelRevision: '',
+              promptSha256: '',
+            },
+            ratings: Object.fromEntries(
+              flattenRubric(policy.qualityRubric).map((criterion) => [
+                criterion.id,
+                {
+                  state: 'not-evaluated',
+                  score: null,
+                  confidence: 'low',
+                  evidence: [],
+                  rationale: `Inspect ${criterion.name.toLowerCase()} against the bound source and rendered package before scoring.`,
+                },
+              ]),
+            ),
+            criticalFailures: [],
+            overall: {
+              wouldUse: false,
+              editVerdict: 'major-edits',
+              estimatedEditMinutes: 0,
+              notes: '',
+            },
+          }
+        : {
+            schemaVersion: 1,
+            rubricVersion: policy.rubricVersion,
+            caseId: benchmarkCase.id,
+            reviewerId: 'PSEUDONYMOUS_REVIEWER_ID',
+            reviewerRole: 'external-instructor',
+            independent: true,
+            conflictOfInterest: false,
+            reviewedAt: 'YYYY-MM-DD',
+            reviewedPackageVersion: benchmarkCase.package?.appVersion || '',
+            sourceSha256: benchmarkCase.source?.observedSha256 || benchmarkCase.source?.sha256 || '',
+            packageSha256: benchmarkCase.package?.observedSha256 || benchmarkCase.package?.sha256 || '',
+            wouldTeach: false,
+            minimalEditVerdict: 'major-edits',
+            estimatedEditMinutes: 0,
+            dimensionScores: Object.fromEntries(
+              policy.dimensions.map((dimension) => [dimension, { score: 0, evidence: '' }]),
+            ),
+            requiredEdits: [{ artifact: '', location: '', change: '', reason: '' }],
+            notes: '',
+          };
     const formPath = path.join(formsDir, `${benchmarkCase.id}.review.template.json`);
     const serialized = `${JSON.stringify(form, null, 2)}\n`;
     const existing = await fs.readFile(formPath, 'utf8').catch((error) => {
@@ -328,7 +462,17 @@ export async function runIndependentBenchmarkAudit({
 } = {}) {
   const absoluteManifest = path.resolve(manifestPath);
   const manifest = JSON.parse(await fs.readFile(absoluteManifest, 'utf8'));
-  const policy = manifest;
+  const absoluteRubricPath = manifest.rubricPath ? path.resolve(ROOT, manifest.rubricPath) : '';
+  const qualityRubric = absoluteRubricPath ? JSON.parse(await fs.readFile(absoluteRubricPath, 'utf8')) : null;
+  if (absoluteRubricPath && manifest.rubricSha256) {
+    const observedRubricSha256 = await sha256File(absoluteRubricPath);
+    if (observedRubricSha256 !== manifest.rubricSha256) {
+      throw new Error(
+        `Independent benchmark rubric hash mismatch: expected ${manifest.rubricSha256}, observed ${observedRubricSha256}`,
+      );
+    }
+  }
+  const policy = qualityRubric ? { ...manifest, qualityRubric } : manifest;
   const hydratedCases = [];
   for (const benchmarkCase of manifest.cases || []) {
     hydratedCases.push(await hydrateCase(benchmarkCase, path.dirname(absoluteManifest)));

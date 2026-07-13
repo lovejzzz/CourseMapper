@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.12",
+  "version": "0.16.13",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -36,6 +36,10 @@
     "audit:contract:full": "node scripts/contractQualityAudit.mjs --profile full",
     "audit:benchmark": "node scripts/independentBenchmarkAudit.mjs --mode advisory",
     "audit:benchmark:strict": "node scripts/independentBenchmarkAudit.mjs --mode strict",
+    "audit:quality-benchmark": "node scripts/qualityBenchmarkAudit.mjs --mode structure",
+    "audit:quality-benchmark:validated": "node scripts/qualityBenchmarkAudit.mjs --mode validation",
+    "test:quality-benchmark": "node scripts/qualityBenchmarkSelfTest.mjs",
+    "audit:quality-model-comparison": "node scripts/qualityModelComparison.mjs",
     "audit:canary": "node scripts/productionCanaryAudit.mjs --mode advisory",
     "audit:canary:strict": "node scripts/productionCanaryAudit.mjs --mode strict",
     "retain:canary": "node scripts/retainProductionCanaryArtifacts.mjs",

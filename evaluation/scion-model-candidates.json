@@ -100,6 +100,10 @@
     "requiredBrowserDeviceClasses": ["integrated-8gb", "integrated-16gb", "discrete-8gb", "apple-silicon-16gb"],
     "requireControlComparison": true,
     "minimumMatchedControlCourses": 5,
-    "maximumScionCallAmplificationVsControl": 1.25
+    "maximumScionCallAmplificationVsControl": 1.25,
+    "requireHonestQualityBenchmark": true,
+    "minimumQualityComparisonCases": 5,
+    "minimumQualityDeltaLowerBound": 0,
+    "maximumCompilerBurdenDeltaUpperBound": 0
   }
 }

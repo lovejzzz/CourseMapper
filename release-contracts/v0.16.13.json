@@ -1,0 +1,128 @@
+{
+  "version": "0.16.13",
+  "date": "July 13, 2026",
+  "title": "Honest Ruler: a score is not evidence",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run test:quality-benchmark",
+      "npm run audit:quality-benchmark",
+      "npm run audit:scion:model-bakeoff",
+      "npx vitest run scripts/__tests__/qualityBenchmark.test.js tests/scion-model-bakeoff.test.js scripts/__tests__/evaluationSystemAudit.test.js --no-file-parallelism",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run test:blueprint:quality:fast",
+      "npm run audit:deliverables",
+      "npm run audit:pipeline",
+      "npm run audit:evaluation:main",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "The exact release commit has not yet been pushed. Local verification must pass before publication, followed by exact-head Fast verification."
+    },
+    "ciDeep": {
+      "status": "manual-only",
+      "note": "The structural corpus and adversarial software fixtures are not qualified instructor reviews, adapter/base held-out trials, or a real device-speed matrix."
+    },
+    "deploy": {
+      "status": "pending",
+      "note": "Pages deployment is pending the exact verified main merge."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "This release changes the evaluation ruler and promotion admission. It makes no provider call and changes no model, adapter, prompt, or hosted inference route."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "Qualified v1 held-out reviews and approved Scion training pairs remain zero. Software tests never substitute for those external judgments."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01613-evidence-aware-quality-contract",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "One versioned contract separates compiler conformance, rubric profiles, validation tier, operational evidence, and controlled effects across a 13-case corpus, nine dimensions, 26 criteria, and 23 deliverable/package rubrics.",
+      "anchors": [
+        "evaluation/quality-benchmark/v1/manifest.json",
+        "evaluation/quality-benchmark/v1/rubric.json",
+        "docs/QUALITY_BENCHMARK_V1.md",
+        "scripts/qualityBenchmarkAudit.mjs"
+      ],
+      "proofCommands": ["npm run audit:quality-benchmark", "npm run test:quality-benchmark"],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v01613-evidence-caps-and-review-integrity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Evidence-tier caps, critical failure caps, per-review coverage, duplicate-review rejection, explicit evidence states, and single-identity model-judge calibration prevent structural or partial evidence from becoming independent validation.",
+      "anchors": [
+        "scripts/lib/qualityBenchmark.mjs",
+        "evaluation/quality-benchmark/v1/review.schema.json",
+        "scripts/qualityBenchmarkSelfTest.mjs",
+        "scripts/__tests__/qualityBenchmark.test.js"
+      ],
+      "proofCommands": [
+        "npm run test:quality-benchmark",
+        "npx vitest run scripts/__tests__/qualityBenchmark.test.js --no-file-parallelism"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01613-controlled-comparison-integrity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Controlled comparisons bind candidate/control arms, predeclared cases, unique trials and seeds, nonduplicated output pairs, byte-verified scorecards, qualified preferences, failures, speed, cost, and compiler burden.",
+      "anchors": [
+        "evaluation/quality-benchmark/v1/comparison.schema.json",
+        "evaluation/quality-benchmark/v1/comparison.template.json",
+        "scripts/lib/qualityBenchmark.mjs",
+        "scripts/qualityModelComparison.mjs",
+        "scripts/qualityBenchmarkSelfTest.mjs"
+      ],
+      "proofCommands": ["npm run test:quality-benchmark", "npm run audit:quality-benchmark"],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v01613-scion-promotion-uses-v1",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Scion model promotion now requires a measured v1 comparison with five positive held-out case intervals, complete qualified blind review, a Wilson lower bound above parity, and a strictly lower compiler-call interval; legacy summary counts cannot promote.",
+      "anchors": [
+        "evaluation/scion-model-candidates.json",
+        "scripts/scionModelBakeoff.mjs",
+        "tests/scion-model-bakeoff.test.js",
+        "docs/QUALITY_BENCHMARK_V1.md"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:model-bakeoff",
+        "npx vitest run tests/scion-model-bakeoff.test.js --no-file-parallelism"
+      ],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v01613-no-adapter-quality-or-speed-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The benchmark protocol passes structurally while held-out validation remains locked and unverified; approved training pairs, qualified adapter/base wins, and qualifying device-speed profiles remain zero, so hosted Scion remains base-only.",
+      "anchors": [
+        "README.md",
+        "docs/QUALITY_BENCHMARK_V1.md",
+        "evaluation/scion-adapters/evidence/review-campaign-v0.16.11.json",
+        "docs/SCION_BROWSER_DEVICE_MATRIX.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": [
+        "npm run audit:quality-benchmark",
+        "npm run audit:scion:model-bakeoff",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

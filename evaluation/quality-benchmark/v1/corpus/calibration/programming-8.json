@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "programming-8",
+  "split": "calibration",
+  "title": "Programming Fundamentals with JavaScript",
+  "disciplineFamily": "computer-science",
+  "modality": "synchronous-online-lab",
+  "level": "undergraduate-introductory",
+  "lessonCount": 8,
+  "learners": "First-time programmers using a browser console; no command-line experience is assumed.",
+  "coursePurpose": "Build, test, and explain small programs using data, control flow, functions, arrays, and debugging evidence.",
+  "outcomes": [
+    "Trace a program state and predict output.",
+    "Write and test a function from a behavioral specification.",
+    "Diagnose a defect using a minimal reproducible example."
+  ],
+  "assessmentArchitecture": ["trace checks", "problem-set worksheets", "tested mini-project with debugging note"],
+  "sourcePacket": [
+    {
+      "id": "CS-S1",
+      "kind": "project-authored code",
+      "content": "function average(values) { return values.reduce((a, b) => a + b, 0) / values.length; } The function has an unhandled empty-array case."
+    },
+    {
+      "id": "CS-S2",
+      "kind": "project-authored specification",
+      "content": "For an empty array, average must return null. Inputs containing non-numbers are outside the current lesson contract and must be identified as such."
+    }
+  ],
+  "requiredDeliverables": [
+    "courseMap",
+    "syllabus",
+    "lessonPlans",
+    "slideDecks",
+    "assignments",
+    "rubrics",
+    "discussions",
+    "quizBank",
+    "studyGuides",
+    "courseFaq",
+    "problem-set-worksheet",
+    "project-milestone-checklist"
+  ],
+  "localConstraints": [
+    "Every key or worked example must be executable.",
+    "Do not silently broaden the input contract.",
+    "Include keyboard-operable alternatives to drag-only activities."
+  ],
+  "adversarialConditions": [
+    "Empty-input defect.",
+    "An answer explanation incorrectly claims reduce handles empty arrays with no initial value."
+  ],
+  "rights": { "basis": "Project-authored benchmark fixture; repository license applies.", "thirdPartyContent": false }
+}

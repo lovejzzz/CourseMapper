@@ -1,5 +1,7 @@
 # The Classroom-Ready Rubric (CCR) v1.0
 
+> Historical rubric: superseded for current scoring by `evaluation/quality-benchmark/v1/rubric.json` and `docs/QUALITY_BENCHMARK_V1.md`. Keep this document as design history only. Its internal-judge scores and June 2026 baseline must not be presented as independent validation or current v1 evidence.
+
 The judging instrument for CourseMapper output quality. Every release candidate from v0.9.1 onward is scored against this rubric by the standing quality judge (the development agent), using the protocol in §5. The bar is deliberately set at the level of professional university course materials — the package an experienced instructor at a serious institution would put their name on.
 
 ## 1. Framework anchoring

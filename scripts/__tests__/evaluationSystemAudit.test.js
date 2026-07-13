@@ -197,6 +197,7 @@ describe('layered evaluation system', () => {
   it('allows advisory profiles to pass with a bounded contract claim but blocks release', () => {
     const tiers = {
       contract: tier('pass', { fixtureCount: 40 }),
+      qualityBenchmark: tier('pass', { validCorpusCases: 12 }),
       independentBenchmark: tier('unverified', { completedCases: 0 }),
       productionCanary: tier('unverified', { proofEligibleRuns: 0 }),
     };
@@ -208,6 +209,20 @@ describe('layered evaluation system', () => {
       status: 'fail',
       claimStatus: 'compiler-contract-only',
       failedRequiredTiers: ['independentBenchmark', 'productionCanary'],
+    });
+  });
+
+  it('bounds a fully passing release claim to the declared evaluation scope', () => {
+    const tiers = {
+      contract: tier('pass', { fixtureCount: 40 }),
+      qualityBenchmark: tier('pass', { validCorpusCases: 12 }),
+      independentBenchmark: tier('pass', { completedCases: 8 }),
+      productionCanary: tier('pass', { proofEligibleRuns: 3 }),
+    };
+    expect(buildEvaluationSystemSummary(tiers, 'release')).toMatchObject({
+      status: 'pass',
+      claimStatus: 'independently-validated-for-declared-scope',
+      independentlyValidated: true,
     });
   });
 });

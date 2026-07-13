@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coursemapper.local/schemas/quality-review-v2.json",
+  "title": "CourseMapper evidence-aware quality review v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "rubricVersion",
+    "caseId",
+    "artifactId",
+    "artifactType",
+    "sourceSha256",
+    "artifactSha256",
+    "reviewedAt",
+    "evaluator",
+    "ratings",
+    "criticalFailures",
+    "overall"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "rubricVersion": { "const": "1.0.0" },
+    "caseId": { "type": "string", "minLength": 3 },
+    "artifactId": { "type": "string", "minLength": 2 },
+    "artifactType": { "type": "string", "minLength": 3 },
+    "sourceSha256": { "$ref": "#/$defs/sha256" },
+    "artifactSha256": { "$ref": "#/$defs/sha256" },
+    "reviewedAt": { "type": "string", "format": "date-time" },
+    "evaluator": {
+      "type": "object",
+      "required": [
+        "id",
+        "evidenceClass",
+        "qualified",
+        "independent",
+        "conflictOfInterest",
+        "domainMatch",
+        "currentTeachingRole"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 3 },
+        "evidenceClass": { "enum": ["deterministic", "model-judge", "human-qualified", "human-other"] },
+        "qualified": { "type": "boolean" },
+        "independent": { "type": "boolean" },
+        "conflictOfInterest": { "type": "boolean" },
+        "domainMatch": { "type": "boolean" },
+        "currentTeachingRole": { "type": "string" },
+        "model": { "type": "string" },
+        "modelRevision": { "type": "string" },
+        "promptSha256": { "type": "string" }
+      }
+    },
+    "ratings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "IA1",
+        "IA2",
+        "IA3",
+        "SF1",
+        "SF2",
+        "SF3",
+        "SF4",
+        "AF1",
+        "AF2",
+        "AF3",
+        "TU1",
+        "TU2",
+        "TU3",
+        "SC1",
+        "SC2",
+        "SC3",
+        "AC1",
+        "AC2",
+        "AC3",
+        "IR1",
+        "IR2",
+        "IR3",
+        "PC1",
+        "PC2",
+        "XC1",
+        "XC2"
+      ],
+      "properties": {
+        "IA1": { "$ref": "#/$defs/rating" },
+        "IA2": { "$ref": "#/$defs/rating" },
+        "IA3": { "$ref": "#/$defs/rating" },
+        "SF1": { "$ref": "#/$defs/rating" },
+        "SF2": { "$ref": "#/$defs/rating" },
+        "SF3": { "$ref": "#/$defs/rating" },
+        "SF4": { "$ref": "#/$defs/rating" },
+        "AF1": { "$ref": "#/$defs/rating" },
+        "AF2": { "$ref": "#/$defs/rating" },
+        "AF3": { "$ref": "#/$defs/rating" },
+        "TU1": { "$ref": "#/$defs/rating" },
+        "TU2": { "$ref": "#/$defs/rating" },
+        "TU3": { "$ref": "#/$defs/rating" },
+        "SC1": { "$ref": "#/$defs/rating" },
+        "SC2": { "$ref": "#/$defs/rating" },
+        "SC3": { "$ref": "#/$defs/rating" },
+        "AC1": { "$ref": "#/$defs/rating" },
+        "AC2": { "$ref": "#/$defs/rating" },
+        "AC3": { "$ref": "#/$defs/rating" },
+        "IR1": { "$ref": "#/$defs/rating" },
+        "IR2": { "$ref": "#/$defs/rating" },
+        "IR3": { "$ref": "#/$defs/rating" },
+        "PC1": { "$ref": "#/$defs/rating" },
+        "PC2": { "$ref": "#/$defs/rating" },
+        "XC1": { "$ref": "#/$defs/rating" },
+        "XC2": { "$ref": "#/$defs/rating" }
+      }
+    },
+    "criticalFailures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "evidence"],
+        "properties": {
+          "id": { "type": "string", "minLength": 3 },
+          "criterionId": { "type": "string" },
+          "evidence": { "$ref": "#/$defs/evidence" }
+        }
+      }
+    },
+    "overall": {
+      "type": "object",
+      "required": ["wouldUse", "editVerdict", "estimatedEditMinutes", "notes"],
+      "properties": {
+        "wouldUse": { "type": "boolean" },
+        "editVerdict": { "enum": ["as-is", "minor-edits", "major-edits", "cannot-use"] },
+        "estimatedEditMinutes": { "type": "number", "minimum": 0 },
+        "notes": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+    "evidence": {
+      "type": "object",
+      "required": ["artifact", "location"],
+      "properties": {
+        "artifact": { "type": "string", "minLength": 2 },
+        "location": { "type": "string", "minLength": 2 },
+        "quote": { "type": "string" },
+        "observation": { "type": "string" }
+      },
+      "anyOf": [{ "required": ["quote"] }, { "required": ["observation"] }]
+    },
+    "rating": {
+      "type": "object",
+      "required": ["state", "score", "confidence", "evidence"],
+      "properties": {
+        "state": { "enum": ["scored", "not-applicable", "not-evaluated", "insufficient-evidence"] },
+        "score": { "type": ["integer", "null"], "minimum": 0, "maximum": 4 },
+        "confidence": { "enum": ["low", "medium", "high"] },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+        "rationale": { "type": "string" },
+        "interpolationRationale": { "type": "string" }
+      }
+    }
+  }
+}

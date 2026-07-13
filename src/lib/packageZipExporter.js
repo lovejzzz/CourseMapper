@@ -164,6 +164,9 @@ function countQualityFindings(findings = []) {
   return counts;
 }
 
+const AUTOMATED_QUALITY_CLAIM_BOUNDARY =
+  'Absence of encoded findings is not proof of factual accuracy, accessibility, teachability, or independent validation.';
+
 function normalizePrecomputedPackageQuality(quality) {
   if (!quality || quality.status !== 'graded') return null;
   const score = Number(quality.score);
@@ -186,6 +189,10 @@ function normalizePrecomputedPackageQuality(quality) {
       : null;
   const block = {
     status: 'graded',
+    evidenceClass: quality.evidenceClass || 'deterministic',
+    validationTier: quality.validationTier || 'automated-signal',
+    construct: quality.construct || 'encoded-package-defect-conformance',
+    claimBoundary: quality.claimBoundary || AUTOMATED_QUALITY_CLAIM_BOUNDARY,
     score,
     grade: quality.grade || 'A',
     graderVersion: quality.graderVersion || 'precomputed-finish-pass',
@@ -237,6 +244,10 @@ function renderPrecomputedQualityReport(precomputed, { courseTitle = 'Course' } 
   lines.push('');
   lines.push(
     `**Overall: ${quality.score}/100 (${quality.grade})** · ${findingCount} findings (${counts.p0} P0 · ${counts.p1} P1 · ${counts.p2} P2)${precomputed.fileCount ? ` · ${precomputed.fileCount} files` : ''}`,
+  );
+  lines.push('');
+  lines.push(
+    `**Evidence class:** ${quality.evidenceClass || 'deterministic'} package-defect conformance · **Validation tier:** ${quality.validationTier || 'automated-signal'} · ${quality.claimBoundary || AUTOMATED_QUALITY_CLAIM_BOUNDARY}`,
   );
   lines.push('');
   lines.push(
@@ -1841,6 +1852,10 @@ export async function buildCourseMaterialsZip({
           qualityResult = raced.value;
           qualityBlock = {
             status: 'graded',
+            evidenceClass: qualityResult.evidenceClass || 'deterministic',
+            validationTier: qualityResult.validationTier || 'automated-signal',
+            construct: qualityResult.construct || 'encoded-package-defect-conformance',
+            claimBoundary: qualityResult.claimBoundary || AUTOMATED_QUALITY_CLAIM_BOUNDARY,
             score: qualityResult.overall.score,
             grade: qualityResult.overall.grade,
             graderVersion: GRADER_VERSION,

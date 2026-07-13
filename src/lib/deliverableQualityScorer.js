@@ -3,11 +3,10 @@
  *
  * Feature 6.3 — Deliverable Quality Scores
  *
- * After each deliverable is generated, evaluate it on 4 dimensions (0-10 each):
- *   - Bloom's Alignment: do activities/assessments match lesson Bloom's level targets?
- *   - Specificity: are items concrete and actionable vs. vague?
- *   - Actionability: can instructors immediately use these without modification?
- *   - QM Alignment: does the deliverable meet Quality Matters HE Rubric standards?
+ * After each deliverable is generated, inspect four inexpensive content signals.
+ * These are keyword/structure proxies, not a quality score, validation study, or
+ * Quality Matters review. The legacy `qmAlignment` field name is retained only
+ * so saved projects and downstream fixtures remain readable.
  *
  * Returns { bloomsAlignment, specificity, actionability, qmAlignment, tips }
  *
@@ -15,7 +14,7 @@
  * falling back to an AI scoring call when a stream provider is available.
  */
 
-export const QUALITY_SCORER_SYSTEM_PROMPT = `You are an expert instructional designer evaluating course deliverables. Score the provided deliverable on four dimensions, each 0-10. Return ONLY valid JSON with no explanation or markdown:
+export const QUALITY_SCORER_SYSTEM_PROMPT = `You are an instructional-design diagnostic assistant inspecting a small sample of a course deliverable. Report provisional content signals on four dimensions, each 0-10. Do not claim that this is a full quality, factual-accuracy, accessibility, teachability, or Quality Matters review. Return ONLY valid JSON with no explanation or markdown:
 {
   "bloomsAlignment": number,
   "specificity": number,
@@ -27,7 +26,7 @@ Scoring rubric:
 - bloomsAlignment (0-10): Do the activities/assessments target appropriate Bloom's cognitive levels? 10 = well-distributed, aligned to objectives. 0 = all at recall level with no higher-order.
 - specificity (0-10): Are items concrete with clear parameters? 10 = measurable, time-bound, precise. 0 = vague, generic, cookie-cutter.
 - actionability (0-10): Can an instructor use this without modification? 10 = ready-to-use. 0 = needs major rework.
-- qmAlignment (0-10): Does the deliverable meet Quality Matters Higher Education Rubric standards? 10 = clear objective-activity-assessment alignment, variety of methods, explicit learner support, accessible design. 0 = no alignment evidence, missing key QM elements (measurable objectives, assessment-objective mapping, learner interaction, support resources).
+- qmAlignment (legacy field name, 0-10): Are course-design markers visible in this sample, such as objective links, varied learning methods, interaction, and learner-support language? This is not a Quality Matters judgment and must not be labeled as one.
 Provide 3 brief, actionable improvement tips (max 15 words each).`;
 
 /**
@@ -138,7 +137,8 @@ export function scoreHeuristic(featureId, data) {
       tips.push('Add specific time estimates, word counts, or point values.');
     }
 
-    // QM alignment check: objective alignment, variety, learner support, accessibility
+    // Course-design marker check. The qmAlignment identifier is legacy storage compatibility;
+    // keyword presence cannot establish Quality Matters conformance or accessibility.
     const alignmentMarkers = /objective|aligned|measurable|learner.centered|learning outcome/gi;
     const varietyMarkers = /variety|multiple|diverse|different types/gi;
     const supportMarkers = /support|help|office hours|tutoring|accommodat|accessib/gi;
@@ -190,7 +190,18 @@ export function scoreHeuristic(featureId, data) {
     /* noop */
   }
 
-  return { bloomsAlignment, specificity, actionability, qmAlignment, tips: tips.slice(0, 3) };
+  return {
+    bloomsAlignment,
+    specificity,
+    actionability,
+    qmAlignment,
+    tips: tips.slice(0, 3),
+    evidenceClass: 'deterministic',
+    validationTier: 'automated-signal',
+    construct: 'surface-content-signals',
+    claimBoundary:
+      'Keyword and structure proxies only; not factual, source, accessibility, teachability, or rubric validation.',
+  };
 }
 
 /**
@@ -213,4 +224,10 @@ export function scoreColor(avg) {
   if (avg >= 8) return { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200' };
   if (avg >= 6) return { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' };
   return { bg: 'bg-red-100', text: 'text-red-600', border: 'border-red-200' };
+}
+
+export function signalBand(score) {
+  if (score >= 8) return { label: 'strong signals', shortLabel: 'Strong' };
+  if (score >= 6) return { label: 'mixed signals', shortLabel: 'Mixed' };
+  return { label: 'weak signals', shortLabel: 'Weak' };
 }
