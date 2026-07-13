@@ -649,7 +649,7 @@ export async function runCourseInBrowser({
     // Generation can take 5+ minutes; bounded by the overall budget. On-device
     // LLM retry ladders run ~2min/call — shim rounds get 3× step caps so the
     // app's own recovery path can finish instead of the driver aborting it.
-    const stepCap = llmShimUrl ? (cap) => remaining(cap ? cap * 3 : cap) : remaining;
+    const stepCap = llmShimUrl || localEndpoint ? (cap) => remaining(cap ? cap * 3 : cap) : remaining;
     await page.getByTestId('workspace-shell').waitFor({ timeout: stepCap(600_000) });
 
     phase = 'finalizing-package';

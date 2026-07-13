@@ -419,6 +419,7 @@ async function runLiveFactualScreening({
 
 export async function importCrucibleFullCourseEvidence({ roundDir, candidate, registry }) {
   const names = await fs.readdir(roundDir);
+  const portableRoundDir = path.posix.join('verification-output/crucible', path.basename(roundDir));
   const fullCourses = [];
   for (const name of names.sort()) {
     const courseDir = path.join(roundDir, name);
@@ -480,7 +481,7 @@ export async function importCrucibleFullCourseEvidence({ roundDir, candidate, re
       readinessBlockers: Number(manifest?.readiness?.blockers) || 0,
       readinessWarnings: Number(manifest?.readiness?.warnings) || 0,
       compilerBurden,
-      sourceArtifact: path.relative(process.cwd(), courseDir),
+      sourceArtifact: path.posix.join(portableRoundDir, name),
     });
   }
   if (fullCourses.length === 0) throw new Error(`No Crucible course artifacts found in ${roundDir}.`);
@@ -491,7 +492,7 @@ export async function importCrucibleFullCourseEvidence({ roundDir, candidate, re
     servingModelId: candidate.servingModelId,
     evidenceType: 'crucible-full-course',
     observedAt: new Date().toISOString(),
-    roundDir: path.relative(process.cwd(), roundDir),
+    roundDir: portableRoundDir,
     fullCourses,
   };
 }

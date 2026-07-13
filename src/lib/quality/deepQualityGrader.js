@@ -2000,6 +2000,7 @@ function disciplineProbeVocab(probe) {
   if (probe === 'nursing') return NURSING_VOCAB;
   if (probe === 'nutrition') return NUTRITION_VOCAB;
   if (probe === 'astro') return ASTRO_VOCAB;
+  if (probe === 'business-ethics') return BUSINESS_ETHICS_CITATION_VOCAB;
   return [];
 }
 
@@ -2680,6 +2681,44 @@ const ASTRO_OBSERVING_CONTAMINATION_TERMS = [
   { label: 'dark adaptation', re: /\bdark adaptation\b/i },
   { label: 'altitude-in-fists', re: /\bone fist at arm[’']s length\b/i },
 ];
+const MUSIC_CONTAMINATION_TERMS = [
+  { label: 'counterpoint', re: /\b(?:baroque |species |free )?counterpoint\b/i },
+  { label: 'fugue', re: /\bfug(?:ue|al)\b/i },
+  { label: 'melodic-line', re: /\bmelodic (?:line|contour|independence)\b/i },
+  { label: 'composer', re: /\bcomposer\b/i },
+  { label: 'harmonic-interval', re: /\b(?:harmonic tension|perfect fifth|minor third|major third)\b/i },
+];
+const MUSIC_COURSE_RE =
+  /\b(?:music|musical|composition|harmony|counterpoint|orchestration|musicology|aural skills?)\b/i;
+
+// Citation-relevance vocabulary only. Business Ethics is intentionally not a
+// genome-density probe: unfamiliar disciplines should not inherit a coverage
+// quota merely because their legitimate source titles need topical context.
+const BUSINESS_ETHICS_CITATION_VOCAB = [
+  'business ethics',
+  'utilitarianism',
+  'deontology',
+  'virtue ethics',
+  'stakeholder',
+  'corporate social responsibility',
+  'whistleblowing',
+  'conflict of interest',
+  'fiduciary',
+  'workplace rights',
+  'discrimination',
+  'consumer protection',
+  'consumer rights',
+  'product safety',
+  'safety organization',
+  'liability',
+  'environmental responsibility',
+  'sustainability',
+  'cross-cultural ethics',
+  'marketing ethics',
+  'advertising standards',
+  'compliance',
+  'governance',
+];
 
 function inferDisciplineProbe(course) {
   // A course's expectGenome discipline (set in courses.mjs) takes precedence so
@@ -2706,6 +2745,7 @@ function inferDisciplineProbe(course) {
   if (/psycholog/.test(text) || course?.id === 'psych-101') return 'psych';
   if (/nursing|nurse/.test(text) || course?.id === 'nursing-fundamentals') return 'nursing';
   if (/nutrition|dietetic/.test(text) || course?.id === 'nutrition-101') return 'nutrition';
+  if (/business ethics|corporate ethics/.test(text) || course?.id === 'business-ethics') return 'business-ethics';
   if (
     /astronom|astrophysic|cosmolog|celestial|telescope|night sky|planetary|galax/.test(text) ||
     course?.id === 'astro-101'
@@ -2766,29 +2806,50 @@ function quoteAroundMatch(text, regex, limit = 200) {
   return clean.slice(start, start + limit).trim();
 }
 
-function checkForeignDomainContamination(findings, { files }, probe) {
-  if (probe === 'astro') return;
+function checkForeignDomainContamination(findings, { files }, probe, course) {
+  const courseTitle = String(course?.title || course?.courseName || course?.id || '');
   for (const file of files.filter((entry) => entry.featureId && entry.text)) {
-    const hits = ASTRO_OBSERVING_CONTAMINATION_TERMS.filter((term) => term.re.test(file.text));
-    const headerHit = /\bOBSERVATION PROTOCOL THIS WEEK\b/i.test(file.text);
-    if (hits.length < 2 && !(headerHit && hits.length >= 1)) continue;
-    findings.add({
-      severity: 'P0',
-      dimension: 'discipline',
-      file: file.path,
-      detail: `foreign astronomy observation protocol appears in ${probe || 'a non-astronomy'} package (${hits
-        .map((hit) => hit.label)
-        .join(', ')})`,
-      evidence: quoteAroundMatch(file.text, hits[0]?.re || /\bOBSERVATION PROTOCOL THIS WEEK\b/i),
-    });
-    return;
+    if (probe !== 'astro') {
+      const hits = ASTRO_OBSERVING_CONTAMINATION_TERMS.filter((term) => term.re.test(file.text));
+      const headerHit = /\bOBSERVATION PROTOCOL THIS WEEK\b/i.test(file.text);
+      if (hits.length >= 2 || (headerHit && hits.length >= 1)) {
+        findings.add({
+          severity: 'P0',
+          dimension: 'discipline',
+          file: file.path,
+          detail: `foreign astronomy observation protocol appears in ${probe || 'a non-astronomy'} package (${hits
+            .map((hit) => hit.label)
+            .join(', ')})`,
+          evidence: quoteAroundMatch(file.text, hits[0]?.re || /\bOBSERVATION PROTOCOL THIS WEEK\b/i),
+        });
+        return;
+      }
+    }
+    if (!MUSIC_COURSE_RE.test(courseTitle)) {
+      const musicHits = MUSIC_CONTAMINATION_TERMS.filter((term) => term.re.test(file.text));
+      if (musicHits.length >= 2) {
+        findings.add({
+          severity: 'P0',
+          dimension: 'discipline',
+          file: file.path,
+          detail: `foreign music-theory content appears in ${probe || 'a non-music'} package (${musicHits
+            .map((hit) => hit.label)
+            .join(', ')})`,
+          evidence: quoteAroundMatch(file.text, musicHits[0].re),
+        });
+        return;
+      }
+    }
   }
 }
 
 function checkDiscipline(findings, { files }, course) {
-  if (probesSuppressed(course)) return;
   const probe = inferDisciplineProbe(course);
-  checkForeignDomainContamination(findings, { files }, probe);
+  // Strong cross-domain contamination is a universal package-safety check,
+  // including for stranger courses whose discipline-specific density probes
+  // are intentionally suppressed.
+  checkForeignDomainContamination(findings, { files }, probe, course);
+  if (probesSuppressed(course)) return;
   checkHistoryFallbackLanguage(findings, { files }, course);
   if (!probe) return;
 

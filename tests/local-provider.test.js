@@ -117,5 +117,10 @@ describe('local provider — the house model surface', () => {
     expect(localServer).toContain("modelState = 'ready'");
     expect(localServer).toContain('modelReady: modelState ===');
     expect(localServer).toContain('modelLoadMs');
+    expect(localServer).toContain('completedCalls');
+    expect(localServer).toContain('inFlightCalls');
+    expect(localServer).toContain('modelMetrics');
+    expect(localServer).not.toContain('Course: Music theory. Lesson:');
+    expect(crucible).toContain('llmShimUrl || localEndpoint');
   });
 });

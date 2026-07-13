@@ -1,7 +1,29 @@
 # Scion Next Level — Verified Learning, Not Model Imitation
 
-**Status:** implementation in progress; compiler slice verified, training corpus intentionally empty
+**Status:** implementation in progress; two-domain audit complete, one domain qualifies, training corpus intentionally empty
 **North star:** Scion produces a more teachable, more internally coherent course than a paid frontier baseline at a fraction of the cost, and the evidence survives blind instructor review.
+
+## v0.16.5 — Domain Truth
+
+### Goal
+
+Use the second exact-provenance domain as a compiler and evaluator audit, even if neither model wins. Correct every false-green mechanism the matched Business Ethics pair exposes before counting another domain.
+
+### Evidence
+
+Gemma 4 E2B and Qwen3.5 4B ran the same 12-lesson Business Ethics brief through the real Local provider with voice off, one browser, the v0.16.4 compiler, ZIP export, and deep grader. Neither run qualifies. Gemma initially reported 98/A with two P2s, but the exported package contains music-theory material inside Business Ethics lesson surfaces; the v0.16.5 grader replay correctly produces 74/C with one foreign-domain P0. Qwen completed in 551 seconds at 89/B with six P1s because three named readings vanish from both lesson-plan materials and the syllabus schedule. Qwen's final package contains no music-theory contamination.
+
+Both models independently returned all 12 native sessions and then stopped inside the top-level `assessments` array: 2,432 characters for Gemma and 5,546 for Qwen. The new recovery closes only an array prefix ending after a fully complete object, retains the sessions, synthesizes a complete per-session assessment cadence, and records the intervention. Replaying both saved responses now yields 12 sessions, 12 assessments, and exactly 100% total weight. A response ending inside an assessment object remains unrecoverable.
+
+The pair exposed two false instruments. First, Gemma's first attempt crossed Crucible's 10-minute workspace wait just as enrichment finished; the driver mislabeled that generation timeout as `finalizing-package` and retried. Real Local-provider runs now receive the same 3× step cap as shim-routed runs. Second, the quiz best-of-two path literally said `Course: Music theory`, and later repair prompts asked the model to avoid `advanced theory` and `double-check the music theory`. Those strings are removed, and a multi-signal foreign music-theory detector now blocks non-music packages as P0 while exempting actual music courses.
+
+Local evaluation telemetry now reports started, completed, failed, and in-flight inner model generations. Optional body logs carry per-request inner-call counts through async-local attribution, so a browser digest showing six provider calls can no longer erase dozens of local generations. Evidence imported from an external cache worktree is normalized to portable `verification-output/crucible/<round>` identifiers. The compact retained record is `evaluation/scion-domain-evidence/business-ethics-v0.16.5.json`.
+
+The corrected compiler then completed a fresh exact-Gemma browser run, `round-2026-07-13T02-50-48-419Z`, in 762 seconds. It stayed on native authoring after the disclosed skeleton recovery, exported all 12 sessions, passed 38/38 export checks, and completed all 87 inner model generations with zero failures. Its live 89/B report contained only two evaluator false positives: `Utilitarianism` and `UL (safety organization)` were treated as unrelated to Business Ethics. A citation-only Business Ethics vocabulary now recognizes ethical frameworks and product-safety sources without enabling a discipline-density quota. The universal contamination gate also runs before generic-course probe suppression. Regrading the exact saved package produces 99/A with zero findings; the original report remains retained rather than rewritten.
+
+### Release Boundary
+
+v0.16.5 changes no model weights and promotes no candidate. The original Business Ethics pair is a failed diagnostic comparison; the post-fix Gemma package is successful compiler proof, but it is not a current-compiler matched candidate/control win. UX remains the only qualifying matched domain; four matched passing domains, the device matrix, and blind instructor evidence remain required.
 
 ## v0.16.4 — Exact Control
 

@@ -286,6 +286,10 @@ describe('Scion model bake-off', () => {
         scionPassCalls: 85,
         extractedFiles: 101,
       });
+      expect(evidence.roundDir).toBe(`verification-output/crucible/${path.basename(root)}`);
+      expect(evidence.fullCourses[0].sourceArtifact).toBe(
+        `verification-output/crucible/${path.basename(root)}/ux-design-studio--quiet--local`,
+      );
       await fsp.writeFile(
         path.join(courseDir, 'course.json'),
         JSON.stringify({

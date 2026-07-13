@@ -70,6 +70,10 @@ npm run audit:scion:model-bakeoff -- \
 
 Current evidence screens both Gemma 4 E2B and Qwen3.5 4B at 23/25 cold twice and 25/25 grounded twice. The first exact-provenance full-course pair is complete: on the same 12-lesson UX brief and current compiler, Qwen and Gemma both reached 99/A, zero P0/P1/P2, 101 extracted files, and $0 in 382 and 384 seconds. Qwen remains unpromoted because only one of five domains is complete, device and instructor evidence are absent, and its 85 Scion quality-pass calls are 1.64× Gemma's 52 calls—above the 1.25× ceiling.
 
+The second exact-provenance pair is retained as failed diagnostic evidence under `evaluation/scion-domain-evidence/business-ethics-v0.16.5.json`. Gemma's Business Ethics package initially reported 98/A but contains foreign music-theory material and regrades 74/C with one P0 under the corrected discipline gate. Qwen's matched package is 89/B with six named-reading identity P1s. Both models emitted all 12 native sessions and then stopped inside the top-level assessments array; the saved responses now replay through the narrow recovery to 12 sessions, 12 deterministic assessments, and 100% total weight. Neither package is `packageValid`, so Business Ethics does not increase passing-domain coverage.
+
+The post-fix exact-Gemma browser run `round-2026-07-13T02-50-48-419Z` is retained in the compact domain record as compiler proof: 762 seconds, 38/38 export checks, 87/87 completed inner generations, zero failed generations, and no foreign-domain contamination. Its two live P1s were evaluator false positives for legitimate Business Ethics sources. The calibrated citation vocabulary regrades that exact saved package 99/A with zero findings, while the universal contamination check still catches multi-signal leakage even when a course uses the generic probe profile. It does not promote a model because there is no current-compiler matched candidate/control pair.
+
 Audit the compiler—not just the model—with:
 
 ```bash

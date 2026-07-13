@@ -115,6 +115,32 @@ describe('foreign-domain contamination quality gate', () => {
     expect(result.overall.grade).not.toBe('A');
   });
 
+  it('grades leaked music-theory quiz content as a P0 in Business Ethics but not in a music course', async () => {
+    const files = {
+      'Quiz & Exam Bank/Lesson 01 - Ethics - Quiz.txt':
+        'When analyzing a Baroque counterpoint passage, what distinguishes species counterpoint from a fugal texture? A composer uses two independent melodic lines.',
+    };
+    const business = await grade({
+      fileProvider: createMemoryFileProvider(files),
+      course: { title: 'Business Ethics', probeProfile: 'generic' },
+    });
+    const music = await grade({
+      fileProvider: createMemoryFileProvider(files),
+      course: { title: 'Music Theory' },
+    });
+
+    expect(business.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          dimension: 'discipline',
+          detail: expect.stringMatching(/foreign music-theory content/i),
+        }),
+      ]),
+    );
+    expect(music.findings.some((finding) => /foreign music-theory content/i.test(finding.detail))).toBe(false);
+  });
+
   it('turns any quality P0 into a readiness blocker', () => {
     const result = applyQualityToFinalizerResult(
       {

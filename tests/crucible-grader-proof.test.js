@@ -1049,6 +1049,31 @@ describe('Crucible grader — discipline-breadth calibration (FP-1..5)', () => {
     expect(result.findings.filter((f) => f.dimension === 'citations' && /off-discipline/i.test(f.detail))).toEqual([]);
   });
 
+  it('FP-3: Business Ethics recognizes ethical frameworks and product-safety sources', async () => {
+    const syllabus = [
+      'Business Ethics - Syllabus',
+      'COURSE READINGS',
+      'Wikipedia contributors. Utilitarianism. Wikipedia: https://en.wikipedia.org/wiki/Utilitarianism (CC BY-SA 4.0)',
+      'Wikipedia contributors. UL (safety organization). Wikipedia: https://en.wikipedia.org/wiki/UL_(safety_organization) (CC BY-SA 4.0)',
+    ].join('\n');
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        ...citationFileMap({
+          courseName: 'Business Ethics',
+          lessonTitle: 'Product Safety and Consumer Rights',
+          lessonNumber: 6,
+          disciplineFiller:
+            'utilitarianism deontology virtue ethics stakeholder responsibility governance compliance consumer rights product safety',
+          citationLine:
+            'Wikipedia contributors. Business ethics. Wikipedia: https://en.wikipedia.org/wiki/Business_ethics (CC BY-SA 4.0)',
+        }),
+        'Syllabus/Business Ethics - Syllabus.md': syllabus,
+      }),
+      course: { id: 'business-ethics', title: 'Business Ethics', featureIds: FEATURES },
+    });
+    expect(result.findings.filter((f) => f.dimension === 'citations' && /off-discipline/i.test(f.detail))).toEqual([]);
+  });
+
   // FP-3 GUARD: a genuinely off-topic medical paper for a CS lesson STILL rejects.
   it('FP-3 guard: a medical (cardiovascular/diabetes) paper for a CS lesson still fires off-discipline', async () => {
     const result = await grade({

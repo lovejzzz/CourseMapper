@@ -350,6 +350,63 @@ function extractJsonObject(text) {
   }
 }
 
+/**
+ * Recover a skeleton response that stopped after one or more complete items
+ * in a top-level array (the observed local-model failure ends with
+ * `"assessments":[{...},`). The recovery is deliberately narrow: it never
+ * invents a partial object and only closes a root array after its last fully
+ * closed object. Structural validation still runs in the normal parser.
+ */
+export function recoverTruncatedSkeletonObject(text) {
+  const raw = String(text || '').trim();
+  const start = raw.indexOf('{');
+  if (start < 0) return null;
+  const source = raw.slice(start);
+  const stack = [];
+  let inString = false;
+  let escaped = false;
+  let activeTopLevelArray = false;
+  let lastCompleteElementEnd = -1;
+
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === '{' || char === '[') {
+      if (char === '[' && stack.length === 1 && stack[0] === '{') {
+        activeTopLevelArray = true;
+        lastCompleteElementEnd = -1;
+      }
+      stack.push(char);
+      continue;
+    }
+    if (char !== '}' && char !== ']') continue;
+    const expected = char === '}' ? '{' : '[';
+    if (stack.at(-1) !== expected) return null;
+    if (char === '}' && activeTopLevelArray && stack.length === 3 && stack[1] === '[') {
+      lastCompleteElementEnd = index + 1;
+    }
+    stack.pop();
+    if (char === ']' && activeTopLevelArray && stack.length === 1) activeTopLevelArray = false;
+  }
+
+  if (!activeTopLevelArray || stack[0] !== '{' || stack[1] !== '[' || lastCompleteElementEnd < 0) return null;
+  try {
+    const recovered = JSON.parse(`${source.slice(0, lastCompleteElementEnd)}]}`);
+    return Array.isArray(recovered?.sessions) && recovered.sessions.length > 0 ? recovered : null;
+  } catch {
+    return null;
+  }
+}
+
 const SKELETON_ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam', 'oral']);
 
 function distributeWeightPercent(count) {
@@ -441,7 +498,9 @@ export function briefNamesResources(sourceText) {
  *   sourceNamesResources?: boolean }}
  */
 export function parseNativeSkeletonResponse(text, { expectedLessons = null, sourceText = null } = {}) {
-  const parsed = extractJsonObject(text);
+  const complete = extractJsonObject(text);
+  const parsed = complete || recoverTruncatedSkeletonObject(text);
+  const recoveredFromTruncation = !complete && Boolean(parsed);
   if (!parsed) throw new NativeAuthoringError('skeleton-unparseable', 'Pass A returned no parseable JSON object');
   if (!Array.isArray(parsed.sessions) || parsed.sessions.length === 0) {
     throw new NativeAuthoringError('skeleton-no-sessions', 'Pass A skeleton has no sessions array');
@@ -498,7 +557,13 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       };
     })
     .filter(Boolean);
-  const assessments = parsedAssessments.length > 0 ? parsedAssessments : synthesizeSessionAssessments(sessions);
+  // A recovered response has an incomplete assessment registry by
+  // construction. Use the compiler's complete deterministic cadence instead
+  // of treating an arbitrary prefix as the whole grading plan.
+  const assessments =
+    !recoveredFromTruncation && parsedAssessments.length > 0
+      ? parsedAssessments
+      : synthesizeSessionAssessments(sessions);
 
   const readings = asArray(parsed.readings)
     .map((entry, index) => {
@@ -532,6 +597,14 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     assessments,
     readings,
     resources,
+    ...(recoveredFromTruncation
+      ? {
+          responseRecovery: {
+            kind: 'closed-complete-top-level-array-prefix',
+            assessmentCadence: 'synthesized-per-session',
+          },
+        }
+      : {}),
     // Only stamped when the caller supplied the brief text — absent means
     // "signal unknown" and the missing-resources lint stays un-armed (old
     // call sites and stashed skeletons keep today's behavior exactly).

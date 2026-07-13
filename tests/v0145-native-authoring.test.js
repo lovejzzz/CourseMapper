@@ -47,6 +47,7 @@ import {
   parseNativeSkeletonResponse,
   pickNativeKernel,
   readAuthoringMode,
+  recoverTruncatedSkeletonObject,
   recoverMissingSkeletonResources,
   resolveNativeAssembly,
   saveAuthoringMode,
@@ -299,6 +300,37 @@ describe('Pass A skeleton contract (B1)', () => {
   it('tolerates code fences and surrounding prose', () => {
     const fenced = '```json\n' + SKELETON_RESPONSE + '\n```\nDone.';
     expect(parseNativeSkeletonResponse(fenced).sessions).toHaveLength(3);
+  });
+
+  it('recovers only complete top-level skeleton array items after a constrained-decoder early stop', () => {
+    const truncated = JSON.stringify({
+      course: { name: 'Business Ethics', goals: ['Analyze ethical decisions'] },
+      sessions: [
+        { order: 1, title: 'Ethical Frameworks' },
+        { order: 2, title: 'Stakeholder Responsibility' },
+      ],
+      assessments: [{ title: 'Midterm', dueSession: 2, weightPct: 20 }],
+    }).replace(/\]\}$/, ',');
+
+    expect(recoverTruncatedSkeletonObject(truncated)).toMatchObject({
+      course: { name: 'Business Ethics' },
+      sessions: [{ title: 'Ethical Frameworks' }, { title: 'Stakeholder Responsibility' }],
+      assessments: [{ title: 'Midterm' }],
+    });
+    const skeleton = parseNativeSkeletonResponse(truncated, { expectedLessons: 2 });
+    expect(skeleton.responseRecovery).toMatchObject({
+      kind: 'closed-complete-top-level-array-prefix',
+      assessmentCadence: 'synthesized-per-session',
+    });
+    expect(skeleton.assessments).toHaveLength(2);
+    expect(skeleton.assessments.reduce((sum, assessment) => sum + assessment.weightPct, 0)).toBe(100);
+  });
+
+  it('does not recover a skeleton that stops inside an unfinished array object', () => {
+    const truncated =
+      '{"course":{"name":"Business Ethics"},"sessions":[{"order":1,"title":"Frameworks"}],"assessments":[{"title":"Mid';
+    expect(recoverTruncatedSkeletonObject(truncated)).toBeNull();
+    expect(() => parseNativeSkeletonResponse(truncated)).toThrowError(NativeAuthoringError);
   });
 
   it('degraded-plan guard: malformed skeletons throw the TYPED error', () => {

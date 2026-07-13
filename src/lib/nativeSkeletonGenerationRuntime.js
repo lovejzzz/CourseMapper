@@ -80,6 +80,18 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
       expectedLessons: detected?.confidence === 'high' ? detected?.expected || null : null,
       sourceText: skeletonSource,
     });
+    if (skeleton.responseRecovery) {
+      recordApiCallEvent?.({
+        type: 'nativeSkeletonRecovered',
+        label: 'Recovered truncated native skeleton',
+        detail: `${skeleton.sessions.length} complete sessions retained · deterministic per-session assessment cadence synthesized`,
+      });
+      addLog?.(
+        currentModelName,
+        `Recovered a truncated native skeleton after ${skeleton.sessions.length} complete sessions; rebuilt the assessment cadence deterministically`,
+        'warning',
+      );
+    }
     const nativeMap = nativeAuthoring.buildNativeWireMap(skeleton);
     nativeAuthoring.stashNativeSkeleton(skeleton);
     return completeCourseMapGeneration(

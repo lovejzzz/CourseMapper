@@ -10,6 +10,7 @@
 //   node scripts/crucible/e2bOpenAIShim.mjs [port]
 import http from 'node:http';
 import fs from 'node:fs';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { sGenerate, startItems, stopS } from '../../trellis/tendril/sModel.mjs';
 
 const PORT = Number(process.argv[2] ?? 8799);
@@ -17,12 +18,16 @@ const PORT = Number(process.argv[2] ?? 8799);
 // ({url, system, user, response}) so failing outputs can be replayed offline.
 const BODY_LOG = process.env.SHIM_BODY_LOG || '';
 let calls = 0;
+let completedCalls = 0;
+let failedModelCalls = 0;
+let inFlightCalls = 0;
 let failures = 0;
 let lastGenerationError = '';
 let modelState = 'loading';
 let modelLoadMs = null;
 let modelLoadError = '';
 let modelReadyPromise = null;
+const requestMetrics = new AsyncLocalStorage();
 
 // Preload the exact local weights while the browser and production app start.
 // Without this, a 10+ minute cold Python/Transformers import is hidden inside
@@ -63,14 +68,27 @@ function readBody(req) {
 async function generate({ system, user, maxTokens, schema, jsonMode, temperature }) {
   await ensureLocalModelReady();
   calls += 1;
+  inFlightCalls += 1;
+  const metrics = requestMetrics.getStore();
+  if (metrics) metrics.modelCalls += 1;
   // task:'items' is the g4 venv route. timeoutMs is queue-INCLUSIVE (serve_g4
   // is serial; the compiler batches parallel calls) — 20min so a deep queue
   // is slow, not a fake failure.
-  const text = await sGenerate(
-    { system, user, task: 'items', maxTokens, schema, jsonMode, temperature },
-    { timeoutMs: 1_200_000 },
-  );
-  return String(text ?? '');
+  try {
+    const text = await sGenerate(
+      { system, user, task: 'items', maxTokens, schema, jsonMode, temperature },
+      { timeoutMs: 1_200_000 },
+    );
+    completedCalls += 1;
+    if (metrics) metrics.completedModelCalls += 1;
+    return String(text ?? '');
+  } catch (error) {
+    failedModelCalls += 1;
+    if (metrics) metrics.failedModelCalls += 1;
+    throw error;
+  } finally {
+    inFlightCalls -= 1;
+  }
 }
 
 // V2: pull the app's ACTUAL output contract out of either API shape so
@@ -644,9 +662,6 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
     const STOP = new Set([
       'lesson',
       'week',
-      'music',
-      'musical',
-      'theory',
       'course',
       'with',
       'that',
@@ -726,7 +741,7 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
           : null;
         const reply = await generate({
           system: fullSystem,
-          user: `Course: Music theory. Lesson: ${JSON.stringify(summary ?? { lessonId })}\nWrite ${items.length} flawless multiple-choice items testing ONLY this lesson's topics. Each key (ai) must be verifiably correct. Return ONLY {"mc":[...]}.`,
+          user: `${courseLine}. Lesson: ${JSON.stringify(summary ?? { lessonId })}\nWrite ${items.length} flawless multiple-choice items testing ONLY this lesson's topics. Each key (ai) must be verifiably correct. Return ONLY {"mc":[...]}.`,
           maxTokens: 6000,
           schema: mcSchema,
           temperature: 0.7,
@@ -764,7 +779,7 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
           const reply = await generate({
             system:
               fullSystem +
-              '\n\nWrite ONE flawless multiple-choice item. It must test ONLY the topics of the requested lesson - never other repertoire or advanced theory. The answer key (ai) MUST be verifiably correct. Return ONLY the item JSON object.',
+              '\n\nWrite ONE flawless multiple-choice item. It must test ONLY the topics of the requested lesson - never another discipline or an unrelated topic. The answer key (ai) MUST be verifiably correct. Return ONLY the item JSON object.',
             user: `Lesson topics: ${words.join(', ')}\nReplace this OFF-TOPIC item with one about the lesson topics, same difficulty: ${JSON.stringify(item)}`,
             maxTokens: 2000,
             schema: itemSchema,
@@ -836,7 +851,7 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
         const reply = await generate({
           system:
             fullSystem +
-            '\n\nWrite ONE flawless multiple-choice item replacing a faulty one. It must test ONLY the topics of the requested lesson - never other repertoire or advanced theory. The answer key (ai) MUST be verifiably correct — double-check the music theory before answering. Return ONLY the item JSON object.',
+            '\n\nWrite ONE flawless multiple-choice item replacing a faulty one. It must test ONLY the topics of the requested lesson - never another discipline or an unrelated topic. The answer key (ai) MUST be verifiably correct — double-check the subject matter before answering. Return ONLY the item JSON object.',
           user: `Faulty item (its key disagreed with a blind solve): ${JSON.stringify(item)}\nSame concept, same difficulty, corrected.`,
           maxTokens: 2000,
           schema: itemSchema,
@@ -945,6 +960,9 @@ const server = http.createServer(async (req, res) => {
           modelLoadMs,
           modelLoadError,
           calls,
+          completedCalls,
+          failedModelCalls,
+          inFlightCalls,
           failures,
           lastGenerationError,
         }),
@@ -1098,17 +1116,25 @@ const server = http.createServer(async (req, res) => {
   if (!kernel && (contract.schema || contract.jsonMode)) system += RICHNESS_DIRECTIVE;
   let text = '';
   let generationError = '';
+  const modelMetrics = { modelCalls: 0, completedModelCalls: 0, failedModelCalls: 0 };
   try {
-    text = kernel
-      ? await kernelChunkedGenerate({ system, user, kernel, temperature })
-      : await generate({
-          system,
-          user,
-          maxTokens: requestedMaxTokens(body),
-          ...contract,
-          ...(declaredTemperature > 0 ? { temperature: declaredTemperature } : temperature > 0 ? { temperature } : {}),
-        });
-    if (isSkeleton && text) text = await shortenSkeletonTitles(text);
+    text = await requestMetrics.run(modelMetrics, async () => {
+      let generated = kernel
+        ? await kernelChunkedGenerate({ system, user, kernel, temperature })
+        : await generate({
+            system,
+            user,
+            maxTokens: requestedMaxTokens(body),
+            ...contract,
+            ...(declaredTemperature > 0
+              ? { temperature: declaredTemperature }
+              : temperature > 0
+                ? { temperature }
+                : {}),
+          });
+      if (isSkeleton && generated) generated = await shortenSkeletonTitles(generated);
+      return generated;
+    });
     lastGenerationError = '';
   } catch (error) {
     failures += 1;
@@ -1122,7 +1148,7 @@ const server = http.createServer(async (req, res) => {
     try {
       fs.appendFileSync(
         BODY_LOG,
-        `${JSON.stringify({ url: req.url, system, user, response: text, ...(generationError ? { error: generationError } : {}) })}\n`,
+        `${JSON.stringify({ url: req.url, system, user, response: text, modelMetrics, ...(generationError ? { error: generationError } : {}) })}\n`,
       );
     } catch {
       /* empty */
