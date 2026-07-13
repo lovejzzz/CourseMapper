@@ -1,0 +1,1082 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-ux-prototyping-accessibility-lab-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Prototyping, Task Flow, and Accessibility, a six-session applied UX laboratory in which students diagram task decisions, build testable interactions, and combine conformance checks with observed user performance.",
+  "fileNames": [
+    "source-packet-6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a.json"
+  ],
+  "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Prototyping, Task Flow, and Accessibility\",\"sessions\":[{\"number\":1,\"title\":\"Task flow analysis\"},{\"number\":2,\"title\":\"Interactive prototyping\"},{\"number\":3,\"title\":\"Accessibility and usability evaluation\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"Why would a team create a task flow analysis before or during design work?\",\"op\":[\"To validate understanding of user goals, common scenarios, and tasks\",\"To replace usability testing with a static checklist\",\"To document every pixel decision in the interface\",\"To guarantee that users will never encounter obstacles\"],\"ai\":0,\"ex\":\"Correct: the analysis helps validate the team's understanding of user goals, common scenarios, and tasks. A plausible misconception is that it guarantees success or removes all obstacles; the diagram can surface obstacles, but it cannot ensure none will occur.\",\"sourceFactIndexes\":[1,3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Task flow analysis\",\"df\":\"A diagram-based method for mapping how a user moves through steps and decisions toward a goal.\",\"eg\":\"A checkout flow that shows choosing items, reviewing the cart, entering shipping details, and confirming payment.\",\"mi\":\"It is only a screen inventory or wireframe set.\",\"cx\":\"It focuses on user actions, sequences, and decision points, not just pages or visuals.\",\"sourceFactIndexes\":[0,2,4]},{\"tr\":\"Decision point\",\"df\":\"A moment in the flow where the user's next path depends on a choice or condition.\",\"eg\":\"After entering a password, the flow branches to success, error, or reset steps.\",\"mi\":\"It is the same as any screen in the process.\",\"cx\":\"A decision point creates branching paths; a screen may contain one, but not every screen is a decision point.\",\"sourceFactIndexes\":[0,4]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"What is the main purpose of an interactive prototype in a UX lab when the final product is not yet built?\",\"op\":[\"A testable model of how the experience looks and works without every production detail\",\"A fully finished product that is ready for launch\",\"A visual style guide that only shows colors and typography\",\"A legal document that approves the design team\"],\"ai\":0,\"ex\":\"The correct choice captures a testable representation that shows how the experience looks and works without requiring every production detail. The common misconception is that a prototype must be fully finished; in fact, it is meant to be learned from before production details are complete.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"Which activity best shows why a prototype is useful during evaluation of a design concept?\",\"op\":[\"Using it to observe how users interact with the product\",\"Using it only to archive final design files\",\"Using it only to replace all user research\",\"Using it only after every interaction is fully coded\"],\"ai\":0,\"ex\":\"The correct choice reflects that functional prototypes allow a team to observe how users interact with a product. A plausible misconception is that prototypes are only documentation artifacts; instead, they support observation and testing during development.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Interactive prototyping\",\"df\":\"Building a testable representation of an intended experience that shows how it looks and works before every production detail exists.\",\"eg\":\"A team creates a clickable app mockup to check the main screen changes and button behavior before full development.\",\"mi\":\"It is the same as a finished product.\",\"cx\":\"A prototype is for learning and testing, and it may leave some details unfinished.\",\"sourceFactIndexes\":[0,3,4]},{\"tr\":\"Functional prototype\",\"df\":\"A working model that lets a team see how users behave when they use the product.\",\"eg\":\"Students run a walkthrough with a tappable checkout flow to watch where users hesitate.\",\"mi\":\"It must include every possible interaction.\",\"cx\":\"It can show the major interactions even when some interactions are not functional yet.\",\"sourceFactIndexes\":[2,3]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A student is evaluating a checkout flow by combining standards checks with watching representative users complete realistic tasks. Which activity best matches that approach?\",\"op\":[\"Run a WCAG review and a task-based usability test\",\"Survey users about color preferences\",\"Map the page hierarchy for a redesign\",\"Compare two visual layouts without users\"],\"ai\":0,\"ex\":\"Correct: a WCAG review plus a task-based usability test combines conformance checks with observation of users doing realistic tasks. Misconception: a survey or layout comparison can help, but it does not directly pair standards-based checking with observed task performance.\",\"sourceFactIndexes\":[0,1,3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"WCAG\",\"df\":\"A web accessibility standard organized around four principles.\",\"eg\":\"A team checks whether a prototype is perceivable, operable, understandable, and robust.\",\"mi\":\"It is only a visual design checklist.\",\"cx\":\"The course can pair these standards checks with usability testing to evaluate an interaction.\",\"sourceFactIndexes\":[1,0]},{\"tr\":\"Usability test\",\"df\":\"An observation session where people attempt real tasks while thinking aloud.\",\"eg\":\"Students watch a participant try to complete account setup and explain what they expect at each step.\",\"mi\":\"It is just asking people what they like after the fact.\",\"cx\":\"In this lab, the method helps reveal where task flow breaks during actual use.\",\"sourceFactIndexes\":[3,0]}]}}}}",
+  "savedAt": "2026-07-13T14:00:44.689Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-campaign.json",
+    "campaignManifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+    "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d",
+    "courseInputSha256": "5a71df6dd57c70ac06bf00b52e3f999c746a78e29f5889e14158a2d81a62bbd4",
+    "courseGroupId": "ux-prototyping-accessibility-lab",
+    "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/ux-intro.json",
+      "sourceArtifactSha256": "97184a577a92ba3e8103dacfb100bbabbf25c8d90905da95b1b0dec1e0664e54",
+      "kernels": [
+        {
+          "id": "ux/task-flow-analysis",
+          "term": "Task flow analysis",
+          "definition": "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "definitionAnchor": {
+            "src": "digitalgov:task-flow",
+            "loc": "What",
+            "quote": "A task flow analysis is a step-by-step diagram showing how a user interacts with a system to reach a goal."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "Validate your understanding of users' goals, common scenarios, and tasks"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A task flow should show how a user progresses through tasks to accomplish a goal.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "Illustrate the overall flow of tasks through which a user progresses to accomplish a goal"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Task flow analysis should surface obstacles that stand between users and their goals.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "Surface obstacles in the way of users achieving their goal"
+              }
+            },
+            {
+              "index": 3,
+              "text": "The diagram may include multiple possible paths, task sequences, and decision points.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "The diagram traces a user's possible paths through sequences of tasks and decision points to meet their goal."
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        },
+        {
+          "id": "ux/interactive-prototyping",
+          "term": "Interactive prototyping",
+          "definition": "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "definitionAnchor": {
+            "src": "digitalgov:prototypes",
+            "loc": "What",
+            "quote": "A prototype is an interactive (high-fidelity) version of the experience you are planning to build. It shows how the design will look and work, without full detail."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "Why",
+                "quote": "Combined with other methods like usability testing or a cognitive walkthrough, prototypes help you test whether a design concept will work."
+              }
+            },
+            {
+              "index": 1,
+              "text": "Functional prototypes allow a team to observe how users interact with a product.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "Why",
+                "quote": "Functional prototypes help you observe how users interact with the product."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A prototype should show the major interactions even when not every interaction is functional.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "How to do it",
+                "quote": "Show the major interactions. Not all interactions need to be functional."
+              }
+            },
+            {
+              "index": 3,
+              "text": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "How to do it",
+                "quote": "Iterate. Prototypes should be quick to create and even quicker to discard."
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        },
+        {
+          "id": "ux/accessibility-usability-evaluation",
+          "term": "Accessibility and usability evaluation",
+          "definition": "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "definitionAnchor": {
+            "src": "w3c:wcag22",
+            "loc": "Introduction",
+            "quote": "WCAG 2.2 is designed to apply broadly to different web technologies now and in the future, and to be testable with a combination of automated testing and human evaluation."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+              "anchor": {
+                "src": "w3c:wcag22",
+                "loc": "Layers of Guidance",
+                "quote": "perceivable, operable, understandable, and robust"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+              "anchor": {
+                "src": "w3c:involving-users",
+                "loc": "Introduction",
+                "quote": "Evaluating with users with disabilities and with older users identifies usability issues that are not discovered by conformance evaluation alone."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A usability test observes users attempting to use a product or service while thinking aloud.",
+              "anchor": {
+                "src": "digitalgov:usability",
+                "loc": "What",
+                "quote": "A usability test observes users as they attempt to use a product or service while thinking out loud."
+              }
+            },
+            {
+              "index": 3,
+              "text": "A single disabled participant's experience should not be generalized to all people with disabilities.",
+              "anchor": {
+                "src": "w3c:involving-users",
+                "loc": "Basics",
+                "quote": "Avoid assuming that input from one person with a disability applies to all people with disabilities."
+              }
+            }
+          ],
+          "license": "W3C Document License and U.S. Government Work",
+          "attribution": [
+            "W3C Web Accessibility Initiative",
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-13T14:00:44.689Z",
+    "admittedPromptIds": [
+      "ux-prototyping-accessibility-lab:ux/task-flow-analysis",
+      "ux-prototyping-accessibility-lab:ux/interactive-prototyping",
+      "ux-prototyping-accessibility-lab:ux/accessibility-usability-evaluation"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "ux-prototyping-accessibility-lab:ux/task-flow-analysis",
+          "kernelId": "ux/task-flow-analysis",
+          "promptSha256": "999bb955ba6289dc2305dcba0cb2b2d496a3ffaa0c8f24b5ea71933101264b54",
+          "response": {
+            "mcItems": [
+              {
+                "q": "In a task flow analysis, what does the diagram primarily show?",
+                "op": [
+                  "The steps and decision points a user follows to reach a goal",
+                  "The visual style rules for interface screens",
+                  "The internal database tables behind each action",
+                  "The marketing messages that attract first-time visitors"
+                ],
+                "ai": 0,
+                "ex": "Correct: it maps the user's steps and decision points on the way to a defined goal. A common misconception is that task flow analysis is about interface styling or back-end structure; those are different concerns.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "Why would a team create a task flow analysis before or during design work?",
+                "op": [
+                  "To validate understanding of user goals, common scenarios, and tasks",
+                  "To replace usability testing with a static checklist",
+                  "To document every pixel decision in the interface",
+                  "To guarantee that users will never encounter obstacles"
+                ],
+                "ai": 0,
+                "ex": "Correct: the analysis helps validate the team's understanding of user goals, common scenarios, and tasks. A plausible misconception is that it guarantees success or removes all obstacles; the diagram can surface obstacles, but it cannot ensure none will occur.",
+                "sourceFactIndexes": [
+                  1,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Task flow analysis",
+                "df": "A diagram-based method for mapping how a user moves through steps and decisions toward a goal.",
+                "eg": "A checkout flow that shows choosing items, reviewing the cart, entering shipping details, and confirming payment.",
+                "mi": "It is only a screen inventory or wireframe set.",
+                "cx": "It focuses on user actions, sequences, and decision points, not just pages or visuals.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  4
+                ]
+              },
+              {
+                "tr": "Decision point",
+                "df": "A moment in the flow where the user's next path depends on a choice or condition.",
+                "eg": "After entering a password, the flow branches to success, error, or reset steps.",
+                "mi": "It is the same as any screen in the process.",
+                "cx": "A decision point creates branching paths; a screen may contain one, but not every screen is a decision point.",
+                "sourceFactIndexes": [
+                  0,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "24b877b9d3b6f7070a57f195a6bdfb0a4684f5e6310dcd7f3e8bcbccb4f12ee8",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Why would a team create a task flow analysis before or during design work?",
+                "op": [
+                  "To validate understanding of user goals, common scenarios, and tasks",
+                  "To replace usability testing with a static checklist",
+                  "To document every pixel decision in the interface",
+                  "To guarantee that users will never encounter obstacles"
+                ],
+                "ai": 0,
+                "ex": "Correct: the analysis helps validate the team's understanding of user goals, common scenarios, and tasks. A plausible misconception is that it guarantees success or removes all obstacles; the diagram can surface obstacles, but it cannot ensure none will occur.",
+                "sourceFactIndexes": [
+                  1,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Task flow analysis",
+                "df": "A diagram-based method for mapping how a user moves through steps and decisions toward a goal.",
+                "eg": "A checkout flow that shows choosing items, reviewing the cart, entering shipping details, and confirming payment.",
+                "mi": "It is only a screen inventory or wireframe set.",
+                "cx": "It focuses on user actions, sequences, and decision points, not just pages or visuals.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  4
+                ]
+              },
+              {
+                "tr": "Decision point",
+                "df": "A moment in the flow where the user's next path depends on a choice or condition.",
+                "eg": "After entering a password, the flow branches to success, error, or reset steps.",
+                "mi": "It is the same as any screen in the process.",
+                "cx": "A decision point creates branching paths; a screen may contain one, but not every screen is a decision point.",
+                "sourceFactIndexes": [
+                  0,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "91be7825c270dae77ea23a9ed13c6de4e606458c035619b5f587bb480014ba42",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-longest-option-cue"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_01a8c73142210877006a54eeaf242481a29cc7e46583c88145",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 634,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 555,
+              "output_tokens_details": {
+                "reasoning_tokens": 118
+              },
+              "total_tokens": 1189
+            }
+          },
+          "startedAt": "2026-07-13T13:57:03.024Z",
+          "durationMs": 5144
+        },
+        {
+          "promptId": "ux-prototyping-accessibility-lab:ux/interactive-prototyping",
+          "kernelId": "ux/interactive-prototyping",
+          "promptSha256": "f5029e62f8fb692b23fc3a39b260bd779a1dfb79af4b8067e628e8d9d8bf95fb",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the main purpose of an interactive prototype in a UX lab when the final product is not yet built?",
+                "op": [
+                  "A testable model of how the experience looks and works without every production detail",
+                  "A fully finished product that is ready for launch",
+                  "A visual style guide that only shows colors and typography",
+                  "A legal document that approves the design team"
+                ],
+                "ai": 0,
+                "ex": "The correct choice captures a testable representation that shows how the experience looks and works without requiring every production detail. The common misconception is that a prototype must be fully finished; in fact, it is meant to be learned from before production details are complete.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Which activity best shows why a prototype is useful during evaluation of a design concept?",
+                "op": [
+                  "Using it to observe how users interact with the product",
+                  "Using it only to archive final design files",
+                  "Using it only to replace all user research",
+                  "Using it only after every interaction is fully coded"
+                ],
+                "ai": 0,
+                "ex": "The correct choice reflects that functional prototypes allow a team to observe how users interact with a product. A plausible misconception is that prototypes are only documentation artifacts; instead, they support observation and testing during development.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Interactive prototyping",
+                "df": "Building a testable representation of an intended experience that shows how it looks and works before every production detail exists.",
+                "eg": "A team creates a clickable app mockup to check the main screen changes and button behavior before full development.",
+                "mi": "It is the same as a finished product.",
+                "cx": "A prototype is for learning and testing, and it may leave some details unfinished.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              },
+              {
+                "tr": "Functional prototype",
+                "df": "A working model that lets a team see how users behave when they use the product.",
+                "eg": "Students run a walkthrough with a tappable checkout flow to watch where users hesitate.",
+                "mi": "It must include every possible interaction.",
+                "cx": "It can show the major interactions even when some interactions are not functional yet.",
+                "sourceFactIndexes": [
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "535564954933ecf503f7f60a5c55c2f8ef109f4b98e730b1ef762095eef76d93",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the main purpose of an interactive prototype in a UX lab when the final product is not yet built?",
+                "op": [
+                  "A testable model of how the experience looks and works without every production detail",
+                  "A fully finished product that is ready for launch",
+                  "A visual style guide that only shows colors and typography",
+                  "A legal document that approves the design team"
+                ],
+                "ai": 0,
+                "ex": "The correct choice captures a testable representation that shows how the experience looks and works without requiring every production detail. The common misconception is that a prototype must be fully finished; in fact, it is meant to be learned from before production details are complete.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Which activity best shows why a prototype is useful during evaluation of a design concept?",
+                "op": [
+                  "Using it to observe how users interact with the product",
+                  "Using it only to archive final design files",
+                  "Using it only to replace all user research",
+                  "Using it only after every interaction is fully coded"
+                ],
+                "ai": 0,
+                "ex": "The correct choice reflects that functional prototypes allow a team to observe how users interact with a product. A plausible misconception is that prototypes are only documentation artifacts; instead, they support observation and testing during development.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Interactive prototyping",
+                "df": "Building a testable representation of an intended experience that shows how it looks and works before every production detail exists.",
+                "eg": "A team creates a clickable app mockup to check the main screen changes and button behavior before full development.",
+                "mi": "It is the same as a finished product.",
+                "cx": "A prototype is for learning and testing, and it may leave some details unfinished.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              },
+              {
+                "tr": "Functional prototype",
+                "df": "A working model that lets a team see how users behave when they use the product.",
+                "eg": "Students run a walkthrough with a tappable checkout flow to watch where users hesitate.",
+                "mi": "It must include every possible interaction.",
+                "cx": "It can show the major interactions even when some interactions are not functional yet.",
+                "sourceFactIndexes": [
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "535564954933ecf503f7f60a5c55c2f8ef109f4b98e730b1ef762095eef76d93",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_01941f9aa46a68ef006a54ef88a188819190a28306177651c1",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 638,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 469,
+              "output_tokens_details": {
+                "reasoning_tokens": 27
+              },
+              "total_tokens": 1107
+            }
+          },
+          "startedAt": "2026-07-13T14:00:40.359Z",
+          "durationMs": 4330
+        },
+        {
+          "promptId": "ux-prototyping-accessibility-lab:ux/accessibility-usability-evaluation",
+          "kernelId": "ux/accessibility-usability-evaluation",
+          "promptSha256": "87ea51064b26d18e0fced2582203cb8f0e159faa41af3942f72faea7024f3bac",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student is evaluating a checkout flow by combining standards checks with watching representative users complete realistic tasks. Which activity best matches that approach?",
+                "op": [
+                  "Run a WCAG review and a task-based usability test",
+                  "Survey users about color preferences",
+                  "Map the page hierarchy for a redesign",
+                  "Compare two visual layouts without users"
+                ],
+                "ai": 0,
+                "ex": "Correct: a WCAG review plus a task-based usability test combines conformance checks with observation of users doing realistic tasks. Misconception: a survey or layout comparison can help, but it does not directly pair standards-based checking with observed task performance.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  3
+                ]
+              },
+              {
+                "q": "During a lab session, a participant who uses assistive technology struggles with a form. Which interpretation is most evidence-limited?",
+                "op": [
+                  "The form may contain a barrier for that user",
+                  "The issue should be explored with more users",
+                  "This single case proves all disabled users will fail",
+                  "A conformance check alone may miss the problem"
+                ],
+                "ai": 2,
+                "ex": "Correct: one participant’s experience cannot be generalized to all people with disabilities. Misconception: the observed difficulty is still useful evidence of a possible barrier, but it does not justify a universal claim.",
+                "sourceFactIndexes": [
+                  2,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "WCAG",
+                "df": "A web accessibility standard organized around four principles.",
+                "eg": "A team checks whether a prototype is perceivable, operable, understandable, and robust.",
+                "mi": "It is only a visual design checklist.",
+                "cx": "The course can pair these standards checks with usability testing to evaluate an interaction.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "tr": "Usability test",
+                "df": "An observation session where people attempt real tasks while thinking aloud.",
+                "eg": "Students watch a participant try to complete account setup and explain what they expect at each step.",
+                "mi": "It is just asking people what they like after the fact.",
+                "cx": "In this lab, the method helps reveal where task flow breaks during actual use.",
+                "sourceFactIndexes": [
+                  3,
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "aff605adab020f1397d411f2c6bb6e61f17389852808949c505b6c525df6495a",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student is evaluating a checkout flow by combining standards checks with watching representative users complete realistic tasks. Which activity best matches that approach?",
+                "op": [
+                  "Run a WCAG review and a task-based usability test",
+                  "Survey users about color preferences",
+                  "Map the page hierarchy for a redesign",
+                  "Compare two visual layouts without users"
+                ],
+                "ai": 0,
+                "ex": "Correct: a WCAG review plus a task-based usability test combines conformance checks with observation of users doing realistic tasks. Misconception: a survey or layout comparison can help, but it does not directly pair standards-based checking with observed task performance.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "WCAG",
+                "df": "A web accessibility standard organized around four principles.",
+                "eg": "A team checks whether a prototype is perceivable, operable, understandable, and robust.",
+                "mi": "It is only a visual design checklist.",
+                "cx": "The course can pair these standards checks with usability testing to evaluate an interaction.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "tr": "Usability test",
+                "df": "An observation session where people attempt real tasks while thinking aloud.",
+                "eg": "Students watch a participant try to complete account setup and explain what they expect at each step.",
+                "mi": "It is just asking people what they like after the fact.",
+                "cx": "In this lab, the method helps reveal where task flow breaks during actual use.",
+                "sourceFactIndexes": [
+                  3,
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "b257d9c900f0ed7e4086ddb23f7e0fef5dfdbf824840ee86caefc42cb407d106",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-unsupported-behavior-inference"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0d1618bb471db9c4006a54eeb8fd3481a1ac868af9b65693ec",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 652,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 519,
+              "output_tokens_details": {
+                "reasoning_tokens": 88
+              },
+              "total_tokens": 1171
+            }
+          },
+          "startedAt": "2026-07-13T13:57:12.932Z",
+          "durationMs": 5130
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "ux-prototyping-accessibility-lab:ux/task-flow-analysis",
+        "kernelId": "ux/task-flow-analysis",
+        "promptSha256": "999bb955ba6289dc2305dcba0cb2b2d496a3ffaa0c8f24b5ea71933101264b54",
+        "response": {
+          "mcItems": [
+            {
+              "q": "In a task flow analysis, what does the diagram primarily show?",
+              "op": [
+                "The steps and decision points a user follows to reach a goal",
+                "The visual style rules for interface screens",
+                "The internal database tables behind each action",
+                "The marketing messages that attract first-time visitors"
+              ],
+              "ai": 0,
+              "ex": "Correct: it maps the user's steps and decision points on the way to a defined goal. A common misconception is that task flow analysis is about interface styling or back-end structure; those are different concerns.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "Why would a team create a task flow analysis before or during design work?",
+              "op": [
+                "To validate understanding of user goals, common scenarios, and tasks",
+                "To replace usability testing with a static checklist",
+                "To document every pixel decision in the interface",
+                "To guarantee that users will never encounter obstacles"
+              ],
+              "ai": 0,
+              "ex": "Correct: the analysis helps validate the team's understanding of user goals, common scenarios, and tasks. A plausible misconception is that it guarantees success or removes all obstacles; the diagram can surface obstacles, but it cannot ensure none will occur.",
+              "sourceFactIndexes": [
+                1,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Task flow analysis",
+              "df": "A diagram-based method for mapping how a user moves through steps and decisions toward a goal.",
+              "eg": "A checkout flow that shows choosing items, reviewing the cart, entering shipping details, and confirming payment.",
+              "mi": "It is only a screen inventory or wireframe set.",
+              "cx": "It focuses on user actions, sequences, and decision points, not just pages or visuals.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                4
+              ]
+            },
+            {
+              "tr": "Decision point",
+              "df": "A moment in the flow where the user's next path depends on a choice or condition.",
+              "eg": "After entering a password, the flow branches to success, error, or reset steps.",
+              "mi": "It is the same as any screen in the process.",
+              "cx": "A decision point creates branching paths; a screen may contain one, but not every screen is a decision point.",
+              "sourceFactIndexes": [
+                0,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "24b877b9d3b6f7070a57f195a6bdfb0a4684f5e6310dcd7f3e8bcbccb4f12ee8",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Why would a team create a task flow analysis before or during design work?",
+              "op": [
+                "To validate understanding of user goals, common scenarios, and tasks",
+                "To replace usability testing with a static checklist",
+                "To document every pixel decision in the interface",
+                "To guarantee that users will never encounter obstacles"
+              ],
+              "ai": 0,
+              "ex": "Correct: the analysis helps validate the team's understanding of user goals, common scenarios, and tasks. A plausible misconception is that it guarantees success or removes all obstacles; the diagram can surface obstacles, but it cannot ensure none will occur.",
+              "sourceFactIndexes": [
+                1,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Task flow analysis",
+              "df": "A diagram-based method for mapping how a user moves through steps and decisions toward a goal.",
+              "eg": "A checkout flow that shows choosing items, reviewing the cart, entering shipping details, and confirming payment.",
+              "mi": "It is only a screen inventory or wireframe set.",
+              "cx": "It focuses on user actions, sequences, and decision points, not just pages or visuals.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                4
+              ]
+            },
+            {
+              "tr": "Decision point",
+              "df": "A moment in the flow where the user's next path depends on a choice or condition.",
+              "eg": "After entering a password, the flow branches to success, error, or reset steps.",
+              "mi": "It is the same as any screen in the process.",
+              "cx": "A decision point creates branching paths; a screen may contain one, but not every screen is a decision point.",
+              "sourceFactIndexes": [
+                0,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "91be7825c270dae77ea23a9ed13c6de4e606458c035619b5f587bb480014ba42",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-0-longest-option-cue"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_01a8c73142210877006a54eeaf242481a29cc7e46583c88145",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 634,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 555,
+            "output_tokens_details": {
+              "reasoning_tokens": 118
+            },
+            "total_tokens": 1189
+          }
+        },
+        "startedAt": "2026-07-13T13:57:03.024Z",
+        "durationMs": 5144
+      },
+      {
+        "promptId": "ux-prototyping-accessibility-lab:ux/interactive-prototyping",
+        "kernelId": "ux/interactive-prototyping",
+        "promptSha256": "f5029e62f8fb692b23fc3a39b260bd779a1dfb79af4b8067e628e8d9d8bf95fb",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the main purpose of an interactive prototype in a UX lab when the final product is not yet built?",
+              "op": [
+                "A testable model of how the experience looks and works without every production detail",
+                "A fully finished product that is ready for launch",
+                "A visual style guide that only shows colors and typography",
+                "A legal document that approves the design team"
+              ],
+              "ai": 0,
+              "ex": "The correct choice captures a testable representation that shows how the experience looks and works without requiring every production detail. The common misconception is that a prototype must be fully finished; in fact, it is meant to be learned from before production details are complete.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Which activity best shows why a prototype is useful during evaluation of a design concept?",
+              "op": [
+                "Using it to observe how users interact with the product",
+                "Using it only to archive final design files",
+                "Using it only to replace all user research",
+                "Using it only after every interaction is fully coded"
+              ],
+              "ai": 0,
+              "ex": "The correct choice reflects that functional prototypes allow a team to observe how users interact with a product. A plausible misconception is that prototypes are only documentation artifacts; instead, they support observation and testing during development.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Interactive prototyping",
+              "df": "Building a testable representation of an intended experience that shows how it looks and works before every production detail exists.",
+              "eg": "A team creates a clickable app mockup to check the main screen changes and button behavior before full development.",
+              "mi": "It is the same as a finished product.",
+              "cx": "A prototype is for learning and testing, and it may leave some details unfinished.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            },
+            {
+              "tr": "Functional prototype",
+              "df": "A working model that lets a team see how users behave when they use the product.",
+              "eg": "Students run a walkthrough with a tappable checkout flow to watch where users hesitate.",
+              "mi": "It must include every possible interaction.",
+              "cx": "It can show the major interactions even when some interactions are not functional yet.",
+              "sourceFactIndexes": [
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "535564954933ecf503f7f60a5c55c2f8ef109f4b98e730b1ef762095eef76d93",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the main purpose of an interactive prototype in a UX lab when the final product is not yet built?",
+              "op": [
+                "A testable model of how the experience looks and works without every production detail",
+                "A fully finished product that is ready for launch",
+                "A visual style guide that only shows colors and typography",
+                "A legal document that approves the design team"
+              ],
+              "ai": 0,
+              "ex": "The correct choice captures a testable representation that shows how the experience looks and works without requiring every production detail. The common misconception is that a prototype must be fully finished; in fact, it is meant to be learned from before production details are complete.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Which activity best shows why a prototype is useful during evaluation of a design concept?",
+              "op": [
+                "Using it to observe how users interact with the product",
+                "Using it only to archive final design files",
+                "Using it only to replace all user research",
+                "Using it only after every interaction is fully coded"
+              ],
+              "ai": 0,
+              "ex": "The correct choice reflects that functional prototypes allow a team to observe how users interact with a product. A plausible misconception is that prototypes are only documentation artifacts; instead, they support observation and testing during development.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Interactive prototyping",
+              "df": "Building a testable representation of an intended experience that shows how it looks and works before every production detail exists.",
+              "eg": "A team creates a clickable app mockup to check the main screen changes and button behavior before full development.",
+              "mi": "It is the same as a finished product.",
+              "cx": "A prototype is for learning and testing, and it may leave some details unfinished.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            },
+            {
+              "tr": "Functional prototype",
+              "df": "A working model that lets a team see how users behave when they use the product.",
+              "eg": "Students run a walkthrough with a tappable checkout flow to watch where users hesitate.",
+              "mi": "It must include every possible interaction.",
+              "cx": "It can show the major interactions even when some interactions are not functional yet.",
+              "sourceFactIndexes": [
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "535564954933ecf503f7f60a5c55c2f8ef109f4b98e730b1ef762095eef76d93",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_01941f9aa46a68ef006a54ef88a188819190a28306177651c1",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 638,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 469,
+            "output_tokens_details": {
+              "reasoning_tokens": 27
+            },
+            "total_tokens": 1107
+          }
+        },
+        "startedAt": "2026-07-13T14:00:40.359Z",
+        "durationMs": 4330
+      },
+      {
+        "promptId": "ux-prototyping-accessibility-lab:ux/accessibility-usability-evaluation",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "promptSha256": "87ea51064b26d18e0fced2582203cb8f0e159faa41af3942f72faea7024f3bac",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student is evaluating a checkout flow by combining standards checks with watching representative users complete realistic tasks. Which activity best matches that approach?",
+              "op": [
+                "Run a WCAG review and a task-based usability test",
+                "Survey users about color preferences",
+                "Map the page hierarchy for a redesign",
+                "Compare two visual layouts without users"
+              ],
+              "ai": 0,
+              "ex": "Correct: a WCAG review plus a task-based usability test combines conformance checks with observation of users doing realistic tasks. Misconception: a survey or layout comparison can help, but it does not directly pair standards-based checking with observed task performance.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                3
+              ]
+            },
+            {
+              "q": "During a lab session, a participant who uses assistive technology struggles with a form. Which interpretation is most evidence-limited?",
+              "op": [
+                "The form may contain a barrier for that user",
+                "The issue should be explored with more users",
+                "This single case proves all disabled users will fail",
+                "A conformance check alone may miss the problem"
+              ],
+              "ai": 2,
+              "ex": "Correct: one participant’s experience cannot be generalized to all people with disabilities. Misconception: the observed difficulty is still useful evidence of a possible barrier, but it does not justify a universal claim.",
+              "sourceFactIndexes": [
+                2,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "WCAG",
+              "df": "A web accessibility standard organized around four principles.",
+              "eg": "A team checks whether a prototype is perceivable, operable, understandable, and robust.",
+              "mi": "It is only a visual design checklist.",
+              "cx": "The course can pair these standards checks with usability testing to evaluate an interaction.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            },
+            {
+              "tr": "Usability test",
+              "df": "An observation session where people attempt real tasks while thinking aloud.",
+              "eg": "Students watch a participant try to complete account setup and explain what they expect at each step.",
+              "mi": "It is just asking people what they like after the fact.",
+              "cx": "In this lab, the method helps reveal where task flow breaks during actual use.",
+              "sourceFactIndexes": [
+                3,
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "aff605adab020f1397d411f2c6bb6e61f17389852808949c505b6c525df6495a",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student is evaluating a checkout flow by combining standards checks with watching representative users complete realistic tasks. Which activity best matches that approach?",
+              "op": [
+                "Run a WCAG review and a task-based usability test",
+                "Survey users about color preferences",
+                "Map the page hierarchy for a redesign",
+                "Compare two visual layouts without users"
+              ],
+              "ai": 0,
+              "ex": "Correct: a WCAG review plus a task-based usability test combines conformance checks with observation of users doing realistic tasks. Misconception: a survey or layout comparison can help, but it does not directly pair standards-based checking with observed task performance.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "WCAG",
+              "df": "A web accessibility standard organized around four principles.",
+              "eg": "A team checks whether a prototype is perceivable, operable, understandable, and robust.",
+              "mi": "It is only a visual design checklist.",
+              "cx": "The course can pair these standards checks with usability testing to evaluate an interaction.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            },
+            {
+              "tr": "Usability test",
+              "df": "An observation session where people attempt real tasks while thinking aloud.",
+              "eg": "Students watch a participant try to complete account setup and explain what they expect at each step.",
+              "mi": "It is just asking people what they like after the fact.",
+              "cx": "In this lab, the method helps reveal where task flow breaks during actual use.",
+              "sourceFactIndexes": [
+                3,
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "b257d9c900f0ed7e4086ddb23f7e0fef5dfdbf824840ee86caefc42cb407d106",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-1-unsupported-behavior-inference"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0d1618bb471db9c4006a54eeb8fd3481a1ac868af9b65693ec",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 652,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 519,
+            "output_tokens_details": {
+              "reasoning_tokens": 88
+            },
+            "total_tokens": 1171
+          }
+        },
+        "startedAt": "2026-07-13T13:57:12.932Z",
+        "durationMs": 5130
+      }
+    ]
+  }
+}

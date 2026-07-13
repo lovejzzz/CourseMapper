@@ -16,16 +16,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification must pass on the exact v0.16.10 release head before merge."
+      "status": "success",
+      "commit": "32e6d9d7e5b223b212dbcd62a452f81cdace9f1b",
+      "runId": 29252845354,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29252845354",
+      "note": "Fast verification passed on the exact v0.16.10 main merge, including 4,336 passing tests, the strict 40-fixture main evaluation, build, and bundle budgets."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The local proof covers input-bound group derivation, explicit-label collision rejection, group-balanced packet selection, end-to-end group-hash integrity, offline reviewer export, and truthful incomplete-coverage reporting. No completed instructor review or trained adapter is claimed."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages deploys only after Fast verification succeeds on main."
+      "status": "success",
+      "commit": "32e6d9d7e5b223b212dbcd62a452f81cdace9f1b",
+      "runId": 29254364287,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29254364287",
+      "note": "GitHub Pages built and deployed the exact verified v0.16.10 main merge."
     },
     "liveProvider": {
       "status": "not-used",

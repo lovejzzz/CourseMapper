@@ -35,7 +35,7 @@ function parseJson(value) {
 function stablePairId(row, courseGroupSha256) {
   const first = row.chosen ?? row.left;
   const second = row.rejected ?? row.right;
-  return `scion-${hash(JSON.stringify({ courseGroupSha256, kind: row.kind, prompt: row.prompt, first, second })).slice(0, 20)}`;
+  return `scion-${hash(JSON.stringify({ courseGroupSha256, kind: row.kind, prompt: row.prompt, sourceContext: row.sourceContext || null, first, second })).slice(0, 20)}`;
 }
 
 function canonicalDomain(value) {
@@ -102,6 +102,7 @@ function publicCaseDigest(caseRow) {
       lessonId: caseRow.lessonId,
       kind: caseRow.kind,
       prompt: caseRow.prompt,
+      sourceContext: caseRow.sourceContext || null,
       A: caseRow.A,
       B: caseRow.B,
     }),
@@ -139,6 +140,8 @@ function organizerKeyIntegrity(key) {
   }
   if (key.pairId !== key.case.pairId || key.domain !== key.case.domain) return false;
   if (!key.sourceRow || key.sourceRowSha256 !== hash(JSON.stringify(key.sourceRow))) return false;
+  if (JSON.stringify(key.case.sourceContext || null) !== JSON.stringify(key.sourceRow.sourceContext || null))
+    return false;
   if (!SHA256.test(String(key.sourceSha256 || ''))) return false;
   const group = resolveCandidateCourseGroup(key.sourceRow, key.domain);
   if (
@@ -225,6 +228,15 @@ function ratingSelect(name, label) {
   return `<label>${escapeHtml(label)}<select name="${escapeHtml(name)}" required><option value="">Select 1–5</option>${[1, 2, 3, 4, 5].map((value) => `<option value="${value}">${value}</option>`).join('')}</select></label>`;
 }
 
+function sourceContextHtml(sourceContext) {
+  if (!sourceContext) return '';
+  const claims = (sourceContext.claims || [])
+    .map((claim, index) => `<li><span>${index + 1}</span>${escapeHtml(claim)}</li>`)
+    .join('');
+  const attribution = (sourceContext.attribution || []).map(escapeHtml).join(' · ');
+  return `<aside class="source-context"><h2>Neutral source claims</h2><p>Judge both packages against these same supplied claims.</p><ol>${claims}</ol><small>${escapeHtml(sourceContext.term || sourceContext.kernelId)} · ${escapeHtml(sourceContext.license)}${attribution ? ` · ${attribution}` : ''}</small></aside>`;
+}
+
 export function buildScionReviewerHtml({ meta, domain, cases }) {
   const templates = cases.map((caseRow) => createBlankScionReview(caseRow, meta.packetId, meta.packetDigest));
   const packet = { packetId: meta.packetId, domain, cases, templates };
@@ -234,6 +246,7 @@ export function buildScionReviewerHtml({ meta, domain, cases }) {
         <div class="case-heading"><span>Case ${index + 1} of ${cases.length}</span><code>${escapeHtml(caseRow.pairId)}</code></div>
         <p class="kind">${escapeHtml(caseRow.kind === 'mc-item' ? 'Multiple-choice item' : 'Key term')}</p>
         <h2>Prompt</h2><p class="prompt">${escapeHtml(caseRow.prompt)}</p>
+        ${sourceContextHtml(caseRow.sourceContext)}
         <div class="packages">
           <article><h3>Package A</h3><pre>${escapeHtml(JSON.stringify(caseRow.A, null, 2))}</pre>
             <div class="ratings">${ratingSelect(`factualCorrectnessA-${index}`, 'Factual correctness A')}${ratingSelect(`teachabilityA-${index}`, 'Teachability A')}</div>
@@ -253,7 +266,7 @@ export function buildScionReviewerHtml({ meta, domain, cases }) {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Scion blind review — ${escapeHtml(domain)}</title>
 <style>
-:root{color-scheme:light;--ink:#17223b;--muted:#5d6880;--line:#d6ddeb;--panel:#f5f7fb;--accent:#2356a8;--good:#176b50}*{box-sizing:border-box}body{margin:0;background:#eef2f8;color:var(--ink);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1120px;margin:0 auto;padding:32px 20px 80px}header,.case-card,.reviewer{background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 28px #1e315414}header,.reviewer,.case-card{padding:24px;margin-bottom:22px}h1{margin:0 0 8px;font-size:clamp(28px,4vw,44px)}h2{font-size:17px;margin:18px 0 6px}h3{margin-top:0}.lede,.kind,.privacy{color:var(--muted)}.privacy{border-left:4px solid var(--good);padding-left:12px}.reviewer-grid,.packages,.ratings{display:grid;gap:16px}.reviewer-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.packages{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.packages article{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}.ratings{grid-template-columns:1fr 1fr}.case-heading{display:flex;justify-content:space-between;gap:16px;align-items:center}.case-heading span{font-weight:750;font-size:18px}.case-heading code{font-size:12px;color:var(--muted)}label{display:grid;gap:6px;font-weight:650}input[type=text],select,textarea{width:100%;font:inherit;border:1px solid #aab5c8;border-radius:8px;padding:10px;background:white}textarea{min-height:110px;resize:vertical}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;border:1px solid var(--line);border-radius:8px;padding:14px;font-size:13px}fieldset{margin:18px 0;border:1px solid var(--line);border-radius:10px;padding:14px}.choice{display:inline-flex;align-items:center;margin:5px 18px 5px 0;font-weight:550}.choice input{margin-right:7px}.attestation{display:flex;align-items:flex-start;gap:10px;font-weight:600}.attestation input{margin-top:5px}.actions{position:sticky;bottom:16px;background:#17223bee;color:white;border-radius:14px;padding:14px 18px;display:flex;gap:14px;align-items:center;justify-content:space-between;box-shadow:0 8px 30px #10192d55}.actions button{border:0;border-radius:9px;background:white;color:var(--accent);font:700 16px system-ui;padding:11px 18px;cursor:pointer}.status{font-size:14px}@media(max-width:650px){main{padding:16px 10px 70px}.packages{grid-template-columns:1fr}.ratings{grid-template-columns:1fr}.case-heading{align-items:flex-start;flex-direction:column}.actions{align-items:stretch;flex-direction:column}.actions button{width:100%}}
+:root{color-scheme:light;--ink:#17223b;--muted:#5d6880;--line:#d6ddeb;--panel:#f5f7fb;--accent:#2356a8;--good:#176b50}*{box-sizing:border-box}body{margin:0;background:#eef2f8;color:var(--ink);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1120px;margin:0 auto;padding:32px 20px 80px}header,.case-card,.reviewer{background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 28px #1e315414}header,.reviewer,.case-card{padding:24px;margin-bottom:22px}h1{margin:0 0 8px;font-size:clamp(28px,4vw,44px)}h2{font-size:17px;margin:18px 0 6px}h3{margin-top:0}.lede,.kind,.privacy{color:var(--muted)}.privacy{border-left:4px solid var(--good);padding-left:12px}.source-context{background:#f2f7f5;border:1px solid #b9d8cd;border-radius:12px;margin:18px 0;padding:16px}.source-context h2{margin-top:0}.source-context p,.source-context small{color:var(--muted)}.source-context ol{display:grid;gap:8px;padding:0;list-style:none}.source-context li{display:grid;grid-template-columns:24px 1fr;gap:8px}.source-context li span{align-items:center;background:#d8eee6;border-radius:50%;display:flex;font-size:12px;font-weight:750;height:22px;justify-content:center}.reviewer-grid,.packages,.ratings{display:grid;gap:16px}.reviewer-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.packages{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.packages article{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}.ratings{grid-template-columns:1fr 1fr}.case-heading{display:flex;justify-content:space-between;gap:16px;align-items:center}.case-heading span{font-weight:750;font-size:18px}.case-heading code{font-size:12px;color:var(--muted)}label{display:grid;gap:6px;font-weight:650}input[type=text],select,textarea{width:100%;font:inherit;border:1px solid #aab5c8;border-radius:8px;padding:10px;background:white}textarea{min-height:110px;resize:vertical}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;border:1px solid var(--line);border-radius:8px;padding:14px;font-size:13px}fieldset{margin:18px 0;border:1px solid var(--line);border-radius:10px;padding:14px}.choice{display:inline-flex;align-items:center;margin:5px 18px 5px 0;font-weight:550}.choice input{margin-right:7px}.attestation{display:flex;align-items:flex-start;gap:10px;font-weight:600}.attestation input{margin-top:5px}.actions{position:sticky;bottom:16px;background:#17223bee;color:white;border-radius:14px;padding:14px 18px;display:flex;gap:14px;align-items:center;justify-content:space-between;box-shadow:0 8px 30px #10192d55}.actions button{border:0;border-radius:9px;background:white;color:var(--accent);font:700 16px system-ui;padding:11px 18px;cursor:pointer}.status{font-size:14px}@media(max-width:650px){main{padding:16px 10px 70px}.packages{grid-template-columns:1fr}.ratings{grid-template-columns:1fr}.case-heading{align-items:flex-start;flex-direction:column}.actions{align-items:stretch;flex-direction:column}.actions button{width:100%}}
 </style></head><body><main>
 <header><p class="kind">Independent instructor benchmark · ${escapeHtml(domain)}</p><h1>Blind atom review</h1><p class="lede">Review A and B on their own merits. Do not try to identify the system that produced either package.</p><p class="privacy">This page is self-contained and makes no network requests. Draft answers stay in this browser. The final button downloads a JSON file for you to return to the organizer.</p></header>
 <form id="review-form"><section class="reviewer"><h2>Reviewer eligibility</h2><div class="reviewer-grid"><label>Pseudonymous reviewer ID<input type="text" name="reviewerId" minlength="3" required placeholder="Example: ux-instructor-07"></label><label>Domain<input type="text" value="${escapeHtml(domain)}" disabled></label></div><p>Complete this form only if you are a working instructor who currently teaches ${escapeHtml(domain)}.</p><label class="attestation"><input type="checkbox" name="attestation" required> I attest that I currently teach this domain, completed this review independently, and have no conflict of interest with either package.</label></section>
@@ -327,6 +340,7 @@ export async function buildScionBlindReviewPacket({
       lessonId: String(row.lessonId || ''),
       kind: row.kind,
       prompt: row.prompt,
+      sourceContext: row.sourceContext || null,
       first,
       second,
       firstRole,
@@ -371,6 +385,7 @@ export async function buildScionBlindReviewPacket({
       lessonId: candidate.lessonId,
       kind: candidate.kind,
       prompt: candidate.prompt,
+      ...(candidate.sourceContext ? { sourceContext: candidate.sourceContext } : {}),
       A: sides.A,
       B: sides.B,
     };

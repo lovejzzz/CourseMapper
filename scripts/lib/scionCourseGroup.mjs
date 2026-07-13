@@ -12,6 +12,21 @@ function clean(value) {
     .trim();
 }
 
+export function canonicalScionCourseInput(project = {}) {
+  const promptText = typeof project?.promptText === 'string' ? project.promptText : '';
+  const fileNames = Array.isArray(project?.fileNames) ? project.fileNames.map(clean) : [];
+  const sourcePacketSha256 = String(project?.sourcePacketSha256 || '');
+  return {
+    promptText,
+    fileNames,
+    ...(sourcePacketSha256 ? { sourcePacketSha256 } : {}),
+  };
+}
+
+export function scionCourseInputSha256(project = {}) {
+  return scionIdentityHash(JSON.stringify(canonicalScionCourseInput(project)));
+}
+
 function slug(value) {
   return clean(value)
     .toLowerCase()

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-grounded-atom-capture-v1",
+  "claimBoundary": "These groups create neutral, source-bound A/B review candidates. Model identity and deterministic checks do not label a winner.",
+  "groups": [
+    {
+      "id": "python-control-flow-workshop",
+      "domain": "computer-science",
+      "title": "Programming Decisions and Iteration",
+      "courseBrief": "Programming Decisions and Iteration, a six-session introductory Python workshop in which students trace short programs, explain state changes, and choose control-flow structures for concrete problems.",
+      "sourceFile": "public/genome/cs-intro.json",
+      "kernels": [{ "id": "cs/variables" }, { "id": "cs/expressions-and-types" }, { "id": "cs/conditionals" }]
+    },
+    {
+      "id": "python-data-structures-lab",
+      "domain": "computer-science",
+      "title": "Python Data Structures and Modular Programs",
+      "courseBrief": "Python Data Structures and Modular Programs, a six-session laboratory course in which students decompose small programs into functions and choose lists or dictionaries to represent and transform labeled data.",
+      "sourceFile": "public/genome/cs-intro.json",
+      "kernels": [{ "id": "cs/functions" }, { "id": "cs/lists" }, { "id": "cs/dictionaries" }]
+    },
+    {
+      "id": "igneous-volcanic-processes",
+      "domain": "geology",
+      "title": "Igneous and Volcanic Processes",
+      "courseBrief": "Igneous and Volcanic Processes, a six-session undergraduate geology module using mineral evidence, magma composition, cooling history, and hazard observations to explain rock textures and eruption styles.",
+      "sourceFile": "public/genome/geo-intro.json",
+      "kernels": [{ "id": "geo/silicate-structures" }, { "id": "geo/igneous-rocks" }, { "id": "geo/volcanism" }]
+    },
+    {
+      "id": "tectonics-seismology-field-lab",
+      "domain": "geology",
+      "title": "Plate Tectonics and Seismology",
+      "courseBrief": "Plate Tectonics and Seismology, a six-session field-data laboratory in which students interpret Earth structure, plate-boundary motion, and seismic-wave evidence to explain observed geologic hazards.",
+      "sourceFile": "public/genome/geo-intro.json",
+      "kernels": [{ "id": "geo/earths-interior" }, { "id": "geo/plate-tectonics" }, { "id": "geo/earthquakes" }]
+    },
+    {
+      "id": "music-notation-ear-training",
+      "domain": "music-theory",
+      "title": "Music Notation and Ear Training",
+      "courseBrief": "Music Notation and Ear Training, a six-session college musicianship module in which students connect written pitch, interval relationships, and scale patterns to short listening and notation decisions.",
+      "sourceFile": "public/genome/music-intro.json",
+      "kernels": [
+        { "id": "music/staff-clefs-pitch-notation", "factIndexes": [0, 1, 4, 5] },
+        { "id": "music/intervals", "factIndexes": [1, 4] },
+        { "id": "music/scales-and-key-signatures", "factIndexes": [0, 1, 2, 4, 5] }
+      ]
+    },
+    {
+      "id": "harmony-form-analysis",
+      "domain": "music-theory",
+      "title": "Harmony and Formal Analysis",
+      "courseBrief": "Harmony and Formal Analysis, a six-session introductory theory module in which students identify chord construction, explain harmonic motion, and use sectional evidence to describe musical form.",
+      "sourceFile": "public/genome/music-intro.json",
+      "kernels": [
+        { "id": "music/triads-and-seventh-chords", "factIndexes": [0, 2, 3] },
+        { "id": "music/harmony-and-progressions", "factIndexes": [0, 2, 3, 4, 5] },
+        { "id": "music/musical-form", "factIndexes": [1, 2, 3, 4, 5] }
+      ]
+    },
+    {
+      "id": "ux-research-synthesis-studio",
+      "domain": "user-experience-design",
+      "title": "UX Research and Synthesis Studio",
+      "courseBrief": "UX Research and Synthesis Studio, a six-session project course in which students plan ethical studies, distinguish evidence from assumptions, and synthesize observations into personas and journey maps that inform decisions.",
+      "sourceFile": "public/genome/ux-intro.json",
+      "kernels": [
+        { "id": "ux/research-planning" },
+        { "id": "ux/evidence-based-personas" },
+        { "id": "ux/journey-mapping" }
+      ]
+    },
+    {
+      "id": "ux-prototyping-accessibility-lab",
+      "domain": "user-experience-design",
+      "title": "Prototyping, Task Flow, and Accessibility",
+      "courseBrief": "Prototyping, Task Flow, and Accessibility, a six-session applied UX laboratory in which students diagram task decisions, build testable interactions, and combine conformance checks with observed user performance.",
+      "sourceFile": "public/genome/ux-intro.json",
+      "kernels": [
+        { "id": "ux/task-flow-analysis" },
+        { "id": "ux/interactive-prototyping" },
+        { "id": "ux/accessibility-usability-evaluation" }
+      ]
+    }
+  ]
+}

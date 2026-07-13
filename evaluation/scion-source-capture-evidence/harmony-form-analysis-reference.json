@@ -1,0 +1,1102 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-harmony-form-analysis-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Harmony and Formal Analysis, a six-session introductory theory module in which students identify chord construction, explain harmonic motion, and use sectional evidence to describe musical form.",
+  "fileNames": [
+    "source-packet-ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6.json"
+  ],
+  "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Harmony and Formal Analysis\",\"sessions\":[{\"number\":1,\"title\":\"Triads and seventh chords\"},{\"number\":2,\"title\":\"Harmony and chord progressions\"},{\"number\":3,\"title\":\"Musical form\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"Which description best fits a triad in basic harmony?\",\"op\":[\"Three notes stacked vertically in thirds\",\"A triad plus a note a seventh above the root\",\"Four notes arranged in any order\",\"A chord with seven notes total\"],\"ai\":0,\"ex\":\"Three notes stacked in thirds matches the definition of a triad. A common misconception is to treat the extra seventh as part of a triad, but that would describe a seventh chord instead.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"How many different inversions does a seventh chord have?\",\"op\":[\"Two different inversions\",\"Three different inversions\",\"Four different inversions\",\"Five different inversions\"],\"ai\":2,\"ex\":\"A seventh chord has four different inversions. The plausible misconception is to count only the common triad inversions, but the source states that seventh chords have four inversions.\",\"sourceFactIndexes\":[3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Triad\",\"df\":\"A group of three pitch classes arranged by stacking in thirds.\",\"eg\":\"In a simple C-E-G sonority, the notes form a triad.\",\"mi\":\"It is the same thing as a seventh chord.\",\"cx\":\"A seventh chord adds a note forming a seventh above the root, so it is not just a triad.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Seventh chord\",\"df\":\"A chord built from a triad with one additional note a seventh above the root.\",\"eg\":\"A chord like C-E-G-B is an example of this type.\",\"mi\":\"It must contain seven notes.\",\"cx\":\"The name refers to the added seventh interval, not to the number of notes in the chord.\",\"sourceFactIndexes\":[1]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"In a Western tonal context, what best describes harmony?\",\"op\":[\"Different sounds combined to create distinct musical ideas\",\"A single melody supported only by rhythm\",\"A sequence of silent pauses in a phrase\",\"The written names of individual notes\"],\"ai\":0,\"ex\":\"Correct: harmony is the combination of different sounds to create new musical ideas. The likely misconception is to treat harmony as either melody alone or as a list of note names, but the source defines it as sound combination rather than notation or a single line.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"Which example shows a chord progression in A minor?\",\"op\":[\"A minor, D minor, E minor\",\"C major, F major, G major\",\"A minor, C major, E major\",\"E minor, A minor, D minor\"],\"ai\":0,\"ex\":\"Correct: in A minor, the i, iv, and v chords are A minor, D minor, and E minor. A common misconception is to choose a familiar major-key pattern, but the source gives the minor-key set explicitly.\",\"sourceFactIndexes\":[4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Harmony\",\"df\":\"The combination of different sounds that creates distinct musical ideas.\",\"eg\":\"A passage where voices or instruments sound together to form a richer effect.\",\"mi\":\"It means only loud or pleasant-sounding notes.\",\"cx\":\"Harmony is about combining sounds, not just describing volume or liking a chord.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Chord progression\",\"df\":\"A sequence in which one chord leads to another, forming a harmonic pattern.\",\"eg\":\"In A minor, A minor to D minor to E minor is a chord progression.\",\"mi\":\"It is just the written chord names with no musical movement.\",\"cx\":\"The source emphasizes that a first chord moves to a second and then to a third, so progression involves ordered harmonic motion.\",\"sourceFactIndexes\":[2,3,4]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A student hears a short piece that has two sections of about equal length. Which label best fits that description?\",\"op\":[\"binary form\",\"through-composed form\",\"strophic form\",\"theme and variations\"],\"ai\":0,\"ex\":\"Binary form fits because it is used for a musical piece with two sections that are about equal in length. A common misconception is to choose a form name just because a piece has more than one section; the key evidence here is the two-section, roughly equal-length structure.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"},{\"q\":\"When analyzing a self-contained musical piece or movement, what level of organization is being described?\",\"op\":[\"the entire structure of the piece\",\"a single motive or short idea\",\"the balance of sound and silence\",\"one repeated ending pattern\"],\"ai\":0,\"ex\":\"The entire structure of the piece is correct because this level concerns the full, self-contained musical piece or movement. A likely misconception is to focus on a small repeated idea or ending pattern, which describes a smaller unit rather than the whole form.\",\"sourceFactIndexes\":[5,0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Musical form\",\"df\":\"The overall structure of a musical composition or performance.\",\"eg\":\"A listener describes how a movement is organized from beginning to end.\",\"mi\":\"It means only the melody line.\",\"cx\":\"Form includes the full structure, not just one element like melody.\",\"sourceFactIndexes\":[0,5]},{\"tr\":\"Binary form\",\"df\":\"A pattern built from two sections that are about equal in length.\",\"eg\":\"A dance movement with an A section and a matching B section.\",\"mi\":\"It means any piece with exactly two notes or two measures.\",\"cx\":\"The label refers to two balanced sections, not to the number of notes or measures.\",\"sourceFactIndexes\":[1]}]}}}}",
+  "savedAt": "2026-07-13T13:57:59.884Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-campaign.json",
+    "campaignManifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+    "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d",
+    "courseInputSha256": "e07688b7e7a55d758fc4a55db855b5a97062dd6bae682d5815dbd4ab3be024f1",
+    "courseGroupId": "harmony-form-analysis",
+    "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/music-intro.json",
+      "sourceArtifactSha256": "0acd827673397b7109c92cbfdd732d3c5be0051e946bb6278935121055c80989",
+      "kernels": [
+        {
+          "id": "music/triads-and-seventh-chords",
+          "term": "Triads and seventh chords",
+          "definition": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "definitionAnchor": null,
+          "facts": [
+            {
+              "index": 0,
+              "text": "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Seventh_chord",
+                "loc": "extract",
+                "quote": "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root."
+              }
+            },
+            {
+              "index": 2,
+              "text": "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Seventh_chord",
+                "loc": "extract",
+                "quote": "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction."
+              }
+            },
+            {
+              "index": 3,
+              "text": "There are four different inversions of a seventh chord.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Seventh_chord",
+                "loc": "extract",
+                "quote": "There are four different inversions of a seventh chord."
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Wikipedia (see fact anchors)"
+          ]
+        },
+        {
+          "id": "music/harmony-and-progressions",
+          "term": "Harmony and chord progressions",
+          "definition": "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "definitionAnchor": null,
+          "facts": [
+            {
+              "index": 0,
+              "text": "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Chord_progression",
+                "loc": "extract",
+                "quote": "In these genres, chord progressions are the defining feature on which melody and rhythm are built."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Chord_progression",
+                "loc": "extract",
+                "quote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+              }
+            },
+            {
+              "index": 3,
+              "text": "A first chord forms a 'progression' with a second chord, and a second with a third.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Harmony",
+                "loc": "extract",
+                "quote": "A first chord forms a 'progression' with a second chord, and a second with a third."
+              }
+            },
+            {
+              "index": 4,
+              "text": "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Chord_progression",
+                "loc": "extract",
+                "quote": "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor."
+              }
+            },
+            {
+              "index": 5,
+              "text": "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Chord_progression",
+                "loc": "extract",
+                "quote": "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Wikipedia (see fact anchors)"
+          ]
+        },
+        {
+          "id": "music/musical-form",
+          "term": "Musical form",
+          "definition": "In music, form refers to the structure of a musical composition or performance.",
+          "definitionAnchor": null,
+          "facts": [
+            {
+              "index": 1,
+              "text": "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Musical form unfolds over time through the expansion and development of these ideas.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "Musical form unfolds over time through the expansion and development of these ideas."
+              }
+            },
+            {
+              "index": 3,
+              "text": "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm]."
+              }
+            },
+            {
+              "index": 4,
+              "text": "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on)."
+              }
+            },
+            {
+              "index": 5,
+              "text": "The next level concerns the entire structure of any single self-contained musical piece or movement.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "The next level concerns the entire structure of any single self-contained musical piece or movement."
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Wikipedia (see fact anchors)"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-13T13:57:59.884Z",
+    "admittedPromptIds": [
+      "harmony-form-analysis:music/triads-and-seventh-chords",
+      "harmony-form-analysis:music/harmony-and-progressions",
+      "harmony-form-analysis:music/musical-form"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "harmony-form-analysis:music/triads-and-seventh-chords",
+          "kernelId": "music/triads-and-seventh-chords",
+          "promptSha256": "445161bd53eda22979ccd028e2393ef58401203a0bcb28949fb6c61b8fd6ff76",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which description best fits a triad in basic harmony?",
+                "op": [
+                  "Three notes stacked vertically in thirds",
+                  "A triad plus a note a seventh above the root",
+                  "Four notes arranged in any order",
+                  "A chord with seven notes total"
+                ],
+                "ai": 0,
+                "ex": "Three notes stacked in thirds matches the definition of a triad. A common misconception is to treat the extra seventh as part of a triad, but that would describe a seventh chord instead.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "How many different inversions does a seventh chord have?",
+                "op": [
+                  "Two different inversions",
+                  "Three different inversions",
+                  "Four different inversions",
+                  "Five different inversions"
+                ],
+                "ai": 2,
+                "ex": "A seventh chord has four different inversions. The plausible misconception is to count only the common triad inversions, but the source states that seventh chords have four inversions.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Triad",
+                "df": "A group of three pitch classes arranged by stacking in thirds.",
+                "eg": "In a simple C-E-G sonority, the notes form a triad.",
+                "mi": "It is the same thing as a seventh chord.",
+                "cx": "A seventh chord adds a note forming a seventh above the root, so it is not just a triad.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Seventh chord",
+                "df": "A chord built from a triad with one additional note a seventh above the root.",
+                "eg": "A chord like C-E-G-B is an example of this type.",
+                "mi": "It must contain seven notes.",
+                "cx": "The name refers to the added seventh interval, not to the number of notes in the chord.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "b7e964f628f843a7b3e97c5f141d16aab106c8b21afb650cbb542c343dc2e847",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which description best fits a triad in basic harmony?",
+                "op": [
+                  "Three notes stacked vertically in thirds",
+                  "A triad plus a note a seventh above the root",
+                  "Four notes arranged in any order",
+                  "A chord with seven notes total"
+                ],
+                "ai": 0,
+                "ex": "Three notes stacked in thirds matches the definition of a triad. A common misconception is to treat the extra seventh as part of a triad, but that would describe a seventh chord instead.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "How many different inversions does a seventh chord have?",
+                "op": [
+                  "Two different inversions",
+                  "Three different inversions",
+                  "Four different inversions",
+                  "Five different inversions"
+                ],
+                "ai": 2,
+                "ex": "A seventh chord has four different inversions. The plausible misconception is to count only the common triad inversions, but the source states that seventh chords have four inversions.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Triad",
+                "df": "A group of three pitch classes arranged by stacking in thirds.",
+                "eg": "In a simple C-E-G sonority, the notes form a triad.",
+                "mi": "It is the same thing as a seventh chord.",
+                "cx": "A seventh chord adds a note forming a seventh above the root, so it is not just a triad.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Seventh chord",
+                "df": "A chord built from a triad with one additional note a seventh above the root.",
+                "eg": "A chord like C-E-G-B is an example of this type.",
+                "mi": "It must contain seven notes.",
+                "cx": "The name refers to the added seventh interval, not to the number of notes in the chord.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "b7e964f628f843a7b3e97c5f141d16aab106c8b21afb650cbb542c343dc2e847",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0f57b49283b17519006a54ee80e30081a08d99089f502a78b1",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 623,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 627,
+              "output_tokens_details": {
+                "reasoning_tokens": 259
+              },
+              "total_tokens": 1250
+            }
+          },
+          "startedAt": "2026-07-13T13:56:16.835Z",
+          "durationMs": 5562
+        },
+        {
+          "promptId": "harmony-form-analysis:music/harmony-and-progressions",
+          "kernelId": "music/harmony-and-progressions",
+          "promptSha256": "98bdaf35fb123a7306fb9b4d6614a43d3ea4490509b4895d57c39cd4fd58f2da",
+          "response": {
+            "mcItems": [
+              {
+                "q": "In a Western tonal context, what best describes harmony?",
+                "op": [
+                  "Different sounds combined to create distinct musical ideas",
+                  "A single melody supported only by rhythm",
+                  "A sequence of silent pauses in a phrase",
+                  "The written names of individual notes"
+                ],
+                "ai": 0,
+                "ex": "Correct: harmony is the combination of different sounds to create new musical ideas. The likely misconception is to treat harmony as either melody alone or as a list of note names, but the source defines it as sound combination rather than notation or a single line.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Which example shows a chord progression in A minor?",
+                "op": [
+                  "A minor, D minor, E minor",
+                  "C major, F major, G major",
+                  "A minor, C major, E major",
+                  "E minor, A minor, D minor"
+                ],
+                "ai": 0,
+                "ex": "Correct: in A minor, the i, iv, and v chords are A minor, D minor, and E minor. A common misconception is to choose a familiar major-key pattern, but the source gives the minor-key set explicitly.",
+                "sourceFactIndexes": [
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Harmony",
+                "df": "The combination of different sounds that creates distinct musical ideas.",
+                "eg": "A passage where voices or instruments sound together to form a richer effect.",
+                "mi": "It means only loud or pleasant-sounding notes.",
+                "cx": "Harmony is about combining sounds, not just describing volume or liking a chord.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Chord progression",
+                "df": "A sequence in which one chord leads to another, forming a harmonic pattern.",
+                "eg": "In A minor, A minor to D minor to E minor is a chord progression.",
+                "mi": "It is just the written chord names with no musical movement.",
+                "cx": "The source emphasizes that a first chord moves to a second and then to a third, so progression involves ordered harmonic motion.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "6dd1e64333eb7863d84df51ed3cc3f7b922998dab0b15edd4b3ceb6d13f90085",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "In a Western tonal context, what best describes harmony?",
+                "op": [
+                  "Different sounds combined to create distinct musical ideas",
+                  "A single melody supported only by rhythm",
+                  "A sequence of silent pauses in a phrase",
+                  "The written names of individual notes"
+                ],
+                "ai": 0,
+                "ex": "Correct: harmony is the combination of different sounds to create new musical ideas. The likely misconception is to treat harmony as either melody alone or as a list of note names, but the source defines it as sound combination rather than notation or a single line.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Which example shows a chord progression in A minor?",
+                "op": [
+                  "A minor, D minor, E minor",
+                  "C major, F major, G major",
+                  "A minor, C major, E major",
+                  "E minor, A minor, D minor"
+                ],
+                "ai": 0,
+                "ex": "Correct: in A minor, the i, iv, and v chords are A minor, D minor, and E minor. A common misconception is to choose a familiar major-key pattern, but the source gives the minor-key set explicitly.",
+                "sourceFactIndexes": [
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Harmony",
+                "df": "The combination of different sounds that creates distinct musical ideas.",
+                "eg": "A passage where voices or instruments sound together to form a richer effect.",
+                "mi": "It means only loud or pleasant-sounding notes.",
+                "cx": "Harmony is about combining sounds, not just describing volume or liking a chord.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Chord progression",
+                "df": "A sequence in which one chord leads to another, forming a harmonic pattern.",
+                "eg": "In A minor, A minor to D minor to E minor is a chord progression.",
+                "mi": "It is just the written chord names with no musical movement.",
+                "cx": "The source emphasizes that a first chord moves to a second and then to a third, so progression involves ordered harmonic motion.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "6dd1e64333eb7863d84df51ed3cc3f7b922998dab0b15edd4b3ceb6d13f90085",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0e45f9a4ac55166f006a54ee867698819185898391987b7d40",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 702,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 474,
+              "output_tokens_details": {
+                "reasoning_tokens": 67
+              },
+              "total_tokens": 1176
+            }
+          },
+          "startedAt": "2026-07-13T13:56:22.400Z",
+          "durationMs": 4360
+        },
+        {
+          "promptId": "harmony-form-analysis:music/musical-form",
+          "kernelId": "music/musical-form",
+          "promptSha256": "593c4b88b71659fd7d96a62df2f5164993c4597e801b5296d4ecf011417ec1e0",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student hears a short piece that has two sections of about equal length. Which label best fits that description?",
+                "op": [
+                  "binary form",
+                  "through-composed form",
+                  "strophic form",
+                  "theme and variations"
+                ],
+                "ai": 0,
+                "ex": "Binary form fits because it is used for a musical piece with two sections that are about equal in length. A common misconception is to choose a form name just because a piece has more than one section; the key evidence here is the two-section, roughly equal-length structure.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "When analyzing a self-contained musical piece or movement, what level of organization is being described?",
+                "op": [
+                  "the entire structure of the piece",
+                  "a single motive or short idea",
+                  "the balance of sound and silence",
+                  "one repeated ending pattern"
+                ],
+                "ai": 0,
+                "ex": "The entire structure of the piece is correct because this level concerns the full, self-contained musical piece or movement. A likely misconception is to focus on a small repeated idea or ending pattern, which describes a smaller unit rather than the whole form.",
+                "sourceFactIndexes": [
+                  5,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Musical form",
+                "df": "The overall structure of a musical composition or performance.",
+                "eg": "A listener describes how a movement is organized from beginning to end.",
+                "mi": "It means only the melody line.",
+                "cx": "Form includes the full structure, not just one element like melody.",
+                "sourceFactIndexes": [
+                  0,
+                  5
+                ]
+              },
+              {
+                "tr": "Binary form",
+                "df": "A pattern built from two sections that are about equal in length.",
+                "eg": "A dance movement with an A section and a matching B section.",
+                "mi": "It means any piece with exactly two notes or two measures.",
+                "cx": "The label refers to two balanced sections, not to the number of notes or measures.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "4cf472a752e61c6fbea80458bf83bae90fb5426b097ec77342be385a18150042",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student hears a short piece that has two sections of about equal length. Which label best fits that description?",
+                "op": [
+                  "binary form",
+                  "through-composed form",
+                  "strophic form",
+                  "theme and variations"
+                ],
+                "ai": 0,
+                "ex": "Binary form fits because it is used for a musical piece with two sections that are about equal in length. A common misconception is to choose a form name just because a piece has more than one section; the key evidence here is the two-section, roughly equal-length structure.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "When analyzing a self-contained musical piece or movement, what level of organization is being described?",
+                "op": [
+                  "the entire structure of the piece",
+                  "a single motive or short idea",
+                  "the balance of sound and silence",
+                  "one repeated ending pattern"
+                ],
+                "ai": 0,
+                "ex": "The entire structure of the piece is correct because this level concerns the full, self-contained musical piece or movement. A likely misconception is to focus on a small repeated idea or ending pattern, which describes a smaller unit rather than the whole form.",
+                "sourceFactIndexes": [
+                  5,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Musical form",
+                "df": "The overall structure of a musical composition or performance.",
+                "eg": "A listener describes how a movement is organized from beginning to end.",
+                "mi": "It means only the melody line.",
+                "cx": "Form includes the full structure, not just one element like melody.",
+                "sourceFactIndexes": [
+                  0,
+                  5
+                ]
+              },
+              {
+                "tr": "Binary form",
+                "df": "A pattern built from two sections that are about equal in length.",
+                "eg": "A dance movement with an A section and a matching B section.",
+                "mi": "It means any piece with exactly two notes or two measures.",
+                "cx": "The label refers to two balanced sections, not to the number of notes or measures.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "4cf472a752e61c6fbea80458bf83bae90fb5426b097ec77342be385a18150042",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_07022a1061342829006a54eee28c4c819ca58cb565a9e6ea89",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 665,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 540,
+              "output_tokens_details": {
+                "reasoning_tokens": 153
+              },
+              "total_tokens": 1205
+            }
+          },
+          "startedAt": "2026-07-13T13:57:54.271Z",
+          "durationMs": 5613
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "harmony-form-analysis:music/triads-and-seventh-chords",
+        "kernelId": "music/triads-and-seventh-chords",
+        "promptSha256": "445161bd53eda22979ccd028e2393ef58401203a0bcb28949fb6c61b8fd6ff76",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which description best fits a triad in basic harmony?",
+              "op": [
+                "Three notes stacked vertically in thirds",
+                "A triad plus a note a seventh above the root",
+                "Four notes arranged in any order",
+                "A chord with seven notes total"
+              ],
+              "ai": 0,
+              "ex": "Three notes stacked in thirds matches the definition of a triad. A common misconception is to treat the extra seventh as part of a triad, but that would describe a seventh chord instead.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "How many different inversions does a seventh chord have?",
+              "op": [
+                "Two different inversions",
+                "Three different inversions",
+                "Four different inversions",
+                "Five different inversions"
+              ],
+              "ai": 2,
+              "ex": "A seventh chord has four different inversions. The plausible misconception is to count only the common triad inversions, but the source states that seventh chords have four inversions.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Triad",
+              "df": "A group of three pitch classes arranged by stacking in thirds.",
+              "eg": "In a simple C-E-G sonority, the notes form a triad.",
+              "mi": "It is the same thing as a seventh chord.",
+              "cx": "A seventh chord adds a note forming a seventh above the root, so it is not just a triad.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Seventh chord",
+              "df": "A chord built from a triad with one additional note a seventh above the root.",
+              "eg": "A chord like C-E-G-B is an example of this type.",
+              "mi": "It must contain seven notes.",
+              "cx": "The name refers to the added seventh interval, not to the number of notes in the chord.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "b7e964f628f843a7b3e97c5f141d16aab106c8b21afb650cbb542c343dc2e847",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which description best fits a triad in basic harmony?",
+              "op": [
+                "Three notes stacked vertically in thirds",
+                "A triad plus a note a seventh above the root",
+                "Four notes arranged in any order",
+                "A chord with seven notes total"
+              ],
+              "ai": 0,
+              "ex": "Three notes stacked in thirds matches the definition of a triad. A common misconception is to treat the extra seventh as part of a triad, but that would describe a seventh chord instead.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "How many different inversions does a seventh chord have?",
+              "op": [
+                "Two different inversions",
+                "Three different inversions",
+                "Four different inversions",
+                "Five different inversions"
+              ],
+              "ai": 2,
+              "ex": "A seventh chord has four different inversions. The plausible misconception is to count only the common triad inversions, but the source states that seventh chords have four inversions.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Triad",
+              "df": "A group of three pitch classes arranged by stacking in thirds.",
+              "eg": "In a simple C-E-G sonority, the notes form a triad.",
+              "mi": "It is the same thing as a seventh chord.",
+              "cx": "A seventh chord adds a note forming a seventh above the root, so it is not just a triad.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Seventh chord",
+              "df": "A chord built from a triad with one additional note a seventh above the root.",
+              "eg": "A chord like C-E-G-B is an example of this type.",
+              "mi": "It must contain seven notes.",
+              "cx": "The name refers to the added seventh interval, not to the number of notes in the chord.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "b7e964f628f843a7b3e97c5f141d16aab106c8b21afb650cbb542c343dc2e847",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0f57b49283b17519006a54ee80e30081a08d99089f502a78b1",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 623,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 627,
+            "output_tokens_details": {
+              "reasoning_tokens": 259
+            },
+            "total_tokens": 1250
+          }
+        },
+        "startedAt": "2026-07-13T13:56:16.835Z",
+        "durationMs": 5562
+      },
+      {
+        "promptId": "harmony-form-analysis:music/harmony-and-progressions",
+        "kernelId": "music/harmony-and-progressions",
+        "promptSha256": "98bdaf35fb123a7306fb9b4d6614a43d3ea4490509b4895d57c39cd4fd58f2da",
+        "response": {
+          "mcItems": [
+            {
+              "q": "In a Western tonal context, what best describes harmony?",
+              "op": [
+                "Different sounds combined to create distinct musical ideas",
+                "A single melody supported only by rhythm",
+                "A sequence of silent pauses in a phrase",
+                "The written names of individual notes"
+              ],
+              "ai": 0,
+              "ex": "Correct: harmony is the combination of different sounds to create new musical ideas. The likely misconception is to treat harmony as either melody alone or as a list of note names, but the source defines it as sound combination rather than notation or a single line.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Which example shows a chord progression in A minor?",
+              "op": [
+                "A minor, D minor, E minor",
+                "C major, F major, G major",
+                "A minor, C major, E major",
+                "E minor, A minor, D minor"
+              ],
+              "ai": 0,
+              "ex": "Correct: in A minor, the i, iv, and v chords are A minor, D minor, and E minor. A common misconception is to choose a familiar major-key pattern, but the source gives the minor-key set explicitly.",
+              "sourceFactIndexes": [
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Harmony",
+              "df": "The combination of different sounds that creates distinct musical ideas.",
+              "eg": "A passage where voices or instruments sound together to form a richer effect.",
+              "mi": "It means only loud or pleasant-sounding notes.",
+              "cx": "Harmony is about combining sounds, not just describing volume or liking a chord.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Chord progression",
+              "df": "A sequence in which one chord leads to another, forming a harmonic pattern.",
+              "eg": "In A minor, A minor to D minor to E minor is a chord progression.",
+              "mi": "It is just the written chord names with no musical movement.",
+              "cx": "The source emphasizes that a first chord moves to a second and then to a third, so progression involves ordered harmonic motion.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "6dd1e64333eb7863d84df51ed3cc3f7b922998dab0b15edd4b3ceb6d13f90085",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "In a Western tonal context, what best describes harmony?",
+              "op": [
+                "Different sounds combined to create distinct musical ideas",
+                "A single melody supported only by rhythm",
+                "A sequence of silent pauses in a phrase",
+                "The written names of individual notes"
+              ],
+              "ai": 0,
+              "ex": "Correct: harmony is the combination of different sounds to create new musical ideas. The likely misconception is to treat harmony as either melody alone or as a list of note names, but the source defines it as sound combination rather than notation or a single line.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Which example shows a chord progression in A minor?",
+              "op": [
+                "A minor, D minor, E minor",
+                "C major, F major, G major",
+                "A minor, C major, E major",
+                "E minor, A minor, D minor"
+              ],
+              "ai": 0,
+              "ex": "Correct: in A minor, the i, iv, and v chords are A minor, D minor, and E minor. A common misconception is to choose a familiar major-key pattern, but the source gives the minor-key set explicitly.",
+              "sourceFactIndexes": [
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Harmony",
+              "df": "The combination of different sounds that creates distinct musical ideas.",
+              "eg": "A passage where voices or instruments sound together to form a richer effect.",
+              "mi": "It means only loud or pleasant-sounding notes.",
+              "cx": "Harmony is about combining sounds, not just describing volume or liking a chord.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Chord progression",
+              "df": "A sequence in which one chord leads to another, forming a harmonic pattern.",
+              "eg": "In A minor, A minor to D minor to E minor is a chord progression.",
+              "mi": "It is just the written chord names with no musical movement.",
+              "cx": "The source emphasizes that a first chord moves to a second and then to a third, so progression involves ordered harmonic motion.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "6dd1e64333eb7863d84df51ed3cc3f7b922998dab0b15edd4b3ceb6d13f90085",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0e45f9a4ac55166f006a54ee867698819185898391987b7d40",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 702,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 474,
+            "output_tokens_details": {
+              "reasoning_tokens": 67
+            },
+            "total_tokens": 1176
+          }
+        },
+        "startedAt": "2026-07-13T13:56:22.400Z",
+        "durationMs": 4360
+      },
+      {
+        "promptId": "harmony-form-analysis:music/musical-form",
+        "kernelId": "music/musical-form",
+        "promptSha256": "593c4b88b71659fd7d96a62df2f5164993c4597e801b5296d4ecf011417ec1e0",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student hears a short piece that has two sections of about equal length. Which label best fits that description?",
+              "op": [
+                "binary form",
+                "through-composed form",
+                "strophic form",
+                "theme and variations"
+              ],
+              "ai": 0,
+              "ex": "Binary form fits because it is used for a musical piece with two sections that are about equal in length. A common misconception is to choose a form name just because a piece has more than one section; the key evidence here is the two-section, roughly equal-length structure.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "When analyzing a self-contained musical piece or movement, what level of organization is being described?",
+              "op": [
+                "the entire structure of the piece",
+                "a single motive or short idea",
+                "the balance of sound and silence",
+                "one repeated ending pattern"
+              ],
+              "ai": 0,
+              "ex": "The entire structure of the piece is correct because this level concerns the full, self-contained musical piece or movement. A likely misconception is to focus on a small repeated idea or ending pattern, which describes a smaller unit rather than the whole form.",
+              "sourceFactIndexes": [
+                5,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Musical form",
+              "df": "The overall structure of a musical composition or performance.",
+              "eg": "A listener describes how a movement is organized from beginning to end.",
+              "mi": "It means only the melody line.",
+              "cx": "Form includes the full structure, not just one element like melody.",
+              "sourceFactIndexes": [
+                0,
+                5
+              ]
+            },
+            {
+              "tr": "Binary form",
+              "df": "A pattern built from two sections that are about equal in length.",
+              "eg": "A dance movement with an A section and a matching B section.",
+              "mi": "It means any piece with exactly two notes or two measures.",
+              "cx": "The label refers to two balanced sections, not to the number of notes or measures.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "4cf472a752e61c6fbea80458bf83bae90fb5426b097ec77342be385a18150042",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student hears a short piece that has two sections of about equal length. Which label best fits that description?",
+              "op": [
+                "binary form",
+                "through-composed form",
+                "strophic form",
+                "theme and variations"
+              ],
+              "ai": 0,
+              "ex": "Binary form fits because it is used for a musical piece with two sections that are about equal in length. A common misconception is to choose a form name just because a piece has more than one section; the key evidence here is the two-section, roughly equal-length structure.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "When analyzing a self-contained musical piece or movement, what level of organization is being described?",
+              "op": [
+                "the entire structure of the piece",
+                "a single motive or short idea",
+                "the balance of sound and silence",
+                "one repeated ending pattern"
+              ],
+              "ai": 0,
+              "ex": "The entire structure of the piece is correct because this level concerns the full, self-contained musical piece or movement. A likely misconception is to focus on a small repeated idea or ending pattern, which describes a smaller unit rather than the whole form.",
+              "sourceFactIndexes": [
+                5,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Musical form",
+              "df": "The overall structure of a musical composition or performance.",
+              "eg": "A listener describes how a movement is organized from beginning to end.",
+              "mi": "It means only the melody line.",
+              "cx": "Form includes the full structure, not just one element like melody.",
+              "sourceFactIndexes": [
+                0,
+                5
+              ]
+            },
+            {
+              "tr": "Binary form",
+              "df": "A pattern built from two sections that are about equal in length.",
+              "eg": "A dance movement with an A section and a matching B section.",
+              "mi": "It means any piece with exactly two notes or two measures.",
+              "cx": "The label refers to two balanced sections, not to the number of notes or measures.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "4cf472a752e61c6fbea80458bf83bae90fb5426b097ec77342be385a18150042",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_07022a1061342829006a54eee28c4c819ca58cb565a9e6ea89",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 665,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 540,
+            "output_tokens_details": {
+              "reasoning_tokens": 153
+            },
+            "total_tokens": 1205
+          }
+        },
+        "startedAt": "2026-07-13T13:57:54.271Z",
+        "durationMs": 5613
+      }
+    ]
+  }
+}

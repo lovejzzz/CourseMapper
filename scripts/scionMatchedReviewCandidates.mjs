@@ -8,7 +8,7 @@ import { pathToFileURL } from 'node:url';
 import { parseSavedCourseGraph } from '../src/lib/quality/quizContrast.js';
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
 import { normalizeScionMcItem } from '../src/lib/scionAnswerKeyAlignment.js';
-import { deriveScionCourseGroup } from './lib/scionCourseGroup.mjs';
+import { canonicalScionCourseInput, deriveScionCourseGroup } from './lib/scionCourseGroup.mjs';
 
 const DEFAULT_MANIFEST = 'evaluation/scion-contrast-matrix.json';
 const DEFAULT_OUTPUT = 'evaluation/scion-review-candidates.jsonl';
@@ -19,15 +19,9 @@ function hash(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
 
-function canonicalInput(project = {}) {
-  const promptText = typeof project?.promptText === 'string' ? project.promptText : '';
-  const fileNames = Array.isArray(project?.fileNames) ? project.fileNames.map((file) => text(file)) : [];
-  return { promptText, fileNames };
-}
-
 function inspectPairInput(pair) {
-  const candidateInput = canonicalInput(pair.candidateProject);
-  const referenceInput = canonicalInput(pair.referenceProject);
+  const candidateInput = canonicalScionCourseInput(pair.candidateProject);
+  const referenceInput = canonicalScionCourseInput(pair.referenceProject);
   const issues = [];
   if (!candidateInput.promptText.trim() || !referenceInput.promptText.trim()) issues.push('missing-course-input');
   if (JSON.stringify(candidateInput) !== JSON.stringify(referenceInput)) issues.push('course-input-mismatch');
@@ -36,6 +30,18 @@ function inspectPairInput(pair) {
     !/^[a-f0-9]{64}$/.test(String(pair.sourcePacketSha256 || ''))
   ) {
     issues.push('unbound-source-attachments');
+  }
+  if (candidateInput.fileNames.length > 0 || referenceInput.fileNames.length > 0) {
+    const packetDigests = [
+      String(pair.sourcePacketSha256 || ''),
+      String(candidateInput.sourcePacketSha256 || ''),
+      String(referenceInput.sourcePacketSha256 || ''),
+    ];
+    if (!packetDigests.every((digest) => /^[a-f0-9]{64}$/.test(digest))) {
+      issues.push('missing-project-source-packet-digest');
+    } else if (new Set(packetDigests).size !== 1) {
+      issues.push('source-packet-digest-mismatch');
+    }
   }
   return {
     pass: issues.length === 0,
@@ -71,12 +77,36 @@ function overlapScore(left, right) {
   return matches / Math.min(a.size, b.size);
 }
 
-function lessonRows(graph) {
+function sourceContextForLesson(project, lessonId) {
+  const capture = project?.scionSourceCapture;
+  if (!capture?.sourcePacketSha256 || !capture?.sourcePacket) return null;
+  const lessonNumber = Number(String(lessonId || '').replace(/^lesson-/, ''));
+  const promptId = capture.admittedPromptIds?.[lessonNumber - 1];
+  const prefix = `${capture.courseGroupId}:`;
+  const kernelId = String(promptId || '').startsWith(prefix) ? String(promptId).slice(prefix.length) : '';
+  const kernel = capture.sourcePacket.kernels?.find((entry) => entry?.id === kernelId);
+  if (!kernel) return null;
+  return {
+    sourcePacketSha256: capture.sourcePacketSha256,
+    kernelId,
+    term: text(kernel.term),
+    claims: [kernel.definition, ...(kernel.facts || []).map((fact) => fact?.text)].map(text).filter(Boolean),
+    attribution: (kernel.attribution || []).map(text).filter(Boolean),
+    license: text(kernel.license),
+  };
+}
+
+function lessonRows(graph, project) {
   const content = graph?.enrichmentOverlay?.lessonContent || {};
   return (Array.isArray(graph?.sessions) ? graph.sessions : []).map((session, index) => {
     const number = Number(session?.number);
     const lessonId = `lesson-${Number.isInteger(number) && number > 0 ? number : index + 1}`;
-    return { lessonId, title: text(session?.title || `Lesson ${index + 1}`), content: content[lessonId] || {} };
+    return {
+      lessonId,
+      title: text(session?.title || `Lesson ${index + 1}`),
+      content: content[lessonId] || {},
+      sourceContext: sourceContextForLesson(project, lessonId),
+    };
   });
 }
 
@@ -194,6 +224,7 @@ function addPairs(rows, seen, { pair, match, kind, leftItems, rightItems }) {
       courseGroupId: pair.courseGroupId,
       courseGroupSha256: pair.courseGroupSha256,
       lessonId: match.left.lessonId,
+      ...(match.left.sourceContext ? { sourceContext: match.left.sourceContext } : {}),
       pairSource: {
         pairId: pair.id,
         leftRoute: pair.candidateRoute,
@@ -209,6 +240,8 @@ function addPairs(rows, seen, { pair, match, kind, leftItems, rightItems }) {
         courseGroupSource: pair.courseGroupSource,
         candidateArtifactSha256: pair.candidateArtifactSha256,
         referenceArtifactSha256: pair.referenceArtifactSha256,
+        ...(pair.sourcePacketSha256 ? { sourcePacketSha256: pair.sourcePacketSha256 } : {}),
+        ...(match.left.sourceContext?.kernelId ? { sourceKernelId: match.left.sourceContext.kernelId } : {}),
       },
     };
     const id = hash(
@@ -216,6 +249,7 @@ function addPairs(rows, seen, { pair, match, kind, leftItems, rightItems }) {
         courseGroupSha256: row.courseGroupSha256,
         kind,
         prompt: row.prompt,
+        sourceContext: row.sourceContext || null,
         left: row.left,
         right: row.right,
       }),
@@ -297,7 +331,34 @@ export function buildMatchedReviewCandidates(pairs = []) {
     };
     const leftGraph = parseSavedCourseGraph(pair.candidateProject);
     const rightGraph = parseSavedCourseGraph(pair.referenceProject);
-    const matches = matchLessons(lessonRows(leftGraph), lessonRows(rightGraph));
+    const matches = matchLessons(
+      lessonRows(leftGraph, pair.candidateProject),
+      lessonRows(rightGraph, pair.referenceProject),
+    );
+    if (pair.sourcePacketSha256) {
+      const sourceContextMismatch = matches.some(
+        (match) =>
+          !match.left.sourceContext ||
+          !match.right.sourceContext ||
+          JSON.stringify(match.left.sourceContext) !== JSON.stringify(match.right.sourceContext) ||
+          match.left.sourceContext.sourcePacketSha256 !== pair.sourcePacketSha256,
+      );
+      if (sourceContextMismatch) {
+        pairReports.push({
+          id: pair.id,
+          domain: pair.domain,
+          status: 'excluded',
+          issues: ['source-context-mismatch'],
+          courseInputSha256: input.sha256,
+          courseGroupId: courseGroup.id,
+          courseGroupSha256: courseGroup.sha256,
+          courseGroupSource: courseGroup.source,
+          matchedLessons: matches.length,
+          candidates: 0,
+        });
+        continue;
+      }
+    }
     const before = rows.length;
     for (const match of matches) {
       addPairs(rows, seen, {

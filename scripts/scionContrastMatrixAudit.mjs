@@ -44,6 +44,7 @@ function renderMarkdown(matrix, manifestPath) {
     `Generated: ${matrix.generatedAt}`,
     `Manifest: ${manifestPath}`,
     `Pairs: ${matrix.pairCount} across ${matrix.domainCount} domains`,
+    `Blind-review-only pairs excluded from full-course contrast scoring: ${matrix.reviewOnlyPairCount || 0}`,
     '',
     `> ${matrix.claimBoundary}`,
     '',
@@ -100,13 +101,23 @@ async function main() {
       return { ...pair, candidateProject, referenceProject };
     }),
   );
-  const matrix = buildScionContrastMatrix(pairs);
+  const reviewOnlyPairs = pairs.filter((pair) => pair.evaluationUse === 'blind-review-only');
+  const matrix = {
+    ...buildScionContrastMatrix(pairs.filter((pair) => pair.evaluationUse !== 'blind-review-only')),
+    reviewOnlyPairCount: reviewOnlyPairs.length,
+    reviewOnlyPairs: reviewOnlyPairs.map((pair) => ({
+      id: pair.id,
+      domain: pair.domain,
+      artifactStatus: pair.artifactStatus,
+    })),
+  };
   await fs.mkdir(args.output, { recursive: true });
   await Promise.all([
     fs.writeFile(path.join(args.output, 'latest.json'), `${JSON.stringify(matrix, null, 2)}\n`),
     fs.writeFile(path.join(args.output, 'latest.md'), renderMarkdown(matrix, args.manifest)),
   ]);
   console.log(`Scion contrast matrix: ${matrix.pairCount} pairs / ${matrix.domainCount} domains`);
+  console.log(`Blind-review-only source pairs: ${matrix.reviewOnlyPairCount}`);
   for (const [route, summary] of Object.entries(matrix.routes)) {
     console.log(
       `${route}: ${summary.pairs} pair(s), quiz learn/preserve ${summary.quizOutcomes.learn}/${summary.quizOutcomes.preserve}, surface learn/preserve ${summary.surfaceOutcomes.learn}/${summary.surfaceOutcomes.preserve}, cross learn/preserve ${summary.crossArtifactOutcomes.learn}/${summary.crossArtifactOutcomes.preserve}`,
