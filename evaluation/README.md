@@ -68,17 +68,18 @@ npm run audit:scion:model-bakeoff -- \
   --import-crucible verification-output/crucible/<round>
 ```
 
-Current evidence screens both Gemma 4 E2B and Qwen3.5 4B at 23/25 cold twice and 25/25 grounded twice. Qwen has one exact-provenance full-course pass: UX, 12 lessons, 99/A, zero P0/P1, 101 extracted files, $0, 382 seconds. It remains unpromoted because only one of five domains is complete, device and instructor evidence are absent, and its 85 Scion quality-pass calls materially exceed the legacy 50-call control. That older control artifact predates exact source-weight capture, so it is valid compiler-burden evidence but cannot satisfy the new exact-provenance matched-control promotion gate.
+Current evidence screens both Gemma 4 E2B and Qwen3.5 4B at 23/25 cold twice and 25/25 grounded twice. The first exact-provenance full-course pair is complete: on the same 12-lesson UX brief and current compiler, Qwen and Gemma both reached 99/A, zero P0/P1/P2, 101 extracted files, and $0 in 382 and 384 seconds. Qwen remains unpromoted because only one of five domains is complete, device and instructor evidence are absent, and its 85 Scion quality-pass calls are 1.64× Gemma's 52 calls—above the 1.25× ceiling.
 
 Audit the compiler—not just the model—with:
 
 ```bash
 npm run audit:scion:compiler-burden -- \
-  --candidate verification-output/crucible/<candidate-round>/<course> \
-  --control verification-output/crucible/<control-round>/<course>
+  --candidate evaluation/scion-model-evidence/qwen3.5-4b/2026-07-12T16-53-18-295Z-full-course.json \
+  --control evaluation/scion-model-evidence/gemma-4-e2b/2026-07-13T00-09-50-920Z-full-course.json \
+  --domain ux-design-studio
 ```
 
-On the retained UX pair, Qwen required 85 Scion subcalls (7.08 per lesson), 35 rejected quality actions, and 12 accepted regenerations versus 50 calls (4.17 per lesson), 21 rejections, and six regenerations in the legacy control. The audit reports 1.70× call amplification and 45 combined `not-applied` rejections as compiler debt. Future runs emit each subcall's schema purpose. Replaying the current depth detector against the retained Qwen Pass-B inputs avoids 17 of the 33 old rewrite targets (51.5%); the revised repair prompt also requires an open evidence question and forbids copying answer labels, option text, or the answer into the stem.
+On the exact UX pair, Qwen required 85 Scion subcalls (7.08 per lesson), 35 rejected quality actions, and 12 accepted regenerations versus Gemma's 52 calls (4.33 per lesson), 19 rejections, and seven regenerations. The audit reports 1.64× call amplification as compiler debt. Every Gemma call carries its schema purpose. Replaying the current depth detector against the retained Qwen Pass-B inputs avoids 17 of the 33 old rewrite targets (51.5%); the revised repair prompt also requires an open evidence question and forbids copying answer labels, option text, or the answer into the stem.
 
 The shipped music genome now contains 28 source-anchored MC items—four for each of seven kernels—with answer positions balanced inside every bank. A partial genome/model merge remains genome-first, so those verified music keys fill the planned MC seats before unverified model questions.
 
@@ -156,7 +157,7 @@ The current local route's production-safe capture is the 7-lesson music-theory r
 
 The current local UX comparison row points to `round-2026-07-11T20-41-02-548Z`. Its real 12-lesson run reached 99/A with zero P0/P1, 101 extracted files, clean 38/38 export verification, six genome-linked lessons, and a strict matrix pass. The candidate records 27/48 applied MC items (56.3%) versus Luna's 27/44 (61.4%), so the applied rate still trails even though the applied-item count is equal. Both artifacts reach 100% supported inference, explanation-key alignment, scenario coverage, and concrete scenario materials. Scion reaches 100% contrastive rationales versus 9.1%, 100% decision-ready scenarios versus 58.3%, and 100% cue-free plus claim-evidence-boundary short answers versus 0%. The derived scenarios retain explicit `derived-kernel-fallback` provenance. These are deterministic paired diagnostics from one course; the production-canary gate now passes independently, but independent instructor evidence is still required for a teachability or general superiority claim.
 
-The corpus audit currently admits 0/411 rows. Ninety-nine rows lack distinct verifier diversity, 30 lack review approval, 11 use an unsupported evidence kind, and three post-hoc key-realignment records are permanently non-trainable; 234 lack pair-level evidence and most also lack a deterministic quality margin. The curated training file is empty by design. A balanced 50-case blind review packet is ready across five named domains, but no instructor decision is counted until valid completed forms are ingested.
+The corpus audit currently admits 0/418 rows. The exact Gemma control contributed seven raw repair pairs, but none satisfy the independent-evidence gate. One hundred two rows lack distinct verifier diversity, 34 lack review approval, 11 use an unsupported evidence kind, and three post-hoc key-realignment records are permanently non-trainable; 234 lack pair-level evidence and most also lack a deterministic quality margin. The curated training file is empty by design. A balanced 50-case blind review packet is ready across five named domains, but no instructor decision is counted until valid completed forms are ingested.
 
 ## Current claim
 

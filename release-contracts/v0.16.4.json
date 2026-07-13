@@ -1,0 +1,97 @@
+{
+  "version": "0.16.4",
+  "date": "July 12, 2026",
+  "title": "Exact Control: same grade, different compiler burden",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:scion:model-bakeoff",
+      "npm run audit:scion:corpus",
+      "npm run audit:scion:compiler-burden -- --candidate evaluation/scion-model-evidence/qwen3.5-4b/2026-07-12T16-53-18-295Z-full-course.json --control evaluation/scion-model-evidence/gemma-4-e2b/2026-07-13T00-09-50-920Z-full-course.json --domain ux-design-studio",
+      "npx vitest run trellis/__tests__/s-model-runtime.test.mjs tests/scion-compiler-burden.test.js tests/scion-model-bakeoff.test.js tests/local-provider.test.js tests/scion-compiler.test.js --maxWorkers=2"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification runs on the pushed v0.16.4 commit and is checked before release handoff."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The full deterministic suite, release audit, build, bundle budgets, and exact-evidence audits run locally before push."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploys only after Fast verification succeeds on main."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The exact Gemma and Qwen controls are real Local-provider browser runs with retained source-weight provenance; no hosted-provider quality claim is added."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor-readiness or model-promotion claim is made; qualifying independent reviews remain absent."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0164-exact-matched-control",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Gemma 4 E2B and Qwen3.5 4B now have one current-compiler, exact-provenance, same-brief UX comparison. Both real browser runs produced valid 12-lesson 99/A packages with zero P0/P1/P2, 101 extracted files, and zero cost.",
+      "anchors": [
+        "evaluation/scion-model-candidates.json",
+        "evaluation/scion-model-evidence/gemma-4-e2b/2026-07-13T00-09-50-920Z-full-course.json",
+        "evaluation/scion-model-evidence/qwen3.5-4b/2026-07-12T16-53-18-295Z-full-course.json",
+        "trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl",
+        "scripts/scionModelBakeoff.mjs",
+        "docs/SCION_NEXT_LEVEL_PLAN.md"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:model-bakeoff",
+        "npm run audit:scion:corpus",
+        "npx vitest run tests/scion-model-bakeoff.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live", "compiled-output", "live-provider", "static-audit"]
+    },
+    {
+      "id": "v0164-portable-compiler-burden",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The exact pair proves that equal package grades can conceal unequal repair work: Qwen uses 85 Scion calls versus Gemma's 52, a 1.64x amplification that fails the 1.25x promotion ceiling. The burden audit can reproduce this result directly from committed evidence files.",
+      "anchors": [
+        "scripts/scionCompilerBurdenAudit.mjs",
+        "scripts/lib/scionCompilerBurden.mjs",
+        "tests/scion-compiler-burden.test.js",
+        "evaluation/README.md",
+        "README.md"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:compiler-burden -- --candidate evaluation/scion-model-evidence/qwen3.5-4b/2026-07-12T16-53-18-295Z-full-course.json --control evaluation/scion-model-evidence/gemma-4-e2b/2026-07-13T00-09-50-920Z-full-course.json --domain ux-design-studio",
+        "npx vitest run tests/scion-compiler-burden.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v0164-truthful-local-readiness",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The local shim preloads exact weights, reports worker loading and readiness separately from HTTP availability, records load duration and failures, retries failed preloads, and makes concurrent first requests await one shared ready promise.",
+      "anchors": [
+        "scripts/crucible/e2bOpenAIShim.mjs",
+        "trellis/tendril/sModel.mjs",
+        "trellis/__tests__/s-model-runtime.test.mjs",
+        "tests/local-provider.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run trellis/__tests__/s-model-runtime.test.mjs tests/local-provider.test.js tests/scion-compiler.test.js",
+        "npm run local-model"
+      ],
+      "proofScopes": ["unit", "live-provider", "static-audit"]
+    }
+  ]
+}

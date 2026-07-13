@@ -10,7 +10,7 @@
 //   node scripts/crucible/e2bOpenAIShim.mjs [port]
 import http from 'node:http';
 import fs from 'node:fs';
-import { sGenerate, stopS } from '../../trellis/tendril/sModel.mjs';
+import { sGenerate, startItems, stopS } from '../../trellis/tendril/sModel.mjs';
 
 const PORT = Number(process.argv[2] ?? 8799);
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
@@ -19,6 +19,38 @@ const BODY_LOG = process.env.SHIM_BODY_LOG || '';
 let calls = 0;
 let failures = 0;
 let lastGenerationError = '';
+let modelState = 'loading';
+let modelLoadMs = null;
+let modelLoadError = '';
+let modelReadyPromise = null;
+
+// Preload the exact local weights while the browser and production app start.
+// Without this, a 10+ minute cold Python/Transformers import is hidden inside
+// the first course request and the HTTP health endpoint misleadingly says the
+// model is ready. Concurrent requests await the same route-ready promise.
+function ensureLocalModelReady() {
+  if (modelState === 'ready') return Promise.resolve();
+  if (modelReadyPromise) return modelReadyPromise;
+  const startedAt = Date.now();
+  modelState = 'loading';
+  modelLoadError = '';
+  modelReadyPromise = startItems({ timeoutMs: 1_200_000 })
+    .then(() => {
+      modelState = 'ready';
+      modelLoadMs = Date.now() - startedAt;
+    })
+    .catch((error) => {
+      modelState = 'failed';
+      modelLoadMs = Date.now() - startedAt;
+      modelLoadError = String(error?.message || error).slice(0, 500);
+      modelReadyPromise = null;
+      console.error(JSON.stringify({ localModelStartupError: modelLoadError, modelId: LOCAL_MODEL_ID }));
+      throw error;
+    });
+  return modelReadyPromise;
+}
+
+ensureLocalModelReady().catch(() => {});
 
 function readBody(req) {
   return new Promise((resolve) => {
@@ -29,6 +61,7 @@ function readBody(req) {
 }
 
 async function generate({ system, user, maxTokens, schema, jsonMode, temperature }) {
+  await ensureLocalModelReady();
   calls += 1;
   // task:'items' is the g4 venv route. timeoutMs is queue-INCLUSIVE (serve_g4
   // is serial; the compiler batches parallel calls) — 20min so a deep queue
@@ -907,6 +940,10 @@ const server = http.createServer(async (req, res) => {
           modelId: LOCAL_MODEL_ID,
           modelName: LOCAL_MODEL_NAME,
           sourceModelId: LOCAL_SOURCE_MODEL_ID,
+          modelState,
+          modelReady: modelState === 'ready',
+          modelLoadMs,
+          modelLoadError,
           calls,
           failures,
           lastGenerationError,
@@ -927,6 +964,7 @@ const server = http.createServer(async (req, res) => {
               owned_by: 'local',
               display_name: LOCAL_MODEL_NAME,
               source_model: LOCAL_SOURCE_MODEL_ID,
+              ready: modelState === 'ready',
             },
           ],
         }),
@@ -1147,7 +1185,7 @@ const server = http.createServer(async (req, res) => {
   res.end(JSON.stringify(payload));
 });
 
-server.listen(PORT, () => console.log(JSON.stringify({ ready: true, port: PORT })));
+server.listen(PORT, () => console.log(JSON.stringify({ ready: true, port: PORT, modelState })));
 
 for (const sig of ['SIGINT', 'SIGTERM']) {
   process.on(sig, () => {

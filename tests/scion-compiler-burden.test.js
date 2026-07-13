@@ -5,6 +5,7 @@ import {
   parseScionConsoleEvents,
   summarizeScionCompilerBurden,
 } from '../scripts/lib/scionCompilerBurden.mjs';
+import { compilerBurdenFromEvidence } from '../scripts/scionCompilerBurdenAudit.mjs';
 
 function line(event) {
   return `2026-07-12T00:00:00.000Z [info] [CM][API] ${JSON.stringify(event)}`;
@@ -56,5 +57,28 @@ describe('Scion compiler burden audit', () => {
       'shared-applied-depth-waste',
       'unattributed-scion-calls',
     ]);
+  });
+
+  it('loads a domain-matched burden from committed exact-provenance evidence', () => {
+    const burden = { schemaVersion: 1, lessonCount: 12, scion: { calls: 52, callsPerLesson: 4.33 } };
+    expect(
+      compilerBurdenFromEvidence(
+        {
+          candidateId: 'gemma-4-e2b',
+          servingModelId: 'google/gemma-4-e2b-it',
+          fullCourses: [
+            { domain: 'music-theory', compilerBurden: { scion: { calls: 20 } } },
+            { domain: 'ux-design-studio', sourceArtifact: 'ignored/local/run', compilerBurden: burden },
+          ],
+        },
+        { domain: 'ux-design-studio' },
+      ),
+    ).toMatchObject({
+      courseDir: 'ignored/local/run',
+      modelId: 'gemma-4-e2b',
+      sourceModelId: 'google/gemma-4-e2b-it',
+      lessonCount: 12,
+      scion: { calls: 52, callsPerLesson: 4.33 },
+    });
   });
 });

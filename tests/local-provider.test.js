@@ -112,5 +112,10 @@ describe('local provider — the house model surface', () => {
     const localServer = fs.readFileSync('scripts/crucible/e2bOpenAIShim.mjs', 'utf8');
     expect(localServer).toContain('source_model: LOCAL_SOURCE_MODEL_ID');
     expect(localServer).toContain('process.env.SCION_MODEL || process.env.G4_MODEL');
+    expect(localServer).toContain('startItems({ timeoutMs: 1_200_000 })');
+    expect(localServer).toContain("modelState = 'loading'");
+    expect(localServer).toContain("modelState = 'ready'");
+    expect(localServer).toContain('modelReady: modelState ===');
+    expect(localServer).toContain('modelLoadMs');
   });
 });

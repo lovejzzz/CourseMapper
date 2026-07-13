@@ -3,6 +3,20 @@
 **Status:** implementation in progress; compiler slice verified, training corpus intentionally empty
 **North star:** Scion produces a more teachable, more internally coherent course than a paid frontier baseline at a fraction of the cost, and the evidence survives blind instructor review.
 
+## v0.16.4 — Exact Control
+
+### Goal
+
+Replace the legacy model comparison with a current-compiler, exact-source-weight Gemma control and make local model readiness observable rather than inferred from an open HTTP port.
+
+### Lane
+
+This release advances the foundation-model bakeoff and local-runtime lanes: one matched UX control, portable compiler-burden evidence, truthful model preload state, and concurrent-start safety. It does not change the public Pollinations-backed Scion route or foundation-model weights.
+
+### Release Boundary
+
+v0.16.4 proves one matched Gemma/Qwen course and a local-worker readiness contract. It does not promote Qwen, establish multi-domain superiority, complete the browser-device matrix, create qualifying training data, or claim independent instructor readiness. Four additional matched domains and external review remain open work.
+
 ## Product thesis
 
 Scion does not need to become the best general chatbot. It needs to become the best course-building intelligence: a specialized author inside a compiler that can plan, generate, verify, repair, preserve instructor intent, and improve from accepted differences.
@@ -27,7 +41,7 @@ source material
 - The saved paired diagnostic shows large Scion advantages on contrastive rationales, decision-ready scenarios, and cue-free short answers, but it is one course pair rather than a general ranking.
 - Independent instructor evidence remains unverified: zero benchmark cases currently have two valid external reviews.
 - Production evidence is now verified at the policy level: three release-passing runs retain hash-matched ZIPs, traces, console logs, and rendered reviews. The set includes the required public-Scion UX run plus local-Scion music-theory and compiler-hardened UX runs, satisfying 3/3 runs across two domains. This does not substitute for independent instructor evidence.
-- The old preference corpus was not safe to train. The current strict audit finds **0 of 411 rows eligible**. All 411 remain quarantined: same-model agreement is not independent answer proof, unknown evidence kinds fail closed, applied-stem repairs still need explicit review approval, and post-hoc key realignment is never a training preference.
+- The old preference corpus was not safe to train. The current strict audit finds **0 of 418 rows eligible**. The exact Gemma control added seven raw repair pairs, and all 418 remain quarantined: same-model agreement is not independent answer proof, unknown evidence kinds fail closed, applied-stem repairs still need explicit review approval, and post-hoc key realignment is never a training preference.
 
 ## Foundation-model bake-off — implemented, no replacement promoted
 
@@ -35,11 +49,11 @@ Scion now treats the backing model as a measured component rather than a permane
 
 The screening policy requires two independent cold runs and two source-grounded runs over the frozen 25-case, five-domain packet. Gemma 4 E2B scored 23/25 cold twice and 25/25 grounded twice. Qwen3.5 4B produced the same scores twice, with a warm median of 8.19 seconds per 25-case pass versus 6.94 seconds for Gemma. The misses were stable but not identical, which supports a complementary-router hypothesis but not a Qwen quality win.
 
-The matched full-course test used the real Local provider, exact `mlx-community/Qwen3.5-4B-4bit` provenance, voice off, the same 12-lesson UX prompt, real browser export, and the same grader. Qwen reached 99/A, zero P0/P1, 101 extracted files, readiness ready, $0, and 382 seconds. It required 85 `scionPass` calls and 42,414 estimated output tokens; the retained legacy control reached the same package grade in 380 seconds with 50 `scionPass` calls and 29,301 output tokens. That older control was run under the Gemma setup but predates exact source-weight capture, so it supports compiler-burden comparison without satisfying the new exact-provenance matched-control gate. Qwen is therefore **screened but not promoted**. It has one of five required full-course domains, a materially higher repair burden, and no qualifying device matrix or blind instructor win.
+The matched full-course test now has an exact control on both sides. Qwen used `mlx-community/Qwen3.5-4B-4bit`; Gemma used `google/gemma-4-e2b-it`. Both ran through the real Local provider with voice off, the same 12-lesson UX prompt, current compiler, browser export, and grader. Qwen and Gemma both reached 99/A, zero P0/P1/P2, 101 extracted files, readiness ready, and $0 in 382 and 384 seconds respectively. Qwen required 85 `scionPass` calls and 42,414 estimated output tokens; Gemma required 52 calls and 29,592 output tokens. The exact pair therefore records 1.64× call amplification, above the 1.25× promotion ceiling. Qwen is **screened but not promoted**: it has one of five required full-course domains, a materially higher repair burden, and no qualifying device matrix or blind instructor win.
 
-The bake-off also became a compiler audit. `npm run audit:scion:compiler-burden` measures calls, rejected repair actions, regeneration outcomes, and rejection reasons. The retained pair reports 85 versus 50 Scion calls (1.70×), 35 versus 21 rejected actions, and 27 versus 18 `not-applied` rejections. Future runs attribute every subcall by schema, and promotion rejects more than 1.25× amplification across five domain-matched controls. Replaying the improved depth detector over the retained Qwen inputs avoids 17 of 33 old rewrite targets; the repair prompt now requires an open evidence question and forbids copying options, labels, or answers into the stem.
+The bake-off also became a compiler audit. `npm run audit:scion:compiler-burden` accepts either raw course directories or committed model-evidence JSON, measures calls, rejected repair actions, regeneration outcomes, and rejection reasons, and can select a shared domain. The exact UX pair reports 85 versus 52 Scion calls (1.64×) and 35 versus 19 rejected actions; all 52 Gemma calls carry schema attribution. Promotion rejects more than 1.25× amplification across five domain-matched controls. Replaying the improved depth detector over the retained Qwen inputs avoids 17 of 33 old rewrite targets; the repair prompt now requires an open evidence question and forbids copying options, labels, or answers into the stem.
 
-The challenger run repaired runtime defects too: native SSE is no longer parsed as JSON by the legacy browser bridge; `--llm local` uses the app's real Local provider so keep-alive heartbeats survive; the server and Crucible retain exact source-weight identity; and local subprocess startup inherits the caller's timeout while always draining stderr so loader progress cannot deadlock the child.
+The challenger run repaired runtime defects too: native SSE is no longer parsed as JSON by the legacy browser bridge; `--llm local` uses the app's real Local provider so keep-alive heartbeats survive; the server and Crucible retain exact source-weight identity; and local subprocess startup inherits the caller's timeout while always draining stderr so loader progress cannot deadlock the child. The exact Gemma control then exposed startup truth: the HTTP shim previously reported ready before the model worker loaded. It now preloads the worker, exposes loading/ready/failed state and load duration, retries a failed preload on demand, and makes concurrent first calls await one shared ready promise. On the current machine the first Python/Transformers import took about 14 minutes; a warm-cache preload took 4.8 seconds.
 
 ## Non-negotiable learning rules
 

@@ -27,11 +27,42 @@ async function loadCourseBurden(courseDir) {
   };
 }
 
-export async function runScionCompilerBurdenAudit({ candidateDir, controlDir, outputDir = DEFAULT_OUTPUT }) {
+export function compilerBurdenFromEvidence(evidence, { domain = '' } = {}) {
+  const courses = Array.isArray(evidence?.fullCourses) ? evidence.fullCourses : [];
+  const course = domain ? courses.find((entry) => entry.domain === domain || entry.courseId === domain) : courses[0];
+  if (!course) {
+    throw new Error(
+      domain ? `No full-course evidence matches domain "${domain}".` : 'The evidence file contains no full course.',
+    );
+  }
+  if (!course.compilerBurden)
+    throw new Error(`Full-course evidence for ${course.domain || course.courseId} has no burden data.`);
+  return {
+    courseDir: course.sourceArtifact || '',
+    modelId: evidence.candidateId || '',
+    sourceModelId: evidence.servingModelId || '',
+    ...course.compilerBurden,
+  };
+}
+
+async function loadBurdenSource(source, { domain = '' } = {}) {
+  const resolved = path.resolve(source);
+  const stat = await fs.stat(resolved);
+  if (stat.isDirectory()) return loadCourseBurden(resolved);
+  const evidence = JSON.parse(await fs.readFile(resolved, 'utf8'));
+  return compilerBurdenFromEvidence(evidence, { domain });
+}
+
+export async function runScionCompilerBurdenAudit({
+  candidateDir,
+  controlDir,
+  domain = '',
+  outputDir = DEFAULT_OUTPUT,
+}) {
   if (!candidateDir || !controlDir) throw new Error('Both candidateDir and controlDir are required.');
   const [candidate, control] = await Promise.all([
-    loadCourseBurden(path.resolve(candidateDir)),
-    loadCourseBurden(path.resolve(controlDir)),
+    loadBurdenSource(candidateDir, { domain }),
+    loadBurdenSource(controlDir, { domain }),
   ]);
   const comparison = compareScionCompilerBurden(candidate, control);
   const report = {
@@ -89,10 +120,11 @@ export async function runScionCompilerBurdenAudit({ candidateDir, controlDir, ou
 }
 
 function parseArgs(argv) {
-  const args = { candidateDir: '', controlDir: '', outputDir: DEFAULT_OUTPUT };
+  const args = { candidateDir: '', controlDir: '', domain: '', outputDir: DEFAULT_OUTPUT };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--candidate') args.candidateDir = argv[++index] || '';
     else if (argv[index] === '--control') args.controlDir = argv[++index] || '';
+    else if (argv[index] === '--domain') args.domain = argv[++index] || '';
     else if (argv[index] === '--output') args.outputDir = argv[++index] || args.outputDir;
   }
   return args;

@@ -28,8 +28,8 @@ const ROUTES = {
   // items: Gemma 4 E2B zero-shot via mlx-vlm (plan v0.2 A1) — beat the
   // paid author 26/30 vs 22/30 on its own gates at $0.
   items: {
-    python: 'trellis/tendril/.venv-g4/bin/python',
-    script: 'trellis/tendril/distill/serve_g4.py',
+    python: process.env.TENDRIL_ITEMS_PYTHON || 'trellis/tendril/.venv-g4/bin/python',
+    script: process.env.TENDRIL_ITEMS_SCRIPT || 'trellis/tendril/distill/serve_g4.py',
   },
 };
 
@@ -45,7 +45,11 @@ let nextId = 1;
 const servers = new Map(); // route -> { proc, pending }
 
 async function startRoute(route, { timeoutMs = 120_000 } = {}) {
-  if (servers.has(route)) return servers.get(route);
+  const existing = servers.get(route);
+  if (existing) {
+    await existing.readyPromise;
+    return existing;
+  }
   const cfg = ROUTES[route];
   const proc = spawn(
     cfg.python ?? 'trellis/tendril/.venv/bin/python',
@@ -60,7 +64,13 @@ async function startRoute(route, { timeoutMs = 120_000 } = {}) {
     },
   );
   const pending = new Map();
-  const entry = { proc, pending };
+  let resolveReady;
+  let rejectReady;
+  const readyPromise = new Promise((resolve, reject) => {
+    resolveReady = resolve;
+    rejectReady = reject;
+  });
+  const entry = { proc, pending, readyPromise, ready: false };
   servers.set(route, entry);
   // Always drain stderr. Model loaders and Hugging Face progress reporters can
   // emit enough startup diagnostics to fill an unread pipe, deadlocking the
@@ -79,11 +89,15 @@ async function startRoute(route, { timeoutMs = 120_000 } = {}) {
       try {
         const msg = JSON.parse(line);
         if (msg.ready) {
-          pending.get('ready')?.resolve();
-          pending.delete('ready');
+          entry.ready = true;
+          resolveReady();
         } else if (pending.has(msg.id)) {
           const p = pending.get(msg.id);
           pending.delete(msg.id);
+          clearTimeout(p.timer);
+          if (process.env.TENDRIL_SERVER_DEBUG === '1' && msg.constrained) {
+            process.stderr.write(`[tendril-s:${route}] response ${msg.id} constrained=${msg.constrained}\n`);
+          }
           if (msg.error) p.reject(new Error(msg.error));
           else p.resolve(msg.text);
         }
@@ -92,26 +106,35 @@ async function startRoute(route, { timeoutMs = 120_000 } = {}) {
       }
     }
   });
-  proc.on('exit', () => {
-    for (const p of pending.values()) p.reject?.(new Error(`tendril-s [${route}] server exited`));
+  const rejectPending = (error) => {
+    if (!entry.ready) rejectReady(error);
+    for (const p of pending.values()) {
+      clearTimeout(p.timer);
+      p.reject?.(error);
+    }
     pending.clear();
     servers.delete(route);
-  });
-  await new Promise((resolve, reject) => {
-    pending.set('ready', { resolve, reject });
-    setTimeout(() => {
-      if (!pending.has('ready')) return;
-      pending.delete('ready');
+  };
+  proc.on('error', (error) => rejectPending(error));
+  proc.on('exit', () => rejectPending(new Error(`tendril-s [${route}] server exited`)));
+  const startupTimer = setTimeout(() => {
+    if (!entry.ready) {
       servers.delete(route);
       proc.kill();
-      reject(new Error(`tendril-s [${route}] did not start within ${Math.round(timeoutMs / 1000)}s`));
-    }, timeoutMs);
-  });
+      rejectReady(new Error(`tendril-s [${route}] did not start within ${Math.round(timeoutMs / 1000)}s`));
+    }
+  }, timeoutMs);
+  await readyPromise;
+  clearTimeout(startupTimer);
   return entry;
 }
 
 export async function startS(options = {}) {
   await startRoute('skin', options); // blend starts lazily on first use
+}
+
+export async function startItems(options = {}) {
+  await startRoute('items', options);
 }
 
 export async function sGenerate(
@@ -128,13 +151,15 @@ export async function sGenerate(
   const entry = await startRoute(route, { timeoutMs });
   const id = String(nextId++);
   const promise = new Promise((resolve, reject) => {
-    entry.pending.set(id, { resolve, reject });
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       if (entry.pending.has(id)) {
         entry.pending.delete(id);
+        servers.delete(route);
+        entry.proc.kill();
         reject(new Error('tendril-s timeout'));
       }
     }, timeoutMs);
+    entry.pending.set(id, { resolve, reject, timer });
   });
   entry.proc.stdin.write(
     `${JSON.stringify({
