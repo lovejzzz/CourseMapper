@@ -21,6 +21,7 @@ import {
 import { SCION_ADAPTER_MANIFEST_SCHEMA_VERSION, SCION_GEMMA4_E2B_BASE } from '../src/lib/scionAdapterManifest.js';
 
 const execFile = promisify(execFileCallback);
+const TRAINING_DOMAINS = ['business-ethics', 'computer-science', 'geology', 'music-theory', 'user-experience-design'];
 
 let root = '';
 
@@ -63,6 +64,16 @@ function approvedRow() {
   };
 }
 
+function balancedTrainingEvidence(domains = TRAINING_DOMAINS, instructorPairsPerDomain = 20) {
+  return {
+    instructorDomainCount: domains.length,
+    domainGroupCounts: Object.fromEntries(domains.map((domain) => [domain, 3])),
+    instructorDomainCounts: Object.fromEntries(domains.map((domain) => [domain, instructorPairsPerDomain])),
+    splitCounts: { train: 1200, valid: 1000, test: 1000 },
+    splitDomainCounts: { train: domains.length, valid: domains.length, test: domains.length },
+  };
+}
+
 describe('Scion adapter tooling', () => {
   it('builds a leakage-safe smoke dataset while quarantining duplicate pairs', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-dataset-'));
@@ -89,6 +100,117 @@ describe('Scion adapter tooling', () => {
       leakage: { groupOverlapCount: 0 },
     });
     expect(result.manifest.quarantine[0].issues).toContain('duplicate-pair');
+  });
+
+  it('builds a non-promotable research tier only with balanced course groups', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-research-dataset-'));
+    const source = path.join(root, 'source.jsonl');
+    const rows = [];
+    for (const domain of ['computer-science', 'geology', 'music-theory', 'user-experience-design']) {
+      for (let course = 1; course <= 3; course += 1) {
+        for (let item = 1; item <= 9; item += 1) {
+          rows.push({
+            ...approvedRow(),
+            prompt: `Write grounded item ${item} for ${domain} course ${course}.`,
+            chosen: goodMc({
+              q: `Which evidence most directly supports decision ${item} in ${domain} course ${course}?`,
+            }),
+            rejected: goodMc({
+              q: `Which observation should be considered for decision ${item} in ${domain} course ${course}?`,
+            }),
+            context: { domain, courseId: `${domain}-${course}` },
+          });
+        }
+      }
+    }
+    await fs.writeFile(source, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+
+    const result = await buildScionAdapterDataset({
+      sources: [source],
+      outputDir: path.join(root, 'dataset'),
+      allowResearch: true,
+    });
+
+    expect(result.manifest).toMatchObject({
+      status: 'research-ready',
+      promotable: false,
+      counts: {
+        total: 108,
+        domains: 4,
+        groups: 12,
+        train: 36,
+        valid: 36,
+        test: 36,
+        trainDomains: 4,
+        validDomains: 4,
+        testDomains: 4,
+        blindInstructorPairs: 108,
+        blindInstructorDomains: 4,
+      },
+      instructorDomainCounts: {
+        'computer-science': 27,
+        geology: 27,
+        'music-theory': 27,
+        'user-experience-design': 27,
+      },
+      splitIdentity: {
+        strategy: 'domain-stratified-hash-v1',
+        domains: {
+          train: expect.arrayContaining(['computer-science', 'geology', 'music-theory', 'user-experience-design']),
+          valid: expect.arrayContaining(['computer-science', 'geology', 'music-theory', 'user-experience-design']),
+          test: expect.arrayContaining(['computer-science', 'geology', 'music-theory', 'user-experience-design']),
+        },
+      },
+      gate: { profiles: { research: { qualifiedInstructorDomains: 4, issues: [] } } },
+      leakage: { groupOverlapCount: 0 },
+    });
+    expect(result.manifest.gate.profiles.production.issues).toContain('verified-pairs:108<3000');
+  });
+
+  it('blocks research when instructor evidence is concentrated in one domain', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-unbalanced-instructor-dataset-'));
+    const source = path.join(root, 'source.jsonl');
+    const rows = [];
+    for (let item = 1; item <= 100; item += 1) {
+      const course = (item % 3) + 1;
+      rows.push({
+        ...approvedRow(),
+        prompt: `Write instructor-reviewed computer science item ${item}.`,
+        chosen: goodMc({ q: `Which evidence validates computer science decision ${item}?` }),
+        rejected: goodMc({ q: `Which observation relates to computer science decision ${item}?` }),
+        context: { domain: 'computer-science', courseId: `computer-science-${course}` },
+      });
+    }
+    for (const domain of ['geology', 'music-theory', 'user-experience-design']) {
+      for (let course = 1; course <= 3; course += 1) {
+        for (let item = 1; item <= 3; item += 1) {
+          rows.push({
+            kind: 'mc-item',
+            prompt: `Write deterministic contract item ${item} for ${domain} course ${course}.`,
+            chosen: goodMc({ q: `Which evidence supports ${domain} decision ${course}-${item}?` }),
+            rejected: goodMc({
+              q: `Which observation relates to ${domain} decision ${course}-${item}?`,
+              op: ['Repeated answer', 'Repeated answer', 'Alternative C', 'Alternative D'],
+            }),
+            context: { domain, courseId: `${domain}-${course}` },
+          });
+        }
+      }
+    }
+    await fs.writeFile(source, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+
+    const result = await buildScionAdapterDataset({
+      sources: [source],
+      outputDir: path.join(root, 'dataset'),
+      allowResearch: true,
+    });
+
+    expect(result.manifest).toMatchObject({
+      status: 'blocked',
+      counts: { total: 127, domains: 4, groups: 12, blindInstructorPairs: 100, blindInstructorDomains: 1 },
+      gate: { profiles: { research: { qualifiedInstructorDomains: 1 } } },
+    });
+    expect(result.manifest.gate.profiles.research.issues).toContain('blind-instructor-qualified-domains:1<4');
   });
 
   it('freezes five real held-out course fixtures and requires dataset group proof', async () => {
@@ -152,8 +274,22 @@ describe('Scion adapter tooling', () => {
       `${JSON.stringify({
         schemaVersion: 2,
         status: 'ready',
-        counts: { total: 3200, domains: 5 },
-        domains: ['business-ethics', 'computer-science', 'geology', 'music-theory', 'user-experience-design'],
+        counts: {
+          total: 3200,
+          domains: 5,
+          groups: 15,
+          blindInstructorPairs: 100,
+          blindInstructorDomains: 5,
+          train: 1200,
+          valid: 1000,
+          test: 1000,
+          trainDomains: 5,
+          validDomains: 5,
+          testDomains: 5,
+        },
+        domains: TRAINING_DOMAINS,
+        domainGroupCounts: Object.fromEntries(TRAINING_DOMAINS.map((domain) => [domain, 3])),
+        instructorDomainCounts: Object.fromEntries(TRAINING_DOMAINS.map((domain) => [domain, 20])),
         groupIdentity: {
           algorithm: 'sha256-domain-colon-course-id',
           hashes: [sha256Value('geology:geo-training-101')],
@@ -457,6 +593,9 @@ describe('Scion adapter tooling', () => {
         datasetStatus: 'ready',
         pairCount: 3200,
         domainCount: 5,
+        groupCount: 15,
+        instructorPairCount: 100,
+        ...balancedTrainingEvidence(),
       },
       files: [{ path: 'adapters.safetensors', bytes: 1024, sha256: 'e'.repeat(64) }],
       runtime: { supported: ['mlx-vlm'] },
@@ -592,6 +731,9 @@ describe('Scion adapter tooling', () => {
         datasetStatus: 'ready',
         pairCount: 3200,
         domainCount: 5,
+        groupCount: 15,
+        instructorPairCount: 100,
+        ...balancedTrainingEvidence(),
       },
       files: [{ path: 'adapters.safetensors', bytes: 1024, sha256: 'e'.repeat(64) }],
       runtime: { supported: ['mlx-vlm'] },

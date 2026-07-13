@@ -8,15 +8,14 @@ import { pathToFileURL } from 'node:url';
 import { assessCorpusRow } from './scionPreferenceCorpusAudit.mjs';
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
 
-const DEFAULT_SOURCES = [
-  'trellis/tendril/distill/data-g4-orpo/train.jsonl',
-  'trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl',
-  'evaluation/scion-review-candidates.jsonl',
-];
+const DEFAULT_SOURCES = ['evaluation/scion-review-candidates.jsonl'];
 const DEFAULT_OUTPUT = 'verification-output/scion-blind-review';
 const DEFAULT_APPROVED = 'evaluation/scion-reviewed-preferences.jsonl';
+const DEFAULT_HELD_OUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v1.json';
+const REVIEW_PROTOCOL = 'scion-blind-instructor-review-v2';
 const REVIEW_ROLES = new Set(['working-instructor']);
 const REVIEW_CHOICES = new Set(['A', 'B', 'tie', 'both-bad']);
+const SHA256 = /^[a-f0-9]{64}$/;
 
 function hash(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
@@ -53,15 +52,47 @@ function payloadAssessment(kind, value) {
 async function readRows(source) {
   try {
     const raw = await fs.readFile(source, 'utf8');
+    const sourceSha256 = hash(raw);
     return raw
       .split('\n')
       .map((line) => line.trim())
       .filter(Boolean)
-      .map((line, index) => ({ row: JSON.parse(line), source, line: index + 1 }));
+      .map((line, index) => ({ row: JSON.parse(line), source, sourceSha256, line: index + 1 }));
   } catch (error) {
     if (error?.code === 'ENOENT') return [];
     throw error;
   }
+}
+
+async function readHeldOutBenchmark(file) {
+  const raw = await fs.readFile(file, 'utf8');
+  const benchmark = JSON.parse(raw);
+  const domains = new Set(
+    (Array.isArray(benchmark?.courses) ? benchmark.courses : [])
+      .map((course) => canonicalDomain(course?.domain))
+      .filter(Boolean),
+  );
+  if (domains.size === 0) throw new Error('Held-out benchmark must declare at least one course domain');
+  return { path: file, sha256: hash(raw), domains };
+}
+
+function publicCaseDigest(caseRow) {
+  return hash(
+    JSON.stringify({
+      protocol: REVIEW_PROTOCOL,
+      pairId: caseRow.pairId,
+      domain: caseRow.domain,
+      lessonId: caseRow.lessonId,
+      kind: caseRow.kind,
+      prompt: caseRow.prompt,
+      A: caseRow.A,
+      B: caseRow.B,
+    }),
+  );
+}
+
+function packetDigest(cases) {
+  return hash(JSON.stringify({ protocol: REVIEW_PROTOCOL, cases }));
 }
 
 function roundRobin(candidates, limit) {
@@ -88,11 +119,13 @@ function roundRobin(candidates, limit) {
   return selected;
 }
 
-export function createBlankScionReview(caseRow, reviewPacketId = '') {
+export function createBlankScionReview(caseRow, reviewPacketId = '', reviewPacketDigest = '') {
   return {
     pairId: caseRow.pairId,
+    caseDigest: caseRow.caseDigest,
     domain: caseRow.domain,
     reviewPacketId,
+    reviewPacketDigest,
     reviewerId: '',
     reviewerRole: 'working-instructor',
     reviewerDomain: '',
@@ -131,7 +164,7 @@ function ratingSelect(name, label) {
 }
 
 export function buildScionReviewerHtml({ meta, domain, cases }) {
-  const templates = cases.map((caseRow) => createBlankScionReview(caseRow, meta.packetId));
+  const templates = cases.map((caseRow) => createBlankScionReview(caseRow, meta.packetId, meta.packetDigest));
   const packet = { packetId: meta.packetId, domain, cases, templates };
   const cards = cases
     .map(
@@ -179,14 +212,26 @@ export async function buildScionBlindReviewPacket({
   sources = DEFAULT_SOURCES,
   outputDir = DEFAULT_OUTPUT,
   limit = 50,
+  perDomainLimit = 0,
+  heldOutBenchmark = DEFAULT_HELD_OUT_BENCHMARK,
+  receiptOutput,
 } = {}) {
-  const loaded = (await Promise.all(sources.map(readRows))).flat();
+  const [loadedRows, benchmark] = await Promise.all([
+    Promise.all(sources.map(readRows)).then((rows) => rows.flat()),
+    readHeldOutBenchmark(heldOutBenchmark),
+  ]);
+  const loaded = loadedRows;
   const seen = new Set();
   const candidates = [];
-  for (const { row, source, line } of loaded) {
+  const excludedHeldOut = {};
+  for (const { row, source, sourceSha256, line } of loaded) {
     if (!['mc-item', 'key-term'].includes(row?.kind)) continue;
     const domain = canonicalDomain(row.domain || row.courseId);
     if (!domain) continue;
+    if (benchmark.domains.has(domain)) {
+      excludedHeldOut[domain] = (excludedHeldOut[domain] || 0) + 1;
+      continue;
+    }
     const neutral =
       Object.prototype.hasOwnProperty.call(row, 'left') && Object.prototype.hasOwnProperty.call(row, 'right');
     const firstRole = neutral ? 'left' : 'chosen';
@@ -210,12 +255,23 @@ export async function buildScionBlindReviewPacket({
       firstRole,
       secondRole,
       source,
+      sourceSha256,
+      sourceRowSha256: hash(JSON.stringify(row)),
       line,
       sourceRow: row,
     });
   }
 
-  const selected = roundRobin(candidates, Math.max(1, Number(limit) || 50));
+  const candidateDomains = [...new Set(candidates.map((candidate) => candidate.domain))].sort();
+  const selected =
+    Number(perDomainLimit) > 0
+      ? candidateDomains.flatMap((domain) =>
+          roundRobin(
+            candidates.filter((candidate) => candidate.domain === domain),
+            Number(perDomainLimit),
+          ),
+        )
+      : roundRobin(candidates, Math.max(1, Number(limit) || 50));
   const cases = [];
   const keys = [];
   for (const candidate of selected) {
@@ -231,7 +287,7 @@ export async function buildScionBlindReviewPacket({
           B: candidate.second,
           mapping: { A: candidate.firstRole, B: candidate.secondRole },
         };
-    cases.push({
+    const caseRow = {
       pairId: candidate.pairId,
       domain: candidate.domain,
       lessonId: candidate.lessonId,
@@ -239,11 +295,17 @@ export async function buildScionBlindReviewPacket({
       prompt: candidate.prompt,
       A: sides.A,
       B: sides.B,
-    });
+    };
+    caseRow.caseDigest = publicCaseDigest(caseRow);
+    cases.push(caseRow);
     keys.push({
       pairId: candidate.pairId,
+      caseDigest: caseRow.caseDigest,
+      case: caseRow,
       mapping: sides.mapping,
       source: candidate.source,
+      sourceSha256: candidate.sourceSha256,
+      sourceRowSha256: candidate.sourceRowSha256,
       line: candidate.line,
       domain: candidate.domain,
       sourceRow: candidate.sourceRow,
@@ -257,11 +319,15 @@ export async function buildScionBlindReviewPacket({
   const kindCounts = Object.fromEntries(
     ['mc-item', 'key-term'].map((kind) => [kind, cases.filter((row) => row.kind === kind).length]),
   );
-  const packetId = `scion-review-${hash(cases.map((row) => row.pairId).join('|')).slice(0, 16)}`;
+  const reviewPacketDigest = packetDigest(cases);
+  const packetId = `scion-review-${reviewPacketDigest.slice(0, 20)}`;
   const meta = {
+    protocol: REVIEW_PROTOCOL,
     packetId,
+    packetDigest: reviewPacketDigest,
     generatedAt: new Date().toISOString(),
-    requestedCases: Number(limit) || 50,
+    requestedCases: Number(perDomainLimit) > 0 ? candidateDomains.length * Number(perDomainLimit) : Number(limit) || 50,
+    perDomainLimit: Number(perDomainLimit) > 0 ? Number(perDomainLimit) : null,
     selectedCases: cases.length,
     availableCandidates: candidates.length,
     blind: true,
@@ -272,6 +338,16 @@ export async function buildScionBlindReviewPacket({
     domainCount: domains.length,
     targetDomainCount: 5,
     coverageStatus: domains.length >= 5 ? 'ready' : 'needs-more-domains',
+    heldOutBenchmark: {
+      path: benchmark.path,
+      sha256: benchmark.sha256,
+      domains: [...benchmark.domains].sort(),
+      excluded: excludedHeldOut,
+      excludedCount: Object.values(excludedHeldOut).reduce((sum, count) => sum + count, 0),
+    },
+    sourceFiles: [...new Map(loaded.map((entry) => [entry.source, entry.sourceSha256])).entries()]
+      .map(([source, sha256]) => ({ source, sha256 }))
+      .sort((left, right) => left.source.localeCompare(right.source)),
   };
   const reviewerDir = path.join(outputDir, 'reviewer');
   const organizerDir = path.join(outputDir, 'organizer');
@@ -291,7 +367,7 @@ export async function buildScionBlindReviewPacket({
       fs.writeFile(
         path.join(domainDir, 'review-form-1.json'),
         `${JSON.stringify(
-          domainCases.map((caseRow) => createBlankScionReview(caseRow, packetId)),
+          domainCases.map((caseRow) => createBlankScionReview(caseRow, packetId, reviewPacketDigest)),
           null,
           2,
         )}\n`,
@@ -299,7 +375,7 @@ export async function buildScionBlindReviewPacket({
       fs.writeFile(
         path.join(domainDir, 'review-form-2.json'),
         `${JSON.stringify(
-          domainCases.map((caseRow) => createBlankScionReview(caseRow, packetId)),
+          domainCases.map((caseRow) => createBlankScionReview(caseRow, packetId, reviewPacketDigest)),
           null,
           2,
         )}\n`,
@@ -320,6 +396,28 @@ export async function buildScionBlindReviewPacket({
     fs.writeFile(path.join(organizerDir, 'key.json'), `${JSON.stringify({ meta, keys }, null, 2)}\n`),
     ...domainWrites,
   ]);
+  if (receiptOutput) {
+    const receipt = {
+      schemaVersion: 1,
+      protocol: REVIEW_PROTOCOL,
+      status: cases.length > 0 ? 'ready-for-independent-review' : 'blocked-no-cases',
+      generatedAt: meta.generatedAt,
+      packetId,
+      packetDigest: reviewPacketDigest,
+      selectedCases: cases.length,
+      availableCandidates: candidates.length,
+      requiredIndependentReviews: cases.length * meta.requiredIndependentReviewsPerCase,
+      domains,
+      domainCounts,
+      kindCounts,
+      heldOutBenchmark: meta.heldOutBenchmark,
+      sourceFiles: meta.sourceFiles,
+      claimBoundary:
+        'This receipt proves a frozen, holdout-disjoint, hash-bound blind-review packet exists. It proves no instructor judgment, approved training pair, adapter quality, or promotion result.',
+    };
+    await fs.mkdir(path.dirname(receiptOutput), { recursive: true });
+    await fs.writeFile(receiptOutput, `${JSON.stringify(receipt, null, 2)}\n`);
+  }
   return { meta, cases, keys };
 }
 
@@ -337,10 +435,32 @@ async function readReviewFile(file) {
   }
 }
 
+async function readApprovedRows(file) {
+  try {
+    const raw = await fs.readFile(file, 'utf8');
+    return raw
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+  } catch (error) {
+    if (error?.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+function approvedRowIdentity(row) {
+  const caseDigest = String(row?.preferenceEvidence?.caseDigest || '');
+  if (SHA256.test(caseDigest)) return caseDigest;
+  return hash(JSON.stringify({ kind: row?.kind, prompt: row?.prompt, chosen: row?.chosen, rejected: row?.rejected }));
+}
+
 export function validateScionBlindReview(review) {
   const issues = [];
   if (!String(review?.pairId || '').trim()) issues.push('missing-pair-id');
+  if (!SHA256.test(String(review?.caseDigest || ''))) issues.push('invalid-case-digest');
   if (!String(review?.reviewPacketId || '').trim()) issues.push('missing-review-packet-id');
+  if (!SHA256.test(String(review?.reviewPacketDigest || ''))) issues.push('invalid-review-packet-digest');
   if (!String(review?.reviewerId || '').trim()) issues.push('missing-reviewer-id');
   if (!REVIEW_ROLES.has(review?.reviewerRole)) issues.push('reviewer-not-working-instructor');
   if (review?.disciplineFamiliarity !== 'teaches-domain') issues.push('reviewer-not-domain-teaching');
@@ -365,7 +485,20 @@ export async function ingestScionBlindReviews({
   approvedOutput = DEFAULT_APPROVED,
 } = {}) {
   const keyPacket = JSON.parse(await fs.readFile(path.join(outputDir, 'organizer', 'key.json'), 'utf8'));
-  const keyById = new Map(keyPacket.keys.map((row) => [row.pairId, row]));
+  const keys = Array.isArray(keyPacket?.keys) ? keyPacket.keys : [];
+  const keyCases = keys.map((key) => key.case);
+  const keyIntegrityPass =
+    keyPacket?.meta?.protocol === REVIEW_PROTOCOL &&
+    SHA256.test(String(keyPacket?.meta?.packetDigest || '')) &&
+    keys.length > 0 &&
+    keyCases.length === keys.length &&
+    keys.every(
+      (key) => key?.case && key.caseDigest === key.case.caseDigest && key.caseDigest === publicCaseDigest(key.case),
+    ) &&
+    keyPacket.meta.packetDigest === packetDigest(keyCases) &&
+    keyPacket.meta.packetId === `scion-review-${keyPacket.meta.packetDigest.slice(0, 20)}`;
+  if (!keyIntegrityPass) throw new Error('Blind review organizer packet failed integrity verification');
+  const keyById = new Map(keys.map((row) => [row.pairId, row]));
   const reviews = (await Promise.all(reviewFiles.map(readReviewFile))).flat();
   const grouped = new Map();
   const invalidReviews = [];
@@ -375,6 +508,8 @@ export async function ingestScionBlindReviews({
     if (!key) issues.push('unknown-pair-id');
     else {
       if (review?.reviewPacketId !== keyPacket.meta.packetId) issues.push('review-packet-id-mismatch');
+      if (review?.reviewPacketDigest !== keyPacket.meta.packetDigest) issues.push('review-packet-digest-mismatch');
+      if (review?.caseDigest !== key.caseDigest) issues.push('review-case-digest-mismatch');
       if (review?.domain !== key.domain) issues.push('review-case-domain-mismatch');
       if (review?.reviewerDomain !== key.domain) issues.push('reviewer-domain-mismatch');
     }
@@ -415,6 +550,7 @@ export async function ingestScionBlindReviews({
       rejected: sourceRow[loserRole],
       courseId: sourceRow.courseId,
       lessonId: sourceRow.lessonId,
+      reviewPairId: pairId,
       reviewPacketId: keyPacket.meta.packetId,
       preferenceEvidence: {
         kind: 'blind-instructor-preference',
@@ -425,6 +561,9 @@ export async function ingestScionBlindReviews({
         reviewerRoles: unique.map((review) => review.reviewerRole),
         reviewHashes: unique.map((review) => hash(JSON.stringify(review))),
         winningSideInBlindPacket: winner,
+        caseDigest: key.caseDigest,
+        reviewPacketDigest: keyPacket.meta.packetDigest,
+        sourceRowSha256: key.sourceRowSha256,
       },
     };
     const assessment = assessCorpusRow(row, approvedOutput);
@@ -435,15 +574,33 @@ export async function ingestScionBlindReviews({
     approved.push(row);
   }
 
+  const existingApproved = await readApprovedRows(approvedOutput);
+  const mergedByIdentity = new Map();
+  for (const row of [...existingApproved, ...approved]) {
+    const identity = approvedRowIdentity(row);
+    const serialized = JSON.stringify(row);
+    const existing = mergedByIdentity.get(identity);
+    if (existing && existing.serialized !== serialized) {
+      throw new Error(`Approved corpus identity collision: ${identity}`);
+    }
+    mergedByIdentity.set(identity, { row, serialized });
+  }
+  const mergedApproved = [...mergedByIdentity.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, entry]) => entry.row);
   await fs.mkdir(path.dirname(approvedOutput), { recursive: true });
+  const temporaryApprovedOutput = `${approvedOutput}.tmp-${process.pid}`;
   await fs.writeFile(
-    approvedOutput,
-    approved.map((row) => JSON.stringify(row)).join('\n') + (approved.length ? '\n' : ''),
+    temporaryApprovedOutput,
+    mergedApproved.map((row) => JSON.stringify(row)).join('\n') + (mergedApproved.length ? '\n' : ''),
   );
+  await fs.rename(temporaryApprovedOutput, approvedOutput);
   const report = {
     packetId: keyPacket.meta.packetId,
     reviewedCases: grouped.size,
     approved: approved.length,
+    approvedExisting: existingApproved.length,
+    approvedTotal: mergedApproved.length,
     quarantined: quarantined.length,
     invalidReviews,
     quarantine: quarantined,
@@ -464,6 +621,8 @@ function parseArgs(argv) {
     approvedOutput: DEFAULT_APPROVED,
     reviewFiles: [],
     limit: 50,
+    perDomainLimit: 0,
+    heldOutBenchmark: DEFAULT_HELD_OUT_BENCHMARK,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -473,6 +632,9 @@ function parseArgs(argv) {
     else if (arg === '--approved-output') args.approvedOutput = argv[++index] || args.approvedOutput;
     else if (arg === '--review') args.reviewFiles.push(argv[++index]);
     else if (arg === '--limit') args.limit = Number(argv[++index]) || args.limit;
+    else if (arg === '--per-domain') args.perDomainLimit = Number(argv[++index]) || 0;
+    else if (arg === '--held-out-benchmark') args.heldOutBenchmark = argv[++index] || args.heldOutBenchmark;
+    else if (arg === '--receipt') args.receiptOutput = argv[++index];
   }
   if (args.sources.length === 0) args.sources = DEFAULT_SOURCES;
   return args;

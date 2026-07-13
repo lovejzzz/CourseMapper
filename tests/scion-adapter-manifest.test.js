@@ -11,6 +11,11 @@ import {
 } from '../src/lib/scionAdapterManifest.js';
 
 const HASH = 'a'.repeat(64);
+const PRODUCTION_DOMAINS = ['computer-science', 'geology', 'music-theory', 'user-experience-design', 'world-history'];
+
+function domainCounts(domains, count) {
+  return Object.fromEntries(domains.map((domain) => [domain, count]));
+}
 
 function manifest(overrides = {}) {
   return {
@@ -23,6 +28,13 @@ function manifest(overrides = {}) {
       datasetStatus: 'ready',
       pairCount: 3000,
       domainCount: 5,
+      groupCount: 15,
+      instructorPairCount: 100,
+      instructorDomainCount: 5,
+      domainGroupCounts: domainCounts(PRODUCTION_DOMAINS, 3),
+      instructorDomainCounts: domainCounts(PRODUCTION_DOMAINS, 20),
+      splitCounts: { train: 1000, valid: 1000, test: 1000 },
+      splitDomainCounts: { train: 5, valid: 5, test: 5 },
     },
     files: [{ path: 'adapters.safetensors', bytes: 1024, sha256: HASH }],
     runtime: { supported: ['mlx-vlm'] },
@@ -152,13 +164,52 @@ describe('Scion adapter manifest', () => {
           datasetStatus: 'smoke-only',
           pairCount: 2999,
           domainCount: 4,
+          groupCount: 14,
+          instructorPairCount: 99,
+          instructorDomainCount: 4,
+          domainGroupCounts: domainCounts(PRODUCTION_DOMAINS.slice(0, 4), 3),
+          instructorDomainCounts: domainCounts(PRODUCTION_DOMAINS.slice(0, 4), 20),
+          splitCounts: { train: 1000, valid: 1000, test: 999 },
+          splitDomainCounts: { train: 4, valid: 4, test: 4 },
         },
       }),
     );
     expect(result.valid).toBe(false);
     expect(result.issues).toEqual(
-      expect.arrayContaining(['candidate-dataset-not-ready', 'candidate-pair-count', 'candidate-domain-count']),
+      expect.arrayContaining([
+        'candidate-dataset-not-ready',
+        'candidate-pair-count',
+        'candidate-domain-count',
+        'candidate-group-count',
+        'candidate-instructor-pair-count',
+        'candidate-instructor-domain-count',
+        'candidate-domain-group-coverage',
+        'candidate-instructor-domain-coverage',
+        'candidate-split-coverage',
+      ]),
     );
+  });
+
+  it('accepts a research adapter as explicitly non-promotable', () => {
+    const research = manifest({
+      training: {
+        method: 'orpo-lora',
+        datasetManifestSha256: HASH,
+        datasetStatus: 'research-ready',
+        pairCount: 100,
+        domainCount: 4,
+        groupCount: 12,
+        instructorPairCount: 100,
+        instructorDomainCount: 4,
+        domainGroupCounts: domainCounts(PRODUCTION_DOMAINS.slice(0, 4), 3),
+        instructorDomainCounts: domainCounts(PRODUCTION_DOMAINS.slice(0, 4), 25),
+        splitCounts: { train: 36, valid: 32, test: 32 },
+        splitDomainCounts: { train: 4, valid: 4, test: 4 },
+      },
+      promotion: { status: 'research', promotable: false },
+    });
+    expect(validateScionAdapterManifest(research)).toEqual({ valid: true, issues: [] });
+    expect(validateScionAdapterManifest(research, { requirePromoted: true }).issues).toContain('adapter-not-promoted');
   });
 
   it('requires an explicit promotion ceremony instead of trusting a candidate flag', () => {

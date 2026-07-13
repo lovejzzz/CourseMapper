@@ -2,9 +2,23 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** exact-QAT smoke training, deterministic GGUF conversion, browser activation, and rollback implemented; production adapter remains blocked by the evidence and quality gates
+**Status:** exact-QAT smoke training, deterministic GGUF conversion, browser activation, rollback, frozen paired evaluation, and a hash-bound instructor-review campaign are implemented; production adapter remains blocked by missing completed reviews, course-group depth, and the quality gates
 
 **Release boundary:** no current public Scion request claims to use trained weights
+
+## v0.16.9 — Clean-seed corpus + research adapter tier
+
+The training-data audit now refuses model comparisons unless both saved projects carry the exact same canonical course input. It removed 68 World Literature atoms whose retained runs used different prompts. Conversely, it recovered 45 Music Theory atoms from byte-identical inputs by allowing lesson-number matching only when one course repeats a generic title; every such fallback is labeled. Each retained row binds the shared input plus both saved-project digests.
+
+The blind review protocol is now immutable enough to support a learned-weight claim. A 160-case campaign selects exactly 40 cases from each of four training domains, excludes all five frozen held-out domains, hashes the candidate ledger and benchmark, hashes every randomized public A/B case, and hashes the complete packet. Review submissions carry both case and packet digests. Ingestion reconstructs the organizer packet and rejects any changed prompt, side, mapping, domain, packet, or attestation. Approved domain batches merge atomically by case digest, so reruns are idempotent and later batches cannot erase earlier evidence. This is a ready review campaign, not completed human evidence: it requires 320 judgments and currently has zero.
+
+Training now has three honest tiers:
+
+1. `smoke-only` proves mechanics and is permanently non-promotable;
+2. `research-ready` requires at least 100 approved pairs, with at least 20 instructor-approved pairs and three isolated course groups in each of four domains, and can create only a `research` adapter; and
+3. `ready` retains the public bar of at least 3,000 approved pairs across five domains and fifteen groups, with at least 20 instructor-approved pairs in each qualifying domain, before candidate training.
+
+The research tier exists to test whether a small, unusually clean corpus can move the frozen ruler before collecting thousands of labels. That is consistent with the sample-efficiency results in [LIMA](https://arxiv.org/abs/2305.11206) and [QLoRA](https://arxiv.org/abs/2305.14314), while the chosen/rejected training objective follows [ORPO](https://aclanthology.org/2024.emnlp-main.626/). It does not lower promotion requirements after seeing a result: research artifacts remain manifest-level non-promotable, including after browser conversion.
 
 ## v0.16.8 — Frozen held-out ruler + artifact-derived paired evidence
 
@@ -129,7 +143,9 @@ Rules:
 - Raw flywheel rows are evidence ledgers, never training data.
 - Only the curated exporter may create a training split.
 - Same-model self-agreement is a runtime check, not independent preference evidence.
-- Course/domain groups cannot cross train, validation, and test splits.
+- Course/domain groups cannot cross train, validation, and test splits; production and research tiers require at least three course groups per included domain so every domain has isolated train, validation, and test courses.
+- Research requires at least 20 approved blind-instructor pairs in each of four domains; production candidate data requires the same floor in each of five domains. Aggregate review totals cannot substitute for domain coverage.
+- Adapter manifests carry per-domain course-group counts, per-domain instructor-pair counts, split row counts, and split domain counts so a balanced dataset claim remains independently auditable after training.
 - Every candidate retains its dataset-manifest digest and exact base revision.
 - A smoke adapter proves mechanics only and is permanently ineligible for release.
 - Rejected checkpoints stay rejected; promotion thresholds are never lowered after seeing results.
@@ -138,18 +154,18 @@ Rules:
 
 An adapter becomes part of public Scion only when all gates pass:
 
-| Gate         | Requirement                                                                                                 |
-| ------------ | ----------------------------------------------------------------------------------------------------------- |
-| Corpus       | At least 3,000 pair-level verified, deduplicated preferences across multiple disciplines                    |
-| Leakage      | No course, source packet, or near-duplicate group crosses dataset splits                                    |
-| Contract     | Schema-valid first-pass rate improves; no regression in long JSON or typed kernel acceptance                |
-| Factual      | Frozen source-anchored canaries remain 100% in grounded mode; cold mode is reported separately              |
-| Package      | Five 12-lesson held-out domains reach 99/A with zero P0/P1 findings                                         |
-| Efficiency   | Median model-call count falls at least 20% and never exceeds the base by more than 1.05x                    |
-| Teachability | Blind instructors prefer the adapter on at least 65% of decisive cases; 95% Wilson lower bound exceeds 0.50 |
-| Device       | Chrome/Edge on representative integrated and discrete GPUs pass memory, recovery, and completion tests      |
-| Integrity    | Base revision, adapter files, manifest, and evaluation evidence are hash-bound                              |
-| Rollback     | Removing one manifest entry restores base-only Scion without changing project data or compiler behavior     |
+| Gate         | Requirement                                                                                                                                                                                          |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Corpus       | At least 3,000 pair-level verified, deduplicated preferences across five disciplines and fifteen course groups, including at least 20 blind-instructor-approved pairs in every qualifying discipline |
+| Leakage      | No course, source packet, or near-duplicate group crosses dataset splits                                                                                                                             |
+| Contract     | Schema-valid first-pass rate improves; no regression in long JSON or typed kernel acceptance                                                                                                         |
+| Factual      | Frozen source-anchored canaries remain 100% in grounded mode; cold mode is reported separately                                                                                                       |
+| Package      | Five 12-lesson held-out domains reach 99/A with zero P0/P1 findings                                                                                                                                  |
+| Efficiency   | Median model-call count falls at least 20% and never exceeds the base by more than 1.05x                                                                                                             |
+| Teachability | Blind instructors prefer the adapter on at least 65% of decisive cases; 95% Wilson lower bound exceeds 0.50                                                                                          |
+| Device       | Chrome/Edge on representative integrated and discrete GPUs pass memory, recovery, and completion tests                                                                                               |
+| Integrity    | Base revision, adapter files, manifest, and evaluation evidence are hash-bound                                                                                                                       |
+| Rollback     | Removing one manifest entry restores base-only Scion without changing project data or compiler behavior                                                                                              |
 
 The base model, adapter, and compiler are evaluated separately as well as together. A package win that merely spends more repair calls is not an adapter win.
 
@@ -211,6 +227,8 @@ Every adapter/base course comparison is now an artifact-derived paired experimen
 - The adapter manifest is schema v2 for browser GGUF packages. It binds the source adapter and manifest, inference scale, conversion receipt, exact llama.cpp revision and converter digest, browser runtime, and the single GGUF artifact's bytes and SHA-256.
 - The deterministic `mlx-lora-to-peft-to-gguf-v1` bridge validates the exact QAT base, maps and transposes 276 complete LoRA A/B pairs, ignores only documented quantization bookkeeping, and invokes the official llama.cpp converter pinned at revision `5ec717d1256e34558a44dc09adf1e6e16f2e2682`. The 52,704,096-byte F16 GGUF contains 552 tensors and native `gemma4`/`lora` metadata.
 - Dataset truth is split by claim. The strict v0.16.6 production audit admitted **0 of 471** raw events because independent evidence and explicit split identity were missing. The v0.16.7 `--smoke` derivation admitted 101 structurally evidenced pairs across five registered domains solely to prove training and packaging. Its manifest is `smoke-only`; it is not a production corpus and cannot create a candidate or promoted package.
+- The v0.16.9 matched-corpus audit retains 309 neutral atoms across Computer Science, Geology, Music Theory, and UX after excluding 68 World Literature atoms with mismatched course inputs. A frozen 160-case campaign requires 320 independent instructor judgments. No judgments have been ingested, so both research and production datasets remain correctly blocked.
+- `research-ready` is an experiment lane, not a relaxed release lane. It needs 100 approved pairs, at least 20 blind-instructor-approved pairs and three course groups in each of four domains; its adapter status is `research`, remains non-promotable in every runtime format, and exists only to decide whether collecting the next labels is empirically worthwhile.
 - A ten-iteration exact-QAT MLX adapter was converted, packaged, semantically audited, and exercised in the browser. Native activation at scale 1 and scale 4 did not change the deterministic canary. Scale 16 changed it and rollback restored the exact base output. This is strong mechanical evidence and weak learning evidence; it is not a quality result.
 - The packaged browser runtime now performs direct public base download, WebGPU inference, native dynamic LoRA activation, activation probing, and rollback. It also runs without cross-origin isolation, avoiding a global header change that could break Firebase sign-in popups.
 - The public site now routes Scion generation through this browser-local base and no longer sends prompts to an anonymous model endpoint. Because no production adapter has passed promotion, the truthful product state is `base-only` local Scion plus the Scion compiler.

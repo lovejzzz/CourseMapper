@@ -115,7 +115,7 @@ async function auditGguf({ python, pinnedLlama, ggufPath, expectedTensorCount, e
 }
 
 function convertedStatus(sourceStatus) {
-  if (sourceStatus === 'smoke' || sourceStatus === 'rejected') return sourceStatus;
+  if (sourceStatus === 'smoke' || sourceStatus === 'research' || sourceStatus === 'rejected') return sourceStatus;
   // Promotion evidence is artifact-specific. A newly converted GGUF must earn
   // browser/device/factual evidence of its own before it can be promoted.
   return 'candidate';

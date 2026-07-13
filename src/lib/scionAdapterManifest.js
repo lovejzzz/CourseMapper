@@ -47,10 +47,28 @@ const SHA256_RE = /^[a-f0-9]{64}$/;
 const REVISION_RE = /^[a-f0-9]{40}$/;
 const ADAPTER_ID_RE = /^[a-z0-9][a-z0-9._-]{2,79}$/;
 const ALLOWED_FORMATS = new Set(['mlx-lora-safetensors', 'peft-safetensors', 'gguf-lora']);
-const ALLOWED_PROMOTION_STATUSES = new Set(['smoke', 'candidate', 'rejected', 'promoted']);
+const ALLOWED_PROMOTION_STATUSES = new Set(['smoke', 'research', 'candidate', 'rejected', 'promoted']);
 
 function clean(value) {
   return String(value ?? '').trim();
+}
+
+function countDomainsAtLeast(value, minimum) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return 0;
+  return Object.values(value).filter((count) => Number.isSafeInteger(count) && count >= minimum).length;
+}
+
+function validSplitCounts(training, minimumDomains) {
+  const counts = training?.splitCounts;
+  const domainCounts = training?.splitDomainCounts;
+  const splitCountsValid = ['train', 'valid', 'test'].every(
+    (split) => Number.isSafeInteger(counts?.[split]) && counts[split] > 0,
+  );
+  const splitTotal = ['train', 'valid', 'test'].reduce((sum, split) => sum + Number(counts?.[split] || 0), 0);
+  const splitDomainsValid = ['train', 'valid', 'test'].every(
+    (split) => Number.isSafeInteger(domainCounts?.[split]) && domainCounts[split] >= minimumDomains,
+  );
+  return splitCountsValid && splitTotal === training?.pairCount && splitDomainsValid;
 }
 
 function sameModelId(left, right) {
@@ -100,7 +118,10 @@ export function validateScionAdapterManifest(
   const promotionStatus = clean(manifest.promotion?.status);
   if (!ALLOWED_PROMOTION_STATUSES.has(promotionStatus)) issues.push('promotion-status');
   if (requirePromoted && promotionStatus !== 'promoted') issues.push('adapter-not-promoted');
-  if (['smoke', 'candidate', 'rejected'].includes(promotionStatus) && manifest.promotion?.promotable !== false) {
+  if (
+    ['smoke', 'research', 'candidate', 'rejected'].includes(promotionStatus) &&
+    manifest.promotion?.promotable !== false
+  ) {
     issues.push(`${promotionStatus || 'unknown'}-must-not-promote`);
   }
   if (promotionStatus === 'promoted' && manifest.promotion?.promotable !== true) issues.push('promoted-flag');
@@ -120,6 +141,53 @@ export function validateScionAdapterManifest(
     if (!Number.isSafeInteger(manifest.training?.domainCount) || manifest.training.domainCount < 5) {
       issues.push('candidate-domain-count');
     }
+    if (!Number.isSafeInteger(manifest.training?.groupCount) || manifest.training.groupCount < 15) {
+      issues.push('candidate-group-count');
+    }
+    if (!Number.isSafeInteger(manifest.training?.instructorPairCount) || manifest.training.instructorPairCount < 100) {
+      issues.push('candidate-instructor-pair-count');
+    }
+    if (
+      !Number.isSafeInteger(manifest.training?.instructorDomainCount) ||
+      manifest.training.instructorDomainCount < 5
+    ) {
+      issues.push('candidate-instructor-domain-count');
+    }
+    if (countDomainsAtLeast(manifest.training?.domainGroupCounts, 3) < 5) {
+      issues.push('candidate-domain-group-coverage');
+    }
+    if (countDomainsAtLeast(manifest.training?.instructorDomainCounts, 20) < 5) {
+      issues.push('candidate-instructor-domain-coverage');
+    }
+    if (!validSplitCounts(manifest.training, 5)) issues.push('candidate-split-coverage');
+  }
+  if (promotionStatus === 'research') {
+    if (clean(manifest.training?.datasetStatus) !== 'research-ready') issues.push('research-dataset-not-ready');
+    if (!Number.isSafeInteger(manifest.training?.pairCount) || manifest.training.pairCount < 100) {
+      issues.push('research-pair-count');
+    }
+    if (!Number.isSafeInteger(manifest.training?.domainCount) || manifest.training.domainCount < 4) {
+      issues.push('research-domain-count');
+    }
+    if (!Number.isSafeInteger(manifest.training?.groupCount) || manifest.training.groupCount < 12) {
+      issues.push('research-group-count');
+    }
+    if (!Number.isSafeInteger(manifest.training?.instructorPairCount) || manifest.training.instructorPairCount < 100) {
+      issues.push('research-instructor-pair-count');
+    }
+    if (
+      !Number.isSafeInteger(manifest.training?.instructorDomainCount) ||
+      manifest.training.instructorDomainCount < 4
+    ) {
+      issues.push('research-instructor-domain-count');
+    }
+    if (countDomainsAtLeast(manifest.training?.domainGroupCounts, 3) < 4) {
+      issues.push('research-domain-group-coverage');
+    }
+    if (countDomainsAtLeast(manifest.training?.instructorDomainCounts, 20) < 4) {
+      issues.push('research-instructor-domain-coverage');
+    }
+    if (!validSplitCounts(manifest.training, 4)) issues.push('research-split-coverage');
   }
 
   const runtimeIds = Array.isArray(manifest.runtime?.supported) ? manifest.runtime.supported.map(clean) : [];

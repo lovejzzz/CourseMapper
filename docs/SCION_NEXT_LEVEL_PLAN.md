@@ -1,8 +1,8 @@
 # Scion Next Level — Verified Learning, Not Model Imitation
 
-> **Historical v0.16.6 plan.** v0.16.7 replaced the hosted Pollinations route with browser-local Scion; v0.16.8 froze a five-domain held-out ruler and made promotion evidence artifact-derived. The current architecture, adapter contract, and promotion gates live in [SCION_ADAPTER_ROADMAP.md](SCION_ADAPTER_ROADMAP.md).
+> **Historical v0.16.6 plan.** v0.16.7 replaced the hosted Pollinations route with browser-local Scion; v0.16.8 froze a five-domain held-out ruler and made promotion evidence artifact-derived; v0.16.9 made training comparisons exact-input, froze a hash-bound instructor campaign, and separated non-promotable research adapters from public candidates. The current architecture, adapter contract, and promotion gates live in [SCION_ADAPTER_ROADMAP.md](SCION_ADAPTER_ROADMAP.md).
 
-**Status:** historical v0.16.6 adapter infrastructure and compiler-efficiency pass implemented; v0.16.7 completed an exact-QAT browser smoke and v0.16.8 completed the frozen paired-evidence harness, while production training remains correctly blocked by an empty independently qualified corpus
+**Status:** historical v0.16.6 adapter infrastructure and compiler-efficiency pass implemented; v0.16.7 completed an exact-QAT browser smoke, v0.16.8 completed the frozen paired-evidence harness, and v0.16.9 prepared 160 tamper-resistant blind-review cases, while research and production training remain correctly blocked by zero completed instructor reviews
 **North star:** Scion produces a more teachable, more internally coherent course than a paid frontier baseline at a fraction of the cost, and the evidence survives blind instructor review.
 
 ## v0.16.6 — Rootstock + Graft + Compiler
