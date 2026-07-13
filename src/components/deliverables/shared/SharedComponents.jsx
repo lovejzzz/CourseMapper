@@ -51,12 +51,12 @@ export function QualityBadge({ quality }) {
                       style={{ width: `${score * 10}%` }}
                     />
                   </div>
-                  <span className={`text-[10px] font-bold ${c.text}`}>{signalBand(score).shortLabel}</span>
+                  <span className={`text-xs font-bold ${c.text}`}>{signalBand(score).shortLabel}</span>
                 </div>
               );
             })}
           </div>
-          <p className="text-[10px] leading-relaxed text-slate-500 border-t border-slate-100 pt-2">
+          <p className="text-xs leading-relaxed text-slate-500 border-t border-slate-100 pt-2">
             Deterministic keyword and structure proxies. They do not verify facts, sources, accessibility, teachability,
             or external rubric conformance.
           </p>
