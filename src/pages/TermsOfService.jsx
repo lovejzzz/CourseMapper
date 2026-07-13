@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'June 5, 2026';
+const LAST_UPDATED = 'July 13, 2026';
 
 export default function TermsOfService() {
   return (
@@ -36,8 +36,12 @@ export default function TermsOfService() {
             <ul className="list-disc list-inside space-y-1.5 ml-1">
               <li>
                 You may provide your own API key from OpenAI, Anthropic, Google, DeepSeek, or another supported
-                provider. You are responsible for any costs incurred through your own API key usage. Keyless public beta
-                providers may be rate-limited, unavailable, or unsuitable for sensitive course content.
+                provider. You are responsible for any costs incurred through your own API key usage.
+              </li>
+              <li>
+                Scion requires no API key and runs a pinned public model in supported browsers. First use downloads
+                approximately 3.35 GB of model weights from Hugging Face. Availability and speed depend on browser,
+                device memory, storage, WebGPU support, and the public weight host.
               </li>
               <li>
                 Course Mapper is not affiliated with OpenAI, Anthropic, Google, DeepSeek, or OpenRouter. Your use of

@@ -1,8 +1,12 @@
-export const SCION_ADAPTER_MANIFEST_SCHEMA_VERSION = 1;
+export const SCION_ADAPTER_MANIFEST_SCHEMA_VERSION = 2;
+
+export const SCION_LLAMA_CPP_REVISION = '5ec717d1256e34558a44dc09adf1e6e16f2e2682';
+export const SCION_LLAMA_CPP_LORA_CONVERTER_SHA256 = '7e82b74442df2faab81c30e7d83614d10905294cec92092ec2a1749700d1a378';
+export const SCION_BROWSER_ADAPTER_CONVERSION_PIPELINE = 'mlx-lora-to-peft-to-gguf-v1';
 
 export const SCION_GEMMA4_E2B_BASE = Object.freeze({
-  modelId: 'google/gemma-4-E2B-it',
-  revision: '9dbdf8a839e4e9e0eb56ed80cc8886661d3817cf',
+  modelId: 'google/gemma-4-E2B-it-qat-q4_0-unquantized',
+  revision: '1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce',
   architecture: 'gemma4',
   role: 'instruction',
 });
@@ -19,11 +23,23 @@ export const SCION_ADAPTER_RUNTIME_CAPABILITIES = Object.freeze({
     baseOnlyFallback: true,
     reason: 'WebLLM does not currently expose the dynamic LoRA contract required by Scion.',
   }),
+  'transformers-js-webgpu': Object.freeze({
+    dynamicAdapter: false,
+    formats: Object.freeze([]),
+    baseOnlyFallback: true,
+    reason: 'Transformers.js runs the pinned Gemma 4 base in WebGPU but does not expose separate LoRA activation.',
+  }),
   wllama: Object.freeze({
     dynamicAdapter: false,
     formats: Object.freeze([]),
     baseOnlyFallback: false,
     reason: 'The maintained browser wrapper currently lists LoRA loading as unsupported.',
+  }),
+  'scion-wllama-webgpu-jspi-v1': Object.freeze({
+    dynamicAdapter: true,
+    formats: Object.freeze(['gguf-lora']),
+    baseOnlyFallback: true,
+    evidenceStatus: 'mechanical-browser-canary',
   }),
 });
 
@@ -114,6 +130,40 @@ export function validateScionAdapterManifest(
     else if (!capability.formats.includes(clean(manifest.adapter?.format))) {
       issues.push(`runtime-format-mismatch:${runtimeId}`);
     }
+  }
+
+  const format = clean(manifest.adapter?.format);
+  if (format === 'gguf-lora') {
+    const scale = Number(manifest.adapter?.scale);
+    if (!Number.isFinite(scale) || scale < 0.05 || scale > 16) issues.push('gguf-adapter-scale');
+    const ggufFiles = files.filter((file) => clean(file?.path).toLowerCase().endsWith('.gguf'));
+    if (ggufFiles.length !== 1) issues.push('gguf-adapter-file-count');
+    const conversion = manifest.conversion;
+    if (!conversion || typeof conversion !== 'object' || Array.isArray(conversion)) {
+      issues.push('gguf-conversion-missing');
+    } else {
+      if (clean(conversion.pipeline) !== SCION_BROWSER_ADAPTER_CONVERSION_PIPELINE) {
+        issues.push('gguf-conversion-pipeline');
+      }
+      if (!ADAPTER_ID_RE.test(clean(conversion.sourceAdapterId))) issues.push('gguf-source-adapter-id');
+      if (!SHA256_RE.test(clean(conversion.sourceManifestSha256))) issues.push('gguf-source-manifest-sha256');
+      const receiptPath = clean(conversion.receiptPath).replaceAll('\\', '/');
+      if (!safeRelativePath(receiptPath)) issues.push('gguf-conversion-receipt-path');
+      if (!paths.has(receiptPath)) issues.push('gguf-conversion-receipt-unbound');
+      if (clean(conversion.converter?.id) !== 'ggml-org/llama.cpp/convert_lora_to_gguf.py') {
+        issues.push('gguf-converter-id');
+      }
+      if (clean(conversion.converter?.revision) !== SCION_LLAMA_CPP_REVISION) {
+        issues.push('gguf-converter-revision');
+      }
+      if (clean(conversion.converter?.sha256) !== SCION_LLAMA_CPP_LORA_CONVERTER_SHA256) {
+        issues.push('gguf-converter-sha256');
+      }
+      if (clean(conversion.converter?.outputType) !== 'f16') issues.push('gguf-converter-output-type');
+    }
+    if (!runtimeIds.includes('scion-wllama-webgpu-jspi-v1')) issues.push('gguf-browser-runtime-missing');
+  } else if (manifest.conversion != null) {
+    issues.push('conversion-only-valid-for-gguf');
   }
 
   return { valid: issues.length === 0, issues: [...new Set(issues)] };

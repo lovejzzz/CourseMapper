@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from '../components/Header';
 
-const LAST_UPDATED = 'June 5, 2026';
+const LAST_UPDATED = 'July 13, 2026';
 
 export default function PrivacyPolicy() {
   return (
@@ -58,10 +58,10 @@ export default function PrivacyPolicy() {
             </ul>
           </Section>
 
-          <Section title="Third-Party AI Providers">
+          <Section title="AI Processing and Third-Party Providers">
             <p>
-              When you generate or revise a course map, your syllabus content and instructions are sent directly from
-              your browser to one of the following AI providers:
+              Processing depends on the provider you select. Paid-provider requests are sent directly from your browser
+              to that provider. Scion runs its model in your browser instead.
             </p>
             <ul className="list-disc list-inside space-y-1.5 ml-1 mt-2">
               <li>
@@ -109,13 +109,15 @@ export default function PrivacyPolicy() {
                 </a>
               </li>
               <li>
-                <strong>Scion</strong> — an experimental keyless route backed by Pollinations' anonymous text endpoint.
-                It does not require your API key, but your prompt is still sent to that third-party endpoint.
+                <strong>Scion</strong> — runs a pinned public Gemma 4 model locally in your browser. Your syllabus,
+                instructions, and generated text are not sent to a model API. On first use, your browser downloads the
+                model weights directly from Hugging Face and stores them in browser-managed local storage.
               </li>
             </ul>
             <p className="mt-2">
               For key-based providers, you provide your own API key to connect directly to your chosen provider. Course
-              Mapper never stores or transmits your API key to any server — it stays in your browser.
+              Mapper never sends that key to a Course Mapper-operated server. Scion requires no API key or Course Mapper
+              model backend.
             </p>
           </Section>
 

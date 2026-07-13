@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "courses": {
+    "business ethics": "business-ethics",
+    "cs-python": "computer-science",
+    "geology": "geology",
+    "music theory fundamentals": "music-theory",
+    "music-theory": "music-theory",
+    "user experience design studio": "user-experience-design"
+  }
+}

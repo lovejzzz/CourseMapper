@@ -23,10 +23,10 @@ MODE=${1:-}
 SMOKE=false
 [ "$MODE" = "--smoke" ] && SMOKE=true
 
-PYTHON=${SCION_TRAIN_PYTHON:-trellis/tendril/.venv-g4/bin/python}
+PYTHON=${SCION_TRAIN_PYTHON:-$HOME/.cache/coursemapper/venv-g4/bin/python}
 DATASET_DIR=${SCION_ADAPTER_DATASET:-trellis/tendril/distill/data-g4-orpo/curated}
-BASE_MODEL=google/gemma-4-E2B-it
-BASE_REVISION=9dbdf8a839e4e9e0eb56ed80cc8886661d3817cf
+BASE_MODEL=google/gemma-4-E2B-it-qat-q4_0-unquantized
+BASE_REVISION=1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce
 MODEL_CACHE=${SCION_MODEL_CACHE:-$HOME/.cache/coursemapper/scion-models}
 RUN_ID=${SCION_ADAPTER_ID:-scion-g4e2b-$(date -u +%Y%m%dT%H%M%SZ)}
 OUTPUT=${SCION_ADAPTER_OUTPUT:-$HOME/.cache/coursemapper/scion-adapters/$RUN_ID}

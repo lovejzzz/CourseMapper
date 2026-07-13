@@ -24,11 +24,20 @@ const NON_DISTINCTIVE_GROUNDING = new Set([
   'the',
 ]);
 const TRAINABLE_PREFERENCE_EVIDENCE_KINDS = new Set([
+  'deterministic-contract-margin',
   'double-blind-key-repair',
   'admission-and-key-repair',
   'applied-depth-and-key-repair',
   'blind-instructor-preference',
 ]);
+export const SCION_PREFERENCE_GATE_VERSION = '1.0.0';
+
+// These checks describe form, contract completeness, or answer-cue hygiene.
+// They do not claim that either side is factually correct. A deterministic
+// training pair is admitted only when the chosen side clears the whole gate
+// and the rejected side fails exclusively inside this non-semantic set.
+const DETERMINISTIC_CONTRACT_ISSUE_RE =
+  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|explanation-length|truncated-explanation|process-leakage|meta-surface|all-none-of-above|longest-option-cue|clang-association-cue))$/;
 
 function clean(value) {
   return String(value ?? '')
@@ -167,6 +176,50 @@ export function assessScionKernelLesson(lesson = {}) {
   return { eligible: deduped.length === 0, issues: deduped, score: Math.max(0, 100 - deduped.length * 5) };
 }
 
+function sortedIssues(issues = []) {
+  return [...new Set(issues.map((issue) => clean(issue)).filter(Boolean))].sort();
+}
+
+function sameIssues(left = [], right = []) {
+  const a = sortedIssues(left);
+  const b = sortedIssues(right);
+  return a.length === b.length && a.every((issue, index) => issue === b[index]);
+}
+
+export function deriveDeterministicContractEvidence({ kind, chosen, rejected } = {}) {
+  let chosenResult;
+  let rejectedResult;
+  if (kind === 'mc-item') {
+    chosenResult = assessScionMcItem(chosen);
+    rejectedResult = assessScionMcItem(rejected);
+  } else if (kind === 'key-term') {
+    chosenResult = assessScionKeyTerm(chosen);
+    rejectedResult = assessScionKeyTerm(rejected);
+  } else if (kind === 'lesson') {
+    chosenResult = assessScionKernelLesson(chosen);
+    rejectedResult = assessScionKernelLesson(rejected);
+  } else {
+    return null;
+  }
+  const rejectedIssues = sortedIssues(rejectedResult.issues);
+  if (
+    !chosenResult.eligible ||
+    rejectedResult.eligible ||
+    rejectedIssues.length === 0 ||
+    !rejectedIssues.every((issue) => DETERMINISTIC_CONTRACT_ISSUE_RE.test(issue))
+  ) {
+    return null;
+  }
+  return {
+    kind: 'deterministic-contract-margin',
+    verified: true,
+    validator: 'scion-preference-gate',
+    validatorVersion: SCION_PREFERENCE_GATE_VERSION,
+    rejectedIssues,
+    scope: 'non-semantic-contract-only',
+  };
+}
+
 /**
  * A preference pair is trainable only with pair-level evidence. Model identity
  * or an aggregate benchmark never proves that every response from that model
@@ -195,6 +248,19 @@ export function assessScionPreferencePair({ kind, chosen, rejected, preferenceEv
     issues.push('unsupported-preference-evidence-kind');
   }
   if (preferenceEvidence?.verified !== true) issues.push('unverified-preference-evidence');
+  const deterministicContractMargin =
+    preferenceEvidence?.kind === 'deterministic-contract-margin' &&
+    preferenceEvidence?.verified === true &&
+    preferenceEvidence?.validator === 'scion-preference-gate' &&
+    preferenceEvidence?.validatorVersion === SCION_PREFERENCE_GATE_VERSION &&
+    preferenceEvidence?.scope === 'non-semantic-contract-only' &&
+    chosenResult.eligible &&
+    rejectedResult.eligible === false &&
+    sortedIssues(rejectedResult.issues).every((issue) => DETERMINISTIC_CONTRACT_ISSUE_RE.test(issue)) &&
+    sameIssues(preferenceEvidence?.rejectedIssues, rejectedResult.issues);
+  if (preferenceEvidence?.kind === 'deterministic-contract-margin' && !deterministicContractMargin) {
+    issues.push('invalid-deterministic-contract-evidence');
+  }
   if (
     ['double-blind-key-repair', 'admission-and-key-repair'].includes(preferenceEvidence?.kind) &&
     new Set(Array.isArray(preferenceEvidence?.verifierIds) ? preferenceEvidence.verifierIds.filter(Boolean) : []).size <
@@ -245,7 +311,8 @@ export function assessScionPreferencePair({ kind, chosen, rejected, preferenceEv
     rejectedResult.eligible &&
     chosenResult.score <= rejectedResult.score &&
     !appliedDepthMargin &&
-    !blindInstructorMargin
+    !blindInstructorMargin &&
+    !deterministicContractMargin
   ) {
     issues.push('no-deterministic-quality-margin');
   }

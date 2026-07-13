@@ -176,6 +176,10 @@ export async function hydrateLibraryForDisciplines(library, disciplines, options
   const archetypesAdded = await loadArchetypeShard(library, manifest, options);
   return {
     manifestVersion: manifest.version || null,
+    // Reference metadata is intentionally returned beside the hydrated
+    // kernels. The linker uses it to keep verified titles/URLs through the
+    // compiler instead of collapsing anchors to opaque shard-key strings.
+    references: manifest.references && typeof manifest.references === 'object' ? manifest.references : {},
     added,
     shardIds: shards.map((shard) => shard.id),
     rejectedShards,

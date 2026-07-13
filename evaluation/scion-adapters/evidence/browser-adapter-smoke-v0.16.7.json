@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "scion-browser-adapter-smoke",
+  "observedAt": "2026-07-13T09:47:27Z",
+  "status": "pass-mechanical-only",
+  "promotionEligible": false,
+  "qualificationScope": "browser-load-activate-change-rollback-only",
+  "adapter": {
+    "id": "scion-g4e2b-qat-smoke-v0167-browser",
+    "format": "gguf-lora",
+    "manifestSchemaVersion": 2,
+    "manifestSha256": "a4af1643d5243f6d2f656ed3b2d9e5505955b68178329dc6086dda5f53a6f91e",
+    "artifact": {
+      "path": "scion-g4e2b-qat-smoke-v0167-browser.gguf",
+      "bytes": 52704096,
+      "sha256": "0bd696e8fa582cbfcfe1ec2f9c503cbaa21c3d0dcaced86fabe9517f312135fe"
+    },
+    "conversionReceipt": {
+      "path": "conversion-receipt.json",
+      "bytes": 2911,
+      "sha256": "7ba7b367275556b08624de3edbd36bb3ef921f6cdfbc07702b9292f301694c35"
+    },
+    "promotionStatus": "smoke",
+    "promotable": false
+  },
+  "source": {
+    "adapterId": "scion-g4e2b-qat-smoke-v0167",
+    "adapterManifestSha256": "9314984be93faa4c4a8f637394e83c6363c2c397592ea032ae894dfea089286b",
+    "datasetManifestSha256": "f1c4e098ad98ca63ffb4e6454eaebad90907d4e43a753f62a0202ac2ff0cf581",
+    "datasetStatus": "smoke-only",
+    "verifiedPairCount": 101,
+    "requiredProductionPairCount": 3000,
+    "domainCount": 5,
+    "trainingIterations": 10
+  },
+  "base": {
+    "trainingModelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "trainingRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "browserModelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+    "browserRevision": "69536a21d70340464240401ba38223d805f6a709",
+    "browserSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd"
+  },
+  "conversion": {
+    "pipeline": "mlx-lora-to-peft-to-gguf-v1",
+    "mappingSha256": "c07b78d7ec688d4c6bbfbab6d317636bfcef6fa302633159903d643167c07806",
+    "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682",
+    "converterSha256": "7e82b74442df2faab81c30e7d83614d10905294cec92092ec2a1749700d1a378",
+    "rank": 16,
+    "alpha": 16,
+    "tensorCount": 552,
+    "pairCount": 276,
+    "tensorType": "F16",
+    "tensorNameSetSha256": "ad2546e3ffa2734486e23c06579905155297548c9c0179bf7a805bfe1b7469b9",
+    "ggufMetadata": {
+      "version": 3,
+      "architecture": "gemma4",
+      "type": "adapter",
+      "adapterType": "lora"
+    }
+  },
+  "browser": {
+    "runtimeId": "scion-wllama-webgpu-jspi-v1",
+    "webgpuActive": true,
+    "crossOriginIsolated": false,
+    "canary": "strict-json-music-theory-mc-item",
+    "scaleTrials": [
+      {
+        "scale": 1,
+        "nativeAdapterActive": true,
+        "outputChanged": false,
+        "rollbackRestoredExactBaseOutput": true,
+        "status": "insufficient-effect"
+      },
+      {
+        "scale": 4,
+        "nativeAdapterActive": true,
+        "outputChanged": false,
+        "rollbackRestoredExactBaseOutput": true,
+        "status": "insufficient-effect"
+      },
+      {
+        "scale": 16,
+        "nativeAdapterActive": true,
+        "nativeArchitecture": "gemma4",
+        "nativeAdapterType": "lora",
+        "outputChanged": true,
+        "rollbackRestoredExactBaseOutput": true,
+        "proofSha256": "60db9ddcf0de6ad38c12ac5b1c1d124e9a4c5140f7c992090728f904ecec906e",
+        "status": "pass-mechanical-only"
+      }
+    ],
+    "finalState": {
+      "mode": "base-only",
+      "adapterActive": false,
+      "nativeAdapterActive": false
+    }
+  },
+  "nonClaims": [
+    "This smoke adapter is not a production Scion adapter.",
+    "The scale-16 mechanical effect is not evidence of course quality or factual improvement.",
+    "No blind instructor preference, five-domain win, compiler-burden reduction, or device matrix is established.",
+    "The GGUF artifact remains outside the repository and is not shipped to users."
+  ]
+}

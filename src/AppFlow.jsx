@@ -1947,6 +1947,8 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     deliv,
     gen,
     courseMapRef,
+    provider,
+    modelId,
     // v0.14.7 WS-G2: the stored graph carries the enrichment overlay the
     // blast-radius recompile diffs against.
     courseGraphRef,

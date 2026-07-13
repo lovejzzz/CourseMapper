@@ -21,7 +21,7 @@
  */
 
 import { searchScholarlyReadings, searchBookMetadata } from './providers.js';
-import { isLicenseAmbiguous } from './sourceLedger.js';
+import { isCourseAwareWeakSource, isLicenseAmbiguous } from './sourceLedger.js';
 // V0.14.1 round-2: the same discipline inference the genome linker uses maps
 // the course onto an OpenAlex field/domain allowlist (no import cycle —
 // libraryShardLoader imports nothing from knowledge/).
@@ -141,10 +141,22 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
   let rawLabel = '';
   let displayTitle = '';
   let sourceUrl = '';
+  let explicitLicense = '';
+  let explicitAttribution = '';
+  let resourceKind = '';
+  let evidence = '';
+  let sourceTier = null;
+  let conceptLinks = [];
   if (entry && typeof entry === 'object') {
     rawLabel = cleanText(entry.key || entry.text || entry.label || entry.source || '');
     displayTitle = cleanText(entry.displayTitle || '');
     sourceUrl = cleanText(entry.sourceUrl || '');
+    explicitLicense = cleanText(entry.license || '');
+    explicitAttribution = cleanText(entry.attribution || '');
+    resourceKind = cleanText(entry.kind || '');
+    evidence = cleanText(entry.evidence || '');
+    sourceTier = Number.isFinite(Number(entry.sourceTier)) ? Number(entry.sourceTier) : null;
+    conceptLinks = Array.isArray(entry.conceptLinks) ? entry.conceptLinks : [];
   } else {
     rawLabel = cleanText(entry);
   }
@@ -157,15 +169,21 @@ function resolveGenomeCitation(entry, { abbreviateLicense = false } = {}) {
     url ? `${cleanText(license).toLowerCase()}|${url.replace(/[#§].*$/, '')}` : '';
 
   if (displayTitle) {
-    const { url, license } = openTextbookUrl(rawLabel || displayTitle);
+    const { url, license: inferredLicense } = openTextbookUrl(rawLabel || displayTitle);
     const href = sourceUrl || url;
-    const tail = abbreviateLicense ? ' (open textbook)' : ` (open textbook, ${license}${href ? ` — ${href}` : ''})`;
+    const license = explicitLicense || inferredLicense;
+    const kind = resourceKind || 'open textbook';
+    const tail = abbreviateLicense ? ` (${kind})` : ` (${kind}, ${license}${href ? ` — ${href}` : ''})`;
     return {
       dedupeKey: (rawLabel || displayTitle).toLowerCase(),
       citation: `${displayTitle}${tail}`,
       url: href,
       license,
-      attribution: displayTitle,
+      attribution: explicitAttribution || displayTitle,
+      kind,
+      evidence,
+      sourceTier,
+      conceptLinks,
       licenseGroupKey: licenseGroupKey(href, license),
     };
   }
@@ -299,7 +317,7 @@ export function attachGenomeResources(graph) {
       if (groupKey && seenLicenseGroups.has(groupKey)) {
         final = resolveGenomeCitation(entry, { abbreviateLicense: true }) || resolvedCitation;
       }
-      const { citation, url, license, attribution } = final;
+      const { citation, url, license, attribution, kind, evidence, sourceTier, conceptLinks = [] } = final;
       if (seen.has(citation.toLowerCase())) continue;
       seen.add(citation.toLowerCase());
       seen.add(dedupeKey);
@@ -307,12 +325,15 @@ export function attachGenomeResources(graph) {
       attachResource(graph, session, {
         id: nextId(),
         citation,
-        kind: 'textbook section',
+        kind: kind || 'textbook section',
         sessionRefs: [],
         origin: 'genome',
         url,
         license,
         attribution,
+        evidence,
+        ...(sourceTier != null ? { sourceTier } : {}),
+        ...(conceptLinks.length > 0 ? { conceptLinks } : {}),
         // Stable identity for idempotent re-entry (abbreviation-invariant).
         dedupeKey,
         licenseGroupKey: groupKey || '',
@@ -741,6 +762,21 @@ function relevanceTermsForSession(graph, session, anchor) {
   return { conceptTokens, allTokens, strongConceptTokens, phrases };
 }
 
+function openReadingCourseFitCandidate(work, graph, session) {
+  const conceptLabels = conceptTermsForSession(graph, session);
+  const fallbackLabel = cleanText(session?.title).replace(/^Lesson \d+:?\s*/i, '');
+  return {
+    ...work,
+    origin: 'openalex',
+    provider: 'openalex',
+    sourceType: 'peer-reviewed reading',
+    evidence: work?.abstract || work?.snippet || '',
+    conceptLinks: (conceptLabels.length > 0 ? conceptLabels : [fallbackLabel])
+      .filter(Boolean)
+      .map((label) => ({ label })),
+  };
+}
+
 /**
  * Score a candidate work's topical relevance against the lesson's term set.
  * Returns { hits, phraseHit, strongConceptHit, pass }.
@@ -876,6 +912,17 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
     let rejectedOffDiscipline = 0;
     const rejectedKnownOffenders = [];
     const scored = candidates.map((work) => {
+      // The token and OpenAlex-field gates are deliberately broad enough to
+      // recover unfamiliar disciplines. Before a work can enter a student
+      // reading slot, also apply the same course-aware, lesson-specific source
+      // fit gate used by source-finder and the exported source ledger. This
+      // blocks false friends such as sonification "mapping" for an affinity-
+      // mapping lesson or architectural-studio research for contextual UX
+      // interviews, even when generic design words satisfy the token gate.
+      if (isCourseAwareWeakSource(openReadingCourseFitCandidate(work, graph, session), graph)) {
+        rejectedOffDiscipline += 1;
+        return { work, score: scoreReadingRelevance(work, terms), pass: false };
+      }
       // v0.14.3 round-2 FIX-1: a famous off-discipline offender (cancer
       // statistics, MNIST, …) is REJECTED at attach time REGARDLESS of the
       // topic-field allowlist and the token gate, UNLESS its title shares

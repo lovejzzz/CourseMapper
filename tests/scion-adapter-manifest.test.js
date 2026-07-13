@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
+  SCION_BROWSER_ADAPTER_CONVERSION_PIPELINE,
   resolveScionAdapterRuntime,
   SCION_GEMMA4_E2B_BASE,
+  SCION_LLAMA_CPP_LORA_CONVERTER_SHA256,
+  SCION_LLAMA_CPP_REVISION,
   validateScionAdapterManifest,
 } from '../src/lib/scionAdapterManifest.js';
 
@@ -10,7 +14,7 @@ const HASH = 'a'.repeat(64);
 
 function manifest(overrides = {}) {
   return {
-    schemaVersion: 1,
+    schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
     adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.6', format: 'mlx-lora-safetensors' },
     base: { ...SCION_GEMMA4_E2B_BASE, exactRevisionRequired: true },
     training: {
@@ -24,6 +28,21 @@ function manifest(overrides = {}) {
     runtime: { supported: ['mlx-vlm'] },
     promotion: { status: 'candidate', promotable: false },
     ...overrides,
+  };
+}
+
+function browserConversion() {
+  return {
+    pipeline: SCION_BROWSER_ADAPTER_CONVERSION_PIPELINE,
+    sourceAdapterId: 'scion-g4e2b-mlx-v1',
+    sourceManifestSha256: HASH,
+    receiptPath: 'conversion-receipt.json',
+    converter: {
+      id: 'ggml-org/llama.cpp/convert_lora_to_gguf.py',
+      revision: SCION_LLAMA_CPP_REVISION,
+      sha256: SCION_LLAMA_CPP_LORA_CONVERTER_SHA256,
+      outputType: 'f16',
+    },
   };
 }
 
@@ -64,6 +83,53 @@ describe('Scion adapter manifest', () => {
       adapterActive: false,
       reason: 'runtime-no-dynamic-adapter',
     });
+  });
+
+  it('keeps the Transformers.js Gemma runtime base-only until separate adapter activation exists', () => {
+    const resolution = resolveScionAdapterRuntime({
+      manifest: manifest({ runtime: { supported: ['mlx-vlm'] } }),
+      runtimeId: 'transformers-js-webgpu',
+      baseModelId: SCION_GEMMA4_E2B_BASE.modelId,
+      baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+    });
+    expect(resolution).toMatchObject({
+      mode: 'base-only',
+      adapterActive: false,
+      reason: 'runtime-no-dynamic-adapter',
+    });
+  });
+
+  it('accepts a GGUF LoRA only for the hash-bound Scion browser runtime', () => {
+    const candidate = manifest({
+      adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.7', format: 'gguf-lora', scale: 1 },
+      files: [
+        { path: 'scion-g4e2b-v1.gguf', bytes: 2048, sha256: HASH },
+        { path: 'conversion-receipt.json', bytes: 1024, sha256: HASH },
+      ],
+      runtime: { supported: ['scion-wllama-webgpu-jspi-v1'] },
+      conversion: browserConversion(),
+    });
+    expect(validateScionAdapterManifest(candidate)).toEqual({ valid: true, issues: [] });
+    expect(
+      resolveScionAdapterRuntime({
+        manifest: candidate,
+        runtimeId: 'scion-wllama-webgpu-jspi-v1',
+        baseModelId: SCION_GEMMA4_E2B_BASE.modelId,
+        baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+      }),
+    ).toMatchObject({ mode: 'adapter-ready', adapterActive: true });
+  });
+
+  it('rejects an untraceable GGUF even when its file digest is present', () => {
+    const result = validateScionAdapterManifest(
+      manifest({
+        adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.7', format: 'gguf-lora', scale: 1 },
+        files: [{ path: 'scion-g4e2b-v1.gguf', bytes: 2048, sha256: HASH }],
+        runtime: { supported: ['scion-wllama-webgpu-jspi-v1'] },
+      }),
+    );
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContain('gguf-conversion-missing');
   });
 
   it('rejects smoke manifests that can be promoted or contain unsafe paths', () => {

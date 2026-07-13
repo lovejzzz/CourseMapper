@@ -182,11 +182,11 @@ function inferApiControls(provider, modelId) {
   if (provider === 'public') {
     return {
       ...base,
-      activeTextApi: 'public-chat',
-      preferredTextApi: 'public-chat',
-      endpointFamily: 'pollinations-anonymous',
-      streamingProtocol: 'json',
-      supportsStreaming: false,
+      activeTextApi: 'browser-local-gguf',
+      preferredTextApi: 'browser-local-gguf',
+      endpointFamily: 'browser-local',
+      streamingProtocol: 'callback',
+      supportsStreaming: true,
     };
   }
   return base;

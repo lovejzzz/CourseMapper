@@ -137,7 +137,7 @@ export function getModelPricing(provider = '', modelId = '', inputTokens = 0) {
   }
 
   if (provider === 'public') {
-    return pricing(0, 0, { source: 'public-anonymous' });
+    return pricing(0, 0, { source: 'browser-local' });
   }
 
   if (provider === 'deepseek') {

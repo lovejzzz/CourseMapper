@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "status": "pass-mechanical-only",
+  "promotable": false,
+  "startedAt": "2026-07-13T07:12:33.921Z",
+  "finishedAt": "2026-07-13T07:13:42.625Z",
+  "browser": {
+    "secureContext": true,
+    "crossOriginIsolated": true,
+    "webgpu": true,
+    "jspi": true,
+    "gpuAdapter": true,
+    "crossOriginIsolationRequired": false,
+    "nonIsolatedSingleThreadCanary": {
+      "status": "pass",
+      "crossOriginIsolated": false,
+      "webgpu": true,
+      "jspi": true,
+      "generationOutput": ", there was a little girl"
+    }
+  },
+  "base": {
+    "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+    "revision": "69536a21d70340464240401ba38223d805f6a709",
+    "file": "gemma-4-E2B_q4_0-it.gguf",
+    "bytes": 3349514112,
+    "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+    "architecture": "gemma4",
+    "layerCount": 35,
+    "webgpuActive": true
+  },
+  "runtime": {
+    "id": "scion-wllama-webgpu-jspi-v1",
+    "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+    "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682",
+    "moduleSha256": "ca1b99d084b649a89400d8a839f3e772a46d1f65f145b80d9aa49bc43ddbc41a",
+    "wasmSha256": "732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229"
+  },
+  "adapter": {
+    "id": "scion-g4e2b-legacy-smoke",
+    "status": "smoke",
+    "promotable": false,
+    "format": "gguf-lora-f16",
+    "bytes": 26370912,
+    "sha256": "7f4f0bdad261c9bde2b159b399dfa7fc204428ffab211160f3b746c1cafb8c74",
+    "nativeMetadata": {
+      "general.type": "adapter",
+      "adapter.type": "lora",
+      "adapter.lora.alpha": "16.000000",
+      "general.architecture": "gemma4"
+    },
+    "exactTrainingBaseMatch": false,
+    "trainingPairCount": 0,
+    "domainCount": 0
+  },
+  "promptContract": {
+    "runtimeJinjaFormatterOutput": "",
+    "diagnosis": "The upstream wrapper uses the legacy llama_chat_apply_template path and returns an empty prompt for Gemma 4's embedded Jinja template.",
+    "fixedFormat": "<|turn>user\\n{content}<turn|>\\n<|turn>model\\n",
+    "nativeReferenceMatched": true
+  },
+  "inference": {
+    "prompt": "Write one concise sentence explaining formative assessment to a first-year teacher.",
+    "baseOutput": "Formative assessment is ongoing, low-stakes evaluation used by teachers to monitor student learning and adjust their instruction in real-time to improve student understanding.",
+    "adapterOutput": "Formative assessment is low-stakes, in-lesson feedback that teachers use to adjust teaching immediately (what students know and where they need reteaching).",
+    "rollbackOutput": "Formative assessment is ongoing, low-stakes evaluation used by teachers to monitor student learning and adjust their instruction in real-time to improve student understanding."
+  },
+  "checks": {
+    "directPublicModelLoaded": true,
+    "baseLoaded": true,
+    "webgpuActive": true,
+    "baseStartsWithoutAdapter": true,
+    "adapterDigestMatched": true,
+    "nativeAdapterActive": true,
+    "nativeAdapterTypeMatched": true,
+    "outputChanged": true,
+    "adapterCleared": true,
+    "rollbackRestoredExactBaseOutput": true,
+    "baseOutputCoherentAfterPromptFix": true
+  },
+  "distribution": {
+    "localSplitCanary": "pass",
+    "directPinnedPublicUrl": "pass",
+    "downloadedBytes": 3349514112,
+    "reportedTotalBytes": 3349514112,
+    "firstUseElapsedMs": 68704,
+    "modelSource": "https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf/resolve/69536a21d70340464240401ba38223d805f6a709/gemma-4-E2B_q4_0-it.gguf",
+    "modelBackendRequired": false
+  },
+  "qualityBoundary": "This canary proves browser mechanics and the corrected prompt path only. The legacy smoke adapter is base-mismatched, has no eligible training pairs, has no held-out domains, and can never be promoted."
+}

@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 
 import { assessCorpusRow } from './scionPreferenceCorpusAudit.mjs';
 import { sha256File } from './scionAdapterPackage.mjs';
+import { deriveDeterministicContractEvidence } from '../src/lib/scionPreferenceGate.js';
 
 const DEFAULT_SOURCES = [
   'trellis/tendril/distill/data-g4-orpo/train.jsonl',
@@ -14,6 +15,7 @@ const DEFAULT_SOURCES = [
   'evaluation/scion-reviewed-preferences.jsonl',
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
+const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
 
 function normalize(value) {
   return String(value ?? '')
@@ -46,8 +48,12 @@ function pairFingerprint(row) {
   );
 }
 
-function inferDomain(row) {
-  return normalize(row?.context?.domain || row?.context?.discipline || row?.domain || 'unknown').toLowerCase();
+function inferDomain(row, domainMap = {}) {
+  const explicit = normalize(row?.context?.domain || row?.context?.discipline || row?.domain).toLowerCase();
+  if (explicit) return { domain: explicit, source: 'row' };
+  const group = explicitGroupIdentity(row);
+  const mapped = normalize(domainMap[group]).toLowerCase();
+  return { domain: mapped || 'unknown', source: mapped ? 'registry' : 'missing' };
 }
 
 function explicitGroupIdentity(row) {
@@ -84,25 +90,70 @@ async function readJsonl(source) {
   }
 }
 
+function pairKind(row) {
+  if (['lesson', 'mc-item', 'key-term'].includes(row?.kind)) return row.kind;
+  if (row?.pass && row?.chosen && row?.rejected) return 'mc-item';
+  return '';
+}
+
+function lessonValue(value) {
+  const object = parsed(value);
+  return object?.lessons?.[0] ?? object;
+}
+
+function withDerivedContractEvidence(row) {
+  const kind = pairKind(row);
+  if (!kind) return row;
+  const chosen = kind === 'lesson' ? lessonValue(row.chosen) : parsed(row.chosen);
+  const rejected = kind === 'lesson' ? lessonValue(row.rejected) : parsed(row.rejected);
+  const evidence = deriveDeterministicContractEvidence({ kind, chosen, rejected });
+  if (!evidence) return row;
+  return {
+    ...row,
+    preferenceEvidence: {
+      ...evidence,
+      ...(row.preferenceEvidence?.kind ? { supersedesEvidenceKind: row.preferenceEvidence.kind } : {}),
+    },
+  };
+}
+
+async function readDomainMap(domainMapPath) {
+  try {
+    const value = JSON.parse(await fs.readFile(domainMapPath, 'utf8'));
+    const courses = value?.courses && typeof value.courses === 'object' ? value.courses : {};
+    return Object.fromEntries(
+      Object.entries(courses)
+        .map(([course, domain]) => [normalize(course).toLowerCase(), normalize(domain).toLowerCase()])
+        .filter(([course, domain]) => course && domain),
+    );
+  } catch (error) {
+    if (error?.code === 'ENOENT') return {};
+    throw error;
+  }
+}
+
 export async function buildScionAdapterDataset({
   sources = DEFAULT_SOURCES,
   outputDir = DEFAULT_OUTPUT,
   minimumPairs = 3000,
   minimumDomains = 5,
   allowSmoke = false,
+  domainMapPath = DEFAULT_DOMAIN_MAP,
 } = {}) {
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
+  const domainMap = await readDomainMap(domainMapPath);
   const eligible = [];
   const quarantine = [];
   const seen = new Set();
   for (const entry of loaded) {
-    const assessment = assessCorpusRow(entry.row, entry.source);
+    const auditedRow = withDerivedContractEvidence(entry.row);
+    const assessment = assessCorpusRow(auditedRow, entry.source);
     if (!assessment.eligible) {
       quarantine.push({ source: entry.source, line: entry.line, issues: assessment.issues });
       continue;
     }
-    const domain = inferDomain(entry.row);
-    const groupIdentity = explicitGroupIdentity(entry.row);
+    const { domain, source: domainSource } = inferDomain(auditedRow, domainMap);
+    const groupIdentity = explicitGroupIdentity(auditedRow);
     const identityIssues = [
       ...(domain === 'unknown' ? ['missing-domain'] : []),
       ...(!groupIdentity ? ['missing-course-group'] : []),
@@ -111,14 +162,23 @@ export async function buildScionAdapterDataset({
       quarantine.push({ source: entry.source, line: entry.line, issues: identityIssues });
       continue;
     }
-    const fingerprint = pairFingerprint(entry.row);
+    const fingerprint = pairFingerprint(auditedRow);
     if (seen.has(fingerprint)) {
       quarantine.push({ source: entry.source, line: entry.line, issues: ['duplicate-pair'] });
       continue;
     }
     seen.add(fingerprint);
     const group = `${domain}:${groupIdentity}`;
-    eligible.push({ ...entry, fingerprint, group, domain, split: splitForGroup(group) });
+    const curatedRow = {
+      ...auditedRow,
+      context: {
+        ...(auditedRow.context && typeof auditedRow.context === 'object' ? auditedRow.context : {}),
+        domain,
+        courseId: groupIdentity,
+        domainSource,
+      },
+    };
+    eligible.push({ ...entry, row: curatedRow, fingerprint, group, domain, split: splitForGroup(group) });
   }
 
   const splitRows = { train: [], valid: [], test: [] };
@@ -165,11 +225,16 @@ export async function buildScionAdapterDataset({
     };
   }
   const manifest = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     status,
     promotable: status === 'ready',
     generatedAt: new Date().toISOString(),
     sources,
+    domainMap: {
+      path: domainMapPath,
+      entries: Object.keys(domainMap).length,
+      ...(Object.keys(domainMap).length > 0 ? { sha256: await sha256File(domainMapPath) } : {}),
+    },
     counts: {
       loaded: loaded.length,
       total: eligible.length,
@@ -192,13 +257,20 @@ export async function buildScionAdapterDataset({
 }
 
 function parseArgs(argv) {
-  const args = { sources: [], outputDir: DEFAULT_OUTPUT, minimumPairs: 3000, minimumDomains: 5 };
+  const args = {
+    sources: [],
+    outputDir: DEFAULT_OUTPUT,
+    minimumPairs: 3000,
+    minimumDomains: 5,
+    domainMapPath: DEFAULT_DOMAIN_MAP,
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--source') args.sources.push(argv[++index]);
     else if (arg === '--output') args.outputDir = argv[++index];
     else if (arg === '--minimum-pairs') args.minimumPairs = Number(argv[++index]);
     else if (arg === '--minimum-domains') args.minimumDomains = Number(argv[++index]);
+    else if (arg === '--domain-map') args.domainMapPath = argv[++index];
     else if (arg === '--allow-smoke') args.allowSmoke = true;
   }
   if (args.sources.length === 0) args.sources = DEFAULT_SOURCES;

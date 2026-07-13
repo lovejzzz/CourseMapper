@@ -26,7 +26,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { buildLessonKernelPrompt } from '../../../src/lib/blueprintEnrichmentPass.js';
-import { assessScionPreferencePair } from '../../../src/lib/scionPreferenceGate.js';
+import {
+  assessScionPreferencePair,
+  deriveDeterministicContractEvidence,
+} from '../../../src/lib/scionPreferenceGate.js';
 import { resolveCourses } from '../../../scripts/crucible/courses.mjs';
 import { loadApiKey } from '../../../scripts/lib/crucibleBrowser.mjs';
 import { sGenerate, stopS } from '../sModel.mjs';
@@ -102,15 +105,11 @@ export function buildDeterministicPreferencePair({ kind, prompt, chosen, rejecte
   const rejectedValue = typeof rejected === 'string' ? JSON.parse(rejected) : rejected;
   const chosenAssessment = kind === 'lesson' ? (chosenValue?.lessons?.[0] ?? chosenValue) : chosenValue;
   const rejectedAssessment = kind === 'lesson' ? (rejectedValue?.lessons?.[0] ?? rejectedValue) : rejectedValue;
-  const initial = assessScionPreferencePair({ kind, chosen: chosenAssessment, rejected: rejectedAssessment });
-  const rejectedFailed = initial.rejected?.eligible === false;
-  const preferenceEvidence = rejectedFailed
-    ? {
-        kind: 'deterministic-contract-margin',
-        verified: true,
-        rejectedIssues: initial.rejected.issues,
-      }
-    : null;
+  const preferenceEvidence = deriveDeterministicContractEvidence({
+    kind,
+    chosen: chosenAssessment,
+    rejected: rejectedAssessment,
+  });
   const result = assessScionPreferencePair({
     kind,
     chosen: chosenAssessment,
@@ -248,7 +247,12 @@ export async function buildPairs(courseIds) {
       });
       const rows = [lessonPair.row, ...atomPairs(pairPrompt, chosenLesson, rejectedLesson)]
         .filter(Boolean)
-        .map((row) => ({ ...row, courseId: course.id, lessonId: `lesson-${index + 1}` }));
+        .map((row) => ({
+          ...row,
+          courseId: course.id,
+          lessonId: `lesson-${index + 1}`,
+          context: { courseId: course.id, domain: course.domain || course.discipline || course.id },
+        }));
       if (rows.length === 0) {
         stats.droppedUnprovenPreference += 1;
         markDone('no-pair-level-preference-evidence');

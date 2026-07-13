@@ -68,13 +68,19 @@ The adapter lane evaluates a learned delta separately from both the public Gemma
 npm run build:scion:adapter-dataset
 npm run train:scion:adapter -- --smoke
 npm run package:scion:adapter -- --adapter-dir ... --adapter-id ... --scion-version ... --dataset-manifest ...
+npm run package:scion:adapter:browser -- --adapter-dir ... --output-dir ... --llama-cpp-dir ... --python ...
 npm run audit:scion:adapter -- path/to/scion-adapter.json
+npm run audit:scion:browser-adapter-smoke
 npm run audit:scion:adapter:promotion -- --manifest ... --candidate ... --base ...
 ```
 
 The dataset builder accepts only pair-audited, deduplicated records with an explicit domain and course/project group, then keeps each group inside one deterministic split. A `smoke` package may prove loading mechanics but is permanently non-promotable. A `candidate` or `promoted` manifest is invalid unless the bound dataset is `ready` with at least 3,000 verified pairs across five domains. Promotion additionally requires exact active base/adapter identity, five clean matched full courses, a 20% median Scion-call reduction with no per-domain regression above 1.05×, and hash-bound factual, instructor, device, and production evidence.
 
-The current build is correctly blocked at 0/471 eligible rows. `evaluation/scion-adapters/evidence/dataset-gate-v0.16.6.json` retains the fail-closed count, gate issues, leakage result, and empty split hashes. `evaluation/scion-adapters/evidence/legacy-smoke-v0.16.6.json` separately retains the base-plus-adapter loading proof but explicitly forbids using that historical adapter as quality or promotion evidence.
+The production lane remains correctly blocked at 0 independently qualified preferences from the original 471-event audit. `evaluation/scion-adapters/evidence/dataset-gate-v0.16.6.json` retains that fail-closed count, gate issues, leakage result, and empty split hashes. `evaluation/scion-adapters/evidence/legacy-smoke-v0.16.6.json` separately retains the older base-mismatched loading proof and forbids using it as quality or promotion evidence.
+
+The explicit mechanics lane has different claim boundaries. It may admit structurally evidenced rows only when an exact validator trace and an explicit course/domain registry establish the pair and split identity. The v0.16.7 smoke admitted 101 of the 471 events across five groups, trained ten iterations against the exact QAT parent, and produced a `smoke-only` dataset manifest. Those rows are not independently reviewed production preferences, and every package derived from them is permanently non-promotable.
+
+`evaluation/scion-adapters/evidence/browser-adapter-smoke-v0.16.7.json` binds the exact source adapter, dataset, base, conversion mapping, llama.cpp converter, GGUF, and browser scale trials. Scale 1 and scale 4 activated natively without changing the deterministic canary. Scale 16 changed it, and rollback restored the exact base output. The audit status is deliberately `pass-mechanical-only`; it proves the end-to-end adapter path, not better courses.
 
 Factual screening is not promotion. Promotion additionally requires five passing 12-lesson courses across five domains, 99/A with zero P0/P1, five domain-matched control courses, no more than 1.25× the control's Scion quality-pass calls, the named browser-device classes, and at least 50 blind cases with two independent domain-qualified reviews per case. The candidate's effective blind win rate must have a 95% Wilson lower bound above 0.50. Crucible imports verify the exact source-weight ID, not merely the endpoint's friendly name:
 
@@ -179,7 +185,9 @@ The current local route's production-safe capture is the 7-lesson music-theory r
 
 The current local UX comparison row points to `round-2026-07-11T20-41-02-548Z`. Its real 12-lesson run reached 99/A with zero P0/P1, 101 extracted files, clean 38/38 export verification, six genome-linked lessons, and a strict matrix pass. The candidate records 27/48 applied MC items (56.3%) versus Luna's 27/44 (61.4%), so the applied rate still trails even though the applied-item count is equal. Both artifacts reach 100% supported inference, explanation-key alignment, scenario coverage, and concrete scenario materials. Scion reaches 100% contrastive rationales versus 9.1%, 100% decision-ready scenarios versus 58.3%, and 100% cue-free plus claim-evidence-boundary short answers versus 0%. The derived scenarios retain explicit `derived-kernel-fallback` provenance. These are deterministic paired diagnostics from one course; the production-canary gate now passes independently, but independent instructor evidence is still required for a teachability or general superiority claim.
 
-The final v0.16.6 adapter dataset audit loaded 471 raw model/compiler events and admitted 0. The events do not satisfy the independent-evidence and explicit split-identity gates, so the train, validation, and test files are empty by design. The audit found zero group overlap and bound all three empty split hashes. A balanced 50-case blind review packet is ready across five named domains, but no instructor decision is counted until valid completed forms are ingested.
+The final v0.16.6 production adapter audit loaded 471 raw model/compiler events and admitted 0. The events did not satisfy the independent-evidence and explicit split-identity gates, so the production train, validation, and test files were empty by design. The audit found zero group overlap and bound all three empty split hashes. A balanced 50-case blind review packet is ready across five named domains, but no instructor decision is counted until valid completed forms are ingested.
+
+For v0.16.7 mechanics only, the stricter structural-evidence derivation admitted 101 rows across five explicit course/domain groups and produced a smoke-only split. That split has now exercised exact-QAT training, deterministic conversion, GGUF semantic inspection, browser activation, effect probing, and rollback. It does not increase the independently reviewed production corpus above zero.
 
 ## Current claim
 

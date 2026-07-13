@@ -14,6 +14,7 @@ import { CourseProvider } from './contexts/CourseContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { PageSkeleton } from './components/LoadingScreen';
 import { getLegacyPathTelemetry } from './lib/legacyPathTelemetry';
+import { armScionRuntimeCanary } from './lib/scionRuntimeCanaryGate';
 import './index.css';
 
 // v0.14.3 WS-C (C1): the Crucible driver reads legacy-branch hit counters
@@ -21,6 +22,7 @@ import './index.css';
 // Always on — exposes the live function (not a snapshot) so reads see every
 // compile that ran before the read.
 window.__cmLegacyPathTelemetry = getLegacyPathTelemetry;
+armScionRuntimeCanary();
 
 function Router() {
   const getPage = () => {

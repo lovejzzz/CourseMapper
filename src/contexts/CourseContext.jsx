@@ -1,5 +1,5 @@
 // src/contexts/CourseContext.jsx — Course-data state (map, columns, features, config)
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 import { DEFAULT_COLUMNS } from '../components/ColumnEditor';
 
 const CourseContext = createContext(null);
@@ -30,6 +30,22 @@ export function CourseProvider({ children }) {
   // ── Slide theme ──
   const [slideTheme, setSlideTheme] = useState(null); // null = auto-rotate, 0-4 = specific theme
 
+  // Starting from the landing brief is a new project boundary. Preserve the
+  // brief and attached files, but discard every generated/project-owned value
+  // before AppFlow mounts so a previous course cannot seed its graph, feature
+  // selection, or compiler configuration into the next course.
+  const resetGeneratedProjectState = useCallback(() => {
+    setSelectedFeatures(['courseMap']);
+    setDeliverableConfig({});
+    setLessonScope({ type: 'all' });
+    setColumns([...DEFAULT_COLUMNS]);
+    setCourseMap(null);
+    setOldCourseMap(null);
+    setUserEdits([]);
+    setHasGenerated(false);
+    setSlideTheme(null);
+  }, []);
+
   return (
     <CourseContext.Provider
       value={{
@@ -55,6 +71,7 @@ export function CourseProvider({ children }) {
         setHasGenerated,
         slideTheme,
         setSlideTheme,
+        resetGeneratedProjectState,
       }}
     >
       {children}

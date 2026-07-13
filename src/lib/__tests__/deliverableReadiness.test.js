@@ -112,6 +112,47 @@ describe('evaluateWorkspaceReadiness', () => {
     expect(readiness.blockers).toHaveLength(0);
   });
 
+  it('does not require registry-linked assignment briefs to duplicate quiz-bank weights', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      selectedFeatures: ['assignments'],
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                assessmentId: 'A1.1',
+                title: 'Observation memo',
+                percentOfGrade: '49%',
+                relatedLessons: [1],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).not.toContain('sum to 49%');
+  });
+
+  it('still warns when legacy standalone assignment weights do not total about 100%', () => {
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap,
+      selectedFeatures: ['assignments'],
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [{ title: 'Observation memo', percentOfGrade: '49%', relatedLessons: [1] }],
+          },
+        },
+      },
+    });
+
+    expect(readiness.warnings.map((issue) => issue.message).join(' ')).toContain('sum to 49%');
+  });
+
   it('warns on a selected deliverable that is stale', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,

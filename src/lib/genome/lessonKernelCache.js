@@ -14,7 +14,12 @@
  * See docs/CURRICULUMOS_V1_DESIGN.md §10 Phase A.
  */
 
-const CACHE_KEY = 'coursemapper-lesson-kernels';
+// v4 deliberately ignores v1-v3 entries. v3 preserved resolved genome URLs
+// and licenses, but not the exact kernel concept, source excerpt, or source
+// tier behind each citation. A cache miss is cheaper than re-exporting source
+// proof whose lesson-level relevance cannot be audited.
+export const LESSON_KERNEL_CACHE_KEY = 'coursemapper-lesson-kernels-v4';
+export const LESSON_KERNEL_CONTRACT_VERSION = 'scion-kernel-v4';
 const MAX_ENTRIES = 400;
 const WEAK_CACHE_WORDS = new Set([
   'activity',
@@ -117,13 +122,41 @@ export function fingerprintLesson(lesson) {
   return hashString(basis);
 }
 
-export function createLessonKernelCache({ storage } = {}) {
+/**
+ * Scope persisted kernels to the whole course + producing runtime contract.
+ * The whole-course signature is intentional: edits still compile from the
+ * in-memory enrichment overlay, while a reload after a structural change must
+ * miss rather than mix kernels from two curriculum versions.
+ */
+export function fingerprintLessonKernelScope({ courseMap, provider = '', modelId = '', contractVersion } = {}) {
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  const courseBasis = [
+    cleanText(courseMap?.courseName || courseMap?.title),
+    cleanText(courseMap?.semester),
+    ...lessons.map((lesson) => fingerprintLesson(lesson)),
+  ].join('::');
+  return hashString(
+    [
+      contractVersion || LESSON_KERNEL_CONTRACT_VERSION,
+      cleanText(provider) || 'unknown-provider',
+      cleanText(modelId) || 'unknown-model',
+      courseBasis || 'unknown-course',
+    ].join('::'),
+  );
+}
+
+export function createLessonKernelCache({ storage, courseMap, provider, modelId, contractVersion } = {}) {
   const store = getStore(storage);
+  const scope = fingerprintLessonKernelScope({ courseMap, provider, modelId, contractVersion });
+
+  function entryKey(lesson) {
+    return `${scope}:${fingerprintLesson(lesson)}`;
+  }
 
   function readAll() {
     if (!store) return {};
     try {
-      return JSON.parse(store.getItem(CACHE_KEY) || '{}') || {};
+      return JSON.parse(store.getItem(LESSON_KERNEL_CACHE_KEY) || '{}') || {};
     } catch {
       return {};
     }
@@ -138,7 +171,7 @@ export function createLessonKernelCache({ storage } = {}) {
         entries.sort((a, b) => (b[1]?.at || 0) - (a[1]?.at || 0));
         map = Object.fromEntries(entries.slice(0, MAX_ENTRIES));
       }
-      store.setItem(CACHE_KEY, JSON.stringify(map));
+      store.setItem(LESSON_KERNEL_CACHE_KEY, JSON.stringify(map));
     } catch {
       /* best-effort */
     }
@@ -148,18 +181,26 @@ export function createLessonKernelCache({ storage } = {}) {
     get(lesson) {
       if (!isLessonKernelCacheable(lesson)) return null;
       const map = readAll();
-      const entry = map[fingerprintLesson(lesson)];
+      const entry = map[entryKey(lesson)];
       return entry?.payload || null;
     },
     set(lesson, payload) {
       if (!payload || !isLessonKernelCacheable(lesson)) return;
       const map = readAll();
-      map[fingerprintLesson(lesson)] = { payload, at: Date.now() };
+      map[entryKey(lesson)] = {
+        payload,
+        at: Date.now(),
+        scope,
+        contractVersion: contractVersion || LESSON_KERNEL_CONTRACT_VERSION,
+        provider: cleanText(provider),
+        modelId: cleanText(modelId),
+      };
       writeAll(map);
     },
     has(lesson) {
       if (!isLessonKernelCacheable(lesson)) return false;
-      return Boolean(readAll()[fingerprintLesson(lesson)]);
+      return Boolean(readAll()[entryKey(lesson)]);
     },
+    scope,
   };
 }

@@ -164,7 +164,7 @@ export const PROVIDER_DEFAULT_MODELS = {
   google: 'gemini-2.5-flash-lite',
   // Scion (V2.1 D): the house model — keyless; requires `npm run local-model`.
   local: 'scion-1',
-  // The website's anonymous Scion Draft route — keyless and hosted.
+  // The website's browser-local Scion route — keyless, pinned, and on-device.
   public: 'scion-public',
 };
 

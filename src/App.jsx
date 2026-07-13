@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import LoadingScreen from './components/LoadingScreen';
+import ScionRuntimeStatusBanner from './components/ScionRuntimeStatusBanner';
 import { useAuth } from './contexts/AuthContext';
 import { useAIConfig } from './contexts/AIConfigContext';
 import { useCourse } from './contexts/CourseContext';
@@ -24,7 +25,7 @@ function readDeveloperMode() {
 export default function App() {
   const { user } = useAuth();
   const { screen, setScreen, showProjectPicker, setShowProjectPicker } = useUI();
-  const { files, promptText, setPromptText } = useCourse();
+  const { files, promptText, setPromptText, resetGeneratedProjectState } = useCourse();
   const { provider, apiKey, apiStatus, modelId } = useAIConfig();
   const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
   const [flowActive, setFlowActive] = useState(() => screen !== 'landing');
@@ -77,15 +78,25 @@ export default function App() {
   );
 
   const handleContinue = useCallback(() => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
+    setHasSavedSession(false);
+    resetGeneratedProjectState();
     startFlow({ type: 'continue' }, 'features');
-  }, [startFlow]);
+  }, [resetGeneratedProjectState, startFlow]);
 
   // v0.14.7 WS-F2: quick start from the primary landing — one decision to
   // first value. promptText/files live in shared context, so the flow reads
   // them after mount; the action just names the intent.
   const handleQuickStart = useCallback(() => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
+    setHasSavedSession(false);
+    resetGeneratedProjectState();
     startFlow({ type: 'quickStart' });
-  }, [startFlow]);
+  }, [resetGeneratedProjectState, startFlow]);
 
   const handleRestoreSession = useCallback(() => {
     startFlow({ type: 'restore' });
@@ -130,18 +141,22 @@ export default function App() {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
+    resetGeneratedProjectState();
     setHasSavedSession(false);
-  }, []);
+  }, [resetGeneratedProjectState]);
 
   if (flowActive) {
     return (
-      <Suspense fallback={<LoadingScreen />}>
-        <AppFlow
-          startupAction={startupAction}
-          onStartupHandled={() => setStartupAction(null)}
-          onReturnToLanding={handleReturnToLanding}
-        />
-      </Suspense>
+      <>
+        <Suspense fallback={<LoadingScreen />}>
+          <AppFlow
+            startupAction={startupAction}
+            onStartupHandled={() => setStartupAction(null)}
+            onReturnToLanding={handleReturnToLanding}
+          />
+        </Suspense>
+        <ScionRuntimeStatusBanner enabled={provider === PUBLIC_SCION_PROVIDER_ID} />
+      </>
     );
   }
 
@@ -185,6 +200,7 @@ export default function App() {
           />
         </Suspense>
       )}
+      <ScionRuntimeStatusBanner enabled={provider === PUBLIC_SCION_PROVIDER_ID} />
     </>
   );
 }

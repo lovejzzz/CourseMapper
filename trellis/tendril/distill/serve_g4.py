@@ -22,7 +22,10 @@ from huggingface_hub import snapshot_download
 from mlx_vlm import load, generate
 from mlx_vlm.prompt_utils import apply_chat_template
 
-MODEL_ID = os.environ.get("SCION_MODEL", os.environ.get("G4_MODEL", "google/gemma-4-E2B-it"))
+MODEL_ID = os.environ.get(
+    "SCION_MODEL",
+    os.environ.get("G4_MODEL", "google/gemma-4-E2B-it-qat-q4_0-unquantized"),
+)
 MODEL_REVISION = os.environ.get("SCION_MODEL_REVISION", "")
 MODEL = (
     snapshot_download(repo_id=MODEL_ID, revision=MODEL_REVISION)

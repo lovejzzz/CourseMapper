@@ -1005,7 +1005,7 @@ export default function useDeliverables({
             { getKernelLibrary },
             { hydrateLibraryForDisciplines, inferCourseDisciplines },
             { createLessonKernelCache },
-            { runGenomeLinker },
+            { runGenomeLinker, describeGenomeLinkTelemetry },
             { buildQuizItemPlan },
           ] = await Promise.all([
             import('../lib/genome/kernelLibrary'),
@@ -1018,7 +1018,11 @@ export default function useDeliverables({
           const hydration = await hydrateLibraryForDisciplines(library, inferCourseDisciplines(blueprintCourseMap), {
             signal: controller.signal,
           });
-          lessonKernelCache = createLessonKernelCache();
+          lessonKernelCache = createLessonKernelCache({
+            courseMap: blueprintCourseMap,
+            provider,
+            modelId,
+          });
           const linked = runGenomeLinker({
             courseMap: blueprintCourseMap,
             lessonIndices: allLessonIndices,
@@ -1028,6 +1032,7 @@ export default function useDeliverables({
             // v0.14.1 P2.7: inferred disciplines with no shard ride into the
             // linker telemetry so the budget event can explain a 0-link run.
             uncoveredDisciplines: hydration.uncoveredDisciplines || [],
+            sourceReferences: hydration.references || {},
           });
           genomeLink = {
             lessonContent: linked.lessonContent,
@@ -1052,31 +1057,10 @@ export default function useDeliverables({
             },
           };
           const t = linked.telemetry;
-          // v0.14.1 P2.7: a 0-link run caused by missing shard coverage says
-          // so — "0 genome + 0 cached" alone gave no hint the discipline
-          // simply isn't in the genome yet.
-          const uncovered = t.uncoveredDisciplines || [];
-          let uncoveredNote =
-            uncovered.length > 0
-              ? ` (no shard for inferred discipline${uncovered.length === 1 ? '' : 's'} ${uncovered
-                  .map((discipline) => `'${discipline}'`)
-                  .join(', ')})`
-              : '';
-          // v0.16.1: the OTHER 0-link mode — a shard hydrated but shared no
-          // vocabulary with any lesson (subfield gap: the Linear Algebra run
-          // loaded the then-calculus-only math shard and linked 0/14 with no
-          // hint). Distinct note so a subfield gap is not mistaken for a
-          // resolver failure.
-          const totalLinked = (t.resolvedFromGenome || 0) + (t.resolvedFromCache || 0);
-          if (!uncoveredNote && totalLinked === 0 && (hydration.shardIds || []).length > 0) {
-            uncoveredNote = ` (shard${(hydration.shardIds || []).length === 1 ? '' : 's'} ${(hydration.shardIds || [])
-              .map((id) => `'${id}'`)
-              .join(', ')} loaded but 0 lesson-concept overlap — likely a subfield not yet covered)`;
-          }
           recordGenerationApiCallEvent({
             type: 'genomeLink',
             label: 'CurriculumOS linker',
-            detail: `${t.resolvedFromGenome} genome + ${t.resolvedFromCache} cached of ${allLessonIndices.length} lessons (${t.conceptHits} concepts, ${t.citationsRendered} citations, ${t.bridgeCount || 0} bridges)${uncoveredNote}`,
+            detail: describeGenomeLinkTelemetry(t, allLessonIndices.length, hydration.shardIds || []),
             featureId: 'blueprintEnrichment',
           });
           // v0.14 P3: the judgment surface — what the genome reasoned about
@@ -1088,7 +1072,7 @@ export default function useDeliverables({
             buildJudgmentStageEvent({
               judgment: linked.prerequisiteJudgment,
               linkedConceptCount: t.conceptHits || 0,
-              genomeLinkedLessons: (t.resolvedFromGenome || 0) + (t.resolvedFromCache || 0),
+              genomeLinkedLessons: linked.genomeBackedLessonCount,
             }),
           );
           // ── v0.14.9 A3: on-miss extraction — the flywheel's first live
@@ -4883,7 +4867,7 @@ export default function useDeliverables({
             // kernel cache (survives reloads). An invalidating edit misses
             // BOTH — that lesson refreshes its kernel below (one cheap
             // call) instead of silently shipping mail-merge (audit §2.9).
-            const kernelCache = createLessonKernelCache();
+            const kernelCache = createLessonKernelCache({ courseMap, provider, modelId });
             const compilePatch = () =>
               compileBlueprintLessonPatch({
                 featureId,

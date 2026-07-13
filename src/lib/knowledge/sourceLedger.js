@@ -54,6 +54,11 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
       /\b(?:user\s+research|user\s+interviews?|research\s+interviews?|qualitative\s+interviews?|contextual\s+inquiry|observational\s+research|affinity\s+mapping|thematic\s+synthesis)\b/i,
   },
   {
+    concept: /\b(?:research\s+planning|research\s+objectives?|practice\s+sessions?|study\s+setup)\b/i,
+    source:
+      /\b(?:user\s+research|research\s+plans?|research\s+objectives?|practice\s+sessions?|study\s+setup|test\s+tasks?|participant\s+research)\b/i,
+  },
+  {
     concept: /\b(?:personas?|journey\s+maps?|design\s+questions?)\b/i,
     source:
       /\b(?:personas?\b(?!\s*(?:series|5))|journey\s+maps?|customer\s+journey|user\s+needs?|design\s+questions?)\b/i,
@@ -84,7 +89,7 @@ const USER_EXPERIENCE_TOPIC_ANCHORS = [
   {
     concept: /\b(?:process\s+narrative|visuals|case\s+study\s+structure|studio\s+work|refinement|review)\b/i,
     source:
-      /\b(?:design\s+studio|studio\s+practice|portfolio\s+case\s+stud(?:y|ies)|case\s+study\s+structure|visuals?|design\s+review|work[-\s]?in[-\s]?progress\s+review|portfolio\s+review|(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)[-\s]+(?:critique|refinement)|(?:critique|refinement)[-\s]+(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)|iterative\s+design|prototyping)\b/i,
+      /\b(?:design\s+studio|studio\s+practice|portfolio\s+case\s+stud(?:y|ies)|case\s+study\s+structure|visuals?|design\s+review|work[-\s]?in[-\s]?progress\s+review|portfolio\s+review|professional\s+ux\s+practitioners?|user[-\s]+experience\s+practitioners?|peer\s+feedback|(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)[-\s]+(?:critique|refinement)|(?:critique|refinement)[-\s]+(?:design|prototype|studio|ux|user[-\s]?experience|interface|interaction|portfolio)|iterative\s+design|prototyping)\b/i,
   },
 ];
 const COMPUTER_SCIENCE_COURSE_RE =
@@ -424,6 +429,7 @@ export function normalizeTrustedSource(entry = {}, { fallbackId = '', checkedAt 
     status: sourceStatus(entry),
     origin: cleanText(entry.origin || entry.sourceOrigin || '', 80),
     evidence: cleanText(entry.evidence || entry.note || entry.snippet || entry.abstract || '', 360),
+    ...(Number.isFinite(Number(entry.sourceTier)) ? { sourceTier: Number(entry.sourceTier) } : {}),
     conceptLinks: normalizeConceptLinks([...(conceptLinks || []), ...(entry.conceptLinks || [])]),
     checkedAt: cleanText(entry.checkedAt || checkedAt, 80),
     accessStatus: isSourceAccessible({ url, doi }) ? 'reference-present' : 'no-url-or-doi',
@@ -669,7 +675,16 @@ export function isUserExperienceWeakSource(source, courseGraph) {
   if (!USER_EXPERIENCE_COURSE_RE.test(courseText(courseGraph))) return false;
   const text = sourceSearchText(source);
   if (USER_EXPERIENCE_FALSE_FRIEND_RE.test(text)) return true;
-  return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text) && !hasUserExperienceTopicAnchor(source);
+  const conceptText = sourceConceptText(source);
+  const hasRecognizedLessonTopic = USER_EXPERIENCE_TOPIC_ANCHORS.some(({ concept }) => concept.test(conceptText));
+  const hasLessonTopicAnchor = hasUserExperienceTopicAnchor(source);
+  // A broad UX phrase such as "design studio" cannot rescue a work assigned
+  // to a specific lesson on interviews, affinity mapping, usability testing,
+  // or another recognized UX topic. Require the source to match that lesson's
+  // own concept family. Keep the broader course-level gate only for concepts
+  // the topic matrix does not yet recognize.
+  if (hasRecognizedLessonTopic) return !hasLessonTopicAnchor;
+  return !USER_EXPERIENCE_SOURCE_ANCHOR_RE.test(text);
 }
 
 function hasComputerScienceTopicAnchor(source = {}) {
