@@ -21,16 +21,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The exact release commit has not yet been pushed. Local verification must pass before publication, followed by exact-head Fast verification."
+      "status": "success",
+      "commit": "2d4301fad0fe819b611dd6f136d69deb3a13b7b4",
+      "runId": 29289345453,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29289345453",
+      "note": "Fast verification passed on the exact v0.16.13 main merge in 22m37s, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the strict main evaluation, production build, and bundle budgets."
     },
     "ciDeep": {
       "status": "manual-only",
       "note": "The structural corpus and adversarial software fixtures are not qualified instructor reviews, adapter/base held-out trials, or a real device-speed matrix."
     },
     "deploy": {
-      "status": "pending",
-      "note": "Pages deployment is pending the exact verified main merge."
+      "status": "success",
+      "commit": "2d4301fad0fe819b611dd6f136d69deb3a13b7b4",
+      "runId": 29290577235,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29290577235",
+      "note": "GitHub Pages built and deployed the exact verified v0.16.13 main merge."
     },
     "liveProvider": {
       "status": "not-used",
