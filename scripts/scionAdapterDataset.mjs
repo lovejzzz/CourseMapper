@@ -185,6 +185,7 @@ export async function buildScionAdapterDataset({
   for (const entry of eligible) splitRows[entry.split].push(entry.row);
   const domains = [...new Set(eligible.map((entry) => entry.domain).filter((domain) => domain !== 'unknown'))].sort();
   const groups = [...new Set(eligible.map((entry) => entry.group))];
+  const groupHashes = groups.map(stableHash).sort();
   const splitGroups = Object.fromEntries(
     Object.keys(splitRows).map((split) => [
       split,
@@ -246,6 +247,10 @@ export async function buildScionAdapterDataset({
       test: splitRows.test.length,
     },
     domains,
+    groupIdentity: {
+      algorithm: 'sha256-domain-colon-course-id',
+      hashes: groupHashes,
+    },
     gate: { minimumPairs, minimumDomains, issues: gateIssues },
     leakage: { groupOverlapCount: leakage.length, overlaps: leakage },
     files,

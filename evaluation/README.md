@@ -71,12 +71,30 @@ npm run package:scion:adapter -- --adapter-dir ... --adapter-id ... --scion-vers
 npm run package:scion:adapter:browser -- --adapter-dir ... --output-dir ... --llama-cpp-dir ... --python ...
 npm run audit:scion:adapter -- path/to/scion-adapter.json
 npm run audit:scion:browser-adapter-smoke
+npm run capture:scion:adapter:pairs -- --benchmark evaluation/scion-adapters/held-out-course-benchmark-v1.json --dataset-manifest ... --adapter-manifest ... --candidate-round ... --base-round ...
 npm run audit:scion:adapter:promotion -- --manifest ... --candidate ... --base ...
 ```
 
-The dataset builder accepts only pair-audited, deduplicated records with an explicit domain and course/project group, then keeps each group inside one deterministic split. A `smoke` package may prove loading mechanics but is permanently non-promotable. A `candidate` or `promoted` manifest is invalid unless the bound dataset is `ready` with at least 3,000 verified pairs across five domains. Promotion additionally requires exact active base/adapter identity, five clean matched full courses, a 20% median Scion-call reduction with no per-domain regression above 1.05×, and hash-bound factual, instructor, device, and production evidence.
+The dataset builder accepts only pair-audited, deduplicated records with an explicit domain and course/project group, then keeps each group inside one deterministic split. Schema v2 exposes SHA-256 `domain:course` group identities in the manifest, allowing held-out checks without publishing raw course names. A dataset without that proof cannot qualify for the frozen benchmark. A `smoke` package may prove loading mechanics but is permanently non-promotable. A `candidate` or `promoted` manifest is invalid unless the bound dataset is `ready` with at least 3,000 verified pairs across five domains. Promotion additionally requires exact active base/adapter identity, five clean matched full courses, a 20% median Scion-call reduction with no per-domain regression above 1.05×, and hash-bound factual, instructor, device, and production evidence.
 
-“Matched” is fail-closed. Each candidate/control course must carry comparison protocol v1 with one unique pair ID; the same course-input, source-packet, compiler-config, active-base, and grader hashes; the same clean 40-character compiler commit; the same course ID and at least 12 lessons; and explicit `adapter` versus `base-only` variants. The candidate's adapter ID, manifest digest, base revision, and scale must match its manifest, while the control must report no active adapter and scale zero. Every domain must exist in both arms, and the candidate cannot regress package grade or P2 findings. Duplicate records in one domain, a pair ID reused across domains, an unmatched domain, or any settings mismatch blocks both the paired-evidence and course-quality gates.
+The held-out ruler is `evaluation/scion-adapters/held-out-course-benchmark-v1.json`. It freezes World Languages, World Literature, Psychology, Nutrition, and Astronomy before another candidate is trained. Every course has 12–15 lessons and binds its complete prompt-only course input and source packet. The ruler also binds the exact QAT base contract and the grader file. Any benchmark domain or course group present in the candidate dataset blocks the run instead of triggering a convenient fixture substitution.
+
+Run the two arms from the same clean commit, with the same pair-run ID and the appropriate Local server state:
+
+```bash
+npm run crucible -- \
+  --llm local \
+  --courses mandarin,world-lit-readings,psych-101,nutrition-101,astro-101 \
+  --scion-benchmark evaluation/scion-adapters/held-out-course-benchmark-v1.json \
+  --scion-dataset-manifest /absolute/path/to/dataset-manifest.json \
+  --scion-adapter-manifest /absolute/path/to/scion-adapter.json \
+  --scion-arm base-only \
+  --scion-pair-run scion-candidate-001
+```
+
+Repeat with the verified adapter server and `--scion-arm adapter`, leaving every other argument unchanged. Then pass the two resulting round directories to `capture:scion:adapter:pairs`. The preflight refuses a partial fixture set, an exact-base mismatch, dirty compiler source, an inactive candidate adapter, or an adapter-active control before generation spends time.
+
+“Matched” is fail-closed and artifact-derived. Crucible stamps comparison protocol v1 into both real runs: one unique pair ID; the same frozen benchmark, course input, source packet, compiler commit and tree, compiler configuration, grader version and bytes, and exact base-contract digest; the same course ID and at least 12 lessons; and explicit `adapter` versus `base-only` variants. The candidate's adapter ID, manifest digest, base revision, and scale must match its manifest, while the control must report no active adapter and scale zero. The canonical producer hashes each course's `course.json`, saved project, report, digest, console, exported package manifest, and ZIP before emitting candidate/base evidence plus a receipt. The promotion audit rejects records without that producer and artifact identity. Missing courses, duplicate records, reused pair IDs, unmatched domains, settings mismatches, or a package-grade/P2 regression block promotion.
 
 The production lane remains correctly blocked at 0 independently qualified preferences from the original 471-event audit. `evaluation/scion-adapters/evidence/dataset-gate-v0.16.6.json` retains that fail-closed count, gate issues, leakage result, and empty split hashes. `evaluation/scion-adapters/evidence/legacy-smoke-v0.16.6.json` separately retains the older base-mismatched loading proof and forbids using it as quality or promotion evidence.
 

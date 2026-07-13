@@ -8,6 +8,9 @@
 //                             [--authoring prose|native|both]
 //                             [--provider openai|anthropic|google]
 //                             [--llm local|e2b] [--shim-url http://127.0.0.1:8799]
+//                             [--scion-benchmark <manifest> --scion-arm adapter|base-only]
+//                             [--scion-pair-run <id> --scion-dataset-manifest <manifest>]
+//                             [--scion-adapter-manifest <manifest> [--scion-smoke]]
 //                             [--judge] [--dry-run] [--headed] [--skip-generate <dir>]
 //                             [--calibrate] [--history] [--diff <roundDirA> <roundDirB>]
 //                             [--import-baseline] [--api-env <path>]
@@ -104,6 +107,7 @@ import {
   startAppServer,
 } from './lib/crucibleBrowser.mjs';
 import { referenceCourses, resolveCourses, getCourseById, pickStranger } from './crucible/courses.mjs';
+import { prepareScionBenchmarkRun } from './scionAdapterPairedEvidence.mjs';
 import {
   DEFAULT_MAX_SPEND_USD,
   INAPP_SCORE_DRIFT_LIMIT,
@@ -1607,6 +1611,7 @@ async function runLiveRounds(options) {
         adapterActive: model.adapter_active === true,
         adapterId: model.adapter_id || null,
         adapterManifestSha256: model.adapter_manifest_sha256 || null,
+        adapterScale: model.adapter_active === true ? Number(model.adapter_scale ?? 1) : 0,
       };
       modelId = localModel.id;
       modelName = localModel.name;
@@ -1628,6 +1633,36 @@ async function runLiveRounds(options) {
       process.exitCode = 1;
       return;
     }
+  }
+  let scionBenchmarkRun = null;
+  if (options.scionBenchmark) {
+    if (!localServerUrl || provider !== 'local') {
+      throw new Error('--scion-benchmark requires the real local provider (--llm local).');
+    }
+    scionBenchmarkRun = await prepareScionBenchmarkRun({
+      benchmarkPath: path.resolve(repoRoot, options.scionBenchmark),
+      datasetPath: options.scionDatasetManifest ? path.resolve(repoRoot, options.scionDatasetManifest) : '',
+      adapterManifestPath: options.scionAdapterManifest ? path.resolve(repoRoot, options.scionAdapterManifest) : '',
+      arm: options.scionArm,
+      pairRunId: options.scionPairRun,
+      courses,
+      localModel,
+      cwd: repoRoot,
+      allowSmoke: options.scionSmoke === true || options.scionSmoke === 'true',
+      compilerOptions: {
+        courses: courses.map((course) => String(course.baseId || course.id).replace(/--.*$/, '')).sort(),
+        authoring,
+        voice,
+        provider,
+        concurrency,
+        rounds,
+        maxSpendUsd,
+      },
+    });
+    log(
+      `Scion paired benchmark ${scionBenchmarkRun.pairRunId}: ${scionBenchmarkRun.arm}, ` +
+        `${scionBenchmarkRun.benchmark.courses.length} frozen domains, compiler ${scionBenchmarkRun.provenance.commit.slice(0, 8)}`,
+    );
   }
   // E1×E7: the advisory judge always speaks OpenAI (JUDGE_MODEL). On a
   // non-openai round (or a local-model round, whose generation key is a dummy)
@@ -1676,6 +1711,11 @@ async function runLiveRounds(options) {
           provider,
           modelId,
           roundLabel,
+          ...(scionBenchmarkRun
+            ? {
+                comparison: scionBenchmarkRun.byCourseId[String(course.baseId || course.id).replace(/--.*$/, '')],
+              }
+            : {}),
           ...(localServerUrl
             ? {
                 llm: `${localModel.id} (local server)`,

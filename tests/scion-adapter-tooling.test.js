@@ -5,10 +5,19 @@ import { execFile as execFileCallback } from 'node:child_process';
 import { promisify } from 'node:util';
 
 import { afterEach, describe, expect, it } from 'vitest';
+import JSZip from 'jszip';
 
 import { buildScionAdapterDataset } from '../scripts/scionAdapterDataset.mjs';
-import { buildScionAdapterManifest, verifyScionAdapterPackage } from '../scripts/scionAdapterPackage.mjs';
+import { getCourseById } from '../scripts/crucible/courses.mjs';
+import { buildScionAdapterManifest, sha256File, verifyScionAdapterPackage } from '../scripts/scionAdapterPackage.mjs';
 import { assessScionAdapterPromotion } from '../scripts/scionAdapterPromotionAudit.mjs';
+import {
+  assessHeldoutDatasetBoundary,
+  prepareScionBenchmarkRun,
+  produceScionPairedEvidence,
+  sha256Value,
+  validateScionHeldoutBenchmark,
+} from '../scripts/scionAdapterPairedEvidence.mjs';
 import { SCION_ADAPTER_MANIFEST_SCHEMA_VERSION, SCION_GEMMA4_E2B_BASE } from '../src/lib/scionAdapterManifest.js';
 
 const execFile = promisify(execFileCallback);
@@ -73,9 +82,253 @@ describe('Scion adapter tooling', () => {
       status: 'smoke-only',
       promotable: false,
       counts: { loaded: 2, total: 1, quarantined: 1, domains: 1, groups: 1 },
+      groupIdentity: {
+        algorithm: 'sha256-domain-colon-course-id',
+        hashes: [sha256Value('user experience design:ux-101')],
+      },
       leakage: { groupOverlapCount: 0 },
     });
     expect(result.manifest.quarantine[0].issues).toContain('duplicate-pair');
+  });
+
+  it('freezes five real held-out course fixtures and requires dataset group proof', async () => {
+    const benchmark = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v1.json', 'utf8'),
+    );
+    expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
+      valid: true,
+      issues: [],
+      domains: expect.arrayContaining(['world-languages', 'world-literature', 'psychology', 'nutrition', 'astronomy']),
+    });
+
+    const cleanDataset = {
+      domains: ['computer-science', 'geology', 'business-ethics'],
+      groupIdentity: { algorithm: 'sha256-domain-colon-course-id', hashes: [sha256Value('geology:geo-101')] },
+    };
+    expect(assessHeldoutDatasetBoundary(benchmark, cleanDataset)).toMatchObject({
+      pass: true,
+      groupProofAvailable: true,
+      domainOverlap: [],
+      groupOverlap: [],
+    });
+
+    expect(assessHeldoutDatasetBoundary(benchmark, { domains: [] })).toMatchObject({
+      pass: false,
+      groupProofAvailable: false,
+    });
+    expect(
+      assessHeldoutDatasetBoundary(benchmark, {
+        domains: ['astronomy'],
+        groupIdentity: {
+          algorithm: 'sha256-domain-colon-course-id',
+          hashes: [sha256Value('world-literature:world-lit-readings')],
+        },
+      }),
+    ).toMatchObject({
+      pass: false,
+      domainOverlap: ['astronomy'],
+      groupOverlap: ['world-lit-readings'],
+    });
+  });
+
+  it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v1.json');
+    const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
+    const benchmarkSha256 = await sha256File(benchmarkPath);
+    const datasetDir = path.join(root, 'dataset');
+    const adapterDir = path.join(root, 'adapter');
+    const candidateRoundDir = path.join(root, 'candidate-round');
+    const baseRoundDir = path.join(root, 'base-round');
+    await Promise.all([
+      fs.mkdir(datasetDir, { recursive: true }),
+      fs.mkdir(adapterDir, { recursive: true }),
+      fs.mkdir(candidateRoundDir, { recursive: true }),
+      fs.mkdir(baseRoundDir, { recursive: true }),
+    ]);
+    const datasetManifestPath = path.join(datasetDir, 'dataset-manifest.json');
+    await fs.writeFile(
+      datasetManifestPath,
+      `${JSON.stringify({
+        schemaVersion: 2,
+        status: 'ready',
+        counts: { total: 3200, domains: 5 },
+        domains: ['business-ethics', 'computer-science', 'geology', 'music-theory', 'user-experience-design'],
+        groupIdentity: {
+          algorithm: 'sha256-domain-colon-course-id',
+          hashes: [sha256Value('geology:geo-training-101')],
+        },
+      })}\n`,
+    );
+    await fs.writeFile(path.join(adapterDir, 'adapter_config.json'), '{"rank":16}\n');
+    await fs.writeFile(path.join(adapterDir, 'adapters.safetensors'), Buffer.from('candidate-adapter-weights'));
+    const built = await buildScionAdapterManifest({
+      adapterDir,
+      adapterId: 'scion-heldout-test-v1',
+      scionVersion: '0.16.8',
+      datasetManifest: datasetManifestPath,
+      status: 'candidate',
+    });
+    const adapterManifestSha256 = await sha256File(built.outputPath);
+    await fs.writeFile(path.join(root, 'package-lock.json'), '{"lockfileVersion":3}\n');
+    await execFile('git', ['init', '-b', 'main'], { cwd: root });
+    await execFile('git', ['config', 'user.email', 'scion-test@example.invalid'], { cwd: root });
+    await execFile('git', ['config', 'user.name', 'Scion Test'], { cwd: root });
+    await execFile('git', ['add', 'package-lock.json'], { cwd: root });
+    await execFile('git', ['commit', '-m', 'frozen compiler'], { cwd: root });
+    const prepared = await prepareScionBenchmarkRun({
+      benchmarkPath,
+      datasetPath: datasetManifestPath,
+      adapterManifestPath: built.outputPath,
+      arm: 'adapter',
+      pairRunId: 'heldout-test',
+      courses: benchmark.courses.map((course) => ({ id: course.courseId })),
+      localModel: {
+        sourceModelId: built.manifest.base.modelId,
+        sourceRevision: built.manifest.base.revision,
+        adapterActive: true,
+        adapterId: built.manifest.adapter.id,
+        adapterManifestSha256,
+        adapterScale: 1,
+      },
+      cwd: root,
+      compilerOptions: { provider: 'local', courses: benchmark.courses.map((course) => course.courseId).sort() },
+    });
+    expect(prepared).toMatchObject({
+      arm: 'adapter',
+      pairRunId: 'heldout-test',
+      provenance: { dirty: false, commit: expect.stringMatching(/^[a-f0-9]{40}$/) },
+      compilerConfigSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+    });
+    expect(Object.keys(prepared.byCourseId)).toEqual(benchmark.courses.map((course) => course.courseId));
+
+    const writeCourse = async (roundDir, benchmarkCourse, variant) => {
+      const courseDir = path.join(roundDir, `${benchmarkCourse.courseId}--quiet--local`);
+      await fs.mkdir(path.join(courseDir, 'extracted'), { recursive: true });
+      const fixture = getCourseById(benchmarkCourse.courseId);
+      const comparison = {
+        protocolVersion: 1,
+        evidenceProducer: 'scion-paired-evidence-v1',
+        pairId: `heldout-test:${benchmarkCourse.domain}`,
+        benchmarkManifestSha256: benchmarkSha256,
+        courseInputSha256: benchmarkCourse.courseInputSha256,
+        sourcePacketSha256: benchmarkCourse.sourcePacketSha256,
+        compilerCommit: 'a'.repeat(40),
+        compilerTree: 'b'.repeat(40),
+        compilerConfigSha256: 'c'.repeat(64),
+        graderVersion: benchmark.grader.id,
+        graderSha256: benchmark.grader.sha256,
+        baseContractSha256: benchmark.base.contractSha256,
+        compilerTreeDirty: false,
+        variant,
+      };
+      const isAdapter = variant === 'adapter';
+      const packageManifestText = `${JSON.stringify({
+        quality: { score: 99, findingCounts: { p2: 0 } },
+        readiness: { status: 'ready', blockers: 0, warnings: 0 },
+      })}\n`;
+      const zip = new JSZip();
+      zip.file('PACKAGE_MANIFEST.json', packageManifestText);
+      zip.file('payload.bin', Buffer.alloc(10_001, isAdapter ? 1 : 2));
+      const zipBuffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'STORE' });
+      await Promise.all([
+        fs.writeFile(
+          path.join(courseDir, 'course.json'),
+          `${JSON.stringify({
+            id: benchmarkCourse.courseId,
+            baseId: benchmarkCourse.courseId,
+            lessonCount: benchmarkCourse.lessonCount,
+            prompt: fixture.prompt,
+            provider: 'local',
+            comparison,
+            localModel: {
+              sourceModelId: built.manifest.base.modelId,
+              sourceRevision: built.manifest.base.revision,
+              adapterActive: isAdapter,
+              adapterId: isAdapter ? built.manifest.adapter.id : null,
+              adapterManifestSha256: isAdapter ? adapterManifestSha256 : null,
+              adapterScale: isAdapter ? 1 : 0,
+            },
+          })}\n`,
+        ),
+        fs.writeFile(
+          path.join(courseDir, 'project.json'),
+          `${JSON.stringify({ hasGenerated: true, provider: 'local', promptText: fixture.prompt })}\n`,
+        ),
+        fs.writeFile(
+          path.join(courseDir, 'report.json'),
+          `${JSON.stringify({
+            run: { status: 'passed', durationMs: 1000 },
+            normalized: { overall: 99, overallGrade: 'A', p0Count: 0, p1Count: 0 },
+          })}\n`,
+        ),
+        fs.writeFile(
+          path.join(courseDir, 'digest.json'),
+          `${JSON.stringify({ cost: { byTask: [{ task: 'scionPass', calls: isAdapter ? 75 : 100 }] } })}\n`,
+        ),
+        fs.writeFile(path.join(courseDir, 'console.log'), ''),
+        fs.writeFile(path.join(courseDir, 'extracted', 'PACKAGE_MANIFEST.json'), packageManifestText),
+        fs.writeFile(path.join(courseDir, 'package.zip'), zipBuffer),
+      ]);
+      return courseDir;
+    };
+    for (const course of benchmark.courses) {
+      await Promise.all([
+        writeCourse(candidateRoundDir, course, 'adapter'),
+        writeCourse(baseRoundDir, course, 'base-only'),
+      ]);
+    }
+
+    const result = await produceScionPairedEvidence({
+      benchmarkPath,
+      datasetPath: datasetManifestPath,
+      adapterManifestPath: built.outputPath,
+      candidateRoundDir,
+      baseRoundDir,
+      outputDir: path.join(root, 'evidence'),
+    });
+    expect(result.receipt).toMatchObject({
+      status: 'captured',
+      promotionEligible: true,
+      domains: benchmark.courses.map((course) => course.domain),
+    });
+    expect(result.candidateEvidence.fullCourses).toHaveLength(5);
+    expect(result.baseEvidence.fullCourses).toHaveLength(5);
+    expect(result.candidateEvidence.fullCourses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          packageValid: true,
+          scionPassCalls: 75,
+          adapterActive: true,
+          evidenceProducer: 'scion-paired-evidence-v1',
+          artifactReceiptSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+        }),
+      ]),
+    );
+
+    const tamperedCourse = path.join(
+      candidateRoundDir,
+      `${benchmark.courses[0].courseId}--quiet--local`,
+      'extracted',
+      'PACKAGE_MANIFEST.json',
+    );
+    await fs.writeFile(
+      tamperedCourse,
+      `${JSON.stringify({
+        quality: { score: 100, findingCounts: { p2: 0 } },
+        readiness: { status: 'ready', blockers: 0, warnings: 0 },
+      })}\n`,
+    );
+    await expect(
+      produceScionPairedEvidence({
+        benchmarkPath,
+        datasetPath: datasetManifestPath,
+        adapterManifestPath: built.outputPath,
+        candidateRoundDir,
+        baseRoundDir,
+        outputDir: path.join(root, 'tampered-evidence'),
+      }),
+    ).rejects.toThrow('ZIP manifest does not match its extracted manifest');
   });
 
   it('quarantines rows that cannot be grouped by a known course and domain', async () => {
@@ -218,13 +471,17 @@ describe('Scion adapter tooling', () => {
     const domains = ['ethics', 'music', 'ux', 'geology', 'literature'];
     const pairedComparison = (domain, index, variant) => ({
       protocolVersion: 1,
+      evidenceProducer: 'scion-paired-evidence-v1',
       pairId: `scion-adapter-${domain}`,
+      benchmarkManifestSha256: '9'.repeat(64),
       courseInputSha256: String(index + 1).repeat(64),
       sourcePacketSha256: String(index + 2).repeat(64),
       compilerCommit: 'a'.repeat(40),
+      compilerTree: 'e'.repeat(40),
       compilerConfigSha256: 'b'.repeat(64),
       graderVersion: 'deep-quality-v1',
-      activeWeightSha256: 'c'.repeat(64),
+      graderSha256: '8'.repeat(64),
+      baseContractSha256: 'c'.repeat(64),
       compilerTreeDirty: false,
       variant,
     });
@@ -245,6 +502,8 @@ describe('Scion adapter tooling', () => {
           adapterManifestSha256: manifestSha256,
           baseRevision: manifest.base.revision,
           adapterScale: 1,
+          evidenceProducer: 'scion-paired-evidence-v1',
+          artifactReceiptSha256: String(index + 3).repeat(64),
           comparison: pairedComparison(domain, index, 'adapter'),
         })),
       },
@@ -266,6 +525,8 @@ describe('Scion adapter tooling', () => {
           adapterManifestSha256: null,
           baseRevision: manifest.base.revision,
           adapterScale: 0,
+          evidenceProducer: 'scion-paired-evidence-v1',
+          artifactReceiptSha256: String(index + 4).repeat(64),
           comparison: pairedComparison(domain, index, 'base-only'),
         })),
       },
@@ -344,13 +605,17 @@ describe('Scion adapter tooling', () => {
     };
     const comparison = (variant) => ({
       protocolVersion: 1,
+      evidenceProducer: 'scion-paired-evidence-v1',
       pairId: 'duplicate-pair',
+      benchmarkManifestSha256: '9'.repeat(64),
       courseInputSha256: '1'.repeat(64),
       sourcePacketSha256: '2'.repeat(64),
       compilerCommit: 'a'.repeat(40),
+      compilerTree: 'e'.repeat(40),
       compilerConfigSha256: 'b'.repeat(64),
       graderVersion: 'deep-quality-v1',
-      activeWeightSha256: 'c'.repeat(64),
+      graderSha256: '8'.repeat(64),
+      baseContractSha256: 'c'.repeat(64),
       compilerTreeDirty: false,
       variant,
     });
@@ -369,6 +634,8 @@ describe('Scion adapter tooling', () => {
       adapterManifestSha256: variant === 'adapter' ? manifestSha256 : null,
       baseRevision: manifest.base.revision,
       adapterScale: variant === 'adapter' ? 1 : 0,
+      evidenceProducer: 'scion-paired-evidence-v1',
+      artifactReceiptSha256: '7'.repeat(64),
       comparison: comparison(variant),
     });
     const domains = ['ethics', 'music', 'ux', 'geology', 'literature'];

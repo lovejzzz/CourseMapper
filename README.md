@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.7
+**Current release:** v0.16.8
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.7**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.8**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -50,6 +50,10 @@ That architecture is now mechanically proven from the exact QAT training parent 
 A real browser hash-verified that artifact, activated it through the native Gemma 4 dynamic-LoRA path, and restored the exact cached base output after rollback. Scale 1 and scale 4 produced no deterministic output change; scale 16 changed the strict JSON course-authoring canary and then rolled back exactly. That result proves the conversion, delivery, activation, effect-detection, and rollback path while also showing that this ten-iteration smoke adapter is too weak to establish educational quality. The hosted website therefore runs **base-only local Scion** today.
 
 The original strict production audit admitted 0 of 471 raw model/compiler events because they lacked independent pair evidence and safe split identity. A separate smoke-only derivation now admits 101 structurally evidenced pairs across five registered domains solely to exercise training and packaging; those pairs are not independently reviewed production preferences. A production Scion adapter will activate only after at least 3,000 verified pairs and the five-domain, factual, device, export, compiler-burden, and blind-instructor gates pass. No trained EduTool weights are implied by today's Scion Vx label.
+
+v0.16.8 freezes the real five-domain adapter ruler before another candidate is trained. World Languages, World Literature, Psychology, Nutrition, and Astronomy use fixed 12–15 lesson Crucible prompts whose course input, source packet, exact QAT base contract, and grader are hash-bound in `evaluation/scion-adapters/held-out-course-benchmark-v1.json`. Curated dataset manifests expose only hashed course-group identities; an old manifest that cannot prove group separation, or any overlap with a frozen domain or course group, blocks the run.
+
+Crucible now records paired-run identity at generation time instead of asking a later report to infer it. Adapter and base-only arms must use all five frozen courses, the same clean compiler commit and tree, the same configuration and grader bytes, and the exact base revision. `npm run capture:scion:adapter:pairs` then derives evidence from the saved project, report, digest, console, package manifest, and ZIP bytes. Promotion rejects manually shaped records without those artifact receipts. This is stronger evaluation infrastructure, not a new adapter win: the public product remains base-only.
 
 The compiler is model-neutral. Improvements to source grounding, typed contracts, deterministic validation, repair budgeting, grading, and export benefit Gemma, Qwen, GPT, Claude, Gemini, and other providers that travel through the same path. Adapter learning is different: a Scion adapter changes only its compatible pinned base. See [the Scion Adapter roadmap](docs/SCION_ADAPTER_ROADMAP.md) for the exact architecture, gates, implementation ledger, and browser plan.
 
@@ -107,7 +111,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.7)
+## Current Pipeline (v0.16.8)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
