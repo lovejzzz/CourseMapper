@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.11
+**Current release:** v0.16.12
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.11**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.12**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -60,6 +60,10 @@ v0.16.11 supplies the missing research course depth with eight new source-bound 
 The result exposes the actual model gap. Base-only Gemma admitted 62 of 96 requested atoms before recovery; GPT-5.4-mini admitted 91. Local Gemma therefore created 34 burden atoms versus 5 for the reference, a 29-atom or 30.2084-percentage-point deficit. Scion's model-neutral compiler now keeps a valid multiple-choice or key-term sibling even when the other output type fails, and one narrow decomposed retry raised local admission to 63 of 96 without weakening a quality gate. That is useful compiler leverage, not a model win.
 
 The resulting ledger contains 372 neutral candidates. The frozen 160-case packet now spans twelve exact course groups—three in each of four research domains—and 63 selected cases show reviewers the same neutral source claims, attribution, and license above both anonymous candidates. Research course-depth coverage is ready; learned-quality evidence is not. There are still zero completed instructor reviews, zero approved training pairs, no trained quality adapter, and no held-out adapter-versus-base result. Hosted Scion remains base-only.
+
+v0.16.12 closes a separate promotion-integrity hole. A browser-device evidence file no longer passes merely because its SHA-256 matches a manifest entry labeled `pass`. One frozen semantic protocol now requires Chrome and Edge across integrated-8 GB, integrated-16 GB, discrete-8 GB, and Apple-Silicon-16 GB profiles. Every profile must prove the exact adapter package and scale, cold and warm base loads, base and adapter completions, native output-changing activation, exact rollback, three repeated completions, measured memory budgets, and real recovery from an interrupted download, storage pressure, and WebGPU device loss. Browser traces, console logs, sanitized hardware probes, and runtime snapshots are byte-verified. Apple Silicon no longer substitutes for a discrete-GPU run.
+
+This hardens the gate; it does not pretend the gate has passed. The v0.16.7 smoke covered one Chrome/Apple-Silicon mechanics run and omitted Edge, integrated and discrete machines, memory measurements, and the three recovery trials. No promotable quality adapter currently has a passing device profile or matrix. See [the browser device matrix](docs/SCION_BROWSER_DEVICE_MATRIX.md) for the exact protocol and evidence boundary.
 
 v0.16.10 audits whether that apparent volume is genuinely independent. The 309 atoms and 160 selected cases resolve to only four exact course inputs—one course group in each current domain. Every candidate now receives an input-bound course-group hash; packet selection balances by domain, course group, and atom kind; reviewer JSON and approved training rows carry the same hash; and a reused group label with changed input fails closed. The packet is still useful for review, but its committed status is `reviewable-incomplete-coverage`, not campaign-ready. Scion needs at least three distinct course groups per included domain before research data can be split into isolated training, validation, and test courses.
 
@@ -123,7 +127,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.11)
+## Current Pipeline (v0.16.12)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 import { validateScionAdapterManifest } from '../src/lib/scionAdapterManifest.js';
 import { sha256File } from './scionAdapterPackage.mjs';
 import { SCION_PAIRED_EVIDENCE_PRODUCER } from './scionAdapterPairedEvidence.mjs';
+import { auditScionBrowserDeviceMatrix } from './lib/scionBrowserDeviceMatrix.mjs';
 
 const REQUIRED_EXTERNAL_EVIDENCE = [
   'factual-canaries',
@@ -129,7 +130,9 @@ function evidencePasses(manifest, type, verifiedExternalEvidence = {}) {
   );
 }
 
-async function verifyExternalEvidenceFiles(manifest) {
+const BROWSER_DEVICE_PROTOCOL_PATH = path.resolve('evaluation/scion-adapters/browser-device-matrix-protocol-v1.json');
+
+export async function verifyExternalEvidenceFiles(manifest) {
   const details = {};
   for (const type of REQUIRED_EXTERNAL_EVIDENCE) {
     const entry = (manifest?.promotion?.evidence || []).find((candidate) => candidate?.type === type);
@@ -143,12 +146,33 @@ async function verifyExternalEvidenceFiles(manifest) {
       const stats = await fs.lstat(absolutePath);
       if (!stats.isFile() || stats.isSymbolicLink()) throw new Error('evidence must be a regular file');
       const actualSha256 = await sha256File(absolutePath);
+      let semanticAudit = null;
+      if (actualSha256 === entry.sha256 && type === 'browser-device-matrix') {
+        const [evidence, protocol, protocolSha256] = await Promise.all([
+          fs.readFile(absolutePath, 'utf8').then(JSON.parse),
+          fs.readFile(BROWSER_DEVICE_PROTOCOL_PATH, 'utf8').then(JSON.parse),
+          sha256File(BROWSER_DEVICE_PROTOCOL_PATH),
+        ]);
+        semanticAudit = await auditScionBrowserDeviceMatrix({
+          protocol,
+          protocolSha256,
+          evidence,
+          evidencePath: absolutePath,
+          adapterManifest: manifest,
+        });
+      }
+      const semanticVerified = semanticAudit == null || semanticAudit.status === 'pass';
       details[type] = {
-        verified: actualSha256 === entry.sha256,
+        verified: actualSha256 === entry.sha256 && semanticVerified,
         path: declaredPath,
         expectedSha256: entry.sha256,
         actualSha256,
-        ...(actualSha256 === entry.sha256 ? {} : { reason: 'sha256-mismatch' }),
+        ...(semanticAudit ? { semanticAudit } : {}),
+        ...(actualSha256 !== entry.sha256
+          ? { reason: 'sha256-mismatch' }
+          : semanticVerified
+            ? {}
+            : { reason: 'semantic-audit-failed' }),
       };
     } catch (error) {
       details[type] = { verified: false, path: declaredPath, reason: String(error?.message || error) };

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "scion-browser-device-matrix-v1",
+  "evidenceType": "scion-browser-device-matrix",
+  "claimBoundary": "A passing matrix proves that one exact browser GGUF adapter package completed the named runtime, recovery, memory, and rollback scenarios on every required browser/device profile. It does not prove educational quality or permit promotion without the separate corpus, factual, held-out-course, instructor, and production gates.",
+  "adapterIdentityAlgorithm": "scion-adapter-package-identity-v1",
+  "requiredDeviceProfiles": [
+    {
+      "id": "integrated-8gb",
+      "browserFamilies": ["chrome"],
+      "gpuClasses": ["integrated"],
+      "minimumSystemMemoryGiB": 8,
+      "maximumSystemMemoryGiB": 15.99,
+      "maximumWarmLoadMs": 180000,
+      "maximumFirstTokenMs": 60000,
+      "maximumCompletionMs": 240000,
+      "maximumBrowserMemoryFraction": 0.8
+    },
+    {
+      "id": "integrated-16gb",
+      "browserFamilies": ["edge"],
+      "gpuClasses": ["integrated"],
+      "minimumSystemMemoryGiB": 16,
+      "maximumWarmLoadMs": 150000,
+      "maximumFirstTokenMs": 45000,
+      "maximumCompletionMs": 180000,
+      "maximumBrowserMemoryFraction": 0.75
+    },
+    {
+      "id": "discrete-8gb",
+      "browserFamilies": ["chrome", "edge"],
+      "gpuClasses": ["discrete"],
+      "minimumSystemMemoryGiB": 16,
+      "minimumDedicatedGpuMemoryGiB": 8,
+      "maximumWarmLoadMs": 120000,
+      "maximumFirstTokenMs": 30000,
+      "maximumCompletionMs": 120000,
+      "maximumBrowserMemoryFraction": 0.75,
+      "maximumGpuMemoryFraction": 0.9
+    },
+    {
+      "id": "apple-silicon-16gb",
+      "browserFamilies": ["chrome"],
+      "gpuClasses": ["apple-silicon"],
+      "minimumSystemMemoryGiB": 16,
+      "maximumWarmLoadMs": 120000,
+      "maximumFirstTokenMs": 30000,
+      "maximumCompletionMs": 120000,
+      "maximumBrowserMemoryFraction": 0.8
+    }
+  ],
+  "requiredScenarios": [
+    "capability",
+    "cold-base-load",
+    "warm-base-load",
+    "base-completion",
+    "adapter-integrity",
+    "adapter-activation",
+    "adapter-completion",
+    "rollback",
+    "interrupted-download-recovery",
+    "storage-pressure-recovery",
+    "device-loss-recovery",
+    "repeat-completion"
+  ],
+  "requiredArtifactTypes": ["browser-trace", "console-log", "hardware-probe", "runtime-snapshot"],
+  "minimumRepeatedCompletions": 3,
+  "allowedRecoveryMethods": {
+    "interruptedDownload": ["network-abort-resume", "network-abort-redownload"],
+    "storagePressure": ["quota-exhaustion-evict-redownload", "cache-eviction-redownload"],
+    "deviceLoss": ["webgpu-device-destroy-reload", "browser-gpu-process-restart"]
+  }
+}
