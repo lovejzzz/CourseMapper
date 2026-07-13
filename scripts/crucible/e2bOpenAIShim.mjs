@@ -50,6 +50,7 @@ let adapterState =
 let adapterId = '';
 let adapterManifestPath = '';
 let adapterManifestSha256 = '';
+let adapterScale = null;
 let adapterError = '';
 const requestMetrics = new AsyncLocalStorage();
 
@@ -80,6 +81,7 @@ async function prepareScionAdapter() {
   adapterId = manifest.adapter.id;
   adapterManifestPath = report.manifestPath;
   adapterManifestSha256 = await sha256File(report.manifestPath);
+  adapterScale = Number(manifest.adapter?.scale ?? 1);
   adapterState = 'verified';
   adapterError = '';
 }
@@ -1028,6 +1030,7 @@ const server = http.createServer(async (req, res) => {
           adapterId: adapterId || null,
           adapterManifestPath: adapterManifestPath || null,
           adapterManifestSha256: adapterManifestSha256 || null,
+          adapterScale,
           adapterError,
           calls,
           completedCalls,
@@ -1059,6 +1062,7 @@ const server = http.createServer(async (req, res) => {
               adapter_active: adapterState === 'active',
               adapter_id: adapterId || null,
               adapter_manifest_sha256: adapterManifestSha256 || null,
+              adapter_scale: adapterScale,
               ready: modelState === 'ready',
             },
           ],

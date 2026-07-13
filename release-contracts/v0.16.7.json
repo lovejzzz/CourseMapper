@@ -17,16 +17,19 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification runs on the pushed v0.16.7 commit and must pass before release handoff."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29243066070",
+      "note": "Fast verification passed on main merge commit 3256dfdbf90bcb07b845978b33e7e81b21135e08, including unit/closed-loop tests, proof smoke, main evaluation, build, and bundle budgets."
     },
     "ciDeep": {
-      "status": "local-only",
-      "note": "Browser runtime, exact public download, dynamic adapter, rollback, unit, build, bundle, and release-contract gates are checked locally before push."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29243066070",
+      "note": "The exact main commit passed the workflow's full main evaluation after the PR-head verification had also passed. Browser runtime, public download, dynamic adapter, and rollback retain their local real-browser proof."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "Pages deploys only after Fast verification succeeds on the release commit."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29244440958",
+      "note": "GitHub Pages built and deployed exact main commit 3256dfdbf90bcb07b845978b33e7e81b21135e08 after Fast verification succeeded."
     },
     "liveProvider": {
       "status": "local-only",

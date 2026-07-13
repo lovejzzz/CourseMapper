@@ -1,0 +1,104 @@
+{
+  "version": "0.16.8",
+  "date": "July 13, 2026",
+  "title": "Frozen Ground: Scion adapter claims need real paired evidence",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/scion-adapter-tooling.test.js scripts/__tests__/e2bOpenAIShim.test.mjs tests/crucible-round-logic.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact v0.16.8 release head before merge."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The paired-evidence integration test constructs two five-domain Crucible rounds and verifies artifact-derived receipts locally; a real production candidate remains future evidence."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages deploys only after Fast verification succeeds on main."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "This release changes evaluation provenance rather than hosted generation behavior; the verified v0.16.7 browser-local base remains the public runtime."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No instructor preference or adapter-quality claim is made. Independent instructor evidence remains a promotion gate."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0168-frozen-heldout-benchmark",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Five 12-15 lesson Crucible fixtures are frozen across five training-disjoint domains with hash-bound prompts, source packets, base contract, and grader; dataset manifests carry hashed group identities so missing or overlapping separation proof blocks evaluation.",
+      "anchors": [
+        "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+        "scripts/scionAdapterDataset.mjs",
+        "scripts/scionAdapterPairedEvidence.mjs",
+        "tests/scion-adapter-tooling.test.js",
+        "docs/SCION_ADAPTER_ROADMAP.md"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-adapter-tooling.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v0168-exact-paired-crucible",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Crucible rejects incomplete, dirty, or runtime-mismatched paired runs and records one shared compiler, grader, prompt, source, and base identity for adapter and base-only arms; Local telemetry now retains adapter scale.",
+      "anchors": [
+        "scripts/crucible.mjs",
+        "scripts/crucible/e2bOpenAIShim.mjs",
+        "scripts/scionAdapterPairedEvidence.mjs",
+        "scripts/__tests__/e2bOpenAIShim.test.mjs",
+        "tests/scion-adapter-tooling.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-adapter-tooling.test.js scripts/__tests__/e2bOpenAIShim.test.mjs tests/crucible-round-logic.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v0168-artifact-derived-promotion-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The canonical producer derives candidate and base evidence from real Crucible metadata, project, report, digest, console, package manifest, and ZIP bytes, while promotion rejects records without the producer, artifact receipt, frozen benchmark, and grader identities.",
+      "anchors": [
+        "scripts/scionAdapterPairedEvidence.mjs",
+        "scripts/scionAdapterPromotionAudit.mjs",
+        "package.json",
+        "tests/scion-adapter-tooling.test.js",
+        "evaluation/README.md"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-adapter-tooling.test.js",
+        "node --check scripts/scionAdapterPairedEvidence.mjs"
+      ],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v0168-no-adapter-promotion",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "v0.16.8 improves the evaluation system but does not promote the smoke adapter or claim learned-quality gains; public Scion remains base-only until a real candidate passes every frozen quality, efficiency, factual, device, export, production, and instructor gate.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/README.md",
+        "evaluation/scion-adapters/evidence/browser-adapter-smoke-v0.16.7.json",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm run audit:scion:browser-adapter-smoke", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

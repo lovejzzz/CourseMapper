@@ -1,8 +1,8 @@
 # Scion Next Level — Verified Learning, Not Model Imitation
 
-> **Historical v0.16.6 plan.** v0.16.7 replaced the hosted Pollinations route with browser-local Scion: the pinned public Gemma 4 E2B GGUF runs in the browser and prompts stay on the device. The current architecture, adapter contract, and promotion gates live in [SCION_ADAPTER_ROADMAP.md](SCION_ADAPTER_ROADMAP.md).
+> **Historical v0.16.6 plan.** v0.16.7 replaced the hosted Pollinations route with browser-local Scion; v0.16.8 froze a five-domain held-out ruler and made promotion evidence artifact-derived. The current architecture, adapter contract, and promotion gates live in [SCION_ADAPTER_ROADMAP.md](SCION_ADAPTER_ROADMAP.md).
 
-**Status:** historical v0.16.6 adapter infrastructure and compiler-efficiency pass implemented; v0.16.7 has since completed an exact-QAT browser smoke, while production training remains correctly blocked by an empty independently qualified corpus
+**Status:** historical v0.16.6 adapter infrastructure and compiler-efficiency pass implemented; v0.16.7 completed an exact-QAT browser smoke and v0.16.8 completed the frozen paired-evidence harness, while production training remains correctly blocked by an empty independently qualified corpus
 **North star:** Scion produces a more teachable, more internally coherent course than a paid frontier baseline at a fraction of the cost, and the evidence survives blind instructor review.
 
 ## v0.16.6 — Rootstock + Graft + Compiler
@@ -45,7 +45,8 @@ The release-gate browser run passed on exact `mlx-community/Qwen3.5-4B-4bit` rev
 2. Train the first new adapter on the pinned Gemma base, package it as `candidate`, and compare exact base-only versus base-plus-adapter with the same prompts, compiler commit, browser, and grader.
 3. Reject any checkpoint that fails factual canaries, final package quality, first-pass contract rate, the 20% repair-call reduction, or independent instructor preference.
 4. Prototype separate adapter loading in a browser runtime. Until it passes the device/download/recovery matrix, WebLLM reports `base-only`; it must never claim the adapter is active.
-5. Publish only the small adapter and signed/hash-bound metadata. Users cache the public base independently, receive smaller Scion updates, and can roll back by removing one adapter registry entry.
+
+The v0.16.8 implementation makes step 2 executable without post-hoc evidence assembly: the five course/domain fixtures are frozen and training-disjoint, Crucible stamps comparison identity into both arms, and `capture:scion:adapter:pairs` derives the promotion records from hash-bound artifacts. The remaining work in this historical plan is therefore real independently reviewed data, candidate training, and measured wins—not more comparison scaffolding. 5. Publish only the small adapter and signed/hash-bound metadata. Users cache the public base independently, receive smaller Scion updates, and can roll back by removing one adapter registry entry.
 
 The detailed architecture and milestone exits live in [SCION_ADAPTER_ROADMAP.md](SCION_ADAPTER_ROADMAP.md).
 

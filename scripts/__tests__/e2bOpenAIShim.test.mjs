@@ -67,6 +67,8 @@ input.on('line', (line) => {
     bodyLogEnabled: true,
     bodyLogPath,
     bodyLogError: '',
+    adapterActive: false,
+    adapterScale: null,
   });
   const models = await fetch(`${baseUrl}/v1/models`).then((response) => response.json());
   expect(models.data[0]).toMatchObject({
@@ -74,6 +76,7 @@ input.on('line', (line) => {
     source_revision: null,
     adapter_active: false,
     adapter_id: null,
+    adapter_scale: null,
   });
   const generation = fetch(`${baseUrl}/v1/chat/completions`, {
     method: 'POST',

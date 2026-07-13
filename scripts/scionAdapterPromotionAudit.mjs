@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 
 import { validateScionAdapterManifest } from '../src/lib/scionAdapterManifest.js';
 import { sha256File } from './scionAdapterPackage.mjs';
+import { SCION_PAIRED_EVIDENCE_PRODUCER } from './scionAdapterPairedEvidence.mjs';
 
 const REQUIRED_EXTERNAL_EVIDENCE = [
   'factual-canaries',
@@ -52,24 +53,32 @@ function assessPairingContract({ candidateCourse, baseCourse, manifest }) {
   const base = baseCourse?.comparison || {};
   const sharedFields = [
     'pairId',
+    'benchmarkManifestSha256',
     'courseInputSha256',
     'sourcePacketSha256',
     'compilerCommit',
+    'compilerTree',
     'compilerConfigSha256',
     'graderVersion',
-    'activeWeightSha256',
+    'graderSha256',
+    'baseContractSha256',
   ];
   const sharedValuesMatch = sharedFields.every((field) => clean(candidate[field]) === clean(base[field]));
   const contractShapePass =
     candidate.protocolVersion === 1 &&
     base.protocolVersion === 1 &&
     PAIR_ID.test(clean(candidate.pairId)) &&
+    SHA256.test(clean(candidate.benchmarkManifestSha256)) &&
     SHA256.test(clean(candidate.courseInputSha256)) &&
     SHA256.test(clean(candidate.sourcePacketSha256)) &&
     COMMIT.test(clean(candidate.compilerCommit)) &&
+    COMMIT.test(clean(candidate.compilerTree)) &&
     SHA256.test(clean(candidate.compilerConfigSha256)) &&
     clean(candidate.graderVersion).length > 0 &&
-    SHA256.test(clean(candidate.activeWeightSha256)) &&
+    SHA256.test(clean(candidate.graderSha256)) &&
+    SHA256.test(clean(candidate.baseContractSha256)) &&
+    candidate.evidenceProducer === SCION_PAIRED_EVIDENCE_PRODUCER &&
+    base.evidenceProducer === SCION_PAIRED_EVIDENCE_PRODUCER &&
     candidate.compilerTreeDirty === false &&
     base.compilerTreeDirty === false &&
     candidate.variant === 'adapter' &&
@@ -81,6 +90,11 @@ function assessPairingContract({ candidateCourse, baseCourse, manifest }) {
     Number.isSafeInteger(candidateCourse?.lessonCount) &&
     candidateCourse.lessonCount >= 12 &&
     candidateCourse.lessonCount === baseCourse?.lessonCount;
+  const producerPass =
+    candidateCourse?.evidenceProducer === SCION_PAIRED_EVIDENCE_PRODUCER &&
+    baseCourse?.evidenceProducer === SCION_PAIRED_EVIDENCE_PRODUCER &&
+    SHA256.test(clean(candidateCourse?.artifactReceiptSha256)) &&
+    SHA256.test(clean(baseCourse?.artifactReceiptSha256));
   const baseIdentityPass =
     candidateCourse?.baseRevision === manifest?.base?.revision &&
     baseCourse?.baseRevision === manifest?.base?.revision &&
@@ -90,15 +104,16 @@ function assessPairingContract({ candidateCourse, baseCourse, manifest }) {
   const expectedScale = Number.isFinite(Number(manifest?.adapter?.scale)) ? Number(manifest.adapter.scale) : 1;
   const scalePass = Number(candidateCourse?.adapterScale) === expectedScale && Number(baseCourse?.adapterScale) === 0;
   return {
-    pass: contractShapePass && sharedValuesMatch && courseIdentityPass && baseIdentityPass && scalePass,
+    pass: contractShapePass && sharedValuesMatch && courseIdentityPass && producerPass && baseIdentityPass && scalePass,
     pairId: clean(candidate.pairId) || null,
     contractShapePass,
     sharedValuesMatch,
     courseIdentityPass,
+    producerPass,
     baseIdentityPass,
     scalePass,
     compilerCommit: clean(candidate.compilerCommit) || null,
-    activeWeightSha256: clean(candidate.activeWeightSha256) || null,
+    baseContractSha256: clean(candidate.baseContractSha256) || null,
   };
 }
 

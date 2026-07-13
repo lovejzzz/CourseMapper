@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.7",
+  "version": "0.16.8",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -58,6 +58,7 @@
     "package:scion:adapter:browser": "node scripts/scionAdapterBrowserPackage.mjs",
     "audit:scion:adapter": "node scripts/scionAdapterPackage.mjs --verify",
     "audit:scion:adapter:promotion": "node scripts/scionAdapterPromotionAudit.mjs",
+    "capture:scion:adapter:pairs": "node scripts/scionAdapterPairedEvidence.mjs",
     "audit:scion:browser-base": "node scripts/scionBrowserBaseAudit.mjs",
     "audit:scion:browser-lora": "node scripts/scionBrowserLoraRuntimeAudit.mjs",
     "audit:scion:browser-adapter-smoke": "node scripts/scionBrowserAdapterSmokeAudit.mjs",
