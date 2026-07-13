@@ -26,6 +26,14 @@ test('offline instructor form exports ingestion-compatible blind review JSON', a
     `${JSON.stringify({
       kind: 'mc-item',
       prompt: 'Write one evidence-bearing navigation question.',
+      sourceContext: {
+        sourcePacketSha256: 'a'.repeat(64),
+        kernelId: 'ux/navigation-evidence',
+        term: 'Navigation evidence',
+        claims: ['Repeated failure on the same labeled task is direct behavioral evidence.'],
+        attribution: ['Public teaching source'],
+        license: 'CC BY 4.0',
+      },
       left: JSON.stringify(item),
       right: JSON.stringify({ ...item, q: 'Which evidence best justifies changing the navigation?' }),
       courseId: 'interaction-design',
@@ -43,6 +51,11 @@ test('offline instructor form exports ingestion-compatible blind review JSON', a
       if (/^https?:/.test(request.url())) networkRequests.push(request.url());
     });
     await page.setContent(html);
+    await expect(page.getByRole('heading', { name: 'Neutral source claims' })).toBeVisible();
+    await expect(
+      page.getByText('Repeated failure on the same labeled task is direct behavioral evidence.'),
+    ).toBeVisible();
+    await expect(page.locator('.source-context li span').first()).toHaveText('1');
     await page.locator('[name="reviewerId"]').fill('ux-instructor-07');
     for (const name of ['factualCorrectnessA-0', 'factualCorrectnessB-0', 'teachabilityA-0', 'teachabilityB-0']) {
       await page.locator(`[name="${name}"]`).selectOption('5');

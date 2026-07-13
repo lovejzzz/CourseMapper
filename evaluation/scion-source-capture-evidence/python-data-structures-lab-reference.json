@@ -1,0 +1,1111 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-python-data-structures-lab-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Python Data Structures and Modular Programs, a six-session laboratory course in which students decompose small programs into functions and choose lists or dictionaries to represent and transform labeled data.",
+  "fileNames": [
+    "source-packet-c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34.json"
+  ],
+  "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Python Data Structures and Modular Programs\",\"sessions\":[{\"number\":1,\"title\":\"Functions and scope\"},{\"number\":2,\"title\":\"Lists\"},{\"number\":3,\"title\":\"Dictionaries\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"In a small Python program, a student defines a helper with def, creates a variable inside that helper, and then tries to use that same variable after the call ends. Which statement best describes what happens?\",\"op\":[\"It has local scope, so it cannot be accessed outside the function.\",\"It becomes global scope after the function finishes running.\",\"It is available anywhere because it was defined with def.\",\"It can be accessed only from other functions in the program.\"],\"ai\":0,\"ex\":\"Correct: variables created inside a function have local scope and cannot be accessed outside that function. The common misconception is that a name defined during a call becomes available everywhere after the call, but scope does not work that way.\",\"sourceFactIndexes\":[0,3],\"type\":\"multiple_choice\"},{\"q\":\"A classmate wants to write a Python function that prints a result when called. Which definition matches Python's function syntax?\",\"op\":[\"def report():\",\"report = def()\",\"def report:\",\"function report():\"],\"ai\":0,\"ex\":\"Correct: a function is defined with def, a name, parentheses, and a colon, followed by an indented body. A plausible mistake is leaving out the parentheses and colon, but Python requires both in the definition line.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Function\",\"df\":\"A named, reusable code block that runs only when called.\",\"eg\":\"A helper that computes a class average after the program asks for scores.\",\"mi\":\"It runs as soon as it is written in the file.\",\"cx\":\"It executes only when called, not at definition time.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Scope\",\"df\":\"The part of a program where a variable can be accessed.\",\"eg\":\"A variable made inside a helper is usable only inside that helper.\",\"mi\":\"Scope means how long a variable exists.\",\"cx\":\"Scope is about where access is allowed, not how long the variable lasts.\",\"sourceFactIndexes\":[2,3,4]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"A student stores quiz scores as 12, 15, and 18 in one Python sequence. Which notation matches a list of those scores?\",\"op\":[\"[12, 15, 18]\",\"(12, 15, 18)\",\"{12, 15, 18}\",\"12, 15, 18\"],\"ai\":0,\"ex\":\"[12, 15, 18] is correct because a list is written with square brackets holding comma-separated values. The parenthesized choice is a tuple-shaped misconception, while braces suggest a different container.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"},{\"q\":\"A lab program needs to visit each item in a list of labeled data one by one. What method best fits that task?\",\"op\":[\"Use a for loop to step through the list\",\"Access the last item with index 1\",\"Start counting indexes at 1\",\"Store the values without brackets\"],\"ai\":0,\"ex\":\"Use a for loop to step through the list is correct because a for loop can iterate through a list and visit each element in order. The index-1 option is the most plausible misconception because list indexes begin at 0, not 1.\",\"sourceFactIndexes\":[3,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"List\",\"df\":\"An ordered collection written with square brackets, where each element has an index.\",\"eg\":\"[3, 5, 8] is a list of three values, and 5 is at index 1.\",\"mi\":\"A common mistake is thinking the first position is index 1.\",\"cx\":\"Indexes begin at 0, so the first element is at index 0.\",\"sourceFactIndexes\":[0,1,3]},{\"tr\":\"Index\",\"df\":\"A position number used to reach a specific element in sequence data.\",\"eg\":\"In [10, 20, 30], the element 20 is reached with index 1.\",\"mi\":\"A frequent error is assuming counting starts at 1 for the first element.\",\"cx\":\"List indexes begin at 0 and end at one less than the length of the sequence.\",\"sourceFactIndexes\":[0,2,3]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A lab group needs to store student test scores under each student’s name and retrieve a score later by name. Which structure best fits that task?\",\"op\":[\"A collection of key-value pairs\",\"A numbered sequence of positions\",\"A table with only repeated labels\",\"A single value with no labels\"],\"ai\":0,\"ex\":\"A collection of key-value pairs is correct because the data is labeled and values are retrieved by key rather than by numeric position. The numbered-sequence choice fits ordered positions better, which is the common misconception here.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"A program uses a dictionary to track unique course codes and their rooms. What happens if the same course code is added again as a new key?\",\"op\":[\"The later room replaces the earlier one\",\"Both rooms stay under the same code\",\"The code becomes a numeric index\",\"The dictionary turns into a list\"],\"ai\":0,\"ex\":\"The later room replaces the earlier one because a dictionary cannot hold duplicate keys. The tempting misconception is that duplicate labels can be stored side by side, but key-based lookup does not allow that.\",\"sourceFactIndexes\":[1,0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Dictionary\",\"df\":\"A mapping structure that stores values under labels instead of positions.\",\"eg\":\"A class roster can pair each student name with a score or room number.\",\"mi\":\"It is just an ordered list with fancy punctuation.\",\"cx\":\"It uses keys to find values, so the data is labeled rather than ordered.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Key\",\"df\":\"A label used to retrieve one stored value from a mapping.\",\"eg\":\"In a dictionary of course rooms, 'BIO101' can point to one room assignment.\",\"mi\":\"A key can repeat many times for the same mapping entry.\",\"cx\":\"Because lookup uses labels, the same key cannot be duplicated in one dictionary.\",\"sourceFactIndexes\":[0,1]}]}}}}",
+  "savedAt": "2026-07-13T13:55:31.830Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-campaign.json",
+    "campaignManifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+    "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d",
+    "courseInputSha256": "cffa845c093c52274f691f7b95023ac947acd3d0952ef6d29e912291b0c5c00b",
+    "courseGroupId": "python-data-structures-lab",
+    "courseGroupSha256": "a221877bef9b05f6d79d1385030773dfb135b99f93ad11a5141bdee946750954",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/cs-intro.json",
+      "sourceArtifactSha256": "fbfb087cd78092d0a6869b28435a2eebb5bebc809a1cb38bfcfccfe971310acd",
+      "kernels": [
+        {
+          "id": "cs/functions",
+          "term": "Functions and scope",
+          "definition": "A function is a named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#6.1",
+            "loc": "6.1",
+            "quote": "A function is a named, reusable block of code that performs a task when called"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A function is defined with the def keyword, a name, parentheses, and a colon, with an indented body.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#6.1",
+                "loc": "6.1",
+                "quote": "A function is defined using the def keyword"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A variable's scope is the part of the program where it can be accessed.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#6.3",
+                "loc": "6.3",
+                "quote": "A variable's scope is the part of a program where the variable can be accessed"
+              }
+            },
+            {
+              "index": 2,
+              "text": "A variable created inside a function has local scope and cannot be accessed outside the function.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#6.3",
+                "loc": "6.3",
+                "quote": "A variable created within a function has local scope and only exists within the function"
+              }
+            },
+            {
+              "index": 3,
+              "text": "A variable created outside any function has global scope and can be accessed anywhere in the program.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#6.3",
+                "loc": "6.3",
+                "quote": "A variable created outside of a function has global scope and can be accessed anywhere in the program"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §6.1 Defining functions; §6.3 Variable scope"
+          ]
+        },
+        {
+          "id": "cs/lists",
+          "term": "Lists",
+          "definition": "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#3.4",
+            "loc": "3.4",
+            "quote": "A list object can be used to bundle elements together in Python"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A list is written with square brackets [] holding comma-separated values.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#3.4",
+                "loc": "3.4",
+                "quote": "A list is defined by using square brackets [] with comma separated values within the square brackets"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Individual elements are accessed directly using an index.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#3.4",
+                "loc": "3.4",
+                "quote": "Individual list elements can be accessed directly using an index"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Indexes begin at 0 and end at one less than the length of the sequence.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#3.4",
+                "loc": "3.4",
+                "quote": "Indexes begin at 0 and end at one less than the length of the sequence"
+              }
+            },
+            {
+              "index": 3,
+              "text": "A for loop can iterate through a list, visiting each element in order.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#3.4",
+                "loc": "3.4",
+                "quote": "An iterative for loop can be used to iterate through a list"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §3.4 List basics; §9.1 Modifying and iterating lists"
+          ]
+        },
+        {
+          "id": "cs/dictionaries",
+          "term": "Dictionaries",
+          "definition": "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#10.1",
+            "loc": "10.1",
+            "quote": "A dictionary in Python is a container object including key-value pairs"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#10.1",
+                "loc": "10.1",
+                "quote": "a dictionary object cannot hold duplicate key values"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered.",
+              "anchor": null
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §10.1 Dictionary basics"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-13T13:55:31.830Z",
+    "admittedPromptIds": [
+      "python-data-structures-lab:cs/functions",
+      "python-data-structures-lab:cs/lists",
+      "python-data-structures-lab:cs/dictionaries"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "python-data-structures-lab:cs/functions",
+          "kernelId": "cs/functions",
+          "promptSha256": "f024003148664654ac05b3c3e2ddb9e5675fc180340c6aaeda165a5803ffea39",
+          "response": {
+            "mcItems": [
+              {
+                "q": "In a small Python program, a student defines a helper with def, creates a variable inside that helper, and then tries to use that same variable after the call ends. Which statement best describes what happens?",
+                "op": [
+                  "It has local scope, so it cannot be accessed outside the function.",
+                  "It becomes global scope after the function finishes running.",
+                  "It is available anywhere because it was defined with def.",
+                  "It can be accessed only from other functions in the program."
+                ],
+                "ai": 0,
+                "ex": "Correct: variables created inside a function have local scope and cannot be accessed outside that function. The common misconception is that a name defined during a call becomes available everywhere after the call, but scope does not work that way.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "q": "A classmate wants to write a Python function that prints a result when called. Which definition matches Python's function syntax?",
+                "op": [
+                  "def report():",
+                  "report = def()",
+                  "def report:",
+                  "function report():"
+                ],
+                "ai": 0,
+                "ex": "Correct: a function is defined with def, a name, parentheses, and a colon, followed by an indented body. A plausible mistake is leaving out the parentheses and colon, but Python requires both in the definition line.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Function",
+                "df": "A named, reusable code block that runs only when called.",
+                "eg": "A helper that computes a class average after the program asks for scores.",
+                "mi": "It runs as soon as it is written in the file.",
+                "cx": "It executes only when called, not at definition time.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Scope",
+                "df": "The part of a program where a variable can be accessed.",
+                "eg": "A variable made inside a helper is usable only inside that helper.",
+                "mi": "Scope means how long a variable exists.",
+                "cx": "Scope is about where access is allowed, not how long the variable lasts.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "818605aee6004bd56eec366c1d6ebe399ee695b232d5f761bbecf555a90c5de6",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "In a small Python program, a student defines a helper with def, creates a variable inside that helper, and then tries to use that same variable after the call ends. Which statement best describes what happens?",
+                "op": [
+                  "It has local scope, so it cannot be accessed outside the function.",
+                  "It becomes global scope after the function finishes running.",
+                  "It is available anywhere because it was defined with def.",
+                  "It can be accessed only from other functions in the program."
+                ],
+                "ai": 0,
+                "ex": "Correct: variables created inside a function have local scope and cannot be accessed outside that function. The common misconception is that a name defined during a call becomes available everywhere after the call, but scope does not work that way.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "q": "A classmate wants to write a Python function that prints a result when called. Which definition matches Python's function syntax?",
+                "op": [
+                  "def report():",
+                  "report = def()",
+                  "def report:",
+                  "function report():"
+                ],
+                "ai": 0,
+                "ex": "Correct: a function is defined with def, a name, parentheses, and a colon, followed by an indented body. A plausible mistake is leaving out the parentheses and colon, but Python requires both in the definition line.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Function",
+                "df": "A named, reusable code block that runs only when called.",
+                "eg": "A helper that computes a class average after the program asks for scores.",
+                "mi": "It runs as soon as it is written in the file.",
+                "cx": "It executes only when called, not at definition time.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Scope",
+                "df": "The part of a program where a variable can be accessed.",
+                "eg": "A variable made inside a helper is usable only inside that helper.",
+                "mi": "Scope means how long a variable exists.",
+                "cx": "Scope is about where access is allowed, not how long the variable lasts.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "818605aee6004bd56eec366c1d6ebe399ee695b232d5f761bbecf555a90c5de6",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0c0ca2b520300d3e006a54ee46d68c81a1838377b51e380cf6",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 663,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 515,
+              "output_tokens_details": {
+                "reasoning_tokens": 95
+              },
+              "total_tokens": 1178
+            }
+          },
+          "startedAt": "2026-07-13T13:55:18.775Z",
+          "durationMs": 4063
+        },
+        {
+          "promptId": "python-data-structures-lab:cs/lists",
+          "kernelId": "cs/lists",
+          "promptSha256": "cbda3a8783608554a45ada5bccfe8c48134d4ba76a1359780dc34d660feee275",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student stores quiz scores as 12, 15, and 18 in one Python sequence. Which notation matches a list of those scores?",
+                "op": [
+                  "[12, 15, 18]",
+                  "(12, 15, 18)",
+                  "{12, 15, 18}",
+                  "12, 15, 18"
+                ],
+                "ai": 0,
+                "ex": "[12, 15, 18] is correct because a list is written with square brackets holding comma-separated values. The parenthesized choice is a tuple-shaped misconception, while braces suggest a different container.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "A lab program needs to visit each item in a list of labeled data one by one. What method best fits that task?",
+                "op": [
+                  "Use a for loop to step through the list",
+                  "Access the last item with index 1",
+                  "Start counting indexes at 1",
+                  "Store the values without brackets"
+                ],
+                "ai": 0,
+                "ex": "Use a for loop to step through the list is correct because a for loop can iterate through a list and visit each element in order. The index-1 option is the most plausible misconception because list indexes begin at 0, not 1.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "List",
+                "df": "An ordered collection written with square brackets, where each element has an index.",
+                "eg": "[3, 5, 8] is a list of three values, and 5 is at index 1.",
+                "mi": "A common mistake is thinking the first position is index 1.",
+                "cx": "Indexes begin at 0, so the first element is at index 0.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  3
+                ]
+              },
+              {
+                "tr": "Index",
+                "df": "A position number used to reach a specific element in sequence data.",
+                "eg": "In [10, 20, 30], the element 20 is reached with index 1.",
+                "mi": "A frequent error is assuming counting starts at 1 for the first element.",
+                "cx": "List indexes begin at 0 and end at one less than the length of the sequence.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "da42e14bd2194e95b44e4835099a9708c8d2d131eafdb310d955cccd95c30b35",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student stores quiz scores as 12, 15, and 18 in one Python sequence. Which notation matches a list of those scores?",
+                "op": [
+                  "[12, 15, 18]",
+                  "(12, 15, 18)",
+                  "{12, 15, 18}",
+                  "12, 15, 18"
+                ],
+                "ai": 0,
+                "ex": "[12, 15, 18] is correct because a list is written with square brackets holding comma-separated values. The parenthesized choice is a tuple-shaped misconception, while braces suggest a different container.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "A lab program needs to visit each item in a list of labeled data one by one. What method best fits that task?",
+                "op": [
+                  "Use a for loop to step through the list",
+                  "Access the last item with index 1",
+                  "Start counting indexes at 1",
+                  "Store the values without brackets"
+                ],
+                "ai": 0,
+                "ex": "Use a for loop to step through the list is correct because a for loop can iterate through a list and visit each element in order. The index-1 option is the most plausible misconception because list indexes begin at 0, not 1.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "List",
+                "df": "An ordered collection written with square brackets, where each element has an index.",
+                "eg": "[3, 5, 8] is a list of three values, and 5 is at index 1.",
+                "mi": "A common mistake is thinking the first position is index 1.",
+                "cx": "Indexes begin at 0, so the first element is at index 0.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  3
+                ]
+              },
+              {
+                "tr": "Index",
+                "df": "A position number used to reach a specific element in sequence data.",
+                "eg": "In [10, 20, 30], the element 20 is reached with index 1.",
+                "mi": "A frequent error is assuming counting starts at 1 for the first element.",
+                "cx": "List indexes begin at 0 and end at one less than the length of the sequence.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "da42e14bd2194e95b44e4835099a9708c8d2d131eafdb310d955cccd95c30b35",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_03996968ec4dd8a6006a54ee4af07c81a09988e6efaeb51089",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 637,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 491,
+              "output_tokens_details": {
+                "reasoning_tokens": 33
+              },
+              "total_tokens": 1128
+            }
+          },
+          "startedAt": "2026-07-13T13:55:22.839Z",
+          "durationMs": 4465
+        },
+        {
+          "promptId": "python-data-structures-lab:cs/dictionaries",
+          "kernelId": "cs/dictionaries",
+          "promptSha256": "aec8215282b7393145b115ecaf7107e517ee88e2a63e82108d4a1b963801a776",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A lab group needs to store student test scores under each student’s name and retrieve a score later by name. Which structure best fits that task?",
+                "op": [
+                  "A collection of key-value pairs",
+                  "A numbered sequence of positions",
+                  "A table with only repeated labels",
+                  "A single value with no labels"
+                ],
+                "ai": 0,
+                "ex": "A collection of key-value pairs is correct because the data is labeled and values are retrieved by key rather than by numeric position. The numbered-sequence choice fits ordered positions better, which is the common misconception here.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "A program uses a dictionary to track unique course codes and their rooms. What happens if the same course code is added again as a new key?",
+                "op": [
+                  "The later room replaces the earlier one",
+                  "Both rooms stay under the same code",
+                  "The code becomes a numeric index",
+                  "The dictionary turns into a list"
+                ],
+                "ai": 0,
+                "ex": "The later room replaces the earlier one because a dictionary cannot hold duplicate keys. The tempting misconception is that duplicate labels can be stored side by side, but key-based lookup does not allow that.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Dictionary",
+                "df": "A mapping structure that stores values under labels instead of positions.",
+                "eg": "A class roster can pair each student name with a score or room number.",
+                "mi": "It is just an ordered list with fancy punctuation.",
+                "cx": "It uses keys to find values, so the data is labeled rather than ordered.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Key",
+                "df": "A label used to retrieve one stored value from a mapping.",
+                "eg": "In a dictionary of course rooms, 'BIO101' can point to one room assignment.",
+                "mi": "A key can repeat many times for the same mapping entry.",
+                "cx": "Because lookup uses labels, the same key cannot be duplicated in one dictionary.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "723f3d6d84edf561f9627bd81a04c1b1de8156285580a57324127c7053124e18",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A lab group needs to store student test scores under each student’s name and retrieve a score later by name. Which structure best fits that task?",
+                "op": [
+                  "A collection of key-value pairs",
+                  "A numbered sequence of positions",
+                  "A table with only repeated labels",
+                  "A single value with no labels"
+                ],
+                "ai": 0,
+                "ex": "A collection of key-value pairs is correct because the data is labeled and values are retrieved by key rather than by numeric position. The numbered-sequence choice fits ordered positions better, which is the common misconception here.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "A program uses a dictionary to track unique course codes and their rooms. What happens if the same course code is added again as a new key?",
+                "op": [
+                  "The later room replaces the earlier one",
+                  "Both rooms stay under the same code",
+                  "The code becomes a numeric index",
+                  "The dictionary turns into a list"
+                ],
+                "ai": 0,
+                "ex": "The later room replaces the earlier one because a dictionary cannot hold duplicate keys. The tempting misconception is that duplicate labels can be stored side by side, but key-based lookup does not allow that.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Dictionary",
+                "df": "A mapping structure that stores values under labels instead of positions.",
+                "eg": "A class roster can pair each student name with a score or room number.",
+                "mi": "It is just an ordered list with fancy punctuation.",
+                "cx": "It uses keys to find values, so the data is labeled rather than ordered.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Key",
+                "df": "A label used to retrieve one stored value from a mapping.",
+                "eg": "In a dictionary of course rooms, 'BIO101' can point to one room assignment.",
+                "mi": "A key can repeat many times for the same mapping entry.",
+                "cx": "Because lookup uses labels, the same key cannot be duplicated in one dictionary.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "723f3d6d84edf561f9627bd81a04c1b1de8156285580a57324127c7053124e18",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_00839974e41b2885006a54ee4f5f0c81a2aec684b04cbc0117",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 595,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 537,
+              "output_tokens_details": {
+                "reasoning_tokens": 126
+              },
+              "total_tokens": 1132
+            }
+          },
+          "startedAt": "2026-07-13T13:55:27.306Z",
+          "durationMs": 4524
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "python-data-structures-lab:cs/functions",
+        "kernelId": "cs/functions",
+        "promptSha256": "f024003148664654ac05b3c3e2ddb9e5675fc180340c6aaeda165a5803ffea39",
+        "response": {
+          "mcItems": [
+            {
+              "q": "In a small Python program, a student defines a helper with def, creates a variable inside that helper, and then tries to use that same variable after the call ends. Which statement best describes what happens?",
+              "op": [
+                "It has local scope, so it cannot be accessed outside the function.",
+                "It becomes global scope after the function finishes running.",
+                "It is available anywhere because it was defined with def.",
+                "It can be accessed only from other functions in the program."
+              ],
+              "ai": 0,
+              "ex": "Correct: variables created inside a function have local scope and cannot be accessed outside that function. The common misconception is that a name defined during a call becomes available everywhere after the call, but scope does not work that way.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "q": "A classmate wants to write a Python function that prints a result when called. Which definition matches Python's function syntax?",
+              "op": [
+                "def report():",
+                "report = def()",
+                "def report:",
+                "function report():"
+              ],
+              "ai": 0,
+              "ex": "Correct: a function is defined with def, a name, parentheses, and a colon, followed by an indented body. A plausible mistake is leaving out the parentheses and colon, but Python requires both in the definition line.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Function",
+              "df": "A named, reusable code block that runs only when called.",
+              "eg": "A helper that computes a class average after the program asks for scores.",
+              "mi": "It runs as soon as it is written in the file.",
+              "cx": "It executes only when called, not at definition time.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Scope",
+              "df": "The part of a program where a variable can be accessed.",
+              "eg": "A variable made inside a helper is usable only inside that helper.",
+              "mi": "Scope means how long a variable exists.",
+              "cx": "Scope is about where access is allowed, not how long the variable lasts.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "818605aee6004bd56eec366c1d6ebe399ee695b232d5f761bbecf555a90c5de6",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "In a small Python program, a student defines a helper with def, creates a variable inside that helper, and then tries to use that same variable after the call ends. Which statement best describes what happens?",
+              "op": [
+                "It has local scope, so it cannot be accessed outside the function.",
+                "It becomes global scope after the function finishes running.",
+                "It is available anywhere because it was defined with def.",
+                "It can be accessed only from other functions in the program."
+              ],
+              "ai": 0,
+              "ex": "Correct: variables created inside a function have local scope and cannot be accessed outside that function. The common misconception is that a name defined during a call becomes available everywhere after the call, but scope does not work that way.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "q": "A classmate wants to write a Python function that prints a result when called. Which definition matches Python's function syntax?",
+              "op": [
+                "def report():",
+                "report = def()",
+                "def report:",
+                "function report():"
+              ],
+              "ai": 0,
+              "ex": "Correct: a function is defined with def, a name, parentheses, and a colon, followed by an indented body. A plausible mistake is leaving out the parentheses and colon, but Python requires both in the definition line.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Function",
+              "df": "A named, reusable code block that runs only when called.",
+              "eg": "A helper that computes a class average after the program asks for scores.",
+              "mi": "It runs as soon as it is written in the file.",
+              "cx": "It executes only when called, not at definition time.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Scope",
+              "df": "The part of a program where a variable can be accessed.",
+              "eg": "A variable made inside a helper is usable only inside that helper.",
+              "mi": "Scope means how long a variable exists.",
+              "cx": "Scope is about where access is allowed, not how long the variable lasts.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "818605aee6004bd56eec366c1d6ebe399ee695b232d5f761bbecf555a90c5de6",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0c0ca2b520300d3e006a54ee46d68c81a1838377b51e380cf6",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 663,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 515,
+            "output_tokens_details": {
+              "reasoning_tokens": 95
+            },
+            "total_tokens": 1178
+          }
+        },
+        "startedAt": "2026-07-13T13:55:18.775Z",
+        "durationMs": 4063
+      },
+      {
+        "promptId": "python-data-structures-lab:cs/lists",
+        "kernelId": "cs/lists",
+        "promptSha256": "cbda3a8783608554a45ada5bccfe8c48134d4ba76a1359780dc34d660feee275",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student stores quiz scores as 12, 15, and 18 in one Python sequence. Which notation matches a list of those scores?",
+              "op": [
+                "[12, 15, 18]",
+                "(12, 15, 18)",
+                "{12, 15, 18}",
+                "12, 15, 18"
+              ],
+              "ai": 0,
+              "ex": "[12, 15, 18] is correct because a list is written with square brackets holding comma-separated values. The parenthesized choice is a tuple-shaped misconception, while braces suggest a different container.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "A lab program needs to visit each item in a list of labeled data one by one. What method best fits that task?",
+              "op": [
+                "Use a for loop to step through the list",
+                "Access the last item with index 1",
+                "Start counting indexes at 1",
+                "Store the values without brackets"
+              ],
+              "ai": 0,
+              "ex": "Use a for loop to step through the list is correct because a for loop can iterate through a list and visit each element in order. The index-1 option is the most plausible misconception because list indexes begin at 0, not 1.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "List",
+              "df": "An ordered collection written with square brackets, where each element has an index.",
+              "eg": "[3, 5, 8] is a list of three values, and 5 is at index 1.",
+              "mi": "A common mistake is thinking the first position is index 1.",
+              "cx": "Indexes begin at 0, so the first element is at index 0.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                3
+              ]
+            },
+            {
+              "tr": "Index",
+              "df": "A position number used to reach a specific element in sequence data.",
+              "eg": "In [10, 20, 30], the element 20 is reached with index 1.",
+              "mi": "A frequent error is assuming counting starts at 1 for the first element.",
+              "cx": "List indexes begin at 0 and end at one less than the length of the sequence.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "da42e14bd2194e95b44e4835099a9708c8d2d131eafdb310d955cccd95c30b35",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student stores quiz scores as 12, 15, and 18 in one Python sequence. Which notation matches a list of those scores?",
+              "op": [
+                "[12, 15, 18]",
+                "(12, 15, 18)",
+                "{12, 15, 18}",
+                "12, 15, 18"
+              ],
+              "ai": 0,
+              "ex": "[12, 15, 18] is correct because a list is written with square brackets holding comma-separated values. The parenthesized choice is a tuple-shaped misconception, while braces suggest a different container.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "A lab program needs to visit each item in a list of labeled data one by one. What method best fits that task?",
+              "op": [
+                "Use a for loop to step through the list",
+                "Access the last item with index 1",
+                "Start counting indexes at 1",
+                "Store the values without brackets"
+              ],
+              "ai": 0,
+              "ex": "Use a for loop to step through the list is correct because a for loop can iterate through a list and visit each element in order. The index-1 option is the most plausible misconception because list indexes begin at 0, not 1.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "List",
+              "df": "An ordered collection written with square brackets, where each element has an index.",
+              "eg": "[3, 5, 8] is a list of three values, and 5 is at index 1.",
+              "mi": "A common mistake is thinking the first position is index 1.",
+              "cx": "Indexes begin at 0, so the first element is at index 0.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                3
+              ]
+            },
+            {
+              "tr": "Index",
+              "df": "A position number used to reach a specific element in sequence data.",
+              "eg": "In [10, 20, 30], the element 20 is reached with index 1.",
+              "mi": "A frequent error is assuming counting starts at 1 for the first element.",
+              "cx": "List indexes begin at 0 and end at one less than the length of the sequence.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "da42e14bd2194e95b44e4835099a9708c8d2d131eafdb310d955cccd95c30b35",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_03996968ec4dd8a6006a54ee4af07c81a09988e6efaeb51089",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 637,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 491,
+            "output_tokens_details": {
+              "reasoning_tokens": 33
+            },
+            "total_tokens": 1128
+          }
+        },
+        "startedAt": "2026-07-13T13:55:22.839Z",
+        "durationMs": 4465
+      },
+      {
+        "promptId": "python-data-structures-lab:cs/dictionaries",
+        "kernelId": "cs/dictionaries",
+        "promptSha256": "aec8215282b7393145b115ecaf7107e517ee88e2a63e82108d4a1b963801a776",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A lab group needs to store student test scores under each student’s name and retrieve a score later by name. Which structure best fits that task?",
+              "op": [
+                "A collection of key-value pairs",
+                "A numbered sequence of positions",
+                "A table with only repeated labels",
+                "A single value with no labels"
+              ],
+              "ai": 0,
+              "ex": "A collection of key-value pairs is correct because the data is labeled and values are retrieved by key rather than by numeric position. The numbered-sequence choice fits ordered positions better, which is the common misconception here.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "A program uses a dictionary to track unique course codes and their rooms. What happens if the same course code is added again as a new key?",
+              "op": [
+                "The later room replaces the earlier one",
+                "Both rooms stay under the same code",
+                "The code becomes a numeric index",
+                "The dictionary turns into a list"
+              ],
+              "ai": 0,
+              "ex": "The later room replaces the earlier one because a dictionary cannot hold duplicate keys. The tempting misconception is that duplicate labels can be stored side by side, but key-based lookup does not allow that.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Dictionary",
+              "df": "A mapping structure that stores values under labels instead of positions.",
+              "eg": "A class roster can pair each student name with a score or room number.",
+              "mi": "It is just an ordered list with fancy punctuation.",
+              "cx": "It uses keys to find values, so the data is labeled rather than ordered.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Key",
+              "df": "A label used to retrieve one stored value from a mapping.",
+              "eg": "In a dictionary of course rooms, 'BIO101' can point to one room assignment.",
+              "mi": "A key can repeat many times for the same mapping entry.",
+              "cx": "Because lookup uses labels, the same key cannot be duplicated in one dictionary.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "723f3d6d84edf561f9627bd81a04c1b1de8156285580a57324127c7053124e18",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A lab group needs to store student test scores under each student’s name and retrieve a score later by name. Which structure best fits that task?",
+              "op": [
+                "A collection of key-value pairs",
+                "A numbered sequence of positions",
+                "A table with only repeated labels",
+                "A single value with no labels"
+              ],
+              "ai": 0,
+              "ex": "A collection of key-value pairs is correct because the data is labeled and values are retrieved by key rather than by numeric position. The numbered-sequence choice fits ordered positions better, which is the common misconception here.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "A program uses a dictionary to track unique course codes and their rooms. What happens if the same course code is added again as a new key?",
+              "op": [
+                "The later room replaces the earlier one",
+                "Both rooms stay under the same code",
+                "The code becomes a numeric index",
+                "The dictionary turns into a list"
+              ],
+              "ai": 0,
+              "ex": "The later room replaces the earlier one because a dictionary cannot hold duplicate keys. The tempting misconception is that duplicate labels can be stored side by side, but key-based lookup does not allow that.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Dictionary",
+              "df": "A mapping structure that stores values under labels instead of positions.",
+              "eg": "A class roster can pair each student name with a score or room number.",
+              "mi": "It is just an ordered list with fancy punctuation.",
+              "cx": "It uses keys to find values, so the data is labeled rather than ordered.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Key",
+              "df": "A label used to retrieve one stored value from a mapping.",
+              "eg": "In a dictionary of course rooms, 'BIO101' can point to one room assignment.",
+              "mi": "A key can repeat many times for the same mapping entry.",
+              "cx": "Because lookup uses labels, the same key cannot be duplicated in one dictionary.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "723f3d6d84edf561f9627bd81a04c1b1de8156285580a57324127c7053124e18",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_00839974e41b2885006a54ee4f5f0c81a2aec684b04cbc0117",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 595,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 537,
+            "output_tokens_details": {
+              "reasoning_tokens": 126
+            },
+            "total_tokens": 1132
+          }
+        },
+        "startedAt": "2026-07-13T13:55:27.306Z",
+        "durationMs": 4524
+      }
+    ]
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 3,
+  "protocol": "scion-blind-instructor-review-v3",
+  "status": "ready-for-research-review",
+  "generatedAt": "2026-07-13T14:42:21.987Z",
+  "packetId": "scion-review-f3b637a357e2e3408a37",
+  "packetDigest": "f3b637a357e2e3408a372651e8ac05f9445d2f88bcf2a3cc5c04dee1bee9be58",
+  "organizerDigest": "4ff60d5b0de27becd868e3c74c267ffa3179cde71ea447ad02c7dc5a64a05817",
+  "selectedCases": 160,
+  "availableCandidates": 372,
+  "requiredIndependentReviews": 320,
+  "completedIndependentReviews": 0,
+  "approvedTrainingPairs": 0,
+  "domains": ["computer-science", "geology", "music-theory", "user-experience-design"],
+  "domainCounts": {
+    "computer-science": 40,
+    "geology": 40,
+    "music-theory": 40,
+    "user-experience-design": 40
+  },
+  "courseGroupCount": 12,
+  "domainGroupCounts": {
+    "computer-science": 3,
+    "geology": 3,
+    "music-theory": 3,
+    "user-experience-design": 3
+  },
+  "targetCourseGroupsPerDomain": 3,
+  "groupCoverageStatus": "ready",
+  "researchCoverageStatus": "ready",
+  "coverageStatus": "needs-more-domains",
+  "kindCounts": {
+    "mc-item": 78,
+    "key-term": 82
+  },
+  "sourceContextCases": 63,
+  "sourceContextDomainCounts": {
+    "computer-science": 15,
+    "geology": 17,
+    "music-theory": 17,
+    "user-experience-design": 14
+  },
+  "sourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "manifestPath": "evaluation/scion-source-capture-campaign.json",
+    "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+    "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d",
+    "artifactSetSha256": "23f8646eeef3d74f741bdb980b6a9064ce558ba9141a4003a62b11a4b1c9eb13",
+    "groups": 8,
+    "promptsPerArm": 24,
+    "expectedAtomsPerArm": 96,
+    "validProjects": 16,
+    "totalProjects": 16,
+    "local": {
+      "model": {
+        "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+        "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "route": "mlx-vlm-base-only",
+        "decoding": "greedy-json-schema"
+      },
+      "rawGeneratedAtoms": 92,
+      "rawAdmittedAtoms": 62,
+      "rawBurdenAtoms": 34,
+      "rawBurdenRate": 0.354167,
+      "recoveryCalls": 1,
+      "compiledGeneratedAtoms": 94,
+      "compiledAdmittedAtoms": 63,
+      "compiledBurdenAtoms": 33,
+      "compiledBurdenRate": 0.34375
+    },
+    "reference": {
+      "model": {
+        "id": "gpt-5.4-mini",
+        "route": "responses-api",
+        "reasoningEffort": "low"
+      },
+      "rawGeneratedAtoms": 96,
+      "rawAdmittedAtoms": 91,
+      "rawBurdenAtoms": 5,
+      "rawBurdenRate": 0.052083,
+      "recoveryCalls": 0
+    },
+    "comparison": {
+      "rawLocalBurdenDeltaAtoms": 29,
+      "rawLocalBurdenDeltaRate": 0.302084,
+      "compiledLocalBurdenDeltaAtoms": 28,
+      "compiledLocalBurdenDeltaRate": 0.291667,
+      "localRawHasLowerCompilerBurden": false
+    }
+  },
+  "heldOutBenchmark": {
+    "path": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+    "sha256": "e3f07d2ccdf197315556e0205b97b30aee7a447399e14c440d6c1865e11b08a5",
+    "domains": ["astronomy", "nutrition", "psychology", "world-languages", "world-literature"],
+    "excluded": {},
+    "excludedCount": 0
+  },
+  "excludedInvalidCourseGroups": [],
+  "sourceFiles": [
+    {
+      "source": "evaluation/scion-review-candidates.jsonl",
+      "sha256": "59d2ca2eb7745eb58135609fb9bca0bc202686241446fbef270914c2ccc31dc0"
+    }
+  ],
+  "claimBoundary": "This receipt proves a frozen, holdout-disjoint, source-bound blind-review packet and exact model/compiler burden evidence exist. It proves no instructor judgment, approved training pair, adapter quality, or promotion result."
+}

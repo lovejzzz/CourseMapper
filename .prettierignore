@@ -8,6 +8,10 @@ evaluation/production-canaries/artifacts
 # Retained, minified project snapshots are immutable comparison inputs. Keep
 # their captured bytes stable; format the manifest and generated report instead.
 evaluation/scion-contrast-evidence
+# Retained source-capture projects are byte-hashed model evidence. Their own
+# verifier reconstructs content, provenance, and compiler decisions; formatting
+# would invalidate the artifact-set receipt without improving source style.
+evaluation/scion-source-capture-evidence
 .firebase
 .claude
 **/.venv*/

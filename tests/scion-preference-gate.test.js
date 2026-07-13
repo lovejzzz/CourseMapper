@@ -755,6 +755,100 @@ describe('Scion preference admission gate', () => {
     );
   });
 
+  it('requires source-backed project artifacts and their pair manifest to bind the same packet digest', () => {
+    const leftDigest = 'a'.repeat(64);
+    const rightDigest = 'b'.repeat(64);
+    const project = (sourcePacketSha256, question) => ({
+      promptText: 'A source-backed interaction design course.',
+      fileNames: [`source-packet-${sourcePacketSha256}.json`],
+      sourcePacketSha256,
+      courseGraphJson: JSON.stringify({
+        sessions: [{ number: 1, title: 'Lesson 1: Navigation Evidence' }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': { quizItems: [{ ...goodMc({ q: question }), type: 'multiple_choice' }], keyTerms: [] },
+          },
+        },
+      }),
+    });
+    const result = buildMatchedReviewCandidates([
+      {
+        id: 'source-packet-mismatch',
+        domain: 'interaction-design',
+        courseGroupId: 'source-bound-navigation',
+        sourcePacketSha256: leftDigest,
+        candidateRoute: 'scion-test',
+        candidateModel: 'Scion',
+        referenceModel: 'Reference',
+        candidateProject: project(leftDigest, 'Which observation best supports revising the navigation label?'),
+        referenceProject: project(rightDigest, 'Which evidence best supports revising the navigation label?'),
+      },
+    ]);
+    expect(result.summary).toMatchObject({ eligiblePairs: 0, excludedPairs: 1, candidates: 0 });
+    expect(result.summary.pairReports[0].issues).toEqual(
+      expect.arrayContaining(['course-input-mismatch', 'source-packet-digest-mismatch']),
+    );
+  });
+
+  it('carries the shared neutral source claims into every source-backed review candidate', () => {
+    const sourcePacketSha256 = 'c'.repeat(64);
+    const sourcePacket = {
+      kernels: [
+        {
+          id: 'ux/navigation-evidence',
+          term: 'Navigation evidence',
+          definition: 'Observed task performance provides direct evidence about whether a navigation label works.',
+          facts: [{ text: 'Repeated failure on the same labeled task supports revisiting that navigation label.' }],
+          attribution: ['Public teaching source'],
+          license: 'CC BY 4.0',
+        },
+      ],
+    };
+    const project = (question) => ({
+      promptText: 'A source-backed interaction design course.',
+      fileNames: [`source-packet-${sourcePacketSha256}.json`],
+      sourcePacketSha256,
+      scionSourceCapture: {
+        courseGroupId: 'source-bound-navigation',
+        sourcePacketSha256,
+        sourcePacket,
+        admittedPromptIds: ['source-bound-navigation:ux/navigation-evidence'],
+      },
+      courseGraphJson: JSON.stringify({
+        sessions: [{ number: 1, title: 'Lesson 1: Navigation Evidence' }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': { quizItems: [{ ...goodMc({ q: question }), type: 'multiple_choice' }], keyTerms: [] },
+          },
+        },
+      }),
+    });
+    const result = buildMatchedReviewCandidates([
+      {
+        id: 'source-context-pair',
+        domain: 'interaction-design',
+        courseGroupId: 'source-bound-navigation',
+        sourcePacketSha256,
+        candidateRoute: 'scion-test',
+        candidateModel: 'Scion',
+        referenceModel: 'Reference',
+        candidateProject: project('Which observation best supports revising the navigation label?'),
+        referenceProject: project('Which evidence best supports revising the navigation label?'),
+      },
+    ]);
+    expect(result.summary).toMatchObject({ eligiblePairs: 1, excludedPairs: 0, candidates: 1 });
+    expect(result.rows[0]).toMatchObject({
+      sourceContext: {
+        sourcePacketSha256,
+        kernelId: 'ux/navigation-evidence',
+        claims: expect.arrayContaining([
+          'Observed task performance provides direct evidence about whether a navigation label works.',
+        ]),
+      },
+      pairSource: { sourcePacketSha256, sourceKernelId: 'ux/navigation-evidence' },
+    });
+  });
+
   it('excludes every pair when one explicit course-group label hides different course inputs', () => {
     const project = (promptText, question) => ({
       promptText,

@@ -2,9 +2,23 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** exact-QAT smoke training, deterministic GGUF conversion, browser activation, rollback, frozen paired evaluation, and input-bound blind-review plumbing are implemented; the current campaign is reviewable but fails course-group depth, and the production adapter remains blocked by missing completed reviews and quality gates
+**Status:** exact-QAT smoke training, deterministic GGUF conversion, browser activation, rollback, frozen paired evaluation, and source-bound blind-review plumbing are implemented; the research campaign now reaches three exact course groups in each of four domains, but completed reviews remain zero and no quality adapter has passed the frozen five-domain, burden, device, factual, export, or instructor gates
 
 **Release boundary:** no current public Scion request claims to use trained weights
+
+## v0.16.11 — Source Orchard evidence + per-atom compiler harvest
+
+**Goal:** create enough independent, source-bound course depth for a real research review campaign while measuring the raw local-model gap separately from compiler recovery.
+
+**Lane:** eight new six-session course groups add two exact inputs in each current research domain. Three source-selected Curriculum Genome kernels per group produce 24 compact calls and 96 requested atoms per arm. Every local and reference project binds the source packet, course input, prompt set, raw and admitted response, model configuration, compile graph, burden, and any recovery call. Strict verification reconstructs all 16 projects before the review packet can be built. Atom-only captures are marked `blind-review-only` so they cannot borrow the authored-lesson and short-answer denominators required by the full-course matrix.
+
+**Measured gap:** the pinned base-only Gemma research route generated 92 and admitted 62 of 96 expected atoms before recovery. GPT-5.4-mini generated 96 and admitted 91. Raw local compiler burden is therefore 34 atoms versus 5—a 29-atom, 30.2084-percentage-point deficit. One zero-atom local response received a bounded one-MC-plus-one-key-term retry, after which compiled local admission reached 63 of 96 and burden remained 33. This is evidence of a large base-model gap and one useful compiler recovery, not evidence that Scion beats the reference.
+
+**Compiler change:** admission now harvests each valid multiple-choice and key-term sibling independently. A valid atom is no longer discarded because a different requested output type failed the contract. Source, factual-support, explanation-key, cue, and structure gates are unchanged; rejected siblings and missing seats remain visible in the burden report.
+
+**Review state:** the ledger now contains 372 neutral candidates and the packet selects 160 across twelve exact course groups, three per domain. Sixty-three selected cases carry the exact neutral source claims, attribution, and license into the offline A/B reviewer without revealing model identity. The five frozen held-out domains remain excluded. Course-depth coverage is ready for research review, but completed independent reviews, approved training pairs, and trained quality adapters remain zero.
+
+**Release Boundary:** public Scion V0.16.11 is still the pinned browser-local Gemma base plus the model-neutral compiler. This release ships evidence and compiler integrity only; it does not ship learned weights or claim adapter quality.
 
 ## v0.16.10 — Many Roots course-group integrity
 
@@ -235,7 +249,7 @@ Every adapter/base course comparison is now an artifact-derived paired experimen
 - The adapter manifest is schema v2 for browser GGUF packages. It binds the source adapter and manifest, inference scale, conversion receipt, exact llama.cpp revision and converter digest, browser runtime, and the single GGUF artifact's bytes and SHA-256.
 - The deterministic `mlx-lora-to-peft-to-gguf-v1` bridge validates the exact QAT base, maps and transposes 276 complete LoRA A/B pairs, ignores only documented quantization bookkeeping, and invokes the official llama.cpp converter pinned at revision `5ec717d1256e34558a44dc09adf1e6e16f2e2682`. The 52,704,096-byte F16 GGUF contains 552 tensors and native `gemma4`/`lora` metadata.
 - Dataset truth is split by claim. The strict v0.16.6 production audit admitted **0 of 471** raw events because independent evidence and explicit split identity were missing. The v0.16.7 `--smoke` derivation admitted 101 structurally evidenced pairs across five registered domains solely to prove training and packaging. Its manifest is `smoke-only`; it is not a production corpus and cannot create a candidate or promoted package.
-- The matched-corpus audit retains 309 neutral atoms across Computer Science, Geology, Music Theory, and UX after excluding 68 World Literature atoms with mismatched course inputs. v0.16.10 proves those atoms represent only four input-bound course groups, exactly one per current domain. The frozen 160-case packet needs 320 judgments but remains incomplete on course depth; no judgments have been ingested, so research and production datasets are correctly blocked.
+- The matched-corpus audit now retains 372 neutral atoms across Computer Science, Geology, Music Theory, and UX after excluding 68 World Literature atoms with mismatched course inputs. Eight source-bound additions bring the packet to twelve input-bound course groups, exactly three per current domain. The frozen 160-case packet still needs 320 judgments; no judgments have been ingested, so research and production datasets remain correctly blocked even though research course-depth coverage is ready.
 - `research-ready` is an experiment lane, not a relaxed release lane. It needs 100 approved pairs, at least 20 blind-instructor-approved pairs and three course groups in each of four domains; its adapter status is `research`, remains non-promotable in every runtime format, and exists only to decide whether collecting the next labels is empirically worthwhile.
 - A ten-iteration exact-QAT MLX adapter was converted, packaged, semantically audited, and exercised in the browser. Native activation at scale 1 and scale 4 did not change the deterministic canary. Scale 16 changed it and rollback restored the exact base output. This is strong mechanical evidence and weak learning evidence; it is not a quality result.
 - The packaged browser runtime now performs direct public base download, WebGPU inference, native dynamic LoRA activation, activation probing, and rollback. It also runs without cross-origin isolation, avoiding a global header change that could break Firebase sign-in popups.

@@ -1,0 +1,1085 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-ux-research-synthesis-studio-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "UX Research and Synthesis Studio, a six-session project course in which students plan ethical studies, distinguish evidence from assumptions, and synthesize observations into personas and journey maps that inform decisions.",
+  "fileNames": [
+    "source-packet-cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e.json"
+  ],
+  "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"UX Research and Synthesis Studio\",\"sessions\":[{\"number\":1,\"title\":\"Research planning\"},{\"number\":2,\"title\":\"Personas\"},{\"number\":3,\"title\":\"Journey mapping\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"A team is planning a UX research round for a new checkout flow. What should it settle first?\",\"op\":[\"What it wants to learn from the research round\",\"Which questions the facilitator will ask first\",\"How many screens the prototype contains\",\"Which note-taking app the team prefers\"],\"ai\":0,\"ex\":\"The correct choice is what the team wants to learn, because the plan starts by agreeing the learning goal before study details are selected. A common misconception is to jump straight to logistics such as tools, questions, or screen count, but those come after the learning need is clear.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Actionable learning objectives\",\"df\":\"Specific things the team wants the study to clarify so the findings can support a decision.\",\"eg\":\"A team wants to learn whether shoppers can compare shipping options before choosing a plan.\",\"mi\":\"The team should start by writing every possible research question.\",\"cx\":\"Begin with the decision need, then turn it into focused objectives.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Rehearsal-ready study setup\",\"df\":\"A study arrangement that has been checked so the tasks, participants, evidence capture, and venue can be used smoothly.\",\"eg\":\"Before the session, the team confirms the prototype works end-to-end and runs the tasks with a teammate.\",\"mi\":\"Once the prototype exists, the session can proceed without any practice.\",\"cx\":\"Check the flow ahead of time; a practice run can expose procedure problems before participants arrive.\",\"sourceFactIndexes\":[0,2,3]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"A team has identified a stable user need and wants to plan features for it. Which practice best supports later evaluation of whether the need is being met?\",\"op\":[\"Write user stories without tracing them back\",\"Link each user story to its source need\",\"Replace needs with individual interface requests\",\"Keep the need only in a private note\"],\"ai\":1,\"ex\":\"Linking each user story to its source need makes it possible to evaluate whether the need is being met. A common misconception is that a story alone is enough, but without the link, the team loses the evidence trail.\",\"sourceFactIndexes\":[2,3,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Persona\",\"df\":\"A shareable profile built from research to represent a user group with similar behavior and needs.\",\"eg\":\"After interviews and observation, a studio team creates a persona for commuter students who need quick mobile checkout.\",\"mi\":\"It is just a fictional character invented to sound realistic.\",\"cx\":\"A persona should be grounded in evidence so design choices stay connected to what research shows about the group.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"User story\",\"df\":\"A short feature-focused statement that expresses how a product should meet a user need.\",\"eg\":\"A team turns the need for fast access into a story about saving a draft from any device.\",\"mi\":\"It is the same thing as a raw user need.\",\"cx\":\"A need is higher-level and more stable, while the story describes features or content meant to address it.\",\"sourceFactIndexes\":[2,3,4]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A team is building a journey map for students using a campus advising service. Which choice best matches the source guidance for what the map should be based on first?\",\"op\":[\"Observed steps users actually take and the transactions involved\",\"The advisor's preferred workflow and policy checklist\",\"A list of frustrations the team expects students to have\",\"A summary of the service's online tools only\"],\"ai\":0,\"ex\":\"Correct: the map should start from research on what users actually do and the transactions involved. The common misconception is to begin with internal process steps or assumptions about frustration before grounding the map in observed behavior.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"},{\"q\":\"After mapping a checkout journey, the team wants the map to help decide where to improve. What should the map make visible?\",\"op\":[\"User struggle points and candidate improvement areas\",\"Only the most successful moments in the service\",\"The team's intended brand story for the service\",\"Hidden motives behind each user's choices\"],\"ai\":0,\"ex\":\"Correct: the map should surface struggle points and possible improvements. A plausible misconception is that a journey map is mainly a promotional story or a way to infer motives; the source only supports making problems and opportunities visible.\",\"sourceFactIndexes\":[2,3,0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Journey mapping\",\"df\":\"A visual account of the whole experience from the user's viewpoint that shows connected steps, boundaries, breakdowns, and opportunities.\",\"eg\":\"A student services team maps how first-year students move from searching for help to booking, waiting, meeting, and following up.\",\"mi\":\"It is just a flowchart of the organization's internal departments.\",\"cx\":\"The source frames it as end-to-end from the user's perspective, not as an internal org chart.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Experience map\",\"df\":\"A representation of the service path that highlights where people struggle and where improvements may be worth pursuing.\",\"eg\":\"A team maps a bus pass application process and marks the moments when students get stuck or have to switch channels.\",\"mi\":\"It only records the smoothest parts of the service.\",\"cx\":\"The source says it should make struggle points and candidate improvement areas visible.\",\"sourceFactIndexes\":[2,3,4]}]}}}}",
+  "savedAt": "2026-07-13T13:58:04.697Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-campaign.json",
+    "campaignManifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+    "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d",
+    "courseInputSha256": "728d4020e0b7003db54e33bcfbcc26df6f41e4aad8230edce7c63b97472b02ea",
+    "courseGroupId": "ux-research-synthesis-studio",
+    "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/ux-intro.json",
+      "sourceArtifactSha256": "97184a577a92ba3e8103dacfb100bbabbf25c8d90905da95b1b0dec1e0664e54",
+      "kernels": [
+        {
+          "id": "ux/research-planning",
+          "term": "Research planning",
+          "definition": "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "definitionAnchor": {
+            "src": "govuk:plan-user-research",
+            "loc": "Set your research objectives",
+            "quote": "Each round of user research should have clear objectives. Keep your objectives actionable and to the point."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The team should agree what it wants to learn from the research round before selecting study details.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Set your research objectives",
+                "quote": "Work with your team to agree what you want to learn from a round of research."
+              }
+            },
+            {
+              "index": 1,
+              "text": "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Prepare the prototype",
+                "quote": "Your prototype or beta service needs to work from end-to-end and be usable and accessible from the research venue."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Researchers should run through test tasks on the day before the research session.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Prepare the prototype",
+                "quote": "Run through the test tasks on the day before the research."
+              }
+            },
+            {
+              "index": 3,
+              "text": "A practice session with a team member can expose procedure problems before participants arrive.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Run a practice session",
+                "quote": "To make sure your research goes smoothly, consider running through the session with a team member."
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/evidence-based-personas",
+          "term": "Personas",
+          "definition": "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "definitionAnchor": {
+            "src": "govuk:user-needs",
+            "loc": "Share your user needs",
+            "quote": "user profiles or personas that describe groups of users with similar behaviour and needs"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Personas are one way to present research findings so other people can understand and share them.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Share your user needs",
+                "quote": "Present what you've learned in a way that's easy for others to understand and share."
+              }
+            },
+            {
+              "index": 1,
+              "text": "User needs are generally higher-level and more stable over time than individual interface requests.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "User needs tend to be high-level, broad in scope and stable over time."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "These describe the specific features and content you need to create for your service to meet your users' needs."
+              }
+            },
+            {
+              "index": 3,
+              "text": "Keeping each user story linked to its source need enables evaluation of whether the need is being met.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "This traceability allows you to track related activities and determine how well you're meeting a particular user need."
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/journey-mapping",
+          "term": "Journey mapping",
+          "definition": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "definitionAnchor": {
+            "src": "govuk:whole-journey",
+            "loc": "Whole problem",
+            "quote": "It's important for teams to make sure the thing they're building forms a coherent part of a user's wider journey."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "User point of view",
+                "quote": "Start by talking to your users to learn more about the steps they have to take and the transactions involved."
+              }
+            },
+            {
+              "index": 1,
+              "text": "An experience map should make struggle points and candidate improvement areas visible.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "User point of view",
+                "quote": "The map should show which bits of the journey users are struggling with and the areas you might want to focus on improving."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "What to change",
+                "quote": "dead ends in the user journey"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Journey analysis should include gaps between online and offline parts of a service.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "What to change",
+                "quote": "online and offline elements of the transaction not joining up in an intuitive way"
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-13T13:58:04.697Z",
+    "admittedPromptIds": [
+      "ux-research-synthesis-studio:ux/research-planning",
+      "ux-research-synthesis-studio:ux/evidence-based-personas",
+      "ux-research-synthesis-studio:ux/journey-mapping"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "ux-research-synthesis-studio:ux/research-planning",
+          "kernelId": "ux/research-planning",
+          "promptSha256": "972b81ca55113081c42c8afe1f1f5a9cc2b4d829638521de32867eeb6c55a1a0",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team is planning a UX research round for a new checkout flow. What should it settle first?",
+                "op": [
+                  "What it wants to learn from the research round",
+                  "Which questions the facilitator will ask first",
+                  "How many screens the prototype contains",
+                  "Which note-taking app the team prefers"
+                ],
+                "ai": 0,
+                "ex": "The correct choice is what the team wants to learn, because the plan starts by agreeing the learning goal before study details are selected. A common misconception is to jump straight to logistics such as tools, questions, or screen count, but those come after the learning need is clear.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "The researchers have a prototype, a venue, and participant tasks ready. What preparation best supports the session the day before?",
+                "op": [
+                  "Run through the test tasks",
+                  "Add more features to the prototype",
+                  "Rewrite the study goals",
+                  "Recruit a second participant"
+                ],
+                "ai": 0,
+                "ex": "Running through the test tasks is correct because the guidance says researchers should rehearse the tasks the day before, and a practice session can reveal procedure problems before participants arrive. A plausible misconception is that more features or more participants are the key fix, but the pre",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Actionable learning objectives",
+                "df": "Specific things the team wants the study to clarify so the findings can support a decision.",
+                "eg": "A team wants to learn whether shoppers can compare shipping options before choosing a plan.",
+                "mi": "The team should start by writing every possible research question.",
+                "cx": "Begin with the decision need, then turn it into focused objectives.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Rehearsal-ready study setup",
+                "df": "A study arrangement that has been checked so the tasks, participants, evidence capture, and venue can be used smoothly.",
+                "eg": "Before the session, the team confirms the prototype works end-to-end and runs the tasks with a teammate.",
+                "mi": "Once the prototype exists, the session can proceed without any practice.",
+                "cx": "Check the flow ahead of time; a practice run can expose procedure problems before participants arrive.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "9898b786881147f76d265c1dac377bc4154d931aa54c048e46bac8791bd38212",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A team is planning a UX research round for a new checkout flow. What should it settle first?",
+                "op": [
+                  "What it wants to learn from the research round",
+                  "Which questions the facilitator will ask first",
+                  "How many screens the prototype contains",
+                  "Which note-taking app the team prefers"
+                ],
+                "ai": 0,
+                "ex": "The correct choice is what the team wants to learn, because the plan starts by agreeing the learning goal before study details are selected. A common misconception is to jump straight to logistics such as tools, questions, or screen count, but those come after the learning need is clear.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Actionable learning objectives",
+                "df": "Specific things the team wants the study to clarify so the findings can support a decision.",
+                "eg": "A team wants to learn whether shoppers can compare shipping options before choosing a plan.",
+                "mi": "The team should start by writing every possible research question.",
+                "cx": "Begin with the decision need, then turn it into focused objectives.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Rehearsal-ready study setup",
+                "df": "A study arrangement that has been checked so the tasks, participants, evidence capture, and venue can be used smoothly.",
+                "eg": "Before the session, the team confirms the prototype works end-to-end and runs the tasks with a teammate.",
+                "mi": "Once the prototype exists, the session can proceed without any practice.",
+                "cx": "Check the flow ahead of time; a practice run can expose procedure problems before participants arrive.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "a81e4930b97f4f3d1ce2e377e0f6ebad6f4a49b294a8dfca24bb7f097708b125",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-truncated-explanation"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0c8cc4f89f47a58d006a54ee8fb29881a1b92afa644da2eaa1",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 638,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 602,
+              "output_tokens_details": {
+                "reasoning_tokens": 148
+              },
+              "total_tokens": 1240
+            }
+          },
+          "startedAt": "2026-07-13T13:56:31.631Z",
+          "durationMs": 5796
+        },
+        {
+          "promptId": "ux-research-synthesis-studio:ux/evidence-based-personas",
+          "kernelId": "ux/evidence-based-personas",
+          "promptSha256": "670b3489ab64c7a913ee07cdef80532522322c779d55e29131be67cd1c06d9b2",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team is preparing a class deliverable that will be shared with stakeholders. Which artifact best keeps design choices tied to evidence from research about a user group’s behavior and needs?",
+                "op": [
+                  "A research-based persona profile",
+                  "A feature backlog sorted by sprint",
+                  "A sentiment summary of interface opinions",
+                  "A list of visual style preferences"
+                ],
+                "ai": 0,
+                "ex": "A research-based persona is a shareable profile of a user group with similar behavior and needs, so it keeps decisions connected to evidence. The other choices can support planning, but they do not package research findings as a user-facing profile of the group.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "A team has identified a stable user need and wants to plan features for it. Which practice best supports later evaluation of whether the need is being met?",
+                "op": [
+                  "Write user stories without tracing them back",
+                  "Link each user story to its source need",
+                  "Replace needs with individual interface requests",
+                  "Keep the need only in a private note"
+                ],
+                "ai": 1,
+                "ex": "Linking each user story to its source need makes it possible to evaluate whether the need is being met. A common misconception is that a story alone is enough, but without the link, the team loses the evidence trail.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Persona",
+                "df": "A shareable profile built from research to represent a user group with similar behavior and needs.",
+                "eg": "After interviews and observation, a studio team creates a persona for commuter students who need quick mobile checkout.",
+                "mi": "It is just a fictional character invented to sound realistic.",
+                "cx": "A persona should be grounded in evidence so design choices stay connected to what research shows about the group.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "User story",
+                "df": "A short feature-focused statement that expresses how a product should meet a user need.",
+                "eg": "A team turns the need for fast access into a story about saving a draft from any device.",
+                "mi": "It is the same thing as a raw user need.",
+                "cx": "A need is higher-level and more stable, while the story describes features or content meant to address it.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "9dd3cc1885d006ecc2a214dad347ece4e566bd7a7a71d11c9aca204e23ed96fb",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A team has identified a stable user need and wants to plan features for it. Which practice best supports later evaluation of whether the need is being met?",
+                "op": [
+                  "Write user stories without tracing them back",
+                  "Link each user story to its source need",
+                  "Replace needs with individual interface requests",
+                  "Keep the need only in a private note"
+                ],
+                "ai": 1,
+                "ex": "Linking each user story to its source need makes it possible to evaluate whether the need is being met. A common misconception is that a story alone is enough, but without the link, the team loses the evidence trail.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Persona",
+                "df": "A shareable profile built from research to represent a user group with similar behavior and needs.",
+                "eg": "After interviews and observation, a studio team creates a persona for commuter students who need quick mobile checkout.",
+                "mi": "It is just a fictional character invented to sound realistic.",
+                "cx": "A persona should be grounded in evidence so design choices stay connected to what research shows about the group.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "User story",
+                "df": "A short feature-focused statement that expresses how a product should meet a user need.",
+                "eg": "A team turns the need for fast access into a story about saving a draft from any device.",
+                "mi": "It is the same thing as a raw user need.",
+                "cx": "A need is higher-level and more stable, while the story describes features or content meant to address it.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "a9e403daee9d6f9a014b22e9cd83a90d11ffd7c671f342441834a3c3b395d5b5",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-meta-surface"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0267991a492f4fcf006a54eee7f2d881a0b6e61a0db10afa16",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 642,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 537,
+              "output_tokens_details": {
+                "reasoning_tokens": 72
+              },
+              "total_tokens": 1179
+            }
+          },
+          "startedAt": "2026-07-13T13:57:59.897Z",
+          "durationMs": 4800
+        },
+        {
+          "promptId": "ux-research-synthesis-studio:ux/journey-mapping",
+          "kernelId": "ux/journey-mapping",
+          "promptSha256": "cc28986d2b7aa8e3f28a2f382e23883da8df8b5665384de6df39472568ac2074",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team is building a journey map for students using a campus advising service. Which choice best matches the source guidance for what the map should be based on first?",
+                "op": [
+                  "Observed steps users actually take and the transactions involved",
+                  "The advisor's preferred workflow and policy checklist",
+                  "A list of frustrations the team expects students to have",
+                  "A summary of the service's online tools only"
+                ],
+                "ai": 0,
+                "ex": "Correct: the map should start from research on what users actually do and the transactions involved. The common misconception is to begin with internal process steps or assumptions about frustration before grounding the map in observed behavior.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "After mapping a checkout journey, the team wants the map to help decide where to improve. What should the map make visible?",
+                "op": [
+                  "User struggle points and candidate improvement areas",
+                  "Only the most successful moments in the service",
+                  "The team's intended brand story for the service",
+                  "Hidden motives behind each user's choices"
+                ],
+                "ai": 0,
+                "ex": "Correct: the map should surface struggle points and possible improvements. A plausible misconception is that a journey map is mainly a promotional story or a way to infer motives; the source only supports making problems and opportunities visible.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "A visual account of the whole experience from the user's viewpoint that shows connected steps, boundaries, breakdowns, and opportunities.",
+                "eg": "A student services team maps how first-year students move from searching for help to booking, waiting, meeting, and following up.",
+                "mi": "It is just a flowchart of the organization's internal departments.",
+                "cx": "The source frames it as end-to-end from the user's perspective, not as an internal org chart.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Experience map",
+                "df": "A representation of the service path that highlights where people struggle and where improvements may be worth pursuing.",
+                "eg": "A team maps a bus pass application process and marks the moments when students get stuck or have to switch channels.",
+                "mi": "It only records the smoothest parts of the service.",
+                "cx": "The source says it should make struggle points and candidate improvement areas visible.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "e2d19ab316362267c5e608452c27668f2f9908598cfbc0d7e387359f6f470ea9",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A team is building a journey map for students using a campus advising service. Which choice best matches the source guidance for what the map should be based on first?",
+                "op": [
+                  "Observed steps users actually take and the transactions involved",
+                  "The advisor's preferred workflow and policy checklist",
+                  "A list of frustrations the team expects students to have",
+                  "A summary of the service's online tools only"
+                ],
+                "ai": 0,
+                "ex": "Correct: the map should start from research on what users actually do and the transactions involved. The common misconception is to begin with internal process steps or assumptions about frustration before grounding the map in observed behavior.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "After mapping a checkout journey, the team wants the map to help decide where to improve. What should the map make visible?",
+                "op": [
+                  "User struggle points and candidate improvement areas",
+                  "Only the most successful moments in the service",
+                  "The team's intended brand story for the service",
+                  "Hidden motives behind each user's choices"
+                ],
+                "ai": 0,
+                "ex": "Correct: the map should surface struggle points and possible improvements. A plausible misconception is that a journey map is mainly a promotional story or a way to infer motives; the source only supports making problems and opportunities visible.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "A visual account of the whole experience from the user's viewpoint that shows connected steps, boundaries, breakdowns, and opportunities.",
+                "eg": "A student services team maps how first-year students move from searching for help to booking, waiting, meeting, and following up.",
+                "mi": "It is just a flowchart of the organization's internal departments.",
+                "cx": "The source frames it as end-to-end from the user's perspective, not as an internal org chart.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Experience map",
+                "df": "A representation of the service path that highlights where people struggle and where improvements may be worth pursuing.",
+                "eg": "A team maps a bus pass application process and marks the moments when students get stuck or have to switch channels.",
+                "mi": "It only records the smoothest parts of the service.",
+                "cx": "The source says it should make struggle points and candidate improvement areas visible.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "e2d19ab316362267c5e608452c27668f2f9908598cfbc0d7e387359f6f470ea9",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0f46b6760a0c0059006a54eea9b22881a0bc565edec34105e8",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 631,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 525,
+              "output_tokens_details": {
+                "reasoning_tokens": 59
+              },
+              "total_tokens": 1156
+            }
+          },
+          "startedAt": "2026-07-13T13:56:57.627Z",
+          "durationMs": 5392
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "ux-research-synthesis-studio:ux/research-planning",
+        "kernelId": "ux/research-planning",
+        "promptSha256": "972b81ca55113081c42c8afe1f1f5a9cc2b4d829638521de32867eeb6c55a1a0",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A team is planning a UX research round for a new checkout flow. What should it settle first?",
+              "op": [
+                "What it wants to learn from the research round",
+                "Which questions the facilitator will ask first",
+                "How many screens the prototype contains",
+                "Which note-taking app the team prefers"
+              ],
+              "ai": 0,
+              "ex": "The correct choice is what the team wants to learn, because the plan starts by agreeing the learning goal before study details are selected. A common misconception is to jump straight to logistics such as tools, questions, or screen count, but those come after the learning need is clear.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "The researchers have a prototype, a venue, and participant tasks ready. What preparation best supports the session the day before?",
+              "op": [
+                "Run through the test tasks",
+                "Add more features to the prototype",
+                "Rewrite the study goals",
+                "Recruit a second participant"
+              ],
+              "ai": 0,
+              "ex": "Running through the test tasks is correct because the guidance says researchers should rehearse the tasks the day before, and a practice session can reveal procedure problems before participants arrive. A plausible misconception is that more features or more participants are the key fix, but the pre",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Actionable learning objectives",
+              "df": "Specific things the team wants the study to clarify so the findings can support a decision.",
+              "eg": "A team wants to learn whether shoppers can compare shipping options before choosing a plan.",
+              "mi": "The team should start by writing every possible research question.",
+              "cx": "Begin with the decision need, then turn it into focused objectives.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Rehearsal-ready study setup",
+              "df": "A study arrangement that has been checked so the tasks, participants, evidence capture, and venue can be used smoothly.",
+              "eg": "Before the session, the team confirms the prototype works end-to-end and runs the tasks with a teammate.",
+              "mi": "Once the prototype exists, the session can proceed without any practice.",
+              "cx": "Check the flow ahead of time; a practice run can expose procedure problems before participants arrive.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "9898b786881147f76d265c1dac377bc4154d931aa54c048e46bac8791bd38212",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A team is planning a UX research round for a new checkout flow. What should it settle first?",
+              "op": [
+                "What it wants to learn from the research round",
+                "Which questions the facilitator will ask first",
+                "How many screens the prototype contains",
+                "Which note-taking app the team prefers"
+              ],
+              "ai": 0,
+              "ex": "The correct choice is what the team wants to learn, because the plan starts by agreeing the learning goal before study details are selected. A common misconception is to jump straight to logistics such as tools, questions, or screen count, but those come after the learning need is clear.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Actionable learning objectives",
+              "df": "Specific things the team wants the study to clarify so the findings can support a decision.",
+              "eg": "A team wants to learn whether shoppers can compare shipping options before choosing a plan.",
+              "mi": "The team should start by writing every possible research question.",
+              "cx": "Begin with the decision need, then turn it into focused objectives.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Rehearsal-ready study setup",
+              "df": "A study arrangement that has been checked so the tasks, participants, evidence capture, and venue can be used smoothly.",
+              "eg": "Before the session, the team confirms the prototype works end-to-end and runs the tasks with a teammate.",
+              "mi": "Once the prototype exists, the session can proceed without any practice.",
+              "cx": "Check the flow ahead of time; a practice run can expose procedure problems before participants arrive.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "a81e4930b97f4f3d1ce2e377e0f6ebad6f4a49b294a8dfca24bb7f097708b125",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-1-truncated-explanation"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0c8cc4f89f47a58d006a54ee8fb29881a1b92afa644da2eaa1",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 638,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 602,
+            "output_tokens_details": {
+              "reasoning_tokens": 148
+            },
+            "total_tokens": 1240
+          }
+        },
+        "startedAt": "2026-07-13T13:56:31.631Z",
+        "durationMs": 5796
+      },
+      {
+        "promptId": "ux-research-synthesis-studio:ux/evidence-based-personas",
+        "kernelId": "ux/evidence-based-personas",
+        "promptSha256": "670b3489ab64c7a913ee07cdef80532522322c779d55e29131be67cd1c06d9b2",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A team is preparing a class deliverable that will be shared with stakeholders. Which artifact best keeps design choices tied to evidence from research about a user group’s behavior and needs?",
+              "op": [
+                "A research-based persona profile",
+                "A feature backlog sorted by sprint",
+                "A sentiment summary of interface opinions",
+                "A list of visual style preferences"
+              ],
+              "ai": 0,
+              "ex": "A research-based persona is a shareable profile of a user group with similar behavior and needs, so it keeps decisions connected to evidence. The other choices can support planning, but they do not package research findings as a user-facing profile of the group.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "A team has identified a stable user need and wants to plan features for it. Which practice best supports later evaluation of whether the need is being met?",
+              "op": [
+                "Write user stories without tracing them back",
+                "Link each user story to its source need",
+                "Replace needs with individual interface requests",
+                "Keep the need only in a private note"
+              ],
+              "ai": 1,
+              "ex": "Linking each user story to its source need makes it possible to evaluate whether the need is being met. A common misconception is that a story alone is enough, but without the link, the team loses the evidence trail.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Persona",
+              "df": "A shareable profile built from research to represent a user group with similar behavior and needs.",
+              "eg": "After interviews and observation, a studio team creates a persona for commuter students who need quick mobile checkout.",
+              "mi": "It is just a fictional character invented to sound realistic.",
+              "cx": "A persona should be grounded in evidence so design choices stay connected to what research shows about the group.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "User story",
+              "df": "A short feature-focused statement that expresses how a product should meet a user need.",
+              "eg": "A team turns the need for fast access into a story about saving a draft from any device.",
+              "mi": "It is the same thing as a raw user need.",
+              "cx": "A need is higher-level and more stable, while the story describes features or content meant to address it.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "9dd3cc1885d006ecc2a214dad347ece4e566bd7a7a71d11c9aca204e23ed96fb",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A team has identified a stable user need and wants to plan features for it. Which practice best supports later evaluation of whether the need is being met?",
+              "op": [
+                "Write user stories without tracing them back",
+                "Link each user story to its source need",
+                "Replace needs with individual interface requests",
+                "Keep the need only in a private note"
+              ],
+              "ai": 1,
+              "ex": "Linking each user story to its source need makes it possible to evaluate whether the need is being met. A common misconception is that a story alone is enough, but without the link, the team loses the evidence trail.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Persona",
+              "df": "A shareable profile built from research to represent a user group with similar behavior and needs.",
+              "eg": "After interviews and observation, a studio team creates a persona for commuter students who need quick mobile checkout.",
+              "mi": "It is just a fictional character invented to sound realistic.",
+              "cx": "A persona should be grounded in evidence so design choices stay connected to what research shows about the group.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "User story",
+              "df": "A short feature-focused statement that expresses how a product should meet a user need.",
+              "eg": "A team turns the need for fast access into a story about saving a draft from any device.",
+              "mi": "It is the same thing as a raw user need.",
+              "cx": "A need is higher-level and more stable, while the story describes features or content meant to address it.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "a9e403daee9d6f9a014b22e9cd83a90d11ffd7c671f342441834a3c3b395d5b5",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-0-meta-surface"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0267991a492f4fcf006a54eee7f2d881a0b6e61a0db10afa16",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 642,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 537,
+            "output_tokens_details": {
+              "reasoning_tokens": 72
+            },
+            "total_tokens": 1179
+          }
+        },
+        "startedAt": "2026-07-13T13:57:59.897Z",
+        "durationMs": 4800
+      },
+      {
+        "promptId": "ux-research-synthesis-studio:ux/journey-mapping",
+        "kernelId": "ux/journey-mapping",
+        "promptSha256": "cc28986d2b7aa8e3f28a2f382e23883da8df8b5665384de6df39472568ac2074",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A team is building a journey map for students using a campus advising service. Which choice best matches the source guidance for what the map should be based on first?",
+              "op": [
+                "Observed steps users actually take and the transactions involved",
+                "The advisor's preferred workflow and policy checklist",
+                "A list of frustrations the team expects students to have",
+                "A summary of the service's online tools only"
+              ],
+              "ai": 0,
+              "ex": "Correct: the map should start from research on what users actually do and the transactions involved. The common misconception is to begin with internal process steps or assumptions about frustration before grounding the map in observed behavior.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "After mapping a checkout journey, the team wants the map to help decide where to improve. What should the map make visible?",
+              "op": [
+                "User struggle points and candidate improvement areas",
+                "Only the most successful moments in the service",
+                "The team's intended brand story for the service",
+                "Hidden motives behind each user's choices"
+              ],
+              "ai": 0,
+              "ex": "Correct: the map should surface struggle points and possible improvements. A plausible misconception is that a journey map is mainly a promotional story or a way to infer motives; the source only supports making problems and opportunities visible.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Journey mapping",
+              "df": "A visual account of the whole experience from the user's viewpoint that shows connected steps, boundaries, breakdowns, and opportunities.",
+              "eg": "A student services team maps how first-year students move from searching for help to booking, waiting, meeting, and following up.",
+              "mi": "It is just a flowchart of the organization's internal departments.",
+              "cx": "The source frames it as end-to-end from the user's perspective, not as an internal org chart.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Experience map",
+              "df": "A representation of the service path that highlights where people struggle and where improvements may be worth pursuing.",
+              "eg": "A team maps a bus pass application process and marks the moments when students get stuck or have to switch channels.",
+              "mi": "It only records the smoothest parts of the service.",
+              "cx": "The source says it should make struggle points and candidate improvement areas visible.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "e2d19ab316362267c5e608452c27668f2f9908598cfbc0d7e387359f6f470ea9",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A team is building a journey map for students using a campus advising service. Which choice best matches the source guidance for what the map should be based on first?",
+              "op": [
+                "Observed steps users actually take and the transactions involved",
+                "The advisor's preferred workflow and policy checklist",
+                "A list of frustrations the team expects students to have",
+                "A summary of the service's online tools only"
+              ],
+              "ai": 0,
+              "ex": "Correct: the map should start from research on what users actually do and the transactions involved. The common misconception is to begin with internal process steps or assumptions about frustration before grounding the map in observed behavior.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "After mapping a checkout journey, the team wants the map to help decide where to improve. What should the map make visible?",
+              "op": [
+                "User struggle points and candidate improvement areas",
+                "Only the most successful moments in the service",
+                "The team's intended brand story for the service",
+                "Hidden motives behind each user's choices"
+              ],
+              "ai": 0,
+              "ex": "Correct: the map should surface struggle points and possible improvements. A plausible misconception is that a journey map is mainly a promotional story or a way to infer motives; the source only supports making problems and opportunities visible.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Journey mapping",
+              "df": "A visual account of the whole experience from the user's viewpoint that shows connected steps, boundaries, breakdowns, and opportunities.",
+              "eg": "A student services team maps how first-year students move from searching for help to booking, waiting, meeting, and following up.",
+              "mi": "It is just a flowchart of the organization's internal departments.",
+              "cx": "The source frames it as end-to-end from the user's perspective, not as an internal org chart.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Experience map",
+              "df": "A representation of the service path that highlights where people struggle and where improvements may be worth pursuing.",
+              "eg": "A team maps a bus pass application process and marks the moments when students get stuck or have to switch channels.",
+              "mi": "It only records the smoothest parts of the service.",
+              "cx": "The source says it should make struggle points and candidate improvement areas visible.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "e2d19ab316362267c5e608452c27668f2f9908598cfbc0d7e387359f6f470ea9",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0f46b6760a0c0059006a54eea9b22881a0bc565edec34105e8",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 631,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 525,
+            "output_tokens_details": {
+              "reasoning_tokens": 59
+            },
+            "total_tokens": 1156
+          }
+        },
+        "startedAt": "2026-07-13T13:56:57.627Z",
+        "durationMs": 5392
+      }
+    ]
+  }
+}
