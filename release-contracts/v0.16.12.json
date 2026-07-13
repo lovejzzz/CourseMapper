@@ -21,16 +21,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The exact release commit has not yet been pushed. Local verification must pass before publication, followed by exact-head Fast verification."
+      "status": "success",
+      "commit": "20c2f81e83d2a84281fea38986546002e07d8b54",
+      "runId": 29270726990,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29270726990",
+      "note": "Fast verification passed on the exact v0.16.12 product merge in 17m17s, including 4,347 passing tests, proof smoke, the strict 40-fixture main evaluation with compiler-contract-only claim status, production build, and bundle budgets."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The semantic verifier is exercised with complete and adversarial four-profile fixtures. Real multi-device qualification remains 0/4 for a promotable candidate and is not implied by fixture coverage."
     },
     "deploy": {
-      "status": "pending",
-      "note": "Pages deployment is pending the exact verified main merge."
+      "status": "success",
+      "commit": "20c2f81e83d2a84281fea38986546002e07d8b54",
+      "runId": 29271887548,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29271887548",
+      "note": "GitHub Pages built and deployed the exact verified v0.16.12 product merge."
     },
     "liveProvider": {
       "status": "not-used",
