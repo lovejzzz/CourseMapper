@@ -25,16 +25,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Exact-head Fast verification will be recorded after the scoped v0.16.11 branch is pushed."
+      "status": "success",
+      "commit": "44b31c482f9d15c3d1dbaa173ee77f4bc47e7d7c",
+      "runId": 29263461902,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29263461902",
+      "note": "Fast verification passed on the exact v0.16.11 main merge in 23m56s, including 4,345 passing tests, proof smoke, the strict 40-fixture main evaluation, production build, and bundle budgets."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The retained campaign proves exact source/model/response/compile identity, per-atom admission, burden separation, evaluator routing, and blind-review integrity. It does not substitute for the still-missing independent instructor and five-domain adapter evidence."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages proof will be recorded only after the exact v0.16.11 main merge deploys."
+      "status": "success",
+      "commit": "44b31c482f9d15c3d1dbaa173ee77f4bc47e7d7c",
+      "runId": 29265150784,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29265150784",
+      "note": "GitHub Pages built and deployed the exact verified v0.16.11 main merge."
     },
     "liveProvider": {
       "status": "not-used",
