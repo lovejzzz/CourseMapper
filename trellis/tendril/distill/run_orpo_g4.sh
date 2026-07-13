@@ -2,9 +2,9 @@
 # E2B-MAX V2.1 Workstream A3 — ORPO preference training on Gemma-4-E2B.
 #
 # PRECONDITIONS (roadmap §2, pre-registered — DO NOT run undersized):
-#   1. data-g4-orpo/train.jsonl holds ≥3000 pairs (wc -l) built by
-#      buildTeacherPairs.mjs with its poison filters (the 105-pair DPO r1
-#      collapse and both SFT collapses are the reason this gate exists).
+#   1. the manifest-bound curated split holds ≥3000 verified pairs across
+#      five domains (the 105-pair DPO r1 collapse and both SFT collapses are
+#      the reason this gate exists).
 #   2. Phase-0 spike green (2026-07-07): ORPO trains/saves/serves on this
 #      stack — mlx_vlm.lora, 13.2M LoRA params, adapter loads via
 #      load(..., adapter_path).
@@ -16,26 +16,53 @@
 #   EDU_BAR=run npx vite-node trellis/researcher/eduBar.mjs
 #   npm run local-model  (G4_ADAPTERS=<checkpoint>) + one crucible round +
 #   pooled ≥12-seat panels vs the paid baseline (BAKEOFF addendum 4 protocol).
-set -e
+set -euo pipefail
 cd "$(dirname "$0")/../../.."
 
-node scripts/scionPreferenceCorpusAudit.mjs
-CURATED=trellis/tendril/distill/data-g4-orpo/curated/train.jsonl
-PAIRS=$(wc -l < "$CURATED" 2>/dev/null || echo 0)
-if [ "$PAIRS" -lt 3000 ] && [ "$1" != "--smoke" ]; then
-  echo "REFUSING: $PAIRS verified pairs < 3000 (the pre-registered training gate)."
-  echo "Grow the corpus: PAIRS=run npx vite-node trellis/tendril/distill/buildTeacherPairs.mjs extended"
-  echo "Rows without pair-level preference evidence remain quarantined and never train Scion."
-  echo "(--smoke overrides for a 10-iter mechanical check only — never adopt a smoke adapter.)"
+MODE=${1:-}
+SMOKE=false
+[ "$MODE" = "--smoke" ] && SMOKE=true
+
+PYTHON=${SCION_TRAIN_PYTHON:-trellis/tendril/.venv-g4/bin/python}
+DATASET_DIR=${SCION_ADAPTER_DATASET:-trellis/tendril/distill/data-g4-orpo/curated}
+BASE_MODEL=google/gemma-4-E2B-it
+BASE_REVISION=9dbdf8a839e4e9e0eb56ed80cc8886661d3817cf
+MODEL_CACHE=${SCION_MODEL_CACHE:-$HOME/.cache/coursemapper/scion-models}
+RUN_ID=${SCION_ADAPTER_ID:-scion-g4e2b-$(date -u +%Y%m%dT%H%M%SZ)}
+OUTPUT=${SCION_ADAPTER_OUTPUT:-$HOME/.cache/coursemapper/scion-adapters/$RUN_ID}
+
+if $SMOKE; then
+  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --allow-smoke
+else
+  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR"
+fi
+
+MANIFEST="$DATASET_DIR/dataset-manifest.json"
+PAIRS=$(node -e 'const m=require(process.argv[1]); process.stdout.write(String(m.counts.total||0))' "$(cd "$(dirname "$MANIFEST")" && pwd)/$(basename "$MANIFEST")")
+STATUS=$(node -e 'const m=require(process.argv[1]); process.stdout.write(String(m.status||"blocked"))' "$(cd "$(dirname "$MANIFEST")" && pwd)/$(basename "$MANIFEST")")
+if [ "$PAIRS" -eq 0 ]; then
+  echo "REFUSING: no verified adapter pairs are available."
+  exit 1
+fi
+if ! $SMOKE && [ "$STATUS" != "ready" ]; then
+  echo "REFUSING: dataset status is $STATUS; production training requires ready."
   exit 1
 fi
 
 ITERS=${ITERS:-600}
-[ "$1" = "--smoke" ] && ITERS=10
+$SMOKE && ITERS=10
 
-trellis/tendril/.venv-g4/bin/python -m mlx_vlm.lora \
-  --model-path google/gemma-4-e2b-it \
-  --dataset trellis/tendril/distill/data-g4-orpo/curated \
+BASE_PATH=$(
+  "$PYTHON" trellis/tendril/distill/prepare_adapter_base.py \
+    --model "$BASE_MODEL" \
+    --revision "$BASE_REVISION" \
+    --cache-dir "$MODEL_CACHE"
+)
+mkdir -p "$OUTPUT"
+
+"$PYTHON" -m mlx_vlm.lora \
+  --model-path "$BASE_PATH" \
+  --dataset "$DATASET_DIR" \
   --split train \
   --train-mode orpo \
   --iters "$ITERS" \
@@ -43,7 +70,19 @@ trellis/tendril/.venv-g4/bin/python -m mlx_vlm.lora \
   --steps-per-report 20 \
   --steps-per-save 100 \
   --lora-rank 16 \
-  --output-path trellis/tendril/distill/adapters-g4-orpo
+  --output-path "$OUTPUT"
+
+SCION_VERSION=$(node -p 'require("./package.json").version')
+PACKAGE_STATUS=candidate
+$SMOKE && PACKAGE_STATUS=smoke
+node scripts/scionAdapterPackage.mjs \
+  --adapter-dir "$OUTPUT" \
+  --adapter-id "$RUN_ID" \
+  --scion-version "$SCION_VERSION" \
+  --dataset-manifest "$MANIFEST" \
+  --status "$PACKAGE_STATUS" \
+  --output "$OUTPUT/scion-adapter.json"
 
 echo "=== training done — run the checkpoint gates before ANY adoption ==="
-echo "serve a checkpoint: G4_ADAPTERS=trellis/tendril/distill/adapters-g4-orpo npm run local-model"
+echo "adapter package: $OUTPUT/scion-adapter.json"
+echo "serve a checkpoint: SCION_ADAPTER_MANIFEST=$OUTPUT/scion-adapter.json npm run local-model"

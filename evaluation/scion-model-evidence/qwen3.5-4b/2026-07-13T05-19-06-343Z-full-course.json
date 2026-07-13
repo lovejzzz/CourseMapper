@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "scion-model-bakeoff-v1",
+  "candidateId": "qwen3.5-4b",
+  "servingModelId": "mlx-community/Qwen3.5-4B-4bit",
+  "evidenceType": "crucible-full-course",
+  "observedAt": "2026-07-13T05:19:06.343Z",
+  "roundDir": "verification-output/crucible/round-2026-07-13T05-09-35-402Z",
+  "fullCourses": [
+    {
+      "domain": "business-ethics",
+      "courseId": "business-ethics",
+      "lessonCount": 12,
+      "packageGrade": 99,
+      "packageLetterGrade": "A",
+      "p0": 0,
+      "p1": 0,
+      "p2": 0,
+      "packageValid": true,
+      "durationMs": 547529,
+      "extractedFiles": 101,
+      "scionPassCalls": 91,
+      "blueprintEnrichmentCalls": 12,
+      "totalInputTokens": 55514,
+      "totalOutputTokens": 49319,
+      "readinessBlockers": 0,
+      "readinessWarnings": 0,
+      "compilerBurden": {
+        "schemaVersion": 1,
+        "lessonCount": 12,
+        "provider": {
+          "requests": 104,
+          "responses": 104,
+          "errors": 0,
+          "retries": 0,
+          "unpairedRequests": 0,
+          "taskCalls": {
+            "nativeSkeleton": 1,
+            "blueprintEnrichment": 12,
+            "scionPass": 91
+          }
+        },
+        "scion": {
+          "calls": 91,
+          "callsPerLesson": 7.58,
+          "attributedCalls": 91,
+          "unattributedCalls": 0,
+          "byCallType": {
+            "blind_solve": 48,
+            "prose_polish": 12,
+            "mc_admission_batch": 10,
+            "mc_item": 9,
+            "applied_mc_batch": 4,
+            "topic_repair_batch": 7,
+            "key_term_admission_batch": 1
+          },
+          "qualityActions": 52,
+          "unparsedQualityActions": 0,
+          "actionsPerLesson": 4.33,
+          "byPass": {
+            "polish": 12,
+            "admissionGate": 23,
+            "appliedDepth": 4,
+            "topicGate": 10,
+            "keyTermAdmission": 1,
+            "mcVerify": 2
+          },
+          "byAction": {
+            "done": 12,
+            "rejected": 23,
+            "regenerated": 17
+          },
+          "rejectionReasons": {
+            "longest-option-cue": 1,
+            "off-topic": 17,
+            "key-verification:0": 1,
+            "0!=1": 1,
+            "key-verification:1": 1,
+            "1!=0": 1,
+            "not-applied": 1,
+            "term-is-lesson-title": 1,
+            "duplicate-options": 1
+          }
+        }
+      },
+      "baseRevision": "0e7ffd5c629ef7719d4cbc04069232580bfa9d9c",
+      "adapterActive": false,
+      "adapterId": null,
+      "adapterManifestSha256": null,
+      "sourceArtifact": "verification-output/crucible/round-2026-07-13T05-09-35-402Z/business-ethics--quiet--local"
+    }
+  ]
+}

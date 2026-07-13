@@ -132,7 +132,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       if (schemaProfile.name === 'mc_item') {
         return JSON.stringify({
           q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
-          op: ['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave'],
+          op: ['A. Perfect fourth', 'B. Perfect fifth', 'C. Major third', 'D. Octave'],
           ai: 1,
           ex: 'Seven semitones with the 3:2 just ratio defines the perfect fifth interval.',
         });
@@ -154,6 +154,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     const patched = JSON.parse(text).lessons[0];
     expect(events.some((event) => event.pass === 'mcVerify' && event.action === 'regenerated')).toBe(true);
     expect(patched.mc[0].ai).toBe(1); // the two-solve-confirmed regeneration landed
+    expect(patched.mc[0].op).toEqual(['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave']);
     expect(events.some((event) => event.pass === 'polish')).toBe(true);
     expect(calls.filter((name) => name === 'blind_solve').length).toBe(4); // original + replacement each solved twice
     expect(blindSchemas[0].properties.answers.prefixItems[0].enum).toEqual([
@@ -318,6 +319,65 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(backfills.every((event) => event.trainingEligible === false && !event.preferenceEvidence)).toBe(true);
   });
 
+  it('D3: batches remaining off-topic repairs and verifies the batch twice', async () => {
+    const offTopic = (suffix) => ({
+      q: `Which interval describes the unrelated music example ${suffix}?`,
+      op: ['Perfect fifth', 'Minor third', 'Octave', 'Major second'],
+      ai: 0,
+      ex: 'The perfect fifth is the keyed music interval, while the alternatives name different intervals.',
+    });
+    const lesson = {
+      lessonId: 'lesson-1',
+      mc: [offTopic('one'), offTopic('two')],
+      scenario: {
+        su: 'A researcher observes repeated navigation confusion across three interviews and must organize the evidence.',
+        ma: 'Three interview transcripts and a shared coding worksheet',
+      },
+    };
+    const calls = [];
+    const repairedOptions = ['Thematic coding', 'Random sampling', 'A/B testing', 'Linear regression'];
+    const generateJson = async ({ schemaProfile, user }) => {
+      calls.push(schemaProfile.name);
+      if (schemaProfile.name === 'blind_solve') {
+        return JSON.stringify({ answers: JSON.parse(user).map(() => 0) });
+      }
+      if (schemaProfile.name === 'mc_admission_batch') {
+        return JSON.stringify({
+          repairs: [0, 1].map((index) => ({ index, ...lesson.mc[index] })),
+        });
+      }
+      if (schemaProfile.name === 'topic_repair_batch') {
+        return JSON.stringify({
+          repairs: [0, 1].map((index) => ({
+            index,
+            q: `A researcher compares recurring navigation failures in three interviews for case ${index + 1}. Which method best organizes this evidence?`,
+            op: repairedOptions.map((option, optionIndex) => `${String.fromCharCode(65 + optionIndex)}. ${option}`),
+            ai: 0,
+            ex: 'Thematic coding organizes recurring interview evidence, while the alternatives answer different research questions.',
+          })),
+        });
+      }
+      return JSON.stringify({
+        scenario: lesson.scenario,
+        discussionPrompt: { pr: 'Compare the interpretations.', tn: 'Two codes overlap.', po: ['One', 'Two', 'Three'] },
+        assignmentCore: { td: 'Analyze the records and recommend one coding decision.', pa: ['A', 'B', 'C', 'D'] },
+        studyGuide: { sm: 'Review how coding organizes recurring interview evidence.', rs: 'Map excerpts to codes.' },
+      });
+    };
+
+    const result = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Interview coding', topics: 'interview thematic coding' }],
+      generateJson,
+    });
+    const patched = JSON.parse(result.text).lessons[0];
+    expect(calls.filter((name) => name === 'topic_repair_batch')).toHaveLength(1);
+    expect(calls.filter((name) => name === 'mc_item')).toHaveLength(0);
+    expect(patched.mc.every((item) => item.op[0] === 'Thematic coding')).toBe(true);
+    const repairs = result.events.filter((event) => event.pass === 'topicGate' && event.action === 'regenerated');
+    expect(repairs).toHaveLength(2);
+    expect(repairs.every((event) => event.preferenceEvidence?.chosenAnswers.join(',') === '0,0')).toBe(true);
+  });
+
   it('D3: repairs malformed key-term atoms without treating open-ended prose as verified preference data', async () => {
     const lesson = {
       lessonId: 'lesson-1',
@@ -391,6 +451,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
         recallItem('Which method organizes recurring ideas in interview transcripts?'),
         recallItem('Which method is used to code interview responses?'),
         recallItem('Which approach groups repeated patterns in qualitative data?'),
+        recallItem('Which technique labels repeated ideas in interview notes?'),
       ],
       scenario: {
         su: 'A researcher observes the same navigation confusion in three participant interviews and must decide how to organize the repeated explanations.',
@@ -441,6 +502,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(isAppliedQuizStem(patched.mc[0].q)).toBe(false);
     expect(isAppliedQuizStem(patched.mc[1].q)).toBe(true);
     expect(isAppliedQuizStem(patched.mc[2].q)).toBe(true);
+    expect(patched.mc[3].q).toBe('Which technique labels repeated ideas in interview notes?');
     expect(patched.mc[2].q).toContain("'the pattern is conclusive'?");
     expect(patched.mc[1].op).toEqual(options);
     expect(patched.mc[1].ex).toBe(lesson.mc[1].ex);

@@ -1603,11 +1603,15 @@ async function runLiveRounds(options) {
         id: model.id,
         name: model.display_name || model.id,
         sourceModelId: model.source_model,
+        sourceRevision: model.source_revision || null,
+        adapterActive: model.adapter_active === true,
+        adapterId: model.adapter_id || null,
+        adapterManifestSha256: model.adapter_manifest_sha256 || null,
       };
       modelId = localModel.id;
       modelName = localModel.name;
       log(
-        `LLM: ${localModel.name} (${localModel.id}; weights ${localModel.sourceModelId}) via local server ${localServerUrl} — $0 generation`,
+        `LLM: ${localModel.name} (${localModel.id}; weights ${localModel.sourceModelId}${localModel.sourceRevision ? `@${localModel.sourceRevision}` : ''}${localModel.adapterActive ? `; adapter ${localModel.adapterId}` : '; base only'}) via local server ${localServerUrl} — $0 generation`,
       );
     } catch (error) {
       log(

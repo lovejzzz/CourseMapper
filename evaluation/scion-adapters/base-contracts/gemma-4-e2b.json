@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "status": "experimental",
+  "trainingBase": {
+    "modelId": "google/gemma-4-E2B-it",
+    "revision": "9dbdf8a839e4e9e0eb56ed80cc8886661d3817cf",
+    "architecture": "gemma4",
+    "role": "instruction",
+    "license": "apache-2.0"
+  },
+  "browserBaseCandidate": {
+    "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+    "revision": "69536a21d70340464240401ba38223d805f6a709",
+    "file": "gemma-4-E2B_q4_0-it.gguf",
+    "bytes": 3349514112,
+    "sha256": null,
+    "integrityStatus": "full-file-digest-required-before-production"
+  },
+  "notes": [
+    "Training and local evaluation must use the exact training-base revision.",
+    "The browser quantization is a deployment candidate, not an interchangeable training identity.",
+    "No adapter can be promoted until every distributed base and adapter file has a verified full-file digest."
+  ]
+}

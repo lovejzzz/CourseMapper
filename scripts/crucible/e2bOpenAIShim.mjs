@@ -10,13 +10,31 @@
 //   node scripts/crucible/e2bOpenAIShim.mjs [port]
 import http from 'node:http';
 import fs from 'node:fs';
+import path from 'node:path';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { sGenerate, startItems, stopS } from '../../trellis/tendril/sModel.mjs';
+import { sha256File, verifyScionAdapterPackage } from '../scionAdapterPackage.mjs';
 
 const PORT = Number(process.argv[2] ?? 8799);
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
 // ({url, system, user, response}) so failing outputs can be replayed offline.
-const BODY_LOG = process.env.SHIM_BODY_LOG || '';
+function prepareBodyLog(value) {
+  const configured = String(value || '').trim();
+  if (!configured) return '';
+  const absolutePath = path.resolve(configured);
+  try {
+    fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
+    fs.closeSync(fs.openSync(absolutePath, 'a'));
+    return absolutePath;
+  } catch (error) {
+    const detail = String(error?.message || error).slice(0, 500);
+    console.error(JSON.stringify({ bodyLogStartupError: detail, bodyLogPath: absolutePath }));
+    throw new Error(`SHIM_BODY_LOG could not be prepared at ${absolutePath}: ${detail}`);
+  }
+}
+
+const BODY_LOG = prepareBodyLog(process.env.SHIM_BODY_LOG);
+let bodyLogError = '';
 let calls = 0;
 let completedCalls = 0;
 let failedModelCalls = 0;
@@ -27,7 +45,44 @@ let modelState = 'loading';
 let modelLoadMs = null;
 let modelLoadError = '';
 let modelReadyPromise = null;
+let adapterState =
+  process.env.SCION_ADAPTER_MANIFEST || process.env.SCION_ADAPTERS || process.env.G4_ADAPTERS ? 'pending' : 'base-only';
+let adapterId = '';
+let adapterManifestPath = '';
+let adapterManifestSha256 = '';
+let adapterError = '';
 const requestMetrics = new AsyncLocalStorage();
+
+async function prepareScionAdapter() {
+  const manifestPath = String(process.env.SCION_ADAPTER_MANIFEST || '').trim();
+  const bareAdapterPath = String(process.env.SCION_ADAPTERS || process.env.G4_ADAPTERS || '').trim();
+  if (!manifestPath) {
+    if (bareAdapterPath) {
+      throw new Error('A bare SCION_ADAPTERS/G4_ADAPTERS path is not trusted; provide SCION_ADAPTER_MANIFEST.');
+    }
+    adapterState = 'base-only';
+    return;
+  }
+  adapterState = 'verifying';
+  const report = await verifyScionAdapterPackage({
+    manifestPath,
+    adapterDir: process.env.SCION_ADAPTER_DIR || undefined,
+    requirePromoted: process.env.SCION_REQUIRE_PROMOTED_ADAPTER === '1',
+  });
+  if (!report.valid) throw new Error(`Scion adapter verification failed: ${report.issues.join(', ')}`);
+  const manifest = JSON.parse(fs.readFileSync(report.manifestPath, 'utf8'));
+  process.env.SCION_MODEL = manifest.base.modelId;
+  process.env.SCION_MODEL_REVISION = manifest.base.revision;
+  process.env.SCION_ADAPTERS = report.adapterDir;
+  delete process.env.G4_ADAPTERS;
+  LOCAL_SOURCE_MODEL_ID = manifest.base.modelId;
+  LOCAL_SOURCE_MODEL_REVISION = manifest.base.revision;
+  adapterId = manifest.adapter.id;
+  adapterManifestPath = report.manifestPath;
+  adapterManifestSha256 = await sha256File(report.manifestPath);
+  adapterState = 'verified';
+  adapterError = '';
+}
 
 // Preload the exact local weights while the browser and production app start.
 // Without this, a 10+ minute cold Python/Transformers import is hidden inside
@@ -39,15 +94,21 @@ function ensureLocalModelReady() {
   const startedAt = Date.now();
   modelState = 'loading';
   modelLoadError = '';
-  modelReadyPromise = startItems({ timeoutMs: 1_200_000 })
+  modelReadyPromise = prepareScionAdapter()
+    .then(() => startItems({ timeoutMs: 1_200_000 }))
     .then(() => {
       modelState = 'ready';
+      if (adapterState === 'verified') adapterState = 'active';
       modelLoadMs = Date.now() - startedAt;
     })
     .catch((error) => {
       modelState = 'failed';
       modelLoadMs = Date.now() - startedAt;
       modelLoadError = String(error?.message || error).slice(0, 500);
+      if (adapterState !== 'base-only') {
+        adapterState = 'failed';
+        adapterError = modelLoadError;
+      }
       modelReadyPromise = null;
       console.error(JSON.stringify({ localModelStartupError: modelLoadError, modelId: LOCAL_MODEL_ID }));
       throw error;
@@ -931,7 +992,8 @@ function requestedMaxTokens(body) {
 // generations must not trip the app's 120s stream-inactivity timeout.
 const LOCAL_MODEL_ID = process.env.LOCAL_MODEL_ID || 'scion-1';
 const LOCAL_MODEL_NAME = process.env.LOCAL_MODEL_NAME || 'Scion-1';
-const LOCAL_SOURCE_MODEL_ID = process.env.SCION_MODEL || process.env.G4_MODEL || 'google/gemma-4-e2b-it';
+let LOCAL_SOURCE_MODEL_ID = process.env.SCION_MODEL || process.env.G4_MODEL || 'google/gemma-4-E2B-it';
+let LOCAL_SOURCE_MODEL_REVISION = process.env.SCION_MODEL_REVISION || '';
 
 function corsHeaders() {
   return {
@@ -959,12 +1021,22 @@ const server = http.createServer(async (req, res) => {
           modelReady: modelState === 'ready',
           modelLoadMs,
           modelLoadError,
+          baseRevision: LOCAL_SOURCE_MODEL_REVISION || null,
+          adapterState,
+          adapterActive: adapterState === 'active',
+          adapterId: adapterId || null,
+          adapterManifestPath: adapterManifestPath || null,
+          adapterManifestSha256: adapterManifestSha256 || null,
+          adapterError,
           calls,
           completedCalls,
           failedModelCalls,
           inFlightCalls,
           failures,
           lastGenerationError,
+          bodyLogEnabled: Boolean(BODY_LOG),
+          bodyLogPath: BODY_LOG || null,
+          bodyLogError,
         }),
       );
       return;
@@ -982,6 +1054,10 @@ const server = http.createServer(async (req, res) => {
               owned_by: 'local',
               display_name: LOCAL_MODEL_NAME,
               source_model: LOCAL_SOURCE_MODEL_ID,
+              source_revision: LOCAL_SOURCE_MODEL_REVISION || null,
+              adapter_active: adapterState === 'active',
+              adapter_id: adapterId || null,
+              adapter_manifest_sha256: adapterManifestSha256 || null,
               ready: modelState === 'ready',
             },
           ],
@@ -1150,8 +1226,9 @@ const server = http.createServer(async (req, res) => {
         BODY_LOG,
         `${JSON.stringify({ url: req.url, system, user, response: text, modelMetrics, ...(generationError ? { error: generationError } : {}) })}\n`,
       );
-    } catch {
-      /* empty */
+    } catch (error) {
+      bodyLogError = String(error?.message || error).slice(0, 500);
+      console.error(JSON.stringify({ bodyLogWriteError: bodyLogError, bodyLogPath: BODY_LOG }));
     }
   }
 

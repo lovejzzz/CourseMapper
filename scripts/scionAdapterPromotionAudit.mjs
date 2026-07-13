@@ -1,0 +1,255 @@
+#!/usr/bin/env node
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import process from 'node:process';
+import { pathToFileURL } from 'node:url';
+
+import { validateScionAdapterManifest } from '../src/lib/scionAdapterManifest.js';
+import { sha256File } from './scionAdapterPackage.mjs';
+
+const REQUIRED_EXTERNAL_EVIDENCE = [
+  'factual-canaries',
+  'blind-instructor',
+  'browser-device-matrix',
+  'production-canaries',
+];
+
+function median(values) {
+  const sorted = values.filter(Number.isFinite).sort((left, right) => left - right);
+  if (sorted.length === 0) return null;
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
+function flattenCourses(evidence = []) {
+  return evidence.flatMap((record) => (Array.isArray(record?.fullCourses) ? record.fullCourses : []));
+}
+
+function byDomain(courses) {
+  const map = new Map();
+  for (const course of courses) {
+    const domain = String(course?.domain || course?.courseId || '')
+      .trim()
+      .toLowerCase();
+    if (domain) map.set(domain, course);
+  }
+  return map;
+}
+
+function evidencePasses(manifest, type, verifiedExternalEvidence = {}) {
+  return (manifest?.promotion?.evidence || []).some(
+    (entry) =>
+      entry &&
+      typeof entry === 'object' &&
+      entry.type === type &&
+      entry.status === 'pass' &&
+      /^[a-f0-9]{64}$/.test(String(entry.sha256 || '')) &&
+      verifiedExternalEvidence[type] === true,
+  );
+}
+
+async function verifyExternalEvidenceFiles(manifest) {
+  const details = {};
+  for (const type of REQUIRED_EXTERNAL_EVIDENCE) {
+    const entry = (manifest?.promotion?.evidence || []).find((candidate) => candidate?.type === type);
+    const declaredPath = String(entry?.path || '').trim();
+    if (!entry || entry.status !== 'pass' || !declaredPath || !/^[a-f0-9]{64}$/.test(String(entry.sha256 || ''))) {
+      details[type] = { verified: false, reason: 'missing-or-invalid-attestation' };
+      continue;
+    }
+    try {
+      const absolutePath = path.resolve(declaredPath);
+      const stats = await fs.lstat(absolutePath);
+      if (!stats.isFile() || stats.isSymbolicLink()) throw new Error('evidence must be a regular file');
+      const actualSha256 = await sha256File(absolutePath);
+      details[type] = {
+        verified: actualSha256 === entry.sha256,
+        path: declaredPath,
+        expectedSha256: entry.sha256,
+        actualSha256,
+        ...(actualSha256 === entry.sha256 ? {} : { reason: 'sha256-mismatch' }),
+      };
+    } catch (error) {
+      details[type] = { verified: false, path: declaredPath, reason: String(error?.message || error) };
+    }
+  }
+  return details;
+}
+
+export function assessScionAdapterPromotion({
+  manifest,
+  manifestSha256,
+  candidateEvidence = [],
+  baseEvidence = [],
+  minimumDomains = 5,
+  verifiedExternalEvidence = {},
+} = {}) {
+  const manifestValidation = validateScionAdapterManifest(manifest);
+  const candidate = byDomain(flattenCourses(candidateEvidence));
+  const base = byDomain(flattenCourses(baseEvidence));
+  const domains = [...candidate.keys()].filter((domain) => base.has(domain)).sort();
+  const courseChecks = domains.map((domain) => {
+    const candidateCourse = candidate.get(domain);
+    const baseCourse = base.get(domain);
+    const candidateCalls = Number(candidateCourse?.scionPassCalls);
+    const baseCalls = Number(baseCourse?.scionPassCalls);
+    const identityPass =
+      candidateCourse?.adapterActive === true &&
+      candidateCourse?.adapterId === manifest?.adapter?.id &&
+      candidateCourse?.adapterManifestSha256 === manifestSha256 &&
+      candidateCourse?.baseRevision === manifest?.base?.revision;
+    const qualityPass =
+      candidateCourse?.packageValid === true &&
+      Number(candidateCourse?.packageGrade) >= 99 &&
+      Number(candidateCourse?.p0) === 0 &&
+      Number(candidateCourse?.p1) === 0;
+    const baseComparable =
+      baseCourse?.packageValid === true && Number(baseCourse?.p0) === 0 && Number(baseCourse?.p1) === 0;
+    const callCeilingPass =
+      Number.isFinite(candidateCalls) && Number.isFinite(baseCalls) && candidateCalls <= Math.max(1, baseCalls * 1.05);
+    return {
+      domain,
+      pass: identityPass && qualityPass && baseComparable && callCeilingPass,
+      identityPass,
+      qualityPass,
+      baseComparable,
+      callCeilingPass,
+      candidateCalls,
+      baseCalls,
+      callRatio: baseCalls > 0 ? Number((candidateCalls / baseCalls).toFixed(3)) : null,
+    };
+  });
+  const candidateMedian = median(courseChecks.map((entry) => entry.candidateCalls));
+  const baseMedian = median(courseChecks.map((entry) => entry.baseCalls));
+  const medianReduction =
+    Number.isFinite(candidateMedian) && Number.isFinite(baseMedian) && baseMedian > 0
+      ? 1 - candidateMedian / baseMedian
+      : null;
+  const externalEvidence = Object.fromEntries(
+    REQUIRED_EXTERNAL_EVIDENCE.map((type) => [type, evidencePasses(manifest, type, verifiedExternalEvidence)]),
+  );
+  const gates = {
+    manifest: manifestValidation.valid,
+    dataset:
+      manifest?.training?.datasetStatus === 'ready' &&
+      Number(manifest?.training?.pairCount) >= 3000 &&
+      Number(manifest?.training?.domainCount) >= 5,
+    matchedDomains: domains.length >= minimumDomains,
+    courseQuality: courseChecks.length >= minimumDomains && courseChecks.every((entry) => entry.pass),
+    medianEfficiency: medianReduction !== null && medianReduction >= 0.2,
+    ...Object.fromEntries(Object.entries(externalEvidence).map(([key, value]) => [`evidence:${key}`, value])),
+  };
+  const failedGates = Object.entries(gates)
+    .filter(([, passed]) => !passed)
+    .map(([gate]) => gate);
+  return {
+    status: failedGates.length === 0 ? 'pass' : 'blocked',
+    promotable: failedGates.length === 0,
+    adapterId: manifest?.adapter?.id || null,
+    base: manifest?.base || null,
+    domains,
+    courseChecks,
+    efficiency: { candidateMedian, baseMedian, medianReduction },
+    externalEvidence,
+    gates,
+    failedGates,
+    manifestIssues: manifestValidation.issues,
+  };
+}
+
+async function readJsonFiles(paths) {
+  return Promise.all(paths.map((file) => fs.readFile(file, 'utf8').then(JSON.parse)));
+}
+
+function renderMarkdown(report) {
+  return [
+    '# Scion Adapter Promotion Audit',
+    '',
+    `Status: ${report.status}`,
+    `Adapter: ${report.adapterId || 'unknown'}`,
+    `Matched domains: ${report.domains.length}`,
+    `Median call reduction: ${report.efficiency.medianReduction === null ? 'not measured' : `${(report.efficiency.medianReduction * 100).toFixed(1)}%`}`,
+    '',
+    '## Gates',
+    '',
+    ...Object.entries(report.gates).map(([gate, passed]) => `- ${passed ? 'PASS' : 'FAIL'} — ${gate}`),
+    '',
+    '| Domain | Pass | Candidate calls | Base calls | Ratio |',
+    '| --- | --- | ---: | ---: | ---: |',
+    ...report.courseChecks.map(
+      (entry) =>
+        `| ${entry.domain} | ${entry.pass ? 'PASS' : 'FAIL'} | ${entry.candidateCalls} | ${entry.baseCalls} | ${entry.callRatio ?? ''} |`,
+    ),
+    '',
+  ].join('\n');
+}
+
+export async function runScionAdapterPromotionAudit({
+  manifestPath,
+  candidatePaths = [],
+  basePaths = [],
+  minimumDomains = 5,
+  outputDir = 'verification-output/scion-adapter-promotion',
+} = {}) {
+  if (!manifestPath) throw new Error('manifestPath is required');
+  if (candidatePaths.length === 0 || basePaths.length === 0)
+    throw new Error('candidate and base evidence are required');
+  const [manifest, candidateEvidence, baseEvidence, manifestSha256] = await Promise.all([
+    fs.readFile(manifestPath, 'utf8').then(JSON.parse),
+    readJsonFiles(candidatePaths),
+    readJsonFiles(basePaths),
+    sha256File(manifestPath),
+  ]);
+  const externalEvidenceVerification = await verifyExternalEvidenceFiles(manifest);
+  const report = assessScionAdapterPromotion({
+    manifest,
+    manifestSha256,
+    candidateEvidence,
+    baseEvidence,
+    minimumDomains,
+    verifiedExternalEvidence: Object.fromEntries(
+      Object.entries(externalEvidenceVerification).map(([type, result]) => [type, result.verified === true]),
+    ),
+  });
+  report.externalEvidenceVerification = externalEvidenceVerification;
+  report.generatedAt = new Date().toISOString();
+  report.inputs = { manifestPath, candidatePaths, basePaths, minimumDomains };
+  await fs.mkdir(outputDir, { recursive: true });
+  await Promise.all([
+    fs.writeFile(path.join(outputDir, 'latest.json'), `${JSON.stringify(report, null, 2)}\n`),
+    fs.writeFile(path.join(outputDir, 'latest.md'), `${renderMarkdown(report)}\n`),
+  ]);
+  return report;
+}
+
+function parseArgs(argv) {
+  const args = {
+    candidatePaths: [],
+    basePaths: [],
+    minimumDomains: 5,
+    outputDir: 'verification-output/scion-adapter-promotion',
+  };
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === '--manifest') args.manifestPath = argv[++index];
+    else if (arg === '--candidate') args.candidatePaths.push(argv[++index]);
+    else if (arg === '--base') args.basePaths.push(argv[++index]);
+    else if (arg === '--minimum-domains') args.minimumDomains = Number(argv[++index]);
+    else if (arg === '--output') args.outputDir = argv[++index];
+  }
+  return args;
+}
+
+async function main() {
+  const report = await runScionAdapterPromotionAudit(parseArgs(process.argv.slice(2)));
+  console.log(`Scion adapter promotion: ${report.status}`);
+  console.log(`Failed gates: ${report.failedGates.join(', ') || 'none'}`);
+  if (!report.promotable) process.exitCode = 1;
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}

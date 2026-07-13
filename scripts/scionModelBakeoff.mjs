@@ -481,6 +481,10 @@ export async function importCrucibleFullCourseEvidence({ roundDir, candidate, re
       readinessBlockers: Number(manifest?.readiness?.blockers) || 0,
       readinessWarnings: Number(manifest?.readiness?.warnings) || 0,
       compilerBurden,
+      baseRevision: course?.localModel?.sourceRevision || null,
+      adapterActive: course?.localModel?.adapterActive === true,
+      adapterId: course?.localModel?.adapterId || null,
+      adapterManifestSha256: course?.localModel?.adapterManifestSha256 || null,
       sourceArtifact: path.posix.join(portableRoundDir, name),
     });
   }

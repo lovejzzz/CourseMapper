@@ -33,7 +33,7 @@ afterEach(async () => {
 it('reports queued/completed model work and attributes inner calls to the HTTP envelope', async () => {
   fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-shim-metrics-'));
   const workerPath = path.join(fixtureDir, 'worker.mjs');
-  const bodyLogPath = path.join(fixtureDir, 'body.jsonl');
+  const bodyLogPath = path.join(fixtureDir, 'nested', 'autopsy', 'body.jsonl');
   await fs.writeFile(
     workerPath,
     `import readline from 'node:readline';
@@ -62,7 +62,19 @@ input.on('line', (line) => {
     },
   });
 
-  await waitForHealth(baseUrl, (health) => health.modelReady === true);
+  const ready = await waitForHealth(baseUrl, (health) => health.modelReady === true);
+  expect(ready).toMatchObject({
+    bodyLogEnabled: true,
+    bodyLogPath,
+    bodyLogError: '',
+  });
+  const models = await fetch(`${baseUrl}/v1/models`).then((response) => response.json());
+  expect(models.data[0]).toMatchObject({
+    source_model: 'test/fake-scion',
+    source_revision: null,
+    adapter_active: false,
+    adapter_id: null,
+  });
   const generation = fetch(`${baseUrl}/v1/chat/completions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -88,4 +100,32 @@ input.on('line', (line) => {
     .map((line) => JSON.parse(line));
   expect(rows).toHaveLength(1);
   expect(rows[0].modelMetrics).toEqual({ modelCalls: 1, completedModelCalls: 1, failedModelCalls: 0 });
+});
+
+it('refuses a bare adapter folder without an integrity manifest', async () => {
+  fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-shim-bare-adapter-'));
+  const adapterDir = path.join(fixtureDir, 'adapter');
+  await fs.mkdir(adapterDir, { recursive: true });
+  const port = 25_000 + Math.floor(Math.random() * 2_000);
+  const baseUrl = `http://127.0.0.1:${port}`;
+  serverProcess = spawn(process.execPath, ['scripts/crucible/e2bOpenAIShim.mjs', String(port)], {
+    cwd: process.cwd(),
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      SCION_ADAPTERS: adapterDir,
+      SCION_ADAPTER_MANIFEST: '',
+      LOCAL_MODEL_ID: 'fake-scion',
+      LOCAL_MODEL_NAME: 'Fake Scion',
+      SCION_MODEL: 'test/fake-scion',
+    },
+  });
+
+  const failed = await waitForHealth(baseUrl, (health) => health.modelState === 'failed');
+  expect(failed).toMatchObject({
+    modelReady: false,
+    adapterState: 'failed',
+    adapterActive: false,
+  });
+  expect(failed.modelLoadError).toContain('bare SCION_ADAPTERS/G4_ADAPTERS path is not trusted');
 });

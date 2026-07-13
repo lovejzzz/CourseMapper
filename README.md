@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.5
+**Current release:** v0.16.6
 
 ---
 
@@ -31,9 +31,23 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.5**. Those are intentionally simple product labels for EduTool's customized course-building AI system; they are not a claim that EduTool trained or hosts new foundation-model weights. Today, the public keyless route still uses Pollinations' anonymous legacy text endpoint and requests its `openai-fast` alias. Pollinations chooses and may change the anonymous backing model. Scion plans the course and authors compact lesson kernels, then Course Mapper's browser compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.6**. Those are intentionally simple product labels for EduTool's customized course-building AI system; they are not a claim that EduTool trained or hosts new foundation-model weights. Today, the public keyless route still uses Pollinations' anonymous legacy text endpoint and requests its `openai-fast` alias. Pollinations chooses and may change the anonymous backing model. Scion plans the course and authors compact lesson kernels, then Course Mapper's browser compiler turns those kernels into the selected deliverables.
 
 No API key is required and Course Mapper prices the route at $0. It is not an offline or private route: the prompt and relevant uploaded text are sent to the third-party endpoint. The service can also be rate-limited or unavailable. Do not send sensitive material, and review every generated course before using it with students.
+
+### Where Scion Vx is going
+
+The next-level local architecture is:
+
+```text
+public Gemma 4 E2B base + small Scion adapter + Scion compiler -> Scion Vx
+```
+
+The public base is the rootstock. A small LoRA adapter is the learned Scion delta: it should improve first-pass contract following, evidence-grounded scenarios, distractors, explanations, and concise teaching prose without duplicating the whole foundation model. The compiler remains the product's reliability layer: it owns sources, schemas, answer-key checks, bounded repair, alignment, grading, user edits, packaging, and rollback. This means a user still downloads the full public base once, then can cache much smaller Scion adapter updates separately instead of downloading a complete customized model for every Scion version.
+
+That architecture is now implemented and mechanically proven in the local MLX-VLM research path: manifests pin the exact Gemma revision and hash every adapter file; the server refuses an unverified adapter and reports whether the adapter is really active; dataset tooling prevents course leakage; and promotion requires five held-out domains, clean packages, lower compiler burden, device proof, factual canaries, and independent instructor evidence. A historical adapter has completed a real base-plus-adapter smoke inference, but it is permanently non-promotable. The strict production dataset currently has 0/471 eligible rows, and production browsers do not yet expose the dynamic LoRA contract Scion needs. Therefore the hosted website remains the compiler-only public route described above—there is no claim that today's Scion Vx label contains trained EduTool weights.
+
+The compiler is model-neutral. Improvements to source grounding, typed contracts, deterministic validation, repair budgeting, grading, and export benefit Gemma, Qwen, GPT, Claude, Gemini, and other providers that travel through the same path. Adapter learning is different: a Scion adapter changes only its compatible pinned base. See [the Scion Adapter roadmap](docs/SCION_ADAPTER_ROADMAP.md) for the exact architecture, gates, implementation ledger, and browser plan.
 
 ### What makes the route “Scion”
 
@@ -63,11 +77,13 @@ The second matched domain, Business Ethics, is deliberately a failed control. Ex
 
 A fresh exact-Gemma v0.16.5 browser run verifies those compiler fixes on the same 12-lesson Business Ethics brief: native recovery retained all sessions, 38/38 export checks passed, and all 87 inner model generations completed with zero failures. The live grader's only two warnings were evaluator false positives for `Utilitarianism` and `UL (safety organization)`. Scion now gives Business Ethics citations a narrow topical vocabulary while keeping discipline-density probes off for generic courses, and it runs strong cross-domain contamination checks before that suppression. The exact saved package regrades 99/A with zero findings. This is compiler proof, not a second matched-model promotion result.
 
-`npm run audit:scion:compiler-burden -- --candidate <course-dir-or-evidence.json> --control <course-dir-or-evidence.json> --domain <domain>` turns the same model run into a pipeline audit. The committed exact-provenance UX pair exposes 1.64× Scion-call amplification: Qwen uses 85 calls and rejects 35 quality actions, while Gemma uses 52 calls and rejects 19. Every Gemma call is attributed by schema; promotion rejects more than 1.25× matched-control amplification, and the corrected applied-reasoning detector avoids 17/33 unnecessary rewrite targets on the saved Qwen inputs.
+The v0.16.6 exact-Qwen rerun turns the model diff into measured compiler progress. On the same Business Ethics brief, Qwen now exports a 99/A package with zero findings and 38/38 clean export checks. Scion quality-pass calls fell from 108 to 91, a 15.7% reduction; against the 73-call exact-Gemma control, the 1.247× burden is now inside the 1.25× ceiling. The run also exposed and fixed doubled option labels emitted by late topic repair. This is one clean compiler result, not a Qwen promotion or evidence that a Gemma adapter has been trained.
+
+`npm run audit:scion:compiler-burden -- --candidate <course-dir-or-evidence.json> --control <course-dir-or-evidence.json> --domain <domain>` turns the same model run into a pipeline audit. The original exact-provenance UX pair exposed 1.64× Scion-call amplification: Qwen used 85 calls and rejected 35 quality actions, while Gemma used 52 calls and rejected 19. The v0.16.6 Business Ethics rerun proves the next compiler iteration on a real browser package: 91 Qwen calls versus 108 before the repair redesign and 73 in the exact-Gemma control, for a clean 1.247× result. Promotion still requires five matched domains and the other model gates.
 
 That source-backed route now reaches the shipped music course path directly. Every one of the seven music kernels contains four anchored MC items with balanced answer positions—28 verified seats total. Genome items are merged before model items, so a partial music match still fills all four planned MC slots with the source-backed bank instead of allowing an unverified model key to replace them.
 
-Scion's preference flywheel is fail-closed. `npm run audit:scion:corpus` currently admits **0 of 418 rows**. The exact Gemma control added seven raw repair pairs, and all seven remain quarantined rather than becoming training data. Answer repairs need agreement from at least two distinct verifier identities, unknown evidence kinds are rejected, applied-stem repairs need explicit review approval, and post-hoc key realignment can never become training data. `npm run audit:scion:review-packet` derives neutral pairs from matched artifacts and prepares 50 anonymized A/B cases, balanced ten each across computer science, geology, music theory, user-experience design, and world literature. Every domain packet includes a self-contained offline review page that saves drafts locally and downloads packet-bound JSON without sending data to a server or revealing the organizer key. Two distinct working instructors who currently teach that domain must independently agree, attest no conflict of interest, and clear factual-correctness and teachability floors before `audit:scion:reviews` can write an approved row. Raw rows remain an evidence ledger; only the separate curated split can reach the ORPO launcher, which refuses to train below 3,000 verified pairs. See [docs/SCION_NEXT_LEVEL_PLAN.md](docs/SCION_NEXT_LEVEL_PLAN.md) for the verified-learning roadmap and promotion gates.
+Scion's preference flywheel is fail-closed. The adapter dataset build currently admits **0 of 471 audited rows**. Raw repair events remain quarantined rather than becoming training data. Answer repairs need agreement from at least two distinct verifier identities, unknown evidence kinds are rejected, applied-stem repairs need explicit review approval, post-hoc key realignment can never become training data, and rows without an explicit domain/course group cannot enter a split. `npm run audit:scion:review-packet` derives neutral pairs from matched artifacts and prepares 50 anonymized A/B cases, balanced ten each across computer science, geology, music theory, user-experience design, and world literature. Every domain packet includes a self-contained offline review page that saves drafts locally and downloads packet-bound JSON without sending data to a server or revealing the organizer key. Two distinct working instructors who currently teach that domain must independently agree, attest no conflict of interest, and clear factual-correctness and teachability floors before `audit:scion:reviews` can write an approved row. Raw rows remain an evidence ledger; only the separate curated split can reach the ORPO launcher, which refuses to train below 3,000 verified pairs. See [docs/SCION_NEXT_LEVEL_PLAN.md](docs/SCION_NEXT_LEVEL_PLAN.md) for the verified-learning roadmap and promotion gates.
 
 See [evaluation/README.md](evaluation/README.md) for the gate definitions, claim boundary, paired contrast workflow, and route-separated matrix.
 
@@ -85,7 +101,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.5)
+## Current Pipeline (v0.16.6)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

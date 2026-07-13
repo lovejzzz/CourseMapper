@@ -18,10 +18,17 @@ import json
 import os
 import sys
 
+from huggingface_hub import snapshot_download
 from mlx_vlm import load, generate
 from mlx_vlm.prompt_utils import apply_chat_template
 
-MODEL = os.environ.get("SCION_MODEL", os.environ.get("G4_MODEL", "google/gemma-4-e2b-it"))
+MODEL_ID = os.environ.get("SCION_MODEL", os.environ.get("G4_MODEL", "google/gemma-4-E2B-it"))
+MODEL_REVISION = os.environ.get("SCION_MODEL_REVISION", "")
+MODEL = (
+    snapshot_download(repo_id=MODEL_ID, revision=MODEL_REVISION)
+    if MODEL_REVISION and not os.path.exists(MODEL_ID)
+    else MODEL_ID
+)
 # V2.1 A4: house adapters ride an env var — base weights stay untouched and
 # rollback is unsetting G4_ADAPTERS (checkpoint gates decide adoption).
 ADAPTERS = os.environ.get("SCION_ADAPTERS", os.environ.get("G4_ADAPTERS", ""))
@@ -85,7 +92,18 @@ def constrained_processor(req):
     return None, "none"
 
 
-print(json.dumps({"ready": True, "constrained": _llg_tokenizer is not None}), flush=True)
+print(
+    json.dumps(
+        {
+            "ready": True,
+            "constrained": _llg_tokenizer is not None,
+            "modelId": MODEL_ID,
+            "modelRevision": MODEL_REVISION or None,
+            "adapterActive": bool(ADAPTERS),
+        }
+    ),
+    flush=True,
+)
 
 for line in sys.stdin:
     line = line.strip()

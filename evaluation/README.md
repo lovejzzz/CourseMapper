@@ -60,6 +60,22 @@ npm run audit:scion:model-bakeoff
 
 The registry is `evaluation/scion-model-candidates.json`; promotion evidence is retained under `evaluation/scion-model-evidence/`, while generated reports are written under `verification-output/scion-model-bakeoff/`. Keeping the small evidence ledgers in the repository makes the default audit reproducible after a fresh clone instead of depending on one ignored local run folder. A live screen requires an exact registered candidate/model pair and runs every factual case one at a time in both cold and source-grounded mode. Two passing runs of each mode are required; transient failed sessions remain in the evidence ledger but cannot poison a later clean, exact-identity rerun.
 
+## Scion adapter lane
+
+The adapter lane evaluates a learned delta separately from both the public Gemma 4 E2B base and the Scion compiler. Its architecture, exact base revisions, browser limitations, and milestone exits are defined in `docs/SCION_ADAPTER_ROADMAP.md`.
+
+```bash
+npm run build:scion:adapter-dataset
+npm run train:scion:adapter -- --smoke
+npm run package:scion:adapter -- --adapter-dir ... --adapter-id ... --scion-version ... --dataset-manifest ...
+npm run audit:scion:adapter -- path/to/scion-adapter.json
+npm run audit:scion:adapter:promotion -- --manifest ... --candidate ... --base ...
+```
+
+The dataset builder accepts only pair-audited, deduplicated records with an explicit domain and course/project group, then keeps each group inside one deterministic split. A `smoke` package may prove loading mechanics but is permanently non-promotable. A `candidate` or `promoted` manifest is invalid unless the bound dataset is `ready` with at least 3,000 verified pairs across five domains. Promotion additionally requires exact active base/adapter identity, five clean matched full courses, a 20% median Scion-call reduction with no per-domain regression above 1.05×, and hash-bound factual, instructor, device, and production evidence.
+
+The current build is correctly blocked at 0/471 eligible rows. `evaluation/scion-adapters/evidence/dataset-gate-v0.16.6.json` retains the fail-closed count, gate issues, leakage result, and empty split hashes. `evaluation/scion-adapters/evidence/legacy-smoke-v0.16.6.json` separately retains the base-plus-adapter loading proof but explicitly forbids using that historical adapter as quality or promotion evidence.
+
 Factual screening is not promotion. Promotion additionally requires five passing 12-lesson courses across five domains, 99/A with zero P0/P1, five domain-matched control courses, no more than 1.25× the control's Scion quality-pass calls, the named browser-device classes, and at least 50 blind cases with two independent domain-qualified reviews per case. The candidate's effective blind win rate must have a 95% Wilson lower bound above 0.50. Crucible imports verify the exact source-weight ID, not merely the endpoint's friendly name:
 
 ```bash
@@ -73,6 +89,8 @@ Current evidence screens both Gemma 4 E2B and Qwen3.5 4B at 23/25 cold twice and
 The second exact-provenance pair is retained as failed diagnostic evidence under `evaluation/scion-domain-evidence/business-ethics-v0.16.5.json`. Gemma's Business Ethics package initially reported 98/A but contains foreign music-theory material and regrades 74/C with one P0 under the corrected discipline gate. Qwen's matched package is 89/B with six named-reading identity P1s. Both models emitted all 12 native sessions and then stopped inside the top-level assessments array; the saved responses now replay through the narrow recovery to 12 sessions, 12 deterministic assessments, and 100% total weight. Neither package is `packageValid`, so Business Ethics does not increase passing-domain coverage.
 
 The post-fix exact-Gemma browser run `round-2026-07-13T02-50-48-419Z` is retained in the compact domain record as compiler proof: 762 seconds, 38/38 export checks, 87/87 completed inner generations, zero failed generations, and no foreign-domain contamination. Its two live P1s were evaluator false positives for legitimate Business Ethics sources. The calibrated citation vocabulary regrades that exact saved package 99/A with zero findings, while the universal contamination check still catches multi-signal leakage even when a course uses the generic probe profile. It does not promote a model because there is no current-compiler matched candidate/control pair.
+
+The v0.16.6 exact-Qwen rerun `round-2026-07-13T05-09-35-402Z` provides current-compiler burden proof on the same 12-lesson brief: 548 seconds, 101 files, 99/A with zero findings, 38/38 clean export checks, and 104/104 completed local requests. Qwen's Scion pass calls fell from 108 to 91; compared with the 73-call exact-Gemma control, the resulting 1.247× burden passes the 1.25× ceiling. The compact record binds the package, project, console, and shim-body-log hashes in `evaluation/scion-domain-evidence/business-ethics-v0.16.6.json`. This is a compiler result, not a Qwen promotion or adapter result.
 
 Audit the compiler—not just the model—with:
 
@@ -161,7 +179,7 @@ The current local route's production-safe capture is the 7-lesson music-theory r
 
 The current local UX comparison row points to `round-2026-07-11T20-41-02-548Z`. Its real 12-lesson run reached 99/A with zero P0/P1, 101 extracted files, clean 38/38 export verification, six genome-linked lessons, and a strict matrix pass. The candidate records 27/48 applied MC items (56.3%) versus Luna's 27/44 (61.4%), so the applied rate still trails even though the applied-item count is equal. Both artifacts reach 100% supported inference, explanation-key alignment, scenario coverage, and concrete scenario materials. Scion reaches 100% contrastive rationales versus 9.1%, 100% decision-ready scenarios versus 58.3%, and 100% cue-free plus claim-evidence-boundary short answers versus 0%. The derived scenarios retain explicit `derived-kernel-fallback` provenance. These are deterministic paired diagnostics from one course; the production-canary gate now passes independently, but independent instructor evidence is still required for a teachability or general superiority claim.
 
-The corpus audit currently admits 0/418 rows. The exact Gemma control contributed seven raw repair pairs, but none satisfy the independent-evidence gate. One hundred two rows lack distinct verifier diversity, 34 lack review approval, 11 use an unsupported evidence kind, and three post-hoc key-realignment records are permanently non-trainable; 234 lack pair-level evidence and most also lack a deterministic quality margin. The curated training file is empty by design. A balanced 50-case blind review packet is ready across five named domains, but no instructor decision is counted until valid completed forms are ingested.
+The final v0.16.6 adapter dataset audit loaded 471 raw model/compiler events and admitted 0. The events do not satisfy the independent-evidence and explicit split-identity gates, so the train, validation, and test files are empty by design. The audit found zero group overlap and bound all three empty split hashes. A balanced 50-case blind review packet is ready across five named domains, but no instructor decision is counted until valid completed forms are ingested.
 
 ## Current claim
 

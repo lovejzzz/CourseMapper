@@ -16,6 +16,8 @@
 import { assessScionKeyTerm, assessScionMcItem } from './scionPreferenceGate.js';
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
 
+const APPLIED_MCQ_TARGET_PER_LESSON = 2;
+
 const TOPIC_STOPWORDS = new Set([
   'lesson',
   'week',
@@ -200,7 +202,13 @@ async function generateVerifiedReplacement({ system, user, promptLesson, topicTo
         maxOutputTokens: 2000,
         temperature: 0.7,
       });
-      const fresh = JSON.parse(reply);
+      const parsed = JSON.parse(reply);
+      const fresh = {
+        ...parsed,
+        q: normalizeRepairedStem(parsed?.q),
+        op: normalizeOptionLabels(parsed?.op),
+        ex: completeSentencePrefix(parsed?.ex),
+      };
       const admission = assessScionMcItem(fresh, { topicWords: topicTokens });
       if (!admission.eligible) continue;
       const keyVerification = await verifyReplacementKey(fresh, generateJson);
@@ -269,40 +277,121 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
   const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
   const words = topicWords(promptLesson);
   if (items.length === 0 || words.length === 0) return;
-  for (const [index, item] of items.entries()) {
-    if (onTopic(item, words)) continue;
-    try {
-      const replacement = await generateVerifiedReplacement({
-        system:
-          'You write flawless quiz items. Replace an OFF-TOPIC item with one testing ONLY the listed lesson topics, same difficulty. The answer key (ai) MUST be verifiably correct. Return ONLY the item JSON object.',
-        user: `Lesson topics: ${words.join(', ')}\nOff-topic item: ${JSON.stringify(item)}`,
-        promptLesson,
-        topicTokens: words,
-        generateJson,
-      });
-      if (replacement && onTopic(replacement.fresh, words)) {
-        const { fresh, prompt, keyVerification, attempt } = replacement;
+  const targets = items.map((item, index) => ({ item, index })).filter(({ item }) => !onTopic(item, words));
+  if (targets.length === 0) return;
+  const indices = targets.map(({ index }) => index);
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      repairs: {
+        type: 'array',
+        minItems: targets.length,
+        maxItems: targets.length,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: { index: { type: 'integer', enum: indices }, ...MC_ITEM_SCHEMA.properties },
+          required: ['index', ...MC_ITEM_SCHEMA.required],
+        },
+      },
+    },
+    required: ['repairs'],
+  };
+  const system =
+    'You repair multiple-choice items that remain off-topic after the main admission pass. Test ONLY the listed lesson topics at the same difficulty. Write a complete stem, exactly four parallel options without A/B/C/D labels, one uniquely correct answer, and a complete contrastive explanation. Avoid meta-language, unsupported inference, trailing fragments, and answer cues. Return only JSON.';
+  const user = JSON.stringify({
+    lesson: promptLesson || null,
+    topics: words,
+    items: targets.map(({ item, index }) => ({ index, item })),
+  });
+  try {
+    const reply = await generateJson({
+      system,
+      user,
+      schemaProfile: { name: 'topic_repair_batch', schema, strict: true },
+      maxOutputTokens: Math.max(1800, targets.length * 650),
+      temperature: 0.5,
+    });
+    const repairs = JSON.parse(reply)?.repairs;
+    if (!Array.isArray(repairs)) return;
+    const byIndex = new Map(repairs.map((repair) => [repair?.index, repair]));
+    const candidates = targets
+      .map(({ item, index }) => {
+        const repair = byIndex.get(index);
+        if (!repair) {
+          events.push({
+            pass: 'topicGate',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: 'missing-repair',
+          });
+          return null;
+        }
+        const fresh = {
+          q: normalizeRepairedStem(repair.q),
+          op: normalizeOptionLabels(repair.op),
+          ai: repair.ai,
+          ex: completeSentencePrefix(repair.ex),
+        };
+        const admission = assessScionMcItem(fresh, { topicWords: words });
+        if (!admission.eligible || !onTopic(fresh, words)) {
+          events.push({
+            pass: 'topicGate',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: [...new Set([...admission.issues, ...(!onTopic(fresh, words) ? ['off-topic'] : [])])].join(','),
+            draft: fresh,
+          });
+          return null;
+        }
+        return { fresh, item, index };
+      })
+      .filter(Boolean);
+    if (candidates.length === 0) return;
+    const first = await blindSolve(
+      candidates.map(({ fresh }) => fresh),
+      generateJson,
+    ).catch(() => null);
+    const second = await blindSolve(
+      candidates.map(({ fresh }) => fresh),
+      generateJson,
+    ).catch(() => null);
+    if (!first || !second) return;
+    candidates.forEach(({ fresh, item, index }, candidateIndex) => {
+      const expected = Number(fresh.ai);
+      if (first[candidateIndex] !== expected || second[candidateIndex] !== expected) {
         events.push({
           pass: 'topicGate',
           lessonId: lesson.lessonId,
           item: index,
-          action: 'regenerated',
-          rejected: item,
-          chosen: fresh,
-          prompt,
-          trainingEligible: true,
-          preferenceEvidence: {
-            kind: 'topic-and-key-repair',
-            verified: true,
-            chosenAnswers: keyVerification.answers,
-            attempt,
-          },
+          action: 'rejected',
+          reason: `key-verification:${first[candidateIndex]},${second[candidateIndex]}!=${expected}`,
         });
-        items[index] = fresh;
+        return;
       }
-    } catch {
-      /* keep the original item */
-    }
+      items[index] = fresh;
+      events.push({
+        pass: 'topicGate',
+        lessonId: lesson.lessonId,
+        item: index,
+        action: 'regenerated',
+        rejected: item,
+        chosen: fresh,
+        prompt: `System: ${system}\nUser: ${user}`,
+        trainingEligible: true,
+        preferenceEvidence: {
+          kind: 'topic-and-key-repair',
+          verified: true,
+          chosenAnswers: [first[candidateIndex], second[candidateIndex]],
+          attempt: 1,
+        },
+      });
+    });
+  } catch {
+    events.push({ pass: 'topicGate', lessonId: lesson.lessonId, action: 'failed', reason: 'generation-or-parse' });
   }
 }
 
@@ -588,9 +677,17 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
  */
 async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
   const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
+  const topicTokens = topicWords(promptLesson);
+  const desiredAppliedCount = Math.min(APPLIED_MCQ_TARGET_PER_LESSON, items.length);
+  const existingAppliedCount = items.filter((item) => isAppliedQuizStem(item?.q)).length;
+  const neededRepairs = Math.max(0, desiredAppliedCount - existingAppliedCount);
   const targets = items
     .map((item, index) => ({ item, index }))
-    .filter(({ item, index }) => index > 0 && !isAppliedQuizStem(item?.q));
+    .filter(
+      ({ item, index }) =>
+        index > 0 && !isAppliedQuizStem(item?.q) && assessScionMcItem(item, { topicWords: topicTokens }).eligible,
+    )
+    .slice(0, neededRepairs);
   const grounding = groundingWords(lesson);
   if (targets.length === 0 || grounding.length === 0) return;
   const indices = targets.map(({ index }) => index);
@@ -633,7 +730,6 @@ async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
     const repairs = JSON.parse(reply)?.repairs;
     if (!Array.isArray(repairs)) return;
     const byIndex = new Map(repairs.map((repair) => [repair?.index, repair]));
-    const topicTokens = topicWords(promptLesson);
     const candidates = targets
       .map(({ item, index }) => {
         const repair = byIndex.get(index);
@@ -820,6 +916,10 @@ export async function applyScionKernelPasses(
     await appliedDepthGate(lesson, promptLesson, generateJson, events);
     await keyTermAdmissionGate(lesson, promptLesson, generateJson, events, minimumKeyTermCount);
     await polishProse(lesson, generateJson, events);
+    // A bounded replacement can arrive after the initial normalization. Keep
+    // exporter-owned A/B/C/D labels out of the stored options regardless of
+    // which repair pass authored the final item.
+    normalizeMcOptionLabels(lesson);
   }
   return { text: JSON.stringify(parsed), events };
 }

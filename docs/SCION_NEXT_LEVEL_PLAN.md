@@ -1,7 +1,49 @@
 # Scion Next Level — Verified Learning, Not Model Imitation
 
-**Status:** implementation in progress; two-domain audit complete, one domain qualifies, training corpus intentionally empty
+**Status:** adapter infrastructure and compiler-efficiency pass implemented; production adapter training remains correctly blocked by an empty qualified corpus
 **North star:** Scion produces a more teachable, more internally coherent course than a paid frontier baseline at a fraction of the cost, and the evidence survives blind instructor review.
+
+## v0.16.6 — Rootstock + Graft + Compiler
+
+### Goal
+
+Turn the Scion name into a technically honest, independently testable architecture:
+
+```text
+public Gemma 4 E2B base + small Scion adapter + Scion compiler -> Scion Vx
+```
+
+The base supplies general capability, the LoRA adapter learns recurring course-authoring behavior, and the compiler owns source truth, deterministic invariants, validation, repair, grading, and packaging. The adapter updates behavior without redistributing a second complete foundation model. It does not remove the first-use public-base download, and it does not make a browser private unless the browser runtime actually runs the complete path locally.
+
+### Implemented foundation
+
+- `src/lib/scionAdapterManifest.js` defines the exact Gemma 4 E2B base contract, adapter formats, runtime capabilities, promotion states, and fail-closed resolution. A candidate or promoted package is impossible below the ready/3,000-pair/five-domain dataset gate.
+- `scripts/scionAdapterDataset.mjs` audits rows, deduplicates exact preference pairs, requires a known domain and explicit course/project group, assigns entire groups deterministically to one split, checks overlap, hashes every split, and preserves only source/line/reason metadata for quarantined rows.
+- `trellis/tendril/distill/prepare_adapter_base.py` resolves a 40-character Hugging Face revision to one immutable snapshot; `run_orpo_g4.sh` trains outside Git and packages smoke/candidate artifacts separately.
+- `scripts/scionAdapterPackage.mjs` binds every regular adapter file by safe relative path, bytes, and streaming SHA-256. The local shim verifies the package before model load, refuses a bare adapter directory, and exposes base revision, adapter state, adapter ID, manifest hash, and load errors through health and model discovery.
+- `scripts/scionAdapterPromotionAudit.mjs` requires five matching held-out domains, exact active identity, 99/A and zero P0/P1 on every course, no per-domain call regression above 1.05×, at least 20% median call reduction, and hash-bound factual, instructor, device, and production evidence.
+
+A real historical 52.8 MB adapter completed the exact-base loading path and one schema-constrained inference. It is permanently marked smoke because its training provenance predates this contract. The retained proof records the mechanism without retaining or promoting its weights. Production training remains blocked: the current exporter admits **0 of 471** rows, so the correct next input is independent pair-level evidence—not a lower threshold.
+
+### Compiler audit from the Qwen/Gemma gap
+
+The second-domain diff found that the shared applied-reasoning detector recognized only 6 of 45 Qwen multiple-choice items even though many already supplied a concrete business case and asked students to choose an ethical framework, legal interpretation, or action. That false negative triggered 33 rewrite actions, most of which were rejected, and inflated Qwen to 108 Scion pass calls.
+
+The detector now recognizes domain-neutral case-to-framework/judgment frames only when the stem is complete, contains at least 12 words, and supplies either a concrete actor/action pair or inspectable evidence. It still rejects bare recall such as “Which ethical framework focuses on duties?” and incomplete model text. Replaying the retained Qwen graph recognizes 29 of 45 items (64%) while the retained Gemma graph remains 5 of 32 (16%), showing that the new rule distinguishes the actual model outputs instead of making every long question pass.
+
+The repair budget now targets two applied multiple-choice seats per lesson rather than rewriting every non-recall seat. It never rewrites a stem when the item's immutable options or explanation already fail admission. Remaining topic repairs run once per lesson and receive two independent cold batch solves rather than up to two generation attempts plus two solves per item. Every accepted replacement strips model-authored A/B/C/D labels before projection.
+
+The release-gate browser run passed on exact `mlx-community/Qwen3.5-4B-4bit` revision `0e7ffd5c629ef7719d4cbc04069232580bfa9d9c`. The 12-lesson Business Ethics package reached 99/A with zero P0/P1/P2, 38/38 clean export checks, 101 files, and 104/104 completed local requests in 548 seconds. Scion pass calls fell from 108 in the previous exact-Qwen run to 91 (15.7%); the exact-Gemma control used 73, so the final 1.247× burden is inside the 1.25× model ceiling. An intermediate run exposed doubled answer-option labels after late topic repair; final normalization fixed the defect before this proof run. The retained records are `evaluation/scion-domain-evidence/business-ethics-v0.16.6.json` and `evaluation/scion-model-evidence/qwen3.5-4b/2026-07-13T05-19-06-343Z-full-course.json`.
+
+### Remaining road
+
+1. Acquire qualified preferences from the existing blinded, domain-balanced instructor packets and other independently verified pair evidence until the frozen 3,000/five-domain gate is met.
+2. Train the first new adapter on the pinned Gemma base, package it as `candidate`, and compare exact base-only versus base-plus-adapter with the same prompts, compiler commit, browser, and grader.
+3. Reject any checkpoint that fails factual canaries, final package quality, first-pass contract rate, the 20% repair-call reduction, or independent instructor preference.
+4. Prototype separate adapter loading in a browser runtime. Until it passes the device/download/recovery matrix, WebLLM reports `base-only`; it must never claim the adapter is active.
+5. Publish only the small adapter and signed/hash-bound metadata. Users cache the public base independently, receive smaller Scion updates, and can roll back by removing one adapter registry entry.
+
+The detailed architecture and milestone exits live in [SCION_ADAPTER_ROADMAP.md](SCION_ADAPTER_ROADMAP.md).
 
 ## v0.16.5 — Domain Truth
 

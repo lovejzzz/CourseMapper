@@ -50,6 +50,13 @@ const appliedOutcomeStems = [
   'A designer creates hover-only navigation with no keyboard focus indicator. Which usability heuristic is violated by this behavior?',
 ];
 
+const appliedFrameworkStems = [
+  'A pharmaceutical company discovers a rare but serious drug side effect. A recall would save lives but cost millions. Which ethical framework prioritizes the recall?',
+  'An employee discovers falsified financial reports and risks dismissal by reporting them. What ethical concept does this dilemma highlight?',
+  'A CEO cuts employee benefits to increase shareholder returns while remaining legally compliant. Why is this decision ethically problematic?',
+  'A board member owns stock in a supplier but refuses to disclose it. What is the primary ethical issue?',
+];
+
 describe('quiz item depth', () => {
   it('extracts only multiple-choice stems from rendered quiz paragraphs', () => {
     const paragraphs = [
@@ -69,7 +76,14 @@ describe('quiz item depth', () => {
     for (const stem of appliedCompilerStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     for (const stem of appliedDisciplineStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     for (const stem of appliedOutcomeStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
+    for (const stem of appliedFrameworkStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     expect(isAppliedQuizStem('Which clef establishes the pitch reference point for a staff?')).toBe(false);
+    expect(isAppliedQuizStem('Which ethical framework focuses on duties rather than consequences?')).toBe(false);
+    expect(
+      isAppliedQuizStem(
+        'A manager discovers falsified records and must choose whether to report them. Which ethical framework applies',
+      ),
+    ).toBe(false);
   });
 
   it('summarizes package-level applied share from rendered paragraphs', () => {

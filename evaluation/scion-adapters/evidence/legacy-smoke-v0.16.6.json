@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "scion-adapter-mechanical-smoke",
+  "observedAt": "2026-07-13T04:28:00.000Z",
+  "status": "mechanical-pass",
+  "promotable": false,
+  "claimBoundary": "This historical adapter predates the verified-dataset and promotion contract. It proves only that an exact public base plus a separate hash-bound adapter can load and answer through the Scion local runtime; it is not evidence of a quality improvement and may never be promoted.",
+  "base": {
+    "modelId": "google/gemma-4-E2B-it",
+    "revision": "9dbdf8a839e4e9e0eb56ed80cc8886661d3817cf",
+    "exactRevisionRequired": true
+  },
+  "adapter": {
+    "id": "scion-g4e2b-legacy-smoke",
+    "status": "smoke",
+    "manifestSha256": "0b35547cfb966b532f94ff1d9e7eb802695c19815d8f1ad96d84b2338f113b46",
+    "files": [
+      {
+        "path": "adapter_config.json",
+        "bytes": 15687,
+        "sha256": "6437457e96665e5af66463ba4d022224b1c36b7cf049ce3894468c9b7bd78aaa"
+      },
+      {
+        "path": "adapters.safetensors",
+        "bytes": 52792482,
+        "sha256": "73b35b9438a13890b301b678fd1f2b03cf7678e86b785a02a5f092016bd47926"
+      }
+    ]
+  },
+  "runtime": {
+    "id": "mlx-vlm",
+    "modelLoadMs": 5576,
+    "adapterState": "active",
+    "adapterActive": true,
+    "calls": 1,
+    "completedCalls": 1,
+    "failedCalls": 0
+  },
+  "probe": {
+    "schemaConstrained": true,
+    "response": {
+      "status": "ok",
+      "purpose": "adapter-smoke"
+    }
+  }
+}

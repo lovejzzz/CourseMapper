@@ -1,0 +1,110 @@
+{
+  "version": "0.16.6",
+  "date": "July 12, 2026",
+  "title": "Rootstock & Graft: Scion can learn without shipping a second model",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/scion-adapter-manifest.test.js tests/scion-adapter-tooling.test.js scripts/__tests__/e2bOpenAIShim.test.mjs tests/scion-compiler.test.js src/lib/quality/__tests__/quizItemDepth.test.js",
+      "npm run build:scion:adapter-dataset",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:scion:model-bakeoff"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification runs on the pushed v0.16.6 commit and is checked before release handoff."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The full deterministic suite, release audit, build, bundle budgets, adapter contract tests, compiler burden audit, and evidence replay run locally before push."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploys only after Fast verification succeeds on the release commit."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The exact-Qwen Business Ethics run used the real Local provider, real browser export, exact source revision, complete shim logs, and the production compiler."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No adapter or instructor-readiness claim is made; qualifying independent pair review remains absent."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0166-adapter-architecture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Scion has an exact-base, separately hash-bound adapter contract with truthful runtime identity. A historical adapter proves the loading mechanism but is permanently non-promotable.",
+      "anchors": [
+        "src/lib/scionAdapterManifest.js",
+        "scripts/scionAdapterPackage.mjs",
+        "scripts/crucible/e2bOpenAIShim.mjs",
+        "trellis/tendril/distill/serve_g4.py",
+        "tests/scion-adapter-manifest.test.js",
+        "tests/scion-adapter-tooling.test.js",
+        "scripts/__tests__/e2bOpenAIShim.test.mjs",
+        "evaluation/scion-adapters/evidence/legacy-smoke-v0.16.6.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-adapter-manifest.test.js tests/scion-adapter-tooling.test.js scripts/__tests__/e2bOpenAIShim.test.mjs"
+      ],
+      "proofScopes": ["unit", "live-provider", "static-audit"]
+    },
+    {
+      "id": "v0166-fail-closed-learning",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The dataset and promotion systems refuse unsafe learning: 0 of 471 raw events are eligible, groups cannot cross splits, and candidate or promoted manifests require the frozen corpus and external-evidence gates.",
+      "anchors": [
+        "scripts/scionAdapterDataset.mjs",
+        "scripts/scionAdapterPromotionAudit.mjs",
+        "trellis/tendril/distill/run_orpo_g4.sh",
+        "tests/scion-adapter-tooling.test.js",
+        "evaluation/scion-adapters/evidence/dataset-gate-v0.16.6.json"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-adapter-tooling.test.js", "npm run build:scion:adapter-dataset"],
+      "proofScopes": ["unit", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v0166-compiler-efficiency",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Applied-depth and repair changes cut exact-Qwen Scion calls from 108 to 91. The final Business Ethics browser package is 99/A with zero findings and its 1.247x burden versus exact Gemma passes the 1.25x ceiling.",
+      "anchors": [
+        "src/lib/quality/quizItemDepth.js",
+        "src/lib/scionPasses.js",
+        "src/lib/quality/__tests__/quizItemDepth.test.js",
+        "tests/scion-compiler.test.js",
+        "evaluation/scion-domain-evidence/business-ethics-v0.16.6.json",
+        "evaluation/scion-model-evidence/qwen3.5-4b/2026-07-13T05-19-06-343Z-full-course.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-compiler.test.js src/lib/quality/__tests__/quizItemDepth.test.js",
+        "npm run audit:scion:model-bakeoff"
+      ],
+      "proofScopes": ["unit", "browser-live", "compiled-output", "live-provider", "static-audit"]
+    },
+    {
+      "id": "v0166-claim-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The release explicitly separates the compiler-only hosted route, shared model-neutral compiler gains, and future Gemma-specific adapter learning. No new weights or browser adapter are claimed.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "docs/SCION_NEXT_LEVEL_PLAN.md",
+        "evaluation/README.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}
