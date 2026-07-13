@@ -1,6 +1,8 @@
 # Scion Next Level — Verified Learning, Not Model Imitation
 
-**Status:** adapter infrastructure and compiler-efficiency pass implemented; production adapter training remains correctly blocked by an empty qualified corpus
+> **Historical v0.16.6 plan.** v0.16.7 replaced the hosted Pollinations route with browser-local Scion: the pinned public Gemma 4 E2B GGUF runs in the browser and prompts stay on the device. The current architecture, adapter contract, and promotion gates live in [SCION_ADAPTER_ROADMAP.md](SCION_ADAPTER_ROADMAP.md).
+
+**Status:** historical v0.16.6 adapter infrastructure and compiler-efficiency pass implemented; v0.16.7 has since completed an exact-QAT browser smoke, while production training remains correctly blocked by an empty independently qualified corpus
 **North star:** Scion produces a more teachable, more internally coherent course than a paid frontier baseline at a fraction of the cost, and the evidence survives blind instructor review.
 
 ## v0.16.6 — Rootstock + Graft + Compiler
@@ -23,7 +25,9 @@ The base supplies general capability, the LoRA adapter learns recurring course-a
 - `scripts/scionAdapterPackage.mjs` binds every regular adapter file by safe relative path, bytes, and streaming SHA-256. The local shim verifies the package before model load, refuses a bare adapter directory, and exposes base revision, adapter state, adapter ID, manifest hash, and load errors through health and model discovery.
 - `scripts/scionAdapterPromotionAudit.mjs` requires five matching held-out domains, exact active identity, 99/A and zero P0/P1 on every course, no per-domain call regression above 1.05×, at least 20% median call reduction, and hash-bound factual, instructor, device, and production evidence.
 
-A real historical 52.8 MB adapter completed the exact-base loading path and one schema-constrained inference. It is permanently marked smoke because its training provenance predates this contract. The retained proof records the mechanism without retaining or promoting its weights. Production training remains blocked: the current exporter admits **0 of 471** rows, so the correct next input is independent pair-level evidence—not a lower threshold.
+A real historical 52.8 MB adapter completed the local loading path and one schema-constrained inference. It is permanently marked smoke because its training provenance predates this contract and targets the older non-QAT base. The v0.16.6 production exporter admitted **0 of 471** rows, so the correct next input remains independent pair-level evidence—not a lower production threshold.
+
+After this plan was written, v0.16.7 added a separate non-adoptable mechanics lane. It derived 101 smoke-only structural pairs across five explicit domain groups, trained ten iterations against the exact QAT parent, converted the MLX LoRA deterministically through PEFT and pinned llama.cpp into a 52.7 MB GGUF, and proved native browser activation plus exact rollback. The adapter changed the deterministic canary only at scale 16, not scales 1 or 4. This closes the training-to-browser plumbing gap; it does not change the zero independently qualified production-pair count or establish a quality improvement.
 
 ### Compiler audit from the Qwen/Gemma gap
 
@@ -141,7 +145,7 @@ The challenger run repaired runtime defects too: native SSE is no longer parsed 
 - The local server serializes those events into a real preference-row shape instead of mixing telemetry with training data.
 - The kernel prompt now actually includes the study-guide object it already promised in prose and required in Scion's schema.
 - `npm run audit:scion:corpus` curates raw rows into an isolated split and reports every quarantine reason.
-- The ORPO launcher now reads only that curated split and still refuses to train below 3,000 verified pairs.
+- The ORPO launcher reads only a curated split. Candidate and production modes refuse to train below 3,000 verified pairs; the explicit `--smoke` mode may run below that bar but can emit only permanently non-promotable mechanics artifacts.
 
 ## Phase 2 — Build the frontier-difference laboratory
 
@@ -229,8 +233,8 @@ The first checkpoint that clears only structural gates remains experimental. “
 1. Keep the runtime repair, graph-source persistence, and corpus quarantine gates green.
 2. Extend the matched difference lab from quizzes to assignments, rubrics, study guides, and cross-artifact consistency.
 3. Run the same source-matched comparison across multiple disciplines and scopes.
-4. Generate the first 50 reviewed, pair-level verified records across five modalities. **Current: 50 blind candidates balanced across five domains; 0 approved; 387 raw records quarantined.**
-5. Run a small non-adoptable training smoke test to validate mechanics only.
+4. Generate the first 50 reviewed, pair-level verified records across five modalities. **Current: 50 blind candidates balanced across five domains; 0 approved. The separate 101-pair structural smoke set is not a substitute for instructor approval.**
+5. ~~Run a small non-adoptable training smoke test to validate mechanics only.~~ **Completed July 13, 2026:** exact-QAT training, deterministic MLX-to-GGUF conversion, native browser activation, scale trials, and exact rollback all passed mechanically; normal-scale quality did not.
 6. Grow to the 3,000-pair threshold without relaxing the filters.
 7. Train candidate adapters, run frozen rulers, and retain every rejection.
 8. Conduct the independent instructor benchmark and production canaries before changing the public quality claim.

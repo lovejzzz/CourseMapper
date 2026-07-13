@@ -48,6 +48,37 @@ function citationLabel(anchor) {
   return anchor.loc ? `${src} §${anchor.loc}` : src;
 }
 
+function citationProvenance(anchor, kernel, sourceReferences = {}) {
+  const label = citationLabel(anchor);
+  if (!label) return null;
+  const metadata = sourceReferences?.[anchor?.src];
+  if (!metadata?.sourceUrl) return label;
+  const locator = cleanText(anchor?.loc);
+  const displayTitle = cleanText(metadata.displayTitle) || label;
+  const attribution = Array.isArray(kernel?.attribution)
+    ? kernel.attribution.map(cleanText).filter(Boolean).join('; ')
+    : cleanText(kernel?.attribution);
+  return {
+    key: label,
+    displayTitle: locator ? `${displayTitle} §${locator}` : displayTitle,
+    sourceUrl: cleanText(metadata.sourceUrl),
+    license: cleanText(kernel?.license),
+    attribution: attribution || displayTitle,
+    kind: /^openstax:/i.test(String(anchor?.src || '')) ? 'open textbook' : 'open resource',
+    evidence: cleanText(anchor?.quote),
+    sourceTier: anchor?.tier ?? kernel?.definition?.tier ?? kernelTrustTier(kernel),
+    conceptLinks: [{ id: cleanText(kernel?.id), label: cleanText(kernel?.term) }].filter(
+      (link) => link.id || link.label,
+    ),
+  };
+}
+
+function citationProvenanceKey(entry) {
+  if (!entry) return '';
+  if (typeof entry === 'object') return cleanText(entry.key || entry.sourceUrl || entry.displayTitle).toLowerCase();
+  return cleanText(entry).toLowerCase();
+}
+
 /**
  * Merge concept kernels into one lesson-level kernel in the shape
  * projectKernelToSurfaces expects, then project. The course-specific layer is
@@ -136,7 +167,7 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
   for (const kernel of kernels) {
     for (const fact of kernel.facts || []) {
       facts.push(cleanText(fact.text));
-      factSources.push(fact.anchor || null);
+      factSources.push({ anchor: fact.anchor || null, kernel });
     }
   }
 
@@ -273,13 +304,18 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
 
   // Provenance: tiers, citations, and the concept ids that fed this lesson.
   const tier = Math.max(0, ...kernels.map((kernel) => kernelTrustTier(kernel)));
-  const citations = [
-    ...new Set(
-      [...kernels.map((kernel) => citationLabel(kernel.definition?.anchor)), ...factSources.map(citationLabel)].filter(
-        Boolean,
-      ),
-    ),
-  ];
+  const citationCandidates = [
+    ...kernels.map((kernel) => citationProvenance(kernel.definition?.anchor, kernel, options.sourceReferences)),
+    ...factSources.map(({ anchor, kernel }) => citationProvenance(anchor, kernel, options.sourceReferences)),
+  ].filter(Boolean);
+  const citations = [];
+  const seenCitationKeys = new Set();
+  for (const entry of citationCandidates) {
+    const key = citationProvenanceKey(entry);
+    if (!key || seenCitationKeys.has(key)) continue;
+    seenCitationKeys.add(key);
+    citations.push(entry);
+  }
   // v0.14 P2: competency data rides along so the syllabus can build a
   // Course Competency Map — Bloom level (owned data) + curated standards tags.
   const competencies = kernels.map((kernel) => ({
@@ -295,7 +331,7 @@ export function composeLessonFromConcepts(conceptKernels = [], courseLayer = {},
     tierLabel: TRUST_TIER_LABELS[tier],
     citations,
     competencies,
-    fullyAnchored: factSources.length > 0 && factSources.every(Boolean),
+    fullyAnchored: factSources.length > 0 && factSources.every(({ anchor }) => Boolean(anchor)),
     ...(archetypesUsed.length > 0
       ? { archetypes: [...new Set(archetypesUsed)], archetypeMisconceptionCount: archetypeMisconceptions.length }
       : {}),

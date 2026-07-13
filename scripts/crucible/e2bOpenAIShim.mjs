@@ -992,7 +992,8 @@ function requestedMaxTokens(body) {
 // generations must not trip the app's 120s stream-inactivity timeout.
 const LOCAL_MODEL_ID = process.env.LOCAL_MODEL_ID || 'scion-1';
 const LOCAL_MODEL_NAME = process.env.LOCAL_MODEL_NAME || 'Scion-1';
-let LOCAL_SOURCE_MODEL_ID = process.env.SCION_MODEL || process.env.G4_MODEL || 'google/gemma-4-E2B-it';
+let LOCAL_SOURCE_MODEL_ID =
+  process.env.SCION_MODEL || process.env.G4_MODEL || 'google/gemma-4-E2B-it-qat-q4_0-unquantized';
 let LOCAL_SOURCE_MODEL_REVISION = process.env.SCION_MODEL_REVISION || '';
 
 function corsHeaders() {

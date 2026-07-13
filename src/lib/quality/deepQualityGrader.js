@@ -1088,6 +1088,25 @@ function normalizeLessonTitle(title) {
   return contentTokens(title).sort().join(' ');
 }
 
+function genomeLinkerCountsFromLine(value) {
+  const line = String(value || '');
+  const match =
+    /([0-9]+)\s+genome\s*\+\s*([0-9]+)\s+cached(?:\s*\(\s*([0-9]+)\s+genome-backed\s*\))?(?:\s+of\s+([0-9]+)\s+lessons)?/i.exec(
+      line,
+    );
+  if (!match) return null;
+  const genome = Number(match[1]);
+  const cached = Number(match[2]);
+  return { genome, cached, linked: genome + Number(match[3] ?? match[2]), lessons: Number(match[4]), line };
+}
+
+function linkedLessonCountFromGenomeLine(value) {
+  const line = String(value || '');
+  const detailed = genomeLinkerCountsFromLine(line);
+  if (detailed) return detailed.linked;
+  return firstNumber(line, /([0-9]+)\s+genome/i);
+}
+
 // HONESTY — console + manifest cross-checks.
 function scopeConsoleLogToDigest(consoleLogText, digest) {
   const log = String(consoleLogText || '');
@@ -1103,13 +1122,13 @@ function checkHonesty(findings, { manifest }, consoleLogText, digest) {
   const digestPipeline = digest?.pipeline || {};
 
   // genomeLinker counts consistent across the three surfaces.
-  const linkerLineCount = firstNumber(digestPipeline.genomeLinker || log, /([0-9]+)\s+genome\s*\+\s*[0-9]+\s+cached/i);
+  const linkerLineCount = linkedLessonCountFromGenomeLine(digestPipeline.genomeLinker || log);
   const backboneLineCount = firstNumber(
     digestPipeline.knowledgeBackbone || log,
     /([0-9]+)\/[0-9]+\s+lessons genome-linked/i,
   );
   const manifestLinker = manifest?.pipeline?.genomeLinker || '';
-  const manifestLinkerCount = firstNumber(manifestLinker, /([0-9]+)\s+genome/i);
+  const manifestLinkerCount = linkedLessonCountFromGenomeLine(manifestLinker);
   const seen = [linkerLineCount, backboneLineCount, manifestLinkerCount].filter((value) => value != null);
   if (seen.length >= 2 && new Set(seen).size > 1) {
     findings.add({
@@ -1397,13 +1416,13 @@ function addManifestPipelineCaveatFindings(findings, manifest) {
 function checkHonestyFromDigest(findings, { manifest }, honesty) {
   // genomeLinker counts consistent across the three surfaces (budget/digest
   // pipeline line, knowledge-backbone coverage line, manifest pipeline).
-  const linkerCount = firstNumber(honesty.genomeLinker, /([0-9]+)\s+genome/i);
+  const linkerCount = linkedLessonCountFromGenomeLine(honesty.genomeLinker);
   const backboneCount = firstNumber(
     honesty.knowledgeBackbone || manifest?.pipeline?.knowledgeBackbone || '',
     /([0-9]+)\/[0-9]+\s+lessons genome-linked/i,
   );
   const manifestLinker = manifest?.pipeline?.genomeLinker || '';
-  const manifestLinkerCount = firstNumber(manifestLinker, /([0-9]+)\s+genome/i);
+  const manifestLinkerCount = linkedLessonCountFromGenomeLine(manifestLinker);
   const seen = [linkerCount, backboneCount, manifestLinkerCount].filter((value) => value != null);
   if (seen.length >= 2 && new Set(seen).size > 1) {
     findings.add({
@@ -1473,7 +1492,8 @@ function checkHonestyFromDigest(findings, { manifest }, honesty) {
 // console transcript (Crucible mode), then the in-app honesty source. Three
 // checks:
 //   (a) the shard exists but never linked: manifest.pipeline.genomeLinker
-//       "N genome + M cached of L lessons" with N+M === 0 → P1 (resolver or
+//       "N genome + M cached (G genome-backed) of L lessons" with N+G === 0
+//       → P1 (resolver or
 //       alias drift — the live genome path silently produced nothing).
 //   (b) a genome-linked course must carry at least one cited study-guide key
 //       term (a Source line) → P1 (the v0.14 displacement-bug regression net,
@@ -1483,10 +1503,7 @@ function checkHonestyFromDigest(findings, { manifest }, honesty) {
 //       carries a prerequisite primer naming the missing concept → P1 if the
 //       gap is silent.
 function genomeLinkerCounts(manifest) {
-  const line = String(manifest?.pipeline?.genomeLinker || '');
-  const match = /([0-9]+)\s+genome\s*\+\s*([0-9]+)\s+cached\s+of\s+([0-9]+)\s+lessons/i.exec(line);
-  if (!match) return null;
-  return { genome: Number(match[1]), cached: Number(match[2]), lessons: Number(match[3]), line };
+  return genomeLinkerCountsFromLine(manifest?.pipeline?.genomeLinker);
 }
 
 function judgmentLineFor({ manifest }, consoleLogText, honesty) {
@@ -1506,7 +1523,7 @@ function checkGenomeBar(findings, pkg, course, consoleLogText, honesty) {
   const counts = genomeLinkerCounts(manifest);
 
   // (a) shard exists but never linked.
-  if (counts && counts.genome + counts.cached === 0) {
+  if (counts && counts.linked === 0) {
     findings.add({
       severity: 'P1',
       dimension: 'honesty',
@@ -1518,7 +1535,7 @@ function checkGenomeBar(findings, pkg, course, consoleLogText, honesty) {
     return;
   }
 
-  const linked = counts ? counts.genome + counts.cached : 0;
+  const linked = counts?.linked || 0;
 
   // (b) genome-linked courses must carry ≥1 cited study-guide key term — a
   // Source line in a study guide (the displacement-bug regression net).
@@ -1599,7 +1616,7 @@ function isStructuredStemCourse(course, manifest) {
 function checkUnevaluatedCourseJudgment(findings, pkg, course, consoleLogText, honesty) {
   if (probesSuppressed(course) || course?.expectGenome) return;
   const counts = genomeLinkerCounts(pkg.manifest);
-  if (!counts || counts.genome + counts.cached > 0 || !isStructuredStemCourse(course, pkg.manifest)) return;
+  if (!counts || counts.linked > 0 || !isStructuredStemCourse(course, pkg.manifest)) return;
   const manifestJudgment = pkg.manifest?.pipeline?.judgment ? String(pkg.manifest.pipeline.judgment) : '';
   if (manifestJudgment && !/not evaluated/i.test(manifestJudgment)) return;
   const honestyJudgment = honesty?.judgment ? String(honesty.judgment) : '';
@@ -1643,7 +1660,10 @@ const OFF_DISCIPLINE_SUBJECT_MARKERS = [
   { re: /\bdestination marketing\b/i, domain: 'business' },
   { re: /\bmarketing organi[sz]ations?\b/i, domain: 'business' },
   { re: /\bPICO\b/, domain: 'clinical-methods' },
-  { re: /\bsystematic (?:literature )?review\b/i, domain: 'clinical-methods' },
+  {
+    re: /(?:\b(?:clinical|medical|health|patient|treatment|intervention|diagnos|epidemiolog)\w*\b.{0,120}\bsystematic (?:literature )?review\b|\bsystematic (?:literature )?review\b.{0,120}\b(?:clinical|medical|health|patient|treatment|intervention|diagnos|epidemiolog)\w*\b)/i,
+    domain: 'clinical-methods',
+  },
   { re: /\bevidence search\b/i, domain: 'clinical-methods' },
   { re: /\bincidental vocabulary\b/i, domain: 'applied-linguistics' },
   { re: /\bvocabulary acquisition\b/i, domain: 'applied-linguistics' },
@@ -1656,6 +1676,11 @@ const OFF_DISCIPLINE_SUBJECT_MARKERS = [
   { re: /\bacids? and bases\b/i, domain: 'chemistry' },
   { re: /\bantibod/i, domain: 'medicine' },
   { re: /\bair force\b|\bmilitary base/i, domain: 'military' },
+  { re: /\bsonification\b|\bauditory displays?\b|\bacoustic signals?\b/i, domain: 'audio' },
+  {
+    re: /\barchitectural design studios?\b|\barchitectural education\b|\barchitecture studios?\b/i,
+    domain: 'architecture',
+  },
 ];
 // A marker's domain must not BE the course's discipline (so a nursing course's
 // "cardiovascular" readings are not flagged as off-discipline).
@@ -1671,6 +1696,8 @@ const COURSE_DOMAIN_RE = {
   politics: /\b(politic|government|civics|public policy|international relations|history|social studies)\b/i,
   military: /\b(military|defense|security studies|war|history)\b/i,
   chemistry: /\b(chemistry|chemical|biochem|organic|inorganic)\b/i,
+  audio: /\b(music|audio|sound|acoustic|sonification|auditory)\b/i,
+  architecture: /\b(architecture|architectural|built environment)\b/i,
 };
 // v0.14.3 (FP-3 discipline-breadth calibration): four disciplines legitimately
 // cite the medical / clinical-methods literature even though they are not
@@ -1699,6 +1726,10 @@ function offDisciplineMarker(text, course) {
     return marker.domain;
   }
   return null;
+}
+
+export function detectOffDisciplineReadingDomain(text, course) {
+  return offDisciplineMarker(String(text || ''), course || {});
 }
 
 // The citation TITLE tokens — the work's own title, with the author/year head,

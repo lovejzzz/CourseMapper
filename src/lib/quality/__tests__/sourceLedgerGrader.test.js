@@ -3,6 +3,62 @@ import { grade } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
 
 describe('source-ledger quality checks', () => {
+  it('counts cached knowledge lessons when checking cross-surface honesty', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Cached UX Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          pipeline: {
+            genomeLinker: '0 genome + 3 cached of 3 lessons (0 concepts, 0 citations, 0 bridges)',
+            knowledgeBackbone: '3/3 lessons genome-linked · 2 cited open resources',
+          },
+          files: [],
+        }),
+      }),
+      honesty: {
+        genomeLinker: '0 genome + 3 cached of 3 lessons (0 concepts, 0 citations, 0 bridges)',
+        knowledgeBackbone: '3/3 lessons genome-linked · 2 cited open resources',
+        flaggedChecks: [],
+      },
+      course: { title: 'Cached UX Studio', featureIds: [] },
+    });
+
+    expect(
+      result.findings.some((finding) => /genome-linked count disagrees across surfaces/i.test(finding.detail)),
+    ).toBe(false);
+  });
+
+  it('counts only genome-backed cached lessons against knowledge-backbone coverage', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Cached UX Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          pipeline: {
+            genomeLinker: '0 genome + 3 cached (1 genome-backed) of 3 lessons (0 concepts, 0 citations, 0 bridges)',
+            knowledgeBackbone: '1/3 lessons genome-linked · 2 cited open resources',
+          },
+          files: [],
+        }),
+      }),
+      honesty: {
+        genomeLinker: '0 genome + 3 cached (1 genome-backed) of 3 lessons (0 concepts, 0 citations, 0 bridges)',
+        knowledgeBackbone: '1/3 lessons genome-linked · 2 cited open resources',
+        flaggedChecks: [],
+      },
+      course: { title: 'Cached UX Studio', featureIds: [] },
+    });
+
+    expect(
+      result.findings.some((finding) => /genome-linked count disagrees across surfaces/i.test(finding.detail)),
+    ).toBe(false);
+  });
+
   it('flags source-backed pipeline packages that omit exported source proof', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

@@ -29,6 +29,9 @@ scripts/normalizeSlideDecksRepair.mjs
 scripts/runInternalQualityNextCell.mjs
 scripts/updateQualityDashboard.mjs
 public/genome
+# Vendored browser runtime is integrity-pinned; formatting would invalidate
+# the published module hash without changing Scion behavior.
+public/scion/runtime
 
 # Trellis generated data & caches — produced by tools that don't run prettier,
 # so they always re-drift and would re-break format:check (same rationale as

@@ -5,13 +5,7 @@ import { getLocalEndpoint, localModelOption } from '../lib/localProvider';
 import { failureEventFields, toClassifiedError } from '../lib/failureClassification';
 import { GOOGLE_ENDPOINT_FAMILIES, isVertexKey } from '../lib/googleProvider';
 import { buildProviderTextRequest } from '../lib/modelRequestBuilders';
-import {
-  PUBLIC_SCION_MIN_RETRIES,
-  PUBLIC_SCION_PROVIDER_ID,
-  publicScionModelOption,
-  publicScionKernelResponseNeedsRetry,
-  publicScionRetryDelay,
-} from '../lib/publicScionProvider';
+import { PUBLIC_SCION_PROVIDER_ID, publicScionModelOption } from '../lib/publicScionProvider';
 import {
   buildApiUsageEvent,
   extractUsageFromProviderChunk,
@@ -187,14 +181,7 @@ export default function useStreamReader() {
     const recordApiCallEvent = (event) => {
       if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
     };
-    // The anonymous public endpoint occasionally returns an upstream error
-    // without CORS headers. Browsers surface that as a retryable network
-    // failure, not an HTTP status. Give this keyless route two additional,
-    // deliberately slower recovery attempts so a brief provider wobble does
-    // not drop an entire lesson kernel. Other providers retain their caller-
-    // selected retry policy.
-    const retryLimit =
-      provider === PUBLIC_SCION_PROVIDER_ID ? Math.max(maxRetries, PUBLIC_SCION_MIN_RETRIES) : maxRetries;
+    const retryLimit = maxRetries;
     const recordUsage = (reportedUsage, outputText, label = 'API usage') => {
       const usageEvent = buildApiUsageEvent({
         provider,
@@ -218,6 +205,112 @@ export default function useStreamReader() {
       approxInputTokens: estimateCharsAsTokens(systemPrompt, userPrompt),
       hasSchema: Boolean(schema),
     });
+
+    // Scion: pinned Gemma 4 GGUF inference in this browser. This branch must
+    // remain before buildProviderTextRequest so a saved `public` provider can
+    // never fall through to a remote prompt endpoint.
+    if (provider === PUBLIC_SCION_PROVIDER_ID) {
+      const { runScionLocalCompletion } = await import('../lib/scionLocalProvider');
+      let lastProgressKey = '';
+      try {
+        const result = await runScionLocalCompletion({
+          systemPrompt,
+          userPrompt,
+          task,
+          schema,
+          maxOutputTokens,
+          maxRetries,
+          temperature: temperatureOverride ?? generationPlan?.temperature ?? 0,
+          signal: externalSignal,
+          onProgress: (runtimeStatus) => {
+            const progress = Math.max(0, Math.min(1, Number(runtimeStatus?.progress) || 0));
+            const bucket = Math.floor(progress * 10);
+            const key = `${runtimeStatus?.phase || 'loading'}:${bucket}`;
+            if (key === lastProgressKey) return;
+            lastProgressKey = key;
+            recordApiCallEvent({
+              type: 'localModelProgress',
+              label: runtimeStatus?.message || 'Preparing Scion on this device',
+              detail: `${Math.floor(progress * 100)}%`,
+              stage: 'local-model',
+              ...buildProviderTraceBase(),
+              progress,
+              runtimePhase: runtimeStatus?.phase || '',
+            });
+          },
+          onAttemptStart: ({ attempt, maxAttempts, temperature }) => {
+            recordApiCallEvent({
+              type: 'providerRequestStart',
+              label: 'Scion local generation start',
+              detail: `${task || featureId || 'generation'} attempt ${attempt}/${maxAttempts}`,
+              stage: 'provider-request',
+              ...buildProviderTraceBase(),
+              attempt,
+              maxRetries: Math.max(0, maxAttempts - 1),
+              temperature,
+              execution: 'browser-local',
+            });
+          },
+          onToken: (currentText, tokenCount) => {
+            if (onChunk) onChunk(existingText + currentText, tokenCount);
+          },
+          onRetry: (attempt, limit, delay, error) => {
+            if (onRetry) onRetry(attempt, limit, delay);
+            recordApiCallEvent({
+              type: 'streamRetryCall',
+              label: 'Retry Scion local generation',
+              detail: error?.message || 'Incomplete local response',
+              stage: 'stream-retry',
+              ...buildProviderTraceBase(),
+              attempt,
+              maxRetries: limit,
+              delayMs: delay,
+              execution: 'browser-local',
+            });
+          },
+        });
+        const fullText = existingText + result.fullText;
+        if (onChunk) onChunk(fullText, result.tokenCount + 1);
+        recordApiCallEvent({
+          type: 'providerResponseDone',
+          label: 'Scion local response complete',
+          detail: `${result.fullText.length} chars on device`,
+          stage: 'provider-response',
+          ...buildProviderTraceBase(),
+          attempt: result.attempt,
+          maxRetries: result.maxRetries,
+          outputChars: result.fullText.length,
+          streamChunkCount: result.tokenCount,
+          finishReason: 'stop',
+          execution: 'browser-local',
+        });
+        const compactPrompt = result.messages.map((message) => message.content).join('\n');
+        recordUsage(
+          {
+            inputTokens: estimateCharsAsTokens(compactPrompt),
+            outputTokens: estimateCharsAsTokens(result.fullText),
+            source: 'local-estimate',
+          },
+          result.fullText,
+          'Scion local usage',
+        );
+        return { fullText, finishReason: 'stop' };
+      } catch (rawError) {
+        if (rawError?.name === 'AbortError') throw rawError;
+        const error = toClassifiedError(rawError, { provider, modelId, task });
+        recordApiCallEvent({
+          type: 'failedCall',
+          label: 'Scion local generation failed',
+          detail: error.message,
+          stage: 'local-model',
+          ...buildProviderTraceBase(),
+          ...failureEventFields(error, { provider, modelId }),
+          execution: 'browser-local',
+        });
+        error.apiCallBudgetRecorded = true;
+        throw error;
+      }
+    }
 
     // WebLLM: run locally in browser, no network needed
     if (provider === 'webllm') {
@@ -465,11 +558,6 @@ export default function useStreamReader() {
         if (typeof parseJsonResponse === 'function') {
           const data = await response.json().catch(() => ({}));
           const text = parseJsonResponse(data, response);
-          if (publicScionKernelResponseNeedsRetry(text, userPrompt, task)) {
-            const incomplete = new Error('Public Scion returned an incomplete lesson-kernel response.');
-            incomplete.retryable = true;
-            throw incomplete;
-          }
           fullText += text;
           if (onChunk) onChunk(fullText, 1);
           if (inactivityTimer) clearTimeout(inactivityTimer);
@@ -575,9 +663,6 @@ export default function useStreamReader() {
         if (attempt < retryLimit && isRetryableError(classifiedError)) {
           attempt++;
           fullText = existingText;
-          if (provider === PUBLIC_SCION_PROVIDER_ID) {
-            requestTemperature = Math.min(1, (requestTemperature ?? 0.3) + 0.15);
-          }
           // Rebuild request with current skipTemp state so temperature fix persists across retries
           ({ url, headers, body, parseChunk, parseTextResponse, parseJsonResponse } = buildProviderTextRequest({
             provider,
@@ -593,10 +678,7 @@ export default function useStreamReader() {
             schema,
             temperatureOverride: requestTemperature,
           }));
-          const delay =
-            provider === PUBLIC_SCION_PROVIDER_ID
-              ? publicScionRetryDelay(attempt)
-              : Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
           if (onRetry) onRetry(attempt, retryLimit, delay);
           await sleep(delay);
           continue;
@@ -1007,7 +1089,7 @@ export async function fetchModelsFromProvider(provider, apiKey, options = {}) {
 
   if (provider === PUBLIC_SCION_PROVIDER_ID) {
     if (typeof onApiCallEvent === 'function') {
-      onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Resolve public Scion model', detail: 'public' });
+      onApiCallEvent({ type: 'modelDiscoveryCall', label: 'Resolve Scion local model', detail: 'browser-local' });
     }
     return [publicScionModelOption()];
   }

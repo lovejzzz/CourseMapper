@@ -13,6 +13,11 @@ import {
 
 const DEFAULT_FILES = ['adapter_config.json', 'adapters.safetensors'];
 
+const RUNTIME_BY_FORMAT = Object.freeze({
+  'mlx-lora-safetensors': ['mlx-vlm'],
+  'gguf-lora': ['scion-wllama-webgpu-jspi-v1'],
+});
+
 export async function sha256File(filePath) {
   const hash = crypto.createHash('sha256');
   const handle = await fs.open(filePath, 'r');
@@ -48,6 +53,8 @@ export async function buildScionAdapterManifest({
   method = 'orpo-lora',
   status = 'candidate',
   evidence = [],
+  conversion,
+  scale,
 } = {}) {
   if (!adapterDir) throw new Error('adapterDir is required');
   if (!datasetManifest) throw new Error('datasetManifest is required');
@@ -57,7 +64,12 @@ export async function buildScionAdapterManifest({
   const dataset = JSON.parse(await fs.readFile(datasetPath, 'utf8'));
   const manifest = {
     schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
-    adapter: { id: adapterId, scionVersion, format },
+    adapter: {
+      id: adapterId,
+      scionVersion,
+      format,
+      ...(scale == null ? {} : { scale: Number(scale) }),
+    },
     base: { ...SCION_GEMMA4_E2B_BASE, exactRevisionRequired: true },
     training: {
       method,
@@ -67,7 +79,7 @@ export async function buildScionAdapterManifest({
       domainCount: Number(dataset.counts?.domains || 0),
     },
     files: adapterFiles,
-    runtime: { supported: format === 'mlx-lora-safetensors' ? ['mlx-vlm'] : [] },
+    runtime: { supported: RUNTIME_BY_FORMAT[format] || [] },
     promotion: {
       status,
       promotable: status === 'promoted',
@@ -75,6 +87,7 @@ export async function buildScionAdapterManifest({
     },
     generatedAt: new Date().toISOString(),
   };
+  if (conversion != null) manifest.conversion = structuredClone(conversion);
   const validation = validateScionAdapterManifest(manifest, { requirePromoted: status === 'promoted' });
   if (!validation.valid) throw new Error(`Invalid Scion adapter manifest: ${validation.issues.join(', ')}`);
   const outputPath = path.resolve(output || path.join(root, 'scion-adapter.json'));
@@ -133,6 +146,7 @@ function parseArgs(argv) {
     else if (arg === '--output') args.output = argv[++index];
     else if (arg === '--file') args.files.push(argv[++index]);
     else if (arg === '--format') args.format = argv[++index];
+    else if (arg === '--scale') args.scale = argv[++index];
     else if (arg === '--method') args.method = argv[++index];
     else if (arg === '--status') args.status = argv[++index];
     else if (arg === '--evidence') args.evidence.push(argv[++index]);

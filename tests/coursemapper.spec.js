@@ -234,6 +234,45 @@ test.describe('Landing Page', () => {
     });
   });
 
+  test('entering a new brief discards a detected saved project before setup begins', async ({ page }) => {
+    await page.evaluate(() => {
+      localStorage.setItem(
+        'coursemapper-project',
+        JSON.stringify({
+          formatVersion: 2,
+          hasGenerated: true,
+          provider: 'scion-public',
+          modelId: 'scion-public',
+          modelName: 'Scion',
+          courseMap: {
+            courseName: 'Old Python Programming Course',
+            lessons: [
+              {
+                title: 'Lesson 1: Python Loops',
+                sections: [{ topicSection: 'while loops', learningObjectives: 'Trace Python loops.' }],
+              },
+            ],
+          },
+          selectedFeatures: ['courseMap', 'quizBank'],
+          lessonScope: { type: 'specific', indices: [0] },
+          deliverableConfig: { quizBank: { questionsPerLesson: 12 } },
+          promptText: 'Old Python course',
+          deliverables: {},
+        }),
+      );
+    });
+    await page.reload();
+
+    await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible({ timeout: 10000 });
+    await page.locator('textarea').fill('Create a new three-lesson user experience design studio.');
+    await page.getByTestId('landing-setup-button').click();
+
+    await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible({ timeout: 10000 });
+    expect(await page.evaluate(() => localStorage.getItem('coursemapper-project'))).toBeNull();
+    await expect(page.getByText('Old Python Programming Course')).toHaveCount(0);
+    await expect(page.getByText('Python Loops')).toHaveCount(0);
+  });
+
   test('Start New Project clears a restored browser project', async ({ page }) => {
     await page.goto('/');
     await page.evaluate(() => {

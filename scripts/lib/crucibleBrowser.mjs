@@ -12,6 +12,7 @@ import net from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PROVIDER_KEY_RULES, pickApiKeyFromEnvText } from './crucibleRound.mjs';
+import { APP_VERSION } from '../../src/lib/appVersion.js';
 
 const moduleDir = path.dirname(fileURLToPath(import.meta.url));
 export const repoRoot = path.resolve(moduleDir, '..', '..');
@@ -24,7 +25,7 @@ const MODEL_DISPLAY_NAMES = {
   // in crucibleRound.mjs for why these exact ids).
   'claude-haiku-4-5': 'Claude Haiku 4.5',
   'gemini-2.5-flash-lite': 'Gemini 2.5 Flash Lite',
-  'scion-public': 'Scion Draft',
+  'scion-public': `Scion V${APP_VERSION}`,
 };
 
 export function modelDisplayName(modelId) {

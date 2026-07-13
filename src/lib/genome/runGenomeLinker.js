@@ -24,6 +24,28 @@ function lessonIdFor(lessonIndex) {
   return `lesson-${lessonIndex + 1}`;
 }
 
+function isGenomeBackedPayload(payload) {
+  const source = String(payload?.conceptProvenance?.source || payload?.enrichmentSource || '').toLowerCase();
+  return source.includes('genome');
+}
+
+export function describeGenomeLinkTelemetry(telemetry = {}, lessonCount = 0, shardIds = []) {
+  const uncovered = telemetry.uncoveredDisciplines || [];
+  let coverageNote =
+    uncovered.length > 0
+      ? ` (no shard for inferred discipline${uncovered.length === 1 ? '' : 's'} ${uncovered
+          .map((discipline) => `'${discipline}'`)
+          .join(', ')})`
+      : '';
+  const freeHits = (telemetry.resolvedFromGenome || 0) + (telemetry.resolvedFromCache || 0);
+  if (!coverageNote && freeHits === 0 && shardIds.length > 0) {
+    coverageNote = ` (shard${shardIds.length === 1 ? '' : 's'} ${shardIds
+      .map((id) => `'${id}'`)
+      .join(', ')} loaded but 0 lesson-concept overlap — likely a subfield not yet covered)`;
+  }
+  return `${telemetry.resolvedFromGenome || 0} genome + ${telemetry.resolvedFromCache || 0} cached (${telemetry.cachedGenomeBacked || 0} genome-backed) of ${lessonCount} lessons (${telemetry.conceptHits || 0} concepts, ${telemetry.citationsRendered || 0} citations, ${telemetry.bridgeCount || 0} bridges)${coverageNote}`;
+}
+
 // v0.14.1 (4.5): below this floor a genome match AUGMENTS the model instead
 // of displacing it. One matched kernel projects one key term, so treating any
 // match as full resolution shipped 1-term lessons next to 3-4-term model
@@ -49,6 +71,7 @@ export function runGenomeLinker({
   itemPlan = [],
   level = null,
   uncoveredDisciplines = [],
+  sourceReferences = {},
 } = {}) {
   const lessonContent = {};
   const missingIndices = [];
@@ -58,6 +81,7 @@ export function runGenomeLinker({
   const partialOverlays = {};
   const telemetry = {
     resolvedFromCache: 0,
+    cachedGenomeBacked: 0,
     resolvedFromGenome: 0,
     partialFromGenome: 0,
     misses: 0,
@@ -92,6 +116,7 @@ export function runGenomeLinker({
     if (cached) {
       lessonContent[lessonId] = { ...cached, enrichmentSource: cached.enrichmentSource || 'own-kernel-cache' };
       telemetry.resolvedFromCache += 1;
+      if (isGenomeBackedPayload(cached)) telemetry.cachedGenomeBacked += 1;
       continue;
     }
 
@@ -111,6 +136,7 @@ export function runGenomeLinker({
           // earlier lesson before it becomes the primary topic later.
           singleMcBank: true,
           excludeWorkedExampleConcepts: shippedWorkedExampleConcepts,
+          sourceReferences,
         },
       );
       if (composed?.payload && (composed.payload.quizItems?.length || composed.payload.keyTerms?.length)) {
@@ -218,5 +244,6 @@ export function runGenomeLinker({
     bridges,
     bridgeObservations: observations,
     structureFindings,
+    genomeBackedLessonCount: (telemetry.resolvedFromGenome || 0) + (telemetry.cachedGenomeBacked || 0),
   };
 }

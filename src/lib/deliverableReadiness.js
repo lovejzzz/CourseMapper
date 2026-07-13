@@ -2192,7 +2192,14 @@ function checkAssignments(data, courseMap, lessonIndices, issues) {
     (sum, assignment) => sum + getPercent(assignment.percentOfGrade || assignment.pg),
     0,
   );
-  if (gradeTotal > 0 && (gradeTotal < 95 || gradeTotal > 105)) {
+  // Registry-linked briefs are only one projection of the authoritative
+  // assessment registry: quizzes/exams live in Quiz & Exam Bank and may hold
+  // the remaining course weight. Only legacy standalone brief collections
+  // are expected to total 100% by themselves.
+  const hasRegistryLinkedAssignments = assignments.some(
+    (assignment) => assignment?.assessmentId || assignment?.courseMapRef || assignment?.cmr,
+  );
+  if (!hasRegistryLinkedAssignments && gradeTotal > 0 && (gradeTotal < 95 || gradeTotal > 105)) {
     issues.push(
       makeIssue(
         READINESS_WARNING,

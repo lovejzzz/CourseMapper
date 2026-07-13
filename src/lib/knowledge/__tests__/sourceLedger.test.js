@@ -249,6 +249,73 @@ describe('trusted source ledger', () => {
     ]);
   });
 
+  it('trusts source-anchored genome proof against its exact kernel concept, not only the broad lesson label', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'User Experience Design Studio' },
+        concepts: [{ id: 'c3', term: 'Usability Testing and Iteration' }],
+        sessions: [
+          {
+            id: 's3',
+            number: 3,
+            title: 'Usability Testing and Iteration',
+            sections: [{ topic: 'Usability Testing and Iteration', conceptRefs: ['c3'], resourceRefs: ['kr1', 'kr2'] }],
+          },
+        ],
+        resources: [
+          {
+            id: 'kr1',
+            provider: 'genome',
+            origin: 'genome',
+            kind: 'open resource',
+            title: 'Web Content Accessibility Guidelines (WCAG) 2.2',
+            url: 'https://www.w3.org/TR/WCAG22/',
+            license: 'W3C Document License and U.S. Government Work',
+            evidence: 'WCAG provides a shared standard for web content accessibility.',
+            sourceTier: 2,
+            conceptLinks: [
+              { id: 'ux/accessibility-usability-evaluation', label: 'Accessibility and usability evaluation' },
+            ],
+            sessionRefs: ['s3'],
+          },
+          {
+            id: 'kr2',
+            provider: 'genome',
+            origin: 'genome',
+            kind: 'open resource',
+            title: 'Plan a round of user research',
+            url: 'https://www.gov.uk/service-manual/user-research/plan-round-of-user-research',
+            license: 'Open Government Licence v3.0',
+            evidence: 'Each round of user research should have clear objectives.',
+            sourceTier: 2,
+            conceptLinks: [{ id: 'ux/research-planning', label: 'Research planning' }],
+            sessionRefs: ['s3'],
+          },
+        ],
+      },
+      { checkedAt: '2026-07-13T00:00:00.000Z' },
+    );
+
+    expect(ledger.reviewRows || []).toHaveLength(0);
+    expect(ledger.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'kr1',
+          sourceTier: 2,
+          conceptLinks: expect.arrayContaining([
+            { id: 'ux/accessibility-usability-evaluation', label: 'Accessibility and usability evaluation' },
+          ]),
+        }),
+        expect.objectContaining({
+          id: 'kr2',
+          sourceTier: 2,
+          conceptLinks: expect.arrayContaining([{ id: 'ux/research-planning', label: 'Research planning' }]),
+        }),
+      ]),
+    );
+    expect(ledger.summary).toMatchObject({ sourceCount: 2, trustedConceptLinkedCount: 2 });
+  });
+
   it('normalizes hyphenated Creative Commons licenses recovered from source text', () => {
     const ledger = buildSourceLedgerFromCourseGraph({
       sessions: [{ id: 's1', number: 1, sections: [{ topic: 'Scope definition', resourceRefs: ['r1', 'r2'] }] }],

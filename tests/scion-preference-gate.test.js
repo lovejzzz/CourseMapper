@@ -7,6 +7,7 @@ import {
   assessScionKernelLesson,
   assessScionMcItem,
   assessScionPreferencePair,
+  deriveDeterministicContractEvidence,
   findScionExplanationKeyConflict,
 } from '../src/lib/scionPreferenceGate';
 import { attachEnrichmentToGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
@@ -156,6 +157,42 @@ describe('Scion preference admission gate', () => {
     });
     expect(pair.eligible).toBe(false);
     expect(pair.issues).toContain('unsupported-preference-evidence-kind');
+  });
+
+  it('derives auditable training evidence only for a non-semantic contract margin', () => {
+    const chosen = goodMc();
+    const rejected = goodMc({ op: ['A', 'A', 'B', 'C'] });
+    const preferenceEvidence = deriveDeterministicContractEvidence({ kind: 'mc-item', chosen, rejected });
+
+    expect(preferenceEvidence).toMatchObject({
+      kind: 'deterministic-contract-margin',
+      verified: true,
+      validator: 'scion-preference-gate',
+      scope: 'non-semantic-contract-only',
+      rejectedIssues: expect.arrayContaining(['duplicate-options', 'option-length']),
+    });
+    expect(assessScionPreferencePair({ kind: 'mc-item', chosen, rejected, preferenceEvidence })).toMatchObject({
+      eligible: true,
+    });
+  });
+
+  it('rejects forged deterministic evidence and semantic answer-key repairs', () => {
+    const chosen = goodMc();
+    const structuralRejected = goodMc({ op: ['A', 'A', 'B', 'C'] });
+    const forged = {
+      ...deriveDeterministicContractEvidence({ kind: 'mc-item', chosen, rejected: structuralRejected }),
+      rejectedIssues: ['duplicate-options'],
+    };
+    expect(
+      assessScionPreferencePair({ kind: 'mc-item', chosen, rejected: structuralRejected, preferenceEvidence: forged })
+        .issues,
+    ).toContain('invalid-deterministic-contract-evidence');
+
+    const semanticRejected = goodMc({
+      ai: 1,
+      ex: 'Repeated task failure is direct behavioral evidence, whereas the other options do not demonstrate a navigation breakdown.',
+    });
+    expect(deriveDeterministicContractEvidence({ kind: 'mc-item', chosen, rejected: semanticRejected })).toBeNull();
   });
 
   it('admits a verified repair only when the chosen side passes and the rejected side has a real defect', () => {

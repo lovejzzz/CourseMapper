@@ -1563,6 +1563,26 @@ describe('Slide Deck post-processing', () => {
     expect(result.data.decks[0].totalSlides).toBe(2);
   });
 
+  it('repairs character-long notes that still fall below the ten-word readiness floor', () => {
+    const note = 'This compact note has length but too few words.';
+    expect(note.length).toBeGreaterThanOrEqual(40);
+    expect(note.split(/\s+/)).toHaveLength(9);
+    const data = {
+      decks: [
+        {
+          lessonTitle: 'Lesson 1: Observation',
+          slides: [{ title: 'Record behavior', bullets: ['Separate observation from inference.'], notes: note }],
+        },
+      ],
+    };
+
+    const result = normalizeSlideDeckSpeakerNotes(data);
+
+    expect(result.patchedNotes).toBe(1);
+    expect(result.data.decks[0].slides[0].notes).not.toBe(note);
+    expect(result.data.decks[0].slides[0].notes.split(/\s+/).length).toBeGreaterThanOrEqual(10);
+  });
+
   it('adds an activity cue when a slide deck has no interactive check', () => {
     const data = {
       decks: [

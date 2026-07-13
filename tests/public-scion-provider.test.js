@@ -4,7 +4,6 @@ import { estimateUsageCost } from '../src/lib/apiUsageCost';
 import { createBaseModelCapabilities, createGenerationPlan } from '../src/lib/modelCapabilities';
 import {
   PUBLIC_SCION_BACKING_MODEL,
-  PUBLIC_SCION_CHAT_ENDPOINT,
   PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS,
   PUBLIC_SCION_KERNEL_CONCURRENCY,
   PUBLIC_SCION_KERNEL_LESSONS_PER_CALL,
@@ -26,13 +25,13 @@ import {
 } from '../src/lib/publicScionProvider';
 
 describe('Scion Public provider', () => {
-  it('reserves extra admission recovery calls for the anonymous route', () => {
+  it('reserves bounded compiler recovery calls for browser-local Scion', () => {
     expect(PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS).toBe(4);
   });
 
-  it('uses a bounded slower retry ladder for intermittent anonymous CORS failures', () => {
-    expect(PUBLIC_SCION_MIN_RETRIES).toBe(4);
-    expect([1, 2, 3, 4, 5].map(publicScionRetryDelay)).toEqual([2500, 5000, 10000, 10000, 10000]);
+  it('uses a short bounded retry ladder for malformed local generations', () => {
+    expect(PUBLIC_SCION_MIN_RETRIES).toBe(2);
+    expect([1, 2, 3, 4, 5].map(publicScionRetryDelay)).toEqual([250, 500, 1000, 2000, 2000]);
   });
 
   it('retries incomplete public kernel envelopes instead of accepting cached empty output', () => {
@@ -47,57 +46,50 @@ describe('Scion Public provider', () => {
     expect(publicScionKernelResponseNeedsRetry('{"lessons":[]}', prompt, 'course-map')).toBe(false);
   });
 
-  it('ships a keyless anonymous model option with prompt-only structure support', () => {
+  it('ships a keyless browser-local model option with prompt-only structure support', () => {
     const option = publicScionModelOption();
     expect(option.id).toBe(PUBLIC_SCION_MODEL_ID);
     expect(option.name).toBe(PUBLIC_SCION_MODEL_NAME);
     expect(option.capabilities.jsonMode).toBe(false);
     expect(option.capabilities.jsonSchema).toBe(false);
-    expect(option.capabilities.streaming).toBe(false);
+    expect(option.source).toBe('browser-local');
+    expect(option.maxInputTokens).toBe(8192);
+    expect(option.capabilities.streaming).toBe(true);
+    expect(PUBLIC_SCION_BACKING_MODEL).toBe('google/gemma-4-E2B-it-qat-q4_0-gguf');
 
     const profile = createBaseModelCapabilities(PUBLIC_SCION_PROVIDER_ID, option);
     expect(profile.structuredOutput.defaultMode).toBe('prompt_only');
     expect(profile.supportsTools).toBe(false);
-    expect(profile.supportsStreaming).toBe(false);
+    expect(profile.supportsStreaming).toBe(true);
     expect(profile.maxOutputTokens).toBe(PUBLIC_SCION_MAX_COMPLETION_TOKENS);
 
     const plan = createGenerationPlan(profile);
     expect(plan.leanCourseMapAtoms).toBe(true);
-    expect(plan.apiMode).toBe('public-chat');
+    expect(plan.apiMode).toBe('browser-local-gguf');
   });
 
-  it('builds a compact keyless Pollinations chat request', () => {
+  it('forbids constructing a remote generation request for Scion', () => {
     const profile = createBaseModelCapabilities(PUBLIC_SCION_PROVIDER_ID, publicScionModelOption());
-    const req = buildProviderTextRequest({
-      provider: PUBLIC_SCION_PROVIDER_ID,
-      apiKey: '',
-      modelId: PUBLIC_SCION_MODEL_ID,
-      systemPrompt: 'Return JSON.',
-      userPrompt: 'Build a music course map.',
-      modelCapabilities: profile,
-      generationPlan: createGenerationPlan(profile),
-      maxOutputTokens: 12000,
-      schema: {
-        name: 'course_map',
-        schema: { type: 'object', properties: { lessons: { type: 'array' } }, required: ['lessons'] },
-      },
-    });
+    expect(() =>
+      buildProviderTextRequest({
+        provider: PUBLIC_SCION_PROVIDER_ID,
+        apiKey: '',
+        modelId: PUBLIC_SCION_MODEL_ID,
+        systemPrompt: 'Return JSON.',
+        userPrompt: 'Build a music course map.',
+        modelCapabilities: profile,
+        generationPlan: createGenerationPlan(profile),
+        maxOutputTokens: 12000,
+      }),
+    ).toThrow(/browser-local/);
 
-    expect(req.url).toBe(PUBLIC_SCION_CHAT_ENDPOINT);
-    expect(req.headers.Authorization).toBeUndefined();
-    expect(req.body.model).toBe(PUBLIC_SCION_BACKING_MODEL);
-    expect(req.body.max_tokens).toBe(PUBLIC_SCION_MAX_COMPLETION_TOKENS);
-    expect(req.body.reasoning_effort).toBe('low');
-    expect(req.body.stream).toBe(false);
-    expect(req.body.messages[0].content).toContain('Reasoning: low');
-    expect(req.body.messages[1].content).toContain('exactly 1 section object');
-    expect(req.body.messages[1].content).not.toContain('presentationFormat');
-    expect(req.parseJsonResponse({ choices: [{ message: { content: '{"ok":true}' } }] })).toBe('{"ok":true}');
-    expect(req.controls.apiMode).toBe('public-chat');
+    const messages = buildPublicScionMessages('Return JSON.', 'Build a music course map.');
+    expect(messages[0].content).toContain('browser-local');
+    expect(messages[1].content).toContain('exactly 1 section object');
+    expect(messages[1].content).not.toContain('presentationFormat');
   });
 
   it('builds a dedicated one-lesson knowledge-kernel request for public enrichment', () => {
-    const profile = createBaseModelCapabilities(PUBLIC_SCION_PROVIDER_ID, publicScionModelOption());
     const userPrompt = `Course: User Experience Design Studio
 Lessons:
 [{"lessonId":"lesson-4","title":"Lesson 4: Affinity Mapping","objectives":"Synthesize interview observations into patterns","topics":"4.1: Affinity Mapping","readings":"Handout: synthesis guide"}]
@@ -113,39 +105,32 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
       },
     ]);
 
-    const req = buildProviderTextRequest({
-      provider: PUBLIC_SCION_PROVIDER_ID,
-      apiKey: '',
-      modelId: PUBLIC_SCION_MODEL_ID,
-      systemPrompt: 'Verbose kernel instructions that the public route replaces.',
+    const messages = buildPublicScionMessages(
+      'Verbose kernel instructions that the local route replaces.',
       userPrompt,
-      modelCapabilities: profile,
-      generationPlan: createGenerationPlan(profile),
-      maxOutputTokens: 2400,
-      task: 'blueprintEnrichment',
-    });
+      {
+        task: 'blueprintEnrichment',
+      },
+    );
 
     expect(PUBLIC_SCION_KERNEL_LESSONS_PER_CALL).toBe(1);
     expect(PUBLIC_SCION_KERNEL_CONCURRENCY).toBe(1);
-    expect(req.body.max_tokens).toBe(PUBLIC_SCION_MAX_COMPLETION_TOKENS);
-    expect(req.body.messages[0].content).toContain('subject-matter and assessment writer');
-    expect(req.body.messages[1].content).toContain('LESSONS TO AUTHOR');
-    expect(req.body.messages[1].content).toContain('Lesson 4: Affinity Mapping');
-    expect(req.body.messages[1].content).toContain('Write exactly 4 mc items');
-    expect(req.body.messages[1].content).toContain('one field-note evidence analysis');
-    expect(req.body.messages[1].content).toContain(
-      'At least 3 mc stems include specific observed behavior or evidence',
-    );
-    expect(req.body.messages[1].content).toContain('Never infer motive from one ambiguous behavior');
-    expect(req.body.messages[1].content).toContain('one decision-ready scenario');
-    expect(req.body.messages[1].content).toContain('at least 2 inspectable observations');
-    expect(req.body.messages[1].content).toContain('focused on one construct or decision target');
-    expect(req.body.messages[1].content).toContain('po has exactly 3 defensible positions');
-    expect(req.body.messages[1].content).toContain('pa has exactly 4 distinct parameters');
-    expect(req.body.messages[1].content).toContain('conditional or synthesis position');
-    expect(req.body.messages[1].content).toContain('required evidence/source');
-    expect(req.body.messages[1].content).toContain('Also return one compact courseLevel object');
-    expect(req.body.messages[1].content).not.toContain('compact CourseMapper lessons');
+    expect(messages[0].content).toContain('subject-matter and assessment writer');
+    expect(messages[1].content).toContain('LESSONS TO AUTHOR');
+    expect(messages[1].content).toContain('Lesson 4: Affinity Mapping');
+    expect(messages[1].content).toContain('Write exactly 4 mc items');
+    expect(messages[1].content).toContain('one field-note evidence analysis');
+    expect(messages[1].content).toContain('At least 3 mc stems include specific observed behavior or evidence');
+    expect(messages[1].content).toContain('Never infer motive from one ambiguous behavior');
+    expect(messages[1].content).toContain('one decision-ready scenario');
+    expect(messages[1].content).toContain('at least 2 inspectable observations');
+    expect(messages[1].content).toContain('focused on one construct or decision target');
+    expect(messages[1].content).toContain('po has exactly 3 defensible positions');
+    expect(messages[1].content).toContain('pa has exactly 4 distinct parameters');
+    expect(messages[1].content).toContain('conditional or synthesis position');
+    expect(messages[1].content).toContain('required evidence/source');
+    expect(messages[1].content).toContain('Also return one compact courseLevel object');
+    expect(messages[1].content).not.toContain('compact CourseMapper lessons');
 
     const recoveryMessages = buildPublicScionMessages(
       'kernel system',
@@ -236,7 +221,7 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     expect(messages[1].content).toContain('Lesson 12 MUST name the final source outline item');
   });
 
-  it('reports public anonymous calls as $0', () => {
+  it('reports browser-local Scion generations as $0', () => {
     const cost = estimateUsageCost({
       provider: PUBLIC_SCION_PROVIDER_ID,
       modelId: PUBLIC_SCION_MODEL_ID,

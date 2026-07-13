@@ -25,15 +25,81 @@ function flattenCourses(evidence = []) {
   return evidence.flatMap((record) => (Array.isArray(record?.fullCourses) ? record.fullCourses : []));
 }
 
-function byDomain(courses) {
+function groupByDomain(courses) {
   const map = new Map();
   for (const course of courses) {
     const domain = String(course?.domain || course?.courseId || '')
       .trim()
       .toLowerCase();
-    if (domain) map.set(domain, course);
+    if (!domain) continue;
+    const group = map.get(domain) || [];
+    group.push(course);
+    map.set(domain, group);
   }
   return map;
+}
+
+const SHA256 = /^[a-f0-9]{64}$/;
+const COMMIT = /^[a-f0-9]{40}$/;
+const PAIR_ID = /^[a-z0-9][a-z0-9._:-]{2,127}$/;
+
+function clean(value) {
+  return String(value ?? '').trim();
+}
+
+function assessPairingContract({ candidateCourse, baseCourse, manifest }) {
+  const candidate = candidateCourse?.comparison || {};
+  const base = baseCourse?.comparison || {};
+  const sharedFields = [
+    'pairId',
+    'courseInputSha256',
+    'sourcePacketSha256',
+    'compilerCommit',
+    'compilerConfigSha256',
+    'graderVersion',
+    'activeWeightSha256',
+  ];
+  const sharedValuesMatch = sharedFields.every((field) => clean(candidate[field]) === clean(base[field]));
+  const contractShapePass =
+    candidate.protocolVersion === 1 &&
+    base.protocolVersion === 1 &&
+    PAIR_ID.test(clean(candidate.pairId)) &&
+    SHA256.test(clean(candidate.courseInputSha256)) &&
+    SHA256.test(clean(candidate.sourcePacketSha256)) &&
+    COMMIT.test(clean(candidate.compilerCommit)) &&
+    SHA256.test(clean(candidate.compilerConfigSha256)) &&
+    clean(candidate.graderVersion).length > 0 &&
+    SHA256.test(clean(candidate.activeWeightSha256)) &&
+    candidate.compilerTreeDirty === false &&
+    base.compilerTreeDirty === false &&
+    candidate.variant === 'adapter' &&
+    base.variant === 'base-only';
+  const courseIdentityPass =
+    clean(candidateCourse?.domain).toLowerCase() === clean(baseCourse?.domain).toLowerCase() &&
+    clean(candidateCourse?.courseId) !== '' &&
+    clean(candidateCourse?.courseId) === clean(baseCourse?.courseId) &&
+    Number.isSafeInteger(candidateCourse?.lessonCount) &&
+    candidateCourse.lessonCount >= 12 &&
+    candidateCourse.lessonCount === baseCourse?.lessonCount;
+  const baseIdentityPass =
+    candidateCourse?.baseRevision === manifest?.base?.revision &&
+    baseCourse?.baseRevision === manifest?.base?.revision &&
+    baseCourse?.adapterActive === false &&
+    baseCourse?.adapterId == null &&
+    baseCourse?.adapterManifestSha256 == null;
+  const expectedScale = Number.isFinite(Number(manifest?.adapter?.scale)) ? Number(manifest.adapter.scale) : 1;
+  const scalePass = Number(candidateCourse?.adapterScale) === expectedScale && Number(baseCourse?.adapterScale) === 0;
+  return {
+    pass: contractShapePass && sharedValuesMatch && courseIdentityPass && baseIdentityPass && scalePass,
+    pairId: clean(candidate.pairId) || null,
+    contractShapePass,
+    sharedValuesMatch,
+    courseIdentityPass,
+    baseIdentityPass,
+    scalePass,
+    compilerCommit: clean(candidate.compilerCommit) || null,
+    activeWeightSha256: clean(candidate.activeWeightSha256) || null,
+  };
 }
 
 function evidencePasses(manifest, type, verifiedExternalEvidence = {}) {
@@ -85,40 +151,77 @@ export function assessScionAdapterPromotion({
   verifiedExternalEvidence = {},
 } = {}) {
   const manifestValidation = validateScionAdapterManifest(manifest);
-  const candidate = byDomain(flattenCourses(candidateEvidence));
-  const base = byDomain(flattenCourses(baseEvidence));
+  const candidate = groupByDomain(flattenCourses(candidateEvidence));
+  const base = groupByDomain(flattenCourses(baseEvidence));
+  const candidateDomains = [...candidate.keys()].sort();
+  const baseDomains = [...base.keys()].sort();
   const domains = [...candidate.keys()].filter((domain) => base.has(domain)).sort();
+  const unmatchedCandidateDomains = candidateDomains.filter((domain) => !base.has(domain));
+  const unmatchedBaseDomains = baseDomains.filter((domain) => !candidate.has(domain));
   const courseChecks = domains.map((domain) => {
-    const candidateCourse = candidate.get(domain);
-    const baseCourse = base.get(domain);
+    const candidateCourses = candidate.get(domain) || [];
+    const baseCourses = base.get(domain) || [];
+    const uniqueEvidencePass = candidateCourses.length === 1 && baseCourses.length === 1;
+    const candidateCourse = candidateCourses[0];
+    const baseCourse = baseCourses[0];
     const candidateCalls = Number(candidateCourse?.scionPassCalls);
     const baseCalls = Number(baseCourse?.scionPassCalls);
-    const identityPass =
+    const candidateGrade = Number(candidateCourse?.packageGrade);
+    const baseGrade = Number(baseCourse?.packageGrade);
+    const candidateP2 = Number(candidateCourse?.p2);
+    const baseP2 = Number(baseCourse?.p2);
+    const adapterIdentityPass =
       candidateCourse?.adapterActive === true &&
       candidateCourse?.adapterId === manifest?.adapter?.id &&
       candidateCourse?.adapterManifestSha256 === manifestSha256 &&
       candidateCourse?.baseRevision === manifest?.base?.revision;
+    const pairing = assessPairingContract({ candidateCourse, baseCourse, manifest });
     const qualityPass =
       candidateCourse?.packageValid === true &&
-      Number(candidateCourse?.packageGrade) >= 99 &&
+      candidateGrade >= 99 &&
       Number(candidateCourse?.p0) === 0 &&
-      Number(candidateCourse?.p1) === 0;
+      Number(candidateCourse?.p1) === 0 &&
+      Number.isFinite(candidateP2);
     const baseComparable =
-      baseCourse?.packageValid === true && Number(baseCourse?.p0) === 0 && Number(baseCourse?.p1) === 0;
+      baseCourse?.packageValid === true &&
+      Number.isFinite(baseGrade) &&
+      Number(baseCourse?.p0) === 0 &&
+      Number(baseCourse?.p1) === 0 &&
+      Number.isFinite(baseP2);
+    const qualityNonRegression = qualityPass && baseComparable && candidateGrade >= baseGrade && candidateP2 <= baseP2;
     const callCeilingPass =
       Number.isFinite(candidateCalls) && Number.isFinite(baseCalls) && candidateCalls <= Math.max(1, baseCalls * 1.05);
     return {
       domain,
-      pass: identityPass && qualityPass && baseComparable && callCeilingPass,
-      identityPass,
+      pass:
+        uniqueEvidencePass &&
+        adapterIdentityPass &&
+        pairing.pass &&
+        qualityPass &&
+        baseComparable &&
+        qualityNonRegression &&
+        callCeilingPass,
+      candidateEvidenceCount: candidateCourses.length,
+      baseEvidenceCount: baseCourses.length,
+      uniqueEvidencePass,
+      adapterIdentityPass,
+      pairingPass: pairing.pass,
+      pairing,
       qualityPass,
       baseComparable,
+      qualityNonRegression,
+      candidateGrade,
+      baseGrade,
+      candidateP2,
+      baseP2,
       callCeilingPass,
       candidateCalls,
       baseCalls,
       callRatio: baseCalls > 0 ? Number((candidateCalls / baseCalls).toFixed(3)) : null,
     };
   });
+  const pairIds = courseChecks.map((entry) => entry.pairing.pairId).filter(Boolean);
+  const uniquePairIds = new Set(pairIds).size === pairIds.length;
   const candidateMedian = median(courseChecks.map((entry) => entry.candidateCalls));
   const baseMedian = median(courseChecks.map((entry) => entry.baseCalls));
   const medianReduction =
@@ -135,6 +238,12 @@ export function assessScionAdapterPromotion({
       Number(manifest?.training?.pairCount) >= 3000 &&
       Number(manifest?.training?.domainCount) >= 5,
     matchedDomains: domains.length >= minimumDomains,
+    pairedEvidence:
+      courseChecks.length >= minimumDomains &&
+      courseChecks.every((entry) => entry.uniqueEvidencePass && entry.pairingPass) &&
+      uniquePairIds &&
+      unmatchedCandidateDomains.length === 0 &&
+      unmatchedBaseDomains.length === 0,
     courseQuality: courseChecks.length >= minimumDomains && courseChecks.every((entry) => entry.pass),
     medianEfficiency: medianReduction !== null && medianReduction >= 0.2,
     ...Object.fromEntries(Object.entries(externalEvidence).map(([key, value]) => [`evidence:${key}`, value])),
@@ -149,6 +258,7 @@ export function assessScionAdapterPromotion({
     base: manifest?.base || null,
     domains,
     courseChecks,
+    pairing: { pairIds, uniquePairIds, unmatchedCandidateDomains, unmatchedBaseDomains },
     efficiency: { candidateMedian, baseMedian, medianReduction },
     externalEvidence,
     gates,
@@ -174,11 +284,11 @@ function renderMarkdown(report) {
     '',
     ...Object.entries(report.gates).map(([gate, passed]) => `- ${passed ? 'PASS' : 'FAIL'} — ${gate}`),
     '',
-    '| Domain | Pass | Candidate calls | Base calls | Ratio |',
-    '| --- | --- | ---: | ---: | ---: |',
+    '| Domain | Pass | Pairing | Candidate calls | Base calls | Ratio |',
+    '| --- | --- | --- | ---: | ---: | ---: |',
     ...report.courseChecks.map(
       (entry) =>
-        `| ${entry.domain} | ${entry.pass ? 'PASS' : 'FAIL'} | ${entry.candidateCalls} | ${entry.baseCalls} | ${entry.callRatio ?? ''} |`,
+        `| ${entry.domain} | ${entry.pass ? 'PASS' : 'FAIL'} | ${entry.pairingPass ? 'PASS' : 'FAIL'} | ${entry.candidateCalls} | ${entry.baseCalls} | ${entry.callRatio ?? ''} |`,
     ),
     '',
   ].join('\n');

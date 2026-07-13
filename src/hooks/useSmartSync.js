@@ -97,6 +97,8 @@ export default function useSmartSync({
   gen, // return value of useGeneration (for gen.isStreaming guard)
   courseMapRef, // ref to current courseMap (always fresh)
   courseGraphRef = null, // v0.14.7 WS-G2: stored graph (enrichment overlay rides it)
+  provider = '',
+  modelId = '',
   selectedFeatures,
   onSyncComplete, // callback(affectedFeatureIds[]) — called when sync batch done
   onRequestProposal, // callback({ featureId, lessonIndex, editContext, courseMap })
@@ -587,7 +589,7 @@ export default function useSmartSync({
         configMap,
         instructorPreferences: preferenceRuntime?.loadCurrentInstructorPreferenceProfile?.() ?? null,
         enrichmentOverlay: courseGraphRef?.current?.enrichmentOverlay || null,
-        kernelCache: createLessonKernelCache(),
+        kernelCache: createLessonKernelCache({ courseMap: currentCourseMap, provider, modelId }),
       });
       if (radius.plan.length > 0) {
         plan = radius.plan;

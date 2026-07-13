@@ -17,7 +17,7 @@ import { createKernelLibrary } from '../kernelLibrary.js';
 import { runGenomeLinker } from '../runGenomeLinker.js';
 import { loadShardsIntoLibrary } from '../libraryShardLoader.js';
 import { composeLessonFromConcepts } from '../composeLessonFromConcepts.js';
-import { createLessonKernelCache } from '../lessonKernelCache.js';
+import { LESSON_KERNEL_CACHE_KEY, createLessonKernelCache } from '../lessonKernelCache.js';
 import { normalizeConceptKernel } from '../kernelSchema.js';
 import { buildQuizItemPlan } from '../../blueprintEnrichmentPass.js';
 import { buildCourseBlueprint, compileBlueprintDeliverables } from '../../courseBlueprintCompiler.js';
@@ -261,7 +261,7 @@ describe('iteration 2 — lessonKernelCache eviction', () => {
         { keyTerms: [{ term: `Term ${index}` }], quizItems: [] },
       );
     }
-    const stored = JSON.parse(storage.getItem('coursemapper-lesson-kernels'));
+    const stored = JSON.parse(storage.getItem(LESSON_KERNEL_CACHE_KEY));
     const count = Object.keys(stored).length;
     expect(count).toBeLessThanOrEqual(400);
     // The newest entry must have survived eviction.

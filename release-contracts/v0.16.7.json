@@ -1,0 +1,130 @@
+{
+  "version": "0.16.7",
+  "date": "July 13, 2026",
+  "title": "Scion Comes Home: public weights, private prompts",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/public-scion-provider.test.js tests/scion-local-provider.test.js tests/scion-stream-reader-local.test.jsx tests/scion-browser-wllama.test.js tests/scion-gemma4-prompt.test.js tests/scion-runtime-status-banner.test.jsx",
+      "npm run audit:scion:browser-base",
+      "npm run audit:scion:browser-lora",
+      "npm run audit:scion:browser-adapter-smoke",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification runs on the pushed v0.16.7 commit and must pass before release handoff."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "Browser runtime, exact public download, dynamic adapter, rollback, unit, build, bundle, and release-contract gates are checked locally before push."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Pages deploys only after Fast verification succeeds on the release commit."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "Real Chrome downloaded the complete immutable Gemma GGUF directly from Hugging Face, ran base inference on WebGPU, hash-verified and activated the exact-QAT smoke GGUF, detected its scale-16 effect, and proved exact rollback without a model backend."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No production adapter, instructor preference, or instructor-readiness claim is made; qualifying independent review remains a promotion requirement."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0167-browser-local-scion",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Hosted Scion routes generation through the pinned public Gemma GGUF in the browser and forbids remote prompt-request construction; paid-provider paths are unchanged.",
+      "anchors": [
+        "src/hooks/useStreamReader.js",
+        "src/lib/scionLocalProvider.js",
+        "src/lib/modelRequestBuilders.js",
+        "src/lib/publicScionProvider.js",
+        "src/lib/scionBrowserConstants.js",
+        "tests/scion-stream-reader-local.test.jsx",
+        "evaluation/scion-adapters/evidence/browser-lora-canary-v0.16.7.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/public-scion-provider.test.js tests/scion-local-provider.test.js tests/scion-stream-reader-local.test.jsx",
+        "npm run audit:scion:browser-base"
+      ],
+      "proofScopes": ["unit", "browser-live", "live-provider", "static-audit"]
+    },
+    {
+      "id": "v0167-browser-dynamic-lora",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The deterministic exact-QAT MLX-to-PEFT-to-GGUF path produces a receipt-bound separate LoRA; the packaged WebGPU-JSPI runtime verifies native identity, detects changed inference at scale 16, and restores exact base output after rollback.",
+      "anchors": [
+        "public/scion/runtime/v1/wllama.js",
+        "public/scion/runtime/v1/jspi-single-thread/wllama.wasm",
+        "runtime/scion-wllama/scion-lora.patch",
+        "runtime/scion-wllama/upstream.json",
+        "src/lib/scionBrowserWllama.js",
+        "src/lib/scionAdapterManifest.js",
+        "scripts/scionAdapterBrowserPackage.mjs",
+        "scripts/scionBrowserAdapterSmokeAudit.mjs",
+        "trellis/tendril/distill/convert_mlx_lora_to_peft.py",
+        "tests/scion-browser-wllama.test.js",
+        "tests/scion-runtime-canary-bridge.test.js",
+        "evaluation/scion-adapters/evidence/browser-lora-canary-v0.16.7.json",
+        "evaluation/scion-adapters/evidence/browser-adapter-smoke-v0.16.7.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-adapter-manifest.test.js tests/scion-adapter-tooling.test.js tests/scion-browser-wllama.test.js tests/scion-runtime-canary-bridge.test.js",
+        "npm run audit:scion:browser-lora",
+        "npm run audit:scion:browser-adapter-smoke"
+      ],
+      "proofScopes": ["unit", "browser-live", "live-provider", "static-audit"]
+    },
+    {
+      "id": "v0167-prompt-and-first-use-truth",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Scion owns the correct Gemma 4 turn format, produces coherent real-browser output, discloses first-use download progress, fails visibly, and avoids unnecessary cross-origin-isolation headers.",
+      "anchors": [
+        "src/lib/scionGemma4Prompt.js",
+        "src/components/ScionRuntimeStatusBanner.jsx",
+        "src/components/ModelConfig.jsx",
+        "firebase.json",
+        "tests/scion-gemma4-prompt.test.js",
+        "tests/scion-runtime-status-banner.test.jsx",
+        "evaluation/scion-adapters/evidence/browser-lora-canary-v0.16.7.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-gemma4-prompt.test.js tests/scion-runtime-status-banner.test.jsx",
+        "npm run audit:scion:browser-lora"
+      ],
+      "proofScopes": ["unit", "browser-live", "browser-smoke", "static-audit"]
+    },
+    {
+      "id": "v0167-promotion-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Both smoke adapters are explicitly non-promotable, and future promotion requires five unique hash-paired adapter/base courses on identical clean compiler, input, source, grader, base-weight, and scale contracts. The legacy artifact is base-mismatched, while the exact-QAT artifact uses smoke-only structural evidence and has no normal-scale quality proof. The product remains base-only until a real candidate passes every corpus, pairing, quality, efficiency, factual, device, export, and instructor gate.",
+      "anchors": [
+        "src/lib/scionAdapterManifest.js",
+        "src/lib/scionAdapterRegistry.js",
+        "scripts/scionAdapterPromotionAudit.mjs",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "README.md",
+        "evaluation/scion-adapters/evidence/browser-lora-canary-v0.16.7.json",
+        "evaluation/scion-adapters/evidence/browser-adapter-smoke-v0.16.7.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-adapter-manifest.test.js tests/scion-adapter-registry.test.js tests/scion-adapter-tooling.test.js",
+        "npm run audit:scion:browser-lora",
+        "npm run audit:scion:browser-adapter-smoke"
+      ],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    }
+  ]
+}

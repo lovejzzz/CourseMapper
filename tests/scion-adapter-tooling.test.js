@@ -1,13 +1,17 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { execFile as execFileCallback } from 'node:child_process';
+import { promisify } from 'node:util';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { buildScionAdapterDataset } from '../scripts/scionAdapterDataset.mjs';
 import { buildScionAdapterManifest, verifyScionAdapterPackage } from '../scripts/scionAdapterPackage.mjs';
 import { assessScionAdapterPromotion } from '../scripts/scionAdapterPromotionAudit.mjs';
-import { SCION_GEMMA4_E2B_BASE } from '../src/lib/scionAdapterManifest.js';
+import { SCION_ADAPTER_MANIFEST_SCHEMA_VERSION, SCION_GEMMA4_E2B_BASE } from '../src/lib/scionAdapterManifest.js';
+
+const execFile = promisify(execFileCallback);
 
 let root = '';
 
@@ -93,6 +97,69 @@ describe('Scion adapter tooling', () => {
     );
   });
 
+  it('curates a legacy structural pair with exact validator evidence and an explicit course-domain registry', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-derived-'));
+    const source = path.join(root, 'source.jsonl');
+    const domainMapPath = path.join(root, 'domain-map.json');
+    await fs.writeFile(
+      source,
+      `${JSON.stringify({
+        kind: 'mc-item',
+        prompt: 'Write one evidence-grounded multiple-choice item.',
+        chosen: goodMc(),
+        rejected: goodMc({ op: ['A', 'A', 'B', 'C'] }),
+        courseId: 'ux-101',
+      })}\n`,
+    );
+    await fs.writeFile(
+      domainMapPath,
+      `${JSON.stringify({ schemaVersion: 1, courses: { 'ux-101': 'user-experience-design' } })}\n`,
+    );
+
+    const result = await buildScionAdapterDataset({
+      sources: [source],
+      outputDir: path.join(root, 'dataset'),
+      domainMapPath,
+      allowSmoke: true,
+    });
+    const curated = await fs.readFile(path.join(root, 'dataset', 'test.jsonl'), 'utf8');
+
+    expect(result.manifest).toMatchObject({
+      schemaVersion: 2,
+      status: 'smoke-only',
+      counts: { total: 1, domains: 1, groups: 1 },
+      domainMap: { entries: 1, sha256: expect.stringMatching(/^[a-f0-9]{64}$/) },
+    });
+    expect(JSON.parse(curated)).toMatchObject({
+      context: { domain: 'user-experience-design', courseId: 'ux-101', domainSource: 'registry' },
+      preferenceEvidence: {
+        kind: 'deterministic-contract-margin',
+        scope: 'non-semantic-contract-only',
+      },
+    });
+  });
+
+  it('pins training and local evaluation defaults to the browser-compatible QAT parent', async () => {
+    const [launcher, server, shim] = await Promise.all([
+      fs.readFile('trellis/tendril/distill/run_orpo_g4.sh', 'utf8'),
+      fs.readFile('trellis/tendril/distill/serve_g4.py', 'utf8'),
+      fs.readFile('scripts/crucible/e2bOpenAIShim.mjs', 'utf8'),
+    ]);
+    for (const source of [launcher, server, shim]) {
+      expect(source).toContain(SCION_GEMMA4_E2B_BASE.modelId);
+    }
+    expect(launcher).toContain(SCION_GEMMA4_E2B_BASE.revision);
+    expect(launcher).not.toContain('BASE_MODEL=google/gemma-4-E2B-it\n');
+  });
+
+  it('keeps the MLX-to-PEFT bridge narrow enough to self-test without Apple ML dependencies', async () => {
+    const { stdout } = await execFile('python3', [
+      'trellis/tendril/distill/convert_mlx_lora_to_peft.py',
+      '--self-test',
+    ]);
+    expect(JSON.parse(stdout)).toEqual({ status: 'pass', test: 'scion-mlx-lora-name-contract' });
+  });
+
   it('hash-binds an adapter to its exact base and dataset, then detects mutation', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-package-'));
     const adapterDir = path.join(root, 'adapter');
@@ -128,7 +195,7 @@ describe('Scion adapter tooling', () => {
   it('promotes only exact adapter evidence with five clean domains and a real call reduction', () => {
     const manifestSha256 = 'c'.repeat(64);
     const manifest = {
-      schemaVersion: 1,
+      schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
       adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.6', format: 'mlx-lora-safetensors' },
       base: { ...SCION_GEMMA4_E2B_BASE, exactRevisionRequired: true },
       training: {
@@ -149,31 +216,57 @@ describe('Scion adapter tooling', () => {
       },
     };
     const domains = ['ethics', 'music', 'ux', 'geology', 'literature'];
+    const pairedComparison = (domain, index, variant) => ({
+      protocolVersion: 1,
+      pairId: `scion-adapter-${domain}`,
+      courseInputSha256: String(index + 1).repeat(64),
+      sourcePacketSha256: String(index + 2).repeat(64),
+      compilerCommit: 'a'.repeat(40),
+      compilerConfigSha256: 'b'.repeat(64),
+      graderVersion: 'deep-quality-v1',
+      activeWeightSha256: 'c'.repeat(64),
+      compilerTreeDirty: false,
+      variant,
+    });
     const candidateEvidence = [
       {
-        fullCourses: domains.map((domain) => ({
+        fullCourses: domains.map((domain, index) => ({
           domain,
+          courseId: `${domain}-course`,
+          lessonCount: 12,
           packageValid: true,
           packageGrade: 99,
           p0: 0,
           p1: 0,
+          p2: 0,
           scionPassCalls: 75,
           adapterActive: true,
           adapterId: manifest.adapter.id,
           adapterManifestSha256: manifestSha256,
           baseRevision: manifest.base.revision,
+          adapterScale: 1,
+          comparison: pairedComparison(domain, index, 'adapter'),
         })),
       },
     ];
     const baseEvidence = [
       {
-        fullCourses: domains.map((domain) => ({
+        fullCourses: domains.map((domain, index) => ({
           domain,
+          courseId: `${domain}-course`,
+          lessonCount: 12,
           packageValid: true,
           packageGrade: 99,
           p0: 0,
           p1: 0,
+          p2: 0,
           scionPassCalls: 100,
+          adapterActive: false,
+          adapterId: null,
+          adapterManifestSha256: null,
+          baseRevision: manifest.base.revision,
+          adapterScale: 0,
+          comparison: pairedComparison(domain, index, 'base-only'),
         })),
       },
     ];
@@ -192,6 +285,23 @@ describe('Scion adapter tooling', () => {
     });
     expect(report).toMatchObject({ status: 'pass', promotable: true, efficiency: { medianReduction: 0.25 } });
 
+    baseEvidence[0].fullCourses[0].packageGrade = 100;
+    const qualityRegression = assessScionAdapterPromotion({
+      manifest,
+      manifestSha256,
+      candidateEvidence,
+      baseEvidence,
+      verifiedExternalEvidence: Object.fromEntries(
+        ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map((type) => [
+          type,
+          true,
+        ]),
+      ),
+    });
+    expect(qualityRegression).toMatchObject({ status: 'blocked', promotable: false });
+    expect(qualityRegression.courseChecks[0].qualityNonRegression).toBe(false);
+    baseEvidence[0].fullCourses[0].packageGrade = 99;
+
     candidateEvidence[0].fullCourses[0].adapterManifestSha256 = '0'.repeat(64);
     const mismatched = assessScionAdapterPromotion({
       manifest,
@@ -207,5 +317,89 @@ describe('Scion adapter tooling', () => {
     });
     expect(mismatched).toMatchObject({ status: 'blocked', promotable: false });
     expect(mismatched.failedGates).toContain('courseQuality');
+  });
+
+  it('rejects unpaired, dirty, duplicate, or scale-mismatched adapter course evidence', () => {
+    const manifestSha256 = 'c'.repeat(64);
+    const manifest = {
+      schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
+      adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.7', format: 'mlx-lora-safetensors' },
+      base: { ...SCION_GEMMA4_E2B_BASE, exactRevisionRequired: true },
+      training: {
+        method: 'orpo-lora',
+        datasetManifestSha256: 'd'.repeat(64),
+        datasetStatus: 'ready',
+        pairCount: 3200,
+        domainCount: 5,
+      },
+      files: [{ path: 'adapters.safetensors', bytes: 1024, sha256: 'e'.repeat(64) }],
+      runtime: { supported: ['mlx-vlm'] },
+      promotion: {
+        status: 'candidate',
+        promotable: false,
+        evidence: ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map(
+          (type) => ({ type, status: 'pass', sha256: 'f'.repeat(64) }),
+        ),
+      },
+    };
+    const comparison = (variant) => ({
+      protocolVersion: 1,
+      pairId: 'duplicate-pair',
+      courseInputSha256: '1'.repeat(64),
+      sourcePacketSha256: '2'.repeat(64),
+      compilerCommit: 'a'.repeat(40),
+      compilerConfigSha256: 'b'.repeat(64),
+      graderVersion: 'deep-quality-v1',
+      activeWeightSha256: 'c'.repeat(64),
+      compilerTreeDirty: false,
+      variant,
+    });
+    const course = (domain, variant) => ({
+      domain,
+      courseId: `${domain}-course`,
+      lessonCount: 12,
+      packageValid: true,
+      packageGrade: 99,
+      p0: 0,
+      p1: 0,
+      p2: 0,
+      scionPassCalls: variant === 'adapter' ? 75 : 100,
+      adapterActive: variant === 'adapter',
+      adapterId: variant === 'adapter' ? manifest.adapter.id : null,
+      adapterManifestSha256: variant === 'adapter' ? manifestSha256 : null,
+      baseRevision: manifest.base.revision,
+      adapterScale: variant === 'adapter' ? 1 : 0,
+      comparison: comparison(variant),
+    });
+    const domains = ['ethics', 'music', 'ux', 'geology', 'literature'];
+    const candidateCourses = domains.map((domain) => course(domain, 'adapter'));
+    const baseCourses = domains.map((domain) => course(domain, 'base-only'));
+    candidateCourses[0].comparison.compilerTreeDirty = true;
+    candidateCourses[1].adapterScale = 4;
+    candidateCourses.push({ ...candidateCourses[2] });
+    candidateCourses.push(course('history', 'adapter'));
+
+    const report = assessScionAdapterPromotion({
+      manifest,
+      manifestSha256,
+      candidateEvidence: [{ fullCourses: candidateCourses }],
+      baseEvidence: [{ fullCourses: baseCourses }],
+      verifiedExternalEvidence: Object.fromEntries(
+        ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map((type) => [
+          type,
+          true,
+        ]),
+      ),
+    });
+
+    expect(report).toMatchObject({
+      status: 'blocked',
+      promotable: false,
+      pairing: { uniquePairIds: false, unmatchedCandidateDomains: ['history'] },
+    });
+    expect(report.failedGates).toEqual(expect.arrayContaining(['pairedEvidence', 'courseQuality']));
+    expect(report.courseChecks.find((entry) => entry.domain === 'ethics')?.pairing.contractShapePass).toBe(false);
+    expect(report.courseChecks.find((entry) => entry.domain === 'music')?.pairing.scalePass).toBe(false);
+    expect(report.courseChecks.find((entry) => entry.domain === 'ux')?.uniqueEvidencePass).toBe(false);
   });
 });

@@ -1,32 +1,27 @@
-// src/lib/publicScionProvider.js — experimental keyless Scion route.
+// src/lib/publicScionProvider.js — compact contracts for browser-local Scion.
 //
-// This is not the local grammar-constrained Scion server. It exposes the
-// CourseMapper/Scion compiler path through Pollinations' anonymous legacy text
-// endpoint, which is public, CORS-enabled, and aggressively rate-limited.
+// The historical provider id remains `public` so saved projects continue to
+// open, but generation is local: the browser loads the pinned public Gemma 4
+// GGUF and the Scion compiler validates and expands its compact output.
 
 import { jsonrepair } from 'jsonrepair';
 import { APP_VERSION } from './appVersion.js';
+import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
 export const PUBLIC_SCION_MODEL_NAME = `Scion V${APP_VERSION}`;
-// Pollinations accepts this legacy request alias but may route it to a
-// different anonymous backing model. UI/docs must not present it as a fixed
-// foundation-model identity.
-export const PUBLIC_SCION_BACKING_MODEL = 'openai-fast';
-export const PUBLIC_SCION_TEXT_ENDPOINT = 'https://text.pollinations.ai/';
-export const PUBLIC_SCION_CHAT_ENDPOINT = 'https://text.pollinations.ai/openai';
-export const PUBLIC_SCION_MODELS_ENDPOINT = 'https://text.pollinations.ai/models';
+export const PUBLIC_SCION_BACKING_MODEL = SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact.modelId;
 export const PUBLIC_SCION_MAX_COMPLETION_TOKENS = 1500;
 export const PUBLIC_SCION_MAX_LESSONS_PER_CALL = 3;
 export const PUBLIC_SCION_KERNEL_LESSONS_PER_CALL = 1;
 export const PUBLIC_SCION_KERNEL_CONCURRENCY = 1;
-export const PUBLIC_SCION_MIN_RETRIES = 4;
+export const PUBLIC_SCION_MIN_RETRIES = 2;
 export const PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS = 4;
 
 export function publicScionRetryDelay(attempt) {
   const retryNumber = Math.max(1, Number(attempt) || 1);
-  return Math.min(2500 * 2 ** (retryNumber - 1), 10000);
+  return Math.min(250 * 2 ** (retryNumber - 1), 2000);
 }
 
 export function isPublicScionProvider(provider) {
@@ -136,7 +131,7 @@ function liftNestedPublicScionLessonFields(parsed) {
 /**
  * Repair syntax only; the normal kernel parser and per-atom quality lints
  * still decide what content may compile. Valid JSON passes through byte for
- * byte, while complete-but-malformed anonymous responses get one local repair.
+ * byte, while complete-but-malformed local responses get one syntax repair.
  */
 export function repairPublicScionJsonText(text = '') {
   const raw = String(text || '')
@@ -201,14 +196,14 @@ export function publicScionModelOption() {
     id: PUBLIC_SCION_MODEL_ID,
     name: PUBLIC_SCION_MODEL_NAME,
     created: 1,
-    maxInputTokens: 32000,
+    maxInputTokens: 8192,
     maxOutputTokens: PUBLIC_SCION_MAX_COMPLETION_TOKENS,
-    source: 'public-anonymous',
+    source: 'browser-local',
     capabilities: {
       jsonMode: false,
       jsonSchema: false,
       toolCalling: false,
-      streaming: false,
+      streaming: true,
       temperature: true,
     },
   };
@@ -217,7 +212,7 @@ export function publicScionModelOption() {
 function clip(text, maxChars = 6000) {
   const value = String(text || '').trim();
   if (value.length <= maxChars) return value;
-  return `${value.slice(0, Math.floor(maxChars * 0.65))}\n\n[...middle omitted for Scion Public budget...]\n\n${value.slice(
+  return `${value.slice(0, Math.floor(maxChars * 0.65))}\n\n[...middle omitted for Scion local context budget...]\n\n${value.slice(
     -Math.floor(maxChars * 0.35),
   )}`;
 }
@@ -524,10 +519,10 @@ export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = nu
   const system = [
     'Reasoning: low.',
     kernelTask
-      ? 'You are CourseMapper Scion Public, a concise university subject-matter and assessment writer.'
+      ? 'You are CourseMapper Scion, a concise university subject-matter and assessment writer running locally.'
       : voiceTask
-        ? 'You are CourseMapper Scion Public, a precise university instructor and prose editor.'
-        : 'You are CourseMapper Scion Public, a compact course-map planner for anonymous public inference.',
+        ? 'You are CourseMapper Scion, a precise university instructor and prose editor running locally.'
+        : 'You are CourseMapper Scion, a compact browser-local course-map planner.',
     'Return the final JSON immediately. Do not deliberate in visible output.',
     kernelTask
       ? 'Write accurate lesson substance; the application validates each atom before compiling it into materials.'

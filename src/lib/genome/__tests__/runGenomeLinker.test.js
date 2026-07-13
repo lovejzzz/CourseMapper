@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { runGenomeLinker } from '../runGenomeLinker.js';
 import { createKernelLibrary } from '../kernelLibrary.js';
-import { createLessonKernelCache, fingerprintLesson, isLessonKernelCacheable } from '../lessonKernelCache.js';
+import {
+  LESSON_KERNEL_CACHE_KEY,
+  createLessonKernelCache,
+  fingerprintLesson,
+  isLessonKernelCacheable,
+} from '../lessonKernelCache.js';
 import { buildQuizItemPlan } from '../../blueprintEnrichmentPass.js';
 
 const ELASTICITY = {
@@ -95,6 +100,36 @@ describe('runGenomeLinker', () => {
     expect(result.telemetry.hitRate).toBe(0.5);
   });
 
+  it('preserves verified genome URLs and licenses in lesson provenance', () => {
+    const library = createKernelLibrary({ storage: memoryStorage() });
+    library.addKernel({ ...ELASTICITY, license: 'CC BY 4.0', attribution: ['OpenStax'] });
+
+    const result = runGenomeLinker({
+      courseMap: COURSE,
+      lessonIndices: [0],
+      library,
+      itemPlan,
+      sourceReferences: {
+        'openstax:microeconomics-3e': {
+          displayTitle: 'Principles of Economics 3e',
+          sourceUrl: 'https://openstax.org/details/books/principles-economics-3e',
+        },
+      },
+    });
+
+    expect(result.lessonContent['lesson-1'].conceptProvenance.citations[0]).toMatchObject({
+      key: 'OpenStax microeconomics 3e §5.1',
+      displayTitle: 'Principles of Economics 3e §5.1',
+      sourceUrl: 'https://openstax.org/details/books/principles-economics-3e',
+      license: 'CC BY 4.0',
+      attribution: 'OpenStax',
+      kind: 'open textbook',
+      evidence: 'Price elasticity of demand measures responsiveness of quantity demanded to price.',
+      sourceTier: 2,
+      conceptLinks: [{ id: 'econ/price-elasticity-of-demand', label: 'Price elasticity of demand' }],
+    });
+  });
+
   it('serves the own-kernel cache before the genome (free revision path)', () => {
     const library = createKernelLibrary({ storage: memoryStorage() });
     const cache = createLessonKernelCache({ storage: memoryStorage() });
@@ -105,6 +140,28 @@ describe('runGenomeLinker', () => {
     expect(result.lessonContent['lesson-2'].enrichmentSource).toBe('own-kernel-cache');
     expect(result.telemetry.resolvedFromCache).toBe(1);
     expect(result.missingIndices).toEqual([]);
+  });
+
+  it('distinguishes genome-backed cached lessons from model-only cached lessons', () => {
+    const storage = memoryStorage();
+    const cache = createLessonKernelCache({ storage });
+    cache.set(COURSE.lessons[0], {
+      keyTerms: [],
+      enrichmentSource: 'genome-augmented',
+      conceptProvenance: { source: 'genome-linked', citations: [] },
+    });
+    cache.set(COURSE.lessons[1], { keyTerms: [], enrichmentSource: 'model-kernel' });
+
+    const result = runGenomeLinker({
+      courseMap: COURSE,
+      lessonIndices: [0, 1],
+      library: createKernelLibrary({ storage: memoryStorage() }),
+      cache,
+      itemPlan,
+    });
+
+    expect(result.telemetry.resolvedFromCache).toBe(2);
+    expect(result.telemetry.cachedGenomeBacked).toBe(1);
   });
 
   it('routes everything to the model when the genome is empty (deterministic floor)', () => {
@@ -127,11 +184,69 @@ describe('lessonKernelCache', () => {
 
   it('round-trips a payload through storage', () => {
     const storage = memoryStorage();
-    const cache = createLessonKernelCache({ storage });
+    const courseMap = { courseName: 'Market Design', lessons: [] };
+    const cache = createLessonKernelCache({ storage, courseMap, provider: 'scion-public', modelId: 'scion-v0.16.7' });
     const lesson = { title: 'Lesson 3: Markets', sections: [{ learningObjectives: 'Explain market clearing.' }] };
     cache.set(lesson, { quizItems: [], keyTerms: [{ term: 'Market clearing' }] });
-    const reopened = createLessonKernelCache({ storage });
+    const reopened = createLessonKernelCache({
+      storage,
+      courseMap,
+      provider: 'scion-public',
+      modelId: 'scion-v0.16.7',
+    });
     expect(reopened.get(lesson).keyTerms[0].term).toBe('Market clearing');
+  });
+
+  it('does not reuse identical lesson prose across course or model scopes', () => {
+    const storage = memoryStorage();
+    const lesson = {
+      title: 'Lesson 1: Evidence and Iteration',
+      sections: [{ learningObjectives: 'Evaluate evidence and revise a decision.' }],
+    };
+    const uxCourse = { courseName: 'UX Studio', lessons: [lesson] };
+    const biologyCourse = { courseName: 'Biology Lab', lessons: [lesson] };
+    const scion = createLessonKernelCache({
+      storage,
+      courseMap: uxCourse,
+      provider: 'scion-public',
+      modelId: 'scion-v0.16.7',
+    });
+    scion.set(lesson, { keyTerms: [{ term: 'Affinity map' }] });
+
+    expect(
+      createLessonKernelCache({
+        storage,
+        courseMap: biologyCourse,
+        provider: 'scion-public',
+        modelId: 'scion-v0.16.7',
+      }).get(lesson),
+    ).toBeNull();
+    expect(
+      createLessonKernelCache({
+        storage,
+        courseMap: uxCourse,
+        provider: 'openai',
+        modelId: 'gpt-5.4-mini',
+      }).get(lesson),
+    ).toBeNull();
+  });
+
+  it('ignores legacy unscoped cache entries', () => {
+    const storage = memoryStorage();
+    const lesson = { title: 'Lesson 2: Field Notes', sections: [{ learningObjectives: 'Code field notes.' }] };
+    storage.setItem(
+      'coursemapper-lesson-kernels',
+      JSON.stringify({ [fingerprintLesson(lesson)]: { payload: { keyTerms: [{ term: 'Python loop' }] } } }),
+    );
+    const cache = createLessonKernelCache({
+      storage,
+      courseMap: { courseName: 'UX Research', lessons: [lesson] },
+      provider: 'scion-public',
+      modelId: 'scion-v0.16.7',
+    });
+
+    expect(cache.get(lesson)).toBeNull();
+    expect(storage.getItem(LESSON_KERNEL_CACHE_KEY)).toBeNull();
   });
 
   it('does not cache generic Week N lessons that can collide across courses', () => {

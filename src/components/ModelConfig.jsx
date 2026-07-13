@@ -21,6 +21,8 @@ import {
 } from '../lib/enrichmentPreference';
 import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from '../lib/publicScionProvider';
 import { isLocalProviderOptInEnabled } from '../lib/localProvider';
+import useScionRuntimeStatus from '../hooks/useScionRuntimeStatus';
+import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstants';
 
 /**
  * Detect provider from API key prefix and auto-switch if mismatched.
@@ -216,6 +218,7 @@ export default function ModelConfig() {
     generationPlan,
     setGenerationPlan,
   } = useAIConfig();
+  const scionRuntimeStatus = useScionRuntimeStatus(provider === PUBLIC_SCION_PROVIDER_ID);
   const debounceRef = useRef(null);
   const prevProviderValueRef = useRef(provider);
   const prevApiKeyRef = useRef(apiKey);
@@ -975,8 +978,23 @@ export default function ModelConfig() {
           className="mt-4 rounded-squircle-xs border border-indigo-100/80 bg-indigo-50/50 px-3.5 py-3 text-xs leading-relaxed text-slate-700 dark:border-indigo-400/20 dark:bg-indigo-400/10 dark:text-slate-200"
           data-testid="scion-draft-boundary"
         >
-          Scion is EduTool&apos;s customized course-building AI. It combines a compact model with a teaching-focused
-          compiler to create aligned course materials.
+          <p>
+            Scion is EduTool&apos;s customized local course-building AI. It combines a compact Gemma 4 model with a
+            teaching-focused compiler to create aligned course materials.
+          </p>
+          <p className="mt-1.5 text-slate-600 dark:text-slate-300">
+            {scionRuntimeStatus.phase === 'ready'
+              ? 'Scion is ready on this device. Prompts and generated text stay in this browser.'
+              : `First use downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL} of public model weights and keeps them in browser storage. Prompts and generated text stay on this device.`}
+          </p>
+          {['loading-runtime', 'loading-model'].includes(scionRuntimeStatus.phase) && (
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-950">
+              <div
+                className="h-full rounded-full bg-indigo-500 transition-[width] duration-300"
+                style={{ width: `${Math.max(2, (Number(scionRuntimeStatus.progress) || 0) * 100)}%` }}
+              />
+            </div>
+          )}
         </div>
       )}
       {hasSelectableModels && provider !== PUBLIC_SCION_PROVIDER_ID && (

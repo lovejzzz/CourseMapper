@@ -199,6 +199,39 @@ describe('reading-list engine (P2)', () => {
     expect(attachGenomeResources(graph)).toBe(0);
   });
 
+  it('preserves explicit government-guidance URL, license, and attribution metadata', () => {
+    const graph = genomeLinkedGraph();
+    graph.enrichmentOverlay.lessonContent['lesson-1'].conceptProvenance.citations = [
+      {
+        key: 'govuk:plan user research §Set your research objectives',
+        displayTitle: 'Plan a round of user research §Set your research objectives',
+        sourceUrl: 'https://www.gov.uk/service-manual/user-research/plan-round-of-user-research',
+        license: 'Open Government Licence v3.0',
+        attribution: 'UK Government Service Manual',
+        kind: 'open resource',
+        evidence: 'Each round of user research should have clear objectives.',
+        sourceTier: 2,
+        conceptLinks: [{ id: 'ux/research-planning', label: 'Research planning' }],
+      },
+    ];
+    graph.enrichmentOverlay.lessonContent['lesson-1'].keyTerms = [];
+
+    attachGenomeResources(graph);
+
+    expect(graph.resources[0]).toMatchObject({
+      citation: expect.stringContaining('Plan a round of user research §Set your research objectives'),
+      url: 'https://www.gov.uk/service-manual/user-research/plan-round-of-user-research',
+      license: 'Open Government Licence v3.0',
+      attribution: 'UK Government Service Manual',
+      kind: 'open resource',
+      evidence: 'Each round of user research should have clear objectives.',
+      sourceTier: 2,
+      conceptLinks: [{ id: 'ux/research-planning', label: 'Research planning' }],
+      origin: 'genome',
+    });
+    expect(graph.resources[0].citation).toContain('(open resource, Open Government Licence v3.0');
+  });
+
   it('renders attached resources into supportingResources cells', () => {
     const graph = genomeLinkedGraph();
     attachGenomeResources(graph);
@@ -247,6 +280,78 @@ describe('reading-list engine (P2)', () => {
     expect(openalex.every((resource) => resource.license === 'cc-by')).toBe(true);
     expect(graph.resources.filter((resource) => resource.origin === 'openlibrary')).toHaveLength(0);
     expect(providers.searchBookMetadata).not.toHaveBeenCalled();
+  });
+
+  it('rejects the real UX architectural-studio and sonification false friends before attachment', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'User Experience Design Studio' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Contextual Interviews and Observation',
+        sections: [{ topic: '1.1: Contextual Interviews and Observation' }],
+      },
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Affinity Mapping and Synthesis',
+        sections: [{ topic: '2.1: Affinity Mapping and Synthesis' }],
+      },
+    ];
+    graph.concepts = [
+      { id: 'c1', term: 'contextual interviews and observation' },
+      { id: 'c2', term: 'affinity mapping and synthesis' },
+    ];
+    graph.edges.teaches = [
+      { from: 's1', to: 'c1' },
+      { from: 's2', to: 'c2' },
+    ];
+    const work = (title, abstract, url) => ({
+      title,
+      abstract,
+      authors: 'A. Researcher',
+      year: 2024,
+      url,
+      license: 'cc-by',
+      attribution: 'OpenAlex (CC0 metadata)',
+    });
+    const providers = {
+      searchScholarlyReadings: vi.fn(async (query) =>
+        /interview/i.test(query)
+          ? [
+              work(
+                'A Systematic Review of Design Creativity in the Architectural Design Studio',
+                'Observations and interviews examine the design studio process and creativity.',
+                'https://doi.org/10.3390/buildings11010031',
+              ),
+              work(
+                'Contextual inquiry interviews for evidence-based interface design',
+                'User researchers combine contextual interviews and observation to identify interface needs.',
+                'https://doi.org/10.1000/ux-interviews',
+              ),
+            ]
+          : [
+              work(
+                'A Systematic Review of Mapping Strategies for the Sonification of Physical Quantities',
+                'Mapping strategies synthesize physical quantities into acoustic signals.',
+                'https://doi.org/10.1371/journal.pone.0082491',
+              ),
+              work(
+                'Affinity mapping for thematic synthesis in user research',
+                'Affinity mapping groups user observations into themes that support design decisions.',
+                'https://doi.org/10.1000/ux-affinity',
+              ),
+            ],
+      ),
+      searchBookMetadata: vi.fn(async () => []),
+    };
+
+    expect(await attachOpenReadings(graph, { providers })).toBe(2);
+    const citations = graph.resources.map((resource) => resource.citation).join('\n');
+    expect(citations).toContain('Contextual inquiry interviews');
+    expect(citations).toContain('Affinity mapping for thematic synthesis');
+    expect(citations).not.toContain('Architectural Design Studio');
+    expect(citations).not.toContain('Sonification');
   });
 
   it('records a decision instead of trusting metadata-only open readings', async () => {

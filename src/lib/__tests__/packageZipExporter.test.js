@@ -81,6 +81,45 @@ describe('packageZipExporter', () => {
     expect(sanitizeFilePart('   ')).toBe('Course');
   });
 
+  it('embeds truthful run, Scion base, and export-verification provenance in the manifest', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: makeCourseMap('Scion Provenance Course'),
+      featureIds: ['courseMap'],
+      quality: {
+        digest: {
+          appVersion: '0.16.7',
+          runId: 'run-provenance',
+          finishRunId: 'finish-provenance',
+          run: { provider: 'public', models: ['scion-public'] },
+          gates: { exportStatus: 'passed', exportChecked: 38, exportFailed: 0, exportWarnings: 0 },
+        },
+      },
+    });
+
+    expect(result.manifest).toMatchObject({
+      manifestVersion: 2,
+      generator: {
+        app: 'CourseMapper',
+        appVersion: '0.16.7',
+        runId: 'run-provenance',
+        finishRunId: 'finish-provenance',
+        provider: 'public',
+        models: ['scion-public'],
+        scion: {
+          product: 'Scion V0.16.7',
+          localOnly: true,
+          runtimeArtifact: {
+            modelId: 'google/gemma-4-E2B-it-qat-q4_0-gguf',
+            revision: '69536a21d70340464240401ba38223d805f6a709',
+            sha256: '3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd',
+          },
+          adapter: { status: 'base-only', qualified: false },
+        },
+      },
+      exportVerification: { status: 'passed', checked: 38, failed: 0, warnings: 0 },
+    });
+  });
+
   it('builds a ZIP with selected files and a package manifest', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Export/Smoke: Course'),
@@ -1044,13 +1083,6 @@ describe('packageZipExporter', () => {
     expect(manifest.sourceLedger).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'ux-curated-user-experience',
-          provider: 'wikipedia',
-          license: 'CC BY-SA 4.0',
-          url: 'https://en.wikipedia.org/wiki/User_experience',
-          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'user experience' })]),
-        }),
-        expect.objectContaining({
           id: 'ux-curated-usability-testing',
           provider: 'wikipedia',
           license: 'CC BY-SA 4.0',
@@ -1063,6 +1095,13 @@ describe('packageZipExporter', () => {
           license: 'CC BY-SA 4.0',
           url: 'https://en.wikipedia.org/wiki/Web_accessibility',
           conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'accessibility' })]),
+        }),
+        expect.objectContaining({
+          id: 'ux-curated-software-prototyping',
+          provider: 'wikipedia',
+          license: 'CC BY-SA 4.0',
+          url: 'https://en.wikipedia.org/wiki/Software_prototyping',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'prototype review' })]),
         }),
       ]),
     );
@@ -1086,7 +1125,7 @@ describe('packageZipExporter', () => {
       totals: { total: 34, withRefs: 34, missing: 0, danglingRefs: 0 },
     });
     expect(sourceReport).toContain('Source Ledger');
-    expect(sourceReport).toContain('User experience');
+    expect(sourceReport).toContain('Usability testing');
     expect(sourceReport).toContain('CC BY-SA 4.0');
     expect(sourceReport).not.toContain('Source Review Notes');
     expect(sourceReport).not.toContain('Existing course map fields');
@@ -1858,6 +1897,39 @@ describe('packageZipExporter', () => {
     });
     expect(sourceReport).toContain('Source Review Notes');
     expect(sourceReport).toContain('SourceRef Coverage');
+  });
+
+  it('never injects Python proof into a UX course that mentions iteration, testing, functions, objects, and classes', async () => {
+    const courseMap = makeCourseMap('User Experience Design Studio');
+    courseMap.lessons = [
+      {
+        title: 'Lesson 1: Usability Testing and Evidence-Based Iteration',
+        sections: [
+          {
+            topicSection: 'Test prototype objects with a class of participants',
+            learningObjectives: 'Evaluate interface functions and iterate from usability evidence.',
+          },
+        ],
+      },
+    ];
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      courseGraph: { sessions: [], resources: [], readings: [] },
+      pipelineState: {
+        enrichment: 'ran (1 lesson enriched)',
+        genomeLinker: '0 genome + 0 cached of 1 lessons (0 concepts, 0 citations, 0 bridges)',
+        knowledgeBackbone: '0/1 lessons genome-linked · 0 cited open resources',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const allRows = [...(manifest.sourceLedger || []), ...(manifest.sourceReviewRows || [])];
+    expect(allRows.some((row) => String(row.id || '').startsWith('python-openstax-'))).toBe(false);
+    expect(allRows.some((row) => /Introduction to Python Programming/i.test(String(row.title || '')))).toBe(false);
   });
 
   it('keeps CourseIR fallback rows out of trusted sourceLedger proof', async () => {

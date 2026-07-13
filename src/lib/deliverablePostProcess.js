@@ -2987,7 +2987,12 @@ export function normalizeSlideDeckSpeakerNotes(data) {
     let deckChanged = false;
     const slides = deck[slideKey].map((slide, index) => {
       const notes = String(slide?.notes || slide?.speakerNotes || slide?.no || '').trim();
-      if (notes.length >= 40) return slide;
+      // Readiness measures teachability in words, not characters. A compact
+      // 40-character fragment can still be fewer than the ten words the
+      // export gate requires, which previously let a known warning survive
+      // the deterministic repair pass.
+      const noteWordCount = notes.split(/\s+/).filter(Boolean).length;
+      if (notes.length >= 40 && noteWordCount >= 10) return slide;
       patchedNotes++;
       deckChanged = true;
       const noteKey =

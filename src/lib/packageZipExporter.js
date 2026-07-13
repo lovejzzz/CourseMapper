@@ -13,6 +13,8 @@ import { dedupeNumberedAssessmentEcho } from './compilerText.js';
 import { safeImport } from './safeImport';
 import { normalizePipelineStateWithSourceBackedJudgment } from './sourceBackedJudgment.js';
 import { peekVoicePassOutcome } from './voicePass.js';
+import { APP_VERSION } from './appVersion.js';
+import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 
 const MIN_EXPORT_BYTES = 128;
 export const DEFAULT_PACKAGE_QUALITY_TIMEOUT_MS = 30000;
@@ -49,6 +51,55 @@ const SPLIT_BY_LESSON_FEATURES = new Set([
   'studyGuides',
   'courseFaq',
 ]);
+const PACKAGE_MANIFEST_VERSION = 2;
+
+function buildManifestGenerator(digest, pipelineState) {
+  const provider = String(digest?.run?.provider || '').trim();
+  const models = [
+    ...new Set((Array.isArray(digest?.run?.models) ? digest.run.models : []).map(String).filter(Boolean)),
+  ];
+  const appVersion = String(digest?.appVersion || APP_VERSION);
+  const isScion = provider === 'public' || models.some((model) => /scion/i.test(model));
+  const generator = {
+    app: 'CourseMapper',
+    appVersion,
+    ...(digest?.runId ? { runId: String(digest.runId) } : {}),
+    ...(digest?.finishRunId ? { finishRunId: String(digest.finishRunId) } : {}),
+    ...(provider ? { provider } : {}),
+    ...(models.length > 0 ? { models } : {}),
+  };
+  if (!isScion) return generator;
+
+  const declaredRuntime = digest?.scionRuntime || digest?.run?.scionRuntime || pipelineState?.scionRuntime || null;
+  const declaredAdapter = declaredRuntime?.adapter || null;
+  generator.scion = {
+    product: `Scion V${appVersion}`,
+    compiler: 'model-neutral Scion compiler',
+    localOnly: true,
+    trainingBase: { ...SCION_BROWSER_GEMMA4_GGUF.trainingBase },
+    runtimeArtifact: { ...SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact },
+    runtime: { ...SCION_BROWSER_GEMMA4_GGUF.runtime },
+    adapter: declaredAdapter
+      ? { ...declaredAdapter }
+      : {
+          status: 'base-only',
+          qualified: false,
+          reason: 'No qualified Scion adapter was declared for this generation run.',
+        },
+  };
+  return generator;
+}
+
+function buildManifestExportVerification(digest) {
+  const gates = digest?.gates;
+  if (!gates || (!gates.exportStatus && gates.exportChecked == null)) return null;
+  return {
+    status: String(gates.exportStatus || 'unknown'),
+    checked: Number(gates.exportChecked) || 0,
+    failed: Number(gates.exportFailed) || 0,
+    warnings: Number(gates.exportWarnings) || 0,
+  };
+}
 
 export class PackageZipExportError extends Error {
   constructor(failures = []) {
@@ -802,8 +853,13 @@ function pipelineExpectsSourceLedgerProof(pipelineState) {
 
 const UX_COURSE_CONTEXT_RE =
   /\b(?:user\s+experience|ux\b|human[-\s]?centered\s+design|interaction\s+design|interface\s+design|usability|design\s+studio|design\s+research|user\s+research|prototype|accessibility)\b/i;
+// Do not classify a course as Python from generic instructional words such as
+// “iteration”, “testing”, “functions”, “objects”, or “classes”. Those appear
+// naturally in UX studios and many other domains. Curated Python proof is
+// eligible only when the curriculum itself names the language/discipline or
+// an unmistakable programming construct.
 const PYTHON_COURSE_CONTEXT_RE =
-  /\b(?:python|computer\s+science|programming|coding|variables?|data\s+types?|expressions?|conditionals?|loops?|functions?|lists?|dictionar(?:y|ies)|strings?|file\s+(?:input|output|i\/o)|debugg(?:ing)?|testing|algorithms?|recursion|object[-\s]?oriented|classes?|objects?)\b/i;
+  /\b(?:python|computer\s+science|software\s+development|programming|coding|algorithms?|debugg(?:ing)?\s+(?:code|programs?)|data\s+types?|if[-\s]+else|for\s+loops?|while\s+loops?|recursive\s+functions?|object[-\s]?oriented\s+programming)\b/i;
 
 const CURATED_UX_SOURCE_PROOF_ROWS = [
   {
@@ -1296,11 +1352,16 @@ function buildManifest({
   sourceReport = null,
   sourceRefCoverage = null,
   voicePass = null,
+  digest = null,
 }) {
   const courseIR = buildManifestCourseIRProof(courseGraph, { sourceRefCoverage });
+  const exportVerification = buildManifestExportVerification(digest);
   return {
+    manifestVersion: PACKAGE_MANIFEST_VERSION,
     courseName,
     generatedAt,
+    generator: buildManifestGenerator(digest, pipelineState),
+    ...(exportVerification ? { exportVerification } : {}),
     lessonScope: Array.isArray(lessonFilter) ? lessonFilter.map((index) => index + 1) : 'all',
     // v0.12.1: how the content was produced (enrichment / genome linker /
     // plan health) so downloaded packages are auditable without console logs.
@@ -1705,6 +1766,7 @@ export async function buildCourseMaterialsZip({
     // v0.14.7 WS-D4: callers may pass the outcome on pipelineState; otherwise
     // the generation run's single-run stash discloses it (cleared each compile).
     voicePass: finalPipelineState?.voicePass || peekVoicePassOutcome(),
+    digest: qualityOptions.digest || null,
   });
 
   // ── v0.14.3 WS-A A2/A3: the package grades itself ─────────────────────────
