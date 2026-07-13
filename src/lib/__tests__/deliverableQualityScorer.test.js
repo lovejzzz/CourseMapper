@@ -4,6 +4,7 @@ import {
   scoreHeuristic,
   computeAvgScore,
   scoreColor,
+  signalBand,
   QUALITY_SCORER_SYSTEM_PROMPT,
 } from '../deliverableQualityScorer';
 
@@ -57,6 +58,11 @@ describe('scoreHeuristic', () => {
     expect(result).toHaveProperty('actionability');
     expect(result).toHaveProperty('qmAlignment');
     expect(result).toHaveProperty('tips');
+    expect(result).toMatchObject({
+      evidenceClass: 'deterministic',
+      validationTier: 'automated-signal',
+      construct: 'surface-content-signals',
+    });
   });
 
   it('scores higher for detailed content with Blooms keywords', () => {
@@ -146,5 +152,13 @@ describe('scoreColor', () => {
   it('returns red for scores < 6', () => {
     const color = scoreColor(4);
     expect(color.bg).toContain('red');
+  });
+});
+
+describe('signalBand', () => {
+  it('uses bounded language instead of exposing a quality score claim', () => {
+    expect(signalBand(8.5).shortLabel).toBe('Strong');
+    expect(signalBand(6.5).shortLabel).toBe('Mixed');
+    expect(signalBand(4).shortLabel).toBe('Weak');
   });
 });

@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "ux-studio-6",
+  "split": "dev",
+  "title": "Accessible Service Design Studio",
+  "disciplineFamily": "design-studio",
+  "modality": "in-person-studio",
+  "level": "undergraduate-intermediate",
+  "lessonCount": 6,
+  "learners": "Design students working in teams of four with one shared prototype per team.",
+  "coursePurpose": "Turn observed service friction into an accessible, testable prototype without treating assumptions as user evidence.",
+  "outcomes": [
+    "Separate observed behavior from interpretation in a research note.",
+    "Construct an accessible task flow from prioritized evidence.",
+    "Revise a prototype using a traceable usability finding."
+  ],
+  "assessmentArchitecture": ["observation record", "milestone critique", "prototype and evidence report"],
+  "sourcePacket": [
+    {
+      "id": "UX-S1",
+      "kind": "project-authored observation",
+      "content": "Three participants paused at an unlabeled icon; two selected it after trial and error. The observation does not establish their motivation."
+    },
+    {
+      "id": "UX-S2",
+      "kind": "project-authored constraint",
+      "content": "Prototype review includes keyboard navigation, visible focus, error recovery, and a text alternative for visual status."
+    }
+  ],
+  "requiredDeliverables": [
+    "courseMap",
+    "syllabus",
+    "lessonPlans",
+    "slideDecks",
+    "assignments",
+    "rubrics",
+    "discussions",
+    "studyGuides",
+    "courseFaq",
+    "observation-checklist",
+    "project-milestone-checklist",
+    "feedback-form"
+  ],
+  "localConstraints": [
+    "Research participants remain pseudonymous.",
+    "Do not infer disability or intent from behavior.",
+    "Every critique names evidence and a next test."
+  ],
+  "adversarialConditions": [
+    "An observation note contains an unsupported motive in brackets.",
+    "The custom observation checklist must separate observation from inference."
+  ],
+  "rights": { "basis": "Project-authored benchmark fixture; repository license applies.", "thirdPartyContent": false }
+}

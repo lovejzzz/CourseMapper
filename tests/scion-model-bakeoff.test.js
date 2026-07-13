@@ -39,6 +39,120 @@ function factualEvidence(candidate, overrides = {}) {
   };
 }
 
+function honestQualityComparison(candidate, control, caseIds) {
+  let ordinal = 0;
+  const sha = (value) => Number(value).toString(16).padStart(64, '0');
+  return {
+    schemaVersion: 1,
+    comparisonId: `${candidate.id}-vs-${control.id}-heldout`,
+    protocolVersion: '1.0.0',
+    createdAt: '2026-07-13T11:00:00Z',
+    preregistration: {
+      frozenAt: '2026-07-13T10:00:00Z',
+      analysisPlanSha256: 'a'.repeat(64),
+      corpusManifestSha256: 'b'.repeat(64),
+      minimumTrialsPerCase: 5,
+      requiredQualifiedPreferencesPerTrial: 2,
+      caseIds,
+      stoppingRule: 'Run every declared case and trial without inspecting observed outcomes.',
+      exclusionPolicy: 'Retain all attempts and report failures separately from successful quality.',
+    },
+    environment: { compilerCommit: 'abcdef1', dirtyTree: false },
+    candidateId: candidate.id,
+    controlId: control.id,
+    models: [candidate, control].map((model) => ({
+      id: model.id,
+      provider: 'local-browser',
+      model: model.servingModelId,
+      revision: `${model.id}-exact-test-revision`,
+      promptSha256: 'c'.repeat(64),
+      configurationSha256: model.id === candidate.id ? 'd'.repeat(64) : 'e'.repeat(64),
+      parameters: { temperature: 0 },
+      compilerCommit: 'abcdef1',
+      graderVersion: 'quality-benchmark-v1',
+    })),
+    trials: caseIds.flatMap((caseId, caseIndex) =>
+      Array.from({ length: 10 }, (_, trialOffset) => {
+        ordinal += 1;
+        const candidateHash = sha(ordinal);
+        const controlHash = sha(ordinal + 1000);
+        const sourceHash = sha(caseIndex + 2000);
+        const candidateLabel = ordinal % 2 ? 'A' : 'B';
+        const controlLabel = candidateLabel === 'A' ? 'B' : 'A';
+        const scoreEvidence = (artifactSha256, scorecardOffset) => ({
+          rubricVersion: '1.0.0',
+          rubricSha256: 'f'.repeat(64),
+          scorecardSha256: sha(ordinal + scorecardOffset),
+          scorecardPath: `scorecards/${ordinal}-${scorecardOffset}.json`,
+          evidenceClass: 'human-qualified',
+          validationTier: 'independently-validated',
+          sourceSha256: sourceHash,
+          artifactSha256,
+        });
+        return {
+          caseId,
+          split: 'heldout',
+          deliverableType: 'package',
+          trialIndex: trialOffset + 1,
+          seed: `${caseId}-generation-${trialOffset + 1}`,
+          sourceSha256: sourceHash,
+          matchedInputSha256: sha(caseIndex + 3000),
+          matchedSettingsSha256: '9'.repeat(64),
+          randomization: {
+            candidateLabel,
+            controlLabel,
+            seed: `${caseId}-blind-${trialOffset + 1}`,
+            method: 'seeded permutation before independent review assignment',
+          },
+          outputs: {
+            candidate: {
+              modelId: candidate.id,
+              status: 'success',
+              outputSha256: candidateHash,
+              latencyMs: 900,
+              costUsd: 0,
+              providerCalls: 48,
+              retryCount: 0,
+              benchmarkScore: 90,
+              dimensionScores: { 'instructional-alignment': 90 },
+              compilerBurden: { scionCalls: 48, repairCalls: 1, rejectedAtoms: 1, recoveredAtoms: 1 },
+              scoreEvidence: scoreEvidence(candidateHash, 4000),
+            },
+            control: {
+              modelId: control.id,
+              status: 'success',
+              outputSha256: controlHash,
+              latencyMs: 1000,
+              costUsd: 0,
+              providerCalls: 50,
+              retryCount: 0,
+              benchmarkScore: 80,
+              dimensionScores: { 'instructional-alignment': 80 },
+              compilerBurden: { scionCalls: 50, repairCalls: 2, rejectedAtoms: 3, recoveredAtoms: 1 },
+              scoreEvidence: scoreEvidence(controlHash, 5000),
+            },
+          },
+          preferences: [0, 1].map((reviewerIndex) => ({
+            reviewerId: `${caseId}-faculty-${trialOffset + 1}-${reviewerIndex + 1}`,
+            evidenceClass: 'human-qualified',
+            qualified: true,
+            independent: true,
+            conflictOfInterest: false,
+            domainMatch: true,
+            currentTeachingRole: 'Current domain-matched faculty instructor',
+            blinded: true,
+            preference: candidateLabel,
+            rationale: 'The candidate is more accurate, aligned, usable, and complete for this course.',
+            reviewedAt: '2026-07-13T12:00:00Z',
+            candidateArtifactSha256: candidateHash,
+            controlArtifactSha256: controlHash,
+          })),
+        };
+      }),
+    ),
+  };
+}
+
 describe('Scion model bake-off', () => {
   it('freezes unique candidates, an exact control, sources, and deployment identities', () => {
     expect(validateScionModelRegistry(registry)).toEqual([]);
@@ -69,7 +183,7 @@ describe('Scion model bake-off', () => {
       expect.arrayContaining([
         'insufficient-passing-full-courses',
         'missing-browser-device:integrated-8gb',
-        'missing-qualifying-blind-instructor-win',
+        'missing-honest-quality-benchmark-win',
       ]),
     );
   });
@@ -139,6 +253,10 @@ describe('Scion model bake-off', () => {
     const control = registry.candidates[0];
     const candidate = registry.candidates[1];
     const domains = ['computer-science', 'geology', 'music-theory', 'user-experience-design', 'world-literature'];
+    const qualityComparison = honestQualityComparison(candidate, control, domains);
+    const verifiedScorecardSha256s = qualityComparison.trials.flatMap((trial) =>
+      ['candidate', 'control'].map((side) => trial.outputs[side].scoreEvidence.scorecardSha256),
+    );
     const candidateEvidence = factualEvidence(candidate, {
       fullCourses: domains.map((domain) => ({
         domain,
@@ -154,17 +272,8 @@ describe('Scion model bake-off', () => {
         completed: true,
         withinBudget: true,
       })),
-      blindComparisons: [
-        {
-          cases: 50,
-          wins: 34,
-          losses: 16,
-          ties: 0,
-          minimumIndependentReviewsPerCase: 2,
-          minimumWinnerFactualScore: 4,
-          minimumWinnerTeachabilityScore: 4,
-        },
-      ],
+      qualityComparisons: [qualityComparison],
+      __qualityComparisonVerifications: [{ verifiedScorecardSha256s, issues: [] }],
     });
     const report = buildScionModelBakeoffReport(registry, {
       [control.id]: [

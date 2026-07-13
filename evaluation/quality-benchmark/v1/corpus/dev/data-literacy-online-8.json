@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "id": "data-literacy-online-8",
+  "split": "dev",
+  "title": "Data Literacy for Public Decisions",
+  "disciplineFamily": "quantitative-social-science",
+  "modality": "asynchronous-online",
+  "level": "undergraduate-introductory",
+  "lessonCount": 8,
+  "sourceConditions": ["messy", "contradictory"],
+  "learners": "Adult learners with spreadsheet familiarity but no assumed statistics course.",
+  "coursePurpose": "Interpret tables, rates, uncertainty, and visual claims well enough to critique a public-facing data argument.",
+  "outcomes": [
+    "Calculate and interpret a rate with an appropriate denominator.",
+    "Identify a misleading visual encoding and explain its effect.",
+    "Write a bounded evidence claim that distinguishes association from causation."
+  ],
+  "assessmentArchitecture": ["weekly spreadsheet checks", "chart critique", "revised public data brief"],
+  "sourcePacket": [
+    {
+      "id": "DL-S1",
+      "kind": "project-authored dataset",
+      "content": "District A: 40 incidents among 2,000 riders. District B: 30 incidents among 1,000 riders. Counts and rates support different rankings."
+    },
+    {
+      "id": "DL-S2",
+      "kind": "project-authored evidence note",
+      "content": "No variable in the packet establishes why the districts differ; causal explanations are unsupported."
+    },
+    {
+      "id": "DL-S3",
+      "kind": "project-authored messy worksheet note",
+      "content": "A copied worksheet header calls the incident values percentages, but the rows contain whole-number counts and separate rider denominators. The header is unreliable and must be reconciled before use."
+    },
+    {
+      "id": "DL-S4",
+      "kind": "project-authored contradictory narrative",
+      "content": "A margin note says District A has the higher incident rate. The supplied counts and denominators instead calculate to 2% for District A and 3% for District B."
+    }
+  ],
+  "requiredDeliverables": [
+    "courseMap",
+    "syllabus",
+    "lessonPlans",
+    "slideDecks",
+    "assignments",
+    "rubrics",
+    "discussions",
+    "quizBank",
+    "studyGuides",
+    "courseFaq",
+    "problem-set-worksheet"
+  ],
+  "localConstraints": [
+    "All charts require text alternatives.",
+    "Calculations must show denominators.",
+    "Do not add demographic explanations absent from the packet."
+  ],
+  "adversarialConditions": [
+    "A raw count invites the opposite ranking from the rate.",
+    "The source contains no causal evidence.",
+    "A mislabeled header and a contradictory narrative must not override the computable record."
+  ],
+  "rights": { "basis": "Project-authored benchmark fixture; repository license applies.", "thirdPartyContent": false }
+}

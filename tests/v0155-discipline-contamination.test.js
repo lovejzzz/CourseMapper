@@ -141,6 +141,18 @@ describe('foreign-domain contamination quality gate', () => {
     expect(music.findings.some((finding) => /foreign music-theory content/i.test(finding.detail))).toBe(false);
   });
 
+  it('uses manifest course identity when offline grading has no explicit course object', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'Course FAQ/Lesson 01 - Staff and Notation - Course FAQ.txt':
+          'The composer needs to write a short melodic line using staff notation.',
+        'PACKAGE_MANIFEST.json': JSON.stringify({ courseName: 'Music Theory Fundamentals' }),
+      }),
+    });
+
+    expect(result.findings.some((finding) => /foreign music-theory content/i.test(finding.detail))).toBe(false);
+  });
+
   it('turns any quality P0 into a readiness blocker', () => {
     const result = applyQualityToFinalizerResult(
       {

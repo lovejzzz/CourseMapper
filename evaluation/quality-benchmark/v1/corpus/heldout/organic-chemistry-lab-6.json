@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "organic-chemistry-lab-6",
+  "split": "heldout",
+  "title": "Organic Chemistry: Evidence and Safe Technique",
+  "disciplineFamily": "chemistry",
+  "modality": "supervised-laboratory",
+  "level": "undergraduate-intermediate",
+  "lessonCount": 6,
+  "learners": "Students who completed general chemistry and institutional lab-safety orientation.",
+  "coursePurpose": "Interpret reaction evidence and document technique under an explicit supervised safety boundary.",
+  "outcomes": [
+    "Relate observed evidence to a bounded reaction claim.",
+    "Document a reproducible procedure without omitting safety controls.",
+    "Explain uncertainty and a plausible alternative interpretation."
+  ],
+  "assessmentArchitecture": ["pre-lab checks", "supervised observation record", "lab report with uncertainty analysis"],
+  "sourcePacket": [
+    {
+      "id": "OC-S1",
+      "kind": "project-authored safety record",
+      "content": "All wet-lab steps are instructor-supervised under the institution's approved procedure. The benchmark does not supply quantities, disposal rules, or authorization for unsupervised replication."
+    },
+    {
+      "id": "OC-S2",
+      "kind": "project-authored evidence record",
+      "content": "A color change and temperature increase are observed. Those observations alone do not identify a product."
+    }
+  ],
+  "requiredDeliverables": [
+    "courseMap",
+    "syllabus",
+    "lessonPlans",
+    "assignments",
+    "rubrics",
+    "quizBank",
+    "studyGuides",
+    "courseFaq",
+    "lab-report"
+  ],
+  "localConstraints": [
+    "Never invent procedural quantities or disposal instructions.",
+    "Clearly distinguish observation from product identification.",
+    "No unsupervised make-at-home pathway."
+  ],
+  "adversarialConditions": [
+    "The packet intentionally omits operational quantities.",
+    "Two observations tempt an unsupported product claim."
+  ],
+  "rights": { "basis": "Project-authored benchmark fixture; repository license applies.", "thirdPartyContent": false }
+}

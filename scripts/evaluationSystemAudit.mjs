@@ -8,6 +8,7 @@ import { closeHybridPipelineAuditRuntime } from './goldSampleQualityAudit.mjs';
 import { runContractQualityAudit } from './contractQualityAudit.mjs';
 import { runIndependentBenchmarkAudit } from './independentBenchmarkAudit.mjs';
 import { runProductionCanaryAudit } from './productionCanaryAudit.mjs';
+import { runQualityBenchmarkAudit } from './qualityBenchmarkAudit.mjs';
 
 const ROOT = process.cwd();
 const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'evaluation-system');
@@ -15,18 +16,20 @@ const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'verification-output', 'evaluation-sy
 const PROFILE_POLICY = {
   pr: {
     contractProfile: 'pr',
-    requiredTiers: ['contract'],
-    purpose: 'Fast representative contract coverage plus fixtures selected from changed compiler surfaces.',
+    requiredTiers: ['contract', 'qualityBenchmark'],
+    purpose: 'Fast representative contract coverage plus the versioned benchmark protocol and corpus integrity.',
   },
   main: {
     contractProfile: 'full',
-    requiredTiers: ['contract'],
-    purpose: 'All deterministic compiler fixtures; independent and production proof remain visible but advisory.',
+    requiredTiers: ['contract', 'qualityBenchmark'],
+    purpose:
+      'All deterministic compiler fixtures plus benchmark protocol and corpus integrity; independent proof remains advisory.',
   },
   release: {
     contractProfile: 'full',
-    requiredTiers: ['contract', 'independentBenchmark', 'productionCanary'],
-    purpose: 'Release proof requires contract, independent instructor, and retained real-provider evidence.',
+    requiredTiers: ['contract', 'qualityBenchmark', 'independentBenchmark', 'productionCanary'],
+    purpose:
+      'Release proof requires contract, held-out benchmark validation, independent instructor review, and retained real-provider evidence.',
   },
 };
 
@@ -37,10 +40,11 @@ export function buildEvaluationSystemSummary(tiers, profile) {
   const failedRequiredTiers = policy.requiredTiers.filter((key) => tierStatuses[key] !== 'pass');
   const independentlyValidated =
     tierStatuses.contract === 'pass' &&
+    tierStatuses.qualityBenchmark === 'pass' &&
     tierStatuses.independentBenchmark === 'pass' &&
     tierStatuses.productionCanary === 'pass';
   const claimStatus = independentlyValidated
-    ? 'independently-validated'
+    ? 'independently-validated-for-declared-scope'
     : tierStatuses.contract === 'pass'
       ? 'compiler-contract-only'
       : 'contract-failed';
@@ -54,8 +58,8 @@ export function buildEvaluationSystemSummary(tiers, profile) {
     claimStatus,
     independentlyValidated,
     claimBoundary:
-      claimStatus === 'independently-validated'
-        ? 'Contract, independent instructor, and retained live-provider evidence all satisfy policy.'
+      claimStatus === 'independently-validated-for-declared-scope'
+        ? 'Contract, held-out rubric evidence, independent instructor, and retained live-provider evidence all satisfy the declared benchmark scope.'
         : 'Passing fixtures alone permits a compiler-contract claim, not a claim that instructors can use the output with minimal edits.',
   };
 }
@@ -63,6 +67,7 @@ export function buildEvaluationSystemSummary(tiers, profile) {
 function renderMarkdown(report) {
   const rows = [
     ['Compiler contract', 'contract', report.tiers.contract.summary.fixtureCount],
+    ['Evidence-aware quality benchmark', 'qualityBenchmark', report.tiers.qualityBenchmark.summary.validCorpusCases],
     [
       'Independent instructor benchmark',
       'independentBenchmark',
@@ -90,6 +95,7 @@ function renderMarkdown(report) {
     'Detailed reports:',
     '',
     '- `verification-output/contract-quality-audit/latest.md`',
+    '- `verification-output/quality-benchmark/latest.md`',
     '- `verification-output/independent-benchmark/latest.md`',
     '- `verification-output/production-canary/latest.md`',
     '',
@@ -130,8 +136,12 @@ export async function runEvaluationSystemAudit({
     const independentBenchmark = await runIndependentBenchmarkAudit({
       mode: profile === 'release' ? 'strict' : 'advisory',
     });
+    const qualityBenchmark = await runQualityBenchmarkAudit({
+      mode: profile === 'release' ? 'validation' : 'structure',
+      unlockHeldout: profile === 'release' && process.env.QUALITY_BENCHMARK_UNLOCK_HELDOUT === 'true',
+    });
     const productionCanary = await runProductionCanaryAudit({ mode: profile === 'release' ? 'strict' : 'advisory' });
-    const tiers = { contract, independentBenchmark, productionCanary };
+    const tiers = { contract, qualityBenchmark, independentBenchmark, productionCanary };
     const report = {
       meta: { generatedAt: new Date().toISOString(), profile, schemaVersion: 1 },
       summary: buildEvaluationSystemSummary(tiers, profile),

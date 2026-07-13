@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "id": "music-theory-7",
+  "split": "calibration",
+  "title": "Tonal Analysis Through Listening and Notation",
+  "disciplineFamily": "music-theory",
+  "modality": "in-person-with-listening-lab",
+  "level": "undergraduate-intermediate",
+  "lessonCount": 7,
+  "learners": "Students can read treble and bass clefs and identify major/minor triads.",
+  "coursePurpose": "Connect heard tonal function, notated evidence, and analytical claims across short progressions.",
+  "outcomes": [
+    "Label a cadence from notated and aural evidence.",
+    "Explain a non-chord tone in relation to voice leading.",
+    "Revise an analysis after comparing an alternate hearing."
+  ],
+  "assessmentArchitecture": ["aural checks", "annotated score analysis", "comparative analytical commentary"],
+  "sourcePacket": [
+    {
+      "id": "MT-S1",
+      "kind": "project-authored progression",
+      "content": "In C major: D4-F4-A4 resolves to G3-B3-D4, then C4-E4-G4. The packet identifies ii6-V-I and does not establish a deceptive cadence."
+    },
+    {
+      "id": "MT-S2",
+      "kind": "project-authored misconception",
+      "content": "A longer chord is not necessarily structurally stronger; duration alone does not establish harmonic function."
+    }
+  ],
+  "requiredDeliverables": [
+    "courseMap",
+    "syllabus",
+    "lessonPlans",
+    "slideDecks",
+    "assignments",
+    "rubrics",
+    "discussions",
+    "quizBank",
+    "studyGuides",
+    "courseFaq",
+    "feedback-form"
+  ],
+  "localConstraints": [
+    "Notation and answer keys must agree.",
+    "Provide a non-audio alternative that preserves the analytical construct.",
+    "Do not claim one hearing is the only possible reading without evidence."
+  ],
+  "adversarialConditions": [
+    "A distractor calls ii6-V-I deceptive.",
+    "Duration is offered as a false proxy for function."
+  ],
+  "rights": { "basis": "Project-authored benchmark fixture; repository license applies.", "thirdPartyContent": false }
+}

@@ -11,6 +11,8 @@ import {
   scoreFactualCanaries,
 } from './scionFactualCanaryAudit.mjs';
 import { parseScionConsoleEvents, summarizeScionCompilerBurden } from './lib/scionCompilerBurden.mjs';
+import { analyzeModelComparison } from './lib/qualityBenchmark.mjs';
+import { verifyComparisonScorecards } from './qualityModelComparison.mjs';
 
 const DEFAULT_REGISTRY = 'evaluation/scion-model-candidates.json';
 const DEFAULT_MANIFEST = 'evaluation/scion-factual-canaries.json';
@@ -85,6 +87,18 @@ export function validateScionModelRegistry(registry) {
   ) {
     issues.push('invalid-promotion-policy:maximumScionCallAmplificationVsControl');
   }
+  if (promotion.requireHonestQualityBenchmark !== true)
+    issues.push('invalid-promotion-policy:requireHonestQualityBenchmark');
+  if (!Number.isInteger(promotion.minimumQualityComparisonCases) || promotion.minimumQualityComparisonCases < 5)
+    issues.push('invalid-promotion-policy:minimumQualityComparisonCases');
+  if (!Number.isFinite(promotion.minimumQualityDeltaLowerBound) || promotion.minimumQualityDeltaLowerBound < 0)
+    issues.push('invalid-promotion-policy:minimumQualityDeltaLowerBound');
+  if (
+    !Number.isFinite(promotion.maximumCompilerBurdenDeltaUpperBound) ||
+    promotion.maximumCompilerBurdenDeltaUpperBound > 0
+  ) {
+    issues.push('invalid-promotion-policy:maximumCompilerBurdenDeltaUpperBound');
+  }
   return issues;
 }
 
@@ -101,7 +115,8 @@ function evidenceIdentityIssues(candidate, evidence, registry) {
     !Array.isArray(evidence?.runs) &&
     !Array.isArray(evidence?.fullCourses) &&
     !Array.isArray(evidence?.browserRuns) &&
-    !Array.isArray(evidence?.blindComparisons)
+    !Array.isArray(evidence?.blindComparisons) &&
+    !Array.isArray(evidence?.qualityComparisons)
   ) {
     issues.push('missing-evidence-payload');
   }
@@ -129,6 +144,15 @@ function promotionEvidence(evidenceRows) {
     fullCourses,
     browserRuns: evidenceRows.flatMap((row) => (Array.isArray(row.browserRuns) ? row.browserRuns : [])),
     blindComparisons: evidenceRows.flatMap((row) => (Array.isArray(row.blindComparisons) ? row.blindComparisons : [])),
+    qualityComparisons: evidenceRows.flatMap((row) =>
+      (Array.isArray(row.qualityComparisons) ? row.qualityComparisons : []).map((comparison, index) => ({
+        comparison,
+        verification: row.__qualityComparisonVerifications?.[index] || {
+          verifiedScorecardSha256s: [],
+          issues: ['quality comparison scorecards were not independently byte-verified'],
+        },
+      })),
+    ),
   };
 }
 
@@ -235,18 +259,42 @@ export function evaluateScionModelCandidate(candidate, evidenceRows, registry, c
   for (const deviceClass of promotion.requiredBrowserDeviceClasses || []) {
     if (!browserClasses.has(deviceClass)) promotionIssues.push(`missing-browser-device:${deviceClass}`);
   }
-  const qualifyingBlind = aggregated.blindComparisons.find((comparison) => {
-    const total = Number(comparison?.cases) || 0;
-    const effectiveWins = Number(comparison?.wins || 0) + Number(comparison?.ties || 0) * 0.5;
+  const qualityComparisonReports = aggregated.qualityComparisons.map(({ comparison, verification }) => {
+    const report = analyzeModelComparison(comparison, {
+      bootstrapSamples: 1000,
+      verifiedScorecardSha256s: verification.verifiedScorecardSha256s,
+    });
+    report.issues = [...verification.issues, ...report.issues];
+    if (verification.issues.length) report.status = 'invalid';
+    return report;
+  });
+  const qualifyingQualityComparison = qualityComparisonReports.find((report) => {
+    const caseRows = Object.values(report.absoluteScoreEffect?.byCase || {});
+    const burdenUpper = report.operations?.candidateMinusControlCompilerBurden?.scionCalls?.interval95?.[1];
     return (
-      total >= promotion.minimumBlindCases &&
-      comparison.minimumIndependentReviewsPerCase >= promotion.minimumIndependentReviewsPerCase &&
-      comparison.minimumWinnerFactualScore >= promotion.minimumWinnerFactualScore &&
-      comparison.minimumWinnerTeachabilityScore >= promotion.minimumWinnerTeachabilityScore &&
-      wilsonLowerBound(effectiveWins, total) > promotion.minimumWilsonWinLowerBound
+      report.status === 'measured-for-declared-scope' &&
+      report.candidateId === candidate.id &&
+      report.controlId === registry.controlCandidateId &&
+      report.declaredCaseCount >= promotion.minimumQualityComparisonCases &&
+      Number(report.splitCounts?.heldout || 0) === report.trialCount &&
+      report.scoreEvidenceTiers.length === 1 &&
+      report.scoreEvidenceTiers[0] === 'human-qualified:independently-validated' &&
+      caseRows.length >= promotion.minimumQualityComparisonCases &&
+      caseRows.every(
+        (row) =>
+          row.count >= 3 &&
+          Number.isFinite(row.meanDeltaInterval95?.[0]) &&
+          row.meanDeltaInterval95[0] > promotion.minimumQualityDeltaLowerBound,
+      ) &&
+      report.qualifiedPairwisePreference.completeTrials >= promotion.minimumBlindCases &&
+      report.qualifiedPairwisePreference.requiredPerTrial >= promotion.minimumIndependentReviewsPerCase &&
+      Number.isFinite(report.qualifiedPairwisePreference.wilson95?.[0]) &&
+      report.qualifiedPairwisePreference.wilson95[0] > promotion.minimumWilsonWinLowerBound &&
+      Number.isFinite(burdenUpper) &&
+      burdenUpper < promotion.maximumCompilerBurdenDeltaUpperBound
     );
   });
-  if (!qualifyingBlind) promotionIssues.push('missing-qualifying-blind-instructor-win');
+  if (!qualifyingQualityComparison) promotionIssues.push('missing-honest-quality-benchmark-win');
 
   return {
     candidateId: candidate.id,
@@ -282,7 +330,9 @@ export function evaluateScionModelCandidate(candidate, evidenceRows, registry, c
       })),
       matchedControlComparisons,
       browserDeviceClasses: [...browserClasses].sort(),
-      qualifyingBlindComparison: qualifyingBlind || null,
+      legacyBlindComparisonCount: aggregated.blindComparisons.length,
+      qualityComparisonReports,
+      qualifyingQualityComparison: qualifyingQualityComparison || null,
     },
   };
 }
@@ -352,7 +402,17 @@ async function readEvidence(evidenceDir, registry) {
       if (error?.code !== 'ENOENT') throw error;
     }
     for (const file of files) {
-      byCandidate[candidate.id].push(JSON.parse(await fs.readFile(path.join(candidateDir, file), 'utf8')));
+      const evidencePath = path.join(candidateDir, file);
+      const evidence = JSON.parse(await fs.readFile(evidencePath, 'utf8'));
+      if (Array.isArray(evidence.qualityComparisons)) {
+        evidence.__qualityComparisonVerifications = [];
+        for (const comparison of evidence.qualityComparisons) {
+          evidence.__qualityComparisonVerifications.push(
+            await verifyComparisonScorecards(comparison, { baseDir: path.dirname(evidencePath) }),
+          );
+        }
+      }
+      byCandidate[candidate.id].push(evidence);
     }
   }
   return byCandidate;

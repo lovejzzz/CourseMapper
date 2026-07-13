@@ -2,19 +2,19 @@
   "schemaVersion": 2,
   "rubricVersion": "1.0.0",
   "caseId": "CASE_ID",
-  "artifactId": "CASE_ID-package",
-  "artifactType": "package",
+  "artifactId": "PACKAGE_OR_ARTIFACT_ID",
+  "artifactType": "courseMap",
   "sourceSha256": "SOURCE_PACKET_SHA256",
-  "artifactSha256": "PACKAGE_SHA256",
+  "artifactSha256": "ARTIFACT_OR_PACKAGE_SHA256",
   "reviewedAt": "YYYY-MM-DDTHH:MM:SSZ",
   "evaluator": {
-    "id": "PSEUDONYMOUS_REVIEWER_ID",
+    "id": "PSEUDONYMOUS_EVALUATOR_ID",
     "evidenceClass": "human-qualified",
     "qualified": true,
     "independent": true,
     "conflictOfInterest": false,
     "domainMatch": true,
-    "currentTeachingRole": "Describe current domain-relevant teaching role",
+    "currentTeachingRole": "Describe current relevant teaching role",
     "model": "",
     "modelRevision": "",
     "promptSha256": ""
@@ -32,7 +32,7 @@
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect objective-assessment traces before scoring."
+      "rationale": "Inspect the objective-assessment trace before scoring."
     },
     "IA3": {
       "state": "not-evaluated",
@@ -46,56 +46,56 @@
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Verify a representative material-accuracy sample before scoring."
+      "rationale": "Verify a declared representative sample before scoring."
     },
     "SF2": {
       "state": "not-evaluated",
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Compare claims and keys with supplied sources before scoring."
+      "rationale": "Compare material claims with supplied sources before scoring."
     },
     "SF3": {
       "state": "not-evaluated",
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect provenance, citation, and permissions before scoring."
+      "rationale": "Inspect provenance, citation, and permission evidence before scoring."
     },
     "SF4": {
       "state": "not-evaluated",
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect disciplinary authenticity before scoring."
+      "rationale": "Inspect disciplinary conventions and examples before scoring."
     },
     "AF1": {
       "state": "not-evaluated",
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect construct-relevant assessment evidence before scoring."
+      "rationale": "Inspect whether tasks elicit the declared construct before scoring."
     },
     "AF2": {
       "state": "not-evaluated",
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect scoring keys, criteria, and arithmetic before scoring."
+      "rationale": "Inspect keys, criteria, and scoring arithmetic before scoring."
     },
     "AF3": {
       "state": "not-evaluated",
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect feedback and revision pathways before scoring."
+      "rationale": "Inspect feedback and revision paths before scoring."
     },
     "TU1": {
       "state": "not-evaluated",
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect whether sampled instruction is runnable before scoring."
+      "rationale": "Inspect whether instruction is runnable before scoring."
     },
     "TU2": {
       "state": "not-evaluated",
@@ -123,14 +123,14 @@
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect learning support before scoring."
+      "rationale": "Inspect learning supports before scoring."
     },
     "SC3": {
       "state": "not-evaluated",
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect workload transparency before scoring."
+      "rationale": "Inspect workload and pacing before scoring."
     },
     "AC1": {
       "state": "not-evaluated",
@@ -158,7 +158,7 @@
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect assumptions and uncertainty before scoring."
+      "rationale": "Inspect assumptions and uncertainty disclosures before scoring."
     },
     "IR2": {
       "state": "not-evaluated",
@@ -200,7 +200,7 @@
       "score": null,
       "confidence": "low",
       "evidence": [],
-      "rationale": "Inspect package completeness, navigation, and handoff before scoring."
+      "rationale": "Inspect completeness, manifest, navigation, and handoff before scoring."
     }
   },
   "criticalFailures": [],
@@ -208,6 +208,6 @@
     "wouldUse": false,
     "editVerdict": "major-edits",
     "estimatedEditMinutes": 0,
-    "notes": "Record concrete strengths, limits, and required edits. Never substitute model or simulated evidence."
+    "notes": "Record concrete strengths, limits, and required revisions. Do not convert a model review into human evidence."
   }
 }

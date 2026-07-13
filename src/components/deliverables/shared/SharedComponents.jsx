@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useContext, useMemo, useRef, useEffect } from 'react';
 import GenericDeliverableView from '../../GenericDeliverableView';
 import EditProposalPanel from '../../EditProposalPanel';
-import { computeAvgScore, scoreColor } from '../../../lib/deliverableQualityScorer';
+import { computeAvgScore, scoreColor, signalBand } from '../../../lib/deliverableQualityScorer';
 import { exportRubricGradebook } from '../../../lib/deliverableExporters';
 
 // ── Feature 6.3: Quality Badge ──
@@ -10,6 +10,7 @@ export function QualityBadge({ quality }) {
   if (!quality) return null;
   const avg = computeAvgScore(quality);
   const colors = scoreColor(avg);
+  const band = signalBand(avg);
   const { bloomsAlignment, specificity, actionability, qmAlignment, tips = [] } = quality;
 
   return (
@@ -17,28 +18,28 @@ export function QualityBadge({ quality }) {
       <button
         onClick={() => setShowTips((v) => !v)}
         className={`flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full border ${colors.bg} ${colors.text} ${colors.border} hover:opacity-80 transition-opacity`}
-        title="Quality score — click for tips"
+        title="Automated content signals — click for details"
       >
-        <span>★ {avg}/10</span>
+        <span>Signals: {band.shortLabel}</span>
       </button>
       {showTips && (
         <div className="absolute right-0 top-full mt-1.5 w-64 bg-white/98 backdrop-blur-xl rounded-lg border border-slate-200/60 shadow-xl z-50 p-3 space-y-2 animate-spring-in">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold text-slate-700">Quality Scorecard</span>
+            <span className="text-xs font-bold text-slate-700">Automated content signals</span>
             <button
               onClick={() => setShowTips(false)}
               className="text-slate-400 hover:text-slate-600 text-xs"
-              aria-label="Close quality scorecard"
+              aria-label="Close automated content signals"
             >
               ✕
             </button>
           </div>
           <div className="space-y-1.5">
             {[
-              { label: "Bloom's Alignment", score: bloomsAlignment },
-              { label: 'Specificity', score: specificity },
-              { label: 'Actionability', score: actionability },
-              ...(qmAlignment !== undefined ? [{ label: 'QM Alignment', score: qmAlignment }] : []),
+              { label: "Bloom's markers", score: bloomsAlignment },
+              { label: 'Specific detail', score: specificity },
+              { label: 'Action cues', score: actionability },
+              ...(qmAlignment !== undefined ? [{ label: 'Design markers', score: qmAlignment }] : []),
             ].map(({ label, score }) => {
               const c = scoreColor(score);
               return (
@@ -50,11 +51,15 @@ export function QualityBadge({ quality }) {
                       style={{ width: `${score * 10}%` }}
                     />
                   </div>
-                  <span className={`text-xs font-bold ${c.text}`}>{score}</span>
+                  <span className={`text-[10px] font-bold ${c.text}`}>{signalBand(score).shortLabel}</span>
                 </div>
               );
             })}
           </div>
+          <p className="text-[10px] leading-relaxed text-slate-500 border-t border-slate-100 pt-2">
+            Deterministic keyword and structure proxies. They do not verify facts, sources, accessibility, teachability,
+            or external rubric conformance.
+          </p>
           {tips.length > 0 && (
             <div className="pt-2 border-t border-slate-100 space-y-1">
               <p className="text-xs font-semibold text-slate-500">Improvement Tips</p>

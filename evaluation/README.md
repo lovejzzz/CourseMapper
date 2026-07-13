@@ -1,12 +1,13 @@
 # CourseMapper evaluation system
 
-CourseMapper now separates three different questions that the old 40-fixture score blurred together:
+CourseMapper now separates four different questions that the old 40-fixture score blurred together:
 
 1. **Compiler contract:** did deterministic generation and packaging behavior regress?
-2. **Independent instructor benchmark:** would two unrelated instructors use the generated materials with no more than minor edits?
-3. **Production canary:** did a real provider produce a retained, inspectable package that passes operational, quality, and rendered visual checks?
+2. **Evidence-aware quality benchmark:** what observable rubric profile, failure caps, coverage, evidence class, and uncertainty does the bound artifact support?
+3. **Independent instructor benchmark:** would two unrelated instructors use the generated materials with no more than minor edits?
+4. **Production canary:** did a real provider produce a retained, inspectable package that passes operational, deterministic, and rendered visual checks?
 
-The 40 fixtures remain valuable, but only as contract tests. They do not constitute independent evidence that a course is teachable.
+The 40 fixtures remain valuable, but only as contract tests. They do not constitute independent evidence that a course is teachable. The v1 rubric, research basis, scoring rules, corpus, and comparison protocol are documented in `docs/QUALITY_BENCHMARK_V1.md` and `docs/QUALITY_BENCHMARK_RESEARCH.md`.
 
 For model improvement, use the paired quiz diagnostic on two saved real generations. It compares authoring behaviors instead of trusting model names, surfaces only measured reference advantages as learning targets, preserves candidate advantages, and calls out shared weaknesses:
 
@@ -182,11 +183,11 @@ If an advisory model judge is added to a paired comparison, run the same packet 
 
 ## Gate profiles
 
-| Profile      | Contract fixtures                                 | Instructor benchmark | Production canaries | Allowed claim                                    |
-| ------------ | ------------------------------------------------- | -------------------- | ------------------- | ------------------------------------------------ |
-| Pull request | 12 representative fixtures plus impacted fixtures | Advisory             | Advisory            | Compiler contract only                           |
-| Main         | All 40 fixtures                                   | Advisory             | Advisory            | Compiler contract only                           |
-| Release      | All 40 fixtures                                   | Strict               | Strict              | Independently validated only when all tiers pass |
+| Profile      | Contract fixtures                                 | V1 quality benchmark       | Instructor benchmark | Production canaries | Allowed claim                                                              |
+| ------------ | ------------------------------------------------- | -------------------------- | -------------------- | ------------------- | -------------------------------------------------------------------------- |
+| Pull request | 12 representative fixtures plus impacted fixtures | Structural integrity       | Advisory             | Advisory            | Compiler contract and benchmark-protocol integrity                         |
+| Main         | All 40 fixtures                                   | Structural integrity       | Advisory             | Advisory            | Compiler contract and benchmark-protocol integrity                         |
+| Release      | All 40 fixtures                                   | Strict held-out validation | Strict               | Strict              | Independently validated only for the declared scope when every tier passes |
 
 Run them with:
 
@@ -196,13 +197,21 @@ npm run audit:evaluation:main
 npm run audit:evaluation:release
 ```
 
-The release profile is deliberately red until the independent evidence exists. Do not replace missing reviews with AI-written reviewer forms or promote structural Office validation to rendered visual QA.
+The release profile is deliberately red until qualified held-out and independent evidence exists. Do not replace missing reviews with AI-written reviewer forms or promote structural Office validation to rendered visual QA.
+
+## Evidence-aware quality benchmark v1
+
+The versioned rubric and 13-case dev/calibration/public-governed-held-out corpus live in `evaluation/quality-benchmark/v1/`. Run `npm run audit:quality-benchmark` for schema, hash, rights, split, leakage-policy, deliverable-inventory, and adversarial-coverage integrity. `npm run audit:quality-benchmark:validated` is intentionally locked/red by default. A real held-out run additionally requires `--unlock-heldout` plus exact git, dirty-tree, and contamination declarations; it still remains red until at least four held-out cases have two qualified independent reviews with acceptable ordinal agreement and per-review coverage.
+
+The v1 score is an evidence-capped profile, not a replacement name for the deterministic 99/A package defect grade. Automated evidence caps at 69, model-judge evidence at 79, and one-human or disputed evidence at 89. Fabricated sources, material factual errors, unsafe guidance, rights/privacy breaches, wrong-course contamination, and missing/corrupt deliverables cap the package below publishable. Missing and not-applicable evidence are explicit states.
+
+Controlled comparisons are fail-closed too. Candidate/control arms, predeclared cases, unique trials and seeds, source/settings hashes, output hashes, scorecard files, evidence tiers, qualified blind preferences, latency/cost/failure telemetry, and compiler burden are all bound. Repeated output pairs, duplicate reviewer rows, arbitrary numeric scores, or a hand-written win summary cannot promote a Scion model or adapter.
 
 ## Independent instructor benchmark
 
 The benchmark roster lives in [`independent-benchmark/manifest.json`](independent-benchmark/manifest.json). It targets eight real syllabi across short, standard, and semester scope and at least four modalities. At least six cases must be completed.
 
-Each completed case requires a hash-verified source syllabus, its hash-verified generated package, and two independent working instructors. The primary metric is whether both reviewers would teach that exact package as-is or with minor edits. Review forms are generated under `verification-output/independent-benchmark/review-forms/`; completed forms should be stored in a non-generated benchmark evidence directory and referenced from the manifest.
+Each completed case requires a hash-verified source syllabus, its hash-verified generated package, rendered QA, and two independent domain-matched working instructors. Schema v2 uses the evidence-aware 0–4 criterion rubric, explicit evidence states, critical failures, edit burden, and evaluator attestations. The primary metric is whether both reviewers would use that exact package as-is or with minor edits, while the profile remains at least 80 with no critical failure. Review forms are generated under `verification-output/independent-benchmark/review-forms/`; completed forms should be stored in a non-generated benchmark evidence directory and referenced from the manifest.
 
 The benchmark passes only when:
 
@@ -210,7 +219,7 @@ The benchmark passes only when:
 - at least four modalities and scopes 5, 8, and 14 are represented;
 - at least 80% of completed cases are usable with minimal edits;
 - median estimated editing time is no more than 15 minutes per lesson; and
-- reviewer score spread stays within the agreement threshold.
+- ordinal agreement satisfies the declared reliability policy, with exact/adjacent agreement and uncertainty reported.
 
 ## Production canaries
 
@@ -232,4 +241,4 @@ For v0.16.7 mechanics only, the stricter structural-evidence derivation admitted
 
 ## Current claim
 
-CourseMapper may now claim that its deterministic compiler contract and retained production-canary policy pass. It may not claim that the exported materials are independently instructor-validated, instructor-ready in general, or superior to a paid model until the human benchmark passes.
+CourseMapper may now claim that its deterministic compiler contract, retained production-canary policy, and v1 benchmark protocol/corpus structural audit pass. V1 held-out validation remains at zero qualified cases. It may not claim that exported materials are independently instructor-validated, instructor-ready in general, effective for learners, Quality Matters reviewed, or superior to another model until the corresponding human evidence and comparison protocol pass.

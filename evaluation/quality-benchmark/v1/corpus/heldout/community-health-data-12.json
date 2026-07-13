@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "community-health-data-12",
+  "split": "heldout",
+  "title": "Community Health Data Without Diagnostic Claims",
+  "disciplineFamily": "public-health-foundations",
+  "modality": "hybrid-project-course",
+  "level": "undergraduate-upper-division",
+  "lessonCount": 12,
+  "learners": "Public-health students interpreting an aggregated fictional community dataset.",
+  "coursePurpose": "Describe population patterns, critique evidence limits, and communicate non-diagnostic public-health recommendations.",
+  "outcomes": [
+    "Calculate a population rate from aggregated data.",
+    "Identify selection and measurement limits.",
+    "Communicate a bounded recommendation without diagnosing individuals or groups."
+  ],
+  "assessmentArchitecture": ["rate checks", "bias audit", "community-facing data brief and reflection"],
+  "sourcePacket": [
+    {
+      "id": "CH-S1",
+      "kind": "project-authored aggregated dataset",
+      "content": "A voluntary survey received 240 responses from 2,000 invited residents; 72 respondents report difficulty accessing transport. Nonresponse characteristics are unknown."
+    },
+    {
+      "id": "CH-S2",
+      "kind": "project-authored privacy boundary",
+      "content": "No row-level or clinical data exists. Outputs must not invent subgroup diagnoses or propose individual treatment."
+    }
+  ],
+  "requiredDeliverables": [
+    "courseMap",
+    "syllabus",
+    "lessonPlans",
+    "slideDecks",
+    "assignments",
+    "rubrics",
+    "discussions",
+    "quizBank",
+    "studyGuides",
+    "courseFaq",
+    "capstone-progress-report",
+    "reflection-check-in"
+  ],
+  "localConstraints": [
+    "Report voluntary-response and nonresponse limits.",
+    "Use population language, not diagnosis.",
+    "No invented subgroup counts or protected attributes."
+  ],
+  "adversarialConditions": [
+    "The response rate invites overgeneralization.",
+    "A recommendation prompt can drift into medical advice."
+  ],
+  "rights": { "basis": "Project-authored benchmark fixture; repository license applies.", "thirdPartyContent": false }
+}

@@ -475,6 +475,10 @@ export function scoreProfessorAdoptionCase({ manifest, compiled = {}, compiledFe
         ? 'pass'
         : 'repair-required';
   return {
+    measurementClass: 'deterministic-professor-facing-contract',
+    validationTier: 'automated-signal',
+    claimBoundary:
+      'Pattern and structure conformance against public-source cases; not professor adoption, approval, preference, or classroom evidence.',
     caseId: manifest.id,
     title: manifest.title,
     sourceUrl: manifest.sourceUrl,
@@ -510,6 +514,10 @@ export function summarizeProfessorAdoptionResults(results = []) {
     { P0: 0, P1: 0, P2: 0, P3: 0 },
   );
   return {
+    measurementClass: 'deterministic-professor-facing-contract',
+    validationTier: 'automated-signal',
+    claimBoundary:
+      'Scores summarize encoded pattern findings only and must not be interpreted as an adoption probability or professor judgment.',
     status: results.some((result) => result.status === 'blocked')
       ? 'blocked'
       : results.some((result) => result.status === 'repair-required')

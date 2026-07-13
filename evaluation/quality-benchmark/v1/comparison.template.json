@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "comparisonId": "COMPARISON_ID",
+  "protocolVersion": "1.0.0",
+  "createdAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "preregistration": {
+    "frozenAt": "YYYY-MM-DDTHH:MM:SSZ",
+    "analysisPlanSha256": "ANALYSIS_PLAN_SHA256",
+    "corpusManifestSha256": "CORPUS_MANIFEST_SHA256",
+    "minimumTrialsPerCase": 3,
+    "requiredQualifiedPreferencesPerTrial": 2,
+    "caseIds": ["CASE_ID"],
+    "stoppingRule": "Run every predeclared case and trial; do not stop for observed quality or preference.",
+    "exclusionPolicy": "Retain every attempt; report success-conditioned quality and end-to-end failures separately."
+  },
+  "environment": {
+    "compilerCommit": "GIT_COMMIT",
+    "dirtyTree": false,
+    "runtime": "Node and browser/runtime versions",
+    "hardware": "Execution hardware or provider region"
+  },
+  "candidateId": "candidate",
+  "controlId": "control",
+  "models": [
+    {
+      "id": "candidate",
+      "provider": "PROVIDER",
+      "model": "MODEL_ID",
+      "revision": "IMMUTABLE_REVISION_OR_SNAPSHOT",
+      "promptSha256": "PROMPT_SHA256",
+      "configurationSha256": "CANONICAL_CONFIGURATION_SHA256",
+      "parameters": { "temperature": 0, "topP": 1, "maxOutputTokens": 0 },
+      "compilerCommit": "GIT_COMMIT",
+      "graderVersion": "1.0.0"
+    },
+    {
+      "id": "control",
+      "provider": "PROVIDER",
+      "model": "MODEL_ID",
+      "revision": "IMMUTABLE_REVISION_OR_SNAPSHOT",
+      "promptSha256": "PROMPT_SHA256",
+      "configurationSha256": "CANONICAL_CONFIGURATION_SHA256",
+      "parameters": { "temperature": 0, "topP": 1, "maxOutputTokens": 0 },
+      "compilerCommit": "GIT_COMMIT",
+      "graderVersion": "1.0.0"
+    }
+  ],
+  "trials": [
+    {
+      "caseId": "CASE_ID",
+      "split": "heldout",
+      "deliverableType": "courseMap",
+      "trialIndex": 1,
+      "seed": "GENERATION_SEED",
+      "sourceSha256": "SOURCE_PACKET_SHA256",
+      "matchedInputSha256": "SOURCE_AND_PROMPT_INPUT_SHA256",
+      "matchedSettingsSha256": "NON_MODEL_SETTINGS_SHA256",
+      "randomization": {
+        "candidateLabel": "B",
+        "controlLabel": "A",
+        "seed": "BLINDING_SEED",
+        "method": "cryptographic seeded permutation before reviewer assignment"
+      },
+      "outputs": {
+        "candidate": {
+          "modelId": "candidate",
+          "status": "success",
+          "outputSha256": "OUTPUT_SHA256",
+          "latencyMs": 0,
+          "costUsd": 0,
+          "providerCalls": 0,
+          "retryCount": 0,
+          "benchmarkScore": null,
+          "dimensionScores": {},
+          "compilerBurden": {
+            "scionCalls": 0,
+            "repairCalls": 0,
+            "rejectedAtoms": 0,
+            "recoveredAtoms": 0
+          },
+          "scoreEvidence": {
+            "rubricVersion": "1.0.0",
+            "rubricSha256": "RUBRIC_SHA256",
+            "scorecardSha256": "SCORECARD_SHA256",
+            "scorecardPath": "relative/path/to/candidate-scorecard.json",
+            "evidenceClass": "human-qualified",
+            "validationTier": "independently-validated",
+            "sourceSha256": "SOURCE_PACKET_SHA256",
+            "artifactSha256": "OUTPUT_SHA256"
+          }
+        },
+        "control": {
+          "modelId": "control",
+          "status": "success",
+          "outputSha256": "OUTPUT_SHA256",
+          "latencyMs": 0,
+          "costUsd": 0,
+          "providerCalls": 0,
+          "retryCount": 0,
+          "benchmarkScore": null,
+          "dimensionScores": {},
+          "compilerBurden": {
+            "scionCalls": 0,
+            "repairCalls": 0,
+            "rejectedAtoms": 0,
+            "recoveredAtoms": 0
+          },
+          "scoreEvidence": {
+            "rubricVersion": "1.0.0",
+            "rubricSha256": "RUBRIC_SHA256",
+            "scorecardSha256": "SCORECARD_SHA256",
+            "scorecardPath": "relative/path/to/control-scorecard.json",
+            "evidenceClass": "human-qualified",
+            "validationTier": "independently-validated",
+            "sourceSha256": "SOURCE_PACKET_SHA256",
+            "artifactSha256": "OUTPUT_SHA256"
+          }
+        }
+      },
+      "preferences": [
+        {
+          "reviewerId": "PSEUDONYMOUS_REVIEWER_ID",
+          "evidenceClass": "human-qualified",
+          "qualified": true,
+          "independent": true,
+          "conflictOfInterest": false,
+          "domainMatch": true,
+          "currentTeachingRole": "Current domain-matched teaching role",
+          "blinded": true,
+          "preference": "tie",
+          "rationale": "Concrete artifact-grounded rationale of at least twenty characters.",
+          "reviewedAt": "YYYY-MM-DDTHH:MM:SSZ",
+          "candidateArtifactSha256": "OUTPUT_SHA256",
+          "controlArtifactSha256": "OUTPUT_SHA256"
+        }
+      ]
+    }
+  ]
+}
