@@ -2,9 +2,11 @@
 # E2B-MAX V2.1 Workstream A3 — ORPO preference training on Gemma-4-E2B.
 #
 # PRECONDITIONS (roadmap §2, pre-registered — DO NOT run undersized):
-#   1. the manifest-bound curated split holds ≥3000 verified pairs across
-#      five domains (the 105-pair DPO r1 collapse and both SFT collapses are
-#      the reason this gate exists).
+#   1. production: the manifest-bound curated split holds ≥3000 verified
+#      pairs across five domains and fifteen course groups. Research mode is
+#      separately labeled and requires ≥100 independently admissible pairs,
+#      including ≥20 in each of four domains, and three course groups per
+#      domain; it cannot promote.
 #   2. Phase-0 spike green (2026-07-07): ORPO trains/saves/serves on this
 #      stack — mlx_vlm.lora, 13.2M LoRA params, adapter loads via
 #      load(..., adapter_path).
@@ -21,7 +23,13 @@ cd "$(dirname "$0")/../../.."
 
 MODE=${1:-}
 SMOKE=false
+RESEARCH=false
 [ "$MODE" = "--smoke" ] && SMOKE=true
+[ "$MODE" = "--research" ] && RESEARCH=true
+if [ -n "$MODE" ] && ! $SMOKE && ! $RESEARCH; then
+  echo "REFUSING: unknown mode $MODE (expected --smoke or --research)."
+  exit 1
+fi
 
 PYTHON=${SCION_TRAIN_PYTHON:-$HOME/.cache/coursemapper/venv-g4/bin/python}
 DATASET_DIR=${SCION_ADAPTER_DATASET:-trellis/tendril/distill/data-g4-orpo/curated}
@@ -33,6 +41,8 @@ OUTPUT=${SCION_ADAPTER_OUTPUT:-$HOME/.cache/coursemapper/scion-adapters/$RUN_ID}
 
 if $SMOKE; then
   node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --allow-smoke
+elif $RESEARCH; then
+  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --research
 else
   node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR"
 fi
@@ -44,7 +54,11 @@ if [ "$PAIRS" -eq 0 ]; then
   echo "REFUSING: no verified adapter pairs are available."
   exit 1
 fi
-if ! $SMOKE && [ "$STATUS" != "ready" ]; then
+if $RESEARCH && [ "$STATUS" != "research-ready" ]; then
+  echo "REFUSING: dataset status is $STATUS; research training requires research-ready."
+  exit 1
+fi
+if ! $SMOKE && ! $RESEARCH && [ "$STATUS" != "ready" ]; then
   echo "REFUSING: dataset status is $STATUS; production training requires ready."
   exit 1
 fi
@@ -75,6 +89,7 @@ mkdir -p "$OUTPUT"
 SCION_VERSION=$(node -p 'require("./package.json").version')
 PACKAGE_STATUS=candidate
 $SMOKE && PACKAGE_STATUS=smoke
+$RESEARCH && PACKAGE_STATUS=research
 node scripts/scionAdapterPackage.mjs \
   --adapter-dir "$OUTPUT" \
   --adapter-id "$RUN_ID" \

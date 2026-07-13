@@ -1,0 +1,101 @@
+{
+  "version": "0.16.9",
+  "date": "July 13, 2026",
+  "title": "Clean Seed: Scion learns only from matched, reviewable evidence",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/scion-preference-gate.test.js tests/scion-adapter-tooling.test.js tests/scion-adapter-manifest.test.js tests/scion-adapter-registry.test.js",
+      "npm run audit:scion:review-packet",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact v0.16.9 release head before merge."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The release exercises input matching, campaign integrity, domain-balanced research-tier manifests, group-stratified splits, and fail-closed ingestion locally. A real local-browser smoke also verified the 40-case form shape, native incomplete-field validation, draft persistence across reload, digest-bound JSON download, and zero auxiliary network requests. No completed instructor review or trained research adapter is claimed."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages deploys only after Fast verification succeeds on main."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "This release changes offline corpus and training gates rather than hosted inference behavior; public Scion remains the verified browser-local base-only route."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "The frozen campaign requires 320 independent instructor judgments. Zero have been ingested, and no human-preference or learned-quality claim is made."
+    }
+  },
+  "claims": [
+    {
+      "id": "v0169-exact-input-training-pairs",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Neutral training candidates require exact canonical course-input identity and bind both source artifacts; the audit excludes the mismatched World Literature pair and uses an explicit generic-title fallback for byte-identical Music Theory runs.",
+      "anchors": [
+        "scripts/scionMatchedReviewCandidates.mjs",
+        "evaluation/scion-review-candidates.jsonl",
+        "tests/scion-preference-gate.test.js",
+        "docs/SCION_ADAPTER_ROADMAP.md"
+      ],
+      "proofCommands": ["npm run audit:scion:review-candidates", "npx vitest run tests/scion-preference-gate.test.js"],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v0169-frozen-blind-review-campaign",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "A 160-case, four-domain instructor campaign is disjoint from the frozen held-out benchmark and binds every randomized case, packet, source ledger, and organizer mapping; ingestion recomputes those identities and atomically accumulates domain batches without erasure or duplication.",
+      "anchors": [
+        "scripts/scionBlindReviewPacket.mjs",
+        "evaluation/scion-adapters/evidence/review-campaign-v0.16.9.json",
+        "tests/scion-preference-gate.test.js",
+        "evaluation/README.md"
+      ],
+      "proofCommands": ["npm run audit:scion:review-packet", "npx vitest run tests/scion-preference-gate.test.js"],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v0169-research-adapter-tier",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "A research-ready dataset requires 100 blind-instructor-approved pairs with at least 20 in each of four domains plus twelve isolated course groups, uses domain-stratified group splits, and carries the per-domain evidence and split distribution into non-promotable research adapter manifests; public candidate requirements remain stricter.",
+      "anchors": [
+        "scripts/scionAdapterDataset.mjs",
+        "scripts/scionAdapterPackage.mjs",
+        "src/lib/scionAdapterManifest.js",
+        "trellis/tendril/distill/run_orpo_g4.sh",
+        "tests/scion-adapter-tooling.test.js",
+        "tests/scion-adapter-manifest.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-adapter-tooling.test.js tests/scion-adapter-manifest.test.js",
+        "zsh -n trellis/tendril/distill/run_orpo_g4.sh"
+      ],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v0169-no-learned-adapter-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The review campaign is ready but has zero completed judgments, so research and production training remain blocked and public Scion continues to use the pinned browser-local Gemma base plus the model-neutral compiler.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/scion-adapters/evidence/review-campaign-v0.16.9.json",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm run audit:scion:review-packet", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

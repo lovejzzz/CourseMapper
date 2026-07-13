@@ -11,6 +11,7 @@ import { SCION_ADAPTER_MANIFEST_SCHEMA_VERSION, SCION_GEMMA4_E2B_BASE } from '..
 
 const encoder = new TextEncoder();
 const MANIFEST_URL = 'https://models.edutool.dev/scion/scion-g4e2b-v1/manifest.json';
+const TRAINING_DOMAINS = ['computer-science', 'geology', 'music-theory', 'user-experience-design', 'world-history'];
 
 function binaryResponse(bytes, { status = 200 } = {}) {
   const value = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
@@ -34,6 +35,13 @@ async function fixture(adapterId = 'scion-g4e2b-v1') {
       datasetStatus: 'ready',
       pairCount: 3200,
       domainCount: 5,
+      groupCount: 15,
+      instructorPairCount: 100,
+      instructorDomainCount: 5,
+      domainGroupCounts: Object.fromEntries(TRAINING_DOMAINS.map((domain) => [domain, 3])),
+      instructorDomainCounts: Object.fromEntries(TRAINING_DOMAINS.map((domain) => [domain, 20])),
+      splitCounts: { train: 1200, valid: 1000, test: 1000 },
+      splitDomainCounts: { train: 5, valid: 5, test: 5 },
     },
     files: [{ path: 'adapters.safetensors', bytes: adapterBytes.byteLength, sha256: adapterSha256 }],
     runtime: { supported: ['mlx-vlm'] },

@@ -76,6 +76,29 @@ function splitForGroup(group) {
   return 'train';
 }
 
+function assignGroupSplits(entries) {
+  const byDomain = new Map();
+  for (const entry of entries) {
+    if (!byDomain.has(entry.domain)) byDomain.set(entry.domain, new Set());
+    byDomain.get(entry.domain).add(entry.group);
+  }
+  const assignments = new Map();
+  for (const domain of [...byDomain.keys()].sort()) {
+    const groups = [...byDomain.get(domain)].sort((left, right) => {
+      const hashOrder = stableHash(left).localeCompare(stableHash(right));
+      return hashOrder || left.localeCompare(right);
+    });
+    if (groups.length >= 3) {
+      assignments.set(groups[0], 'test');
+      assignments.set(groups[1], 'valid');
+      for (const group of groups.slice(2)) assignments.set(group, 'train');
+    } else {
+      for (const group of groups) assignments.set(group, splitForGroup(group));
+    }
+  }
+  return assignments;
+}
+
 async function readJsonl(source) {
   try {
     const text = await fs.readFile(source, 'utf8');
@@ -137,7 +160,18 @@ export async function buildScionAdapterDataset({
   outputDir = DEFAULT_OUTPUT,
   minimumPairs = 3000,
   minimumDomains = 5,
+  minimumGroupsPerDomain = 3,
+  minimumInstructorPairs = 100,
+  minimumInstructorDomains = 5,
+  minimumInstructorPairsPerDomain = 20,
   allowSmoke = false,
+  allowResearch = false,
+  researchMinimumPairs = 100,
+  researchMinimumDomains = 4,
+  researchMinimumGroupsPerDomain = 3,
+  researchMinimumInstructorPairs = 100,
+  researchMinimumInstructorDomains = 4,
+  researchMinimumInstructorPairsPerDomain = 20,
   domainMapPath = DEFAULT_DOMAIN_MAP,
 } = {}) {
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
@@ -178,18 +212,51 @@ export async function buildScionAdapterDataset({
         domainSource,
       },
     };
-    eligible.push({ ...entry, row: curatedRow, fingerprint, group, domain, split: splitForGroup(group) });
+    eligible.push({ ...entry, row: curatedRow, fingerprint, group, domain });
   }
 
+  const groupSplits = assignGroupSplits(eligible);
+  for (const entry of eligible) entry.split = groupSplits.get(entry.group);
   const splitRows = { train: [], valid: [], test: [] };
   for (const entry of eligible) splitRows[entry.split].push(entry.row);
   const domains = [...new Set(eligible.map((entry) => entry.domain).filter((domain) => domain !== 'unknown'))].sort();
+  const evidenceCounts = Object.fromEntries(
+    [...new Set(eligible.map((entry) => normalize(entry.row?.preferenceEvidence?.kind) || 'missing'))]
+      .sort()
+      .map((kind) => [
+        kind,
+        eligible.filter((entry) => (normalize(entry.row?.preferenceEvidence?.kind) || 'missing') === kind).length,
+      ]),
+  );
+  const blindInstructorPairs = Number(evidenceCounts['blind-instructor-preference'] || 0);
+  const instructorDomainCounts = Object.fromEntries(
+    domains.map((domain) => [
+      domain,
+      eligible.filter(
+        (entry) =>
+          entry.domain === domain && normalize(entry.row?.preferenceEvidence?.kind) === 'blind-instructor-preference',
+      ).length,
+    ]),
+  );
+  const blindInstructorDomains = Object.values(instructorDomainCounts).filter((count) => count > 0).length;
   const groups = [...new Set(eligible.map((entry) => entry.group))];
   const groupHashes = groups.map(stableHash).sort();
   const splitGroups = Object.fromEntries(
     Object.keys(splitRows).map((split) => [
       split,
       [...new Set(eligible.filter((entry) => entry.split === split).map((entry) => entry.group))].sort(),
+    ]),
+  );
+  const domainGroupCounts = Object.fromEntries(
+    domains.map((domain) => [
+      domain,
+      new Set(eligible.filter((entry) => entry.domain === domain).map((entry) => entry.group)).size,
+    ]),
+  );
+  const splitDomains = Object.fromEntries(
+    Object.keys(splitRows).map((split) => [
+      split,
+      [...new Set(eligible.filter((entry) => entry.split === split).map((entry) => entry.domain))].sort(),
     ]),
   );
   const leakage = Object.entries(splitGroups).flatMap(([split, values]) =>
@@ -200,12 +267,62 @@ export async function buildScionAdapterDataset({
     ),
   );
 
-  const gateIssues = [];
-  if (eligible.length < minimumPairs) gateIssues.push(`verified-pairs:${eligible.length}<${minimumPairs}`);
-  if (domains.length < minimumDomains) gateIssues.push(`domains:${domains.length}<${minimumDomains}`);
-  for (const split of ['train', 'valid', 'test']) if (splitRows[split].length === 0) gateIssues.push(`${split}-empty`);
-  if (leakage.length > 0) gateIssues.push('group-leakage');
-  const status = gateIssues.length === 0 ? 'ready' : allowSmoke && eligible.length > 0 ? 'smoke-only' : 'blocked';
+  const sharedIssues = [];
+  for (const split of ['train', 'valid', 'test'])
+    if (splitRows[split].length === 0) sharedIssues.push(`${split}-empty`);
+  if (leakage.length > 0) sharedIssues.push('group-leakage');
+  const profileGate = ({
+    pairs,
+    domainCount,
+    groupsPerDomain,
+    instructorPairs,
+    instructorDomains,
+    instructorPairsPerDomain,
+  }) => {
+    const issues = [...sharedIssues];
+    if (eligible.length < pairs) issues.push(`verified-pairs:${eligible.length}<${pairs}`);
+    if (domains.length < domainCount) issues.push(`domains:${domains.length}<${domainCount}`);
+    if (blindInstructorPairs < instructorPairs) {
+      issues.push(`blind-instructor-pairs:${blindInstructorPairs}<${instructorPairs}`);
+    }
+    const qualifiedInstructorDomains = Object.values(instructorDomainCounts).filter(
+      (count) => count >= instructorPairsPerDomain,
+    ).length;
+    if (qualifiedInstructorDomains < instructorDomains) {
+      issues.push(`blind-instructor-qualified-domains:${qualifiedInstructorDomains}<${instructorDomains}`);
+    }
+    for (const [domain, count] of Object.entries(domainGroupCounts)) {
+      if (count < groupsPerDomain) issues.push(`domain-groups:${domain}:${count}<${groupsPerDomain}`);
+    }
+    return { issues, qualifiedInstructorDomains };
+  };
+  const productionGate = profileGate({
+    pairs: minimumPairs,
+    domainCount: minimumDomains,
+    groupsPerDomain: minimumGroupsPerDomain,
+    instructorPairs: minimumInstructorPairs,
+    instructorDomains: minimumInstructorDomains,
+    instructorPairsPerDomain: minimumInstructorPairsPerDomain,
+  });
+  const researchGate = profileGate({
+    pairs: researchMinimumPairs,
+    domainCount: researchMinimumDomains,
+    groupsPerDomain: researchMinimumGroupsPerDomain,
+    instructorPairs: researchMinimumInstructorPairs,
+    instructorDomains: researchMinimumInstructorDomains,
+    instructorPairsPerDomain: researchMinimumInstructorPairsPerDomain,
+  });
+  const productionIssues = productionGate.issues;
+  const researchIssues = researchGate.issues;
+  const status =
+    productionIssues.length === 0
+      ? 'ready'
+      : allowResearch && researchIssues.length === 0
+        ? 'research-ready'
+        : allowSmoke && eligible.length > 0
+          ? 'smoke-only'
+          : 'blocked';
+  const gateIssues = status === 'research-ready' ? researchIssues : productionIssues;
 
   const absoluteOutput = path.resolve(outputDir);
   await fs.mkdir(absoluteOutput, { recursive: true });
@@ -245,13 +362,61 @@ export async function buildScionAdapterDataset({
       train: splitRows.train.length,
       valid: splitRows.valid.length,
       test: splitRows.test.length,
+      trainDomains: splitDomains.train.length,
+      validDomains: splitDomains.valid.length,
+      testDomains: splitDomains.test.length,
+      blindInstructorPairs,
+      blindInstructorDomains,
     },
     domains,
+    evidenceCounts,
+    instructorDomainCounts,
+    domainGroupCounts,
     groupIdentity: {
       algorithm: 'sha256-domain-colon-course-id',
       hashes: groupHashes,
     },
-    gate: { minimumPairs, minimumDomains, issues: gateIssues },
+    splitIdentity: {
+      strategy: 'domain-stratified-hash-v1',
+      groups: Object.fromEntries(
+        Object.entries(splitGroups).map(([split, splitGroupValues]) => [
+          split,
+          splitGroupValues.map(stableHash).sort(),
+        ]),
+      ),
+      domains: splitDomains,
+    },
+    gate: {
+      minimumPairs,
+      minimumDomains,
+      minimumGroupsPerDomain,
+      minimumInstructorPairs,
+      minimumInstructorDomains,
+      minimumInstructorPairsPerDomain,
+      issues: gateIssues,
+      profiles: {
+        production: {
+          minimumPairs,
+          minimumDomains,
+          minimumGroupsPerDomain,
+          minimumInstructorPairs,
+          minimumInstructorDomains,
+          minimumInstructorPairsPerDomain,
+          qualifiedInstructorDomains: productionGate.qualifiedInstructorDomains,
+          issues: productionIssues,
+        },
+        research: {
+          minimumPairs: researchMinimumPairs,
+          minimumDomains: researchMinimumDomains,
+          minimumGroupsPerDomain: researchMinimumGroupsPerDomain,
+          minimumInstructorPairs: researchMinimumInstructorPairs,
+          minimumInstructorDomains: researchMinimumInstructorDomains,
+          minimumInstructorPairsPerDomain: researchMinimumInstructorPairsPerDomain,
+          qualifiedInstructorDomains: researchGate.qualifiedInstructorDomains,
+          issues: researchIssues,
+        },
+      },
+    },
     leakage: { groupOverlapCount: leakage.length, overlaps: leakage },
     files,
     quarantine,
@@ -267,6 +432,16 @@ function parseArgs(argv) {
     outputDir: DEFAULT_OUTPUT,
     minimumPairs: 3000,
     minimumDomains: 5,
+    minimumGroupsPerDomain: 3,
+    minimumInstructorPairs: 100,
+    minimumInstructorDomains: 5,
+    minimumInstructorPairsPerDomain: 20,
+    researchMinimumPairs: 100,
+    researchMinimumDomains: 4,
+    researchMinimumGroupsPerDomain: 3,
+    researchMinimumInstructorPairs: 100,
+    researchMinimumInstructorDomains: 4,
+    researchMinimumInstructorPairsPerDomain: 20,
     domainMapPath: DEFAULT_DOMAIN_MAP,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -275,8 +450,24 @@ function parseArgs(argv) {
     else if (arg === '--output') args.outputDir = argv[++index];
     else if (arg === '--minimum-pairs') args.minimumPairs = Number(argv[++index]);
     else if (arg === '--minimum-domains') args.minimumDomains = Number(argv[++index]);
-    else if (arg === '--domain-map') args.domainMapPath = argv[++index];
+    else if (arg === '--minimum-groups-per-domain') args.minimumGroupsPerDomain = Number(argv[++index]);
+    else if (arg === '--minimum-instructor-pairs') args.minimumInstructorPairs = Number(argv[++index]);
+    else if (arg === '--minimum-instructor-domains') args.minimumInstructorDomains = Number(argv[++index]);
+    else if (arg === '--minimum-instructor-pairs-per-domain') {
+      args.minimumInstructorPairsPerDomain = Number(argv[++index]);
+    } else if (arg === '--research-minimum-pairs') args.researchMinimumPairs = Number(argv[++index]);
+    else if (arg === '--research-minimum-domains') args.researchMinimumDomains = Number(argv[++index]);
+    else if (arg === '--research-minimum-groups-per-domain') {
+      args.researchMinimumGroupsPerDomain = Number(argv[++index]);
+    } else if (arg === '--research-minimum-instructor-pairs') {
+      args.researchMinimumInstructorPairs = Number(argv[++index]);
+    } else if (arg === '--research-minimum-instructor-domains') {
+      args.researchMinimumInstructorDomains = Number(argv[++index]);
+    } else if (arg === '--research-minimum-instructor-pairs-per-domain') {
+      args.researchMinimumInstructorPairsPerDomain = Number(argv[++index]);
+    } else if (arg === '--domain-map') args.domainMapPath = argv[++index];
     else if (arg === '--allow-smoke') args.allowSmoke = true;
+    else if (arg === '--research') args.allowResearch = true;
   }
   if (args.sources.length === 0) args.sources = DEFAULT_SOURCES;
   return args;

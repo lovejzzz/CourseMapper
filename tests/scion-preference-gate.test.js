@@ -424,15 +424,19 @@ describe('Scion preference admission gate', () => {
     expect(html).not.toMatch(/"mapping"|"sourceRow"|candidateModel|referenceModel|source\.jsonl/);
     expect(blankForm[0]).toMatchObject({
       pairId: caseRow.pairId,
+      caseDigest: caseRow.caseDigest,
       reviewPacketId: packet.meta.packetId,
+      reviewPacketDigest: packet.meta.packetDigest,
       independent: false,
       conflictOfInterest: null,
       reviewedAt: '',
     });
     const makeReview = (reviewerId) => ({
       pairId: caseRow.pairId,
+      caseDigest: caseRow.caseDigest,
       domain: 'interaction-design',
       reviewPacketId: packet.meta.packetId,
+      reviewPacketDigest: packet.meta.packetDigest,
       reviewerId,
       reviewerRole: 'working-instructor',
       reviewerDomain: 'interaction-design',
@@ -475,6 +479,17 @@ describe('Scion preference admission gate', () => {
       approvedOutput,
     });
     expect(rejectedPacket.invalidReviews[0].issues).toContain('review-packet-id-mismatch');
+    const wrongCaseReview = path.join(root, 'review-wrong-case.json');
+    await fs.writeFile(
+      wrongCaseReview,
+      JSON.stringify([{ ...makeReview('instructor-wrong-case'), caseDigest: '0'.repeat(64) }]),
+    );
+    const rejectedCase = await ingestScionBlindReviews({
+      outputDir,
+      reviewFiles: [wrongCaseReview, reviewB],
+      approvedOutput,
+    });
+    expect(rejectedCase.invalidReviews[0].issues).toContain('review-case-digest-mismatch');
     const report = await ingestScionBlindReviews({
       outputDir,
       reviewFiles: [reviewA, reviewB],
@@ -482,10 +497,26 @@ describe('Scion preference admission gate', () => {
     });
     expect(report).toMatchObject({ reviewedCases: 1, approved: 1, quarantined: 0 });
     expect(assessCorpusRow(JSON.parse((await fs.readFile(approvedOutput, 'utf8')).trim())).eligible).toBe(true);
+    const repeated = await ingestScionBlindReviews({
+      outputDir,
+      reviewFiles: [reviewA, reviewB],
+      approvedOutput,
+    });
+    expect(repeated).toMatchObject({ approved: 1, approvedExisting: 1, approvedTotal: 1 });
+    expect((await fs.readFile(approvedOutput, 'utf8')).trim().split('\n')).toHaveLength(1);
+    const organizerPath = path.join(outputDir, 'organizer', 'key.json');
+    const organizer = JSON.parse(await fs.readFile(organizerPath, 'utf8'));
+    organizer.keys[0].case.prompt = 'Tampered review prompt';
+    await fs.writeFile(organizerPath, JSON.stringify(organizer));
+    await expect(
+      ingestScionBlindReviews({ outputDir, reviewFiles: [reviewA, reviewB], approvedOutput }),
+    ).rejects.toThrow('integrity verification');
   });
 
   it('derives neutral review candidates from matched real-project shapes without declaring a winner', () => {
     const project = (question, termExample) => ({
+      promptText: 'Interaction Design, a one-lesson course about evidence-based navigation decisions.',
+      fileNames: [],
       courseGraphJson: JSON.stringify({
         sessions: [{ number: 1, title: 'Lesson 1: Evidence-Based Navigation Design' }],
         enrichmentOverlay: {
@@ -532,5 +563,63 @@ describe('Scion preference admission gate', () => {
       ]),
     );
     expect(result.rows.every((row) => !('chosen' in row) && !('rejected' in row))).toBe(true);
+    expect(result.rows.every((row) => row.pairSource.courseInputSha256?.length === 64)).toBe(true);
+  });
+
+  it('excludes mismatched course inputs and permits numbered fallback only for repeated generic titles', () => {
+    const project = ({ promptText, titles, questions }) => ({
+      promptText,
+      fileNames: [],
+      courseGraphJson: JSON.stringify({
+        sessions: titles.map((title, index) => ({ number: index + 1, title })),
+        enrichmentOverlay: {
+          lessonContent: Object.fromEntries(
+            questions.map((question, index) => [
+              `lesson-${index + 1}`,
+              { quizItems: [{ ...goodMc({ q: question }), type: 'multiple_choice' }], keyTerms: [] },
+            ]),
+          ),
+        },
+      }),
+    });
+    const samePrompt = 'Music Theory, two lessons covering notation followed by harmony.';
+    const included = {
+      id: 'music-pair',
+      domain: 'music-theory',
+      candidateRoute: 'scion-test',
+      candidateModel: 'Scion',
+      referenceModel: 'Reference',
+      candidateProject: project({
+        promptText: samePrompt,
+        titles: ['Lesson 1: Staff and Notation', 'Lesson 2: Chords and Harmony'],
+        questions: [
+          'Which symbol most directly identifies the pitch assigned to a staff line?',
+          'Which observation most directly identifies a stable harmonic resolution?',
+        ],
+      }),
+      referenceProject: project({
+        promptText: samePrompt,
+        titles: ['Lesson 1: Music Theory Fundamentals', 'Lesson 2: Music Theory Fundamentals'],
+        questions: [
+          'Which notation feature most directly identifies a pitch on the staff?',
+          'Which cadence most directly creates a stable harmonic resolution?',
+        ],
+      }),
+    };
+    const mismatched = {
+      ...included,
+      id: 'mismatched-pair',
+      domain: 'world-literature',
+      referenceProject: { ...included.referenceProject, promptText: 'A different course input.' },
+    };
+    const result = buildMatchedReviewCandidates([included, mismatched]);
+    expect(result.summary).toMatchObject({ pairs: 2, eligiblePairs: 1, excludedPairs: 1, candidates: 2 });
+    expect(result.summary.pairReports.find((pair) => pair.id === 'mismatched-pair')).toMatchObject({
+      status: 'excluded',
+      issues: ['course-input-mismatch'],
+    });
+    expect(result.rows.every((row) => row.pairSource.matchMethod === 'lesson-number-generic-title-fallback')).toBe(
+      true,
+    );
   });
 });

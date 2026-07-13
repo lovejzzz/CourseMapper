@@ -14,16 +14,20 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification must pass on the exact v0.16.8 release head before merge."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29245767283",
+      "commit": "2cb868f8b53db03b63f2400e7a054b7b4d374462",
+      "note": "Fast verification passed on the exact v0.16.8 merge commit on main."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The paired-evidence integration test constructs two five-domain Crucible rounds and verifies artifact-derived receipts locally; a real production candidate remains future evidence."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages deploys only after Fast verification succeeds on main."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29247068296",
+      "commit": "2cb868f8b53db03b63f2400e7a054b7b4d374462",
+      "note": "GitHub Pages deployed the exact v0.16.8 merge commit after Fast verification succeeded on main."
     },
     "liveProvider": {
       "status": "not-used",

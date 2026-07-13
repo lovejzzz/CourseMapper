@@ -18,6 +18,33 @@ function hash(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
 
+function canonicalInput(project = {}) {
+  const promptText = typeof project?.promptText === 'string' ? project.promptText : '';
+  const fileNames = Array.isArray(project?.fileNames) ? project.fileNames.map((file) => text(file)) : [];
+  return { promptText, fileNames };
+}
+
+function inspectPairInput(pair) {
+  const candidateInput = canonicalInput(pair.candidateProject);
+  const referenceInput = canonicalInput(pair.referenceProject);
+  const issues = [];
+  if (!candidateInput.promptText.trim() || !referenceInput.promptText.trim()) issues.push('missing-course-input');
+  if (JSON.stringify(candidateInput) !== JSON.stringify(referenceInput)) issues.push('course-input-mismatch');
+  if (
+    (candidateInput.fileNames.length > 0 || referenceInput.fileNames.length > 0) &&
+    !/^[a-f0-9]{64}$/.test(String(pair.sourcePacketSha256 || ''))
+  ) {
+    issues.push('unbound-source-attachments');
+  }
+  return {
+    pass: issues.length === 0,
+    issues,
+    sha256: hash(JSON.stringify(candidateInput)),
+    candidateSha256: hash(JSON.stringify(candidateInput)),
+    referenceSha256: hash(JSON.stringify(referenceInput)),
+  };
+}
+
 function text(value) {
   return String(value || '')
     .replace(/\s+/g, ' ')
@@ -52,6 +79,16 @@ function lessonRows(graph) {
   });
 }
 
+function repeatedNormalizedTitles(rows) {
+  const counts = new Map();
+  for (const row of rows) {
+    const key = [...titleTokens(row.title)].sort().join(' ');
+    if (!key) continue;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return new Set([...counts].filter(([, count]) => count > 1).map(([key]) => key));
+}
+
 function matchLessons(leftRows, rightRows) {
   const available = new Set(rightRows.map((_, index) => index));
   const matches = [];
@@ -67,9 +104,30 @@ function matchLessons(leftRows, rightRows) {
     }
     if (bestIndex < 0 || bestScore < 0.5) continue;
     available.delete(bestIndex);
-    matches.push({ left, right: rightRows[bestIndex], titleMatch: Number(bestScore.toFixed(3)) });
+    matches.push({
+      left,
+      right: rightRows[bestIndex],
+      titleMatch: Number(bestScore.toFixed(3)),
+      matchMethod: 'title-overlap',
+    });
   }
-  return matches;
+  const matchedLeft = new Set(matches.map((match) => match.left.lessonId));
+  const repeatedLeft = repeatedNormalizedTitles(leftRows);
+  const repeatedRight = repeatedNormalizedTitles(rightRows);
+  for (const left of leftRows) {
+    if (matchedLeft.has(left.lessonId)) continue;
+    const rightIndex = [...available].find((index) => rightRows[index].lessonId === left.lessonId);
+    if (rightIndex == null) continue;
+    const right = rightRows[rightIndex];
+    const leftKey = [...titleTokens(left.title)].sort().join(' ');
+    const rightKey = [...titleTokens(right.title)].sort().join(' ');
+    if (!repeatedLeft.has(leftKey) && !repeatedRight.has(rightKey)) continue;
+    available.delete(rightIndex);
+    matches.push({ left, right, titleMatch: 0, matchMethod: 'lesson-number-generic-title-fallback' });
+  }
+  return matches.sort((left, right) =>
+    left.left.lessonId.localeCompare(right.left.lessonId, undefined, { numeric: true }),
+  );
 }
 
 function compactMc(item) {
@@ -120,7 +178,7 @@ function addPairs(rows, seen, { pair, match, kind, leftItems, rightItems }) {
     const right = rightItems[index];
     if (JSON.stringify(left) === JSON.stringify(right)) continue;
     const row = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       kind,
       prompt: promptFor({
         domain: pair.domain,
@@ -141,6 +199,10 @@ function addPairs(rows, seen, { pair, match, kind, leftItems, rightItems }) {
         leftLessonId: match.left.lessonId,
         rightLessonId: match.right.lessonId,
         titleMatch: match.titleMatch,
+        matchMethod: match.matchMethod,
+        courseInputSha256: pair.courseInputSha256,
+        candidateArtifactSha256: pair.candidateArtifactSha256,
+        referenceArtifactSha256: pair.referenceArtifactSha256,
       },
     };
     const id = hash(JSON.stringify({ kind, prompt: row.prompt, left: row.left, right: row.right }));
@@ -155,20 +217,35 @@ export function buildMatchedReviewCandidates(pairs = []) {
   const seen = new Set();
   const pairReports = [];
   for (const pair of pairs) {
+    const input = inspectPairInput(pair);
+    if (!input.pass) {
+      pairReports.push({
+        id: pair.id,
+        domain: pair.domain,
+        status: 'excluded',
+        issues: input.issues,
+        candidateInputSha256: input.candidateSha256,
+        referenceInputSha256: input.referenceSha256,
+        matchedLessons: 0,
+        candidates: 0,
+      });
+      continue;
+    }
+    const qualifiedPair = { ...pair, courseInputSha256: input.sha256 };
     const leftGraph = parseSavedCourseGraph(pair.candidateProject);
     const rightGraph = parseSavedCourseGraph(pair.referenceProject);
     const matches = matchLessons(lessonRows(leftGraph), lessonRows(rightGraph));
     const before = rows.length;
     for (const match of matches) {
       addPairs(rows, seen, {
-        pair,
+        pair: qualifiedPair,
         match,
         kind: 'mc-item',
         leftItems: cleanMcItems(match.left.content),
         rightItems: cleanMcItems(match.right.content),
       });
       addPairs(rows, seen, {
-        pair,
+        pair: qualifiedPair,
         match,
         kind: 'key-term',
         leftItems: cleanKeyTerms(match.left.content),
@@ -178,6 +255,9 @@ export function buildMatchedReviewCandidates(pairs = []) {
     pairReports.push({
       id: pair.id,
       domain: pair.domain,
+      status: 'included',
+      issues: [],
+      courseInputSha256: input.sha256,
       matchedLessons: matches.length,
       candidates: rows.length - before,
     });
@@ -187,6 +267,8 @@ export function buildMatchedReviewCandidates(pairs = []) {
     rows,
     summary: {
       pairs: pairs.length,
+      eligiblePairs: pairReports.filter((pair) => pair.status === 'included').length,
+      excludedPairs: pairReports.filter((pair) => pair.status === 'excluded').length,
       candidates: rows.length,
       domains,
       domainCount: domains.length,
@@ -204,11 +286,17 @@ async function run({ manifestPath = DEFAULT_MANIFEST, output = DEFAULT_OUTPUT, r
   const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
   const pairs = await Promise.all(
     (manifest.pairs || []).map(async (pair) => {
-      const [candidateProject, referenceProject] = await Promise.all([
-        fs.readFile(pair.candidate, 'utf8').then(JSON.parse),
-        fs.readFile(pair.reference, 'utf8').then(JSON.parse),
+      const [candidateRaw, referenceRaw] = await Promise.all([
+        fs.readFile(pair.candidate, 'utf8'),
+        fs.readFile(pair.reference, 'utf8'),
       ]);
-      return { ...pair, candidateProject, referenceProject };
+      return {
+        ...pair,
+        candidateProject: JSON.parse(candidateRaw),
+        referenceProject: JSON.parse(referenceRaw),
+        candidateArtifactSha256: hash(candidateRaw),
+        referenceArtifactSha256: hash(referenceRaw),
+      };
     }),
   );
   const result = buildMatchedReviewCandidates(pairs);
