@@ -97,7 +97,7 @@
     "minimumWinnerFactualScore": 4,
     "minimumWinnerTeachabilityScore": 4,
     "minimumWilsonWinLowerBound": 0.5,
-    "requiredBrowserDeviceClasses": ["integrated-8gb", "integrated-16gb", "discrete-or-apple-silicon"],
+    "requiredBrowserDeviceClasses": ["integrated-8gb", "integrated-16gb", "discrete-8gb", "apple-silicon-16gb"],
     "requireControlComparison": true,
     "minimumMatchedControlCourses": 5,
     "maximumScionCallAmplificationVsControl": 1.25
