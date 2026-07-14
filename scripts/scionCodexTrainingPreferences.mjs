@@ -69,6 +69,12 @@ function validIdentity(value) {
   return normalized.length >= 3 && !PLACEHOLDER_RE.test(normalized);
 }
 
+function hasExactKeys(value, expected) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const actual = Object.keys(value).sort();
+  return JSON.stringify(actual) === JSON.stringify([...expected].sort());
+}
+
 function sourceContextDigest(value) {
   return hash(JSON.stringify(value || null));
 }
@@ -238,25 +244,159 @@ export async function buildScionCodexTrainingReviewTemplates({
   return { receipt, receiptPath };
 }
 
-export async function applyScionCodexTrainingDecisions({
+function blankDecisionScorecard(artifact) {
+  return {
+    position: artifact.position,
+    evaluationStatus: 'pending',
+    scores: Object.fromEntries(SCION_CODEX_TRAINING_SCORE_DIMENSIONS.map((dimension) => [dimension, null])),
+    evidence: [],
+    defects: [],
+  };
+}
+
+export async function buildScionCodexTrainingDecisionSkeleton({ templateFile, outputFile } = {}) {
+  if (!templateFile) throw new Error('Building a decision skeleton requires --template');
+  await assertJudgePromptIntegrity();
+  const templateRaw = await fs.readFile(templateFile);
+  const template = JSON.parse(templateRaw.toString('utf8'));
+  if (template?.schemaVersion !== 2 || template?.protocol !== SCION_CODEX_TRAINING_REVIEW_PROTOCOL) {
+    throw new Error('Codex review template protocol mismatch');
+  }
+  if (!SCION_CODEX_TRAINING_REQUIRED_ORDERS.includes(template?.order)) {
+    throw new Error('Codex review template order mismatch');
+  }
+  if (!Array.isArray(template?.reviews) || template.reviews.length === 0) {
+    throw new Error('Codex review template has no reviews');
+  }
+  const skeleton = {
+    schemaVersion: 1,
+    protocol: 'scion-codex-training-decisions-v1',
+    templateSha256: hashBytes(templateRaw),
+    order: template.order,
+    judge: {
+      model: SCION_CODEX_JUDGE_MODEL,
+      revision: '',
+      runtime: '',
+      sessionId: '',
+      promptPath: SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH,
+      promptSha256: SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256,
+    },
+    previousOutcomeAvailable: null,
+    contextResetAttestation: false,
+    attestation: false,
+    completedAt: '',
+    decisions: template.reviews.map((review) => ({
+      pairId: review.pairId,
+      scorecards: review.presentation.map(blankDecisionScorecard),
+      preference: {
+        scoredBeforePreference: false,
+        decision: null,
+        winnerPosition: null,
+        rationale: '',
+        decisionDefects: [],
+      },
+    })),
+  };
+  if (outputFile) {
+    await fs.mkdir(path.dirname(path.resolve(outputFile)), { recursive: true });
+    await fs.writeFile(outputFile, `${JSON.stringify(skeleton, null, 2)}\n`);
+  }
+  return {
+    skeleton,
+    templateSha256: skeleton.templateSha256,
+    outputFile: outputFile ? path.resolve(outputFile) : null,
+  };
+}
+
+function templateKeyPacket(template) {
+  return {
+    meta: {
+      protocol: template?.sourcePacket?.protocol,
+      packetId: template?.sourcePacket?.packetId,
+      packetDigest: template?.sourcePacket?.packetDigest,
+      organizerDigest: template?.sourcePacket?.organizerDigest,
+    },
+    keys: (template?.reviews || []).map((review) => ({
+      pairId: review.pairId,
+      caseDigest: review.caseDigest,
+      domain: review.domain,
+      courseGroupSha256: review.courseGroupSha256,
+      case: {
+        sourceContext: review.sourceContext,
+        ...Object.fromEntries(
+          (review.presentation || []).map((artifact) => [artifact.anonymousSide, artifact.artifact]),
+        ),
+      },
+    })),
+  };
+}
+
+async function materializeScionCodexTrainingDecisions({
   packetDir = DEFAULT_PACKET_DIR,
   templateFile,
   decisionsFile,
-  outputFile,
+  templateOnly = false,
+  expectedTemplateSha256 = '',
 } = {}) {
-  if (!templateFile || !decisionsFile || !outputFile) {
-    throw new Error('Completing a pass requires --template, --decisions, and --output');
+  if (!templateFile || !decisionsFile) {
+    throw new Error('Completing a pass requires --template and --decisions');
   }
   await assertJudgePromptIntegrity();
   const templateRaw = await fs.readFile(templateFile);
+  if (expectedTemplateSha256 && hashBytes(templateRaw) !== expectedTemplateSha256) {
+    throw new Error('Codex review template no longer matches the verified handoff receipt');
+  }
   const template = JSON.parse(templateRaw.toString('utf8'));
   const decisions = JSON.parse(await fs.readFile(decisionsFile, 'utf8'));
   if (decisions?.schemaVersion !== 1 || decisions?.protocol !== 'scion-codex-training-decisions-v1') {
     throw new Error('Codex decision file protocol mismatch');
   }
+  if (
+    !hasExactKeys(decisions, [
+      'schemaVersion',
+      'protocol',
+      'templateSha256',
+      'order',
+      'judge',
+      'previousOutcomeAvailable',
+      'contextResetAttestation',
+      'attestation',
+      'completedAt',
+      'decisions',
+    ])
+  ) {
+    throw new Error('Codex decision file has unexpected or missing fields');
+  }
+  if (
+    !hasExactKeys(decisions.judge, ['model', 'revision', 'runtime', 'sessionId', 'promptPath', 'promptSha256']) ||
+    decisions.judge.model !== template?.judge?.model ||
+    decisions.judge.promptPath !== template?.judge?.promptPath ||
+    decisions.judge.promptSha256 !== template?.judge?.promptSha256
+  ) {
+    throw new Error('Codex decision judge identity does not match the review template');
+  }
   if (decisions?.templateSha256 !== hashBytes(templateRaw)) throw new Error('Codex decision template hash mismatch');
   if (decisions?.order !== template?.order) throw new Error('Codex decision order mismatch');
   const decisionRows = Array.isArray(decisions?.decisions) ? decisions.decisions : [];
+  if (
+    decisionRows.some(
+      (decision) =>
+        !hasExactKeys(decision, ['pairId', 'scorecards', 'preference']) ||
+        !Array.isArray(decision.scorecards) ||
+        decision.scorecards.some(
+          (scorecard) => !hasExactKeys(scorecard, ['position', 'evaluationStatus', 'scores', 'evidence', 'defects']),
+        ) ||
+        !hasExactKeys(decision.preference, [
+          'scoredBeforePreference',
+          'decision',
+          'winnerPosition',
+          'rationale',
+          'decisionDefects',
+        ]),
+    )
+  ) {
+    throw new Error('Codex decision rows have unexpected or missing fields');
+  }
   const decisionByPair = new Map(decisionRows.map((decision) => [clean(decision?.pairId), decision]));
   if (decisionByPair.size !== decisionRows.length) throw new Error('Codex decision file has duplicate pair ids');
   const expectedPairIds = template.reviews.map((review) => review.pairId).sort();
@@ -291,14 +431,25 @@ export async function applyScionCodexTrainingDecisions({
     review.preference = decision.preference;
   }
   const raw = Buffer.from(`${JSON.stringify(batch, null, 2)}\n`);
-  const { keyPacket } = await readOrganizerPacket(packetDir);
+  const keyPacket = templateOnly ? templateKeyPacket(template) : (await readOrganizerPacket(packetDir)).keyPacket;
   const validation = validateCompletedBatch(batch, raw, keyPacket);
   if (validation.structuralIssues.length > 0) {
     throw new Error(`Completed Codex review failed validation: ${validation.structuralIssues.join(', ')}`);
   }
+  return { batch, raw, validation };
+}
+
+export async function applyScionCodexTrainingDecisions({
+  packetDir = DEFAULT_PACKET_DIR,
+  templateFile,
+  decisionsFile,
+  outputFile,
+} = {}) {
+  if (!outputFile) throw new Error('Completing a plaintext pass requires --output');
+  const result = await materializeScionCodexTrainingDecisions({ packetDir, templateFile, decisionsFile });
   await fs.mkdir(path.dirname(path.resolve(outputFile)), { recursive: true });
-  await fs.writeFile(outputFile, raw);
-  return { validation, outputFile: path.resolve(outputFile) };
+  await fs.writeFile(outputFile, result.raw);
+  return { validation: result.validation, outputFile: path.resolve(outputFile) };
 }
 
 function validScores(scores) {
@@ -609,24 +760,7 @@ export function verifyScionCodexJudgeCampaignReceipt(receipt, envelope, envelope
   return { valid: issues.length === 0, issues: [...new Set(issues)] };
 }
 
-export async function sealScionCodexTrainingReviewPass({
-  packetDir = DEFAULT_PACKET_DIR,
-  reviewFile,
-  sealedOutput,
-  keyOutput,
-  deletePlaintext = false,
-} = {}) {
-  if (!reviewFile || !sealedOutput || !keyOutput) {
-    throw new Error('Sealing requires --review, --sealed-output, and --key-output');
-  }
-  await assertJudgePromptIntegrity();
-  const { keyPacket } = await readOrganizerPacket(packetDir);
-  const raw = await fs.readFile(reviewFile);
-  const batch = JSON.parse(raw.toString('utf8'));
-  const validation = validateCompletedBatch(batch, raw, keyPacket);
-  if (validation.structuralIssues.length > 0) {
-    throw new Error(`Codex review pass failed structural validation: ${validation.structuralIssues.join(', ')}`);
-  }
+async function sealScionCodexTrainingReviewBytes({ raw, batch, sealedOutput, keyOutput, exclusive = false }) {
   const key = crypto.randomBytes(32);
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
@@ -667,11 +801,67 @@ export async function sealScionCodexTrainingReviewPass({
     throw new Error(`Sealed review envelope failed validation: ${envelopeCheck.issues.join(', ')}`);
   await fs.mkdir(path.dirname(path.resolve(sealedOutput)), { recursive: true });
   await fs.mkdir(path.dirname(path.resolve(keyOutput)), { recursive: true });
-  await fs.writeFile(sealedOutput, `${JSON.stringify(envelope, null, 2)}\n`);
-  await fs.writeFile(keyOutput, `${key.toString('base64')}\n`, { mode: 0o600 });
-  await fs.chmod(keyOutput, 0o600);
-  if (deletePlaintext) await fs.rm(reviewFile, { force: true });
+  const writeOptions = exclusive ? { flag: 'wx' } : undefined;
+  await fs.writeFile(keyOutput, `${key.toString('base64')}\n`, { mode: 0o600, ...(writeOptions || {}) });
+  try {
+    await fs.chmod(keyOutput, 0o600);
+    await fs.writeFile(sealedOutput, `${JSON.stringify(envelope, null, 2)}\n`, writeOptions);
+  } catch (error) {
+    if (exclusive) await fs.rm(keyOutput, { force: true });
+    throw error;
+  }
   return { envelope, sealedOutput: path.resolve(sealedOutput), keyOutput: path.resolve(keyOutput) };
+}
+
+export async function sealScionCodexTrainingReviewPass({
+  packetDir = DEFAULT_PACKET_DIR,
+  reviewFile,
+  sealedOutput,
+  keyOutput,
+  deletePlaintext = false,
+} = {}) {
+  if (!reviewFile || !sealedOutput || !keyOutput) {
+    throw new Error('Sealing requires --review, --sealed-output, and --key-output');
+  }
+  await assertJudgePromptIntegrity();
+  const { keyPacket } = await readOrganizerPacket(packetDir);
+  const raw = await fs.readFile(reviewFile);
+  const batch = JSON.parse(raw.toString('utf8'));
+  const validation = validateCompletedBatch(batch, raw, keyPacket);
+  if (validation.structuralIssues.length > 0) {
+    throw new Error(`Codex review pass failed structural validation: ${validation.structuralIssues.join(', ')}`);
+  }
+  const sealed = await sealScionCodexTrainingReviewBytes({ raw, batch, sealedOutput, keyOutput });
+  if (deletePlaintext) await fs.rm(reviewFile, { force: true });
+  return sealed;
+}
+
+export async function completeAndSealScionCodexTrainingReviewPass({
+  templateFile,
+  decisionsFile,
+  sealedOutput,
+  keyOutput,
+  expectedTemplateSha256,
+} = {}) {
+  if (!templateFile || !decisionsFile || !sealedOutput || !keyOutput || !SHA256_RE.test(expectedTemplateSha256)) {
+    throw new Error(
+      'Atomic completion requires --template, --decisions, --sealed-output, --key-output, and a verified template SHA-256',
+    );
+  }
+  const completed = await materializeScionCodexTrainingDecisions({
+    templateFile,
+    decisionsFile,
+    templateOnly: true,
+    expectedTemplateSha256,
+  });
+  const sealed = await sealScionCodexTrainingReviewBytes({
+    raw: completed.raw,
+    batch: completed.batch,
+    sealedOutput,
+    keyOutput,
+    exclusive: true,
+  });
+  return { ...sealed, validation: completed.validation, plaintextWritten: false };
 }
 
 export async function unsealScionCodexTrainingReviewPass({

@@ -188,6 +188,28 @@ npm run ingest:scion:codex-training-reviews -- \
 
 The retained v0.16.18 A/B pass is verified without outcome disclosure by `npm run audit:scion:codex-sealed-pass`. Its AES-256-GCM key is intentionally absent from Git. At release time, two 0600 local copies outside the volatile template directory passed an exact unseal/plaintext-hash round trip; a fresh clone still requires a separate key transfer. Template regeneration replaces only the two order files and receipt, preserving other nested evidence. The tracked envelope proves one structurally complete single-model pass existed at the bound hash; it proves no stable winner, training row, adapter improvement, or human evidence.
 
+v0.16.19 packages the reverse reading without putting the first reading in its context:
+
+```bash
+npm run build:scion:codex-fresh-handoff
+npm run audit:scion:codex-fresh-handoff
+```
+
+The clean-room handoff contains exactly the B/A template, an immutable blank decisions skeleton, the exact judge prompt, fresh-task instructions, and a manifest. The tracked receipt binds the frozen packet and all 128 source-backed cases. The verifier requires the exact allowlist, regular non-symlink files, B/A presentation order, neutral source context, blank scorecards and decisions, and a null prior-outcome state. It rejects organizer mappings, source rows, sealed-envelope fields, key or plaintext identities, prior outcomes, and any added, missing, nested, modified, or linked file. Unknown files are never deleted during regeneration.
+
+The fresh task copies the decisions skeleton outside the immutable handoff and completes that copy. It then runs the atomic path:
+
+```bash
+npm run complete:scion:codex-fresh-pass -- \
+  --handoff verification-output/scion-codex-fresh-b-a \
+  --receipt evaluation/scion-adapters/evidence/fresh-b-a-handoff-v0.16.19.json \
+  --decisions verification-output/scion-codex-fresh-b-a-decisions.json \
+  --sealed-output verification-output/scion-codex-sealed-passes/v0.16.19-b-a.sealed.json \
+  --key-output ~/.codex/scion-secrets/CourseMapper/v0.16.19-b-a.key
+```
+
+That command re-verifies the unchanged kit and tracked receipt, validates completed decisions in memory, encrypts directly with AES-256-GCM, creates the envelope and 0600 key exclusively, and writes no completed plaintext. It prints no winner. The real B/A pass is still missing until a genuinely fresh task performs all 128 judgments; the handoff itself creates no preference or model result.
+
 Ingestion reconstructs the organizer packet, verifies every prompt and artifact byte, binds four scorecards and two pass hashes, requires at least 4/5 for the winner on factual correctness, source fidelity, teachability, coherence, and task quality, and requires a positive aggregate margin plus concrete losing-side defects. Both orders must resolve to the same anonymous winner. Session reuse, identity drift, low scores, missing source context, changed bytes, missing passes, and position disagreement fail closed. The output is explicitly `single-model-judge` evidence—not human, instructor, independent, classroom, or multi-judge validation—and the dataset audit recomputes an exact training-pair digest before accepting it.
 
 The separate optional working-instructor lane remains available. After two instructors who currently teach the relevant domain complete a domain's forms independently, ingest them with:
