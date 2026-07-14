@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://edutool.dev/schemas/scion-codex-training-review-v1.json",
+  "$id": "https://edutool.dev/schemas/scion-codex-training-review-v2.json",
   "title": "Scion Codex training review batch",
   "type": "object",
   "additionalProperties": false,
@@ -23,8 +23,8 @@
     "reviews"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "protocol": { "const": "scion-codex-training-review-v1" },
+    "schemaVersion": { "const": 2 },
+    "protocol": { "const": "scion-codex-training-review-v2" },
     "benchmarkProtocol": { "const": "honest-quality-benchmark-v1" },
     "policyId": { "const": "scion-codex-judge-policy-v1" },
     "sourcePacket": {
@@ -42,14 +42,17 @@
     "judge": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["model", "revision", "runtime", "sessionId", "promptSha256"],
+      "required": ["model", "revision", "runtime", "sessionId", "promptPath", "promptSha256"],
       "properties": {
         "model": { "const": "openai/codex" },
         "revision": { "type": "string", "minLength": 3 },
         "runtime": { "type": "string", "minLength": 3 },
         "sessionId": { "type": "string", "minLength": 3 },
+        "promptPath": {
+          "const": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md"
+        },
         "promptSha256": {
-          "const": "6f95f8806a094558ff4f266216e0140d7710e4f46eb155490868e54078bac266"
+          "const": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
         }
       }
     },
@@ -81,6 +84,18 @@
         "taskQuality": { "type": "integer", "minimum": 1, "maximum": 5 }
       }
     },
+    "nullScores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["factualCorrectness", "sourceFidelity", "teachability", "coherence", "taskQuality"],
+      "properties": {
+        "factualCorrectness": { "type": "null" },
+        "sourceFidelity": { "type": "null" },
+        "teachability": { "type": "null" },
+        "coherence": { "type": "null" },
+        "taskQuality": { "type": "null" }
+      }
+    },
     "artifact": {
       "type": "object",
       "additionalProperties": false,
@@ -95,15 +110,26 @@
     "scorecard": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["position", "anonymousSide", "artifactSha256", "scores", "evidence", "defects"],
+      "required": ["position", "anonymousSide", "artifactSha256", "evaluationStatus", "scores", "evidence", "defects"],
       "properties": {
         "position": { "type": "integer", "minimum": 1, "maximum": 2 },
         "anonymousSide": { "enum": ["A", "B"] },
         "artifactSha256": { "$ref": "#/$defs/sha256" },
-        "scores": { "$ref": "#/$defs/scores" },
+        "evaluationStatus": { "enum": ["scored", "insufficient-evidence"] },
+        "scores": {},
         "evidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 8 } },
         "defects": { "type": "array", "items": { "type": "string", "minLength": 10 } }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "evaluationStatus": { "const": "scored" } } },
+          "then": { "properties": { "scores": { "$ref": "#/$defs/scores" } } }
+        },
+        {
+          "if": { "properties": { "evaluationStatus": { "const": "insufficient-evidence" } } },
+          "then": { "properties": { "scores": { "$ref": "#/$defs/nullScores" } } }
+        }
+      ]
     },
     "review": {
       "type": "object",
@@ -114,6 +140,8 @@
         "domain",
         "courseGroupSha256",
         "sourceContextSha256",
+        "sourceContext",
+        "evidenceScope",
         "presentation",
         "scorecards",
         "preference"
@@ -124,6 +152,32 @@
         "domain": { "type": "string", "minLength": 3 },
         "courseGroupSha256": { "$ref": "#/$defs/sha256" },
         "sourceContextSha256": { "$ref": "#/$defs/sha256" },
+        "sourceContext": { "type": "object", "minProperties": 1 },
+        "evidenceScope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["unit", "excludedConstructs"],
+          "properties": {
+            "unit": { "const": "source-bound-training-atom" },
+            "excludedConstructs": {
+              "type": "array",
+              "minItems": 7,
+              "maxItems": 7,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "export-integrity",
+                  "package-integrity",
+                  "compiler-burden",
+                  "full-course-coherence",
+                  "device-runtime",
+                  "speed",
+                  "cost"
+                ]
+              }
+            }
+          }
+        },
         "presentation": {
           "type": "array",
           "minItems": 2,
@@ -139,17 +193,29 @@
         "preference": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["scoredBeforePreference", "winnerPosition", "rationale", "decisionDefects"],
+          "required": ["scoredBeforePreference", "decision", "winnerPosition", "rationale", "decisionDefects"],
           "properties": {
             "scoredBeforePreference": { "const": true },
-            "winnerPosition": { "type": "integer", "minimum": 1, "maximum": 2 },
+            "decision": { "enum": ["winner", "tie", "insufficient-evidence"] },
+            "winnerPosition": {
+              "oneOf": [{ "type": "integer", "minimum": 1, "maximum": 2 }, { "type": "null" }]
+            },
             "rationale": { "type": "string", "minLength": 30 },
             "decisionDefects": {
               "type": "array",
-              "minItems": 1,
               "items": { "type": "string", "minLength": 10 }
             }
-          }
+          },
+          "allOf": [
+            {
+              "if": { "properties": { "decision": { "const": "winner" } } },
+              "then": { "properties": { "winnerPosition": { "type": "integer", "minimum": 1, "maximum": 2 } } }
+            },
+            {
+              "if": { "properties": { "decision": { "enum": ["tie", "insufficient-evidence"] } } },
+              "then": { "properties": { "winnerPosition": { "type": "null" } } }
+            }
+          ]
         }
       }
     }

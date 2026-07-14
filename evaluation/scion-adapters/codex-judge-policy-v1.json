@@ -28,13 +28,17 @@
     "retainPositionDisagreements": true
   },
   "trainingPreferences": {
-    "protocol": "scion-codex-training-review-v1",
+    "protocol": "scion-codex-training-review-v2",
     "sourcePacketProtocol": "scion-blind-atom-packet-v4",
+    "judgePromptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "judgePromptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7",
     "approvedOutputPath": "evaluation/scion-codex-reviewed-preferences.jsonl",
     "primaryPreferenceEvidence": "single-model-judge",
     "requiredOrders": ["A/B", "B/A"],
     "requiredFreshSessions": 2,
     "scoreBeforePreference": true,
+    "preserveTie": true,
+    "preserveInsufficientEvidence": true,
     "requireHashBoundArtifacts": true,
     "requireHashBoundScorecards": true,
     "requireNeutralSourceContext": true,
@@ -50,7 +54,7 @@
     "minimumCandidateModelJudgePairs": 100,
     "minimumCandidateModelJudgePairsPerDomain": 20,
     "minimumCandidateCourseGroupsPerDomain": 3,
-    "claimBoundary": "A stable training preference is two reversed-order readings by one provenance-bound Codex model. It is single-model evidence, never human, instructor, independent, classroom, or multi-judge validation. It cannot establish held-out adapter quality or promotion."
+    "claimBoundary": "A stable training preference is two reversed-order winner decisions by one provenance-bound Codex model. Ties, insufficient evidence, order disagreement, and below-floor winners remain non-training evidence. It is single-model evidence, never human, instructor, independent, classroom, or multi-judge validation. It cannot establish held-out adapter quality or promotion."
   },
   "claimBoundary": "A passing result is a single provenance-bound Codex judgment over the declared frozen scope. It is not human, instructor, independent, classroom, or multi-judge validation. This policy does not claim that a Scion adapter exists, loads, wins, or matches a paid reference."
 }

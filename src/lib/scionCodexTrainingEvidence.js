@@ -1,7 +1,10 @@
-export const SCION_CODEX_TRAINING_REVIEW_PROTOCOL = 'scion-codex-training-review-v1';
+export const SCION_CODEX_TRAINING_REVIEW_PROTOCOL = 'scion-codex-training-review-v2';
 export const SCION_CODEX_JUDGE_POLICY_ID = 'scion-codex-judge-policy-v1';
 export const SCION_CODEX_JUDGE_MODEL = 'openai/codex';
-export const SCION_CODEX_JUDGE_PROMPT_SHA256 = '6f95f8806a094558ff4f266216e0140d7710e4f46eb155490868e54078bac266';
+export const SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH =
+  'evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md';
+export const SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256 =
+  '0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7';
 export const SCION_CODEX_TRAINING_SCORE_DIMENSIONS = Object.freeze([
   'factualCorrectness',
   'sourceFidelity',
@@ -60,7 +63,10 @@ export function validateScionCodexTrainingPreferenceEvidence(evidence) {
   } else if (!evidence.judge.sessionIds.every(validIdentity)) {
     issues.push('model-judge-session-id');
   }
-  if (evidence?.judge?.promptSha256 !== SCION_CODEX_JUDGE_PROMPT_SHA256) {
+  if (evidence?.judge?.promptPath !== SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH) {
+    issues.push('model-judge-prompt-path');
+  }
+  if (evidence?.judge?.promptSha256 !== SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256) {
     issues.push('model-judge-prompt-sha256');
   }
   if (!exactSet(evidence?.orders, SCION_CODEX_TRAINING_REQUIRED_ORDERS)) {

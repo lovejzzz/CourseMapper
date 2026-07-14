@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.17
+**Current release:** v0.16.18
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.17**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.18**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -63,7 +63,13 @@ The resulting ledger contains 372 neutral candidates. The frozen 160-case packet
 
 v0.16.17 adds a second campaign instead of changing that historical evidence. Four new six-kernel courses contribute another 24 prompts per arm and eight verified projects while retaining the original manifest, prompt set, and 16 project hashes. On the additive packet, the pinned Gemma base generated 96 and admitted 70 atoms; GPT-5.4-mini generated 96 and admitted 86. Local burden is therefore 26 atoms versus 10, a 16-atom or 16.6666-point deficit. Repeated explanation-key conflicts and truncated explanations concentrate the local gap in multiple-choice output, especially in Music Theory and UX. This is a measured target for the compiler and future adapter, not a Scion win.
 
-After exact-input matching, the ledger reaches 437 candidates and sixteen course groups—four per research domain. Source-first selection retains all 128 source-backed cases in the 160-case packet: 31 Computer Science, 39 Geology, 32 Music Theory, and 26 UX. Separate A/B and B/A Codex templates now exist for all 128. That clears the raw-case count for a 100-pair research corpus, but **zero passes are complete and zero preferences are approved**, so research training is still blocked and the hosted product remains base-only.
+After exact-input matching, the ledger reaches 437 candidates and sixteen course groups—four per research domain. Source-first selection retains all 128 source-backed cases in the 160-case packet: 31 Computer Science, 39 Geology, 32 Music Theory, and 26 UX. Separate A/B and B/A Codex templates exist for all 128.
+
+v0.16.18 completes the first isolated A/B pass without turning one reading into a preference. Training-review protocol v2 now includes the exact neutral source above both artifacts, uses an atom-only prompt, and permits `winner`, `tie`, or `insufficient-evidence`. It explicitly excludes export integrity, package integrity, compiler burden, full-course coherence, device behavior, speed, and cost because an MC or key-term atom cannot support those claims. The 128-case pass passed structural validation, was encrypted with AES-256-GCM, and had its plaintext deleted. Only an outcome-sealed envelope is tracked. Two 0600 local key copies outside the template output passed an exact unseal round trip and remain absent from Git; a fresh clone cannot recover the outcome without a separate key transfer. Template regeneration now replaces only its three generated files instead of clearing the directory, preventing another evidence-loss incident. This keeps the future B/A judge from learning the first outcome while retaining the original pass for later ingestion.
+
+The reverse B/A pass must occur in a genuinely fresh Codex task before the pass is unsealed and ingested. Until both orders resolve to the same anonymous, score-qualified winner, **stable preferences, approved quality-training rows, and trained quality adapters remain zero**. Ties, insufficient evidence, order disagreement, and below-floor winners remain visible non-training evidence rather than being repaired into wins. Hosted Scion therefore remains base-only.
+
+The general strict release evaluator remains honestly red at `compiler-contract-only`: compiler fixtures and retained production canaries pass, but the public quality ruler has zero independently validated held-out cases and the independent-instructor benchmark has zero completed reviews. v0.16.18 does not turn Codex into a human reviewer or claim classroom readiness.
 
 v0.16.12 closes a separate promotion-integrity hole. A browser-device evidence file no longer passes merely because its SHA-256 matches a manifest entry labeled `pass`. One frozen semantic protocol now requires Chrome and Edge across integrated-8 GB, integrated-16 GB, discrete-8 GB, and Apple-Silicon-16 GB profiles. Every profile must prove the exact adapter package and scale, cold and warm base loads, base and adapter completions, native output-changing activation, exact rollback, three repeated completions, measured memory budgets, and real recovery from an interrupted download, storage pressure, and WebGPU device loss. Browser traces, console logs, sanitized hardware probes, and runtime snapshots are byte-verified. Apple Silicon no longer substitutes for a discrete-GPU run.
 
@@ -121,7 +127,7 @@ Research training requires at least 100 stable Codex preferences, at least 20 in
 
 See [evaluation/README.md](evaluation/README.md) for the gate definitions and route-separated evidence, and [the evidence-aware quality benchmark](docs/QUALITY_BENCHMARK_V1.md) for the v1 construct, anchored rubrics, corpus, validation tiers, reliability, and controlled-comparison protocol. The [research basis](docs/QUALITY_BENCHMARK_RESEARCH.md) and [pre-v1 audit](docs/QUALITY_EVALUATION_AUDIT.md) keep the evidence and design judgments inspectable.
 
-v0.16.15 makes Codex the explicit standing judge for Scion's controlled quality comparisons. This is **single-model-judge evidence**, not a hidden panel and not human or instructor validation. Every run preregisters one exact Codex model, runtime or session revision, and prompt SHA-256. Codex scores both anonymous artifacts first with byte-verified source-, artifact-, rubric-, and scorecard-bound evidence, then records a winner. The same frozen pair is repeated in A/B and B/A order; both passes must map to the same unblinded outcome before the analyzer counts one stable trial. Missing reverse passes, position-sensitive winners, changed judge identity, changed scorecard hashes, reused trials, and unbound scores fail closed.
+v0.16.15 makes Codex the explicit standing judge for Scion's controlled quality comparisons. This is **single-model-judge evidence**, not a hidden panel and not human or instructor validation. Every run preregisters one exact Codex model, runtime or session revision, and prompt SHA-256. Codex scores both anonymous artifacts first with byte-verified source-, artifact-, rubric-, and scorecard-bound evidence, then records a winner, tie, or insufficient-evidence decision. The same frozen pair is repeated in A/B and B/A order; both passes must map to the same unblinded, score-qualified winner before the analyzer counts one stable preference. Missing reverse passes, ties, insufficient evidence, low-quality relative winners, position-sensitive decisions, changed judge identity, changed scorecard hashes, reused trials, and unbound scores remain non-training evidence or fail closed.
 
 Scion's configured promotion ruler now requires ten distinct trials in each of the five frozen held-out domains, two reversed-order Codex passes per trial, at least fifty stable trial outcomes and one hundred recorded passes, a preference Wilson lower bound above 0.5, a positive held-out score interval in every domain, and a strictly lower compiler-call interval. Factual, source, leakage, export/package, browser-device, memory, activation, rollback, recovery, and production gates remain separate requirements. The qualified-human comparison lane remains available for research, but it is not silently mixed with or required by the declared Codex lane.
 
@@ -138,7 +144,7 @@ This is an executable ruler, not a stronger adapter result. Hosted Scion is stil
 
 v0.16.16 connects that ruler to the training corpus without pretending that one model is a human panel. `npm run build:scion:codex-training-reviews` reconstructs and verifies the neutral organizer packet, excludes cases without source context, and emits separate A/B and B/A batch templates. `npm run ingest:scion:codex-training-reviews -- --review ... --review ...` accepts only two fresh, provenance-matched Codex sessions whose scores and winner survive order reversal; changed bytes, reused sessions, missing passes, low winner scores, non-positive score margins, vague defects, and position-sensitive outcomes are quarantined or rejected. The curated dataset, adapter manifest, and promotion audit now require this `single-model-judge` evidence as their primary learned-quality lane.
 
-The real v0.16.17 preflight produced 128 eligible source-backed templates and excluded 32 of 160 cases. No template has been completed, so the approved Codex corpus is still empty and research training remains blocked. This release makes the planned 100-pair research judgment campaign possible; it does not claim a trained adapter, changed public weights, faster generation, or improved course quality.
+The real v0.16.17 preflight produced 128 eligible source-backed templates and excluded 32 of 160 cases. v0.16.18 has now completed and sealed the first A/B order, but the approved Codex corpus is still empty because one pass cannot establish a stable preference. Research training remains blocked. This release does not claim a trained adapter, changed public weights, faster generation, improved course quality, or any first-pass outcome.
 
 ### Local research route
 
@@ -154,7 +160,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.17)
+## Current Pipeline (v0.16.18)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -583,6 +589,7 @@ npm run audit:scion:corpus        # fail-closed preference corpus curation
 npm run audit:scion:factual-canaries # frozen source-anchored factual packet
 npm run audit:scion:review-packet # balanced anonymous atom packet
 npm run build:scion:codex-training-reviews # source-backed A/B and B/A Codex templates
+npm run audit:scion:codex-sealed-pass # verify the outcome-sealed v0.16.18 A/B envelope
 npm run ingest:scion:codex-training-reviews -- --review ... --review ...
 ```
 

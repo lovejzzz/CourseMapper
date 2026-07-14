@@ -2073,6 +2073,10 @@ export default function Changelog() {
                   <span className="text-sm text-slate-600 font-medium">{release.date}</span>
                 </div>
 
+                {release.title && (
+                  <h2 className="-mt-4 mb-6 text-lg font-semibold leading-snug text-slate-800">{release.title}</h2>
+                )}
+
                 {/* Highlights */}
                 {release.highlights && (
                   <div className="mb-10 p-5 rounded-lg bg-gradient-to-r from-indigo-50/80 to-violet-50/60 dark:from-indigo-500/10 dark:to-violet-500/10 border border-indigo-100/60">
