@@ -1,4 +1,7 @@
 const ALIGNMENT_STOP_WORDS = new Set(['and', 'are', 'because', 'for', 'from', 'that', 'the', 'this', 'with', 'while']);
+const TERMINAL_PUNCT_RE = /[.!?][\])}"']?$/;
+const SENTENCE_BOUNDARY_RE = /[.!?][\])}"']?(?=\s+[A-Z0-9"'“‘]|$)/g;
+const ABBREVIATION_BOUNDARY_RE = /(?:\b(?:e\.g|i\.e|u\.s|vs|dr|mr|mrs|ms|prof|fig|no)|\b[A-Z])\.$/i;
 
 function clean(value) {
   return String(value ?? '')
@@ -26,6 +29,63 @@ export function normalizeScionMcItem(item = {}) {
     options: Array.isArray(item.op ?? item.options) ? (item.op ?? item.options).map(clean) : [],
     answerIndex: Number(item.ai ?? item.answerIndex),
     explanation: clean(item.ex ?? item.explanation),
+  };
+}
+
+/**
+ * Recover only the complete prefix of an explanation that ends mid-sentence.
+ *
+ * This is deliberately narrower than adding punctuation. At least one real
+ * sentence boundary must already exist, the retained prefix must still clear
+ * the explanation-length floor, and common abbreviations are not accepted as
+ * boundaries. The unfinished suffix remains in the repair receipt so the
+ * compiler never hides what the model actually returned.
+ */
+export function findScionIncompleteExplanationTail(value = '') {
+  const explanation = clean(value);
+  if (!explanation || TERMINAL_PUNCT_RE.test(explanation)) return null;
+
+  let boundary = null;
+  for (const match of explanation.matchAll(SENTENCE_BOUNDARY_RE)) {
+    const end = Number(match.index) + match[0].length;
+    const prefix = explanation.slice(0, end).trim();
+    if (ABBREVIATION_BOUNDARY_RE.test(prefix)) continue;
+    boundary = { end, prefix };
+  }
+  if (!boundary || boundary.prefix.length < 20) return null;
+
+  const removedTail = explanation.slice(boundary.end).trim();
+  if (!removedTail) return null;
+  return {
+    explanation,
+    completePrefix: boundary.prefix,
+    removedTail,
+    retainedCharacters: boundary.prefix.length,
+    removedCharacters: removedTail.length,
+  };
+}
+
+export function buildScionExplanationTailRepair({ item, lessonId = '', itemIndex = 0, tail } = {}) {
+  const rejected = normalizeScionMcItem(item);
+  const detected = tail || findScionIncompleteExplanationTail(rejected.explanation);
+  if (!detected) return null;
+  return {
+    kind: 'mc-item',
+    pass: 'incompleteExplanationTail',
+    lessonId,
+    item: itemIndex,
+    action: 'trimmed-incomplete-tail',
+    prompt: 'Retain only complete model-authored sentences before an unfinished explanation tail.',
+    rejected,
+    chosen: { ...rejected, explanation: detected.completePrefix },
+    trainingEligible: false,
+    recoveryEvidence: {
+      kind: 'existing-sentence-boundary',
+      verified: true,
+      retainedCharacters: detected.retainedCharacters,
+      removedCharacters: detected.removedCharacters,
+      removedTail: detected.removedTail,
+    },
   };
 }
 
@@ -93,6 +153,60 @@ export function buildScionAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, 
   };
 }
 
+function replaceExplanation(item, value) {
+  const next = { ...item };
+  if (Object.prototype.hasOwnProperty.call(next, 'ex')) next.ex = value;
+  if (Object.prototype.hasOwnProperty.call(next, 'explanation')) next.explanation = value;
+  if (!Object.prototype.hasOwnProperty.call(next, 'ex') && !Object.prototype.hasOwnProperty.call(next, 'explanation')) {
+    next.explanation = value;
+  }
+  return next;
+}
+
+function replaceAnswerIndex(item, value) {
+  const next = { ...item };
+  if (Object.prototype.hasOwnProperty.call(next, 'ai')) next.ai = value;
+  if (Object.prototype.hasOwnProperty.call(next, 'answerIndex')) next.answerIndex = value;
+  if (!Object.prototype.hasOwnProperty.call(next, 'ai') && !Object.prototype.hasOwnProperty.call(next, 'answerIndex')) {
+    next.answerIndex = value;
+  }
+  return next;
+}
+
+/** Apply the two conservative MC repairs in a fixed, provenance-preserving order. */
+export function repairScionMcItem(
+  item = {},
+  {
+    lessonId = '',
+    itemIndex = 0,
+    recoverIncompleteExplanation = true,
+    realignAnswerKey = true,
+    keyConflictOptions,
+  } = {},
+) {
+  let next = item;
+  const repairs = [];
+
+  if (recoverIncompleteExplanation) {
+    const tailRepair = buildScionExplanationTailRepair({ item: next, lessonId, itemIndex });
+    if (tailRepair) {
+      next = replaceExplanation(next, tailRepair.chosen.explanation);
+      repairs.push(tailRepair);
+    }
+  }
+
+  if (realignAnswerKey) {
+    const conflict = findScionExplanationKeyConflict(next, keyConflictOptions);
+    const keyRepair = buildScionAnswerKeyRepair({ item: next, lessonId, itemIndex, conflict });
+    if (keyRepair) {
+      next = replaceAnswerIndex(next, keyRepair.chosen.answerIndex);
+      repairs.push(keyRepair);
+    }
+  }
+
+  return { item: next, repairs };
+}
+
 /** Re-check the persisted graph source so later normalization cannot resurrect a contradicted key. */
 export function repairScionEnrichmentAnswerKeys(enrichment = {}) {
   const lessonContent =
@@ -107,11 +221,11 @@ export function repairScionEnrichmentAnswerKeys(enrichment = {}) {
     let nextQuizItems = quizItems;
     quizItems.forEach((item, itemIndex) => {
       if ((item?.type || 'multiple_choice') !== 'multiple_choice') return;
-      const repair = buildScionAnswerKeyRepair({ item, lessonId, itemIndex });
-      if (!repair) return;
+      const repaired = repairScionMcItem(item, { lessonId, itemIndex });
+      if (repaired.repairs.length === 0) return;
       if (nextQuizItems === quizItems) nextQuizItems = [...quizItems];
-      nextQuizItems[itemIndex] = { ...item, answerIndex: repair.chosen.answerIndex };
-      repairs.push(repair);
+      nextQuizItems[itemIndex] = repaired.item;
+      repairs.push(...repaired.repairs);
     });
     if (nextQuizItems !== quizItems) {
       if (nextLessonContent === lessonContent) nextLessonContent = { ...lessonContent };

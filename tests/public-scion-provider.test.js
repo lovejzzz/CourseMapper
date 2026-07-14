@@ -21,6 +21,7 @@ import {
   publicScionModelOption,
   publicScionKernelResponseNeedsRetry,
   publicScionRetryDelay,
+  repairPublicScionJson,
   repairPublicScionJsonText,
 } from '../src/lib/publicScionProvider';
 
@@ -312,6 +313,59 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     };
     const repaired = JSON.parse(repairPublicScionJsonText(JSON.stringify(response)));
     expect(repaired.lessons[0].mc[0].ai).toBe(0);
+    expect(repairPublicScionJson(JSON.stringify(response)).repairs).toEqual([
+      expect.objectContaining({
+        pass: 'explanationKeyAlignment',
+        trainingEligible: false,
+        preferenceEvidence: expect.objectContaining({
+          evidenceScope: 'browser-relaxed-paraphrase-recovery',
+        }),
+      }),
+    ]);
+  });
+
+  it('removes only an unfinished explanation tail before browser-local admission', () => {
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          mc: [
+            {
+              q: 'What is the primary role of a class in programming?',
+              op: [
+                'To store data for a single object',
+                'To serve as a template for creating objects',
+                'To execute a specific sequence of instructions',
+                'To hold the shared behavior of all objects',
+              ],
+              ai: 1,
+              ex: 'A class acts as a template for creating objects. Execution is handled by methods rather than the class definition. Shared behavior is',
+            },
+          ],
+        },
+      ],
+    };
+
+    const repaired = JSON.parse(repairPublicScionJsonText(JSON.stringify(response)));
+    expect(repaired.lessons[0].mc[0]).toMatchObject({
+      ai: 1,
+      ex: 'A class acts as a template for creating objects. Execution is handled by methods rather than the class definition.',
+    });
+
+    response.lessons[0].mc[0].ex = 'A class acts as a template for creating objects without a completed sentence';
+    const noBoundary = JSON.parse(repairPublicScionJsonText(JSON.stringify(response)));
+    expect(noBoundary.lessons[0].mc[0].ex).toBe(response.lessons[0].mc[0].ex);
+
+    response.lessons[0].mc[0].ex = 'A class acts as a template for creating objects. Shared behavior is';
+    const detailed = repairPublicScionJson(JSON.stringify(response));
+    expect(detailed.repairs).toEqual([
+      expect.objectContaining({
+        pass: 'incompleteExplanationTail',
+        lessonId: 'lesson-4',
+        item: 0,
+        trainingEligible: false,
+      }),
+    ]);
   });
 
   it('lifts lesson fields that anonymous JSON accidentally nests under a sibling field', () => {

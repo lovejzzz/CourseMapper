@@ -1,0 +1,147 @@
+{
+  "protocol": "scion-mc-contract-recovery-audit-v1",
+  "release": "v0.16.22",
+  "generatedAt": "2026-07-14T17:53:19.904Z",
+  "status": "compiler-contract-recovery-proven",
+  "implementation": [
+    {
+      "file": "scripts/scionMcContractRecoveryAudit.mjs",
+      "bytes": 10825,
+      "sha256": "c439bc9d443bfef7e27ff5fc3c10d90908b31e2b29e71091019ba2e8675ce85a"
+    },
+    {
+      "file": "src/lib/blueprintEnrichmentPass.js",
+      "bytes": 70767,
+      "sha256": "f08c04cd8cfa3df50d6832baf031afce707341937e90c4ef188424b0fef09a8a"
+    },
+    {
+      "file": "src/lib/courseGraph/blueprintFromGraph.js",
+      "bytes": 8847,
+      "sha256": "cbcc3b9fb8dcbb57c6034052b15ce7e43d78e52382d97ec9550820955e5a86c5"
+    },
+    {
+      "file": "src/lib/publicScionProvider.js",
+      "bytes": 25727,
+      "sha256": "cd64176e8f3dccba47586a41d04abf25d991f98e16331455d7bd6fe3f410e74c"
+    },
+    {
+      "file": "src/lib/scionAnswerKeyAlignment.js",
+      "bytes": 9246,
+      "sha256": "c5d2f3f53f27532470465cbf5ea306dfd95c4e9a166ec373eaad6ad5a12b5d31"
+    },
+    {
+      "file": "src/lib/scionLocalProvider.js",
+      "bytes": 4412,
+      "sha256": "5baf665e90a22ce21afb430f55d9b3ffe69dd3ce92d9c71b047447eddb6cb394"
+    },
+    {
+      "file": "src/lib/scionPreferenceGate.js",
+      "bytes": 15204,
+      "sha256": "127481201918a84b2231b75eb88fad66122d44410adae67ff5863bddc00bc3f2"
+    },
+    {
+      "file": "src/hooks/useStreamReader.js",
+      "bytes": 44300,
+      "sha256": "21762b011bc5470d4bdb064589d3a633e8cd2cc5ad14ca7d1e1d22e3663b6379"
+    }
+  ],
+  "domains": [
+    {
+      "domain": "geology",
+      "evidence": {
+        "file": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-local.json",
+        "bytes": 91900,
+        "sha256": "5bd7f866e860907faa719e8e3d5abd0b59a19e576856e8c32488b9211b0d0ed5"
+      },
+      "calls": 6,
+      "mcItems": 12,
+      "historicalAdmitted": 10,
+      "afterConservativeKeyAlignment": 11,
+      "afterIncompleteTailRecovery": 11,
+      "recoveredByExistingKeyAlignment": 1,
+      "recoveredByIncompleteTailRecovery": 0,
+      "remainingBurdenItems": 1
+    },
+    {
+      "domain": "computer-science",
+      "evidence": {
+        "file": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-local.json",
+        "bytes": 86823,
+        "sha256": "ea0a095bee5074043d7d7810041da78c6ab903fc886081b464f23bfe56b9fff5"
+      },
+      "calls": 6,
+      "mcItems": 12,
+      "historicalAdmitted": 8,
+      "afterConservativeKeyAlignment": 10,
+      "afterIncompleteTailRecovery": 12,
+      "recoveredByExistingKeyAlignment": 2,
+      "recoveredByIncompleteTailRecovery": 2,
+      "remainingBurdenItems": 0
+    },
+    {
+      "domain": "music-theory",
+      "evidence": {
+        "file": "evaluation/scion-source-capture-expansion-evidence/tonal-analysis-integration-studio-local.json",
+        "bytes": 82707,
+        "sha256": "add66a66f2eb96dadc71345d5f3011987093072ef71a31f55dbe4982f34f2843"
+      },
+      "calls": 6,
+      "mcItems": 12,
+      "historicalAdmitted": 4,
+      "afterConservativeKeyAlignment": 8,
+      "afterIncompleteTailRecovery": 11,
+      "recoveredByExistingKeyAlignment": 4,
+      "recoveredByIncompleteTailRecovery": 3,
+      "remainingBurdenItems": 1
+    },
+    {
+      "domain": "user-experience-design",
+      "evidence": {
+        "file": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
+        "bytes": 85792,
+        "sha256": "e9a6a0bb699b20003e95a754a07b8ab0a4a32ab1e3c14ae3c0931aae089da905"
+      },
+      "calls": 6,
+      "mcItems": 12,
+      "historicalAdmitted": 3,
+      "afterConservativeKeyAlignment": 4,
+      "afterIncompleteTailRecovery": 11,
+      "recoveredByExistingKeyAlignment": 1,
+      "recoveredByIncompleteTailRecovery": 7,
+      "remainingBurdenItems": 1
+    }
+  ],
+  "summary": {
+    "domains": 4,
+    "calls": 24,
+    "mcItems": 48,
+    "historicalAdmitted": 25,
+    "afterConservativeKeyAlignment": 33,
+    "afterIncompleteTailRecovery": 45,
+    "recoveredByExistingKeyAlignment": 8,
+    "recoveredByIncompleteTailRecovery": 12,
+    "totalRecovered": 20,
+    "historicalBurdenItems": 23,
+    "remainingBurdenItems": 3,
+    "burdenReductionRate": 0.869565
+  },
+  "repairHistogram": {
+    "explanationKeyAlignment": 13,
+    "incompleteExplanationTail": 14
+  },
+  "remainingIssueHistogram": {
+    "longest-option-cue": 3
+  },
+  "qualityBoundary": {
+    "evidenceType": "deterministic-replay-of-immutable-local-model-responses",
+    "claim": "compiler-contract-recovery-only",
+    "details": "Recovery retains existing complete sentences and aligns only decisive explanation/key contradictions. It makes no new factual claim and does not rewrite the historical capture artifacts.",
+    "doesNotProve": [
+      "adapter-quality-win",
+      "held-out-domain-win",
+      "paid-reference-parity",
+      "independent-review",
+      "human-or-instructor-validation"
+    ]
+  }
+}
