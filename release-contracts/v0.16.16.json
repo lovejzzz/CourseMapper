@@ -18,16 +18,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification will run on the exact release commit after push."
+      "status": "success",
+      "commit": "2381677e5018de6c2f9afdee9f53ca360b0a3db0",
+      "runId": 29309429010,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29309429010",
+      "note": "Fast verification passed on the exact v0.16.16 content merge in 15m19s, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the strict main evaluation, production build, and bundle budgets."
     },
     "ciDeep": {
       "status": "manual-only",
       "note": "No model generation, adapter training, held-out adapter comparison, or browser-device matrix is claimed by this evidence-infrastructure release."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages deployment will be verified after the exact main merge passes Fast verification."
+      "status": "success",
+      "commit": "2381677e5018de6c2f9afdee9f53ca360b0a3db0",
+      "runId": 29310155903,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29310155903",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production fetch resolved assets/index-CporGeNt.js and assets/releaseManifest-_YOnWjZX.js and confirmed v0.16.16 plus the Judge to Gradient release title in the live bundle."
     },
     "liveProvider": {
       "status": "not-used",
