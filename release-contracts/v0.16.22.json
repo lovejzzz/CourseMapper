@@ -20,16 +20,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The content release has not yet merged to main. Exact merge SHA and Fast verification run will be recorded by the proof-only follow-up."
+      "status": "success",
+      "commit": "17239237100a9eb8f71203cc97706f1730697e9d",
+      "runId": 29356832964,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29356832964",
+      "note": "Fast verification passed on the exact v0.16.22 content merge in 21m49s, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the full main evaluation at compiler-contract-only, production build, bundle budgets, and uploaded evaluation reports."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The release replays immutable local-model responses through deterministic compiler recovery. It does not perform the fresh B/A judgment, train an adapter, run the frozen held-out ruler, or claim a browser-device matrix."
     },
     "deploy": {
-      "status": "pending",
-      "note": "GitHub Pages and cache-busted production-browser proof will be recorded after the verified content merge."
+      "status": "success",
+      "commit": "17239237100a9eb8f71203cc97706f1730697e9d",
+      "runId": 29358320407,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29358320407",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production Chromium run at 2026-07-14T18:38:18.224Z returned HTTP 200 for the landing and changelog document, rendered Provider Scion, disabled API with No API key required, Model Scion V0.16.22, the customized-local-model description, the Complete Thoughts title, the 25/48 to 45/48 replay figures, and the not-a-new-model-run boundary. Every loaded JS and CSS asset returned 200, with zero console errors, page errors, or failed requests. Visual inspection confirmed the expanded landing configuration is readable and aligned."
     },
     "liveProvider": {
       "status": "not-used",
