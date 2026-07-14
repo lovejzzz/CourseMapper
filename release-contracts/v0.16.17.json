@@ -17,16 +17,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The exact v0.16.17 content commit has not reached main CI yet. This contract will be updated with the final commit and run after remote verification passes."
+      "status": "success",
+      "commit": "de8429275549dfeda070d6527de2a16399564138",
+      "runId": 29317726950,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29317726950",
+      "note": "Fast verification passed on the exact v0.16.17 content merge in 22m49s, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the strict main evaluation, production build, and bundle budgets. GitHub's delayed native push run correctly superseded and canceled one manual fallback run before that fallback had completed lint."
     },
     "ciDeep": {
       "status": "manual-only",
       "note": "The release performed real compact base/reference generation, but no adapter training, frozen five-domain held-out comparison, or browser-device matrix is claimed."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and the cache-busted live release surface will be verified after the content commit reaches main."
+      "status": "success",
+      "commit": "de8429275549dfeda070d6527de2a16399564138",
+      "runId": 29319137232,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29319137232",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production fetch resolved assets/index-BrhFLbDl.js and assets/releaseManifest-BD7wDJWf.js and confirmed v0.16.17 plus the Enough to Judge release title in the live bundle."
     },
     "liveProvider": {
       "status": "local-only",
