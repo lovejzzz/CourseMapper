@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 4,
+  "protocol": "scion-blind-atom-packet-v4",
+  "status": "ready-for-model-judge-research",
+  "generatedAt": "2026-07-14T07:57:49.000Z",
+  "packetId": "scion-review-423315b77cf6219c9a46",
+  "packetDigest": "423315b77cf6219c9a46de559f53490cee107745c006bb8d16daf358534e8f69",
+  "organizerDigest": "0ddd7990e2cafa094c5828c82f411d1bad8b7e69a42d718639688f064213089b",
+  "selectedCases": 160,
+  "availableCandidates": 437,
+  "availableSourceContextCandidates": 128,
+  "selectedSourceContextCases": 128,
+  "excludedMissingSourceContext": 32,
+  "requiredModelJudgePasses": 256,
+  "completedModelJudgePasses": 0,
+  "approvedTrainingPairs": 0,
+  "domains": ["computer-science", "geology", "music-theory", "user-experience-design"],
+  "domainCounts": {
+    "computer-science": 40,
+    "geology": 40,
+    "music-theory": 40,
+    "user-experience-design": 40
+  },
+  "sourceContextDomainCounts": {
+    "computer-science": 31,
+    "geology": 39,
+    "music-theory": 32,
+    "user-experience-design": 26
+  },
+  "kindCounts": {
+    "mc-item": 61,
+    "key-term": 99
+  },
+  "sourceContextKindCounts": {
+    "mc-item": 46,
+    "key-term": 82
+  },
+  "courseGroupCount": 16,
+  "domainGroupCounts": {
+    "computer-science": 4,
+    "geology": 4,
+    "music-theory": 4,
+    "user-experience-design": 4
+  },
+  "targetCourseGroupsPerDomain": 3,
+  "groupCoverageStatus": "ready",
+  "researchCoverageStatus": "ready",
+  "coverageStatus": "needs-more-domains",
+  "sourceCaptureCampaigns": [
+    {
+      "role": "retained-v0.16.11",
+      "protocol": "scion-source-grounded-atom-capture-v1",
+      "manifestPath": "evaluation/scion-source-capture-campaign.json",
+      "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+      "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d",
+      "artifactSetSha256": "23f8646eeef3d74f741bdb980b6a9064ce558ba9141a4003a62b11a4b1c9eb13",
+      "groups": 8,
+      "promptsPerArm": 24,
+      "expectedAtomsPerArm": 96,
+      "validProjects": 16,
+      "totalProjects": 16,
+      "local": {
+        "rawGeneratedAtoms": 92,
+        "rawAdmittedAtoms": 62,
+        "rawBurdenAtoms": 34,
+        "rawBurdenRate": 0.354167,
+        "recoveryCalls": 1,
+        "compiledGeneratedAtoms": 94,
+        "compiledAdmittedAtoms": 63,
+        "compiledBurdenAtoms": 33,
+        "compiledBurdenRate": 0.34375
+      },
+      "reference": {
+        "rawGeneratedAtoms": 96,
+        "rawAdmittedAtoms": 91,
+        "rawBurdenAtoms": 5,
+        "rawBurdenRate": 0.052083,
+        "recoveryCalls": 0
+      }
+    },
+    {
+      "role": "additive-v0.16.17",
+      "protocol": "scion-source-grounded-atom-capture-v1",
+      "manifestPath": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+      "manifestSha256": "7745ab25f0b006d1d84913f8df9b95acb09414b05cd611944abcd0da34f872da",
+      "promptSetSha256": "0355e7ee7588f6bcfaa114043b19cfb9afe03dbc8e9095aeeaa9b548b2d1835e",
+      "artifactSetSha256": "1fb9d4d0b7f56da2372c083582622fe192a969610b61af04d85b0dd2d3e3fa2e",
+      "groups": 4,
+      "promptsPerArm": 24,
+      "expectedAtomsPerArm": 96,
+      "validProjects": 8,
+      "totalProjects": 8,
+      "local": {
+        "model": {
+          "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+          "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+          "route": "mlx-vlm-base-only",
+          "decoding": "greedy-json-schema"
+        },
+        "rawGeneratedAtoms": 96,
+        "rawAdmittedAtoms": 70,
+        "rawBurdenAtoms": 26,
+        "rawBurdenRate": 0.270833,
+        "recoveryCalls": 0,
+        "compiledGeneratedAtoms": 96,
+        "compiledAdmittedAtoms": 70,
+        "compiledBurdenAtoms": 26,
+        "compiledBurdenRate": 0.270833
+      },
+      "reference": {
+        "model": {
+          "id": "gpt-5.4-mini",
+          "route": "responses-api",
+          "reasoningEffort": "low"
+        },
+        "rawGeneratedAtoms": 96,
+        "rawAdmittedAtoms": 86,
+        "rawBurdenAtoms": 10,
+        "rawBurdenRate": 0.104167,
+        "recoveryCalls": 0
+      },
+      "comparison": {
+        "rawLocalBurdenDeltaAtoms": 16,
+        "rawLocalBurdenDeltaRate": 0.166666,
+        "compiledLocalBurdenDeltaAtoms": 16,
+        "compiledLocalBurdenDeltaRate": 0.166666,
+        "localRawHasLowerCompilerBurden": false
+      }
+    }
+  ],
+  "aggregateSourceCapture": {
+    "groups": 12,
+    "promptsPerArm": 48,
+    "expectedAtomsPerArm": 192,
+    "validProjects": 24,
+    "local": {
+      "rawGeneratedAtoms": 188,
+      "rawAdmittedAtoms": 132,
+      "rawBurdenAtoms": 60,
+      "rawBurdenRate": 0.3125,
+      "compiledGeneratedAtoms": 190,
+      "compiledAdmittedAtoms": 133,
+      "compiledBurdenAtoms": 59,
+      "compiledBurdenRate": 0.307292
+    },
+    "reference": {
+      "rawGeneratedAtoms": 192,
+      "rawAdmittedAtoms": 177,
+      "rawBurdenAtoms": 15,
+      "rawBurdenRate": 0.078125
+    },
+    "comparison": {
+      "rawLocalBurdenDeltaAtoms": 45,
+      "rawLocalBurdenDeltaRate": 0.234375,
+      "compiledLocalBurdenDeltaAtoms": 44,
+      "compiledLocalBurdenDeltaRate": 0.229167,
+      "localRawHasLowerCompilerBurden": false
+    }
+  },
+  "heldOutBenchmark": {
+    "path": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+    "sha256": "e3f07d2ccdf197315556e0205b97b30aee7a447399e14c440d6c1865e11b08a5",
+    "domains": ["astronomy", "nutrition", "psychology", "world-languages", "world-literature"],
+    "excluded": {},
+    "excludedCount": 0
+  },
+  "excludedInvalidCourseGroups": [],
+  "sourceFiles": [
+    {
+      "source": "evaluation/scion-review-candidates.jsonl",
+      "sha256": "59f313090292d03332e59b16b1cd91da64ebd2b02baf2f66b86c16c06391bc7b"
+    }
+  ],
+  "claimBoundary": "This receipt proves an additive, holdout-disjoint, source-bound packet with 128 reviewable cases and exact base/reference compiler burden. It proves no Codex judgment, human judgment, approved training pair, adapter quality, model win, or promotion result."
+}

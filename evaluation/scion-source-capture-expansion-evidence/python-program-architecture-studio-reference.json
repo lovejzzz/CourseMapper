@@ -1,0 +1,1688 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-python-program-architecture-studio-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Python Program Architecture Studio, a six-session intermediate programming course in which students trace iteration, transform text, persist data, compare recursive and iterative solutions, and design small class-based programs.",
+  "fileNames": ["source-packet-fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00.json"],
+  "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Python Program Architecture Studio\",\"sessions\":[{\"number\":1,\"title\":\"While loops\"},{\"number\":2,\"title\":\"For loops and range\"},{\"number\":3,\"title\":\"Strings and slicing\"},{\"number\":4,\"title\":\"File input and output\"},{\"number\":5,\"title\":\"Recursion\"},{\"number\":6,\"title\":\"Objects and classes\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[],\"keyTerms\":[{\"tr\":\"infinite loop\",\"df\":\"A loop that keeps running because its condition never turns false.\",\"eg\":\"A file-reading loop that never advances the file position can keep printing the same line forever.\",\"mi\":\"It is any loop that runs a lot of times.\",\"cx\":\"A loop can run many times and still end normally; it becomes infinite only when the stopping condition never changes.\",\"sourceFactIndexes\":[3]},{\"tr\":\"loop condition\",\"df\":\"The test a while loop checks before each pass to decide whether to continue.\",\"eg\":\"In a password prompt, the condition can check whether the entry is still invalid.\",\"mi\":\"It is the code inside the loop body.\",\"cx\":\"The body does the work; the condition is the check that controls whether another iteration happens.\",\"sourceFactIndexes\":[0,1,2]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"In a program that processes the characters in the word \\\"code\\\", what does the for loop do?\",\"op\":[\"It steps through each character in order, one at a time.\",\"It stores the whole word inside the loop variable at once.\",\"It changes the word into a range of integers automatically.\",\"It repeats forever until the word becomes a list.\"],\"ai\":0,\"ex\":\"A for loop iterates over the string one element at a time, binding the loop variable to each character in turn. The most plausible misconception is that the loop variable holds the entire string at once, but the loop retrieves container objects individually instead.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"for loop\",\"df\":\"A control structure that visits each item in a container one by one.\",\"eg\":\"Loop through a list of student names and print each name.\",\"mi\":\"It always means repeating a block a fixed number of times.\",\"cx\":\"It may also step through a string or list, not only a counted repetition.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"range()\",\"df\":\"A function that creates a sequence of integers for looping.\",\"eg\":\"Use range(5) to run a print statement five times.\",\"mi\":\"It yields 1 through n when given n.\",\"cx\":\"With range(n), the sequence starts at 0 and ends at n-1.\",\"sourceFactIndexes\":[3]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"In Python, if s = \\\"studio\\\", which expression returns the substring \\\"tud\\\"?\",\"op\":[\"s[1:4]\",\"s[0:3]\",\"s[-4:-1]\",\"s[1:5]\"],\"ai\":0,\"ex\":\"s[1:4] is correct because slicing includes the start index 1 and stops before index 4, giving characters at positions 1, 2, and 3. The most plausible mistake is choosing s[0:3], which also has three characters but starts one position too early and returns \\\"stu\\\" instead.\",\"sourceFactIndexes\":[0,3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"String index\",\"df\":\"A position label used to access a character in order from left to right.\",\"eg\":\"In \\\"studio\\\", index 0 is \\\"s\\\" and index 5 is \\\"o\\\".\",\"mi\":\"Indexing starts at 1 because the first character feels like \\\"one.\\\"\",\"cx\":\"Python strings start at 0, so the left-most character is index 0 and the right-most is len(s) - 1.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Slice\",\"df\":\"A way to extract a contiguous part of a string using start and stop positions.\",\"eg\":\"In \\\"studio\\\", s[1:4] gives \\\"tud\\\".\",\"mi\":\"The stop number is included in the result.\",\"cx\":\"A slice s[a:b] includes index a but excludes index b.\",\"sourceFactIndexes\":[0,3]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"A program needs the full text of a saved note file so it can count the characters. Which file method fits this task best after opening the file?\",\"op\":[\"read()\",\"readline()\",\"readlines()\",\"open()\"],\"ai\":0,\"ex\":\"read() is the best choice because it returns the entire contents as one string. A common misconception is to choose readlines(), but that produces a list of separate lines rather than one full string.\",\"sourceFactIndexes\":[2,1,3],\"type\":\"multiple_choice\"},{\"q\":\"After a script finishes copying data from a file, what should it do to finish the file-use cycle properly?\",\"op\":[\"close the file object\",\"call readline()\",\"call read() again\",\"reopen the file object\"],\"ai\":0,\"ex\":\"Closing the file object completes the open-work-close cycle described for file input and output. The plausible misconception is to call another read method, but those methods are for getting content, not finishing the access step.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"File I/O\",\"df\":\"A way for a program to work with data stored in files by opening the file, using its contents, and then closing it.\",\"eg\":\"A student script opens a text file of survey answers, reads the lines, and then closes the file.\",\"mi\":\"It only means saving information, not reading it.\",\"cx\":\"It includes both reading from files and writing into files.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"readlines()\",\"df\":\"A file method that returns every line from the file as a list.\",\"eg\":\"A program loads a poem file and gets a list where each line is a separate item.\",\"mi\":\"It returns one large string like read().\",\"cx\":\"That behavior matches read(); readlines() instead gives a list of lines.\",\"sourceFactIndexes\":[3,2]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"A student writes a function to sum numbers from n down to 1 by calling the same function on n-1. What feature must be present so the program eventually stops?\",\"op\":[\"A stopping condition for a small enough input\",\"A loop counter that increases forever\",\"A second function that replaces every call\",\"A print statement after each call\"],\"ai\":0,\"ex\":\"A stopping condition is the base case: it ends the self-calls once the input is small enough. The common misconception is that recursion stops just because the input changes; without a base case, the calls continue instead of terminating.\",\"sourceFactIndexes\":[0,2,3],\"type\":\"multiple_choice\"},{\"q\":\"A recursive text-processing function keeps calling itself on shorter strings. What describes the recursive step?\",\"op\":[\"It calls itself on a smaller string\",\"It stores the final result before any call\",\"It repeats the same input until it finishes\",\"It avoids calling itself and uses only one pass\"],\"ai\":0,\"ex\":\"The recursive step is the self-call on a smaller input. A plausible misconception is to confuse recursion with repeating the same input unchanged; that does not move the problem toward a base case.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Recursion\",\"df\":\"A way to solve a problem by turning it into a smaller version of the same problem until a base case is reached.\",\"eg\":\"A function that counts down from 5 by calling itself with 4, then 3, then 2, until it reaches 0.\",\"mi\":\"Recursion just means using many loops to do the same task.\",\"cx\":\"A recursive solution can use self-calls on smaller inputs, while loops repeat without self-calls.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"Base case\",\"df\":\"The simplest input where the answer is already known or easy to find, so the self-calls can stop.\",\"eg\":\"When a countdown function reaches 0 and returns immediately.\",\"mi\":\"Any last step in a program is a base case.\",\"cx\":\"A base case is not just the final line of code; it is the specific condition that ends recursion.\",\"sourceFactIndexes\":[2,3]}]},\"lesson-6\":{\"quizItems\":[{\"q\":\"A student writes a program that creates several bank-account objects from one class. Which statement best describes those objects and the class that produced them?\",\"op\":[\"The class is a blueprint, and each account is an instance with its own attributes.\",\"Each account is the blueprint, and the class is one copied object.\",\"The class stores only methods, while objects share all attributes.\",\"Every account is the same object because it comes from one class.\"],\"ai\":0,\"ex\":\"Correct: a class is a blueprint, and each object made from it is an instance. The tempting mistake is to treat the class as one of the finished objects or to assume all objects are identical; in fact, each instance is its own object built from the class.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"A program uses the same class to make two playlist objects. What is the best expectation about their data and behavior?\",\"op\":[\"Each playlist has its own attributes, while the class methods are shared.\",\"Both playlists must share one combined set of attributes.\",\"The class keeps the attributes, and each object gets a different method set.\",\"Methods belong only to the first playlist created.\"],\"ai\":0,\"ex\":\"Correct: each instance carries its own copy of the attributes, and the methods defined by the class are shared by every instance. A common misconception is that one object's data is automatically shared by all others, or that methods are duplicated separately for each object.\",\"sourceFactIndexes\":[3,0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Instance\",\"df\":\"A specific object created from a class, with its own attribute values.\",\"eg\":\"If a class models a playlist, one saved playlist on screen is an instance.\",\"mi\":\"It means the class itself, or a shared template with no real data.\",\"cx\":\"An instance is a built object; the class is the blueprint that produced it.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Class\",\"df\":\"A reusable blueprint that specifies what data and behavior objects will have.\",\"eg\":\"A course program might use a class to describe a bank account with balances and deposit actions.\",\"mi\":\"It is a single object already holding one set of values.\",\"cx\":\"A class is the source pattern; objects made from it are the instances.\",\"sourceFactIndexes\":[0,1,3]}]}}}}",
+  "savedAt": "2026-07-14T06:51:11.254Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+    "campaignManifestSha256": "7745ab25f0b006d1d84913f8df9b95acb09414b05cd611944abcd0da34f872da",
+    "promptSetSha256": "0355e7ee7588f6bcfaa114043b19cfb9afe03dbc8e9095aeeaa9b548b2d1835e",
+    "courseInputSha256": "9a6d83995010dfa65da999100de923b66244bd16cec2cb4c24161de8d1ca6751",
+    "courseGroupId": "python-program-architecture-studio",
+    "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/cs-intro.json",
+      "sourceArtifactSha256": "fbfb087cd78092d0a6869b28435a2eebb5bebc809a1cb38bfcfccfe971310acd",
+      "kernels": [
+        {
+          "id": "cs/while-loops",
+          "term": "While loops",
+          "definition": "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#5.1",
+            "loc": "5.1",
+            "quote": "A while loop is a code construct that runs a set of statements, known as the loop body, while a given condition, known as the loop expression, is true"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "After each pass through the body, the loop expression is evaluated again to decide whether to continue.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.1",
+                "loc": "5.1",
+                "quote": "At each iteration, once the loop statement is executed, the loop expression is evaluated again"
+              }
+            },
+            {
+              "index": 1,
+              "text": "If the loop expression is true, the body runs again; if it is false, the loop terminates.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.1",
+                "loc": "5.1",
+                "quote": "If true, the loop body will execute at least one more time. If false, the loop's execution will terminate"
+              }
+            },
+            {
+              "index": 2,
+              "text": "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.1",
+                "loc": "5.1",
+                "quote": "the loop body must make progress toward ending the condition"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": ["OpenStax Introduction to Python Programming, §5.1 While loop"]
+        },
+        {
+          "id": "cs/for-loops",
+          "term": "For loops and range",
+          "definition": "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#5.2",
+            "loc": "5.2",
+            "quote": "A for loop iterates over all elements in a container"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A container can be a range of numbers, a string of characters, or a list of values.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.2",
+                "loc": "5.2",
+                "quote": "In Python, a container can be a range of numbers, a string of characters, or a list of values"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The loop retrieves the objects of a container one at a time.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.2",
+                "loc": "5.2",
+                "quote": "an iterative loop can be designed to retrieve objects one at a time"
+              }
+            },
+            {
+              "index": 2,
+              "text": "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.2",
+                "loc": "5.2",
+                "quote": "The range() function produces a sequence of integers"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": ["OpenStax Introduction to Python Programming, §5.2 For loop"]
+        },
+        {
+          "id": "cs/strings",
+          "term": "Strings and slicing",
+          "definition": "A string is a sequence of characters indexed from left to right starting at 0; slicing extracts a contiguous substring with the [a:b] notation.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#8.2",
+            "loc": "8.2",
+            "quote": "A string is made up of a sequence of characters indexed from left to right, starting at 0"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "For a string s, the left-most character is index 0 and the right-most is index len(s) - 1.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#8.2",
+                "loc": "8.2",
+                "quote": "the left-most character is indexed 0 and the right-most character is indexed len(s) - 1"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Negative indexing refers to characters from right to left starting at -1.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#8.2",
+                "loc": "8.2",
+                "quote": "Negative indexing can also be used to refer to characters from right to left starting at -1"
+              }
+            },
+            {
+              "index": 2,
+              "text": "A slice s[a:b] returns characters from index a (inclusive) up to index b (exclusive).",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#8.2",
+                "loc": "8.2",
+                "quote": "starting from index a (inclusive) up to index b (exclusive) is returned"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": ["OpenStax Introduction to Python Programming, §1.4 String basics; §8.2 String slicing"]
+        },
+        {
+          "id": "cs/file-io",
+          "term": "File input and output",
+          "definition": "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "open() returns a file object that the program then reads from or writes to.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#14.1",
+                "loc": "14.1",
+                "quote": "Python supports the opening of a file using the open() function"
+              }
+            },
+            {
+              "index": 1,
+              "text": "read() reads the entire contents of a file and returns a single string.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#14.1",
+                "loc": "14.1",
+                "quote": "The read() function reads the contents of a file and returns a string"
+              }
+            },
+            {
+              "index": 2,
+              "text": "readline() returns the next single line, while readlines() returns a list with every line of the file.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#14.1",
+                "loc": "14.1",
+                "quote": "The readlines() function reads the individual lines of a file and returns a string list containing all the lines of the file in order"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": ["OpenStax Introduction to Python Programming, §14.1 Reading from files"]
+        },
+        {
+          "id": "cs/recursion",
+          "term": "Recursion",
+          "definition": "Recursion solves a problem by reducing it to a simpler version of the same problem; a recursive function calls itself on a smaller input until it reaches a base case.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#12.1",
+            "loc": "12.1",
+            "quote": "Recursion is a problem solving technique that uses the solution to a simpler version of the problem to solve the bigger problem"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A recursive function calls itself on a smaller input.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#12.1",
+                "loc": "12.1",
+                "quote": "A recursive function calls itself on a smaller input"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The process continues until the problem is small enough that the solution is known or easily found — the base case.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#12.1",
+                "loc": "12.1",
+                "quote": "The recursion process continues until the problem is small enough, at which point the solution is known or can easily be found"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Without a base case that stops the self-calls, recursion never terminates and overflows the call stack.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#12.1",
+                "loc": "12.1",
+                "quote": "without it the calls would never stop"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": ["OpenStax Introduction to Python Programming, §12.1 Recursion basics"]
+        },
+        {
+          "id": "cs/classes",
+          "term": "Objects and classes",
+          "definition": "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#11.2",
+            "loc": "11.2",
+            "quote": "In a Python program, a class defines a type of object with attributes (fields) and methods (procedures)"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A class is a blueprint for creating objects.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#11.2",
+                "loc": "11.2",
+                "quote": "A class is a blueprint for creating objects"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Individual objects created from a class are called instances.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#11.2",
+                "loc": "11.2",
+                "quote": "Individual objects created of the class type are called instances"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#11.2",
+                "loc": "11.2",
+                "quote": "Each instance carries its own copy of the attributes"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-14T06:51:11.254Z",
+    "admittedPromptIds": [
+      "python-program-architecture-studio:cs/while-loops",
+      "python-program-architecture-studio:cs/for-loops",
+      "python-program-architecture-studio:cs/strings",
+      "python-program-architecture-studio:cs/file-io",
+      "python-program-architecture-studio:cs/recursion",
+      "python-program-architecture-studio:cs/classes"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "python-program-architecture-studio:cs/while-loops",
+          "kernelId": "cs/while-loops",
+          "promptSha256": "d938d8a1057ca0c27c47a9404b1c5fa9bb5fdf46abe2e7520f06772186cc3d6c",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student writes a loop to keep asking for a menu choice until the choice is valid. Which description best matches how the loop works?",
+                "op": [
+                  "It checks the condition before each pass and keeps running only while the condition stays true.",
+                  "It runs once, then rechecks the condition after the body finishes.",
+                  "It repeats only when the condition becomes false, then stops when it becomes true.",
+                  "It guarantees the choice becomes valid without any change to the body."
+                ],
+                "ai": 0,
+                "ex": "Correct: a while loop evaluates the condition before each iteration and continues only while it remains true. The common misconception is that the test happens after the body or that the loop somehow fixes the input by itself; in reality, the body must make progress so the condition can eventually,(",
+                "sourceFactIndexes": [0, 1, 2]
+              },
+              {
+                "q": "A recursive text-processing routine is replaced with a while loop that advances through a string one character at a time. What is the key requirement for the loop to finish?",
+                "op": [
+                  "The condition must eventually become false as the index moves forward.",
+                  "The body should avoid evaluating the condition until the end of the program.",
+                  "The loop should continue even if the condition never changes.",
+                  "The loop will stop automatically after a fixed number of passes."
+                ],
+                "ai": 0,
+                "ex": "Correct: the loop needs a condition that becomes false, and each pass should advance the index or otherwise change the state so the test can fail later. The most plausible mistake is assuming a while loop ends by default after some number of turns; instead, if the condition never becomes false, it f",
+                "sourceFactIndexes": [0, 1, 2]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "infinite loop",
+                "df": "A loop that keeps running because its condition never turns false.",
+                "eg": "A file-reading loop that never advances the file position can keep printing the same line forever.",
+                "mi": "It is any loop that runs a lot of times.",
+                "cx": "A loop can run many times and still end normally; it becomes infinite only when the stopping condition never changes.",
+                "sourceFactIndexes": [3]
+              },
+              {
+                "tr": "loop condition",
+                "df": "The test a while loop checks before each pass to decide whether to continue.",
+                "eg": "In a password prompt, the condition can check whether the entry is still invalid.",
+                "mi": "It is the code inside the loop body.",
+                "cx": "The body does the work; the condition is the check that controls whether another iteration happens.",
+                "sourceFactIndexes": [0, 1, 2]
+              }
+            ]
+          },
+          "responseSha256": "68a9acc949cdff2b60ec0f56fd513d7414e811457d4179b7bb83252591a43135",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "infinite loop",
+                "df": "A loop that keeps running because its condition never turns false.",
+                "eg": "A file-reading loop that never advances the file position can keep printing the same line forever.",
+                "mi": "It is any loop that runs a lot of times.",
+                "cx": "A loop can run many times and still end normally; it becomes infinite only when the stopping condition never changes.",
+                "sourceFactIndexes": [3]
+              },
+              {
+                "tr": "loop condition",
+                "df": "The test a while loop checks before each pass to decide whether to continue.",
+                "eg": "In a password prompt, the condition can check whether the entry is still invalid.",
+                "mi": "It is the code inside the loop body.",
+                "cx": "The body does the work; the condition is the check that controls whether another iteration happens.",
+                "sourceFactIndexes": [0, 1, 2]
+              }
+            ]
+          },
+          "admittedResponseSha256": "88daea3e4c653734ad51c8f3549058092b190aab11b01345ae11df30fa1da0fc",
+          "assessment": {
+            "eligible": true,
+            "issues": ["mc-0-truncated-explanation", "mc-1-truncated-explanation", "no-admitted-mc-items"],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_081f6cd40280edff006a55dc3ec194819d8d03158cd4b53cea",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 631,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 556,
+              "output_tokens_details": {
+                "reasoning_tokens": 36
+              },
+              "total_tokens": 1187
+            }
+          },
+          "startedAt": "2026-07-14T06:50:36.492Z",
+          "durationMs": 7467
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/for-loops",
+          "kernelId": "cs/for-loops",
+          "promptSha256": "86396fdb7064fea3de4fd3b9ef1631e05ea03dfff44f6d052edf98540fe3375a",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student wants to print a message exactly 5 times using a for loop. Which choice best matches that task?",
+                "op": [
+                  "Use range(5) so the loop body runs five times.",
+                  "Use a string of five characters so each character runs once.",
+                  "Use a list of five values and ignore the list items.",
+                  "Use a container with five names to stop after the first name."
+                ],
+                "ai": 0,
+                "ex": "range(5) is the best fit because it produces 0 through 4, letting the loop repeat a fixed number of times. A common misconception is to think any five-item container is equally direct, but a for loop over a container retrieves each element one at a time rather than creating a fixed repeat count by a",
+                "sourceFactIndexes": [3, 0, 2]
+              },
+              {
+                "q": "In a program that processes the characters in the word \"code\", what does the for loop do?",
+                "op": [
+                  "It steps through each character in order, one at a time.",
+                  "It stores the whole word inside the loop variable at once.",
+                  "It changes the word into a range of integers automatically.",
+                  "It repeats forever until the word becomes a list."
+                ],
+                "ai": 0,
+                "ex": "A for loop iterates over the string one element at a time, binding the loop variable to each character in turn. The most plausible misconception is that the loop variable holds the entire string at once, but the loop retrieves container objects individually instead.",
+                "sourceFactIndexes": [0, 1, 2]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "for loop",
+                "df": "A control structure that visits each item in a container one by one.",
+                "eg": "Loop through a list of student names and print each name.",
+                "mi": "It always means repeating a block a fixed number of times.",
+                "cx": "It may also step through a string or list, not only a counted repetition.",
+                "sourceFactIndexes": [0, 1, 2]
+              },
+              {
+                "tr": "range()",
+                "df": "A function that creates a sequence of integers for looping.",
+                "eg": "Use range(5) to run a print statement five times.",
+                "mi": "It yields 1 through n when given n.",
+                "cx": "With range(n), the sequence starts at 0 and ends at n-1.",
+                "sourceFactIndexes": [3]
+              }
+            ]
+          },
+          "responseSha256": "b0e6f9162aefec7c428a4ec4a0e5898b41dd05ed57469e1bcb636279d6349dcc",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "In a program that processes the characters in the word \"code\", what does the for loop do?",
+                "op": [
+                  "It steps through each character in order, one at a time.",
+                  "It stores the whole word inside the loop variable at once.",
+                  "It changes the word into a range of integers automatically.",
+                  "It repeats forever until the word becomes a list."
+                ],
+                "ai": 0,
+                "ex": "A for loop iterates over the string one element at a time, binding the loop variable to each character in turn. The most plausible misconception is that the loop variable holds the entire string at once, but the loop retrieves container objects individually instead.",
+                "sourceFactIndexes": [0, 1, 2]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "for loop",
+                "df": "A control structure that visits each item in a container one by one.",
+                "eg": "Loop through a list of student names and print each name.",
+                "mi": "It always means repeating a block a fixed number of times.",
+                "cx": "It may also step through a string or list, not only a counted repetition.",
+                "sourceFactIndexes": [0, 1, 2]
+              },
+              {
+                "tr": "range()",
+                "df": "A function that creates a sequence of integers for looping.",
+                "eg": "Use range(5) to run a print statement five times.",
+                "mi": "It yields 1 through n when given n.",
+                "cx": "With range(n), the sequence starts at 0 and ends at n-1.",
+                "sourceFactIndexes": [3]
+              }
+            ]
+          },
+          "admittedResponseSha256": "7d1f7b64bf55584935b51b6df3fc565ce376453e86c07eadedf466820750cc52",
+          "assessment": {
+            "eligible": true,
+            "issues": ["mc-0-truncated-explanation", "mc-0-clang-association-cue"],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_09a6437e9ba7b42e006a55dc441438819faf350827c93492ce",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 646,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 593,
+              "output_tokens_details": {
+                "reasoning_tokens": 124
+              },
+              "total_tokens": 1239
+            }
+          },
+          "startedAt": "2026-07-14T06:50:43.961Z",
+          "durationMs": 6333
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/strings",
+          "kernelId": "cs/strings",
+          "promptSha256": "8ae7ea3c5d4312881f9c949c7685bf27539708ae1f27dd9c488a4f7a3d4e4c0d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "In Python, if s = \"studio\", which expression returns the substring \"tud\"?",
+                "op": ["s[1:4]", "s[0:3]", "s[-4:-1]", "s[1:5]"],
+                "ai": 0,
+                "ex": "s[1:4] is correct because slicing includes the start index 1 and stops before index 4, giving characters at positions 1, 2, and 3. The most plausible mistake is choosing s[0:3], which also has three characters but starts one position too early and returns \"stu\" instead.",
+                "sourceFactIndexes": [0, 3]
+              },
+              {
+                "q": "For the string t = \"python\", which expression selects the last character?",
+                "op": [
+                  "t[0]\",\"t[5]\",\"t[-1]\",\"t[1]\"],",
+                  "ai? hmm",
+                  "ex? wait malformed. Let's rewrite correctly.",
+                  "sourceFactIndexes':[1,2]}]}???"
+                ],
+                "ai": 0,
+                "ex": "Need valid JSON. Let's craft carefully.",
+                "sourceFactIndexes": [0, 3]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "String index",
+                "df": "A position label used to access a character in order from left to right.",
+                "eg": "In \"studio\", index 0 is \"s\" and index 5 is \"o\".",
+                "mi": "Indexing starts at 1 because the first character feels like \"one.\"",
+                "cx": "Python strings start at 0, so the left-most character is index 0 and the right-most is len(s) - 1.",
+                "sourceFactIndexes": [0, 1]
+              },
+              {
+                "tr": "Slice",
+                "df": "A way to extract a contiguous part of a string using start and stop positions.",
+                "eg": "In \"studio\", s[1:4] gives \"tud\".",
+                "mi": "The stop number is included in the result.",
+                "cx": "A slice s[a:b] includes index a but excludes index b.",
+                "sourceFactIndexes": [0, 3]
+              }
+            ]
+          },
+          "responseSha256": "f04fd7935241c6aa5ed1f883512b8005a9c44050ecee0c37699139651afc387d",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "In Python, if s = \"studio\", which expression returns the substring \"tud\"?",
+                "op": ["s[1:4]", "s[0:3]", "s[-4:-1]", "s[1:5]"],
+                "ai": 0,
+                "ex": "s[1:4] is correct because slicing includes the start index 1 and stops before index 4, giving characters at positions 1, 2, and 3. The most plausible mistake is choosing s[0:3], which also has three characters but starts one position too early and returns \"stu\" instead.",
+                "sourceFactIndexes": [0, 3]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "String index",
+                "df": "A position label used to access a character in order from left to right.",
+                "eg": "In \"studio\", index 0 is \"s\" and index 5 is \"o\".",
+                "mi": "Indexing starts at 1 because the first character feels like \"one.\"",
+                "cx": "Python strings start at 0, so the left-most character is index 0 and the right-most is len(s) - 1.",
+                "sourceFactIndexes": [0, 1]
+              },
+              {
+                "tr": "Slice",
+                "df": "A way to extract a contiguous part of a string using start and stop positions.",
+                "eg": "In \"studio\", s[1:4] gives \"tud\".",
+                "mi": "The stop number is included in the result.",
+                "cx": "A slice s[a:b] includes index a but excludes index b.",
+                "sourceFactIndexes": [0, 3]
+              }
+            ]
+          },
+          "admittedResponseSha256": "d468d4d4e4a3728f417736574260335963298a327cb9c34d73fbd5fcaf1dcfad",
+          "assessment": {
+            "eligible": true,
+            "issues": ["mc-1-option-homogeneity"],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0306621b7b8db2fc006a55dc4a6b608191be6e6c350a2deab7",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 637,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 497,
+              "output_tokens_details": {
+                "reasoning_tokens": 69
+              },
+              "total_tokens": 1134
+            }
+          },
+          "startedAt": "2026-07-14T06:50:50.309Z",
+          "durationMs": 5205
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/file-io",
+          "kernelId": "cs/file-io",
+          "promptSha256": "c1e78b5a898e20ca12a97ea5e04c6154d2a0d4cf1c58fe7a36d93c39d690b12b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A program needs the full text of a saved note file so it can count the characters. Which file method fits this task best after opening the file?",
+                "op": ["read()", "readline()", "readlines()", "open()"],
+                "ai": 0,
+                "ex": "read() is the best choice because it returns the entire contents as one string. A common misconception is to choose readlines(), but that produces a list of separate lines rather than one full string.",
+                "sourceFactIndexes": [2, 1, 3]
+              },
+              {
+                "q": "After a script finishes copying data from a file, what should it do to finish the file-use cycle properly?",
+                "op": ["close the file object", "call readline()", "call read() again", "reopen the file object"],
+                "ai": 0,
+                "ex": "Closing the file object completes the open-work-close cycle described for file input and output. The plausible misconception is to call another read method, but those methods are for getting content, not finishing the access step.",
+                "sourceFactIndexes": [0, 1]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "File I/O",
+                "df": "A way for a program to work with data stored in files by opening the file, using its contents, and then closing it.",
+                "eg": "A student script opens a text file of survey answers, reads the lines, and then closes the file.",
+                "mi": "It only means saving information, not reading it.",
+                "cx": "It includes both reading from files and writing into files.",
+                "sourceFactIndexes": [0, 1]
+              },
+              {
+                "tr": "readlines()",
+                "df": "A file method that returns every line from the file as a list.",
+                "eg": "A program loads a poem file and gets a list where each line is a separate item.",
+                "mi": "It returns one large string like read().",
+                "cx": "That behavior matches read(); readlines() instead gives a list of lines.",
+                "sourceFactIndexes": [3, 2]
+              }
+            ]
+          },
+          "responseSha256": "2ab4b4aaa56eb252434699c30ae32a3cbc86eee0a589d699873296583c5753fd",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A program needs the full text of a saved note file so it can count the characters. Which file method fits this task best after opening the file?",
+                "op": ["read()", "readline()", "readlines()", "open()"],
+                "ai": 0,
+                "ex": "read() is the best choice because it returns the entire contents as one string. A common misconception is to choose readlines(), but that produces a list of separate lines rather than one full string.",
+                "sourceFactIndexes": [2, 1, 3]
+              },
+              {
+                "q": "After a script finishes copying data from a file, what should it do to finish the file-use cycle properly?",
+                "op": ["close the file object", "call readline()", "call read() again", "reopen the file object"],
+                "ai": 0,
+                "ex": "Closing the file object completes the open-work-close cycle described for file input and output. The plausible misconception is to call another read method, but those methods are for getting content, not finishing the access step.",
+                "sourceFactIndexes": [0, 1]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "File I/O",
+                "df": "A way for a program to work with data stored in files by opening the file, using its contents, and then closing it.",
+                "eg": "A student script opens a text file of survey answers, reads the lines, and then closes the file.",
+                "mi": "It only means saving information, not reading it.",
+                "cx": "It includes both reading from files and writing into files.",
+                "sourceFactIndexes": [0, 1]
+              },
+              {
+                "tr": "readlines()",
+                "df": "A file method that returns every line from the file as a list.",
+                "eg": "A program loads a poem file and gets a list where each line is a separate item.",
+                "mi": "It returns one large string like read().",
+                "cx": "That behavior matches read(); readlines() instead gives a list of lines.",
+                "sourceFactIndexes": [3, 2]
+              }
+            ]
+          },
+          "admittedResponseSha256": "2ab4b4aaa56eb252434699c30ae32a3cbc86eee0a589d699873296583c5753fd",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0c688c83277b5faa006a55dc4fb520819d8c44effa78959a56",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 628,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 438,
+              "output_tokens_details": {
+                "reasoning_tokens": 36
+              },
+              "total_tokens": 1066
+            }
+          },
+          "startedAt": "2026-07-14T06:50:55.516Z",
+          "durationMs": 4503
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/recursion",
+          "kernelId": "cs/recursion",
+          "promptSha256": "b22c5c9fd4b6288fa4a8e752435051cc4b70f1a661071b2cf2cc4fdb8abd3175",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student writes a function to sum numbers from n down to 1 by calling the same function on n-1. What feature must be present so the program eventually stops?",
+                "op": [
+                  "A stopping condition for a small enough input",
+                  "A loop counter that increases forever",
+                  "A second function that replaces every call",
+                  "A print statement after each call"
+                ],
+                "ai": 0,
+                "ex": "A stopping condition is the base case: it ends the self-calls once the input is small enough. The common misconception is that recursion stops just because the input changes; without a base case, the calls continue instead of terminating.",
+                "sourceFactIndexes": [0, 2, 3]
+              },
+              {
+                "q": "A recursive text-processing function keeps calling itself on shorter strings. What describes the recursive step?",
+                "op": [
+                  "It calls itself on a smaller string",
+                  "It stores the final result before any call",
+                  "It repeats the same input until it finishes",
+                  "It avoids calling itself and uses only one pass"
+                ],
+                "ai": 0,
+                "ex": "The recursive step is the self-call on a smaller input. A plausible misconception is to confuse recursion with repeating the same input unchanged; that does not move the problem toward a base case.",
+                "sourceFactIndexes": [0, 1]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Recursion",
+                "df": "A way to solve a problem by turning it into a smaller version of the same problem until a base case is reached.",
+                "eg": "A function that counts down from 5 by calling itself with 4, then 3, then 2, until it reaches 0.",
+                "mi": "Recursion just means using many loops to do the same task.",
+                "cx": "A recursive solution can use self-calls on smaller inputs, while loops repeat without self-calls.",
+                "sourceFactIndexes": [0, 1, 2]
+              },
+              {
+                "tr": "Base case",
+                "df": "The simplest input where the answer is already known or easy to find, so the self-calls can stop.",
+                "eg": "When a countdown function reaches 0 and returns immediately.",
+                "mi": "Any last step in a program is a base case.",
+                "cx": "A base case is not just the final line of code; it is the specific condition that ends recursion.",
+                "sourceFactIndexes": [2, 3]
+              }
+            ]
+          },
+          "responseSha256": "db450653e3fc61d15521637bedeef2e5e7d5b87d8e1c934090727fcd22e3140a",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student writes a function to sum numbers from n down to 1 by calling the same function on n-1. What feature must be present so the program eventually stops?",
+                "op": [
+                  "A stopping condition for a small enough input",
+                  "A loop counter that increases forever",
+                  "A second function that replaces every call",
+                  "A print statement after each call"
+                ],
+                "ai": 0,
+                "ex": "A stopping condition is the base case: it ends the self-calls once the input is small enough. The common misconception is that recursion stops just because the input changes; without a base case, the calls continue instead of terminating.",
+                "sourceFactIndexes": [0, 2, 3]
+              },
+              {
+                "q": "A recursive text-processing function keeps calling itself on shorter strings. What describes the recursive step?",
+                "op": [
+                  "It calls itself on a smaller string",
+                  "It stores the final result before any call",
+                  "It repeats the same input until it finishes",
+                  "It avoids calling itself and uses only one pass"
+                ],
+                "ai": 0,
+                "ex": "The recursive step is the self-call on a smaller input. A plausible misconception is to confuse recursion with repeating the same input unchanged; that does not move the problem toward a base case.",
+                "sourceFactIndexes": [0, 1]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Recursion",
+                "df": "A way to solve a problem by turning it into a smaller version of the same problem until a base case is reached.",
+                "eg": "A function that counts down from 5 by calling itself with 4, then 3, then 2, until it reaches 0.",
+                "mi": "Recursion just means using many loops to do the same task.",
+                "cx": "A recursive solution can use self-calls on smaller inputs, while loops repeat without self-calls.",
+                "sourceFactIndexes": [0, 1, 2]
+              },
+              {
+                "tr": "Base case",
+                "df": "The simplest input where the answer is already known or easy to find, so the self-calls can stop.",
+                "eg": "When a countdown function reaches 0 and returns immediately.",
+                "mi": "Any last step in a program is a base case.",
+                "cx": "A base case is not just the final line of code; it is the specific condition that ends recursion.",
+                "sourceFactIndexes": [2, 3]
+              }
+            ]
+          },
+          "admittedResponseSha256": "db450653e3fc61d15521637bedeef2e5e7d5b87d8e1c934090727fcd22e3140a",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0ccc405c9a17fd4b006a55dc541fcc81a0887083419da51bb5",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 627,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 548,
+              "output_tokens_details": {
+                "reasoning_tokens": 83
+              },
+              "total_tokens": 1175
+            }
+          },
+          "startedAt": "2026-07-14T06:51:00.022Z",
+          "durationMs": 5804
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/classes",
+          "kernelId": "cs/classes",
+          "promptSha256": "696240cfd35f19b90e6533eb8cbcf1916c3aafa8ca1139aa47d2bae822060064",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student writes a program that creates several bank-account objects from one class. Which statement best describes those objects and the class that produced them?",
+                "op": [
+                  "The class is a blueprint, and each account is an instance with its own attributes.",
+                  "Each account is the blueprint, and the class is one copied object.",
+                  "The class stores only methods, while objects share all attributes.",
+                  "Every account is the same object because it comes from one class."
+                ],
+                "ai": 0,
+                "ex": "Correct: a class is a blueprint, and each object made from it is an instance. The tempting mistake is to treat the class as one of the finished objects or to assume all objects are identical; in fact, each instance is its own object built from the class.",
+                "sourceFactIndexes": [0, 1, 2]
+              },
+              {
+                "q": "A program uses the same class to make two playlist objects. What is the best expectation about their data and behavior?",
+                "op": [
+                  "Each playlist has its own attributes, while the class methods are shared.",
+                  "Both playlists must share one combined set of attributes.",
+                  "The class keeps the attributes, and each object gets a different method set.",
+                  "Methods belong only to the first playlist created."
+                ],
+                "ai": 0,
+                "ex": "Correct: each instance carries its own copy of the attributes, and the methods defined by the class are shared by every instance. A common misconception is that one object's data is automatically shared by all others, or that methods are duplicated separately for each object.",
+                "sourceFactIndexes": [3, 0]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Instance",
+                "df": "A specific object created from a class, with its own attribute values.",
+                "eg": "If a class models a playlist, one saved playlist on screen is an instance.",
+                "mi": "It means the class itself, or a shared template with no real data.",
+                "cx": "An instance is a built object; the class is the blueprint that produced it.",
+                "sourceFactIndexes": [0, 2]
+              },
+              {
+                "tr": "Class",
+                "df": "A reusable blueprint that specifies what data and behavior objects will have.",
+                "eg": "A course program might use a class to describe a bank account with balances and deposit actions.",
+                "mi": "It is a single object already holding one set of values.",
+                "cx": "A class is the source pattern; objects made from it are the instances.",
+                "sourceFactIndexes": [0, 1, 3]
+              }
+            ]
+          },
+          "responseSha256": "4f40d08e5f6a1ba6dd9b489b0ba5a34b16870630686c01a12ae303b654b161aa",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student writes a program that creates several bank-account objects from one class. Which statement best describes those objects and the class that produced them?",
+                "op": [
+                  "The class is a blueprint, and each account is an instance with its own attributes.",
+                  "Each account is the blueprint, and the class is one copied object.",
+                  "The class stores only methods, while objects share all attributes.",
+                  "Every account is the same object because it comes from one class."
+                ],
+                "ai": 0,
+                "ex": "Correct: a class is a blueprint, and each object made from it is an instance. The tempting mistake is to treat the class as one of the finished objects or to assume all objects are identical; in fact, each instance is its own object built from the class.",
+                "sourceFactIndexes": [0, 1, 2]
+              },
+              {
+                "q": "A program uses the same class to make two playlist objects. What is the best expectation about their data and behavior?",
+                "op": [
+                  "Each playlist has its own attributes, while the class methods are shared.",
+                  "Both playlists must share one combined set of attributes.",
+                  "The class keeps the attributes, and each object gets a different method set.",
+                  "Methods belong only to the first playlist created."
+                ],
+                "ai": 0,
+                "ex": "Correct: each instance carries its own copy of the attributes, and the methods defined by the class are shared by every instance. A common misconception is that one object's data is automatically shared by all others, or that methods are duplicated separately for each object.",
+                "sourceFactIndexes": [3, 0]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Instance",
+                "df": "A specific object created from a class, with its own attribute values.",
+                "eg": "If a class models a playlist, one saved playlist on screen is an instance.",
+                "mi": "It means the class itself, or a shared template with no real data.",
+                "cx": "An instance is a built object; the class is the blueprint that produced it.",
+                "sourceFactIndexes": [0, 2]
+              },
+              {
+                "tr": "Class",
+                "df": "A reusable blueprint that specifies what data and behavior objects will have.",
+                "eg": "A course program might use a class to describe a bank account with balances and deposit actions.",
+                "mi": "It is a single object already holding one set of values.",
+                "cx": "A class is the source pattern; objects made from it are the instances.",
+                "sourceFactIndexes": [0, 1, 3]
+              }
+            ]
+          },
+          "admittedResponseSha256": "4f40d08e5f6a1ba6dd9b489b0ba5a34b16870630686c01a12ae303b654b161aa",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_07780fc3e4428cc7006a55dc59ece0819294c8ed1bf980946e",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 622,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 536,
+              "output_tokens_details": {
+                "reasoning_tokens": 49
+              },
+              "total_tokens": 1158
+            }
+          },
+          "startedAt": "2026-07-14T06:51:05.829Z",
+          "durationMs": 5425
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "python-program-architecture-studio:cs/while-loops",
+        "kernelId": "cs/while-loops",
+        "promptSha256": "d938d8a1057ca0c27c47a9404b1c5fa9bb5fdf46abe2e7520f06772186cc3d6c",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student writes a loop to keep asking for a menu choice until the choice is valid. Which description best matches how the loop works?",
+              "op": [
+                "It checks the condition before each pass and keeps running only while the condition stays true.",
+                "It runs once, then rechecks the condition after the body finishes.",
+                "It repeats only when the condition becomes false, then stops when it becomes true.",
+                "It guarantees the choice becomes valid without any change to the body."
+              ],
+              "ai": 0,
+              "ex": "Correct: a while loop evaluates the condition before each iteration and continues only while it remains true. The common misconception is that the test happens after the body or that the loop somehow fixes the input by itself; in reality, the body must make progress so the condition can eventually,(",
+              "sourceFactIndexes": [0, 1, 2]
+            },
+            {
+              "q": "A recursive text-processing routine is replaced with a while loop that advances through a string one character at a time. What is the key requirement for the loop to finish?",
+              "op": [
+                "The condition must eventually become false as the index moves forward.",
+                "The body should avoid evaluating the condition until the end of the program.",
+                "The loop should continue even if the condition never changes.",
+                "The loop will stop automatically after a fixed number of passes."
+              ],
+              "ai": 0,
+              "ex": "Correct: the loop needs a condition that becomes false, and each pass should advance the index or otherwise change the state so the test can fail later. The most plausible mistake is assuming a while loop ends by default after some number of turns; instead, if the condition never becomes false, it f",
+              "sourceFactIndexes": [0, 1, 2]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "infinite loop",
+              "df": "A loop that keeps running because its condition never turns false.",
+              "eg": "A file-reading loop that never advances the file position can keep printing the same line forever.",
+              "mi": "It is any loop that runs a lot of times.",
+              "cx": "A loop can run many times and still end normally; it becomes infinite only when the stopping condition never changes.",
+              "sourceFactIndexes": [3]
+            },
+            {
+              "tr": "loop condition",
+              "df": "The test a while loop checks before each pass to decide whether to continue.",
+              "eg": "In a password prompt, the condition can check whether the entry is still invalid.",
+              "mi": "It is the code inside the loop body.",
+              "cx": "The body does the work; the condition is the check that controls whether another iteration happens.",
+              "sourceFactIndexes": [0, 1, 2]
+            }
+          ]
+        },
+        "responseSha256": "68a9acc949cdff2b60ec0f56fd513d7414e811457d4179b7bb83252591a43135",
+        "admittedResponse": {
+          "mcItems": [],
+          "keyTerms": [
+            {
+              "tr": "infinite loop",
+              "df": "A loop that keeps running because its condition never turns false.",
+              "eg": "A file-reading loop that never advances the file position can keep printing the same line forever.",
+              "mi": "It is any loop that runs a lot of times.",
+              "cx": "A loop can run many times and still end normally; it becomes infinite only when the stopping condition never changes.",
+              "sourceFactIndexes": [3]
+            },
+            {
+              "tr": "loop condition",
+              "df": "The test a while loop checks before each pass to decide whether to continue.",
+              "eg": "In a password prompt, the condition can check whether the entry is still invalid.",
+              "mi": "It is the code inside the loop body.",
+              "cx": "The body does the work; the condition is the check that controls whether another iteration happens.",
+              "sourceFactIndexes": [0, 1, 2]
+            }
+          ]
+        },
+        "admittedResponseSha256": "88daea3e4c653734ad51c8f3549058092b190aab11b01345ae11df30fa1da0fc",
+        "assessment": {
+          "eligible": true,
+          "issues": ["mc-0-truncated-explanation", "mc-1-truncated-explanation", "no-admitted-mc-items"],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 0,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_081f6cd40280edff006a55dc3ec194819d8d03158cd4b53cea",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 631,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 556,
+            "output_tokens_details": {
+              "reasoning_tokens": 36
+            },
+            "total_tokens": 1187
+          }
+        },
+        "startedAt": "2026-07-14T06:50:36.492Z",
+        "durationMs": 7467
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/for-loops",
+        "kernelId": "cs/for-loops",
+        "promptSha256": "86396fdb7064fea3de4fd3b9ef1631e05ea03dfff44f6d052edf98540fe3375a",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student wants to print a message exactly 5 times using a for loop. Which choice best matches that task?",
+              "op": [
+                "Use range(5) so the loop body runs five times.",
+                "Use a string of five characters so each character runs once.",
+                "Use a list of five values and ignore the list items.",
+                "Use a container with five names to stop after the first name."
+              ],
+              "ai": 0,
+              "ex": "range(5) is the best fit because it produces 0 through 4, letting the loop repeat a fixed number of times. A common misconception is to think any five-item container is equally direct, but a for loop over a container retrieves each element one at a time rather than creating a fixed repeat count by a",
+              "sourceFactIndexes": [3, 0, 2]
+            },
+            {
+              "q": "In a program that processes the characters in the word \"code\", what does the for loop do?",
+              "op": [
+                "It steps through each character in order, one at a time.",
+                "It stores the whole word inside the loop variable at once.",
+                "It changes the word into a range of integers automatically.",
+                "It repeats forever until the word becomes a list."
+              ],
+              "ai": 0,
+              "ex": "A for loop iterates over the string one element at a time, binding the loop variable to each character in turn. The most plausible misconception is that the loop variable holds the entire string at once, but the loop retrieves container objects individually instead.",
+              "sourceFactIndexes": [0, 1, 2]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "for loop",
+              "df": "A control structure that visits each item in a container one by one.",
+              "eg": "Loop through a list of student names and print each name.",
+              "mi": "It always means repeating a block a fixed number of times.",
+              "cx": "It may also step through a string or list, not only a counted repetition.",
+              "sourceFactIndexes": [0, 1, 2]
+            },
+            {
+              "tr": "range()",
+              "df": "A function that creates a sequence of integers for looping.",
+              "eg": "Use range(5) to run a print statement five times.",
+              "mi": "It yields 1 through n when given n.",
+              "cx": "With range(n), the sequence starts at 0 and ends at n-1.",
+              "sourceFactIndexes": [3]
+            }
+          ]
+        },
+        "responseSha256": "b0e6f9162aefec7c428a4ec4a0e5898b41dd05ed57469e1bcb636279d6349dcc",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "In a program that processes the characters in the word \"code\", what does the for loop do?",
+              "op": [
+                "It steps through each character in order, one at a time.",
+                "It stores the whole word inside the loop variable at once.",
+                "It changes the word into a range of integers automatically.",
+                "It repeats forever until the word becomes a list."
+              ],
+              "ai": 0,
+              "ex": "A for loop iterates over the string one element at a time, binding the loop variable to each character in turn. The most plausible misconception is that the loop variable holds the entire string at once, but the loop retrieves container objects individually instead.",
+              "sourceFactIndexes": [0, 1, 2]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "for loop",
+              "df": "A control structure that visits each item in a container one by one.",
+              "eg": "Loop through a list of student names and print each name.",
+              "mi": "It always means repeating a block a fixed number of times.",
+              "cx": "It may also step through a string or list, not only a counted repetition.",
+              "sourceFactIndexes": [0, 1, 2]
+            },
+            {
+              "tr": "range()",
+              "df": "A function that creates a sequence of integers for looping.",
+              "eg": "Use range(5) to run a print statement five times.",
+              "mi": "It yields 1 through n when given n.",
+              "cx": "With range(n), the sequence starts at 0 and ends at n-1.",
+              "sourceFactIndexes": [3]
+            }
+          ]
+        },
+        "admittedResponseSha256": "7d1f7b64bf55584935b51b6df3fc565ce376453e86c07eadedf466820750cc52",
+        "assessment": {
+          "eligible": true,
+          "issues": ["mc-0-truncated-explanation", "mc-0-clang-association-cue"],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_09a6437e9ba7b42e006a55dc441438819faf350827c93492ce",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 646,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 593,
+            "output_tokens_details": {
+              "reasoning_tokens": 124
+            },
+            "total_tokens": 1239
+          }
+        },
+        "startedAt": "2026-07-14T06:50:43.961Z",
+        "durationMs": 6333
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/strings",
+        "kernelId": "cs/strings",
+        "promptSha256": "8ae7ea3c5d4312881f9c949c7685bf27539708ae1f27dd9c488a4f7a3d4e4c0d",
+        "response": {
+          "mcItems": [
+            {
+              "q": "In Python, if s = \"studio\", which expression returns the substring \"tud\"?",
+              "op": ["s[1:4]", "s[0:3]", "s[-4:-1]", "s[1:5]"],
+              "ai": 0,
+              "ex": "s[1:4] is correct because slicing includes the start index 1 and stops before index 4, giving characters at positions 1, 2, and 3. The most plausible mistake is choosing s[0:3], which also has three characters but starts one position too early and returns \"stu\" instead.",
+              "sourceFactIndexes": [0, 3]
+            },
+            {
+              "q": "For the string t = \"python\", which expression selects the last character?",
+              "op": [
+                "t[0]\",\"t[5]\",\"t[-1]\",\"t[1]\"],",
+                "ai? hmm",
+                "ex? wait malformed. Let's rewrite correctly.",
+                "sourceFactIndexes':[1,2]}]}???"
+              ],
+              "ai": 0,
+              "ex": "Need valid JSON. Let's craft carefully.",
+              "sourceFactIndexes": [0, 3]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "String index",
+              "df": "A position label used to access a character in order from left to right.",
+              "eg": "In \"studio\", index 0 is \"s\" and index 5 is \"o\".",
+              "mi": "Indexing starts at 1 because the first character feels like \"one.\"",
+              "cx": "Python strings start at 0, so the left-most character is index 0 and the right-most is len(s) - 1.",
+              "sourceFactIndexes": [0, 1]
+            },
+            {
+              "tr": "Slice",
+              "df": "A way to extract a contiguous part of a string using start and stop positions.",
+              "eg": "In \"studio\", s[1:4] gives \"tud\".",
+              "mi": "The stop number is included in the result.",
+              "cx": "A slice s[a:b] includes index a but excludes index b.",
+              "sourceFactIndexes": [0, 3]
+            }
+          ]
+        },
+        "responseSha256": "f04fd7935241c6aa5ed1f883512b8005a9c44050ecee0c37699139651afc387d",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "In Python, if s = \"studio\", which expression returns the substring \"tud\"?",
+              "op": ["s[1:4]", "s[0:3]", "s[-4:-1]", "s[1:5]"],
+              "ai": 0,
+              "ex": "s[1:4] is correct because slicing includes the start index 1 and stops before index 4, giving characters at positions 1, 2, and 3. The most plausible mistake is choosing s[0:3], which also has three characters but starts one position too early and returns \"stu\" instead.",
+              "sourceFactIndexes": [0, 3]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "String index",
+              "df": "A position label used to access a character in order from left to right.",
+              "eg": "In \"studio\", index 0 is \"s\" and index 5 is \"o\".",
+              "mi": "Indexing starts at 1 because the first character feels like \"one.\"",
+              "cx": "Python strings start at 0, so the left-most character is index 0 and the right-most is len(s) - 1.",
+              "sourceFactIndexes": [0, 1]
+            },
+            {
+              "tr": "Slice",
+              "df": "A way to extract a contiguous part of a string using start and stop positions.",
+              "eg": "In \"studio\", s[1:4] gives \"tud\".",
+              "mi": "The stop number is included in the result.",
+              "cx": "A slice s[a:b] includes index a but excludes index b.",
+              "sourceFactIndexes": [0, 3]
+            }
+          ]
+        },
+        "admittedResponseSha256": "d468d4d4e4a3728f417736574260335963298a327cb9c34d73fbd5fcaf1dcfad",
+        "assessment": {
+          "eligible": true,
+          "issues": ["mc-1-option-homogeneity"],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0306621b7b8db2fc006a55dc4a6b608191be6e6c350a2deab7",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 637,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 497,
+            "output_tokens_details": {
+              "reasoning_tokens": 69
+            },
+            "total_tokens": 1134
+          }
+        },
+        "startedAt": "2026-07-14T06:50:50.309Z",
+        "durationMs": 5205
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/file-io",
+        "kernelId": "cs/file-io",
+        "promptSha256": "c1e78b5a898e20ca12a97ea5e04c6154d2a0d4cf1c58fe7a36d93c39d690b12b",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A program needs the full text of a saved note file so it can count the characters. Which file method fits this task best after opening the file?",
+              "op": ["read()", "readline()", "readlines()", "open()"],
+              "ai": 0,
+              "ex": "read() is the best choice because it returns the entire contents as one string. A common misconception is to choose readlines(), but that produces a list of separate lines rather than one full string.",
+              "sourceFactIndexes": [2, 1, 3]
+            },
+            {
+              "q": "After a script finishes copying data from a file, what should it do to finish the file-use cycle properly?",
+              "op": ["close the file object", "call readline()", "call read() again", "reopen the file object"],
+              "ai": 0,
+              "ex": "Closing the file object completes the open-work-close cycle described for file input and output. The plausible misconception is to call another read method, but those methods are for getting content, not finishing the access step.",
+              "sourceFactIndexes": [0, 1]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "File I/O",
+              "df": "A way for a program to work with data stored in files by opening the file, using its contents, and then closing it.",
+              "eg": "A student script opens a text file of survey answers, reads the lines, and then closes the file.",
+              "mi": "It only means saving information, not reading it.",
+              "cx": "It includes both reading from files and writing into files.",
+              "sourceFactIndexes": [0, 1]
+            },
+            {
+              "tr": "readlines()",
+              "df": "A file method that returns every line from the file as a list.",
+              "eg": "A program loads a poem file and gets a list where each line is a separate item.",
+              "mi": "It returns one large string like read().",
+              "cx": "That behavior matches read(); readlines() instead gives a list of lines.",
+              "sourceFactIndexes": [3, 2]
+            }
+          ]
+        },
+        "responseSha256": "2ab4b4aaa56eb252434699c30ae32a3cbc86eee0a589d699873296583c5753fd",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A program needs the full text of a saved note file so it can count the characters. Which file method fits this task best after opening the file?",
+              "op": ["read()", "readline()", "readlines()", "open()"],
+              "ai": 0,
+              "ex": "read() is the best choice because it returns the entire contents as one string. A common misconception is to choose readlines(), but that produces a list of separate lines rather than one full string.",
+              "sourceFactIndexes": [2, 1, 3]
+            },
+            {
+              "q": "After a script finishes copying data from a file, what should it do to finish the file-use cycle properly?",
+              "op": ["close the file object", "call readline()", "call read() again", "reopen the file object"],
+              "ai": 0,
+              "ex": "Closing the file object completes the open-work-close cycle described for file input and output. The plausible misconception is to call another read method, but those methods are for getting content, not finishing the access step.",
+              "sourceFactIndexes": [0, 1]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "File I/O",
+              "df": "A way for a program to work with data stored in files by opening the file, using its contents, and then closing it.",
+              "eg": "A student script opens a text file of survey answers, reads the lines, and then closes the file.",
+              "mi": "It only means saving information, not reading it.",
+              "cx": "It includes both reading from files and writing into files.",
+              "sourceFactIndexes": [0, 1]
+            },
+            {
+              "tr": "readlines()",
+              "df": "A file method that returns every line from the file as a list.",
+              "eg": "A program loads a poem file and gets a list where each line is a separate item.",
+              "mi": "It returns one large string like read().",
+              "cx": "That behavior matches read(); readlines() instead gives a list of lines.",
+              "sourceFactIndexes": [3, 2]
+            }
+          ]
+        },
+        "admittedResponseSha256": "2ab4b4aaa56eb252434699c30ae32a3cbc86eee0a589d699873296583c5753fd",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0c688c83277b5faa006a55dc4fb520819d8c44effa78959a56",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 628,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 438,
+            "output_tokens_details": {
+              "reasoning_tokens": 36
+            },
+            "total_tokens": 1066
+          }
+        },
+        "startedAt": "2026-07-14T06:50:55.516Z",
+        "durationMs": 4503
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/recursion",
+        "kernelId": "cs/recursion",
+        "promptSha256": "b22c5c9fd4b6288fa4a8e752435051cc4b70f1a661071b2cf2cc4fdb8abd3175",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student writes a function to sum numbers from n down to 1 by calling the same function on n-1. What feature must be present so the program eventually stops?",
+              "op": [
+                "A stopping condition for a small enough input",
+                "A loop counter that increases forever",
+                "A second function that replaces every call",
+                "A print statement after each call"
+              ],
+              "ai": 0,
+              "ex": "A stopping condition is the base case: it ends the self-calls once the input is small enough. The common misconception is that recursion stops just because the input changes; without a base case, the calls continue instead of terminating.",
+              "sourceFactIndexes": [0, 2, 3]
+            },
+            {
+              "q": "A recursive text-processing function keeps calling itself on shorter strings. What describes the recursive step?",
+              "op": [
+                "It calls itself on a smaller string",
+                "It stores the final result before any call",
+                "It repeats the same input until it finishes",
+                "It avoids calling itself and uses only one pass"
+              ],
+              "ai": 0,
+              "ex": "The recursive step is the self-call on a smaller input. A plausible misconception is to confuse recursion with repeating the same input unchanged; that does not move the problem toward a base case.",
+              "sourceFactIndexes": [0, 1]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Recursion",
+              "df": "A way to solve a problem by turning it into a smaller version of the same problem until a base case is reached.",
+              "eg": "A function that counts down from 5 by calling itself with 4, then 3, then 2, until it reaches 0.",
+              "mi": "Recursion just means using many loops to do the same task.",
+              "cx": "A recursive solution can use self-calls on smaller inputs, while loops repeat without self-calls.",
+              "sourceFactIndexes": [0, 1, 2]
+            },
+            {
+              "tr": "Base case",
+              "df": "The simplest input where the answer is already known or easy to find, so the self-calls can stop.",
+              "eg": "When a countdown function reaches 0 and returns immediately.",
+              "mi": "Any last step in a program is a base case.",
+              "cx": "A base case is not just the final line of code; it is the specific condition that ends recursion.",
+              "sourceFactIndexes": [2, 3]
+            }
+          ]
+        },
+        "responseSha256": "db450653e3fc61d15521637bedeef2e5e7d5b87d8e1c934090727fcd22e3140a",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student writes a function to sum numbers from n down to 1 by calling the same function on n-1. What feature must be present so the program eventually stops?",
+              "op": [
+                "A stopping condition for a small enough input",
+                "A loop counter that increases forever",
+                "A second function that replaces every call",
+                "A print statement after each call"
+              ],
+              "ai": 0,
+              "ex": "A stopping condition is the base case: it ends the self-calls once the input is small enough. The common misconception is that recursion stops just because the input changes; without a base case, the calls continue instead of terminating.",
+              "sourceFactIndexes": [0, 2, 3]
+            },
+            {
+              "q": "A recursive text-processing function keeps calling itself on shorter strings. What describes the recursive step?",
+              "op": [
+                "It calls itself on a smaller string",
+                "It stores the final result before any call",
+                "It repeats the same input until it finishes",
+                "It avoids calling itself and uses only one pass"
+              ],
+              "ai": 0,
+              "ex": "The recursive step is the self-call on a smaller input. A plausible misconception is to confuse recursion with repeating the same input unchanged; that does not move the problem toward a base case.",
+              "sourceFactIndexes": [0, 1]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Recursion",
+              "df": "A way to solve a problem by turning it into a smaller version of the same problem until a base case is reached.",
+              "eg": "A function that counts down from 5 by calling itself with 4, then 3, then 2, until it reaches 0.",
+              "mi": "Recursion just means using many loops to do the same task.",
+              "cx": "A recursive solution can use self-calls on smaller inputs, while loops repeat without self-calls.",
+              "sourceFactIndexes": [0, 1, 2]
+            },
+            {
+              "tr": "Base case",
+              "df": "The simplest input where the answer is already known or easy to find, so the self-calls can stop.",
+              "eg": "When a countdown function reaches 0 and returns immediately.",
+              "mi": "Any last step in a program is a base case.",
+              "cx": "A base case is not just the final line of code; it is the specific condition that ends recursion.",
+              "sourceFactIndexes": [2, 3]
+            }
+          ]
+        },
+        "admittedResponseSha256": "db450653e3fc61d15521637bedeef2e5e7d5b87d8e1c934090727fcd22e3140a",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0ccc405c9a17fd4b006a55dc541fcc81a0887083419da51bb5",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 627,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 548,
+            "output_tokens_details": {
+              "reasoning_tokens": 83
+            },
+            "total_tokens": 1175
+          }
+        },
+        "startedAt": "2026-07-14T06:51:00.022Z",
+        "durationMs": 5804
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/classes",
+        "kernelId": "cs/classes",
+        "promptSha256": "696240cfd35f19b90e6533eb8cbcf1916c3aafa8ca1139aa47d2bae822060064",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student writes a program that creates several bank-account objects from one class. Which statement best describes those objects and the class that produced them?",
+              "op": [
+                "The class is a blueprint, and each account is an instance with its own attributes.",
+                "Each account is the blueprint, and the class is one copied object.",
+                "The class stores only methods, while objects share all attributes.",
+                "Every account is the same object because it comes from one class."
+              ],
+              "ai": 0,
+              "ex": "Correct: a class is a blueprint, and each object made from it is an instance. The tempting mistake is to treat the class as one of the finished objects or to assume all objects are identical; in fact, each instance is its own object built from the class.",
+              "sourceFactIndexes": [0, 1, 2]
+            },
+            {
+              "q": "A program uses the same class to make two playlist objects. What is the best expectation about their data and behavior?",
+              "op": [
+                "Each playlist has its own attributes, while the class methods are shared.",
+                "Both playlists must share one combined set of attributes.",
+                "The class keeps the attributes, and each object gets a different method set.",
+                "Methods belong only to the first playlist created."
+              ],
+              "ai": 0,
+              "ex": "Correct: each instance carries its own copy of the attributes, and the methods defined by the class are shared by every instance. A common misconception is that one object's data is automatically shared by all others, or that methods are duplicated separately for each object.",
+              "sourceFactIndexes": [3, 0]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Instance",
+              "df": "A specific object created from a class, with its own attribute values.",
+              "eg": "If a class models a playlist, one saved playlist on screen is an instance.",
+              "mi": "It means the class itself, or a shared template with no real data.",
+              "cx": "An instance is a built object; the class is the blueprint that produced it.",
+              "sourceFactIndexes": [0, 2]
+            },
+            {
+              "tr": "Class",
+              "df": "A reusable blueprint that specifies what data and behavior objects will have.",
+              "eg": "A course program might use a class to describe a bank account with balances and deposit actions.",
+              "mi": "It is a single object already holding one set of values.",
+              "cx": "A class is the source pattern; objects made from it are the instances.",
+              "sourceFactIndexes": [0, 1, 3]
+            }
+          ]
+        },
+        "responseSha256": "4f40d08e5f6a1ba6dd9b489b0ba5a34b16870630686c01a12ae303b654b161aa",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student writes a program that creates several bank-account objects from one class. Which statement best describes those objects and the class that produced them?",
+              "op": [
+                "The class is a blueprint, and each account is an instance with its own attributes.",
+                "Each account is the blueprint, and the class is one copied object.",
+                "The class stores only methods, while objects share all attributes.",
+                "Every account is the same object because it comes from one class."
+              ],
+              "ai": 0,
+              "ex": "Correct: a class is a blueprint, and each object made from it is an instance. The tempting mistake is to treat the class as one of the finished objects or to assume all objects are identical; in fact, each instance is its own object built from the class.",
+              "sourceFactIndexes": [0, 1, 2]
+            },
+            {
+              "q": "A program uses the same class to make two playlist objects. What is the best expectation about their data and behavior?",
+              "op": [
+                "Each playlist has its own attributes, while the class methods are shared.",
+                "Both playlists must share one combined set of attributes.",
+                "The class keeps the attributes, and each object gets a different method set.",
+                "Methods belong only to the first playlist created."
+              ],
+              "ai": 0,
+              "ex": "Correct: each instance carries its own copy of the attributes, and the methods defined by the class are shared by every instance. A common misconception is that one object's data is automatically shared by all others, or that methods are duplicated separately for each object.",
+              "sourceFactIndexes": [3, 0]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Instance",
+              "df": "A specific object created from a class, with its own attribute values.",
+              "eg": "If a class models a playlist, one saved playlist on screen is an instance.",
+              "mi": "It means the class itself, or a shared template with no real data.",
+              "cx": "An instance is a built object; the class is the blueprint that produced it.",
+              "sourceFactIndexes": [0, 2]
+            },
+            {
+              "tr": "Class",
+              "df": "A reusable blueprint that specifies what data and behavior objects will have.",
+              "eg": "A course program might use a class to describe a bank account with balances and deposit actions.",
+              "mi": "It is a single object already holding one set of values.",
+              "cx": "A class is the source pattern; objects made from it are the instances.",
+              "sourceFactIndexes": [0, 1, 3]
+            }
+          ]
+        },
+        "admittedResponseSha256": "4f40d08e5f6a1ba6dd9b489b0ba5a34b16870630686c01a12ae303b654b161aa",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_07780fc3e4428cc7006a55dc59ece0819294c8ed1bf980946e",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 622,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 536,
+            "output_tokens_details": {
+              "reasoning_tokens": 49
+            },
+            "total_tokens": 1158
+          }
+        },
+        "startedAt": "2026-07-14T06:51:05.829Z",
+        "durationMs": 5425
+      }
+    ]
+  }
+}

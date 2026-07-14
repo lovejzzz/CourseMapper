@@ -87,6 +87,29 @@ describe('Scion source-grounded atom capture', () => {
     }
   });
 
+  it('materializes the additive v0.16.17 campaign without rewriting the retained campaign', async () => {
+    const retained = await materializeSourceCaptureCampaign({ cwd: repoRoot });
+    const expansion = await materializeSourceCaptureCampaign({
+      cwd: repoRoot,
+      manifestPath: 'evaluation/scion-source-capture-expansion-v0.16.17.json',
+    });
+    expect(expansion.summary).toMatchObject({
+      groups: 4,
+      prompts: 24,
+      expectedCandidates: 96,
+      domainGroupCounts: {
+        'computer-science': 1,
+        geology: 1,
+        'music-theory': 1,
+        'user-experience-design': 1,
+      },
+    });
+    expect(new Set(expansion.groups.map((group) => group.courseGroupSha256)).size).toBe(4);
+    expect(expansion.manifestSha256).not.toBe(retained.manifestSha256);
+    expect(expansion.promptSetSha256).not.toBe(retained.promptSetSha256);
+    expect(retained.summary).toMatchObject({ groups: 8, prompts: 24, expectedCandidates: 96 });
+  });
+
   it('rejects contextless and truncated source fragments before model calls', () => {
     expect(sourceTextIssues('See: additive rhythm and divisive rhythm.')).toContain('fact-contextless-fragment');
     expect(sourceTextIssues('This source ends without punctuation')).toContain('fact-missing-terminal-punctuation');
@@ -299,7 +322,7 @@ describe('Scion source-grounded atom capture', () => {
     });
   });
 
-  it('binds the v0.16.11 receipt to the retained projects and candidate ledger', async () => {
+  it('binds the historical v0.16.11 receipt to its retained source-capture projects', async () => {
     const campaign = await materializeSourceCaptureCampaign({ cwd: repoRoot });
     const receipt = JSON.parse(
       fs.readFileSync(path.join(repoRoot, 'evaluation/scion-adapters/evidence/review-campaign-v0.16.11.json'), 'utf8'),
@@ -373,6 +396,78 @@ describe('Scion source-grounded atom capture', () => {
     expect(projects.local[0].scionSourceCapture.model).toMatchObject(receipt.sourceCapture.local.model);
     expect(projects.reference[0].scionSourceCapture.model).toMatchObject(receipt.sourceCapture.reference.model);
 
+    expect(receipt).toMatchObject({
+      status: 'ready-for-research-review',
+      completedIndependentReviews: 0,
+      approvedTrainingPairs: 0,
+      groupCoverageStatus: 'ready',
+      researchCoverageStatus: 'ready',
+      coverageStatus: 'needs-more-domains',
+    });
+  });
+
+  it('binds the v0.16.17 receipt to the additive artifacts and current source-first ledger', async () => {
+    const campaign = await materializeSourceCaptureCampaign({
+      cwd: repoRoot,
+      manifestPath: 'evaluation/scion-source-capture-expansion-v0.16.17.json',
+    });
+    const receipt = JSON.parse(
+      fs.readFileSync(path.join(repoRoot, 'evaluation/scion-adapters/evidence/review-campaign-v0.16.17.json'), 'utf8'),
+    );
+    const campaignReceipt = receipt.sourceCaptureCampaigns.find((entry) => entry.role === 'additive-v0.16.17');
+    const projects = { local: [], reference: [] };
+    const artifactRows = [];
+
+    for (const group of campaign.groups) {
+      for (const arm of ['local', 'reference']) {
+        const relativePath = `evaluation/scion-source-capture-expansion-evidence/${group.id}-${arm}.json`;
+        const raw = fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+        const project = JSON.parse(raw);
+        expect(
+          verifySourceCaptureProject(project, { campaign, group, arm, model: project.scionSourceCapture.model }),
+        ).toEqual({ valid: true, issues: [] });
+        projects[arm].push(project);
+        artifactRows.push({ path: relativePath, sha256: fileSha256(raw) });
+      }
+    }
+
+    artifactRows.sort((left, right) => left.path.localeCompare(right.path));
+    expect(campaignReceipt).toMatchObject({
+      protocol: campaign.protocol,
+      manifestPath: campaign.manifestPath,
+      manifestSha256: campaign.manifestSha256,
+      promptSetSha256: campaign.promptSetSha256,
+      artifactSetSha256: sourceCaptureSha256(artifactRows),
+      groups: 4,
+      promptsPerArm: 24,
+      expectedAtomsPerArm: 96,
+      validProjects: 8,
+      totalProjects: 8,
+    });
+
+    const burdenFor = (arm) =>
+      summarizeSourceCaptureBurden({
+        calls: projects[arm].flatMap((project) => project.scionSourceCapture.calls),
+        expectedCalls: campaign.summary.prompts,
+        expectedAtoms: campaign.summary.expectedCandidates,
+      });
+    const local = burdenFor('local');
+    const reference = burdenFor('reference');
+    expect(campaignReceipt.local).toMatchObject({
+      rawGeneratedAtoms: local.generatedAtoms,
+      rawAdmittedAtoms: local.admittedAtoms,
+      rawBurdenAtoms: local.burdenAtoms,
+      rawBurdenRate: local.burdenRate,
+      recoveryCalls: 0,
+    });
+    expect(campaignReceipt.reference).toMatchObject({
+      rawGeneratedAtoms: reference.generatedAtoms,
+      rawAdmittedAtoms: reference.admittedAtoms,
+      rawBurdenAtoms: reference.burdenAtoms,
+      rawBurdenRate: reference.burdenRate,
+      recoveryCalls: 0,
+    });
+
     const candidateRaw = fs.readFileSync(path.join(repoRoot, 'evaluation/scion-review-candidates.jsonl'), 'utf8');
     const candidates = candidateRaw
       .trim()
@@ -381,11 +476,17 @@ describe('Scion source-grounded atom capture', () => {
     expect(fileSha256(candidateRaw)).toBe(receipt.sourceFiles[0].sha256);
     expect(candidates).toHaveLength(receipt.availableCandidates);
     expect(new Set(candidates.map((row) => row.courseGroupSha256)).size).toBe(receipt.courseGroupCount);
-    expect(candidates.filter((row) => row.sourceContext)).toHaveLength(receipt.sourceContextCases);
+    expect(candidates.filter((row) => row.sourceContext)).toHaveLength(receipt.availableSourceContextCandidates);
     expect(receipt).toMatchObject({
-      status: 'ready-for-research-review',
-      completedIndependentReviews: 0,
+      status: 'ready-for-model-judge-research',
+      selectedCases: 160,
+      availableCandidates: 437,
+      selectedSourceContextCases: 128,
+      excludedMissingSourceContext: 32,
+      requiredModelJudgePasses: 256,
+      completedModelJudgePasses: 0,
       approvedTrainingPairs: 0,
+      courseGroupCount: 16,
       groupCoverageStatus: 'ready',
       researchCoverageStatus: 'ready',
       coverageStatus: 'needs-more-domains',

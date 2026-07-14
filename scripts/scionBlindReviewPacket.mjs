@@ -186,6 +186,20 @@ function roundRobin(candidates, limit) {
   return selected;
 }
 
+function sourceFirstRoundRobin(candidates, limit) {
+  const sourceBacked = roundRobin(
+    candidates.filter((candidate) => candidate.sourceContext),
+    limit,
+  );
+  if (sourceBacked.length >= limit) return sourceBacked;
+  const selectedIds = new Set(sourceBacked.map((candidate) => candidate.pairId));
+  const fill = roundRobin(
+    candidates.filter((candidate) => !selectedIds.has(candidate.pairId)),
+    limit - sourceBacked.length,
+  );
+  return [...sourceBacked, ...fill];
+}
+
 export function createBlankScionReview(caseRow, reviewPacketId = '', reviewPacketDigest = '') {
   return {
     pairId: caseRow.pairId,
@@ -582,12 +596,12 @@ export async function buildScionBlindReviewPacket({
   const selected =
     Number(perDomainLimit) > 0
       ? candidateDomains.flatMap((domain) =>
-          roundRobin(
+          sourceFirstRoundRobin(
             candidates.filter((candidate) => candidate.domain === domain),
             Number(perDomainLimit),
           ),
         )
-      : roundRobin(candidates, Math.max(1, Number(limit) || 50));
+      : sourceFirstRoundRobin(candidates, Math.max(1, Number(limit) || 50));
   const cases = [];
   const keys = [];
   for (const candidate of selected) {
@@ -657,6 +671,14 @@ export async function buildScionBlindReviewPacket({
   const kindCounts = Object.fromEntries(
     ['mc-item', 'key-term'].map((kind) => [kind, cases.filter((row) => row.kind === kind).length]),
   );
+  const availableSourceContextCandidates = candidates.filter((candidate) => candidate.sourceContext).length;
+  const selectedSourceContextCases = cases.filter((row) => row.sourceContext).length;
+  const sourceContextDomainCounts = Object.fromEntries(
+    domains.map((domain) => [domain, cases.filter((row) => row.domain === domain && row.sourceContext).length]),
+  );
+  const sourceContextKindCounts = Object.fromEntries(
+    ['mc-item', 'key-term'].map((kind) => [kind, cases.filter((row) => row.kind === kind && row.sourceContext).length]),
+  );
   const reviewOrganizerDigest = organizerKeyDigest(keys);
   const reviewPacketDigest = packetDigest(cases, reviewOrganizerDigest);
   const packetId = `scion-review-${reviewPacketDigest.slice(0, 20)}`;
@@ -689,6 +711,10 @@ export async function buildScionBlindReviewPacket({
     perDomainLimit: Number(perDomainLimit) > 0 ? Number(perDomainLimit) : null,
     selectedCases: cases.length,
     availableCandidates: candidates.length,
+    availableSourceContextCandidates,
+    selectedSourceContextCases,
+    sourceContextDomainCounts,
+    sourceContextKindCounts,
     blind: true,
     primaryPreferenceEvidence: 'single-model-judge',
     requiredModelJudgeOrdersPerCase: 2,
@@ -812,6 +838,10 @@ export async function buildScionBlindReviewPacket({
       organizerDigest: reviewOrganizerDigest,
       selectedCases: cases.length,
       availableCandidates: candidates.length,
+      availableSourceContextCandidates,
+      selectedSourceContextCases,
+      sourceContextDomainCounts,
+      sourceContextKindCounts,
       primaryPreferenceEvidence: meta.primaryPreferenceEvidence,
       requiredModelJudgePasses: cases.length * meta.requiredModelJudgeOrdersPerCase,
       optionalQualifiedHumanReviews: cases.length * meta.requiredIndependentReviewsPerCase,

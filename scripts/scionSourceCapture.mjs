@@ -29,6 +29,7 @@ const DEFAULT_OUTPUT = 'evaluation/scion-source-capture-evidence';
 const DEFAULT_CHECKPOINTS = 'verification-output/scion-source-capture/checkpoints';
 const DEFAULT_REPORT = 'verification-output/scion-source-capture/latest.json';
 const BASE_CONTRACT = 'evaluation/scion-adapters/base-contracts/gemma-4-e2b.json';
+const LOCAL_CAPTURE_TIMEOUT_MS = 2_400_000;
 
 function parseArgs(argv) {
   const args = {
@@ -120,7 +121,7 @@ async function callLocal(prompt, model, schema = SOURCE_ATOM_SCHEMA) {
       maxTokens: model.maxOutputTokens,
       schema,
     },
-    { timeoutMs: 1_200_000 },
+    { timeoutMs: LOCAL_CAPTURE_TIMEOUT_MS },
   );
   return { text, receipt: { provider: 'local', constrained: 'json-schema', adapterActive: false } };
 }
