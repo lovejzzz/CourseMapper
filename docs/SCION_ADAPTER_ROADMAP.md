@@ -2,9 +2,23 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** exact-QAT smoke training, deterministic GGUF conversion, browser activation, rollback, frozen paired evaluation, source-bound blind-review plumbing, separate independent-instructor and founder-research lanes, and a semantic four-profile device protocol are implemented; the research campaign reaches three exact course groups in each of four domains, but completed reviews remain zero and no quality adapter has passed the frozen five-domain, burden, device, factual, export, or instructor gates
+**Status:** exact-QAT smoke training, deterministic GGUF conversion, browser activation, rollback, frozen paired evaluation, source-bound blind-review plumbing, an explicit provenance-bound Codex judge lane, separate human research lanes, and a semantic four-profile device protocol are implemented; no quality adapter has yet supplied the required five-domain Codex comparison, burden, device, factual, export, or browser-runtime evidence
 
 **Release boundary:** no current public Scion request claims to use trained weights
+
+## v0.16.15 — One Judge, Two Orders
+
+**Goal:** let Codex be Scion's standing quality judge without fabricating a panel, instructor review, independence, or classroom validation.
+
+**Lane:** `honest-quality-benchmark-v1` preregisters either `qualified-human` or `single-model-judge` as the primary preference evidence. Scion uses the model lane. Every comparison binds one exact Codex model, runtime or session revision, and prompt SHA-256. Candidate and control rubric scores must be byte-verified and carry that same judge provenance before a pairwise preference is accepted. Each preference also binds both output hashes and both scorecard hashes with a scoring-first attestation.
+
+**Order control:** every distinct candidate/control output pair receives at least one A/B and one B/A pass. The analyzer unblinds each pass, counts one stable trial outcome only when both orders agree, retains missing and position-sensitive passes, and computes the preference interval over stable trial outcomes rather than treating repeated readings by one model as independent judges.
+
+**Frozen bar:** the five preregistered domains—World Languages, World Literature, Psychology, Nutrition, and Astronomy—require ten distinct trials each. The minimum campaign is therefore fifty stable outcomes and one hundred recorded Codex passes. Promotion additionally requires a positive score-difference interval inside every domain, a preference Wilson lower bound above 0.5, a strictly lower compiler-call interval, exact arm and scorecard identities, factual and source gates, valid packages, the four-profile real-device matrix, activation, rollback, recovery, and memory evidence.
+
+**Executable proof:** `npm run audit:scion:codex-judge` verifies the prompt, template, held-out manifest, registry thresholds, and all SHA-256 bindings. `npm run test:quality-benchmark` and `npm run test:quality-benchmark:unit` prove the happy path and fail-closed behavior for missing reverse order, position sensitivity, judge revision drift, scorecard drift, duplicate trials, swapped arms, and unbound scores.
+
+**Release boundary:** this release changes the ruler and promotion policy, not model weights or hosted inference. The bake-off still reports `no-model-promoted`; no real adapter win, paid-reference parity, human validation, or device result is claimed. Public Scion remains the pinned browser-local base plus the model-neutral compiler.
 
 ## v0.16.14 — Solo Signal: useful judgment without fake independence
 

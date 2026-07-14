@@ -89,8 +89,27 @@ export function validateScionModelRegistry(registry) {
   }
   if (promotion.requireHonestQualityBenchmark !== true)
     issues.push('invalid-promotion-policy:requireHonestQualityBenchmark');
+  if (!['qualified-human', 'single-model-judge'].includes(promotion.qualityPreferenceMode))
+    issues.push('invalid-promotion-policy:qualityPreferenceMode');
+  if (
+    promotion.qualityPreferenceMode === 'single-model-judge' &&
+    (!Number.isInteger(promotion.minimumStableModelJudgeTrials) || promotion.minimumStableModelJudgeTrials < 3)
+  ) {
+    issues.push('invalid-promotion-policy:minimumStableModelJudgeTrials');
+  }
+  if (
+    promotion.qualityPreferenceMode === 'single-model-judge' &&
+    (!Number.isInteger(promotion.minimumModelJudgePassesPerTrial) || promotion.minimumModelJudgePassesPerTrial < 2)
+  ) {
+    issues.push('invalid-promotion-policy:minimumModelJudgePassesPerTrial');
+  }
+  if (promotion.qualityPreferenceMode === 'single-model-judge' && promotion.requireBothModelJudgeOrders !== true) {
+    issues.push('invalid-promotion-policy:requireBothModelJudgeOrders');
+  }
   if (!Number.isInteger(promotion.minimumQualityComparisonCases) || promotion.minimumQualityComparisonCases < 5)
     issues.push('invalid-promotion-policy:minimumQualityComparisonCases');
+  if (!Number.isInteger(promotion.minimumQualityTrialsPerCase) || promotion.minimumQualityTrialsPerCase < 3)
+    issues.push('invalid-promotion-policy:minimumQualityTrialsPerCase');
   if (!Number.isFinite(promotion.minimumQualityDeltaLowerBound) || promotion.minimumQualityDeltaLowerBound < 0)
     issues.push('invalid-promotion-policy:minimumQualityDeltaLowerBound');
   if (
@@ -271,25 +290,46 @@ export function evaluateScionModelCandidate(candidate, evidenceRows, registry, c
   const qualifyingQualityComparison = qualityComparisonReports.find((report) => {
     const caseRows = Object.values(report.absoluteScoreEffect?.byCase || {});
     const burdenUpper = report.operations?.candidateMinusControlCompilerBurden?.scionCalls?.interval95?.[1];
+    const singleModelJudge = report.singleModelJudgePreference || {};
+    const qualifiedHumanPreference = report.qualifiedPairwisePreference || {};
+    const preferenceGatePasses =
+      promotion.qualityPreferenceMode === 'single-model-judge'
+        ? report.status === 'model-judged-for-declared-scope' &&
+          report.primaryPreferenceEvidence === 'single-model-judge' &&
+          report.scoreEvidenceTiers.length === 1 &&
+          report.scoreEvidenceTiers[0] === 'model-judge:model-provisional' &&
+          singleModelJudge.usableForPrimaryClaim === true &&
+          singleModelJudge.stableTrialCount >= promotion.minimumStableModelJudgeTrials &&
+          singleModelJudge.completeCases >= promotion.minimumQualityComparisonCases &&
+          report.minimumTrialsPerCase >= promotion.minimumQualityTrialsPerCase &&
+          singleModelJudge.requiredPassesPerTrial >= promotion.minimumModelJudgePassesPerTrial &&
+          (!promotion.requireBothModelJudgeOrders ||
+            (singleModelJudge.requiredOrders?.includes('A/B') && singleModelJudge.requiredOrders?.includes('B/A'))) &&
+          singleModelJudge.judgeIdentityCount === 1 &&
+          singleModelJudge.positionSensitiveOrIncompleteTrials?.length === 0 &&
+          Number.isFinite(singleModelJudge.wilson95?.[0]) &&
+          singleModelJudge.wilson95[0] > promotion.minimumWilsonWinLowerBound
+        : report.status === 'measured-for-declared-scope' &&
+          report.primaryPreferenceEvidence === 'qualified-human' &&
+          report.scoreEvidenceTiers.length === 1 &&
+          report.scoreEvidenceTiers[0] === 'human-qualified:independently-validated' &&
+          qualifiedHumanPreference.completeTrials >= promotion.minimumBlindCases &&
+          qualifiedHumanPreference.requiredPerTrial >= promotion.minimumIndependentReviewsPerCase &&
+          Number.isFinite(qualifiedHumanPreference.wilson95?.[0]) &&
+          qualifiedHumanPreference.wilson95[0] > promotion.minimumWilsonWinLowerBound;
     return (
-      report.status === 'measured-for-declared-scope' &&
+      preferenceGatePasses &&
       report.candidateId === candidate.id &&
       report.controlId === registry.controlCandidateId &&
       report.declaredCaseCount >= promotion.minimumQualityComparisonCases &&
       Number(report.splitCounts?.heldout || 0) === report.trialCount &&
-      report.scoreEvidenceTiers.length === 1 &&
-      report.scoreEvidenceTiers[0] === 'human-qualified:independently-validated' &&
       caseRows.length >= promotion.minimumQualityComparisonCases &&
       caseRows.every(
         (row) =>
-          row.count >= 3 &&
+          row.count >= promotion.minimumQualityTrialsPerCase &&
           Number.isFinite(row.meanDeltaInterval95?.[0]) &&
           row.meanDeltaInterval95[0] > promotion.minimumQualityDeltaLowerBound,
       ) &&
-      report.qualifiedPairwisePreference.completeTrials >= promotion.minimumBlindCases &&
-      report.qualifiedPairwisePreference.requiredPerTrial >= promotion.minimumIndependentReviewsPerCase &&
-      Number.isFinite(report.qualifiedPairwisePreference.wilson95?.[0]) &&
-      report.qualifiedPairwisePreference.wilson95[0] > promotion.minimumWilsonWinLowerBound &&
       Number.isFinite(burdenUpper) &&
       burdenUpper < promotion.maximumCompilerBurdenDeltaUpperBound
     );

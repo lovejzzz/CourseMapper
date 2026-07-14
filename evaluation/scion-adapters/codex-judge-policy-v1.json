@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "scion-codex-judge-policy-v1",
+  "protocolVersion": "honest-quality-benchmark-v1",
+  "evidenceClass": "model-judge",
+  "primaryPreferenceEvidence": "single-model-judge",
+  "judge": {
+    "model": "openai/codex",
+    "revisionPolicy": "Every comparison must preregister the exact runtime or session revision exposed for that run. Missing, placeholder, or changed revision provenance makes the comparison invalid.",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-judge-prompt-v1.md",
+    "promptSha256": "6f95f8806a094558ff4f266216e0140d7710e4f46eb155490868e54078bac266"
+  },
+  "heldout": {
+    "manifestPath": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+    "manifestSha256": "e3f07d2ccdf197315556e0205b97b30aee7a447399e14c440d6c1865e11b08a5",
+    "caseIds": ["mandarin", "world-lit-readings", "psych-101", "nutrition-101", "astro-101"],
+    "domains": ["world-languages", "world-literature", "psychology", "nutrition", "astronomy"]
+  },
+  "comparison": {
+    "minimumTrialsPerCase": 10,
+    "requiredPassesPerTrial": 2,
+    "requiredOrders": ["A/B", "B/A"],
+    "minimumStableTrialOutcomes": 50,
+    "minimumRecordedJudgePasses": 100,
+    "scoreBeforePreference": true,
+    "requireHashBoundArtifacts": true,
+    "requireHashBoundScorecards": true,
+    "retainPositionDisagreements": true
+  },
+  "claimBoundary": "A passing result is a single provenance-bound Codex judgment over the declared frozen scope. It is not human, instructor, independent, classroom, or multi-judge validation. This policy does not claim that a Scion adapter exists, loads, wins, or matches a paid reference."
+}

@@ -348,6 +348,44 @@ function verifiedScorecards(comparison) {
   );
 }
 
+function useSingleModelJudge(comparison) {
+  const judge = {
+    model: 'openai/codex',
+    modelRevision: 'gpt-5-session-test-revision',
+    promptSha256: '9'.repeat(64),
+  };
+  comparison.preregistration.primaryPreferenceEvidence = 'single-model-judge';
+  delete comparison.preregistration.requiredQualifiedPreferencesPerTrial;
+  comparison.preregistration.modelJudge = {
+    ...judge,
+    requiredPassesPerTrial: 2,
+    requiredOrders: ['A/B', 'B/A'],
+  };
+  for (const trial of comparison.trials) {
+    for (const side of ['candidate', 'control']) {
+      trial.outputs[side].scoreEvidence.evidenceClass = 'model-judge';
+      trial.outputs[side].scoreEvidence.validationTier = 'model-provisional';
+      Object.assign(trial.outputs[side].scoreEvidence, judge);
+    }
+    trial.preferences = ['A/B', 'B/A'].map((order, passIndex) => ({
+      reviewerId: `codex-${trial.caseId}-${trial.trialIndex}-pass-${passIndex + 1}`,
+      evidenceClass: 'model-judge',
+      ...judge,
+      blinded: true,
+      preference: trial.randomization.candidateLabel,
+      order,
+      rationale: 'The candidate scores higher on the bound rubric with more specific artifact evidence.',
+      reviewedAt: '2026-07-13T12:00:00Z',
+      candidateArtifactSha256: trial.outputs.candidate.outputSha256,
+      controlArtifactSha256: trial.outputs.control.outputSha256,
+      candidateScorecardSha256: trial.outputs.candidate.scoreEvidence.scorecardSha256,
+      controlScorecardSha256: trial.outputs.control.scoreEvidence.scorecardSha256,
+      scoredBeforePreference: true,
+    }));
+  }
+  return comparison;
+}
+
 describe('controlled model comparison', () => {
   it('binds every reported score to exact scorecard bytes and matching scorecard content', async () => {
     const fixture = comparisonFixture();
@@ -427,6 +465,9 @@ describe('controlled model comparison', () => {
     fixture.trials[0].preferences[0] = {
       reviewerId: 'judge-model',
       evidenceClass: 'model-judge',
+      model: 'openai/codex',
+      modelRevision: 'gpt-5-session-test-revision',
+      promptSha256: '9'.repeat(64),
       blinded: true,
       preference: 'B',
       order: 'A/B',
@@ -434,6 +475,9 @@ describe('controlled model comparison', () => {
       reviewedAt: '2026-07-13T12:00:00Z',
       candidateArtifactSha256: fixture.trials[0].outputs.candidate.outputSha256,
       controlArtifactSha256: fixture.trials[0].outputs.control.outputSha256,
+      candidateScorecardSha256: fixture.trials[0].outputs.candidate.scoreEvidence.scorecardSha256,
+      controlScorecardSha256: fixture.trials[0].outputs.control.scoreEvidence.scorecardSha256,
+      scoredBeforePreference: true,
     };
     const report = analyzeModelComparison(fixture, {
       bootstrapSamples: 100,
@@ -442,6 +486,127 @@ describe('controlled model comparison', () => {
     expect(report.qualifiedPairwisePreference.count).toBe(11);
     expect(report.advisoryModelJudge.count).toBe(1);
     expect(report.advisoryModelJudge.usableForPrimaryClaim).toBe(false);
+  });
+
+  it('uses one exact model judge as primary evidence only after scoring-first reversed-order agreement', () => {
+    const fixture = useSingleModelJudge(comparisonFixture());
+    const report = analyzeModelComparison(fixture, {
+      bootstrapSamples: 100,
+      verifiedScorecardSha256s: verifiedScorecards(fixture),
+    });
+    expect(report.status).toBe('model-judged-for-declared-scope');
+    expect(report.issues).toEqual([]);
+    expect(report.qualifiedPairwisePreference.count).toBe(0);
+    expect(report.singleModelJudgePreference).toMatchObject({
+      passCount: 12,
+      stableTrialCount: 6,
+      completeCases: 2,
+      wins: 6,
+      losses: 0,
+      ties: 0,
+      consistencyRate: 1,
+      judgeIdentityCount: 1,
+      usableForPrimaryClaim: true,
+    });
+    expect(report.scoreEvidenceTiers).toEqual(['model-judge:model-provisional']);
+    expect(report.claimBoundary).toContain('never human, instructor, independent, classroom, or multi-judge evidence');
+  });
+
+  it('byte-verifies the exact model-judge identity inside every scored scorecard', async () => {
+    const fixture = useSingleModelJudge(comparisonFixture());
+    fixture.trials = [fixture.trials[0]];
+    const directory = await mkdtemp(path.join(tmpdir(), 'coursemapper-model-judge-scorecards-'));
+    try {
+      for (const side of ['candidate', 'control']) {
+        const output = fixture.trials[0].outputs[side];
+        const evidence = output.scoreEvidence;
+        const scorecard = {
+          rubricVersion: evidence.rubricVersion,
+          caseId: fixture.trials[0].caseId,
+          sourceSha256: evidence.sourceSha256,
+          artifactSha256: output.outputSha256,
+          validation: {
+            selectedEvidenceClass: evidence.evidenceClass,
+            tier: evidence.validationTier,
+            modelJudgeIdentity: {
+              model: evidence.model,
+              modelRevision: evidence.modelRevision,
+              promptSha256: evidence.promptSha256,
+            },
+          },
+          scores: { reportedScore: output.benchmarkScore },
+          dimensions: Object.entries(output.dimensionScores).map(([id, score]) => ({ id, score })),
+          reviewValidationIssues: [],
+        };
+        const bytes = `${JSON.stringify(scorecard, null, 2)}\n`;
+        evidence.scorecardPath = `${side}.json`;
+        evidence.scorecardSha256 = createHash('sha256').update(bytes).digest('hex');
+        await writeFile(path.join(directory, evidence.scorecardPath), bytes);
+      }
+      for (const preference of fixture.trials[0].preferences) {
+        preference.candidateScorecardSha256 = fixture.trials[0].outputs.candidate.scoreEvidence.scorecardSha256;
+        preference.controlScorecardSha256 = fixture.trials[0].outputs.control.scoreEvidence.scorecardSha256;
+      }
+      expect((await verifyComparisonScorecards(fixture, { baseDir: directory })).issues).toEqual([]);
+
+      const evidence = fixture.trials[0].outputs.candidate.scoreEvidence;
+      const scorecardPath = path.join(directory, evidence.scorecardPath);
+      const scorecard = JSON.parse(await readFile(scorecardPath, 'utf8'));
+      scorecard.validation.modelJudgeIdentity.modelRevision = 'different-runtime-revision';
+      const bytes = `${JSON.stringify(scorecard, null, 2)}\n`;
+      evidence.scorecardSha256 = createHash('sha256').update(bytes).digest('hex');
+      await writeFile(scorecardPath, bytes);
+      expect((await verifyComparisonScorecards(fixture, { baseDir: directory })).issues).toContain(
+        'case-a/trial-1/candidate scorecard content does not match the declared score, dimensions, artifact, or evidence tier',
+      );
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('fails closed when a single model judge lacks a reversed order or changes its decision by position', () => {
+    const missingOrder = useSingleModelJudge(comparisonFixture());
+    missingOrder.trials[0].preferences.pop();
+    const incomplete = analyzeModelComparison(missingOrder, {
+      bootstrapSamples: 100,
+      verifiedScorecardSha256s: verifiedScorecards(missingOrder),
+    });
+    expect(incomplete.status).toBe('partial-model-judgment');
+    expect(incomplete.singleModelJudgePreference.usableForPrimaryClaim).toBe(false);
+    expect(incomplete.singleModelJudgePreference.positionSensitiveOrIncompleteTrials[0]).toMatchObject({
+      caseId: 'case-a',
+      trialIndex: 1,
+      reason: 'missing-required-passes-or-orders',
+    });
+
+    const orderSensitive = useSingleModelJudge(comparisonFixture());
+    orderSensitive.trials[0].preferences[1].preference = orderSensitive.trials[0].randomization.controlLabel;
+    const inconsistent = analyzeModelComparison(orderSensitive, {
+      bootstrapSamples: 100,
+      verifiedScorecardSha256s: verifiedScorecards(orderSensitive),
+    });
+    expect(inconsistent.status).toBe('partial-model-judgment');
+    expect(inconsistent.singleModelJudgePreference.positionSensitiveOrIncompleteTrials[0]).toMatchObject({
+      reason: 'position-sensitive-outcome',
+    });
+  });
+
+  it('rejects a model-judge preference whose identity or scoring-first hashes drift from preregistration', () => {
+    const fixture = useSingleModelJudge(comparisonFixture());
+    fixture.trials[0].preferences[0].modelRevision = 'different-runtime-revision';
+    fixture.trials[1].preferences[0].candidateScorecardSha256 = '8'.repeat(64);
+    const report = analyzeModelComparison(fixture, {
+      bootstrapSamples: 100,
+      verifiedScorecardSha256s: verifiedScorecards(fixture),
+    });
+    expect(report.status).toBe('invalid');
+    expect(report.issues).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('case-a/trial-1 has an invalid pairwise preference'),
+        expect.stringContaining('case-a/trial-2 has an invalid pairwise preference'),
+      ]),
+    );
+    expect(report.singleModelJudgePreference.usableForPrimaryClaim).toBe(false);
   });
 
   it('rejects duplicated favorable trials, swapped model arms, and unbound scores', () => {

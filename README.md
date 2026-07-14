@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.12
+**Current release:** v0.16.15
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.12**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.15**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -117,13 +117,24 @@ Research training additionally requires at least 20 approved instructor pairs an
 
 See [evaluation/README.md](evaluation/README.md) for the gate definitions and route-separated evidence, and [the evidence-aware quality benchmark](docs/QUALITY_BENCHMARK_V1.md) for the v1 construct, anchored rubrics, corpus, validation tiers, reliability, and controlled-comparison protocol. The [research basis](docs/QUALITY_BENCHMARK_RESEARCH.md) and [pre-v1 audit](docs/QUALITY_EVALUATION_AUDIT.md) keep the evidence and design judgments inspectable.
 
-v0.16.14 adds the honest solo-founder path without relaxing that protocol. A Scion adapter/base comparison must still predeclare every case, use distinct repeated trials with exact arm identities, byte-verify every scorecard against the source and output, retain failures/cost/latency, bind two independent domain-matched instructors to every blind pair, and report compiler burden separately. Promotion still requires a positive held-out score interval in each of five domains, a blind-preference Wilson lower bound above 0.5, and a strictly lower compiler-call interval. Founder or model-judge choices are diagnostic evidence, never substitutes for those independent reviews.
+v0.16.15 makes Codex the explicit standing judge for Scion's controlled quality comparisons. This is **single-model-judge evidence**, not a hidden panel and not human or instructor validation. Every run preregisters one exact Codex model, runtime or session revision, and prompt SHA-256. Codex scores both anonymous artifacts first with byte-verified source-, artifact-, rubric-, and scorecard-bound evidence, then records a winner. The same frozen pair is repeated in A/B and B/A order; both passes must map to the same unblinded outcome before the analyzer counts one stable trial. Missing reverse passes, position-sensitive winners, changed judge identity, changed scorecard hashes, reused trials, and unbound scores fail closed.
 
-This is a stronger ruler, not a stronger adapter result. Hosted Scion is still base-only; there are zero approved training pairs, zero independently validated held-out adapter wins, and no qualifying four-profile device/speed matrix. The measured base-only gap remains 62/96 admitted atoms before recovery (63/96 after one bounded compiler recovery) versus 91/96 for GPT-5.4-mini on the retained source campaign.
+Scion's configured promotion ruler now requires ten distinct trials in each of the five frozen held-out domains, two reversed-order Codex passes per trial, at least fifty stable trial outcomes and one hundred recorded passes, a preference Wilson lower bound above 0.5, a positive held-out score interval in every domain, and a strictly lower compiler-call interval. Factual, source, leakage, export/package, browser-device, memory, activation, rollback, recovery, and production gates remain separate requirements. The qualified-human comparison lane remains available for research, but it is not silently mixed with or required by the declared Codex lane.
+
+The executable contract lives in [`evaluation/scion-adapters/codex-judge-policy-v1.json`](evaluation/scion-adapters/codex-judge-policy-v1.json), with a hash-bound [judge prompt](evaluation/quality-benchmark/v1/single-model-judge-prompt-v1.md) and [comparison template](evaluation/quality-benchmark/v1/comparison.model-judge.template.json). Verify it with:
+
+```bash
+npm run audit:scion:codex-judge
+npm run test:quality-benchmark
+npm run test:quality-benchmark:unit
+npm run audit:scion:model-bakeoff
+```
+
+This is an executable ruler, not a stronger adapter result. Hosted Scion is still base-only; there are zero approved training pairs, zero qualifying Codex-judged held-out adapter wins, and no qualifying four-profile device/speed matrix. The live bake-off still reports `no-model-promoted`. The measured base-only gap remains 62/96 admitted atoms before recovery (63/96 after one bounded compiler recovery) versus 91/96 for GPT-5.4-mini on the retained source campaign.
 
 ### Local research route
 
-The repository also contains a separate experimental, model-neutral local Scion server. Gemma 4 E2B remains the control; registered challengers must pass the same factual, full-course, browser-device, and instructor gates before becoming a default:
+The repository also contains a separate experimental, model-neutral local Scion server. Gemma 4 E2B remains the control; registered challengers must pass the same factual, full-course, browser-device, compiler-burden, and declared Codex comparison gates before becoming a default:
 
 ```bash
 npm run local-model # serves the local Scion-compatible endpoint at http://127.0.0.1:8799
@@ -135,7 +146,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.14)
+## Current Pipeline (v0.16.15)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

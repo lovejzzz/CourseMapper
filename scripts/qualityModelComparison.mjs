@@ -31,6 +31,11 @@ export async function verifyComparisonScorecards(comparison, { baseDir = ROOT } 
         const dimensionScores = Object.fromEntries(
           (scorecard.dimensions || []).map((dimension) => [dimension.id, Number(dimension.score)]),
         );
+        const modelJudgeIdentityMatches =
+          evidence.evidenceClass !== 'model-judge' ||
+          (scorecard.validation?.modelJudgeIdentity?.model === evidence.model &&
+            scorecard.validation?.modelJudgeIdentity?.modelRevision === evidence.modelRevision &&
+            scorecard.validation?.modelJudgeIdentity?.promptSha256 === evidence.promptSha256);
         const dimensionsMatch = Object.entries(output.dimensionScores || {}).every(
           ([id, score]) => Number(score) === dimensionScores[id],
         );
@@ -43,6 +48,7 @@ export async function verifyComparisonScorecards(comparison, { baseDir = ROOT } 
           scorecard.validation?.selectedEvidenceClass === evidence.evidenceClass &&
           scorecard.validation?.tier === evidence.validationTier &&
           Number(scorecard.scores?.reportedScore) === Number(output.benchmarkScore) &&
+          modelJudgeIdentityMatches &&
           dimensionsMatch &&
           (scorecard.reviewValidationIssues || []).length === 0;
         if (!identityMatches) {
@@ -64,6 +70,7 @@ function renderMarkdown(report) {
   const mean = report.absoluteScoreEffect.candidateMinusControlMean;
   const med = report.absoluteScoreEffect.candidateMinusControlMedian;
   const preference = report.qualifiedPairwisePreference;
+  const modelPreference = report.singleModelJudgePreference;
   const operationRows = ['candidate', 'control'].map((side) => {
     const row = report.operations[side];
     return `| ${side} | ${row.successes}/${row.attempts} | ${row.meanLatencyMs ?? '—'} | ${row.totalCostUsd ?? '—'} | ${row.meanProviderCalls ?? '—'} |`;
@@ -91,6 +98,19 @@ function renderMarkdown(report) {
     `Wilson 95% interval: ${preference.wilson95[0] ?? '—'} to ${preference.wilson95[1] ?? '—'}`,
     `Unique qualified reviewers: ${preference.uniqueReviewers}`,
     `Fully reviewed trials: ${preference.completeTrials}/${report.trialCount} (minimum ${preference.requiredPerTrial ?? '—'} qualified reviewers each)`,
+    '',
+    '## Blinded single-model-judge preference',
+    '',
+    `Mode: ${report.primaryPreferenceEvidence === 'single-model-judge' ? 'primary for declared scope' : 'advisory only'}`,
+    `Stable trial wins / losses / ties: ${modelPreference.wins} / ${modelPreference.losses} / ${modelPreference.ties}`,
+    `Stable trials: ${modelPreference.stableTrialCount}/${report.trialCount}; consistency rate: ${modelPreference.consistencyRate ?? '—'}`,
+    `Complete cases: ${modelPreference.completeCases}/${report.declaredCaseCount}`,
+    `Effective win rate (tie = 0.5): ${modelPreference.effectiveWinRate ?? '—'}`,
+    `Wilson 95% interval over stable trial outcomes: ${modelPreference.wilson95[0] ?? '—'} to ${modelPreference.wilson95[1] ?? '—'}`,
+    `Judge: ${modelPreference.judgeIdentity ? `${modelPreference.judgeIdentity.model} @ ${modelPreference.judgeIdentity.modelRevision}; prompt ${modelPreference.judgeIdentity.promptSha256}` : 'not uniquely bound'}`,
+    `Passes: ${modelPreference.passCount}; required per trial: ${modelPreference.requiredPassesPerTrial}; required orders: ${modelPreference.requiredOrders.join(', ')}`,
+    `Position-sensitive or incomplete trials: ${modelPreference.positionSensitiveOrIncompleteTrials.map((row) => `${row.caseId}/trial-${row.trialIndex} (${row.reason})`).join(', ') || 'none'}`,
+    `Usable for declared single-model primary claim: ${modelPreference.usableForPrimaryClaim ? 'yes' : 'no'}`,
     '',
     '## Operations',
     '',
@@ -162,9 +182,13 @@ async function main() {
   }
   const report = await runQualityModelComparison(args);
   console.log(`Model comparison: ${report.status}`);
-  console.log(`Trials: ${report.trialCount}; qualified preferences: ${report.qualifiedPairwisePreference.count}`);
+  console.log(
+    `Trials: ${report.trialCount}; qualified preferences: ${report.qualifiedPairwisePreference.count}; model-judge passes: ${report.singleModelJudgePreference.passCount}`,
+  );
   console.log(`Report: ${path.join(args.outputDir, 'latest.md')}`);
-  if (report.status !== 'measured-for-declared-scope') process.exitCode = 1;
+  if (!['measured-for-declared-scope', 'model-judged-for-declared-scope'].includes(report.status)) {
+    process.exitCode = 1;
+  }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {

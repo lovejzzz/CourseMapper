@@ -8,6 +8,7 @@
     "analysisPlanSha256": "ANALYSIS_PLAN_SHA256",
     "corpusManifestSha256": "CORPUS_MANIFEST_SHA256",
     "minimumTrialsPerCase": 3,
+    "primaryPreferenceEvidence": "qualified-human",
     "requiredQualifiedPreferencesPerTrial": 2,
     "caseIds": ["CASE_ID"],
     "stoppingRule": "Run every predeclared case and trial; do not stop for observed quality or preference.",

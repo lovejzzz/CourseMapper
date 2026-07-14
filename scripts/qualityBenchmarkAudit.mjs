@@ -197,6 +197,26 @@ export async function runQualityBenchmarkAudit({
     }
   }
   if ((manifest.schemas || []).length < 2) issues.push('benchmark must bind review and comparison schemas');
+  const singleModelJudgePolicy = manifest.singleModelJudgePolicy || {};
+  for (const [label, filePath, expectedSha256] of [
+    ['single-model-judge template', singleModelJudgePolicy.templatePath, singleModelJudgePolicy.templateSha256],
+    ['single-model-judge prompt', singleModelJudgePolicy.promptPath, singleModelJudgePolicy.promptSha256],
+  ]) {
+    try {
+      const observedSha256 = await fileSha256(path.resolve(ROOT, filePath || ''));
+      if (!SHA256.test(String(expectedSha256 || '')) || observedSha256 !== expectedSha256) {
+        issues.push(`${label} hash does not match the benchmark manifest`);
+      }
+    } catch (error) {
+      issues.push(`${label} cannot be loaded: ${error.message}`);
+    }
+  }
+  if (
+    !String(singleModelJudgePolicy.claimBoundary || '').includes('never becomes human') ||
+    !String(singleModelJudgePolicy.claimBoundary || '').includes('multi-judge evidence')
+  ) {
+    issues.push('single-model-judge policy must preserve the non-human and non-multi-judge claim boundary');
+  }
   const deliverableIds = new Set((rubric.deliverableRubrics || []).map((row) => row.id));
   const caseIds = new Set();
   const sourceDigests = new Map();
