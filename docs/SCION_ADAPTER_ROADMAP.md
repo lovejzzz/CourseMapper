@@ -2,9 +2,19 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** exact-QAT smoke training, deterministic GGUF conversion, browser activation, rollback, frozen paired evaluation, source-bound blind-review plumbing, and a semantic four-profile device protocol are implemented; the research campaign reaches three exact course groups in each of four domains, but completed reviews remain zero and no quality adapter has passed the frozen five-domain, burden, device, factual, export, or instructor gates
+**Status:** exact-QAT smoke training, deterministic GGUF conversion, browser activation, rollback, frozen paired evaluation, source-bound blind-review plumbing, separate independent-instructor and founder-research lanes, and a semantic four-profile device protocol are implemented; the research campaign reaches three exact course groups in each of four domains, but completed reviews remain zero and no quality adapter has passed the frozen five-domain, burden, device, factual, export, or instructor gates
 
 **Release boundary:** no current public Scion request claims to use trained weights
+
+## v0.16.14 — Solo Signal: useful judgment without fake independence
+
+**Goal:** make the product founder's blind judgments useful to Scion research without misrepresenting one conflicted reviewer as independent instructor validation.
+
+**Lane:** every domain packet now keeps the qualified `review.html` instructor lane and adds a separate `founder-review.html` over the same hash-bound anonymous cases. Both pages show one case at a time, report completion progress, autosave locally, and support back, next, direct jumps, and flags. The founder export carries its own protocol, `founder-review` evidence class, product-founder role, declared conflict, non-independent status, and `claimEligible: false` boundary. Its validator is separate, and the production instructor validator and ingestion path reject it.
+
+**Research use:** founder review may identify answer-key mismatches, source contradictions, ambiguous options, weak distractors, unsupported generalization, and overclaim. Those findings can become compiler tests and repairs or motivate a non-promotable research experiment. If a founder and a separately recorded model judge disagree, the disagreement is a diagnostic queue—not an automatic training label.
+
+**Release boundary:** founder judgments do not enter the approved production corpus, satisfy the two-instructor preference gate, unlock candidate training, or promote an adapter. v0.16.14 changes evaluation workflow only; public Scion remains the pinned browser-local base plus the model-neutral compiler, with zero approved training pairs and no learned quality claim.
 
 ## v0.16.12 — Device Truth: hashes are not browser proof
 
