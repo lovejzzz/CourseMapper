@@ -1,0 +1,116 @@
+{
+  "version": "0.16.23",
+  "date": "July 14, 2026",
+  "title": "Small Delta, Hard Boundary: bounded browser adapter delivery",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:adapter-delivery",
+      "npx vitest run tests/scion-adapter-manifest.test.js tests/scion-adapter-registry.test.js",
+      "npm run audit:scion:browser-adapter-smoke",
+      "npm run audit:scion:codex-fresh-handoff",
+      "npm run audit:scion:codex-sealed-pass",
+      "npm run audit:scion:codex-judge",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run test:e2e",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "The complete Fast verification workflow must pass on the exact v0.16.23 content merge before remote proof is recorded."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The release replays retained mechanical smoke evidence and hardens the delivery software contract. It does not perform the fresh B/A judgment, train a quality adapter, run the frozen held-out ruler, or claim a production browser-device matrix."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages and a cache-busted production Chromium check remain required after the exact content merge deploys."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "No provider or model call is needed. The measured package is already retained, hash-bound mechanical evidence and no model-quality claim is made."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "The active Scion goal declares Codex as the standing quality judge. This bounded-delivery result makes no human, instructor, independent, classroom, or multi-judge claim."
+    },
+    "strictLayeredEvaluation": {
+      "status": "expected-fail-claim-boundary",
+      "command": "npm run audit:evaluation:release",
+      "claimStatus": "compiler-contract-only",
+      "passingTiers": ["compiler-contract", "production-canaries"],
+      "missingTiers": ["independently-validated-heldout", "independent-instructor-benchmark"],
+      "note": "A bounded adapter transport is necessary delivery infrastructure, not adapter-quality, held-out, paid-reference, device-matrix, or classroom evidence."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01623-dual-adapter-size-budget",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Browser adapter packages fail validation above 64 MiB, and GGUF browser adapters also fail above two percent of the exact 3,349,514,112-byte pinned base; the current effective ceiling is 66,990,282 bytes.",
+      "anchors": [
+        "src/lib/scionAdapterManifest.js",
+        "tests/scion-adapter-manifest.test.js",
+        "evaluation/scion-adapters/base-contracts/gemma-4-e2b.json"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-adapter-manifest.test.js", "npm run audit:scion:adapter-delivery"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01623-bounded-streaming-download",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Browser adapter downloads require a stream, inspect declared lengths before opening the reader, reject overrun and truncation against exact manifest bytes, and never fall back to unchecked whole-response buffering.",
+      "anchors": ["src/lib/scionAdapterRegistry.js", "tests/scion-adapter-registry.test.js"],
+      "proofCommands": ["npx vitest run tests/scion-adapter-registry.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01623-atomic-verified-install",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Per-chunk progress is published while files remain staged, and the adapter record reaches IndexedDB only after every exact size and SHA-256 check passes; adversarial failures leave no partial registry state.",
+      "anchors": ["src/lib/scionAdapterRegistry.js", "tests/scion-adapter-registry.test.js"],
+      "proofCommands": ["npx vitest run tests/scion-adapter-registry.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01623-hash-bound-smoke-budget",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The hash-bound retained smoke package totals 52,707,007 bytes, equals 1.573572 percent of the pinned base, remains 14,283,275 bytes below the effective ceiling, and is explicitly a separate adapter without base weights.",
+      "anchors": [
+        "scripts/scionAdapterDeliveryBudgetAudit.mjs",
+        "evaluation/scion-adapters/evidence/adapter-delivery-budget-v0.16.23.json",
+        "evaluation/scion-adapters/evidence/browser-adapter-smoke-v0.16.7.json"
+      ],
+      "proofCommands": ["npm run audit:scion:adapter-delivery", "npm run audit:scion:browser-adapter-smoke"],
+      "proofScopes": ["static-audit", "compiled-output"]
+    },
+    {
+      "id": "v01623-delivery-not-quality",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The result is explicitly bounded to mechanical adapter delivery and creates no production adapter, quality win, held-out result, device matrix, paid-reference parity, completed B/A judgment, or human validation; public Scion remains base-only.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/README.md",
+        "evaluation/scion-adapters/evidence/adapter-delivery-budget-v0.16.23.json"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:adapter-delivery",
+        "npm run audit:scion:codex-fresh-handoff",
+        "npm run audit:scion:codex-sealed-pass",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

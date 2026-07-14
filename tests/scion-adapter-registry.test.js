@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  SCION_ADAPTER_MANIFEST_MAX_BYTES,
   activateInstalledScionAdapter,
   createScionAdapterMemoryStore,
   installScionBrowserAdapter,
@@ -13,12 +14,48 @@ const encoder = new TextEncoder();
 const MANIFEST_URL = 'https://models.edutool.dev/scion/scion-g4e2b-v1/manifest.json';
 const TRAINING_DOMAINS = ['computer-science', 'geology', 'music-theory', 'user-experience-design', 'world-history'];
 
-function binaryResponse(bytes, { status = 200 } = {}) {
+function binaryResponse(
+  bytes,
+  { status = 200, chunks, contentLength, includeBody = true, onGetReader, onRead, onCancel, onArrayBuffer } = {},
+) {
   const value = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const streamChunks = (chunks || [value]).map((chunk) =>
+    chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk),
+  );
+  const declaredLength = contentLength === undefined ? value.byteLength : contentLength;
   return {
     ok: status >= 200 && status < 300,
     status,
-    arrayBuffer: async () => value.slice().buffer,
+    headers: {
+      get: (name) =>
+        String(name).toLowerCase() === 'content-length' && declaredLength != null ? String(declaredLength) : null,
+    },
+    ...(includeBody
+      ? {
+          body: {
+            getReader() {
+              onGetReader?.();
+              let index = 0;
+              return {
+                async read() {
+                  onRead?.(index);
+                  if (index >= streamChunks.length) return { done: true, value: undefined };
+                  return { done: false, value: streamChunks[index++] };
+                },
+                async cancel() {
+                  onCancel?.();
+                  index = streamChunks.length;
+                },
+                releaseLock() {},
+              };
+            },
+          },
+        }
+      : {}),
+    arrayBuffer: async () => {
+      onArrayBuffer?.();
+      return value.slice().buffer;
+    },
   };
 }
 
@@ -57,11 +94,11 @@ async function fixture(adapterId = 'scion-g4e2b-v1') {
   return { adapterBytes, manifest, manifestBytes, manifestSha256 };
 }
 
-function fetchFixture({ manifestBytes, adapterBytes, fileOverride } = {}) {
+function fetchFixture({ manifestBytes, adapterBytes, fileOverride, manifestOptions, fileOptions } = {}) {
   return vi.fn(async (url) => {
-    if (url === MANIFEST_URL) return binaryResponse(manifestBytes);
+    if (url === MANIFEST_URL) return binaryResponse(manifestBytes, manifestOptions);
     if (url === new URL('adapters.safetensors', MANIFEST_URL).href) {
-      return binaryResponse(fileOverride || adapterBytes);
+      return binaryResponse(fileOverride || adapterBytes, fileOptions);
     }
     return binaryResponse(new Uint8Array(), { status: 404 });
   });
@@ -81,10 +118,16 @@ describe('Scion browser adapter registry', () => {
     const store = createScionAdapterMemoryStore();
     const currentFixture = await fixture();
     const progress = [];
+    const midpoint = Math.floor(currentFixture.adapterBytes.byteLength / 2);
     const record = await installScionBrowserAdapter({
       manifestUrl: MANIFEST_URL,
       expectedManifestSha256: currentFixture.manifestSha256,
-      fetchImpl: fetchFixture(currentFixture),
+      fetchImpl: fetchFixture({
+        ...currentFixture,
+        fileOptions: {
+          chunks: [currentFixture.adapterBytes.slice(0, midpoint), currentFixture.adapterBytes.slice(midpoint)],
+        },
+      }),
       store,
       onProgress: (entry) => progress.push(entry),
     });
@@ -99,6 +142,9 @@ describe('Scion browser adapter registry', () => {
       valid: true,
       issues: [],
     });
+    expect(progress.filter((entry) => entry.phase === 'downloading')).toHaveLength(2);
+    expect(progress[0].progress).toBeGreaterThan(0);
+    expect(progress[0].progress).toBeLessThan(1);
     expect(progress.at(-1)).toMatchObject({ phase: 'installed', progress: 1 });
   });
 
@@ -122,7 +168,9 @@ describe('Scion browser adapter registry', () => {
   it('does not commit a partial install when a downloaded file fails integrity', async () => {
     const store = createScionAdapterMemoryStore();
     const currentFixture = await fixture();
-    const fetchImpl = fetchFixture({ ...currentFixture, fileOverride: encoder.encode('tampered') });
+    const tamperedBytes = currentFixture.adapterBytes.slice();
+    tamperedBytes[0] ^= 0xff;
+    const fetchImpl = fetchFixture({ ...currentFixture, fileOverride: tamperedBytes });
 
     await expect(
       installScionBrowserAdapter({
@@ -132,6 +180,155 @@ describe('Scion browser adapter registry', () => {
         store,
       }),
     ).rejects.toMatchObject({ code: 'SCION_ADAPTER_FILE_INTEGRITY' });
+    await expect(store.listAdapters()).resolves.toEqual([]);
+  });
+
+  it('does not commit an earlier verified file when a later file fails', async () => {
+    const store = createScionAdapterMemoryStore();
+    const commitAdapter = vi.spyOn(store, 'commitAdapter');
+    const currentFixture = await fixture();
+    const receiptBytes = encoder.encode('conversion receipt');
+    const manifest = structuredClone(currentFixture.manifest);
+    manifest.files.push({
+      path: 'conversion-receipt.json',
+      bytes: receiptBytes.byteLength,
+      sha256: await sha256Hex(receiptBytes),
+    });
+    const manifestBytes = encoder.encode(`${JSON.stringify(manifest, null, 2)}\n`);
+    const manifestSha256 = await sha256Hex(manifestBytes);
+    const tamperedReceipt = receiptBytes.slice();
+    tamperedReceipt[0] ^= 0xff;
+    const fetchImpl = vi.fn(async (url) => {
+      if (url === MANIFEST_URL) return binaryResponse(manifestBytes);
+      if (url === new URL('adapters.safetensors', MANIFEST_URL).href) {
+        return binaryResponse(currentFixture.adapterBytes);
+      }
+      if (url === new URL('conversion-receipt.json', MANIFEST_URL).href) {
+        return binaryResponse(tamperedReceipt);
+      }
+      return binaryResponse(new Uint8Array(), { status: 404 });
+    });
+
+    await expect(
+      installScionBrowserAdapter({
+        manifestUrl: MANIFEST_URL,
+        expectedManifestSha256: manifestSha256,
+        fetchImpl,
+        store,
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_ADAPTER_FILE_INTEGRITY' });
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+    expect(commitAdapter).not.toHaveBeenCalled();
+    await expect(store.listAdapters()).resolves.toEqual([]);
+  });
+
+  it('rejects a declared file length mismatch before opening the response stream', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+    const onGetReader = vi.fn();
+
+    await expect(
+      installScionBrowserAdapter({
+        manifestUrl: MANIFEST_URL,
+        expectedManifestSha256: currentFixture.manifestSha256,
+        fetchImpl: fetchFixture({
+          ...currentFixture,
+          fileOptions: {
+            contentLength: currentFixture.adapterBytes.byteLength + 1,
+            onGetReader,
+          },
+        }),
+        store,
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_ADAPTER_CONTENT_LENGTH' });
+    expect(onGetReader).not.toHaveBeenCalled();
+    await expect(store.listAdapters()).resolves.toEqual([]);
+  });
+
+  it('cancels a headerless stream that exceeds the manifest byte contract', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+    const onCancel = vi.fn();
+
+    await expect(
+      installScionBrowserAdapter({
+        manifestUrl: MANIFEST_URL,
+        expectedManifestSha256: currentFixture.manifestSha256,
+        fetchImpl: fetchFixture({
+          ...currentFixture,
+          fileOptions: {
+            contentLength: null,
+            chunks: [currentFixture.adapterBytes, new Uint8Array([1])],
+            onCancel,
+          },
+        }),
+        store,
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_ADAPTER_STREAM_OVERRUN' });
+    expect(onCancel).toHaveBeenCalledOnce();
+    await expect(store.listAdapters()).resolves.toEqual([]);
+  });
+
+  it('rejects a headerless stream that ends before the manifest byte contract', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+
+    await expect(
+      installScionBrowserAdapter({
+        manifestUrl: MANIFEST_URL,
+        expectedManifestSha256: currentFixture.manifestSha256,
+        fetchImpl: fetchFixture({
+          ...currentFixture,
+          fileOptions: {
+            contentLength: null,
+            chunks: [currentFixture.adapterBytes.slice(0, -1)],
+          },
+        }),
+        store,
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_ADAPTER_STREAM_TRUNCATED' });
+    await expect(store.listAdapters()).resolves.toEqual([]);
+  });
+
+  it('never falls back to an unbounded arrayBuffer response', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+    const onArrayBuffer = vi.fn();
+
+    await expect(
+      installScionBrowserAdapter({
+        manifestUrl: MANIFEST_URL,
+        expectedManifestSha256: currentFixture.manifestSha256,
+        fetchImpl: fetchFixture({
+          ...currentFixture,
+          fileOptions: { includeBody: false, onArrayBuffer },
+        }),
+        store,
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_ADAPTER_STREAM_REQUIRED' });
+    expect(onArrayBuffer).not.toHaveBeenCalled();
+    await expect(store.listAdapters()).resolves.toEqual([]);
+  });
+
+  it('rejects an oversized manifest from headers before opening its stream', async () => {
+    const store = createScionAdapterMemoryStore();
+    const onGetReader = vi.fn();
+    const fetchImpl = vi.fn(async () =>
+      binaryResponse(new Uint8Array(), {
+        contentLength: SCION_ADAPTER_MANIFEST_MAX_BYTES + 1,
+        onGetReader,
+      }),
+    );
+
+    await expect(
+      installScionBrowserAdapter({
+        manifestUrl: MANIFEST_URL,
+        expectedManifestSha256: '0'.repeat(64),
+        fetchImpl,
+        store,
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_ADAPTER_SIZE_LIMIT' });
+    expect(onGetReader).not.toHaveBeenCalled();
     await expect(store.listAdapters()).resolves.toEqual([]);
   });
 
