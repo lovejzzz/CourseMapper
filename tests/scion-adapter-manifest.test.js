@@ -3,8 +3,11 @@ import { describe, expect, it } from 'vitest';
 import {
   SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
   SCION_BROWSER_ADAPTER_CONVERSION_PIPELINE,
+  SCION_BROWSER_ADAPTER_MAX_BASE_FRACTION,
+  SCION_BROWSER_ADAPTER_MAX_TOTAL_BYTES,
   resolveScionAdapterRuntime,
   SCION_GEMMA4_E2B_BASE,
+  SCION_GEMMA4_E2B_BROWSER_BASE_BYTES,
   SCION_LLAMA_CPP_LORA_CONVERTER_SHA256,
   SCION_LLAMA_CPP_REVISION,
   validateScionAdapterManifest,
@@ -131,6 +134,40 @@ describe('Scion adapter manifest', () => {
         baseRevision: SCION_GEMMA4_E2B_BASE.revision,
       }),
     ).toMatchObject({ mode: 'adapter-ready', adapterActive: true });
+  });
+
+  it('rejects a browser adapter above two percent of the pinned base', () => {
+    const ratioCeiling = Math.floor(SCION_GEMMA4_E2B_BROWSER_BASE_BYTES * SCION_BROWSER_ADAPTER_MAX_BASE_FRACTION);
+    const result = validateScionAdapterManifest(
+      manifest({
+        adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.23', format: 'gguf-lora', scale: 1 },
+        files: [
+          { path: 'scion-g4e2b-v1.gguf', bytes: ratioCeiling - 1024 + 1, sha256: HASH },
+          { path: 'conversion-receipt.json', bytes: 1024, sha256: HASH },
+        ],
+        runtime: { supported: ['scion-wllama-webgpu-jspi-v1'] },
+        conversion: browserConversion(),
+      }),
+    );
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContain('gguf-browser-base-fraction');
+    expect(result.issues).not.toContain('gguf-browser-size-budget');
+  });
+
+  it('rejects a browser adapter above the absolute 64 MiB ceiling', () => {
+    const result = validateScionAdapterManifest(
+      manifest({
+        adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.23', format: 'gguf-lora', scale: 1 },
+        files: [
+          { path: 'scion-g4e2b-v1.gguf', bytes: SCION_BROWSER_ADAPTER_MAX_TOTAL_BYTES, sha256: HASH },
+          { path: 'conversion-receipt.json', bytes: 1, sha256: HASH },
+        ],
+        runtime: { supported: ['scion-wllama-webgpu-jspi-v1'] },
+        conversion: browserConversion(),
+      }),
+    );
+    expect(result.valid).toBe(false);
+    expect(result.issues).toEqual(expect.arrayContaining(['gguf-browser-size-budget', 'gguf-browser-base-fraction']));
   });
 
   it('rejects an untraceable GGUF even when its file digest is present', () => {

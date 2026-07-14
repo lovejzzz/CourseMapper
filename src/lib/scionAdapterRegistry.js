@@ -1,9 +1,14 @@
-import { resolveScionAdapterRuntime, validateScionAdapterManifest } from './scionAdapterManifest';
+import {
+  SCION_BROWSER_ADAPTER_MAX_TOTAL_BYTES,
+  resolveScionAdapterRuntime,
+  validateScionAdapterManifest,
+} from './scionAdapterManifest.js';
 
 export const SCION_ADAPTER_DATABASE_NAME = 'scion-adapters-v1';
 export const SCION_ADAPTER_DATABASE_VERSION = 1;
-export const SCION_ADAPTER_MAX_TOTAL_BYTES = 256 * 1024 * 1024;
+export const SCION_ADAPTER_MAX_TOTAL_BYTES = SCION_BROWSER_ADAPTER_MAX_TOTAL_BYTES;
 export const SCION_ADAPTER_MAX_FILES = 16;
+export const SCION_ADAPTER_MANIFEST_MAX_BYTES = 1024 * 1024;
 
 const SHA256_RE = /^[a-f0-9]{64}$/;
 
@@ -195,11 +200,103 @@ export function createScionAdapterIndexedDbStore({
   };
 }
 
-async function fetchBinary(fetchImpl, url) {
+function responseContentLength(response, url) {
+  const raw = response?.headers?.get?.('content-length');
+  if (raw == null || clean(raw) === '') return null;
+  const value = clean(raw);
+  if (!/^\d+$/.test(value)) {
+    throw createRegistryError('SCION_ADAPTER_CONTENT_LENGTH', `Invalid Content-Length for ${url}.`);
+  }
+  const bytes = Number(value);
+  if (!Number.isSafeInteger(bytes)) {
+    throw createRegistryError('SCION_ADAPTER_CONTENT_LENGTH', `Unsafe Content-Length for ${url}.`);
+  }
+  return bytes;
+}
+
+async function cancelReader(reader) {
+  try {
+    await reader.cancel();
+  } catch {
+    // The original bounded-download failure remains the useful error.
+  }
+}
+
+async function fetchBoundedBinary(fetchImpl, url, { expectedBytes, maxBytes, onChunk } = {}) {
   const response = await fetchImpl(url, { cache: 'no-store', credentials: 'omit' });
   if (!response?.ok)
     throw createRegistryError('SCION_ADAPTER_DOWNLOAD', `HTTP ${response?.status || 'unknown'} for ${url}`);
-  return response.arrayBuffer();
+  const declaredBytes = responseContentLength(response, url);
+  if (expectedBytes != null && declaredBytes != null && declaredBytes !== expectedBytes) {
+    throw createRegistryError('SCION_ADAPTER_CONTENT_LENGTH', `Content-Length does not match the manifest: ${url}`, {
+      url,
+      expectedBytes,
+      declaredBytes,
+    });
+  }
+  if (declaredBytes != null && declaredBytes > maxBytes) {
+    throw createRegistryError('SCION_ADAPTER_SIZE_LIMIT', `Response exceeds the ${maxBytes}-byte limit: ${url}`, {
+      url,
+      maxBytes,
+      declaredBytes,
+    });
+  }
+  if (typeof response?.body?.getReader !== 'function') {
+    throw createRegistryError(
+      'SCION_ADAPTER_STREAM_REQUIRED',
+      'Scion adapter downloads require a streaming response so browser memory can be bounded.',
+      { url },
+    );
+  }
+
+  const reader = response.body.getReader();
+  const exactBuffer = expectedBytes == null ? null : new Uint8Array(expectedBytes);
+  const chunks = [];
+  let receivedBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = asUint8Array(value);
+      if (chunk.byteLength === 0) continue;
+      const nextBytes = receivedBytes + chunk.byteLength;
+      if (
+        !Number.isSafeInteger(nextBytes) ||
+        nextBytes > maxBytes ||
+        (expectedBytes != null && nextBytes > expectedBytes)
+      ) {
+        await cancelReader(reader);
+        throw createRegistryError('SCION_ADAPTER_STREAM_OVERRUN', `Stream exceeded its byte contract: ${url}`, {
+          url,
+          expectedBytes,
+          maxBytes,
+          receivedBytes: nextBytes,
+        });
+      }
+      if (exactBuffer) exactBuffer.set(chunk, receivedBytes);
+      else chunks.push(chunk.slice());
+      receivedBytes = nextBytes;
+      if (typeof onChunk === 'function') onChunk({ chunkBytes: chunk.byteLength, receivedBytes });
+    }
+  } finally {
+    reader.releaseLock?.();
+  }
+
+  if (expectedBytes != null && receivedBytes !== expectedBytes) {
+    throw createRegistryError('SCION_ADAPTER_STREAM_TRUNCATED', `Stream ended before its declared size: ${url}`, {
+      url,
+      expectedBytes,
+      receivedBytes,
+    });
+  }
+  if (exactBuffer) return exactBuffer;
+  const bytes = new Uint8Array(receivedBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes;
 }
 
 function requireSecureManifestUrl(manifestUrl) {
@@ -259,7 +356,9 @@ export async function installScionBrowserAdapter({
   if (typeof fetchImpl !== 'function') throw createRegistryError('SCION_ADAPTER_FETCH', 'Fetch is unavailable.');
   const adapterStore = store || createScionAdapterIndexedDbStore();
   const manifestLocation = requireSecureManifestUrl(manifestUrl);
-  const manifestBytes = await fetchBinary(fetchImpl, manifestLocation.href);
+  const manifestBytes = await fetchBoundedBinary(fetchImpl, manifestLocation.href, {
+    maxBytes: SCION_ADAPTER_MANIFEST_MAX_BYTES,
+  });
   const manifestSha256 = await sha256Hex(manifestBytes, cryptoLike);
   if (manifestSha256 !== expectedManifestSha256) {
     throw createRegistryError('SCION_ADAPTER_MANIFEST_HASH', 'Scion adapter manifest digest does not match.', {
@@ -284,7 +383,19 @@ export async function installScionBrowserAdapter({
   let downloadedBytes = 0;
   for (const file of files) {
     const fileUrl = new URL(file.path, manifestLocation);
-    const bytes = await fetchBinary(fetchImpl, fileUrl.href);
+    const bytes = await fetchBoundedBinary(fetchImpl, fileUrl.href, {
+      expectedBytes: file.bytes,
+      maxBytes: file.bytes,
+      onChunk: ({ receivedBytes }) =>
+        publishProgress(onProgress, {
+          phase: 'downloading',
+          adapterId: manifest.adapter.id,
+          path: file.path,
+          downloadedBytes: downloadedBytes + receivedBytes,
+          totalBytes,
+          progress: totalBytes > 0 ? (downloadedBytes + receivedBytes) / totalBytes : 1,
+        }),
+    });
     const actualBytes = asUint8Array(bytes).byteLength;
     const actualSha256 = await sha256Hex(bytes, cryptoLike);
     if (actualBytes !== file.bytes || actualSha256 !== file.sha256) {
@@ -305,14 +416,6 @@ export async function installScionBrowserAdapter({
       storageKey: `${manifestSha256}:${file.path}`,
       path: file.path,
       bytes,
-    });
-    publishProgress(onProgress, {
-      phase: 'downloading',
-      adapterId: manifest.adapter.id,
-      path: file.path,
-      downloadedBytes,
-      totalBytes,
-      progress: totalBytes > 0 ? downloadedBytes / totalBytes : 1,
     });
   }
 

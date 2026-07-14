@@ -11,6 +11,14 @@ export const SCION_GEMMA4_E2B_BASE = Object.freeze({
   role: 'instruction',
 });
 
+// A browser adapter is an optional delta, never a second copy of the base.
+// Keep the absolute cap easy to explain while also binding it to the exact
+// pinned 3.35 GB browser artifact. The ratio gate is slightly stricter than
+// 64 MiB for the current base and therefore remains the effective ceiling.
+export const SCION_GEMMA4_E2B_BROWSER_BASE_BYTES = 3349514112;
+export const SCION_BROWSER_ADAPTER_MAX_TOTAL_BYTES = 64 * 1024 * 1024;
+export const SCION_BROWSER_ADAPTER_MAX_BASE_FRACTION = 0.02;
+
 export const SCION_ADAPTER_RUNTIME_CAPABILITIES = Object.freeze({
   'mlx-vlm': Object.freeze({
     dynamicAdapter: true,
@@ -208,6 +216,16 @@ export function validateScionAdapterManifest(
 
   const format = clean(manifest.adapter?.format);
   if (format === 'gguf-lora') {
+    const declaredTotalBytes = files.reduce(
+      (sum, file) => sum + (Number.isSafeInteger(file?.bytes) && file.bytes > 0 ? file.bytes : 0),
+      0,
+    );
+    if (declaredTotalBytes > SCION_BROWSER_ADAPTER_MAX_TOTAL_BYTES) {
+      issues.push('gguf-browser-size-budget');
+    }
+    if (declaredTotalBytes / SCION_GEMMA4_E2B_BROWSER_BASE_BYTES > SCION_BROWSER_ADAPTER_MAX_BASE_FRACTION) {
+      issues.push('gguf-browser-base-fraction');
+    }
     const scale = Number(manifest.adapter?.scale);
     if (!Number.isFinite(scale) || scale < 0.05 || scale > 16) issues.push('gguf-adapter-scale');
     const ggufFiles = files.filter((file) => clean(file?.path).toLowerCase().endsWith('.gguf'));
