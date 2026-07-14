@@ -18,16 +18,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The exact v0.16.19 content commit must pass Fast verification on GitHub before the release proof is finalized."
+      "status": "success",
+      "commit": "975a27440d0f37f2e7499cc826e82361f8f27013",
+      "runId": 29333719443,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29333719443",
+      "note": "Fast verification passed on the exact v0.16.19 content merge in 21m52s, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the strict main evaluation, production build, bundle budgets, and uploaded evaluation reports."
     },
     "ciDeep": {
       "status": "manual-only",
       "note": "This release prepares the isolated B/A judgment input and atomic seal path. It does not perform the reverse judgment, train an adapter, run held-out adapter comparisons, or claim a browser-device matrix."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and the cache-busted edutool.dev release surfaces must be verified after the content commit reaches main."
+      "status": "success",
+      "commit": "975a27440d0f37f2e7499cc826e82361f8f27013",
+      "runId": 29335191800,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29335191800",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production fetch resolved assets/index-BrUX2yvH.js and assets/releaseManifest-DQqDsWI2.js and confirmed v0.16.19, Clean Room Relay, Scion Prepares a Clean Second Reading, and the prepared-not-judged claim boundary in the live bundle."
     },
     "liveProvider": {
       "status": "not-used",
