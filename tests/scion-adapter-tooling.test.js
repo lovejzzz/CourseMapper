@@ -71,7 +71,7 @@ function approvedRow(overrides = {}) {
     ...overrides,
     preferenceEvidence: {
       kind: 'single-model-judge-preference',
-      protocol: 'scion-codex-training-review-v1',
+      protocol: 'scion-codex-training-review-v2',
       benchmarkProtocol: 'honest-quality-benchmark-v1',
       policyId: 'scion-codex-judge-policy-v1',
       verified: true,
@@ -86,7 +86,8 @@ function approvedRow(overrides = {}) {
         revision: 'codex-test-revision',
         runtime: 'vitest',
         sessionIds: ['session-a', 'session-b'],
-        promptSha256: '6f95f8806a094558ff4f266216e0140d7710e4f46eb155490868e54078bac266',
+        promptPath: 'evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md',
+        promptSha256: '0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7',
       },
       orders: ['A/B', 'B/A'],
       passHashes: ['1'.repeat(64), '2'.repeat(64)],

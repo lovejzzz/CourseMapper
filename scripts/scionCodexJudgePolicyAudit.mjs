@@ -7,6 +7,8 @@ import { pathToFileURL } from 'node:url';
 
 import {
   SCION_CODEX_JUDGE_POLICY_ID,
+  SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH,
+  SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256,
   SCION_CODEX_TRAINING_MINIMUM_WINNER_SCORE,
   SCION_CODEX_TRAINING_REQUIRED_ORDERS,
   SCION_CODEX_TRAINING_REVIEW_PROTOCOL,
@@ -107,6 +109,22 @@ export async function auditScionCodexJudgePolicy({ outputDir = DEFAULT_OUTPUT } 
   addIssue(issues, training.sourcePacketProtocol === 'scion-blind-atom-packet-v4', 'atom packet protocol drifted');
   addIssue(
     issues,
+    training.judgePromptPath === SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH,
+    'training judge prompt path drifted',
+  );
+  addIssue(
+    issues,
+    training.judgePromptSha256 === SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256,
+    'training judge prompt hash drifted',
+  );
+  const trainingPromptBytes = await fs.readFile(path.resolve(ROOT, training.judgePromptPath || ''));
+  addIssue(
+    issues,
+    digest(trainingPromptBytes) === training.judgePromptSha256,
+    'training judge prompt bytes do not match policy hash',
+  );
+  addIssue(
+    issues,
     training.primaryPreferenceEvidence === 'single-model-judge',
     'training preference mode must remain single-model-judge',
   );
@@ -117,6 +135,12 @@ export async function auditScionCodexJudgePolicy({ outputDir = DEFAULT_OUTPUT } 
   );
   addIssue(issues, training.requiredFreshSessions === 2, 'training must require two fresh Codex sessions');
   addIssue(issues, training.scoreBeforePreference === true, 'training score-before-preference must remain required');
+  addIssue(issues, training.preserveTie === true, 'training ties must remain explicit');
+  addIssue(
+    issues,
+    training.preserveInsufficientEvidence === true,
+    'training insufficient-evidence decisions must remain explicit',
+  );
   addIssue(issues, training.requireHashBoundArtifacts === true, 'training artifact hashes must remain required');
   addIssue(issues, training.requireHashBoundScorecards === true, 'training scorecard hashes must remain required');
   addIssue(issues, training.requireNeutralSourceContext === true, 'training source context must remain required');
@@ -141,8 +165,13 @@ export async function auditScionCodexJudgePolicy({ outputDir = DEFAULT_OUTPUT } 
   );
   addIssue(
     issues,
-    trainingSchema.properties?.judge?.properties?.promptSha256?.const === policy.judge.promptSha256,
+    trainingSchema.properties?.judge?.properties?.promptSha256?.const === training.judgePromptSha256,
     'training review schema prompt hash drifted',
+  );
+  addIssue(
+    issues,
+    trainingSchema.properties?.judge?.properties?.promptPath?.const === training.judgePromptPath,
+    'training review schema prompt path drifted',
   );
 
   const promotion = registry.promotionPolicy || {};
@@ -221,6 +250,7 @@ export async function auditScionCodexJudgePolicy({ outputDir = DEFAULT_OUTPUT } 
       protocol: training.protocol,
       requiredOrders: training.requiredOrders,
       requiredFreshSessions: training.requiredFreshSessions,
+      judgePromptSha256: training.judgePromptSha256,
       minimumWinnerScore: training.minimumWinnerScore,
       minimumResearchPairs: training.minimumResearchPairs,
       minimumCandidatePairs: training.minimumCandidatePairs,
