@@ -12,15 +12,19 @@ import {
 } from '../src/lib/scionAdapterManifest.js';
 import { SCION_ADAPTER_MANIFEST_MAX_BYTES, SCION_ADAPTER_MAX_TOTAL_BYTES } from '../src/lib/scionAdapterRegistry.js';
 
-const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/adapter-delivery-budget-v0.16.23.json';
+const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/adapter-lifecycle-v0.16.24.json';
 const BASE_CONTRACT = 'evaluation/scion-adapters/base-contracts/gemma-4-e2b.json';
 const SMOKE_EVIDENCE = 'evaluation/scion-adapters/evidence/browser-adapter-smoke-v0.16.7.json';
 const IMPLEMENTATION_FILES = [
   'scripts/scionAdapterDeliveryBudgetAudit.mjs',
   'src/lib/scionAdapterManifest.js',
   'src/lib/scionAdapterRegistry.js',
+  'src/lib/scionBrowserWllama.js',
+  'src/lib/scionRuntimeCanaryBridge.js',
   'tests/scion-adapter-manifest.test.js',
   'tests/scion-adapter-registry.test.js',
+  'tests/scion-browser-wllama.test.js',
+  'tests/scion-runtime-canary-bridge.test.js',
 ];
 
 function sha256(value) {
@@ -85,6 +89,9 @@ export async function buildScionAdapterDeliveryBudgetReport({ cwd = process.cwd(
   }
   const registrySource = await fs.readFile(path.join(cwd, 'src/lib/scionAdapterRegistry.js'), 'utf8');
   const registryTests = await fs.readFile(path.join(cwd, 'tests/scion-adapter-registry.test.js'), 'utf8');
+  const browserRuntimeSource = await fs.readFile(path.join(cwd, 'src/lib/scionBrowserWllama.js'), 'utf8');
+  const canarySource = await fs.readFile(path.join(cwd, 'src/lib/scionRuntimeCanaryBridge.js'), 'utf8');
+  const canaryTests = await fs.readFile(path.join(cwd, 'tests/scion-runtime-canary-bridge.test.js'), 'utf8');
   for (const marker of [
     'SCION_ADAPTER_STREAM_REQUIRED',
     'SCION_ADAPTER_CONTENT_LENGTH',
@@ -95,13 +102,39 @@ export async function buildScionAdapterDeliveryBudgetReport({ cwd = process.cwd(
     requireCondition(registryTests.includes(marker), `Adversarial tests are missing ${marker}.`);
   }
   requireCondition(!registrySource.includes('return response.arrayBuffer()'), 'Registry restored unbounded buffering.');
+  requireCondition(!canarySource.includes('.arrayBuffer()'), 'Browser canary bypasses bounded streaming.');
+  for (const marker of [
+    'installScionBrowserAdapter',
+    'verifyInstalledScionAdapter',
+    'activateInstalledScionAdapter',
+    'deactivateInstalledScionAdapter',
+  ]) {
+    requireCondition(canarySource.includes(marker), `Browser canary is missing ${marker}.`);
+    requireCondition(canaryTests.includes(marker), `Browser canary tests are missing ${marker}.`);
+  }
+  for (const marker of [
+    'SCION_ADAPTER_ACTIVE_REPLACEMENT',
+    'cached-manifest-record-mismatch',
+    "phase: 'cached'",
+    "mode: 'recovery-required'",
+  ]) {
+    requireCondition(registrySource.includes(marker), `Registry lifecycle is missing ${marker}.`);
+    requireCondition(registryTests.includes(marker), `Registry lifecycle tests are missing ${marker}.`);
+  }
+  for (const marker of ['SCION_WLLAMA_RECOVERY_REQUIRED', "phase: 'recovery-required'", "nativeState: 'unknown'"]) {
+    requireCondition(browserRuntimeSource.includes(marker), `Browser runtime recovery is missing ${marker}.`);
+  }
+  requireCondition(
+    canaryTests.includes('unchecked arrayBuffer fallback used') && canaryTests.includes('arrayBufferFallbacks'),
+    'Integrated canary test does not prove the whole-response fallback stayed unused.',
+  );
 
   return {
     schemaVersion: 1,
-    protocol: 'scion-adapter-delivery-budget-v1',
-    release: 'v0.16.23',
+    protocol: 'scion-adapter-delivery-lifecycle-v2',
+    release: 'v0.16.24',
     generatedAt: generatedAt || new Date().toISOString(),
-    status: 'pass-bounded-delivery-contract',
+    status: 'pass-bounded-lifecycle-contract',
     promotionEligible: false,
     inputs: [
       { file: baseInput.file, bytes: baseInput.bytes, sha256: baseInput.sha256 },
@@ -137,15 +170,22 @@ export async function buildScionAdapterDeliveryBudgetReport({ cwd = process.cwd(
       'headerless-overrun-is-cancelled',
       'headerless-truncation-is-rejected',
       'registry-commit-occurs-only-after-every-file-passes-size-and-sha256',
+      'localhost-browser-canary-uses-the-same-bounded-registry-path',
+      'cached-manifest-bytes-and-files-are-reverified-before-reuse',
+      'active-adapter-id-cannot-be-replaced-by-a-different-manifest',
+      'activation-and-deactivation-use-one-registry-lifecycle-coordinator',
+      'failed-exact-rollback-quarantines-the-runtime',
+      'generation-remains-blocked-until-quarantined-runtime-unload-and-reload',
     ],
     qualityBoundary: {
-      evidenceType: 'hash-bound-mechanical-smoke-replay-and-adversarial-software-contract',
-      claim: 'bounded-separate-adapter-delivery-only',
+      evidenceType: 'hash-bound-mechanical-smoke-replay-and-adversarial-lifecycle-software-contract',
+      claim: 'bounded-separate-adapter-delivery-and-lifecycle-only',
       doesNotProve: [
         'production-adapter-quality',
         'held-out-domain-win',
         'paid-reference-parity',
         'production-device-matrix',
+        'real-device-recovery-run',
         'human-or-instructor-validation',
       ],
     },

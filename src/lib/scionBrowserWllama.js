@@ -133,6 +133,12 @@ export async function loadScionBrowserWllama({
   contextSize = 8192,
 } = {}) {
   requireBrowserCapabilities({ navigatorLike, globalLike });
+  if (status.phase === 'recovery-required') {
+    throw runtimeError(
+      'SCION_WLLAMA_RECOVERY_REQUIRED',
+      'Unload the quarantined Scion runtime before loading the public base again.',
+    );
+  }
   if (isScionBrowserWllamaReady()) return { runtime, status: cloneStatus() };
   if (loadPromise) return loadPromise;
 
@@ -212,6 +218,12 @@ export async function loadScionBrowserWllama({
 }
 
 function requireReady() {
+  if (status.phase === 'recovery-required') {
+    throw runtimeError(
+      'SCION_WLLAMA_RECOVERY_REQUIRED',
+      'Scion blocked inference because exact base-only rollback was not proven. Unload and reload the runtime.',
+    );
+  }
   if (!isScionBrowserWllamaReady()) {
     throw runtimeError('SCION_WLLAMA_NOT_READY', 'Load Scion local Gemma 4 before generating.');
   }
@@ -301,17 +313,38 @@ export async function probeScionBrowserWllamaAdapter({ adapterId, manifestSha256
 
 export async function rollbackScionBrowserWllamaAdapter() {
   const candidate = requireReady();
+  const failedIdentity = activeAdapter || pendingProbe;
   const expectedBaseOutput = pendingProbe?.baseOutput || null;
-  await candidate.clearLoraAdapter();
-  const native = await candidate.getLoraAdapterStatus();
-  const baseOutput = expectedBaseOutput == null ? null : await deterministicCanary();
-  const restored = native?.active === false && (expectedBaseOutput == null || baseOutput === expectedBaseOutput);
-  activeAdapter = null;
-  pendingProbe = null;
-  publish({ adapter: { mode: 'base-only', active: false, id: null, manifestSha256: null } });
-  if (!restored)
-    throw runtimeError('SCION_WLLAMA_ROLLBACK', 'Scion could not prove restoration of base-only inference.');
-  return { restored: true, native, baseOutput };
+  try {
+    await candidate.clearLoraAdapter();
+    const native = await candidate.getLoraAdapterStatus();
+    const baseOutput = expectedBaseOutput == null ? null : await deterministicCanary();
+    const restored = native?.active === false && (expectedBaseOutput == null || baseOutput === expectedBaseOutput);
+    if (!restored) {
+      throw runtimeError('SCION_WLLAMA_ROLLBACK', 'Scion could not prove restoration of base-only inference.');
+    }
+    activeAdapter = null;
+    pendingProbe = null;
+    publish({ adapter: { mode: 'base-only', active: false, id: null, manifestSha256: null } });
+    return { restored: true, native, baseOutput };
+  } catch (error) {
+    activeAdapter = null;
+    pendingProbe = null;
+    publish({
+      phase: 'recovery-required',
+      progress: 0,
+      message: 'Scion blocked inference until the local runtime is unloaded and reloaded.',
+      error: error?.message || 'Exact base-only rollback was not proven.',
+      adapter: {
+        mode: 'recovery-required',
+        active: null,
+        id: failedIdentity?.adapterId || null,
+        manifestSha256: failedIdentity?.manifestSha256 || null,
+        nativeState: 'unknown',
+      },
+    });
+    throw error;
+  }
 }
 
 export async function unloadScionBrowserWllama() {
