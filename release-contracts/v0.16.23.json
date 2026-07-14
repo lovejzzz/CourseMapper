@@ -20,16 +20,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The complete Fast verification workflow must pass on the exact v0.16.23 content merge before remote proof is recorded."
+      "status": "success",
+      "commit": "1d6d70c1057926ea3ed46ee0d09385a6797ae1b5",
+      "runId": 29363157989,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29363157989",
+      "note": "Fast verification passed on the exact v0.16.23 content merge in 17m44s, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the full main evaluation at compiler-contract-only, production build, bundle budgets, and uploaded evaluation reports."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The release replays retained mechanical smoke evidence and hardens the delivery software contract. It does not perform the fresh B/A judgment, train a quality adapter, run the frozen held-out ruler, or claim a production browser-device matrix."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and a cache-busted production Chromium check remain required after the exact content merge deploys."
+      "status": "success",
+      "commit": "1d6d70c1057926ea3ed46ee0d09385a6797ae1b5",
+      "runId": 29364321047,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29364321047",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production Chromium check at 2026-07-14T20:07:45.376Z returned HTTP 200 for the landing and changelog documents and every first-party JavaScript, CSS, and image asset. It rendered Provider Scion, disabled API with No API key required, Model Scion V0.16.23, the customized local-model description, the Small Delta, Hard Boundary title, the 52,707,007-byte and 1.573572-percent measurements, and the delivery-not-quality boundary. The landing and changelog had no horizontal overflow at a 1280-pixel viewport, and the browser reported zero console logs."
     },
     "liveProvider": {
       "status": "not-used",
