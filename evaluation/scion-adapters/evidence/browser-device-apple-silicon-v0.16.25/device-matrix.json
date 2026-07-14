@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "scion-browser-device-matrix",
+  "protocolVersion": "scion-browser-device-matrix-v1",
+  "protocolSha256": "72ddce991f63ee8495c124010807cc65ec61b12d1c338d0c303a8b0cc4c5a344",
+  "adapterIdentityAlgorithm": "scion-adapter-package-identity-v1",
+  "adapterIdentitySha256": "935c5fb8ca74dae338d0d3cd0b1e106bc61348218de34642c0e7b201f916133c",
+  "adapterId": "scion-g4e2b-qat-smoke-v0167-browser",
+  "adapterScale": 16,
+  "trainingBaseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+  "browserBaseRevision": "69536a21d70340464240401ba38223d805f6a709",
+  "runtimeId": "scion-wllama-webgpu-jspi-v1",
+  "generatedAt": "2026-07-14T23:20:32.258Z",
+  "promotionEligible": false,
+  "qualificationScope": "single-apple-silicon-smoke-adapter-recovery-profile",
+  "nonClaims": [
+    "This evidence does not qualify the other three frozen browser/device profiles.",
+    "The smoke adapter is not a production or quality adapter and cannot be promoted.",
+    "This evidence does not establish educational quality, factual improvement, or a five-domain win."
+  ],
+  "runs": [
+    {
+      "runId": "apple-silicon-v01625-20260714230720",
+      "observedAt": "2026-07-14T23:07:20.000Z",
+      "deviceProfile": "apple-silicon-16gb",
+      "identity": {
+        "adapterIdentitySha256": "935c5fb8ca74dae338d0d3cd0b1e106bc61348218de34642c0e7b201f916133c",
+        "adapterId": "scion-g4e2b-qat-smoke-v0167-browser",
+        "adapterScale": 16,
+        "trainingBaseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "browserBaseRevision": "69536a21d70340464240401ba38223d805f6a709",
+        "runtimeId": "scion-wllama-webgpu-jspi-v1"
+      },
+      "environment": {
+        "browser": {
+          "family": "chrome",
+          "version": "150.0.0.0",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+          "hardwareConcurrency": 16,
+          "webgpuReportedVendor": "apple",
+          "webgpuReportedArchitecture": "metal-3",
+          "webgpuReportedDevice": null,
+          "webgpuReportedDescription": null
+        },
+        "os": {
+          "family": "macOS",
+          "version": "26.5.1",
+          "architecture": "arm64"
+        },
+        "hardware": {
+          "systemMemoryGiB": 48,
+          "gpuClass": "apple-silicon",
+          "gpuVendor": "Apple",
+          "gpuModel": "Apple M4 Max",
+          "cpuCoreCount": 16,
+          "gpuCoreCount": 40
+        }
+      },
+      "measurements": {
+        "peakBrowserWorkingSetMiB": 5312
+      },
+      "checks": {
+        "capability": {
+          "webgpu": true,
+          "jspi": true
+        },
+        "coldBaseLoad": {
+          "completed": true,
+          "directPinnedPublicUrl": true,
+          "modelBackendRequired": false,
+          "baseSha256Verified": true,
+          "baseSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+          "runtimeMetadataArchitecture": "gemma4",
+          "runtimeMetadataType": "model",
+          "downloadedBytes": 3349514112,
+          "reportedTotalBytes": 3349514112,
+          "durationMs": 35626
+        },
+        "warmBaseLoad": {
+          "completed": true,
+          "durationMs": 1041
+        },
+        "baseCompletion": {
+          "completed": true,
+          "validOutput": true,
+          "outputSha256": "0783c7a18d1a4bc479dd70743866277669279ffd8ef1dc4c5cd74425f9917cc3",
+          "firstTokenMs": 285,
+          "totalMs": 1394
+        },
+        "adapterIntegrity": {
+          "digestMatched": true,
+          "manifestVerified": true,
+          "adapterSha256": "0bd696e8fa582cbfcfe1ec2f9c503cbaa21c3d0dcaced86fabe9517f312135fe"
+        },
+        "adapterActivation": {
+          "completed": true,
+          "nativeAdapterActive": true,
+          "nativeMetadataMatched": true,
+          "nativeMetadataEvidence": "runtime-guarded-activation-proof",
+          "nativeMetadata": {
+            "generalType": "adapter",
+            "adapterType": "lora",
+            "architecture": "gemma4"
+          },
+          "outputChangedAtManifestScale": true,
+          "durationMs": 3420
+        },
+        "adapterCompletion": {
+          "completed": true,
+          "validOutput": true,
+          "outputSha256": "3fb49fff2843b20fe4c7373c549bc9bb53fd0e0b3dba9a8cc0ec1f6fa507640e",
+          "firstTokenMs": 316,
+          "totalMs": 1982
+        },
+        "rollback": {
+          "completed": true,
+          "nativeAdapterInactive": true,
+          "exactBaseOutputRestored": true,
+          "projectDataUnchanged": true,
+          "outputSha256": "0783c7a18d1a4bc479dd70743866277669279ffd8ef1dc4c5cd74425f9917cc3",
+          "projectDataBeforeSha256": "ebbd4092be9d4685db377cc3334c14d3089948766905bac489be12ddc5485f85",
+          "projectDataAfterSha256": "ebbd4092be9d4685db377cc3334c14d3089948766905bac489be12ddc5485f85"
+        },
+        "recovery": {
+          "interruptedDownload": {
+            "completed": true,
+            "baseUsableAfterRecovery": true,
+            "method": "network-abort-resume",
+            "target": "pinned-public-base",
+            "observedPartialBytes": 8731096
+          },
+          "storagePressure": {
+            "completed": true,
+            "baseUsableAfterRecovery": true,
+            "method": "cache-eviction-redownload",
+            "target": "separate-browser-adapter"
+          },
+          "deviceLoss": {
+            "completed": true,
+            "baseUsableAfterRecovery": true,
+            "method": "browser-gpu-process-restart",
+            "observedCompletionFailure": true
+          }
+        },
+        "repeatCompletion": {
+          "attempts": 3,
+          "completed": 3,
+          "validOutputs": 3
+        }
+      },
+      "artifacts": [
+        {
+          "type": "browser-trace",
+          "path": "artifacts/apple-silicon-v01625-20260714230720-browser-trace.zip",
+          "bytes": 1246825,
+          "sha256": "de61165c8433aa5f58e426b83b0c88e229257945b89505fc7e1e141747e6d711"
+        },
+        {
+          "type": "console-log",
+          "path": "artifacts/apple-silicon-v01625-20260714230720-console-log.jsonl",
+          "bytes": 4057,
+          "sha256": "ea6fbee509e04d93a523b1af42889f7756fd07b1d8b63ecd27087990bf290d21"
+        },
+        {
+          "type": "hardware-probe",
+          "path": "artifacts/apple-silicon-v01625-20260714230720-hardware-probe.json",
+          "bytes": 732,
+          "sha256": "f0cd1851e79ccfd8f29318c72965aa3305fb18bb02434f4ad433fb1fe3ac1d3a"
+        },
+        {
+          "type": "runtime-snapshot",
+          "path": "artifacts/apple-silicon-v01625-20260714230720-runtime-snapshot.json",
+          "bytes": 121990,
+          "sha256": "16e044591ce083b41d297c935f59b2509da16dbc339e675c8be09b05805eb7f7"
+        }
+      ],
+      "runDigestSha256": "ae8c63e21af49f2b98947ea1bbfced1a0751d98e14d8c6d94cb9ebcd0d4c9ec2"
+    }
+  ]
+}

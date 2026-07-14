@@ -12,6 +12,9 @@ evaluation/scion-contrast-evidence
 # verifier reconstructs content, provenance, and compiler decisions; formatting
 # would invalidate the artifact-set receipt without improving source style.
 evaluation/scion-source-capture-evidence
+# Retained browser-device evidence preserves the exact external adapter manifest
+# and machine-generated, hash-bound receipts. Its semantic auditor owns format.
+evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25
 .firebase
 .claude
 **/.venv*/

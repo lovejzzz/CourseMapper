@@ -154,6 +154,7 @@ describe('Scion WebGPU GGUF runtime', () => {
       adapterActive: true,
       adapterId: 'scion-candidate',
       outputChanged: true,
+      native: { active: true },
     });
     expect(proof.proofSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(getScionBrowserWllamaStatus().adapter).toMatchObject({ mode: 'adapter-active', active: true });

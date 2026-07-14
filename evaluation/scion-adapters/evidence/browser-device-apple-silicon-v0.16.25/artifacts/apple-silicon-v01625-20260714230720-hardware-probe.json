@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "profile": "apple-silicon-16gb",
+  "os": {
+    "family": "macOS",
+    "version": "26.5.1",
+    "architecture": "arm64"
+  },
+  "hardware": {
+    "systemMemoryGiB": 48,
+    "gpuClass": "apple-silicon",
+    "gpuVendor": "Apple",
+    "gpuModel": "Apple M4 Max",
+    "cpuCoreCount": 16,
+    "gpuCoreCount": 40
+  },
+  "browser": {
+    "family": "chrome",
+    "version": "150.0.0.0",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "hardwareConcurrency": 16,
+    "webgpuReportedVendor": "apple",
+    "webgpuReportedArchitecture": "metal-3",
+    "webgpuReportedDevice": null,
+    "webgpuReportedDescription": null
+  }
+}

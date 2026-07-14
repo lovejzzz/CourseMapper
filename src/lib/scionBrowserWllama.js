@@ -308,7 +308,7 @@ export async function probeScionBrowserWllamaAdapter({ adapterId, manifestSha256
   if (pass) {
     publish({ adapter: { mode: 'adapter-active', active: true, id: adapterId, manifestSha256, proofSha256 } });
   }
-  return { pass, adapterActive: pass, adapterId, manifestSha256, baseRevision, proofSha256, outputChanged };
+  return { pass, adapterActive: pass, adapterId, manifestSha256, baseRevision, proofSha256, outputChanged, native };
 }
 
 export async function rollbackScionBrowserWllamaAdapter() {

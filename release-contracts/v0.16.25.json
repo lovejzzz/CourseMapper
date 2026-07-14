@@ -1,0 +1,133 @@
+{
+  "version": "0.16.25",
+  "date": "July 14, 2026",
+  "title": "One Real Machine: Apple Silicon recovery under evidence",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:browser-device-evidence",
+      "npx vitest run tests/scion-browser-device-capture.test.js tests/scion-browser-device-matrix.test.js tests/scion-browser-wllama.test.js",
+      "npm run audit:scion:adapter-delivery",
+      "npm run audit:scion:browser-adapter-smoke",
+      "npm run audit:scion:codex-fresh-handoff",
+      "npm run audit:scion:codex-sealed-pass",
+      "npm run audit:scion:codex-judge",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run test:e2e",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must pass on the exact v0.16.25 content commit before the release proof becomes final."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "A real isolated Chrome 150 run passed the Apple-Silicon recovery profile and retained hash-bound artifacts. The other three frozen hardware/browser profiles and the separate quality ruler remain unrun."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages and a cache-busted production browser check remain required after the exact content commit is merged."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "The device capture downloaded the immutable public Gemma 4 base directly from Hugging Face and ran locally in Chrome. No paid provider or model backend was used."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "The active Scion goal declares Codex as the standing quality judge. This device-mechanics result makes no human, instructor, independent, classroom, or multi-judge claim."
+    },
+    "strictLayeredEvaluation": {
+      "status": "expected-fail-claim-boundary",
+      "command": "npm run audit:evaluation:release",
+      "claimStatus": "compiler-contract-only",
+      "passingTiers": ["compiler-contract", "production-canaries"],
+      "missingTiers": ["independently-validated-heldout", "independent-instructor-benchmark"],
+      "note": "One real recovery profile is delivery evidence. It is not adapter quality, a four-profile device matrix, five-domain held-out wins, paid-reference parity, or classroom readiness."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01625-reproducible-chrome-device-capture",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A reusable isolated-Chrome runner now drives the product runtime and registry, hashes the exact cached public base, records operating-system memory, and retains four byte-bound device artifacts with fail-closed trace privacy checks and no model weights in Git.",
+      "anchors": [
+        "scripts/scionBrowserDeviceCapture.mjs",
+        "scripts/lib/scionBrowserDeviceCapture.mjs",
+        "src/lib/scionBrowserDeviceLab.js",
+        "tests/scion-browser-device-capture.test.js",
+        "scripts/scionBrowserDeviceEvidenceAudit.mjs"
+      ],
+      "proofCommands": [
+        "npm run capture:scion:browser-device -- --reset-profile",
+        "npx vitest run tests/scion-browser-device-capture.test.js"
+      ],
+      "proofScopes": ["browser-live", "unit", "static-audit"]
+    },
+    {
+      "id": "v01625-real-apple-silicon-profile",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Chrome 150 on Apple M4 Max with 48 GiB unified memory passed the frozen Apple-Silicon load, completion, memory, activation, rollback, recovery, repeat, and artifact requirements with the retained measured timings.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25/device-matrix.json",
+        "evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25/capture-receipt.json",
+        "docs/SCION_BROWSER_DEVICE_MATRIX.md"
+      ],
+      "proofCommands": ["npm run audit:scion:browser-device-evidence"],
+      "proofScopes": ["browser-live", "static-audit"]
+    },
+    {
+      "id": "v01625-real-recovery-scenarios",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The retained run observed a network-aborted public-base download, exact full-digest recovery, separate-adapter cache eviction and redownload, real Chrome GPU-process restart, old-runtime inference failure, and successful reload completion.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25/device-matrix.json",
+        "evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25/artifacts/apple-silicon-v01625-20260714230720-runtime-snapshot.json",
+        "scripts/scionBrowserDeviceEvidenceAudit.mjs"
+      ],
+      "proofCommands": ["npm run audit:scion:browser-device-evidence"],
+      "proofScopes": ["browser-live", "static-audit"]
+    },
+    {
+      "id": "v01625-native-effect-exact-rollback",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The exact smoke adapter verified and activated at scale 16, changed deterministic inference, cleared natively, and restored the exact base and project digests; future runtime proof callers also receive the native status already bound into the proof hash.",
+      "anchors": [
+        "src/lib/scionBrowserWllama.js",
+        "tests/scion-browser-wllama.test.js",
+        "evaluation/scion-adapters/evidence/adapter-lifecycle-v0.16.25.json",
+        "evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25/device-matrix.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-browser-wllama.test.js tests/scion-browser-device-capture.test.js",
+        "npm run audit:scion:browser-device-evidence"
+      ],
+      "proofScopes": ["unit", "browser-live", "static-audit"]
+    },
+    {
+      "id": "v01625-one-of-four-not-quality",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The semantic audit accepts exactly the Apple-Silicon run and remains blocked on the other three profiles; the smoke adapter is non-promotable and creates no educational-quality, held-out, paid-reference, B/A, or public-adapter claim.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "docs/SCION_BROWSER_DEVICE_MATRIX.md",
+        "evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25/capture-receipt.json"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:browser-device-evidence",
+        "npm run audit:scion:codex-fresh-handoff",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}
