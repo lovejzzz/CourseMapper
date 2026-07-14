@@ -20,16 +20,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The complete Fast verification workflow must pass on the exact v0.16.24 content merge before remote proof is recorded."
+      "status": "success",
+      "commit": "53554ae4ced2005a085fedf967764db345f7a665",
+      "runId": 29370588636,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29370588636",
+      "note": "Fast verification passed on the exact v0.16.24 content merge in 23m6s, including formatting, lint, release-history audit, 4,419 unit and closed-loop tests, proof smoke, the full main evaluation at compiler-contract-only, production build, bundle budgets, and uploaded evaluation reports."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The release hardens the browser adapter software lifecycle and replays retained mechanical smoke identity. It does not run the 3.35 GB base again, perform a real recovery-device trial, complete the fresh B/A judgment, train a quality adapter, or run the frozen held-out ruler."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and a cache-busted production Chromium check remain required after the exact content merge deploys."
+      "status": "success",
+      "commit": "53554ae4ced2005a085fedf967764db345f7a665",
+      "runId": 29371938684,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29371938684",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production browser check at 2026-07-14T22:09:37Z rendered Scion V0.16.24, Provider Scion, disabled API, the One Path, Honest State changelog, 42 focused tests, and the explicit no-new-real-device boundary. The landing and changelog had no horizontal overflow at a 1,275-pixel viewport."
     },
     "liveProvider": {
       "status": "not-used",
