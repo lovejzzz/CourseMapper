@@ -19,16 +19,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The local release gates pass; the exact pushed v0.16.15 commit still requires Fast verification on GitHub Actions."
+      "status": "success",
+      "commit": "5c1546c0840a4a51ee137f33303fa873128c3b8a",
+      "runId": 29304693541,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29304693541",
+      "note": "Fast verification passed on the exact v0.16.15 main merge in 22m30s, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the strict main evaluation, production build, and bundle budgets."
     },
     "ciDeep": {
       "status": "manual-only",
       "note": "No real adapter comparison, model generation, paid-reference run, or browser-device matrix is claimed by this evaluation-contract release."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages proof will be recorded after the v0.16.15 main merge deploys."
+      "status": "success",
+      "commit": "5c1546c0840a4a51ee137f33303fa873128c3b8a",
+      "runId": 29305656781,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29305656781",
+      "note": "GitHub Pages built and deployed the exact verified v0.16.15 main merge. A production fetch of edutool.dev resolved assets/index-BE5qYBKv.js and assets/releaseManifest-Dg5OKDXw.js and confirmed both v0.16.15 and the release title in the live bundle."
     },
     "liveProvider": {
       "status": "not-used",
