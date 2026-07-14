@@ -135,6 +135,9 @@ export function validateScionAdapterManifest(
   }
   if (promotionStatus === 'candidate' || promotionStatus === 'promoted') {
     if (clean(manifest.training?.datasetStatus) !== 'ready') issues.push('candidate-dataset-not-ready');
+    if (clean(manifest.training?.primaryPreferenceEvidence) !== 'single-model-judge') {
+      issues.push('candidate-primary-preference-evidence');
+    }
     if (!Number.isSafeInteger(manifest.training?.pairCount) || manifest.training.pairCount < 3000) {
       issues.push('candidate-pair-count');
     }
@@ -144,25 +147,28 @@ export function validateScionAdapterManifest(
     if (!Number.isSafeInteger(manifest.training?.groupCount) || manifest.training.groupCount < 15) {
       issues.push('candidate-group-count');
     }
-    if (!Number.isSafeInteger(manifest.training?.instructorPairCount) || manifest.training.instructorPairCount < 100) {
-      issues.push('candidate-instructor-pair-count');
+    if (!Number.isSafeInteger(manifest.training?.modelJudgePairCount) || manifest.training.modelJudgePairCount < 100) {
+      issues.push('candidate-model-judge-pair-count');
     }
     if (
-      !Number.isSafeInteger(manifest.training?.instructorDomainCount) ||
-      manifest.training.instructorDomainCount < 5
+      !Number.isSafeInteger(manifest.training?.modelJudgeDomainCount) ||
+      manifest.training.modelJudgeDomainCount < 5
     ) {
-      issues.push('candidate-instructor-domain-count');
+      issues.push('candidate-model-judge-domain-count');
     }
     if (countDomainsAtLeast(manifest.training?.domainGroupCounts, 3) < 5) {
       issues.push('candidate-domain-group-coverage');
     }
-    if (countDomainsAtLeast(manifest.training?.instructorDomainCounts, 20) < 5) {
-      issues.push('candidate-instructor-domain-coverage');
+    if (countDomainsAtLeast(manifest.training?.modelJudgeDomainCounts, 20) < 5) {
+      issues.push('candidate-model-judge-domain-coverage');
     }
     if (!validSplitCounts(manifest.training, 5)) issues.push('candidate-split-coverage');
   }
   if (promotionStatus === 'research') {
     if (clean(manifest.training?.datasetStatus) !== 'research-ready') issues.push('research-dataset-not-ready');
+    if (clean(manifest.training?.primaryPreferenceEvidence) !== 'single-model-judge') {
+      issues.push('research-primary-preference-evidence');
+    }
     if (!Number.isSafeInteger(manifest.training?.pairCount) || manifest.training.pairCount < 100) {
       issues.push('research-pair-count');
     }
@@ -172,20 +178,20 @@ export function validateScionAdapterManifest(
     if (!Number.isSafeInteger(manifest.training?.groupCount) || manifest.training.groupCount < 12) {
       issues.push('research-group-count');
     }
-    if (!Number.isSafeInteger(manifest.training?.instructorPairCount) || manifest.training.instructorPairCount < 100) {
-      issues.push('research-instructor-pair-count');
+    if (!Number.isSafeInteger(manifest.training?.modelJudgePairCount) || manifest.training.modelJudgePairCount < 100) {
+      issues.push('research-model-judge-pair-count');
     }
     if (
-      !Number.isSafeInteger(manifest.training?.instructorDomainCount) ||
-      manifest.training.instructorDomainCount < 4
+      !Number.isSafeInteger(manifest.training?.modelJudgeDomainCount) ||
+      manifest.training.modelJudgeDomainCount < 4
     ) {
-      issues.push('research-instructor-domain-count');
+      issues.push('research-model-judge-domain-count');
     }
     if (countDomainsAtLeast(manifest.training?.domainGroupCounts, 3) < 4) {
       issues.push('research-domain-group-coverage');
     }
-    if (countDomainsAtLeast(manifest.training?.instructorDomainCounts, 20) < 4) {
-      issues.push('research-instructor-domain-coverage');
+    if (countDomainsAtLeast(manifest.training?.modelJudgeDomainCounts, 20) < 4) {
+      issues.push('research-model-judge-domain-coverage');
     }
     if (!validSplitCounts(manifest.training, 4)) issues.push('research-split-coverage');
   }

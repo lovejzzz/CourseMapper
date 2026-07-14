@@ -2,6 +2,7 @@ import { lintItemAdmission } from './itemAdmissionLint.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
 import { findScionExplanationKeyConflict, normalizeScionMcItem } from './scionAnswerKeyAlignment.js';
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
+import { validateScionCodexTrainingPreferenceEvidence } from './scionCodexTrainingEvidence.js';
 
 export { findScionExplanationKeyConflict } from './scionAnswerKeyAlignment.js';
 
@@ -29,6 +30,7 @@ const TRAINABLE_PREFERENCE_EVIDENCE_KINDS = new Set([
   'admission-and-key-repair',
   'applied-depth-and-key-repair',
   'blind-instructor-preference',
+  'single-model-judge-preference',
 ]);
 export const SCION_PREFERENCE_GATE_VERSION = '1.0.0';
 
@@ -285,6 +287,12 @@ export function assessScionPreferencePair({ kind, chosen, rejected, preferenceEv
   if (preferenceEvidence?.kind === 'blind-instructor-preference' && !blindInstructorMargin) {
     issues.push('invalid-blind-instructor-evidence');
   }
+  const singleModelJudgeMargin =
+    preferenceEvidence?.kind === 'single-model-judge-preference' &&
+    validateScionCodexTrainingPreferenceEvidence(preferenceEvidence).valid;
+  if (preferenceEvidence?.kind === 'single-model-judge-preference' && !singleModelJudgeMargin) {
+    issues.push(...validateScionCodexTrainingPreferenceEvidence(preferenceEvidence).issues);
+  }
   if (
     preferenceEvidence?.kind === 'admission-and-key-repair' &&
     Object.prototype.hasOwnProperty.call(preferenceEvidence, 'declaredAnswer')
@@ -312,6 +320,7 @@ export function assessScionPreferencePair({ kind, chosen, rejected, preferenceEv
     chosenResult.score <= rejectedResult.score &&
     !appliedDepthMargin &&
     !blindInstructorMargin &&
+    !singleModelJudgeMargin &&
     !deterministicContractMargin
   ) {
     issues.push('no-deterministic-quality-margin');

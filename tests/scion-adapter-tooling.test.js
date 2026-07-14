@@ -45,30 +45,82 @@ function goodMc(overrides = {}) {
   };
 }
 
-function approvedRow() {
-  return {
+function bindModelJudgeEvidence(row) {
+  row.preferenceEvidence.chosenArtifactSha256 = sha256Value(JSON.stringify(row.chosen));
+  row.preferenceEvidence.rejectedArtifactSha256 = sha256Value(JSON.stringify(row.rejected));
+  row.preferenceEvidence.trainingPairSha256 = sha256Value(
+    JSON.stringify({
+      kind: row.kind,
+      prompt: row.prompt,
+      chosen: row.chosen,
+      rejected: row.rejected,
+      domain: row.domain || row?.context?.domain,
+      courseGroupSha256: row.courseGroupSha256 || row?.context?.courseGroupSha256,
+    }),
+  );
+  return row;
+}
+
+function approvedRow(overrides = {}) {
+  const row = {
     kind: 'mc-item',
     prompt: 'Write one evidence-grounded multiple-choice item.',
     chosen: goodMc(),
     rejected: goodMc({ q: 'Which observation suggests changing the prototype navigation?' }),
     context: { domain: 'user experience design', courseId: 'ux-101' },
+    ...overrides,
     preferenceEvidence: {
-      kind: 'blind-instructor-preference',
+      kind: 'single-model-judge-preference',
+      protocol: 'scion-codex-training-review-v1',
+      benchmarkProtocol: 'honest-quality-benchmark-v1',
+      policyId: 'scion-codex-judge-policy-v1',
       verified: true,
       preferred: 'chosen',
-      unanimous: true,
-      reviewerIds: ['instructor-a', 'instructor-b'],
-      reviewerRoles: ['working-instructor', 'working-instructor'],
-      reviewHashes: ['review-a', 'review-b'],
+      primaryPreferenceEvidence: 'single-model-judge',
+      stable: true,
+      scoredBeforePreference: true,
+      humanEvidence: false,
+      independentEvidence: false,
+      judge: {
+        model: 'openai/codex',
+        revision: 'codex-test-revision',
+        runtime: 'vitest',
+        sessionIds: ['session-a', 'session-b'],
+        promptSha256: '6f95f8806a094558ff4f266216e0140d7710e4f46eb155490868e54078bac266',
+      },
+      orders: ['A/B', 'B/A'],
+      passHashes: ['1'.repeat(64), '2'.repeat(64)],
+      scorecardHashes: ['3'.repeat(64), '4'.repeat(64), '5'.repeat(64), '6'.repeat(64)],
+      caseDigest: '7'.repeat(64),
+      courseGroupSha256: '8'.repeat(64),
+      reviewPacketDigest: '9'.repeat(64),
+      sourceRowSha256: 'a'.repeat(64),
+      sourceContextSha256: 'b'.repeat(64),
+      trainingPairSha256: 'c'.repeat(64),
+      chosenArtifactSha256: 'd'.repeat(64),
+      rejectedArtifactSha256: 'e'.repeat(64),
+      winnerMinimumScores: {
+        factualCorrectness: 5,
+        sourceFidelity: 5,
+        teachability: 5,
+        coherence: 5,
+        taskQuality: 5,
+      },
+      minimumScoreMargin: 2,
+      decisionDefects: ['A/B: The losing side is less precise.', 'B/A: The losing side remains less precise.'],
+      claimBoundary: 'Stable single-model Codex evidence; not human or independent validation.',
     },
   };
+  return bindModelJudgeEvidence(row);
 }
 
-function balancedTrainingEvidence(domains = TRAINING_DOMAINS, instructorPairsPerDomain = 20) {
+function balancedTrainingEvidence(domains = TRAINING_DOMAINS, modelJudgePairsPerDomain = 20) {
   return {
-    instructorDomainCount: domains.length,
+    primaryPreferenceEvidence: 'single-model-judge',
+    modelJudgePairCount: domains.length * modelJudgePairsPerDomain,
+    modelJudgeDomainCount: domains.length,
     domainGroupCounts: Object.fromEntries(domains.map((domain) => [domain, 3])),
-    instructorDomainCounts: Object.fromEntries(domains.map((domain) => [domain, instructorPairsPerDomain])),
+    modelJudgeDomainCounts: Object.fromEntries(domains.map((domain) => [domain, modelJudgePairsPerDomain])),
     splitCounts: { train: 1200, valid: 1000, test: 1000 },
     splitDomainCounts: { train: domains.length, valid: domains.length, test: domains.length },
   };
@@ -109,17 +161,18 @@ describe('Scion adapter tooling', () => {
     for (const domain of ['computer-science', 'geology', 'music-theory', 'user-experience-design']) {
       for (let course = 1; course <= 3; course += 1) {
         for (let item = 1; item <= 9; item += 1) {
-          rows.push({
-            ...approvedRow(),
-            prompt: `Write grounded item ${item} for ${domain} course ${course}.`,
-            chosen: goodMc({
-              q: `Which evidence most directly supports decision ${item} in ${domain} course ${course}?`,
+          rows.push(
+            approvedRow({
+              prompt: `Write grounded item ${item} for ${domain} course ${course}.`,
+              chosen: goodMc({
+                q: `Which evidence most directly supports decision ${item} in ${domain} course ${course}?`,
+              }),
+              rejected: goodMc({
+                q: `Which observation should be considered for decision ${item} in ${domain} course ${course}?`,
+              }),
+              context: { domain, courseId: `${domain}-${course}` },
             }),
-            rejected: goodMc({
-              q: `Which observation should be considered for decision ${item} in ${domain} course ${course}?`,
-            }),
-            context: { domain, courseId: `${domain}-${course}` },
-          });
+          );
         }
       }
     }
@@ -144,10 +197,10 @@ describe('Scion adapter tooling', () => {
         trainDomains: 4,
         validDomains: 4,
         testDomains: 4,
-        blindInstructorPairs: 108,
-        blindInstructorDomains: 4,
+        singleModelJudgePairs: 108,
+        singleModelJudgeDomains: 4,
       },
-      instructorDomainCounts: {
+      modelJudgeDomainCounts: {
         'computer-science': 27,
         geology: 27,
         'music-theory': 27,
@@ -161,25 +214,26 @@ describe('Scion adapter tooling', () => {
           test: expect.arrayContaining(['computer-science', 'geology', 'music-theory', 'user-experience-design']),
         },
       },
-      gate: { profiles: { research: { qualifiedInstructorDomains: 4, issues: [] } } },
+      gate: { profiles: { research: { qualifiedModelJudgeDomains: 4, issues: [] } } },
       leakage: { groupOverlapCount: 0 },
     });
     expect(result.manifest.gate.profiles.production.issues).toContain('verified-pairs:108<3000');
   });
 
-  it('blocks research when instructor evidence is concentrated in one domain', async () => {
-    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-unbalanced-instructor-dataset-'));
+  it('blocks research when model-judge evidence is concentrated in one domain', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-unbalanced-model-judge-dataset-'));
     const source = path.join(root, 'source.jsonl');
     const rows = [];
     for (let item = 1; item <= 100; item += 1) {
       const course = (item % 3) + 1;
-      rows.push({
-        ...approvedRow(),
-        prompt: `Write instructor-reviewed computer science item ${item}.`,
-        chosen: goodMc({ q: `Which evidence validates computer science decision ${item}?` }),
-        rejected: goodMc({ q: `Which observation relates to computer science decision ${item}?` }),
-        context: { domain: 'computer-science', courseId: `computer-science-${course}` },
-      });
+      rows.push(
+        approvedRow({
+          prompt: `Write Codex-reviewed computer science item ${item}.`,
+          chosen: goodMc({ q: `Which evidence validates computer science decision ${item}?` }),
+          rejected: goodMc({ q: `Which observation relates to computer science decision ${item}?` }),
+          context: { domain: 'computer-science', courseId: `computer-science-${course}` },
+        }),
+      );
     }
     for (const domain of ['geology', 'music-theory', 'user-experience-design']) {
       for (let course = 1; course <= 3; course += 1) {
@@ -207,10 +261,10 @@ describe('Scion adapter tooling', () => {
 
     expect(result.manifest).toMatchObject({
       status: 'blocked',
-      counts: { total: 127, domains: 4, groups: 12, blindInstructorPairs: 100, blindInstructorDomains: 1 },
-      gate: { profiles: { research: { qualifiedInstructorDomains: 1 } } },
+      counts: { total: 127, domains: 4, groups: 12, singleModelJudgePairs: 100, singleModelJudgeDomains: 1 },
+      gate: { profiles: { research: { qualifiedModelJudgeDomains: 1 } } },
     });
-    expect(result.manifest.gate.profiles.research.issues).toContain('blind-instructor-qualified-domains:1<4');
+    expect(result.manifest.gate.profiles.research.issues).toContain('single-model-judge-qualified-domains:1<4');
   });
 
   it('freezes five real held-out course fixtures and requires dataset group proof', async () => {
@@ -272,14 +326,15 @@ describe('Scion adapter tooling', () => {
     await fs.writeFile(
       datasetManifestPath,
       `${JSON.stringify({
-        schemaVersion: 2,
+        schemaVersion: 3,
         status: 'ready',
+        primaryPreferenceEvidence: 'single-model-judge',
         counts: {
           total: 3200,
           domains: 5,
           groups: 15,
-          blindInstructorPairs: 100,
-          blindInstructorDomains: 5,
+          singleModelJudgePairs: 100,
+          singleModelJudgeDomains: 5,
           train: 1200,
           valid: 1000,
           test: 1000,
@@ -289,7 +344,7 @@ describe('Scion adapter tooling', () => {
         },
         domains: TRAINING_DOMAINS,
         domainGroupCounts: Object.fromEntries(TRAINING_DOMAINS.map((domain) => [domain, 3])),
-        instructorDomainCounts: Object.fromEntries(TRAINING_DOMAINS.map((domain) => [domain, 20])),
+        modelJudgeDomainCounts: Object.fromEntries(TRAINING_DOMAINS.map((domain) => [domain, 20])),
         groupIdentity: {
           algorithm: 'sha256-domain-colon-course-id',
           hashes: [sha256Value('geology:geo-training-101')],
@@ -472,6 +527,7 @@ describe('Scion adapter tooling', () => {
     const source = path.join(root, 'source.jsonl');
     const row = approvedRow();
     delete row.context;
+    bindModelJudgeEvidence(row);
     await fs.writeFile(source, `${JSON.stringify(row)}\n`);
 
     const result = await buildScionAdapterDataset({
@@ -514,7 +570,7 @@ describe('Scion adapter tooling', () => {
     const curated = await fs.readFile(path.join(root, 'dataset', 'test.jsonl'), 'utf8');
 
     expect(result.manifest).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 3,
       status: 'smoke-only',
       counts: { total: 1, domains: 1, groups: 1 },
       domainMap: { entries: 1, sha256: expect.stringMatching(/^[a-f0-9]{64}$/) },
@@ -591,10 +647,10 @@ describe('Scion adapter tooling', () => {
         method: 'orpo-lora',
         datasetManifestSha256: 'd'.repeat(64),
         datasetStatus: 'ready',
+        primaryPreferenceEvidence: 'single-model-judge',
         pairCount: 3200,
         domainCount: 5,
         groupCount: 15,
-        instructorPairCount: 100,
         ...balancedTrainingEvidence(),
       },
       files: [{ path: 'adapters.safetensors', bytes: 1024, sha256: 'e'.repeat(64) }],
@@ -602,7 +658,7 @@ describe('Scion adapter tooling', () => {
       promotion: {
         status: 'candidate',
         promotable: false,
-        evidence: ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map(
+        evidence: ['factual-canaries', 'single-model-judge', 'browser-device-matrix', 'production-canaries'].map(
           (type) => ({ type, status: 'pass', sha256: 'f'.repeat(64) }),
         ),
       },
@@ -677,7 +733,7 @@ describe('Scion adapter tooling', () => {
       candidateEvidence,
       baseEvidence,
       verifiedExternalEvidence: Object.fromEntries(
-        ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map((type) => [
+        ['factual-canaries', 'single-model-judge', 'browser-device-matrix', 'production-canaries'].map((type) => [
           type,
           true,
         ]),
@@ -692,7 +748,7 @@ describe('Scion adapter tooling', () => {
       candidateEvidence,
       baseEvidence,
       verifiedExternalEvidence: Object.fromEntries(
-        ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map((type) => [
+        ['factual-canaries', 'single-model-judge', 'browser-device-matrix', 'production-canaries'].map((type) => [
           type,
           true,
         ]),
@@ -709,7 +765,7 @@ describe('Scion adapter tooling', () => {
       candidateEvidence,
       baseEvidence,
       verifiedExternalEvidence: Object.fromEntries(
-        ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map((type) => [
+        ['factual-canaries', 'single-model-judge', 'browser-device-matrix', 'production-canaries'].map((type) => [
           type,
           true,
         ]),
@@ -729,10 +785,10 @@ describe('Scion adapter tooling', () => {
         method: 'orpo-lora',
         datasetManifestSha256: 'd'.repeat(64),
         datasetStatus: 'ready',
+        primaryPreferenceEvidence: 'single-model-judge',
         pairCount: 3200,
         domainCount: 5,
         groupCount: 15,
-        instructorPairCount: 100,
         ...balancedTrainingEvidence(),
       },
       files: [{ path: 'adapters.safetensors', bytes: 1024, sha256: 'e'.repeat(64) }],
@@ -740,7 +796,7 @@ describe('Scion adapter tooling', () => {
       promotion: {
         status: 'candidate',
         promotable: false,
-        evidence: ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map(
+        evidence: ['factual-canaries', 'single-model-judge', 'browser-device-matrix', 'production-canaries'].map(
           (type) => ({ type, status: 'pass', sha256: 'f'.repeat(64) }),
         ),
       },
@@ -794,7 +850,7 @@ describe('Scion adapter tooling', () => {
       candidateEvidence: [{ fullCourses: candidateCourses }],
       baseEvidence: [{ fullCourses: baseCourses }],
       verifiedExternalEvidence: Object.fromEntries(
-        ['factual-canaries', 'blind-instructor', 'browser-device-matrix', 'production-canaries'].map((type) => [
+        ['factual-canaries', 'single-model-judge', 'browser-device-matrix', 'production-canaries'].map((type) => [
           type,
           true,
         ]),
