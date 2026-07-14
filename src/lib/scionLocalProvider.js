@@ -4,7 +4,7 @@ import {
   buildPublicScionMessages,
   publicScionKernelResponseNeedsRetry,
   publicScionRetryDelay,
-  repairPublicScionJsonText,
+  repairPublicScionJson,
 } from './publicScionProvider';
 
 export const SCION_LOCAL_MAX_GENERATION_RETRIES = PUBLIC_SCION_MIN_RETRIES;
@@ -92,13 +92,15 @@ export async function runScionLocalCompletion({
         if (typeof onToken === 'function') onToken(currentText, tokenCount, attempt + 1);
       },
     });
-    const fullText = repairPublicScionJsonText(rawText);
+    const repaired = repairPublicScionJson(rawText);
+    const fullText = repaired.text;
     const empty = !fullText.trim();
     const incomplete = !empty && publicScionKernelResponseNeedsRetry(fullText, userPrompt, task);
     if (!empty && !incomplete) {
       return {
         fullText,
         rawText,
+        repairs: repaired.repairs,
         messages,
         attempt: attempt + 1,
         retryCount: attempt,

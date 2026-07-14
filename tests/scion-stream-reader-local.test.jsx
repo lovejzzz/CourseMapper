@@ -63,6 +63,20 @@ describe('useStreamReader Scion boundary', () => {
         retryCount: 0,
         maxRetries: 2,
         tokenCount: 1,
+        repairs: [
+          {
+            pass: 'incompleteExplanationTail',
+            action: 'trimmed-incomplete-tail',
+            lessonId: 'lesson-2',
+            item: 0,
+            trainingEligible: false,
+            recoveryEvidence: {
+              retainedCharacters: 72,
+              removedCharacters: 14,
+              removedTail: 'Option D is',
+            },
+          },
+        ],
       };
     });
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
@@ -94,6 +108,16 @@ describe('useStreamReader Scion boundary', () => {
     expect(onApiCallEvent).toHaveBeenCalledWith(expect.objectContaining({ type: 'localModelProgress', progress: 0.5 }));
     expect(onApiCallEvent).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'providerResponseDone', execution: 'browser-local' }),
+    );
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'scionCompilerRepair',
+        repairPass: 'incompleteExplanationTail',
+        retainedCharacters: 72,
+        removedCharacters: 14,
+        removedTail: 'Option D is',
+        trainingEligible: false,
+      }),
     );
     expect(onApiCallEvent).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'apiUsage', pricingSource: 'browser-local', costUsd: 0 }),

@@ -3,7 +3,7 @@ import { expandKeys } from './keyMaps';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
 import { lintDecisionScenario } from './scenarioContract';
-import { buildScionAnswerKeyRepair, findScionExplanationKeyConflict } from './scionAnswerKeyAlignment';
+import { repairScionMcItem } from './scionAnswerKeyAlignment';
 
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
@@ -1492,19 +1492,16 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
 
     const mc = [];
     asArray(entry?.mc).forEach((item, index) => {
-      // A syntactically valid key can still contradict the model's own
-      // affirmative explanation. Repair only decisive, unique lexical
-      // conflicts here, at the canonical admission boundary, so every
-      // provider path (including repaired/nested anonymous responses) gets
-      // the same protection before projection and caching.
-      const keyConflict = findScionExplanationKeyConflict(item);
-      const admittedItem = keyConflict ? { ...item, answerIndex: keyConflict.supportedIndex } : item;
+      // Repair only evidence already present in the model output: retain a
+      // complete sentence prefix before an unfinished tail, then realign only
+      // a decisive, unique explanation/key contradiction. Both operations are
+      // recorded at this canonical admission boundary before projection.
+      const repaired = repairScionMcItem(item, { lessonId, itemIndex: index });
+      const admittedItem = repaired.item;
       const problems = lintEnrichedQuizItem({ ...admittedItem, type: 'multiple_choice' }, { groundingText });
       if (problems.length > 0) issues.push({ lessonId, surface: 'mc', index, problems });
       else {
-        if (keyConflict) {
-          repairs.push(buildScionAnswerKeyRepair({ item, lessonId, itemIndex: index, conflict: keyConflict }));
-        }
+        repairs.push(...repaired.repairs);
         mc.push({
           question: cleanText(admittedItem.question),
           options: asArray(admittedItem.options).map(cleanText).filter(Boolean),

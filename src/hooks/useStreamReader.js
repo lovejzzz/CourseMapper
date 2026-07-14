@@ -271,6 +271,25 @@ export default function useStreamReader() {
         });
         const fullText = existingText + result.fullText;
         if (onChunk) onChunk(fullText, result.tokenCount + 1);
+        for (const repair of result.repairs || []) {
+          recordApiCallEvent({
+            type: 'scionCompilerRepair',
+            label:
+              repair.pass === 'incompleteExplanationTail'
+                ? 'Scion retained a complete explanation'
+                : 'Scion aligned an answer key',
+            detail: `${repair.lessonId || 'lesson'} · item ${Number(repair.item) + 1}`,
+            stage: 'local-compiler',
+            ...buildProviderTraceBase(),
+            repairPass: repair.pass,
+            repairAction: repair.action,
+            trainingEligible: repair.trainingEligible === true,
+            retainedCharacters: repair.recoveryEvidence?.retainedCharacters,
+            removedCharacters: repair.recoveryEvidence?.removedCharacters,
+            removedTail: repair.recoveryEvidence?.removedTail,
+            execution: 'browser-local',
+          });
+        }
         recordApiCallEvent({
           type: 'providerResponseDone',
           label: 'Scion local response complete',

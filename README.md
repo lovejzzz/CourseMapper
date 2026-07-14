@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.21
+**Current release:** v0.16.22
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.21**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.22**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -66,6 +66,10 @@ v0.16.17 adds a second campaign instead of changing that historical evidence. Fo
 After exact-input matching, the ledger reaches 437 candidates and sixteen course groups—four per research domain. Source-first selection retains all 128 source-backed cases in the 160-case packet: 31 Computer Science, 39 Geology, 32 Music Theory, and 26 UX. Separate A/B and B/A Codex templates exist for all 128.
 
 v0.16.18 completes the first isolated A/B pass without turning one reading into a preference. Training-review protocol v2 now includes the exact neutral source above both artifacts, uses an atom-only prompt, and permits `winner`, `tie`, or `insufficient-evidence`. It explicitly excludes export integrity, package integrity, compiler burden, full-course coherence, device behavior, speed, and cost because an MC or key-term atom cannot support those claims. The 128-case pass passed structural validation, was encrypted with AES-256-GCM, and had its plaintext deleted. Only an outcome-sealed envelope is tracked. Two 0600 local key copies outside the template output passed an exact unseal round trip and remain absent from Git; a fresh clone cannot recover the outcome without a separate key transfer. Template regeneration now replaces only its three generated files instead of clearing the directory, preventing another evidence-loss incident. This keeps the future B/A judge from learning the first outcome while retaining the original pass for later ingestion.
+
+v0.16.22 recovers a complete model-authored explanation when the local model reaches a valid sentence and then ends in a partial tail. The compiler does not invent punctuation or finish the thought: it requires an existing sentence boundary, keeps only the complete prefix, preserves the discarded tail in repair provenance, and then applies the existing conservative explanation/key alignment. Browser JSON preprocessing, canonical kernel admission, cached graph attachment, and graph reopen now share that order.
+
+The new immutable-evidence replay binds the exact four v0.16.17 local capture files and the implementation bytes. Across 48 real base-Gemma MC responses, the historical gate admitted 25; conservative key alignment admits 33; incomplete-tail recovery raises that to 45. This recovers 20 of the 23 historical burden items, or 86.9565%, while the remaining three longest-option cues stay rejected. It is a deterministic compiler-contract result on retained responses, not a new model run, factual certificate, adapter win, held-out result, or paid-reference comparison. The real B/A judgment remains missing and hosted Scion remains base-only.
 
 v0.16.21 turns the monolithic fresh B/A task into a resumable workbook without turning one reading into multiple votes. `npm run build:scion:codex-fresh-handoff` now emits eight immutable 16-case B/A templates and eight matching blank decisions skeletons. The 128 original indices are assigned modulo eight, so each chunk mixes Computer Science, Geology, Music Theory, and UX instead of creating a long single-domain run. Review templates fall from one 543,277-byte file to bounded 66,742–70,779-byte files; decision skeletons fall from one 123,877-byte file to 16,021-byte files.
 
@@ -172,7 +176,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.21)
+## Current Pipeline (v0.16.22)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -607,6 +611,7 @@ npm run audit:scion:codex-fresh-handoff # reconstruct and verify the tracked v0.
 npm run complete:scion:codex-fresh-pass -- --decisions-dir ... --sealed-output ... --key-output ...
 npm run ingest:scion:codex-training-reviews -- --review ... --review ...
 npm run ingest:scion:codex-sealed-training-reviews -- --sealed ... --key ... --sealed ... --key ...
+npm run audit:scion:mc-recovery # replay hash-bound local MC evidence through v0.16.22 recovery
 ```
 
 Normal pushes to `main` are guarded by **Fast verification** in `.github/workflows/ci.yml`: format, lint, release-history audit, unit/closed-loop tests, blueprint fast quality, deliverable audit, pipeline audit, gold smoke, build, and bundle budgets.

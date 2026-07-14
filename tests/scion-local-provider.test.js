@@ -86,6 +86,45 @@ describe('Scion browser-local provider', () => {
     expect(delays).toEqual([250]);
   });
 
+  it('returns compiler repair provenance with the repaired browser-local text', async () => {
+    const response = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-2',
+          mc: [
+            {
+              q: 'What does a sampling frame provide before participant selection?',
+              op: [
+                'A complete list of potential participants',
+                'A guarantee that every participant responds',
+                'A fixed interview schedule',
+                'A final analysis budget',
+              ],
+              ai: 0,
+              ex: 'A sampling frame provides a complete list of potential participants. A fixed schedule does not define the eligible population because',
+            },
+          ],
+        },
+      ],
+    });
+    const result = await runScionLocalCompletion({
+      userPrompt: 'Build a course.',
+      runtimeLoader: async () => runtimeWith([response]),
+    });
+
+    expect(JSON.parse(result.fullText).lessons[0].mc[0].ex).toBe(
+      'A sampling frame provides a complete list of potential participants.',
+    );
+    expect(result.repairs).toEqual([
+      expect.objectContaining({
+        pass: 'incompleteExplanationTail',
+        lessonId: 'lesson-2',
+        item: 0,
+        trainingEligible: false,
+      }),
+    ]);
+  });
+
   it('does not hide device or runtime failures behind generation retries', async () => {
     const runtimeError = Object.assign(new Error('WebGPU is unavailable.'), { code: 'SCION_WLLAMA_WEBGPU' });
     const runtime = {

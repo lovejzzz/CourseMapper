@@ -6,6 +6,7 @@
 
 import { jsonrepair } from 'jsonrepair';
 import { APP_VERSION } from './appVersion.js';
+import { repairScionMcItem } from './scionAnswerKeyAlignment.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
@@ -28,70 +29,45 @@ export function isPublicScionProvider(provider) {
   return provider === PUBLIC_SCION_PROVIDER_ID;
 }
 
-// Keep this lightweight copy local to the public provider. Importing the full
-// Scion preference gate here would promote local-only quality passes and their
-// item-lint dependencies into the first landing-page download.
-const PUBLIC_ALIGNMENT_STOP_WORDS = new Set([
-  'and',
-  'are',
-  'because',
-  'for',
-  'from',
-  'that',
-  'the',
-  'this',
-  'with',
-  'while',
-]);
-
-function publicAlignmentTokens(value) {
-  return new Set(
-    String(value || '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, ' ')
-      .split(/\s+/)
-      .map((token) => {
-        if (/^(?:ask|asks|asked|asking|question|questions)$/.test(token)) return 'question';
-        return token.length > 4 && token.endsWith('s') && !token.endsWith('ss') ? token.slice(0, -1) : token;
-      })
-      .filter((token) => token.length >= 3 && !PUBLIC_ALIGNMENT_STOP_WORDS.has(token)),
-  );
-}
-
-function findPublicScionExplanationKeyConflict(item) {
-  const options = Array.isArray(item?.op) ? item.op : Array.isArray(item?.options) ? item.options : [];
-  const explanation = String(item?.ex ?? item?.explanation ?? '').trim();
-  const currentIndex = Number(item?.ai ?? item?.answerIndex);
-  if (options.length !== 4 || !explanation || !Number.isInteger(currentIndex)) return null;
-  const affirmativeLead = explanation.split(/\b(?:by contrast|in contrast|whereas|while|rather than|unlike)\b/i)[0];
-  const explanationTokens = publicAlignmentTokens(affirmativeLead);
-  const scores = options.map((option) => {
-    const optionTokens = publicAlignmentTokens(option);
-    return [...optionTokens].filter((token) => explanationTokens.has(token)).length;
-  });
-  const bestScore = Math.max(...scores);
-  const bestIndices = scores.map((score, index) => (score === bestScore ? index : -1)).filter((index) => index >= 0);
-  const currentScore = scores[currentIndex] || 0;
-  if (bestScore >= 2 && bestIndices.length === 1 && bestIndices[0] !== currentIndex && bestScore >= currentScore + 1) {
-    return { supportedIndex: bestIndices[0] };
-  }
-  return null;
-}
-
-function alignPublicScionAnswerIndices(parsed) {
-  if (!parsed || !Array.isArray(parsed.lessons)) return parsed;
+// The shared repair module stays lightweight and does not import the full
+// preference gate. Browser preprocessing and canonical admission share one
+// repair order; the browser's retained two-token paraphrase exception is
+// explicit below and its evidence is always marked non-training.
+function repairPublicScionMcItems(parsed) {
+  const repairs = [];
+  if (!parsed || !Array.isArray(parsed.lessons)) return { parsed, repairs };
   for (const lesson of parsed.lessons) {
     if (!Array.isArray(lesson?.mc)) continue;
-    for (const item of lesson.mc) {
-      const conflict = findPublicScionExplanationKeyConflict(item);
-      if (conflict) {
-        if ('ai' in item) item.ai = conflict.supportedIndex;
-        if ('answerIndex' in item) item.answerIndex = conflict.supportedIndex;
-        if (!('ai' in item) && !('answerIndex' in item)) item.ai = conflict.supportedIndex;
-      }
-    }
+    lesson.mc = lesson.mc.map((item, itemIndex) => {
+      const result = repairScionMcItem(item, {
+        lessonId: lesson.lessonId,
+        itemIndex,
+        // Preserve the browser parser's proven question/steps paraphrase
+        // recovery. Canonical admission and benchmark replay keep the more
+        // conservative shared default (3 overlapping tokens, margin 3).
+        keyConflictOptions: { minimumBestScore: 2, minimumMargin: 1 },
+      });
+      repairs.push(
+        ...result.repairs.map((repair) =>
+          repair.pass === 'explanationKeyAlignment'
+            ? {
+                ...repair,
+                // The browser parser intentionally accepts one proven
+                // two-token paraphrase family. It improves the product path
+                // but must not enter the stricter training-preference lane.
+                trainingEligible: false,
+                preferenceEvidence: {
+                  ...repair.preferenceEvidence,
+                  evidenceScope: 'browser-relaxed-paraphrase-recovery',
+                },
+              }
+            : repair,
+        ),
+      );
+      return result.item;
+    });
   }
-  return parsed;
+  return { parsed, repairs };
 }
 
 const PUBLIC_SCION_LESSON_FIELDS = [
@@ -129,17 +105,18 @@ function liftNestedPublicScionLessonFields(parsed) {
 }
 
 /**
- * Repair syntax only; the normal kernel parser and per-atom quality lints
- * still decide what content may compile. Valid JSON passes through byte for
- * byte, while complete-but-malformed local responses get one syntax repair.
+ * Repair syntax and the two conservative MC contract defects before the
+ * normal kernel parser decides what may compile. The detailed form exposes
+ * repair provenance to the local runtime ledger; the text-only wrapper keeps
+ * the historical provider interface stable.
  */
-export function repairPublicScionJsonText(text = '') {
+export function repairPublicScionJson(text = '') {
   const raw = String(text || '')
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
     .replace(/```\s*$/i, '')
     .trim();
-  if (!raw) return '';
+  if (!raw) return { text: '', repairs: [] };
   let parsed = null;
   try {
     parsed = JSON.parse(raw);
@@ -170,8 +147,13 @@ export function repairPublicScionJsonText(text = '') {
       }
     }
   }
-  if (!parsed) return raw;
-  return JSON.stringify(alignPublicScionAnswerIndices(liftNestedPublicScionLessonFields(parsed)));
+  if (!parsed) return { text: raw, repairs: [] };
+  const repaired = repairPublicScionMcItems(liftNestedPublicScionLessonFields(parsed));
+  return { text: JSON.stringify(repaired.parsed), repairs: repaired.repairs };
+}
+
+export function repairPublicScionJsonText(text = '') {
+  return repairPublicScionJson(text).text;
 }
 
 export function publicScionKernelResponseNeedsRetry(responseText, userPrompt, task) {
