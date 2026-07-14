@@ -2,7 +2,7 @@
 
 > **Historical v0.16.6 plan.** v0.16.7 replaced the hosted Pollinations route with browser-local Scion; v0.16.8 froze a five-domain held-out ruler and made promotion evidence artifact-derived; v0.16.9 made training comparisons exact-input and separated research adapters from public candidates; v0.16.10 bound every review to a distinct course input and revealed that the current atom-rich packet has only one course group per domain. The current architecture, adapter contract, and promotion gates live in [SCION_ADAPTER_ROADMAP.md](SCION_ADAPTER_ROADMAP.md).
 
-**Status:** historical v0.16.6 adapter infrastructure and compiler-efficiency pass implemented; later releases completed an exact-QAT browser smoke, frozen paired evidence, sixteen course-group-bound inputs, 128 source-backed blind-review cases, and one outcome-sealed Codex A/B pass, while research and production training remain correctly blocked by the missing fresh B/A pass and zero stable approved quality preferences
+**Status:** historical v0.16.6 adapter infrastructure and compiler-efficiency pass implemented; later releases completed an exact-QAT browser smoke, frozen paired evidence, sixteen course-group-bound inputs, 128 source-backed blind-review cases, one outcome-sealed Codex A/B pass, and a tracked B/A-only clean-room handoff with atomic plaintext-free sealing, while research and production training remain correctly blocked by the missing fresh B/A judgment and zero stable approved quality preferences
 **North star:** Scion produces a more teachable, more internally coherent course than a paid frontier baseline at a fraction of the cost, and the evidence survives blind instructor review.
 
 ## v0.16.6 — Rootstock + Graft + Compiler
