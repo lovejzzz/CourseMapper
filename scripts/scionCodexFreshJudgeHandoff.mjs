@@ -114,7 +114,7 @@ Return only the sealed envelope path, a separately transferred key path, and the
 `;
 }
 
-function validateBlankTemplate(template, issues) {
+export function validateScionCodexFreshBlankTemplate(template, issues = []) {
   if (template?.schemaVersion !== 2 || template?.protocol !== SCION_CODEX_TRAINING_REVIEW_PROTOCOL) {
     issues.push('template-protocol');
   }
@@ -165,7 +165,7 @@ function validateBlankTemplate(template, issues) {
   collectForbiddenFields(template, '$.template', issues);
 }
 
-function validateBlankDecisions(decisions, template, templateRaw, issues) {
+export function validateScionCodexFreshBlankDecisions(decisions, template, templateRaw, issues = []) {
   if (decisions?.schemaVersion !== 1 || decisions?.protocol !== 'scion-codex-training-decisions-v1') {
     issues.push('decisions-protocol');
   }
@@ -264,8 +264,8 @@ export async function verifyScionCodexFreshJudgeHandoff({ handoffDir, expectedRe
   const template = JSON.parse(templateRaw.toString('utf8'));
   const decisions = JSON.parse(decisionsRaw.toString('utf8'));
   const manifest = JSON.parse(manifestRaw.toString('utf8'));
-  validateBlankTemplate(template, issues);
-  validateBlankDecisions(decisions, template, templateRaw, issues);
+  validateScionCodexFreshBlankTemplate(template, issues);
+  validateScionCodexFreshBlankDecisions(decisions, template, templateRaw, issues);
   if (hashBytes(promptRaw) !== SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256) issues.push('prompt-sha256');
 
   if (manifest?.schemaVersion !== 1 || manifest?.protocol !== SCION_CODEX_FRESH_HANDOFF_PROTOCOL) {

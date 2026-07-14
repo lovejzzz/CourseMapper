@@ -1,0 +1,131 @@
+{
+  "version": "0.16.21",
+  "date": "July 14, 2026",
+  "title": "Eight Small Readings: one clean judgment",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/scion-codex-fresh-judge-workbook.test.js tests/scion-codex-fresh-judge-handoff.test.js tests/scion-codex-training-preferences.test.js",
+      "npm run build:scion:codex-fresh-handoff",
+      "npm run audit:scion:codex-fresh-handoff",
+      "npm run audit:scion:codex-sealed-pass",
+      "npm run audit:scion:codex-judge",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run test:e2e",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "The exact v0.16.21 content commit must pass Fast verification on GitHub before the release proof is finalized."
+    },
+    "ciDeep": {
+      "status": "manual-only",
+      "note": "This release makes the isolated B/A task resumable. It does not perform the judgment, train an adapter, run held-out adapter comparisons, or claim a browser-device matrix."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages and the cache-busted edutool.dev release surfaces must be verified after the content commit reaches main."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "The milestone changes offline clean-room judgment mechanics only. It makes no provider call and changes no base, adapter, hosted route, or model weight."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "The declared training lane is single-model Codex evidence. No human, instructor, independent, classroom, or multi-judge claim is made or required."
+    },
+    "strictLayeredEvaluation": {
+      "status": "expected-fail-claim-boundary",
+      "command": "npm run audit:evaluation:release",
+      "claimStatus": "compiler-contract-only",
+      "passingTiers": ["compiler-contract", "production-canaries"],
+      "missingTiers": ["independently-validated-heldout", "independent-instructor-benchmark"],
+      "note": "The strict general release profile correctly refuses a classroom-quality claim. A resumable Codex workbook does not substitute for missing independent tiers or an actual adapter result."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01621-eight-bounded-chunks",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The canonical 128-case B/A task is emitted as eight immutable 16-case review templates and eight matching decisions skeletons, replacing one operationally fragile 543,277-byte review and 123,877-byte decision pair with bounded units.",
+      "anchors": [
+        "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.21.json",
+        "tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-fresh-handoff",
+        "npx vitest run tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v01621-interleaved-hash-bound-schedule",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Original review indices are assigned modulo eight to interleave domains, while the tracked receipt binds each payload, index list, pair set, canonical full-template hash, and exact reconstruction order.",
+      "anchors": [
+        "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.21.json",
+        "tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-fresh-handoff",
+        "npx vitest run tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01621-one-session-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "All chunks remain one B/A reading: completion requires one exact Codex revision, runtime, fresh session, timestamp, prior-outcome statement, context-reset attestation, and judgment attestation across every file.",
+      "anchors": [
+        "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "tests/scion-codex-fresh-judge-workbook.test.js",
+        "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-codex-fresh-judge-workbook.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01621-canonical-in-memory-assembly",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The assembler validates each chunk, restores canonical 128-case order in memory, runs the full structural validator, zeroes assembled completed-pass bytes, and exclusively emits one AES-256-GCM envelope plus one 0600 key without writing a combined pass.",
+      "anchors": [
+        "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "scripts/scionCodexTrainingPreferences.mjs",
+        "tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-codex-fresh-judge-workbook.test.js tests/scion-codex-training-preferences.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01621-resumable-not-judged",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The workbook is ready but the real B/A judgment, stable preferences, approved rows, learned weights, held-out wins, device evidence, and paid-reference parity remain zero; public Scion stays base-only.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/README.md",
+        "evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.21.json"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-fresh-handoff",
+        "npm run audit:scion:codex-sealed-pass",
+        "npm run audit:release-history",
+        "npm run test:e2e"
+      ],
+      "proofScopes": ["static-audit", "doc", "browser-smoke"]
+    }
+  ]
+}

@@ -190,27 +190,27 @@ npm run ingest:scion:codex-sealed-training-reviews -- \
 
 The retained v0.16.18 A/B pass is verified without outcome disclosure by `npm run audit:scion:codex-sealed-pass`. Its AES-256-GCM key is intentionally absent from Git. At release time, two 0600 local copies outside the volatile template directory passed an exact unseal/plaintext-hash round trip; a fresh clone still requires a separate key transfer. Template regeneration replaces only the two order files and receipt, preserving other nested evidence. The tracked envelope proves one structurally complete single-model pass existed at the bound hash; it proves no stable winner, training row, adapter improvement, or human evidence.
 
-v0.16.19 packages the reverse reading without putting the first reading in its context:
+v0.16.21 packages the reverse reading as a resumable workbook without putting the first reading in its context:
 
 ```bash
 npm run build:scion:codex-fresh-handoff
 npm run audit:scion:codex-fresh-handoff
 ```
 
-The clean-room handoff contains exactly the B/A template, an immutable blank decisions skeleton, the exact judge prompt, fresh-task instructions, and a manifest. The tracked receipt binds the frozen packet and all 128 source-backed cases. The verifier requires the exact allowlist, regular non-symlink files, B/A presentation order, neutral source context, blank scorecards and decisions, and a null prior-outcome state. It rejects organizer mappings, source rows, sealed-envelope fields, key or plaintext identities, prior outcomes, and any added, missing, nested, modified, or linked file. Unknown files are never deleted during regeneration.
+The clean-room workbook contains eight immutable 16-case B/A templates, eight matching blank decisions skeletons, the exact judge prompt, fresh-task instructions, and a manifest. The tracked receipt binds the frozen packet, all 128 source-backed cases, every payload byte, each chunk's original review indices and pair-set digest, the canonical full-template hash, and exact reconstruction order. Modulo assignment interleaves the original packet so every chunk mixes Computer Science, Geology, Music Theory, and UX. The verifier requires the exact allowlist, regular non-symlink files, B/A presentation order, neutral source context, blank scorecards and decisions, and a null prior-outcome state. It rejects organizer mappings, source rows, sealed-envelope fields, key or plaintext identities, prior outcomes, and any added, missing, nested, modified, or linked file. Unknown files are never deleted during regeneration.
 
-The fresh task copies the decisions skeleton outside the immutable handoff and completes that copy. It then runs the atomic path:
+The fresh task copies all eight decisions skeletons to one working directory and completes them sequentially in the same fresh Codex session. The revision, runtime, session ID, completion time, no-prior-outcome statement, context-reset attestation, and judgment attestation must match across all chunks. It then runs the atomic path:
 
 ```bash
 npm run complete:scion:codex-fresh-pass -- \
-  --handoff verification-output/scion-codex-fresh-b-a \
-  --receipt evaluation/scion-adapters/evidence/fresh-b-a-handoff-v0.16.19.json \
-  --decisions verification-output/scion-codex-fresh-b-a-decisions.json \
-  --sealed-output verification-output/scion-codex-sealed-passes/v0.16.19-b-a.sealed.json \
-  --key-output ~/.codex/scion-secrets/CourseMapper/v0.16.19-b-a.key
+  --handoff verification-output/scion-codex-fresh-b-a-workbook \
+  --receipt evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.21.json \
+  --decisions-dir verification-output/scion-codex-fresh-b-a-working \
+  --sealed-output verification-output/scion-codex-sealed-passes/v0.16.21-b-a.sealed.json \
+  --key-output ~/.codex/scion-secrets/CourseMapper/v0.16.21-b-a.key
 ```
 
-That command re-verifies the unchanged kit and tracked receipt, validates completed decisions in memory, encrypts directly with AES-256-GCM, creates the envelope and 0600 key exclusively, and writes no completed plaintext. It prints no winner. The real B/A pass is still missing until a genuinely fresh task performs all 128 judgments; the handoff itself creates no preference or model result.
+That command re-verifies every unchanged workbook chunk and the tracked receipt, rejects partial or extra working files, validates each completed decision set, requires one identical fresh session, restores canonical case order in memory, encrypts directly with AES-256-GCM, and creates one envelope plus one 0600 key exclusively. Working decision chunks contain judgment data and must be protected; the command writes no combined completed review pass and prints no winner. The historical v0.16.19 five-file monolith remains reproducible through the `:legacy` scripts. The real B/A pass is still missing until a genuinely fresh task performs all 128 judgments; the workbook itself creates no preference or model result.
 
 v0.16.20 keeps both completed orders sealed until they can be opened together. The dual-envelope ingestion command rejects fewer or more than two envelopes or keys, duplicate paths, duplicate envelope or key identities, noncanonical keys, swapped keys, bad ciphertext or authentication tags, changed plaintext hashes, metadata drift, the wrong order pair, reused judge sessions, and any existing structural or qualification failure. Both batches are decrypted and validated in memory before the approved corpus or organizer report is touched. A failed second input therefore cannot partially ingest the first order or replace existing output bytes.
 
