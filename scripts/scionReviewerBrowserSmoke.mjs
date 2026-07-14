@@ -6,7 +6,11 @@ import path from 'node:path';
 
 import { chromium } from 'playwright';
 
-import { buildScionBlindReviewPacket, validateScionBlindReview } from './scionBlindReviewPacket.mjs';
+import {
+  buildScionBlindReviewPacket,
+  validateScionBlindReview,
+  validateScionFounderReview,
+} from './scionBlindReviewPacket.mjs';
 
 const item = {
   q: 'Which observation most directly supports revising the navigation?',
@@ -69,7 +73,39 @@ async function main() {
     assert.deepEqual(validateScionBlindReview(downloadedRows[0]), []);
     assert.deepEqual(networkRequests, []);
     assert.match(await page.locator('#status').textContent(), /downloaded/i);
-    console.log('Scion reviewer browser smoke passed: group-bound JSON export, validation, and zero network requests.');
+
+    const founderHtml = await fs.readFile(
+      path.join(outputDir, 'reviewer', 'by-domain', 'interaction-design', 'founder-review.html'),
+      'utf8',
+    );
+    await page.setContent(founderHtml);
+    assert.equal(await page.locator('.case-card:visible').count(), 1);
+    assert.equal(await page.getByRole('button', { name: 'Next case' }).isHidden(), true);
+    assert.equal(await page.getByRole('button', { name: 'Download completed review JSON' }).isVisible(), true);
+    await page.locator('[name="reviewerId"]').fill('founder-smoke');
+    for (const name of ['factualCorrectnessA-0', 'factualCorrectnessB-0', 'teachabilityA-0', 'teachabilityB-0']) {
+      await page.locator(`[name="${name}"]`).selectOption('5');
+    }
+    await page.locator('[name="choice-0"][value="B"]').check();
+    await page
+      .locator('[name="rationale-0"]')
+      .fill('Package B states the bounded navigation decision more clearly for this founder research pass.');
+    await page.locator('[name="attestation"]').check();
+    const founderDownloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Download completed review JSON' }).click();
+    const founderDownload = await founderDownloadPromise;
+    assert.match(founderDownload.suggestedFilename(), /^scion-founder-review-/);
+    const founderRows = JSON.parse(await fs.readFile(await founderDownload.path(), 'utf8'));
+    assert.equal(founderRows.length, 1);
+    assert.deepEqual(validateScionFounderReview(founderRows[0]), []);
+    assert.equal(founderRows[0].independent, false);
+    assert.equal(founderRows[0].claimEligible, false);
+    assert.equal(validateScionBlindReview(founderRows[0]).includes('reviewer-not-working-instructor'), true);
+    assert.deepEqual(networkRequests, []);
+    assert.match(await page.locator('#status').textContent(), /non-independent/i);
+    console.log(
+      'Scion reviewer browser smoke passed: instructor and founder exports, honest provenance, and zero network requests.',
+    );
   } finally {
     await browser?.close();
     await fs.rm(root, { recursive: true, force: true });

@@ -14,6 +14,7 @@ const DEFAULT_OUTPUT = 'verification-output/scion-blind-review';
 const DEFAULT_APPROVED = 'evaluation/scion-reviewed-preferences.jsonl';
 const DEFAULT_HELD_OUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v1.json';
 const REVIEW_PROTOCOL = 'scion-blind-instructor-review-v3';
+const FOUNDER_REVIEW_PROTOCOL = 'scion-blind-founder-review-v1';
 const REVIEW_ROLES = new Set(['working-instructor']);
 const REVIEW_CHOICES = new Set(['A', 'B', 'tie', 'both-bad']);
 const SHA256 = SHA256_PATTERN;
@@ -208,6 +209,36 @@ export function createBlankScionReview(caseRow, reviewPacketId = '', reviewPacke
   };
 }
 
+export function createBlankScionFounderReview(caseRow, reviewPacketId = '', reviewPacketDigest = '') {
+  return {
+    pairId: caseRow.pairId,
+    caseDigest: caseRow.caseDigest,
+    domain: caseRow.domain,
+    courseGroupSha256: caseRow.courseGroupSha256,
+    reviewPacketId,
+    reviewPacketDigest,
+    reviewProtocol: FOUNDER_REVIEW_PROTOCOL,
+    evidenceClass: 'founder-review',
+    reviewerId: '',
+    reviewerRole: 'product-founder',
+    reviewerDomain: '',
+    disciplineFamiliarity: 'self-declared',
+    independent: false,
+    conflictOfInterest: true,
+    claimEligible: false,
+    claimBoundary:
+      'Founder review can guide research and compiler repair, but it is not independent instructor evidence and cannot promote an adapter.',
+    reviewedAt: '',
+    choice: '',
+    factualCorrectnessA: null,
+    factualCorrectnessB: null,
+    teachabilityA: null,
+    teachabilityB: null,
+    rationale: '',
+    attestation: false,
+  };
+}
+
 function safeJsonForHtml(value) {
   return JSON.stringify(value)
     .replace(/</g, '\\u003c')
@@ -237,12 +268,44 @@ function sourceContextHtml(sourceContext) {
   return `<aside class="source-context"><h2>Neutral source claims</h2><p>Judge both packages against these same supplied claims.</p><ol>${claims}</ol><small>${escapeHtml(sourceContext.term || sourceContext.kernelId)} · ${escapeHtml(sourceContext.license)}${attribution ? ` · ${attribution}` : ''}</small></aside>`;
 }
 
-export function buildScionReviewerHtml({ meta, domain, cases }) {
-  const templates = cases.map((caseRow) => createBlankScionReview(caseRow, meta.packetId, meta.packetDigest));
-  const packet = { packetId: meta.packetId, domain, cases, templates };
+export function buildScionReviewerHtml({ meta, domain, cases, mode = 'instructor' }) {
+  const founderMode = mode === 'founder';
+  const templates = cases.map((caseRow) =>
+    founderMode
+      ? createBlankScionFounderReview(caseRow, meta.packetId, meta.packetDigest)
+      : createBlankScionReview(caseRow, meta.packetId, meta.packetDigest),
+  );
+  const packet = {
+    packetId: meta.packetId,
+    domain,
+    cases,
+    templates,
+    reviewMode: founderMode ? 'founder' : 'instructor',
+  };
+  const pageCopy = founderMode
+    ? {
+        eyebrow: `Founder research · ${domain}`,
+        heading: 'Blind founder review',
+        lede: 'Judge A and B without the organizer key or model-judge results. This evidence can guide Scion research, but it cannot promote an adapter.',
+        sectionHeading: 'Review provenance',
+        reviewerPlaceholder: 'Example: founder-reviewer-01',
+        eligibility: `You do not need to claim that you teach ${domain}. Record your real familiarity in the rationale when it affects a decision.`,
+        attestation:
+          'I completed this review without seeing the organizer key or model-judge decisions, and I understand that founder review is non-independent research evidence.',
+      }
+    : {
+        eyebrow: `Independent instructor benchmark · ${domain}`,
+        heading: 'Blind atom review',
+        lede: 'Review A and B on their own merits. Do not try to identify the system that produced either package.',
+        sectionHeading: 'Reviewer eligibility',
+        reviewerPlaceholder: 'Example: ux-instructor-07',
+        eligibility: `Complete this form only if you are a working instructor who currently teaches ${domain}.`,
+        attestation:
+          'I attest that I currently teach this domain, completed this review independently, and have no conflict of interest with either package.',
+      };
   const cards = cases
     .map(
-      (caseRow, index) => `<section class="case-card" data-case-index="${index}">
+      (caseRow, index) => `<section class="case-card" data-case-index="${index}"${index === 0 ? '' : ' hidden'}>
         <div class="case-heading"><span>Case ${index + 1} of ${cases.length}</span><code>${escapeHtml(caseRow.pairId)}</code></div>
         <p class="kind">${escapeHtml(caseRow.kind === 'mc-item' ? 'Multiple-choice item' : 'Key term')}</p>
         <h2>Prompt</h2><p class="prompt">${escapeHtml(caseRow.prompt)}</p>
@@ -267,19 +330,177 @@ export function buildScionReviewerHtml({ meta, domain, cases }) {
 <title>Scion blind review — ${escapeHtml(domain)}</title>
 <style>
 :root{color-scheme:light;--ink:#17223b;--muted:#5d6880;--line:#d6ddeb;--panel:#f5f7fb;--accent:#2356a8;--good:#176b50}*{box-sizing:border-box}body{margin:0;background:#eef2f8;color:var(--ink);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:1120px;margin:0 auto;padding:32px 20px 80px}header,.case-card,.reviewer{background:white;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 28px #1e315414}header,.reviewer,.case-card{padding:24px;margin-bottom:22px}h1{margin:0 0 8px;font-size:clamp(28px,4vw,44px)}h2{font-size:17px;margin:18px 0 6px}h3{margin-top:0}.lede,.kind,.privacy{color:var(--muted)}.privacy{border-left:4px solid var(--good);padding-left:12px}.source-context{background:#f2f7f5;border:1px solid #b9d8cd;border-radius:12px;margin:18px 0;padding:16px}.source-context h2{margin-top:0}.source-context p,.source-context small{color:var(--muted)}.source-context ol{display:grid;gap:8px;padding:0;list-style:none}.source-context li{display:grid;grid-template-columns:24px 1fr;gap:8px}.source-context li span{align-items:center;background:#d8eee6;border-radius:50%;display:flex;font-size:12px;font-weight:750;height:22px;justify-content:center}.reviewer-grid,.packages,.ratings{display:grid;gap:16px}.reviewer-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.packages{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.packages article{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}.ratings{grid-template-columns:1fr 1fr}.case-heading{display:flex;justify-content:space-between;gap:16px;align-items:center}.case-heading span{font-weight:750;font-size:18px}.case-heading code{font-size:12px;color:var(--muted)}label{display:grid;gap:6px;font-weight:650}input[type=text],select,textarea{width:100%;font:inherit;border:1px solid #aab5c8;border-radius:8px;padding:10px;background:white}textarea{min-height:110px;resize:vertical}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;border:1px solid var(--line);border-radius:8px;padding:14px;font-size:13px}fieldset{margin:18px 0;border:1px solid var(--line);border-radius:10px;padding:14px}.choice{display:inline-flex;align-items:center;margin:5px 18px 5px 0;font-weight:550}.choice input{margin-right:7px}.attestation{display:flex;align-items:flex-start;gap:10px;font-weight:600}.attestation input{margin-top:5px}.actions{position:sticky;bottom:16px;background:#17223bee;color:white;border-radius:14px;padding:14px 18px;display:flex;gap:14px;align-items:center;justify-content:space-between;box-shadow:0 8px 30px #10192d55}.actions button{border:0;border-radius:9px;background:white;color:var(--accent);font:700 16px system-ui;padding:11px 18px;cursor:pointer}.status{font-size:14px}@media(max-width:650px){main{padding:16px 10px 70px}.packages{grid-template-columns:1fr}.ratings{grid-template-columns:1fr}.case-heading{align-items:flex-start;flex-direction:column}.actions{align-items:stretch;flex-direction:column}.actions button{width:100%}}
+</style><style>
+[hidden]{display:none!important}.review-progress{display:grid;gap:8px;margin-top:18px}.progress-track{height:8px;background:#dfe6f1;border-radius:999px;overflow:hidden}.progress-fill{height:100%;width:0;background:var(--good);transition:width .2s ease}.case-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.case-nav button,.case-nav select{border:1px solid #d7deea;border-radius:8px;background:white;color:var(--ink);font:650 14px system-ui;padding:9px 12px}.case-nav button{cursor:pointer}.case-nav button:disabled{cursor:not-allowed;opacity:.45}.case-nav .flagged{background:#fff3cf;border-color:#dba900;color:#6b4c00}.actions-copy{display:grid;gap:2px}.actions-copy strong{font-size:14px}.actions-copy .status{color:#e7edf8}.actions .case-nav{justify-content:flex-end}.actions .primary{background:white;color:var(--accent)}@media(max-width:650px){.actions .case-nav{display:grid;grid-template-columns:1fr 1fr;width:100%}.actions .case-nav select,.actions .case-nav .primary{grid-column:1/-1;width:100%}}
 </style></head><body><main>
-<header><p class="kind">Independent instructor benchmark · ${escapeHtml(domain)}</p><h1>Blind atom review</h1><p class="lede">Review A and B on their own merits. Do not try to identify the system that produced either package.</p><p class="privacy">This page is self-contained and makes no network requests. Draft answers stay in this browser. The final button downloads a JSON file for you to return to the organizer.</p></header>
-<form id="review-form"><section class="reviewer"><h2>Reviewer eligibility</h2><div class="reviewer-grid"><label>Pseudonymous reviewer ID<input type="text" name="reviewerId" minlength="3" required placeholder="Example: ux-instructor-07"></label><label>Domain<input type="text" value="${escapeHtml(domain)}" disabled></label></div><p>Complete this form only if you are a working instructor who currently teaches ${escapeHtml(domain)}.</p><label class="attestation"><input type="checkbox" name="attestation" required> I attest that I currently teach this domain, completed this review independently, and have no conflict of interest with either package.</label></section>
+<header><p class="kind">${escapeHtml(pageCopy.eyebrow)}</p><h1>${escapeHtml(pageCopy.heading)}</h1><p class="lede">${escapeHtml(pageCopy.lede)}</p><p class="privacy">This page is self-contained and makes no network requests. Draft answers stay in this browser. The final button downloads a JSON file for you to return to the organizer.</p><div class="review-progress"><strong id="progress-label">Case 1 of ${cases.length} · 0 complete</strong><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progress-fill"></div></div></div></header>
+<form id="review-form"><section class="reviewer"><h2>${escapeHtml(pageCopy.sectionHeading)}</h2><div class="reviewer-grid"><label>Pseudonymous reviewer ID<input type="text" name="reviewerId" minlength="3" required placeholder="${escapeHtml(pageCopy.reviewerPlaceholder)}"></label><label>Domain<input type="text" value="${escapeHtml(domain)}" disabled></label></div><p>${escapeHtml(pageCopy.eligibility)}</p><label class="attestation"><input type="checkbox" name="attestation" required> ${escapeHtml(pageCopy.attestation)}</label></section>
 ${cards}
-<div class="actions"><span class="status" id="status">Draft saves locally as you work.</span><button type="submit">Download completed review JSON</button></div></form>
+<div class="actions"><div class="actions-copy"><strong id="case-state">Case 1 of ${cases.length}</strong><span class="status" id="status">Draft saves locally as you work.</span></div><div class="case-nav"><button type="button" id="previous-case">Back</button><button type="button" id="flag-case">Flag for later</button><select id="case-jump" aria-label="Jump to case">${cases.map((_, index) => `<option value="${index}">Case ${index + 1}</option>`).join('')}</select><button type="button" class="primary" id="next-case">Next case</button><button type="submit" class="primary" id="download-review" hidden>Download completed review JSON</button></div></div></form>
 <script id="review-packet" type="application/json">${safeJsonForHtml(packet)}</script>
 <script>
-(() => { const packet=JSON.parse(document.getElementById('review-packet').textContent); const form=document.getElementById('review-form'); const status=document.getElementById('status'); const storageKey='scion-blind-review:'+packet.packetId+':'+packet.domain;
-const controls=()=>[...form.querySelectorAll('input[name],select[name],textarea[name]')];
-function saveDraft(){const draft={};for(const control of controls()){if(control.type==='radio'){if(control.checked)draft[control.name]=control.value}else if(control.type==='checkbox')draft[control.name]=control.checked;else draft[control.name]=control.value}try{localStorage.setItem(storageKey,JSON.stringify(draft));status.textContent='Draft saved locally.'}catch{status.textContent='Draft could not be saved; keep this page open.'}}
-function restoreDraft(){try{const draft=JSON.parse(localStorage.getItem(storageKey)||'{}');for(const control of controls()){if(!(control.name in draft))continue;if(control.type==='radio')control.checked=draft[control.name]===control.value;else if(control.type==='checkbox')control.checked=draft[control.name]===true;else control.value=draft[control.name]}}catch{}}
-form.addEventListener('input',saveDraft);restoreDraft();
-form.addEventListener('submit',(event)=>{event.preventDefault();if(!form.reportValidity()){status.textContent='Complete every rating, judgment, rationale, and attestation.';return}const reviewerId=form.elements.reviewerId.value.trim();const reviewedAt=new Date().toISOString();const rows=packet.templates.map((template,index)=>({...template,reviewerId,reviewerDomain:packet.domain,disciplineFamiliarity:'teaches-domain',independent:true,conflictOfInterest:false,reviewedAt,choice:form.querySelector('[name="choice-'+index+'"]:checked').value,factualCorrectnessA:Number(form.elements['factualCorrectnessA-'+index].value),factualCorrectnessB:Number(form.elements['factualCorrectnessB-'+index].value),teachabilityA:Number(form.elements['teachabilityA-'+index].value),teachabilityB:Number(form.elements['teachabilityB-'+index].value),rationale:form.elements['rationale-'+index].value.trim(),attestation:true}));const blob=new Blob([JSON.stringify(rows,null,2)+'\\n'],{type:'application/json'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='scion-review-'+packet.domain+'-'+reviewerId.replace(/[^a-z0-9_-]+/gi,'-')+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);status.textContent='Review JSON downloaded. Return it to the organizer.'}); })();
+(() => {
+  const packet = JSON.parse(document.getElementById('review-packet').textContent);
+  const form = document.getElementById('review-form');
+  const status = document.getElementById('status');
+  const cards = [...form.querySelectorAll('.case-card')];
+  const previousButton = document.getElementById('previous-case');
+  const nextButton = document.getElementById('next-case');
+  const flagButton = document.getElementById('flag-case');
+  const jumpSelect = document.getElementById('case-jump');
+  const downloadButton = document.getElementById('download-review');
+  const progressLabel = document.getElementById('progress-label');
+  const progressFill = document.getElementById('progress-fill');
+  const caseState = document.getElementById('case-state');
+  const storageKey = 'scion-blind-review:' + packet.reviewMode + ':' + packet.packetId + ':' + packet.domain;
+  const flaggedCases = new Set();
+  let activeCase = 0;
+
+  const controls = () => [...form.querySelectorAll('input[name],select[name],textarea[name]')];
+  const caseControl = (name, index) => form.elements[name + '-' + index];
+  const selectedChoice = (index) => form.querySelector('[name="choice-' + index + '"]:checked');
+  const caseComplete = (index) =>
+    ['factualCorrectnessA', 'factualCorrectnessB', 'teachabilityA', 'teachabilityB'].every(
+      (name) => Boolean(caseControl(name, index)?.value),
+    ) &&
+    Boolean(selectedChoice(index)) &&
+    String(caseControl('rationale', index)?.value || '').trim().length >= 30;
+
+  function saveDraft(message = 'Draft saved locally.') {
+    const draft = { __activeCase: activeCase, __flaggedCases: [...flaggedCases] };
+    for (const control of controls()) {
+      if (control.type === 'radio') {
+        if (control.checked) draft[control.name] = control.value;
+      } else if (control.type === 'checkbox') draft[control.name] = control.checked;
+      else draft[control.name] = control.value;
+    }
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(draft));
+      status.textContent = message;
+    } catch {
+      status.textContent = 'Draft could not be saved; keep this page open.';
+    }
+  }
+
+  function restoreDraft() {
+    try {
+      const draft = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      for (const control of controls()) {
+        if (!(control.name in draft)) continue;
+        if (control.type === 'radio') control.checked = draft[control.name] === control.value;
+        else if (control.type === 'checkbox') control.checked = draft[control.name] === true;
+        else control.value = draft[control.name];
+      }
+      activeCase = Math.max(0, Math.min(cards.length - 1, Number(draft.__activeCase) || 0));
+      for (const index of Array.isArray(draft.__flaggedCases) ? draft.__flaggedCases : []) {
+        if (Number.isInteger(index) && index >= 0 && index < cards.length) flaggedCases.add(index);
+      }
+    } catch {}
+  }
+
+  function render() {
+    cards.forEach((card, index) => {
+      card.hidden = index !== activeCase;
+      card.dataset.complete = caseComplete(index) ? 'true' : 'false';
+    });
+    const completeCount = cards.filter((_, index) => caseComplete(index)).length;
+    const percentage = cards.length ? Math.round((completeCount / cards.length) * 100) : 0;
+    progressLabel.textContent =
+      'Case ' + (activeCase + 1) + ' of ' + cards.length + ' · ' + completeCount + ' complete';
+    progressFill.style.width = percentage + '%';
+    caseState.textContent =
+      'Case ' + (activeCase + 1) + ' of ' + cards.length + (flaggedCases.has(activeCase) ? ' · flagged' : '');
+    previousButton.disabled = activeCase === 0;
+    nextButton.hidden = activeCase === cards.length - 1;
+    downloadButton.hidden = activeCase !== cards.length - 1;
+    jumpSelect.value = String(activeCase);
+    flagButton.textContent = flaggedCases.has(activeCase) ? 'Remove flag' : 'Flag for later';
+    flagButton.classList.toggle('flagged', flaggedCases.has(activeCase));
+  }
+
+  function showCase(index, message = '') {
+    activeCase = Math.max(0, Math.min(cards.length - 1, Number(index) || 0));
+    render();
+    saveDraft(message || 'Draft saved locally.');
+    cards[activeCase]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  form.addEventListener('input', () => {
+    saveDraft();
+    render();
+  });
+  previousButton.addEventListener('click', () => showCase(activeCase - 1));
+  nextButton.addEventListener('click', () => {
+    if (!caseComplete(activeCase) && !flaggedCases.has(activeCase)) {
+      status.textContent = 'Complete this case or flag it for later before continuing.';
+      return;
+    }
+    showCase(activeCase + 1);
+  });
+  flagButton.addEventListener('click', () => {
+    if (flaggedCases.has(activeCase)) flaggedCases.delete(activeCase);
+    else flaggedCases.add(activeCase);
+    saveDraft(flaggedCases.has(activeCase) ? 'Case flagged for later.' : 'Flag removed.');
+    render();
+  });
+  jumpSelect.addEventListener('change', () => showCase(Number(jumpSelect.value)));
+  document.addEventListener('keydown', (event) => {
+    const tag = document.activeElement?.tagName;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+    if (event.key === 'ArrowLeft') showCase(activeCase - 1);
+    if (event.key === 'ArrowRight' && activeCase < cards.length - 1) showCase(activeCase + 1);
+  });
+
+  restoreDraft();
+  render();
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const incomplete = cards.findIndex((_, index) => !caseComplete(index));
+    if (incomplete !== -1) {
+      showCase(incomplete, 'Finish every case before downloading. The first incomplete case is open.');
+      return;
+    }
+    if (!form.reportValidity()) {
+      status.textContent = 'Add a reviewer ID and complete the provenance attestation.';
+      return;
+    }
+    const reviewerId = form.elements.reviewerId.value.trim();
+    const reviewedAt = new Date().toISOString();
+    const rows = packet.templates.map((template, index) => ({
+      ...template,
+      reviewerId,
+      reviewerDomain: packet.domain,
+      disciplineFamiliarity: packet.reviewMode === 'founder' ? 'self-declared' : 'teaches-domain',
+      independent: packet.reviewMode === 'instructor',
+      conflictOfInterest: packet.reviewMode === 'founder',
+      reviewedAt,
+      choice: selectedChoice(index).value,
+      factualCorrectnessA: Number(caseControl('factualCorrectnessA', index).value),
+      factualCorrectnessB: Number(caseControl('factualCorrectnessB', index).value),
+      teachabilityA: Number(caseControl('teachabilityA', index).value),
+      teachabilityB: Number(caseControl('teachabilityB', index).value),
+      rationale: caseControl('rationale', index).value.trim(),
+      attestation: true,
+    }));
+    const blob = new Blob([JSON.stringify(rows, null, 2) + '\\n'], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download =
+      'scion-' +
+      (packet.reviewMode === 'founder' ? 'founder-review-' : 'review-') +
+      packet.domain +
+      '-' +
+      reviewerId.replace(/[^a-z0-9_-]+/gi, '-') +
+      '.json';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    status.textContent =
+      packet.reviewMode === 'founder'
+        ? 'Founder-review JSON downloaded. This remains non-independent research evidence.'
+        : 'Review JSON downloaded. Return it to the organizer.';
+  });
+})();
 </script></main></body></html>`;
 }
 
@@ -539,10 +760,22 @@ export async function buildScionBlindReviewPacket({
           2,
         )}\n`,
       ),
+      fs.writeFile(
+        path.join(domainDir, 'founder-review-form.json'),
+        `${JSON.stringify(
+          domainCases.map((caseRow) => createBlankScionFounderReview(caseRow, packetId, reviewPacketDigest)),
+          null,
+          2,
+        )}\n`,
+      ),
       fs.writeFile(path.join(domainDir, 'review.html'), buildScionReviewerHtml({ meta, domain, cases: domainCases })),
       fs.writeFile(
+        path.join(domainDir, 'founder-review.html'),
+        buildScionReviewerHtml({ meta, domain, cases: domainCases, mode: 'founder' }),
+      ),
+      fs.writeFile(
         path.join(domainDir, 'README.md'),
-        `# Scion blind atom review — ${domain}\n\nOpen \`review.html\` in a browser. It is a self-contained offline form that saves a local draft and downloads ingestion-compatible JSON when complete. Review Package A and B without trying to identify their source. Complete this packet only if you are a working instructor who currently teaches ${domain}; the final attestation confirms current domain teaching, independent review, and no conflict of interest. For every case, score factual correctness and teachability from 1 to 5, choose A, B, tie, or both-bad, and give a concrete rationale of at least 30 characters. Two distinct domain-qualified instructors must agree on a winner, and both must score that side at least 4/5 on factual correctness and teachability before the pair can enter the curated corpus. The JSON templates remain available for reviewers who prefer to complete them directly.\n`,
+        `# Scion blind atom review — ${domain}\n\n## Independent instructor lane\n\nOpen \`review.html\` in a browser. It is a self-contained offline form that saves a local draft and downloads ingestion-compatible JSON when complete. Complete this lane only if you are a working instructor who currently teaches ${domain}; the final attestation confirms current domain teaching, independent review, and no conflict of interest. Two distinct domain-qualified instructors must agree on a winner, and both must score that side at least 4/5 on factual correctness and teachability before the pair can enter the curated corpus.\n\n## Solo founder-research lane\n\nOpen \`founder-review.html\` when the product founder is the only available human reviewer. It uses the same blinded cases and ratings, but exports explicitly non-independent \`founder-review\` evidence. Founder review can guide compiler repair and a non-promotable research adapter. It never satisfies the independent-instructor gate and cannot enter the production training corpus through the instructor ingestion command.\n\nBoth lanes show one case at a time, save progress locally, support case flags and navigation, and make no network requests. Review A and B without trying to identify their source. For every case, score factual correctness and teachability from 1 to 5, choose A, B, tie, or both-bad, and give a concrete rationale of at least 30 characters.\n`,
       ),
     ];
   });
@@ -550,7 +783,7 @@ export async function buildScionBlindReviewPacket({
     fs.writeFile(path.join(reviewerDir, 'packet.json'), `${JSON.stringify({ meta, cases }, null, 2)}\n`),
     fs.writeFile(
       path.join(reviewerDir, 'README.md'),
-      `# Scion blind atom review\n\nThe full packet is an organizer overview. Send reviewers only the matching folder under by-domain/. Each domain folder includes a self-contained offline \`review.html\` page and JSON templates. A reviewer must be a working instructor who currently teaches that domain, complete the work independently, and declare no conflict of interest. For every case, score factual correctness and teachability from 1 to 5, choose A, B, tie, or both-bad, and give a concrete rationale of at least 30 characters. Two distinct domain-qualified instructors must agree on a winner, and both must score that side at least 4/5 on factual correctness and teachability before the pair can enter the curated corpus.\n`,
+      `# Scion blind atom review\n\nThe full packet is an organizer overview. Each matching folder under \`by-domain/\` contains two evidence lanes that share the same blinded, hash-bound cases.\n\n- \`review.html\` is only for a working instructor who currently teaches that domain, completes the review independently, and declares no conflict of interest. Two distinct domain-qualified instructors must agree on a high-quality winner before a pair can enter the production corpus.\n- \`founder-review.html\` is for solo-founder research. Its export is explicitly non-independent, claim-ineligible \`founder-review\` evidence. It can guide compiler repair and research experiments, but it cannot promote an adapter or enter the production corpus through instructor ingestion.\n\nBoth offline pages show one case at a time, save progress locally, support flags and navigation, and make no network requests.\n`,
     ),
     fs.writeFile(path.join(organizerDir, 'key.json'), `${JSON.stringify({ meta, keys }, null, 2)}\n`),
     ...domainWrites,
@@ -648,6 +881,39 @@ export function validateScionBlindReview(review) {
   if (!REVIEW_CHOICES.has(review?.choice)) issues.push('invalid-choice');
   for (const field of ['factualCorrectnessA', 'factualCorrectnessB', 'teachabilityA', 'teachabilityB']) {
     if (!Number.isInteger(review?.[field]) || review[field] < 1 || review[field] > 5) issues.push(`${field}-range`);
+  }
+  if (String(review?.rationale || '').trim().length < 30) issues.push('rationale-too-short');
+  if (review?.attestation !== true) issues.push('missing-attestation');
+  return issues;
+}
+
+export function validateScionFounderReview(review) {
+  const issues = [];
+  if (!String(review?.pairId || '').trim()) issues.push('missing-pair-id');
+  if (!SHA256.test(String(review?.caseDigest || ''))) issues.push('invalid-case-digest');
+  if (!SHA256.test(String(review?.courseGroupSha256 || ''))) issues.push('invalid-course-group-sha256');
+  if (!String(review?.reviewPacketId || '').trim()) issues.push('missing-review-packet-id');
+  if (!SHA256.test(String(review?.reviewPacketDigest || ''))) issues.push('invalid-review-packet-digest');
+  if (review?.reviewProtocol !== FOUNDER_REVIEW_PROTOCOL) issues.push('invalid-founder-review-protocol');
+  if (review?.evidenceClass !== 'founder-review') issues.push('invalid-founder-evidence-class');
+  if (!String(review?.reviewerId || '').trim()) issues.push('missing-reviewer-id');
+  if (review?.reviewerRole !== 'product-founder') issues.push('reviewer-not-product-founder');
+  if (review?.disciplineFamiliarity !== 'self-declared') issues.push('invalid-founder-familiarity');
+  if (!String(review?.reviewerDomain || '').trim()) issues.push('missing-reviewer-domain');
+  if (review?.independent !== false) issues.push('founder-review-must-be-non-independent');
+  if (review?.conflictOfInterest !== true) issues.push('founder-conflict-must-be-declared');
+  if (review?.claimEligible !== false) issues.push('founder-review-must-be-claim-ineligible');
+  if (!String(review?.claimBoundary || '').includes('not independent instructor evidence')) {
+    issues.push('missing-founder-claim-boundary');
+  }
+  if (!String(review?.reviewedAt || '').trim() || Number.isNaN(Date.parse(review.reviewedAt))) {
+    issues.push('invalid-reviewed-at');
+  }
+  if (!REVIEW_CHOICES.has(review?.choice)) issues.push('invalid-choice');
+  for (const field of ['factualCorrectnessA', 'factualCorrectnessB', 'teachabilityA', 'teachabilityB']) {
+    if (!Number.isInteger(review?.[field]) || review[field] < 1 || review[field] > 5) {
+      issues.push(field + '-range');
+    }
   }
   if (String(review?.rationale || '').trim().length < 30) issues.push('rationale-too-short');
   if (review?.attestation !== true) issues.push('missing-attestation');

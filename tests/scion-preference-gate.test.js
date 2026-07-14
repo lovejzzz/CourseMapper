@@ -20,6 +20,7 @@ import {
   buildScionBlindReviewPacket,
   ingestScionBlindReviews,
   validateScionBlindReview,
+  validateScionFounderReview,
 } from '../scripts/scionBlindReviewPacket.mjs';
 import { buildMatchedReviewCandidates } from '../scripts/scionMatchedReviewCandidates.mjs';
 
@@ -425,10 +426,15 @@ describe('Scion preference admission gate', () => {
     const domainDir = path.join(outputDir, 'reviewer', 'by-domain', 'interaction-design');
     const html = await fs.readFile(path.join(domainDir, 'review.html'), 'utf8');
     const blankForm = JSON.parse(await fs.readFile(path.join(domainDir, 'review-form-1.json'), 'utf8'));
+    const founderHtml = await fs.readFile(path.join(domainDir, 'founder-review.html'), 'utf8');
+    const founderForm = JSON.parse(await fs.readFile(path.join(domainDir, 'founder-review-form.json'), 'utf8'));
     expect(html).toContain('Blind atom review');
     expect(html).toContain('Download completed review JSON');
     expect(html).toContain(caseRow.pairId);
     expect(html).not.toMatch(/"mapping"|"sourceRow"|candidateModel|referenceModel|source\.jsonl/);
+    expect(founderHtml).toContain('Blind founder review');
+    expect(founderHtml).toContain('cannot promote an adapter');
+    expect(founderHtml).not.toMatch(/"mapping"|"sourceRow"|candidateModel|referenceModel|source\.jsonl/);
     expect(blankForm[0]).toMatchObject({
       pairId: caseRow.pairId,
       caseDigest: caseRow.caseDigest,
@@ -437,6 +443,16 @@ describe('Scion preference admission gate', () => {
       reviewPacketDigest: packet.meta.packetDigest,
       independent: false,
       conflictOfInterest: null,
+      reviewedAt: '',
+    });
+    expect(founderForm[0]).toMatchObject({
+      pairId: caseRow.pairId,
+      evidenceClass: 'founder-review',
+      reviewerRole: 'product-founder',
+      disciplineFamiliarity: 'self-declared',
+      independent: false,
+      conflictOfInterest: true,
+      claimEligible: false,
       reviewedAt: '',
     });
     const makeReview = (reviewerId) => ({
@@ -462,6 +478,28 @@ describe('Scion preference admission gate', () => {
       attestation: true,
     });
     expect(validateScionBlindReview(makeReview('instructor-valid'))).toEqual([]);
+    const founderReview = {
+      ...founderForm[0],
+      reviewerId: 'founder-valid',
+      reviewerDomain: 'interaction-design',
+      reviewedAt: '2026-07-12T15:00:00.000Z',
+      choice: 'B',
+      factualCorrectnessA: 4,
+      factualCorrectnessB: 5,
+      teachabilityA: 4,
+      teachabilityB: 5,
+      rationale: 'Package B gives the more bounded and teachable evidence judgment for this founder research pass.',
+      attestation: true,
+    };
+    expect(validateScionFounderReview(founderReview)).toEqual([]);
+    expect(validateScionBlindReview(founderReview)).toEqual(
+      expect.arrayContaining([
+        'reviewer-not-working-instructor',
+        'reviewer-not-domain-teaching',
+        'review-not-independent',
+        'reviewer-conflict-not-cleared',
+      ]),
+    );
     const reviewA = path.join(root, 'review-a.json');
     const reviewB = path.join(root, 'review-b.json');
     await fs.writeFile(reviewA, JSON.stringify([makeReview('instructor-a')]));

@@ -1,0 +1,111 @@
+{
+  "version": "0.16.14",
+  "date": "July 13, 2026",
+  "title": "Solo Signal: useful judgment without fake independence",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "node --check scripts/scionBlindReviewPacket.mjs",
+      "node --check scripts/scionReviewerBrowserSmoke.mjs",
+      "node scripts/scionBlindReviewPacket.mjs --per-domain 40 --receipt verification-output/scion-blind-review/campaign-receipt.json",
+      "npx vitest run tests/scion-preference-gate.test.js --no-file-parallelism",
+      "npm run audit:scion:reviewer-browser",
+      "npm run format:check",
+      "npm run build",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification must run on the pushed v0.16.14 candidate before merge."
+    },
+    "ciDeep": {
+      "status": "manual-only",
+      "note": "Founder review is deliberately non-independent. It does not replace qualified held-out instructor review, adapter comparison, or device evidence."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment is not claimed until the exact merged commit passes Pages."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "This release changes offline evaluation workflow only. It makes no provider call and changes no model, adapter, prompt, or hosted inference route."
+    },
+    "manualHuman": {
+      "status": "pending",
+      "note": "The solo-founder form is ready, but no completed founder export is counted in this release and qualified independent instructor reviews remain zero."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01614-separated-founder-and-instructor-lanes",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Each domain packet now provides separate instructor and founder pages over the same hash-bound blind cases, with evidence-specific copy, templates, and attestations.",
+      "anchors": ["scripts/scionBlindReviewPacket.mjs", "tests/scion-preference-gate.test.js", "README.md"],
+      "proofCommands": [
+        "node scripts/scionBlindReviewPacket.mjs --per-domain 40",
+        "npx vitest run tests/scion-preference-gate.test.js --no-file-parallelism"
+      ],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v01614-focused-reviewer-workflow",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The offline reviewer shows one case at a time with progress, back and next navigation, direct jumps, flags, and local autosave while preserving zero-network operation.",
+      "anchors": [
+        "scripts/scionBlindReviewPacket.mjs",
+        "scripts/scionReviewerBrowserSmoke.mjs",
+        "tests/scion-reviewer-html.spec.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:reviewer-browser",
+        "npx playwright test tests/scion-reviewer-html.spec.js"
+      ],
+      "proofScopes": ["browser-smoke", "unit"]
+    },
+    {
+      "id": "v01614-founder-provenance-fails-closed",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Founder exports are protocol-bound, non-independent, conflict-declared, and claim-ineligible, and they remain invalid under the working-instructor validator and ingestion path.",
+      "anchors": ["scripts/scionBlindReviewPacket.mjs", "tests/scion-preference-gate.test.js"],
+      "proofCommands": [
+        "npx vitest run tests/scion-preference-gate.test.js --no-file-parallelism",
+        "npm run audit:scion:reviewer-browser"
+      ],
+      "proofScopes": ["unit", "static-audit", "browser-smoke"]
+    },
+    {
+      "id": "v01614-founder-research-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Founder judgments may drive compiler diagnosis and non-promotable research, but cannot enter the approved production corpus, satisfy independent review, or promote an adapter.",
+      "anchors": [
+        "README.md",
+        "scripts/scionBlindReviewPacket.mjs",
+        "scripts/scionAdapterDataset.mjs",
+        "scripts/scionAdapterPromotionAudit.mjs"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:corpus",
+        "npm run audit:scion:adapter:promotion",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01614-no-model-or-adapter-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release changes evaluation workflow only; hosted Scion remains base-only and no approved training pair, qualified adapter win, or device result is claimed.",
+      "anchors": [
+        "README.md",
+        "evaluation/scion-adapters/evidence/review-campaign-v0.16.11.json",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": ["npm run audit:scion:model-bakeoff", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}
