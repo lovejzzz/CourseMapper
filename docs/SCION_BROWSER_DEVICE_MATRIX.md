@@ -6,7 +6,7 @@ It does **not** answer whether the adapter writes better courses. Factual, held-
 
 ## Current status
 
-The matrix protocol and fail-closed semantic verifier ship in v0.16.12. No quality adapter exists and no four-profile matrix has passed. The retained v0.16.7 Chrome canary proves one Apple Silicon machine can download the public base, activate an exact-QAT smoke LoRA at scale 16, change a deterministic output, and restore base output. It does not identify all required hardware, exercise Edge, measure the memory budget, or prove interrupted-download, storage-pressure, and device-loss recovery. It therefore cannot count as promotion evidence.
+The matrix protocol and fail-closed semantic verifier ship in v0.16.12. v0.16.24 makes the localhost canary use the bounded registry end to end and quarantines any runtime that cannot prove exact rollback, but those are adversarial software-contract results rather than a new device run. No quality adapter exists and no four-profile matrix has passed. The retained v0.16.7 Chrome canary proves one Apple Silicon machine can download the public base, activate an exact-QAT smoke LoRA at scale 16, change a deterministic output, and restore base output. It does not identify all required hardware, exercise Edge, measure the memory budget, or prove interrupted-download, storage-pressure, and device-loss recovery. It therefore cannot count as promotion evidence.
 
 ## Frozen v1 profiles
 

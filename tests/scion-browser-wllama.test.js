@@ -21,6 +21,7 @@ class FakeWllama {
     this.loaded = false;
     this.adapter = null;
     this.prompts = [];
+    this.baseOutput = 'Base general answer.';
     FakeWllama.last = this;
   }
 
@@ -71,7 +72,7 @@ class FakeWllama {
 
   async createCompletion(prompt) {
     this.prompts.push(prompt);
-    return this.adapter ? 'Adapter decision-focused answer.' : 'Base general answer.';
+    return this.adapter ? 'Adapter decision-focused answer.' : this.baseOutput;
   }
 
   async exit() {
@@ -167,6 +168,48 @@ describe('Scion WebGPU GGUF runtime', () => {
   it('fails before loading when WebGPU is absent', async () => {
     await expect(loadScionBrowserWllama({ ...browser, navigatorLike: {} })).rejects.toMatchObject({
       code: 'SCION_WLLAMA_WEBGPU',
+    });
+  });
+
+  it('quarantines inference after rollback drift until the runtime is unloaded and reloaded', async () => {
+    await loadScionBrowserWllama(browser);
+    const adapterBytes = new TextEncoder().encode('fake gguf lora');
+    const manifest = {
+      adapter: { id: 'scion-candidate', format: 'gguf-lora' },
+      files: [{ path: 'scion-candidate.gguf', bytes: adapterBytes.byteLength, sha256: 'a'.repeat(64) }],
+    };
+    await applyScionBrowserWllamaAdapter({
+      adapterId: 'scion-candidate',
+      manifest,
+      manifestSha256: 'b'.repeat(64),
+      files: new Map([['scion-candidate.gguf', adapterBytes.buffer]]),
+    });
+    FakeWllama.last.baseOutput = 'Drifted base answer.';
+
+    await expect(rollbackScionBrowserWllamaAdapter()).rejects.toMatchObject({ code: 'SCION_WLLAMA_ROLLBACK' });
+    expect(getScionBrowserWllamaStatus()).toMatchObject({
+      phase: 'recovery-required',
+      adapter: {
+        mode: 'recovery-required',
+        active: null,
+        id: 'scion-candidate',
+        manifestSha256: 'b'.repeat(64),
+        nativeState: 'unknown',
+      },
+    });
+    await expect(completeScionBrowserWllama('Continue generating.')).rejects.toMatchObject({
+      code: 'SCION_WLLAMA_RECOVERY_REQUIRED',
+    });
+    await expect(loadScionBrowserWllama(browser)).rejects.toMatchObject({
+      code: 'SCION_WLLAMA_RECOVERY_REQUIRED',
+    });
+
+    await unloadScionBrowserWllama();
+    await loadScionBrowserWllama(browser);
+    await expect(completeScionBrowserWllama('Continue generating.')).resolves.toBe('Base general answer.');
+    expect(getScionBrowserWllamaStatus()).toMatchObject({
+      phase: 'ready',
+      adapter: { mode: 'base-only', active: false },
     });
   });
 });

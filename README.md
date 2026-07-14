@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.23
+**Current release:** v0.16.24
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.23**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.24**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -48,6 +48,10 @@ The public base is the rootstock. A small LoRA adapter is the learned Scion delt
 That architecture is now mechanically proven from the exact QAT training parent through the packaged browser runtime. A deterministic bridge converts the MLX LoRA tensors to PEFT orientation and then invokes a revision-pinned official llama.cpp converter to produce a separately downloadable GGUF adapter. The first exact-parent smoke artifact is 52.7 MB, contains 276 complete LoRA tensor pairs, binds its source manifest, mapping, converter, output, and scale in a schema-v2 receipt, and remains permanently non-promotable.
 
 v0.16.23 makes “small” an enforced delivery contract instead of a description. A browser adapter package must remain at or below 64 MiB and at or below 2% of the exact 3,349,514,112-byte base; the latter produces today's stricter 66,990,282-byte ceiling. The installer requires streaming responses, validates Content-Length before opening a reader, counts headerless chunks against the exact manifest length, cancels overruns, rejects truncation, checks SHA-256, and commits only after every file passes. The retained smoke package totals 52,707,007 bytes—1.573572% of the base, with 14,283,275 bytes of headroom—and contains no base weights. This proves bounded separate delivery mechanics, not that the smoke adapter improves course quality or is ready to ship.
+
+v0.16.24 removes the weaker path that remained around those rules. The localhost-only real browser canary now uses the registry for bounded installation, exact cache verification, activation, and deactivation rather than fetching its own whole responses with `arrayBuffer()`. A valid cached adapter is reused only after the original manifest bytes and every stored file are re-hashed. A different manifest cannot replace an adapter under an ID that is currently active. Most importantly, Scion reports base-only only after exact rollback succeeds; a failed native clear or changed base canary enters recovery-required and blocks inference until the runtime is unloaded and the pinned base is loaded afresh.
+
+The v0.16.24 receipt binds 42 focused tests and the exact lifecycle implementation. It is software-contract evidence, not a new 3.35 GB model run or real-device recovery trial. The retained scale-16 smoke remains non-promotable; no quality adapter, held-out win, paid-reference parity, or completed reverse-order B/A judgment exists.
 
 A real browser hash-verified that artifact, activated it through the native Gemma 4 dynamic-LoRA path, and restored the exact cached base output after rollback. Scale 1 and scale 4 produced no deterministic output change; scale 16 changed the strict JSON course-authoring canary and then rolled back exactly. That result proves the conversion, delivery, activation, effect-detection, and rollback path while also showing that this ten-iteration smoke adapter is too weak to establish educational quality. The hosted website therefore runs **base-only local Scion** today.
 
@@ -71,7 +75,7 @@ v0.16.18 completes the first isolated A/B pass without turning one reading into 
 
 v0.16.23 bounds every future browser adapter before it can consume unbounded memory or alter cached state. The manifest gate applies both the 64 MiB absolute ceiling and the stricter two-percent-of-base ceiling to GGUF browser packages. The registry caps the manifest at 1 MiB and refuses nonstreaming responses, dishonest Content-Length values, headerless overrun, truncation, size mismatch, or digest mismatch. Per-chunk progress is observable, but installation remains atomic: no adapter record or file reaches the registry until all files pass.
 
-The tracked `adapter-delivery-budget-v0.16.23.json` receipt binds the base contract, retained exact-QAT browser smoke evidence, manifest validator, registry, and adversarial tests. It reproduces the 52,707,007-byte package, 1.573572% base fraction, 66,990,282-byte effective ceiling, and 14,283,275-byte headroom. That artifact remains a non-promotable ten-iteration mechanics smoke, lives outside the repository, and has not passed the quality, held-out, paid-reference, or device gates. Public Scion therefore remains base-only.
+The tracked historical `adapter-delivery-budget-v0.16.23.json` receipt binds the original size/streaming release. The current `adapter-lifecycle-v0.16.24.json` receipt additionally binds the canary's registry-only path, raw-manifest cache proof, active-ID replacement guard, coordinated activation/deactivation, rollback quarantine, and blocked-inference recovery. Both reproduce the 52,707,007-byte package, 1.573572% base fraction, 66,990,282-byte effective ceiling, and 14,283,275-byte headroom. That artifact remains a non-promotable ten-iteration mechanics smoke, lives outside the repository, and has not passed the quality, held-out, paid-reference, or device gates. Public Scion therefore remains base-only.
 
 v0.16.22 recovers a complete model-authored explanation when the local model reaches a valid sentence and then ends in a partial tail. The compiler does not invent punctuation or finish the thought: it requires an existing sentence boundary, keeps only the complete prefix, preserves the discarded tail in repair provenance, and then applies the existing conservative explanation/key alignment. Browser JSON preprocessing, canonical kernel admission, cached graph attachment, and graph reopen now share that order.
 
@@ -182,7 +186,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.23)
+## Current Pipeline (v0.16.24)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -618,7 +622,7 @@ npm run complete:scion:codex-fresh-pass -- --decisions-dir ... --sealed-output .
 npm run ingest:scion:codex-training-reviews -- --review ... --review ...
 npm run ingest:scion:codex-sealed-training-reviews -- --sealed ... --key ... --sealed ... --key ...
 npm run audit:scion:mc-recovery # replay hash-bound local MC evidence through v0.16.22 recovery
-npm run audit:scion:adapter-delivery # verify the v0.16.23 size, streaming, and smoke-package receipt
+npm run audit:scion:adapter-delivery # verify the v0.16.24 bounded lifecycle and retained smoke-package receipt
 ```
 
 Normal pushes to `main` are guarded by **Fast verification** in `.github/workflows/ci.yml`: format, lint, release-history audit, unit/closed-loop tests, blueprint fast quality, deliverable audit, pipeline audit, gold smoke, build, and bundle budgets.

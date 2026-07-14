@@ -379,6 +379,58 @@ export async function installScionBrowserAdapter({
     });
   }
   const { files, totalBytes } = adapterFiles(manifest);
+  const existing = await adapterStore.getAdapter(manifest.adapter.id);
+  const activationState = await adapterStore.getActivationState();
+  const replacingActiveAdapter =
+    activationState.mode === 'adapter-active' && activationState.active?.adapterId === manifest.adapter.id;
+  if (replacingActiveAdapter && activationState.active?.manifestSha256 !== manifestSha256) {
+    throw createRegistryError(
+      'SCION_ADAPTER_ACTIVE_REPLACEMENT',
+      'Deactivate the current Scion adapter before installing a different manifest under the same adapter ID.',
+      {
+        adapterId: manifest.adapter.id,
+        activeManifestSha256: activationState.active?.manifestSha256 || null,
+        requestedManifestSha256: manifestSha256,
+      },
+    );
+  }
+  if (existing?.manifestSha256 === manifestSha256) {
+    const cached = await verifyInstalledScionAdapter({
+      adapterId: manifest.adapter.id,
+      store: adapterStore,
+      cryptoLike,
+      requirePromoted,
+    });
+    if (cached.valid) {
+      publishProgress(onProgress, {
+        phase: 'cached',
+        adapterId: manifest.adapter.id,
+        downloadedBytes: 0,
+        totalBytes,
+        progress: 1,
+      });
+      return structuredClone(cached.record);
+    }
+    if (replacingActiveAdapter) {
+      await adapterStore.setActivationState({
+        ...activationState,
+        mode: 'recovery-required',
+        active: null,
+        failure: {
+          adapterId: manifest.adapter.id,
+          code: 'SCION_ADAPTER_ACTIVE_CACHE_INTEGRITY',
+          failedAt: new Date().toISOString(),
+          runtimeMayBeModified: true,
+          issues: cached.issues,
+        },
+      });
+      throw createRegistryError(
+        'SCION_ADAPTER_ACTIVE_CACHE_INTEGRITY',
+        'The active Scion adapter cache failed verification and the runtime must be recovered.',
+        { adapterId: manifest.adapter.id, issues: cached.issues },
+      );
+    }
+  }
   const stagedFiles = [];
   let downloadedBytes = 0;
   for (const file of files) {
@@ -424,6 +476,7 @@ export async function installScionBrowserAdapter({
     adapterId: manifest.adapter.id,
     scionVersion: manifest.adapter.scionVersion,
     manifest,
+    manifestBytes: cloneBinary(manifestBytes),
     manifestSha256,
     manifestUrl: manifestLocation.href,
     installedAt,
@@ -442,13 +495,52 @@ export async function installScionBrowserAdapter({
   return structuredClone(record);
 }
 
-export async function verifyInstalledScionAdapter({ adapterId, store, cryptoLike = globalThis.crypto } = {}) {
+export async function verifyInstalledScionAdapter({
+  adapterId,
+  store,
+  cryptoLike = globalThis.crypto,
+  requirePromoted = true,
+} = {}) {
   const adapterStore = store || createScionAdapterIndexedDbStore();
   const record = await adapterStore.getAdapter(adapterId);
   if (!record) throw createRegistryError('SCION_ADAPTER_NOT_INSTALLED', `Scion adapter is not installed: ${adapterId}`);
   const issues = [];
-  for (const expected of record.manifest.files || []) {
-    const reference = record.files.find((file) => file.path === expected.path);
+  let cachedManifest = null;
+  if (!record.manifestBytes) {
+    issues.push('cached-manifest-bytes-missing');
+  } else {
+    try {
+      const actualManifestSha256 = await sha256Hex(record.manifestBytes, cryptoLike);
+      if (actualManifestSha256 !== record.manifestSha256) issues.push('cached-manifest-sha256');
+      cachedManifest = JSON.parse(new TextDecoder().decode(record.manifestBytes));
+      if (JSON.stringify(cachedManifest) !== JSON.stringify(record.manifest))
+        issues.push('cached-manifest-record-mismatch');
+    } catch {
+      issues.push('cached-manifest-bytes-invalid');
+    }
+  }
+  const validation = validateScionAdapterManifest(record.manifest, { requirePromoted });
+  for (const issue of validation.issues) issues.push(`cached-manifest:${issue}`);
+  if (record.adapterId !== adapterId || record.manifest?.adapter?.id !== adapterId) {
+    issues.push('cached-record-adapter-id');
+  }
+  if (record.scionVersion !== record.manifest?.adapter?.scionVersion) issues.push('cached-record-scion-version');
+  const expectedFiles = Array.isArray(record.manifest?.files) ? record.manifest.files : [];
+  const references = Array.isArray(record.files) ? record.files : [];
+  if (record.totalBytes !== expectedFiles.reduce((sum, file) => sum + Number(file?.bytes || 0), 0)) {
+    issues.push('cached-record-total-bytes');
+  }
+  if (references.length !== expectedFiles.length) issues.push('cached-record-file-count');
+  const referencedPaths = references.map((file) => clean(file?.path));
+  if (new Set(referencedPaths).size !== referencedPaths.length) issues.push('cached-record-file-duplicate');
+  for (const reference of references) {
+    if (!expectedFiles.some((file) => file.path === reference.path)) issues.push(`cached-file-extra:${reference.path}`);
+    if (reference.storageKey !== `${record.manifestSha256}:${reference.path}`) {
+      issues.push(`cached-file-storage-key:${reference.path}`);
+    }
+  }
+  for (const expected of expectedFiles) {
+    const reference = references.find((file) => file.path === expected.path);
     const bytes = reference ? await adapterStore.getFile(reference.storageKey) : null;
     if (!bytes) {
       issues.push(`cached-file-missing:${expected.path}`);
@@ -483,9 +575,15 @@ export async function activateInstalledScionAdapter({
   applyAdapter,
   probeAdapter,
   rollbackAdapter,
+  requirePromoted = true,
 } = {}) {
   const adapterStore = store || createScionAdapterIndexedDbStore();
-  const verification = await verifyInstalledScionAdapter({ adapterId, store: adapterStore, cryptoLike });
+  const verification = await verifyInstalledScionAdapter({
+    adapterId,
+    store: adapterStore,
+    cryptoLike,
+    requirePromoted,
+  });
   if (!verification.valid) {
     throw createRegistryError('SCION_ADAPTER_CACHE_INTEGRITY', 'Cached Scion adapter failed verification.', {
       issues: verification.issues,
@@ -497,7 +595,7 @@ export async function activateInstalledScionAdapter({
     runtimeId,
     baseModelId,
     baseRevision,
-    requirePromoted: true,
+    requirePromoted,
   });
   if (resolution.mode !== 'adapter-ready') {
     return {
@@ -573,15 +671,69 @@ export async function activateInstalledScionAdapter({
     }
     if (!rollbackSucceeded && applicationStarted) {
       await adapterStore.setActivationState({
-        ...defaultActivationState(),
+        mode: 'recovery-required',
+        active: null,
+        lastKnownGood: previousState.lastKnownGood || null,
+        history: previousState.history || [],
         failure: {
           adapterId,
           code: clean(error?.code) || 'SCION_ADAPTER_ACTIVATION_FAILED',
           failedAt: new Date().toISOString(),
+          runtimeMayBeModified: true,
+          previousActive: previousState.active || null,
         },
       });
     }
     error.rollbackSucceeded = rollbackSucceeded;
+    throw error;
+  }
+}
+
+export async function deactivateInstalledScionAdapter({ store, rollbackAdapter } = {}) {
+  const adapterStore = store || createScionAdapterIndexedDbStore();
+  const previousState = await adapterStore.getActivationState();
+  if (previousState.mode === 'base-only' && !previousState.active) {
+    return { status: 'base-only', adapterActive: false, rollback: null };
+  }
+  if (previousState.mode === 'recovery-required') {
+    throw createRegistryError(
+      'SCION_ADAPTER_RECOVERY_REQUIRED',
+      'Unload and reload the Scion runtime before changing quarantined activation state.',
+    );
+  }
+  if (previousState.mode !== 'adapter-active' || !previousState.active?.adapterId) {
+    throw createRegistryError('SCION_ADAPTER_STATE_INVALID', 'Scion adapter activation state is inconsistent.');
+  }
+  if (typeof rollbackAdapter !== 'function') {
+    throw createRegistryError('SCION_ADAPTER_ROLLBACK_REQUIRED', 'Adapter deactivation requires exact rollback proof.');
+  }
+  try {
+    const rollback = await rollbackAdapter({ active: structuredClone(previousState.active) });
+    if (rollback?.restored !== true) {
+      throw createRegistryError('SCION_ADAPTER_ROLLBACK_PROOF', 'Runtime did not prove exact base-only restoration.');
+    }
+    const nextState = {
+      mode: 'base-only',
+      active: null,
+      lastKnownGood: previousState.lastKnownGood || null,
+      history: previousState.history || [],
+    };
+    await adapterStore.setActivationState(nextState);
+    return { status: 'base-only', adapterActive: false, rollback, previousActive: previousState.active };
+  } catch (error) {
+    await adapterStore.setActivationState({
+      mode: 'recovery-required',
+      active: null,
+      lastKnownGood: previousState.lastKnownGood || null,
+      history: previousState.history || [],
+      failure: {
+        adapterId: previousState.active.adapterId,
+        code: clean(error?.code) || 'SCION_ADAPTER_ROLLBACK_FAILED',
+        failedAt: new Date().toISOString(),
+        runtimeMayBeModified: true,
+        previousActive: previousState.active,
+      },
+    });
     throw error;
   }
 }

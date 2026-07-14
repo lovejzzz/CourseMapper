@@ -1,0 +1,122 @@
+{
+  "version": "0.16.24",
+  "date": "July 14, 2026",
+  "title": "One Path, Honest State: close adapter lifecycle bypasses",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:adapter-delivery",
+      "npx vitest run tests/scion-adapter-manifest.test.js tests/scion-adapter-registry.test.js tests/scion-browser-wllama.test.js tests/scion-runtime-canary-bridge.test.js",
+      "npm run audit:scion:browser-adapter-smoke",
+      "npm run audit:scion:codex-fresh-handoff",
+      "npm run audit:scion:codex-sealed-pass",
+      "npm run audit:scion:codex-judge",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run test:e2e",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "The complete Fast verification workflow must pass on the exact v0.16.24 content merge before remote proof is recorded."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The release hardens the browser adapter software lifecycle and replays retained mechanical smoke identity. It does not run the 3.35 GB base again, perform a real recovery-device trial, complete the fresh B/A judgment, train a quality adapter, or run the frozen held-out ruler."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages and a cache-busted production Chromium check remain required after the exact content merge deploys."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "No provider or model call is needed. The release proves a bounded software lifecycle with adversarial streams and replays the hash-bound retained mechanical smoke identity without making a model-quality claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "The active Scion goal declares Codex as the standing quality judge. This lifecycle result makes no human, instructor, independent, classroom, or multi-judge claim."
+    },
+    "strictLayeredEvaluation": {
+      "status": "expected-fail-claim-boundary",
+      "command": "npm run audit:evaluation:release",
+      "claimStatus": "compiler-contract-only",
+      "passingTiers": ["compiler-contract", "production-canaries"],
+      "missingTiers": ["independently-validated-heldout", "independent-instructor-benchmark"],
+      "note": "A fail-closed adapter lifecycle is necessary delivery infrastructure, not adapter quality, held-out wins, paid-reference parity, real-device recovery evidence, or classroom readiness."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01624-one-bounded-canary-path",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The localhost browser canary contains no whole-response arrayBuffer download and delegates bounded install, cache verification, activation, and deactivation to the registry lifecycle coordinator.",
+      "anchors": [
+        "src/lib/scionRuntimeCanaryBridge.js",
+        "src/lib/scionAdapterRegistry.js",
+        "tests/scion-runtime-canary-bridge.test.js",
+        "evaluation/scion-adapters/evidence/adapter-lifecycle-v0.16.24.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-runtime-canary-bridge.test.js tests/scion-adapter-registry.test.js",
+        "npm run audit:scion:adapter-delivery"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01624-exact-cache-revalidation",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Cache reuse re-hashes the original manifest bytes, compares the parsed record, validates file identity, sizes, storage keys, and digests, and skips adapter transfer only when the exact cached install remains valid.",
+      "anchors": ["src/lib/scionAdapterRegistry.js", "tests/scion-adapter-registry.test.js"],
+      "proofCommands": ["npx vitest run tests/scion-adapter-registry.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01624-active-id-replacement-guard",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "A different trusted manifest cannot replace the installed bytes under an adapter ID reported active; the attempt fails before any replacement file is requested and leaves the record and activation state unchanged.",
+      "anchors": ["src/lib/scionAdapterRegistry.js", "tests/scion-adapter-registry.test.js"],
+      "proofCommands": ["npx vitest run tests/scion-adapter-registry.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01624-rollback-quarantine",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Base-only state requires exact rollback proof; failed clearing or output restoration enters recovery-required with unknown native state and blocks generation and another load until unload plus fresh pinned-base reload succeeds.",
+      "anchors": [
+        "src/lib/scionAdapterRegistry.js",
+        "src/lib/scionBrowserWllama.js",
+        "tests/scion-adapter-registry.test.js",
+        "tests/scion-browser-wllama.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-adapter-registry.test.js tests/scion-browser-wllama.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01624-lifecycle-not-quality",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The result is bounded to adversarial lifecycle software evidence plus retained mechanical smoke identity and creates no real-device recovery run, production adapter, quality win, held-out result, paid-reference parity, completed B/A judgment, or human validation; public Scion remains base-only.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/README.md",
+        "evaluation/scion-adapters/evidence/adapter-lifecycle-v0.16.24.json"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:adapter-delivery",
+        "npm run audit:scion:browser-adapter-smoke",
+        "npm run audit:scion:codex-fresh-handoff",
+        "npm run audit:scion:codex-sealed-pass",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

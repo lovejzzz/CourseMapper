@@ -17,59 +17,65 @@ function selectCanaryApi(runtime) {
     if (!/^[a-f0-9]{64}$/.test(String(expectedManifestSha256 || ''))) {
       throw new Error('Canary manifest SHA-256 is required');
     }
-    const manifestResponse = await fetch(manifestUrl, { cache: 'no-store', credentials: 'omit' });
-    if (!manifestResponse.ok) throw new Error(`Canary manifest HTTP ${manifestResponse.status}`);
-    const manifestBytes = await manifestResponse.arrayBuffer();
-    const manifestSha256 = await runtime.sha256Hex(manifestBytes);
-    if (manifestSha256 !== expectedManifestSha256) throw new Error('Canary manifest digest mismatch');
-    const manifest = JSON.parse(new TextDecoder().decode(manifestBytes));
-    const validation = runtime.validateScionAdapterManifest(manifest);
-    if (!validation.valid) throw new Error(`Canary manifest invalid: ${validation.issues.join(', ')}`);
+    const store = runtime.createScionAdapterMemoryStore();
+    const record = await runtime.installScionBrowserAdapter({
+      manifestUrl,
+      expectedManifestSha256,
+      store,
+      requirePromoted: false,
+    });
+    const manifest = record.manifest;
     if (manifest.promotion?.status !== 'smoke' || manifest.promotion?.promotable !== false) {
       throw new Error('Browser canary accepts only an explicitly non-promotable smoke adapter');
     }
     const ggufFiles = manifest.files.filter((file) => file.path.toLowerCase().endsWith('.gguf'));
     if (ggufFiles.length !== 1) throw new Error('Browser canary requires exactly one GGUF adapter');
     const descriptor = ggufFiles[0];
-    const adapterResponse = await fetch(new URL(descriptor.path, manifestUrl), {
-      cache: 'no-store',
-      credentials: 'omit',
+    const verification = await runtime.verifyInstalledScionAdapter({
+      adapterId: record.adapterId,
+      store,
+      requirePromoted: false,
     });
-    if (!adapterResponse.ok) throw new Error(`Canary adapter HTTP ${adapterResponse.status}`);
-    const adapterBytes = await adapterResponse.arrayBuffer();
-    if (adapterBytes.byteLength !== descriptor.bytes) throw new Error('Canary adapter byte count mismatch');
-    if ((await runtime.sha256Hex(adapterBytes)) !== descriptor.sha256) {
-      throw new Error('Canary adapter digest mismatch');
-    }
+    if (!verification.valid) throw new Error(`Canary adapter cache invalid: ${verification.issues.join(', ')}`);
 
     await runtime.loadScionBrowserWllama({ contextSize });
     const before = runtime.getScionBrowserWllamaStatus();
-    const activation = await runtime.applyScionBrowserWllamaAdapter({
+    const activation = await runtime.activateInstalledScionAdapter({
       adapterId: manifest.adapter.id,
-      manifest,
-      manifestSha256,
-      files: new Map([[descriptor.path, adapterBytes]]),
-    });
-    const proof = await runtime.probeScionBrowserWllamaAdapter({
-      adapterId: manifest.adapter.id,
-      manifestSha256,
+      runtimeId: 'scion-wllama-webgpu-jspi-v1',
+      baseModelId: manifest.base.modelId,
       baseRevision,
+      store,
+      applyAdapter: runtime.applyScionBrowserWllamaAdapter,
+      probeAdapter: runtime.probeScionBrowserWllamaAdapter,
+      rollbackAdapter: runtime.rollbackScionBrowserWllamaAdapter,
+      requirePromoted: false,
     });
-    if (!proof.pass) {
-      const rollback = await runtime.rollbackScionBrowserWllamaAdapter();
-      const error = new Error('Browser canary adapter did not change deterministic inference');
-      error.details = { activation, proof, rollback };
-      throw error;
+    if (activation.status !== 'adapter-active' || activation.proof?.pass !== true) {
+      throw new Error('Browser canary adapter did not reach verified active state');
     }
-    const rollback = await runtime.rollbackScionBrowserWllamaAdapter();
+    const deactivation = await runtime.deactivateInstalledScionAdapter({
+      store,
+      rollbackAdapter: runtime.rollbackScionBrowserWllamaAdapter,
+    });
+    const proof = activation.proof;
+    const rollback = deactivation.rollback;
     const after = runtime.getScionBrowserWllamaStatus();
     return {
       status: 'pass-mechanical-only',
       promotionEligible: false,
       adapterId: manifest.adapter.id,
-      manifestSha256,
+      manifestSha256: record.manifestSha256,
       adapterSha256: descriptor.sha256,
       adapterBytes: descriptor.bytes,
+      delivery: {
+        mode: 'bounded-registry',
+        streamed: true,
+        registryVerified: true,
+        atomicInstall: true,
+        totalBytes: record.totalBytes,
+        fileCount: record.files.length,
+      },
       before,
       activation,
       proof,
@@ -166,7 +172,15 @@ export function installScionRuntimeCanaryBridge({
       import('./scionAdapterManifest'),
       import('./scionAdapterRegistry'),
     ]);
-    return { ...browserRuntime, ...manifestRuntime, sha256Hex: registryRuntime.sha256Hex };
+    return {
+      ...browserRuntime,
+      ...manifestRuntime,
+      createScionAdapterMemoryStore: registryRuntime.createScionAdapterMemoryStore,
+      installScionBrowserAdapter: registryRuntime.installScionBrowserAdapter,
+      verifyInstalledScionAdapter: registryRuntime.verifyInstalledScionAdapter,
+      activateInstalledScionAdapter: registryRuntime.activateInstalledScionAdapter,
+      deactivateInstalledScionAdapter: registryRuntime.deactivateInstalledScionAdapter,
+    };
   },
 } = {}) {
   if (!isScionRuntimeCanaryLocation(locationLike)) return null;

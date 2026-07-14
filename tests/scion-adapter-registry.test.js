@@ -4,6 +4,7 @@ import {
   SCION_ADAPTER_MANIFEST_MAX_BYTES,
   activateInstalledScionAdapter,
   createScionAdapterMemoryStore,
+  deactivateInstalledScionAdapter,
   installScionBrowserAdapter,
   sha256Hex,
   verifyInstalledScionAdapter,
@@ -94,6 +95,19 @@ async function fixture(adapterId = 'scion-g4e2b-v1') {
   return { adapterBytes, manifest, manifestBytes, manifestSha256 };
 }
 
+async function replacementFixture(currentFixture, content) {
+  const adapterBytes = encoder.encode(content);
+  const manifest = structuredClone(currentFixture.manifest);
+  manifest.files[0] = {
+    ...manifest.files[0],
+    bytes: adapterBytes.byteLength,
+    sha256: await sha256Hex(adapterBytes),
+  };
+  const manifestBytes = encoder.encode(`${JSON.stringify(manifest, null, 2)}\n`);
+  const manifestSha256 = await sha256Hex(manifestBytes);
+  return { adapterBytes, manifest, manifestBytes, manifestSha256 };
+}
+
 function fetchFixture({ manifestBytes, adapterBytes, fileOverride, manifestOptions, fileOptions } = {}) {
   return vi.fn(async (url) => {
     if (url === MANIFEST_URL) return binaryResponse(manifestBytes, manifestOptions);
@@ -146,6 +160,45 @@ describe('Scion browser adapter registry', () => {
     expect(progress[0].progress).toBeGreaterThan(0);
     expect(progress[0].progress).toBeLessThan(1);
     expect(progress.at(-1)).toMatchObject({ phase: 'installed', progress: 1 });
+  });
+
+  it('reuses an exact verified cached install without downloading adapter files again', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+    await installFixture(store, currentFixture);
+    const fetchImpl = fetchFixture(currentFixture);
+    const progress = [];
+
+    const record = await installScionBrowserAdapter({
+      manifestUrl: MANIFEST_URL,
+      expectedManifestSha256: currentFixture.manifestSha256,
+      fetchImpl,
+      store,
+      onProgress: (entry) => progress.push(entry),
+    });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledWith(MANIFEST_URL, { cache: 'no-store', credentials: 'omit' });
+    expect(record.manifestSha256).toBe(currentFixture.manifestSha256);
+    expect(progress).toEqual([
+      expect.objectContaining({ phase: 'cached', adapterId: currentFixture.manifest.adapter.id, progress: 1 }),
+    ]);
+  });
+
+  it('rejects a parsed cached manifest that no longer matches its original hash-bound bytes', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+    await installFixture(store, currentFixture);
+    const tamperedRecord = await store.getAdapter(currentFixture.manifest.adapter.id);
+    tamperedRecord.manifest.adapter.scionVersion = '9.9.9';
+    const tamperedStore = { ...store, getAdapter: vi.fn(async () => structuredClone(tamperedRecord)) };
+
+    await expect(
+      verifyInstalledScionAdapter({ adapterId: currentFixture.manifest.adapter.id, store: tamperedStore }),
+    ).resolves.toMatchObject({
+      valid: false,
+      issues: expect.arrayContaining(['cached-manifest-record-mismatch', 'cached-record-scion-version']),
+    });
   });
 
   it('rejects manifest substitution before any adapter file is requested', async () => {
@@ -394,6 +447,160 @@ describe('Scion browser adapter registry', () => {
     });
   });
 
+  it('returns registry state to base-only only after exact runtime rollback proof', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+    await installFixture(store, currentFixture);
+    await activateInstalledScionAdapter({
+      adapterId: currentFixture.manifest.adapter.id,
+      runtimeId: 'mlx-vlm',
+      baseModelId: SCION_GEMMA4_E2B_BASE.modelId,
+      baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+      store,
+      applyAdapter: async () => ({ adapterActive: true, adapterId: currentFixture.manifest.adapter.id }),
+      probeAdapter: async () => ({
+        pass: true,
+        adapterActive: true,
+        adapterId: currentFixture.manifest.adapter.id,
+        manifestSha256: currentFixture.manifestSha256,
+        baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+        proofSha256: 'f'.repeat(64),
+      }),
+    });
+    const rollbackAdapter = vi.fn(async () => ({ restored: true, baseOutput: 'exact base output' }));
+
+    const result = await deactivateInstalledScionAdapter({ store, rollbackAdapter });
+
+    expect(result).toMatchObject({
+      status: 'base-only',
+      adapterActive: false,
+      rollback: { restored: true, baseOutput: 'exact base output' },
+      previousActive: { adapterId: currentFixture.manifest.adapter.id },
+    });
+    expect(rollbackAdapter).toHaveBeenCalledWith({
+      active: expect.objectContaining({ adapterId: currentFixture.manifest.adapter.id }),
+    });
+    await expect(store.getActivationState()).resolves.toMatchObject({
+      mode: 'base-only',
+      active: null,
+      lastKnownGood: { adapterId: currentFixture.manifest.adapter.id },
+    });
+  });
+
+  it('quarantines registry state when deactivation lacks exact rollback proof', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+    await installFixture(store, currentFixture);
+    await activateInstalledScionAdapter({
+      adapterId: currentFixture.manifest.adapter.id,
+      runtimeId: 'mlx-vlm',
+      baseModelId: SCION_GEMMA4_E2B_BASE.modelId,
+      baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+      store,
+      applyAdapter: async () => ({ adapterActive: true, adapterId: currentFixture.manifest.adapter.id }),
+      probeAdapter: async () => ({
+        pass: true,
+        adapterActive: true,
+        adapterId: currentFixture.manifest.adapter.id,
+        manifestSha256: currentFixture.manifestSha256,
+        baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+        proofSha256: 'f'.repeat(64),
+      }),
+    });
+    const previousState = await store.getActivationState();
+
+    await expect(
+      deactivateInstalledScionAdapter({ store, rollbackAdapter: async () => ({ restored: false }) }),
+    ).rejects.toMatchObject({ code: 'SCION_ADAPTER_ROLLBACK_PROOF' });
+    await expect(store.getActivationState()).resolves.toMatchObject({
+      mode: 'recovery-required',
+      active: null,
+      lastKnownGood: previousState.lastKnownGood,
+      failure: {
+        adapterId: currentFixture.manifest.adapter.id,
+        code: 'SCION_ADAPTER_ROLLBACK_PROOF',
+        runtimeMayBeModified: true,
+        previousActive: previousState.active,
+      },
+    });
+  });
+
+  it('rejects a different manifest under an active adapter ID before downloading replacement files', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+    await installFixture(store, currentFixture);
+    await activateInstalledScionAdapter({
+      adapterId: currentFixture.manifest.adapter.id,
+      runtimeId: 'mlx-vlm',
+      baseModelId: SCION_GEMMA4_E2B_BASE.modelId,
+      baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+      store,
+      applyAdapter: async () => ({ adapterActive: true, adapterId: currentFixture.manifest.adapter.id }),
+      probeAdapter: async () => ({
+        pass: true,
+        adapterActive: true,
+        adapterId: currentFixture.manifest.adapter.id,
+        manifestSha256: currentFixture.manifestSha256,
+        baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+        proofSha256: 'f'.repeat(64),
+      }),
+    });
+    const previousState = await store.getActivationState();
+    const replacement = await replacementFixture(currentFixture, 'different-adapter-weights');
+    const fetchImpl = fetchFixture(replacement);
+
+    await expect(
+      installScionBrowserAdapter({
+        manifestUrl: MANIFEST_URL,
+        expectedManifestSha256: replacement.manifestSha256,
+        fetchImpl,
+        store,
+      }),
+    ).rejects.toMatchObject({
+      code: 'SCION_ADAPTER_ACTIVE_REPLACEMENT',
+      adapterId: currentFixture.manifest.adapter.id,
+      activeManifestSha256: currentFixture.manifestSha256,
+      requestedManifestSha256: replacement.manifestSha256,
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    await expect(store.getAdapter(currentFixture.manifest.adapter.id)).resolves.toMatchObject({
+      manifestSha256: currentFixture.manifestSha256,
+    });
+    await expect(store.getActivationState()).resolves.toEqual(previousState);
+  });
+
+  it('trusts the active runtime digest rather than a missing cached record when guarding replacement', async () => {
+    const store = createScionAdapterMemoryStore();
+    const requestedFixture = await fixture();
+    const activeManifestSha256 = 'a'.repeat(64);
+    await store.setActivationState({
+      mode: 'adapter-active',
+      active: {
+        adapterId: requestedFixture.manifest.adapter.id,
+        manifestSha256: activeManifestSha256,
+      },
+      lastKnownGood: null,
+      history: [],
+    });
+    const fetchImpl = fetchFixture(requestedFixture);
+
+    await expect(
+      installScionBrowserAdapter({
+        manifestUrl: MANIFEST_URL,
+        expectedManifestSha256: requestedFixture.manifestSha256,
+        fetchImpl,
+        store,
+      }),
+    ).rejects.toMatchObject({
+      code: 'SCION_ADAPTER_ACTIVE_REPLACEMENT',
+      adapterId: requestedFixture.manifest.adapter.id,
+      activeManifestSha256,
+      requestedManifestSha256: requestedFixture.manifestSha256,
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    await expect(store.getAdapter(requestedFixture.manifest.adapter.id)).resolves.toBeNull();
+  });
+
   it('restores the last known-good registry state when a new proof fails', async () => {
     const store = createScionAdapterMemoryStore();
     const currentFixture = await fixture();
@@ -434,5 +641,53 @@ describe('Scion browser adapter registry', () => {
       }),
     );
     await expect(store.getActivationState()).resolves.toEqual(previousState);
+  });
+
+  it('quarantines registry state when failed activation cannot prove rollback', async () => {
+    const store = createScionAdapterMemoryStore();
+    const currentFixture = await fixture();
+    await installFixture(store, currentFixture);
+    const activation = {
+      adapterId: currentFixture.manifest.adapter.id,
+      runtimeId: 'mlx-vlm',
+      baseModelId: SCION_GEMMA4_E2B_BASE.modelId,
+      baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+      store,
+      applyAdapter: async () => ({ adapterActive: true, adapterId: currentFixture.manifest.adapter.id }),
+    };
+    await activateInstalledScionAdapter({
+      ...activation,
+      probeAdapter: async () => ({
+        pass: true,
+        adapterActive: true,
+        adapterId: currentFixture.manifest.adapter.id,
+        manifestSha256: currentFixture.manifestSha256,
+        baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+        proofSha256: 'f'.repeat(64),
+      }),
+    });
+    const previousState = await store.getActivationState();
+
+    await expect(
+      activateInstalledScionAdapter({
+        ...activation,
+        probeAdapter: async () => ({ pass: false }),
+        rollbackAdapter: async () => {
+          throw new Error('runtime rollback failed');
+        },
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_ADAPTER_PROBE_FAILED', rollbackSucceeded: false });
+    await expect(store.getActivationState()).resolves.toMatchObject({
+      mode: 'recovery-required',
+      active: null,
+      lastKnownGood: previousState.lastKnownGood,
+      history: previousState.history,
+      failure: {
+        adapterId: currentFixture.manifest.adapter.id,
+        code: 'SCION_ADAPTER_PROBE_FAILED',
+        runtimeMayBeModified: true,
+        previousActive: previousState.active,
+      },
+    });
   });
 });
