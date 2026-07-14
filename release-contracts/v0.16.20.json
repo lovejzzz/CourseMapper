@@ -18,16 +18,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The exact v0.16.20 content commit must pass Fast verification on GitHub before the release proof is finalized."
+      "status": "success",
+      "commit": "3654815445ce115c8aeb0e7c683d30817ce95a2a",
+      "runId": 29340686776,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29340686776",
+      "note": "Fast verification passed on the exact v0.16.20 content merge in 17m09s, including formatting, lint, release-history audit, 4,386 unit and closed-loop tests, proof smoke, the main evaluation, production build, bundle budgets, and uploaded evaluation reports."
     },
     "ciDeep": {
       "status": "manual-only",
       "note": "This release closes the sealed-pass ingestion gap. It does not perform the fresh B/A judgment, train an adapter, run held-out adapter comparisons, or claim a browser-device matrix."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and the cache-busted edutool.dev release surfaces must be verified after the content commit reaches main."
+      "status": "success",
+      "commit": "3654815445ce115c8aeb0e7c683d30817ce95a2a",
+      "runId": 29341982472,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29341982472",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production fetch resolved assets/index-Doi1Fuzm.js and assets/releaseManifest-Cze6xj7D.js and confirmed v0.16.20, the Two Keys, No Plaintext release title, Scion Opens Both Readings Together, the no-pass-plaintext claim, and the still-missing B/A judgment boundary in the live bundle."
     },
     "liveProvider": {
       "status": "not-used",
