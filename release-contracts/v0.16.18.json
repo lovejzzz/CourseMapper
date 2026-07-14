@@ -20,16 +20,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The exact v0.16.18 content commit must pass Fast verification on GitHub before the release proof is finalized."
+      "status": "success",
+      "commit": "e36161ff4f3f3172c14fb75662fea98db370b5d6",
+      "runId": 29327090691,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29327090691",
+      "note": "Fast verification passed on the exact v0.16.18 content merge in 22m56s, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the 15m03s main evaluation, production build, and bundle budgets."
     },
     "ciDeep": {
       "status": "manual-only",
       "note": "This release contains one atom-level Codex order. It does not claim the required fresh reverse-order pass, a stable preference corpus, adapter training, held-out adapter quality, or a browser-device matrix."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and the cache-busted edutool.dev release surfaces must be verified after the content commit reaches main."
+      "status": "success",
+      "commit": "e36161ff4f3f3172c14fb75662fea98db370b5d6",
+      "runId": 29328444637,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29328444637",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production fetch resolved assets/index-Tsuk80qD.js and assets/releaseManifest-D4xefeSN.js and confirmed v0.16.18, Outcome Under Seal, Scion Judges Without Peeking, and the one-complete-pass claim boundary in the live bundle."
     },
     "liveProvider": {
       "status": "not-used",
