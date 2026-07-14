@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.19",
+  "version": "0.16.20",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -75,6 +75,7 @@
     "complete:scion:codex-fresh-pass": "node scripts/scionCodexFreshJudgeHandoff.mjs --complete-and-seal",
     "audit:scion:codex-sealed-pass": "node scripts/scionCodexTrainingPreferences.mjs --verify-sealed --sealed evaluation/scion-adapters/evidence/codex-review-v0.16.18-a-b.sealed.json --receipt evaluation/scion-adapters/evidence/judge-campaign-v0.16.18.json",
     "ingest:scion:codex-training-reviews": "node scripts/scionCodexTrainingPreferences.mjs --ingest",
+    "ingest:scion:codex-sealed-training-reviews": "node scripts/scionCodexTrainingPreferences.mjs --ingest-sealed",
     "audit:scion:compiler-burden": "node scripts/scionCompilerBurdenAudit.mjs",
     "build:scion:adapter-dataset": "node scripts/scionAdapterDataset.mjs",
     "build:scion:adapter-dataset:research": "node scripts/scionAdapterDataset.mjs --research",
