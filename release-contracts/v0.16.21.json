@@ -19,16 +19,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The exact v0.16.21 content commit must pass Fast verification on GitHub before the release proof is finalized."
+      "status": "success",
+      "commit": "f7ea721195db4566e45766b0e231b5cee25adad8",
+      "runId": 29348629092,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29348629092",
+      "note": "Fast verification passed on the exact v0.16.21 content merge in 22m43s, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the full main evaluation at compiler-contract-only, production build, bundle budgets, and uploaded evaluation reports."
     },
     "ciDeep": {
       "status": "manual-only",
       "note": "This release makes the isolated B/A task resumable. It does not perform the judgment, train an adapter, run held-out adapter comparisons, or claim a browser-device matrix."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and the cache-busted edutool.dev release surfaces must be verified after the content commit reaches main."
+      "status": "success",
+      "commit": "f7ea721195db4566e45766b0e231b5cee25adad8",
+      "runId": 29350224995,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29350224995",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production Chromium run returned HTTP 200, rendered Provider Scion, disabled API with No API key required, Model Scion V0.16.21, the v0.16.21 Eight Small Readings changelog and missing-judgment boundary, found zero console or page errors, and resolved assets/index-BegbZlFJ.js plus assets/releaseManifest-EGvywwwt.js. The shipped release-manifest asset also contains Scion Makes the Second Reading Resumable and the exact release title."
     },
     "liveProvider": {
       "status": "not-used",
