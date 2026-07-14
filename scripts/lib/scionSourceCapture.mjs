@@ -388,9 +388,10 @@ export async function materializeSourceCaptureCampaign({
   const domainGroupCounts = Object.fromEntries(
     domains.map((domain) => [domain, groups.filter((group) => group.domain === domain).length]),
   );
-  if (domains.length !== 4 || Object.values(domainGroupCounts).some((count) => count !== 2)) {
+  const balancedGroupCounts = new Set(Object.values(domainGroupCounts));
+  if (domains.length !== 4 || balancedGroupCounts.size !== 1 || [...balancedGroupCounts][0] < 1) {
     throw new Error(
-      `Source capture requires exactly two new groups in each of four domains: ${JSON.stringify(domainGroupCounts)}`,
+      `Source capture requires the same positive number of groups in each of four domains: ${JSON.stringify(domainGroupCounts)}`,
     );
   }
   const promptSetSha256 = sourceCaptureSha256(

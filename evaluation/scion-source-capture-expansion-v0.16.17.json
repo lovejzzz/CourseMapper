@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-grounded-atom-capture-v1",
+  "claimBoundary": "This additive campaign expands neutral, source-bound A/B review coverage without changing or relabeling the retained v0.16.11 evidence. Model identity and deterministic checks do not label a winner.",
+  "groups": [
+    {
+      "id": "python-program-architecture-studio",
+      "domain": "computer-science",
+      "title": "Python Program Architecture Studio",
+      "courseBrief": "Python Program Architecture Studio, a six-session intermediate programming course in which students trace iteration, transform text, persist data, compare recursive and iterative solutions, and design small class-based programs.",
+      "sourceFile": "public/genome/cs-intro.json",
+      "kernels": [
+        { "id": "cs/while-loops" },
+        { "id": "cs/for-loops" },
+        { "id": "cs/strings" },
+        { "id": "cs/file-io" },
+        { "id": "cs/recursion" },
+        { "id": "cs/classes" }
+      ]
+    },
+    {
+      "id": "earth-materials-history-lab",
+      "domain": "geology",
+      "title": "Earth Materials and History Lab",
+      "courseBrief": "Earth Materials and History Lab, a six-session undergraduate geology course in which students identify minerals, distinguish weathering from erosion, interpret sedimentary and metamorphic evidence, connect rock-cycle transformations, and order events in geologic time.",
+      "sourceFile": "public/genome/geo-intro.json",
+      "kernels": [
+        { "id": "geo/minerals" },
+        { "id": "geo/weathering-erosion" },
+        { "id": "geo/sedimentary-rocks" },
+        { "id": "geo/metamorphic-rocks" },
+        { "id": "geo/rock-cycle" },
+        { "id": "geo/geologic-time" }
+      ]
+    },
+    {
+      "id": "tonal-analysis-integration-studio",
+      "domain": "music-theory",
+      "title": "Tonal Analysis Integration Studio",
+      "courseBrief": "Tonal Analysis Integration Studio, a six-session college music-theory course in which students connect notation, interval and scale relationships, chord construction, harmonic progression, and formal evidence in short analytical decisions.",
+      "sourceFile": "public/genome/music-intro.json",
+      "kernels": [
+        { "id": "music/staff-clefs-pitch-notation", "factIndexes": [0, 1, 4, 5] },
+        { "id": "music/intervals", "factIndexes": [1, 4] },
+        { "id": "music/scales-and-key-signatures", "factIndexes": [0, 1, 2, 4, 5] },
+        { "id": "music/triads-and-seventh-chords", "factIndexes": [0, 2, 3] },
+        { "id": "music/harmony-and-progressions", "factIndexes": [0, 2, 3, 4, 5] },
+        { "id": "music/musical-form", "factIndexes": [1, 2, 3, 4, 5] }
+      ]
+    },
+    {
+      "id": "ux-evidence-to-prototype-capstone",
+      "domain": "user-experience-design",
+      "title": "UX Evidence-to-Prototype Capstone",
+      "courseBrief": "UX Evidence-to-Prototype Capstone, a six-session project course in which students plan research, synthesize personas and journeys, model task flows, build testable prototypes, and combine accessibility conformance with observed usability evidence.",
+      "sourceFile": "public/genome/ux-intro.json",
+      "kernels": [
+        { "id": "ux/research-planning" },
+        { "id": "ux/evidence-based-personas" },
+        { "id": "ux/journey-mapping" },
+        { "id": "ux/task-flow-analysis" },
+        { "id": "ux/interactive-prototyping" },
+        { "id": "ux/accessibility-usability-evaluation" }
+      ]
+    }
+  ]
+}

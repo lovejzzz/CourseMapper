@@ -3,24 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 14, 2026',
-  title: 'Judge to Gradient: Codex can teach Scion honestly',
-  landingTitle: 'Scion Judge to Gradient',
+  title: 'Enough to Judge: 128 source-bound cases, zero borrowed wins',
+  landingTitle: 'Scion Has Enough to Judge',
   highlights: [
-    'Scion can now derive adapter-training preferences from the neutral blind packet through an explicit single-model Codex lane. Human, instructor, founder, independent, classroom, and multi-judge claims remain separate and cannot be manufactured by the model workflow.',
-    'Every accepted pair requires two fresh Codex sessions in A/B and B/A order, the same winner after unblinding, scores before preference, 4/5 winner floors across five dimensions, a positive score margin, and concrete losing-side defects.',
-    'The training preference binds the exact packet, case, source row, source context, course group, judge identity, prompt, artifacts, four scorecards, two passes, and derived training-pair bytes. Tampering, missing passes, session reuse, identity drift, and position disagreement fail closed.',
-    'Dataset schema v3, adapter manifests, and promotion now use single-model-judge evidence as the primary learned-quality lane: research needs 100 preferences across four domains; candidate training still needs 3,000 verified pairs across five domains plus every held-out and runtime gate.',
-    'The real preflight found 63 source-backed cases and excluded 97 of 160. No review batch is complete, no pair is approved, no quality adapter is trained, and no speed or quality win is claimed; hosted Scion remains the pinned public base plus compiler.',
+    'A second additive source-capture campaign adds four six-kernel courses without rewriting the retained v0.16.11 evidence. Its 24 prompts per arm bind source selections, exact course inputs, pinned model identities, raw responses, compiler decisions, and eight verified saved projects.',
+    'The real model gap stays visible: pinned base-only Gemma admitted 70 of 96 requested atoms, while GPT-5.4-mini admitted 86. Local burden is 26 atoms versus 10, with repeated explanation-key and truncation failures concentrated in multiple-choice output; Scion does not claim a win.',
+    'The neutral ledger now holds 437 candidates across sixteen exact course groups. Source-first round-robin selection keeps all 128 source-bound cases inside the balanced 160-case packet: 31 Computer Science, 39 Geology, 32 Music Theory, and 26 UX.',
+    'The Codex training lane now emits 128 hash-bound A/B and B/A templates—enough raw cases for the 100-pair research target—but completed judge passes and approved preferences remain zero, so no adapter can train yet.',
+    'A 40-minute local capture bound prevents an unusually slow cloud-backed Transformers cold scan from being mislabeled as model failure. This release changes evidence and harness truth, not public weights: hosted Scion remains the pinned public base plus compiler.',
   ],
   landingHighlights: [
-    'Codex judgments can become provenance-bound training preferences.',
-    'Two fresh reversed-order passes must agree.',
-    'Scores, artifacts, packets, and training bytes are hash-bound.',
-    'Research and candidate corpora require balanced model-judge coverage.',
-    '63 cases are eligible, 97 excluded, and 0 judged so far.',
+    'Four additive courses deepen source-bound coverage.',
+    '128 anonymous cases now carry exact neutral sources.',
+    'The measured base still trails the paid reference on atom admission.',
+    'Two fresh Codex orders remain required for every preference.',
+    'Enough cases exist to judge; zero cases are judged so far.',
   ],
   proof: {
-    contract: 'release-contracts/v0.16.16.json',
+    contract: 'release-contracts/v0.16.17.json',
     roadmap: 'docs/SCION_ADAPTER_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
@@ -35,25 +35,25 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'One judge, two isolated passes',
+      label: 'More source truth, without rewriting history',
       icon: 'AI',
       color: 'emerald',
       items: [
-        'The neutral packet and optional instructor-review protocol are distinct, so one evidence class cannot impersonate another.',
-        'Each source-backed case receives separate A/B and B/A templates for two fresh Codex sessions with no previous outcome available.',
-        'Both sides are scored before preference on factual correctness, source fidelity, teachability, coherence, and task quality.',
-        'The winner must clear 4/5 in every dimension, lead on aggregate score, and survive unblinding across both orders.',
+        'The retained eight-course campaign stays byte-bound to its original manifest and artifact set.',
+        'A separate four-course campaign contributes 24 new prompts per arm and eight independently verified projects.',
+        'All 48 prompts per arm remain disjoint from the five frozen held-out domains.',
+        'The pinned Gemma base admits 70/96 expansion atoms versus 86/96 for GPT-5.4-mini; the gap is reported, not repaired away.',
       ],
     },
     {
-      label: 'Hash the path from judgment to gradient',
+      label: 'Enough cases to start the real judging campaign',
       icon: 'CHECK',
       color: 'blue',
       items: [
-        'Packet, case, source, course group, prompt, artifacts, scorecards, passes, and the exact derived training pair are SHA-256 bound.',
-        'Missing cases remain visible; changed bytes, identity drift, reused sessions, weak evidence, and position-sensitive outcomes cannot enter the corpus.',
-        'Dataset schema v3 records balanced model-judge counts while retaining instructor counts only as optional observability.',
-        'The actual packet yields 63 eligible source-backed templates and excludes 97 cases without neutral source context.',
+        'Source-first balanced selection retains 128 source-backed cases across four domains and sixteen course groups.',
+        'Only 32 ungrounded fill cases remain excluded from Codex training templates, down from 97.',
+        'Each eligible case still needs two fresh, reversed-order, scoring-first Codex passes with stable unblinding.',
+        'The unusual local cold scan is measured as startup and can no longer become fake compiler burden.',
         'No completed judgment, approved pair, trained adapter, hosted weight change, or model win is claimed.',
       ],
     },
@@ -61,6 +61,18 @@ export const CURRENT_RELEASE_CHANGELOG = {
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.16.16',
+    date: 'July 14, 2026',
+    title: 'Judge to Gradient: Codex can teach Scion honestly',
+    highlights: [
+      'Scion gained an explicit single-model Codex training-preference lane while human, instructor, founder, independent, classroom, and multi-judge claims remained separate.',
+      'Every accepted pair began requiring two fresh A/B and B/A Codex sessions, scoring before preference, a stable winner, 4/5 floors, a positive margin, and concrete defects.',
+      'Packet, source, judge, artifacts, scorecards, passes, and exact training-pair bytes became hash-bound end to end.',
+      'Dataset schema v3 and adapter gates began requiring balanced single-model-judge evidence for research and candidate learned-quality claims.',
+      'The real preflight exposed only 63 source-backed cases and zero completed judgments, so no adapter, speed claim, or model win shipped.',
+    ],
+  },
   {
     version: '0.16.15',
     date: 'July 13, 2026',

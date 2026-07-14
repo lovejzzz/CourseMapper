@@ -640,6 +640,54 @@ describe('Scion preference admission gate', () => {
     expect(forgedPacket.meta.excludedInvalidCourseGroups).toHaveLength(1);
   });
 
+  it('selects source-backed cases before ungrounded fill cases', async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-source-first-review-'));
+    const source = path.join(root, 'source.jsonl');
+    const rows = [
+      { courseGroupId: 'ungrounded-a', digest: '1'.repeat(64), sourceContext: null },
+      {
+        courseGroupId: 'source-backed',
+        digest: '2'.repeat(64),
+        sourceContext: {
+          kernelId: 'ux/task-evidence',
+          term: 'Task evidence',
+          claims: ['Repeated task failure is stronger navigation evidence than a single preference.'],
+          attribution: ['Public usability guidance'],
+          license: 'public-guidance',
+        },
+      },
+      { courseGroupId: 'ungrounded-b', digest: '3'.repeat(64), sourceContext: null },
+    ].map(({ courseGroupId, digest, sourceContext }, index) => ({
+      kind: 'mc-item',
+      prompt: `Write evidence-bearing navigation item ${index + 1}.`,
+      left: JSON.stringify(goodMc({ q: `Which observation supports navigation decision ${index + 1} most directly?` })),
+      right: JSON.stringify(
+        goodMc({ q: `Which repeated observation supports navigation decision ${index + 1} most directly?` }),
+      ),
+      domain: 'interaction-design',
+      courseGroupId,
+      pairSource: { courseInputSha256: digest },
+      lessonId: 'lesson-1',
+      ...(sourceContext ? { sourceContext } : {}),
+    }));
+    await fs.writeFile(source, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+
+    const packet = await buildScionBlindReviewPacket({
+      sources: [source],
+      outputDir: path.join(root, 'packet'),
+      limit: 1,
+    });
+    expect(packet.cases).toHaveLength(1);
+    expect(packet.cases[0].sourceContext).toMatchObject({ kernelId: 'ux/task-evidence' });
+    expect(packet.meta).toMatchObject({
+      availableCandidates: 3,
+      availableSourceContextCandidates: 1,
+      selectedSourceContextCases: 1,
+      sourceContextDomainCounts: { 'interaction-design': 1 },
+      sourceContextKindCounts: { 'mc-item': 1, 'key-term': 0 },
+    });
+  });
+
   it('separates four-domain research coverage from the stricter five-domain production target', async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-research-coverage-'));
     const source = path.join(root, 'source.jsonl');

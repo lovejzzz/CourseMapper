@@ -171,6 +171,58 @@
       "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
       "candidate": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-local.json",
       "reference": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-reference.json"
+    },
+    {
+      "id": "python-architecture-source-local-vs-gpt54mini",
+      "domain": "computer-science",
+      "courseGroupId": "python-program-architecture-studio",
+      "candidateRoute": "local-scion-base-source-compiler-recovery",
+      "candidateModel": "Scion base (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-only",
+      "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+      "candidate": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-local.json",
+      "reference": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-reference.json"
+    },
+    {
+      "id": "earth-history-source-local-vs-gpt54mini",
+      "domain": "geology",
+      "courseGroupId": "earth-materials-history-lab",
+      "candidateRoute": "local-scion-base-source-compiler-recovery",
+      "candidateModel": "Scion base (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-only",
+      "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+      "candidate": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-local.json",
+      "reference": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-reference.json"
+    },
+    {
+      "id": "tonal-integration-source-local-vs-gpt54mini",
+      "domain": "music-theory",
+      "courseGroupId": "tonal-analysis-integration-studio",
+      "candidateRoute": "local-scion-base-source-compiler-recovery",
+      "candidateModel": "Scion base (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-only",
+      "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+      "candidate": "evaluation/scion-source-capture-expansion-evidence/tonal-analysis-integration-studio-local.json",
+      "reference": "evaluation/scion-source-capture-expansion-evidence/tonal-analysis-integration-studio-reference.json"
+    },
+    {
+      "id": "ux-capstone-source-local-vs-gpt54mini",
+      "domain": "user-experience-design",
+      "courseGroupId": "ux-evidence-to-prototype-capstone",
+      "candidateRoute": "local-scion-base-source-compiler-recovery",
+      "candidateModel": "Scion base (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-only",
+      "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+      "candidate": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
+      "reference": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-reference.json"
     }
   ]
 }

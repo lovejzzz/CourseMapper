@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.16",
+  "version": "0.16.17",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -56,8 +56,13 @@
     "audit:scion:source-capture:reference": "node scripts/scionSourceCapture.mjs --arm reference",
     "audit:scion:source-capture:recover": "node scripts/scionSourceCapture.mjs --arm local --recover",
     "audit:scion:source-capture:verify": "node scripts/scionSourceCapture.mjs --verify",
+    "audit:scion:source-capture:expansion": "node scripts/scionSourceCapture.mjs --campaign evaluation/scion-source-capture-expansion-v0.16.17.json --output evaluation/scion-source-capture-expansion-evidence --checkpoints verification-output/scion-source-capture-expansion/checkpoints --report verification-output/scion-source-capture-expansion/latest.json",
+    "audit:scion:source-capture:expansion:local": "npm run audit:scion:source-capture:expansion -- --arm local",
+    "audit:scion:source-capture:expansion:reference": "npm run audit:scion:source-capture:expansion -- --arm reference",
+    "audit:scion:source-capture:expansion:recover": "npm run audit:scion:source-capture:expansion -- --arm local --recover",
+    "audit:scion:source-capture:expansion:verify": "npm run audit:scion:source-capture:expansion -- --verify",
     "audit:scion:review-candidates": "node scripts/scionMatchedReviewCandidates.mjs",
-    "audit:scion:review-packet": "node scripts/scionSourceCapture.mjs --verify && node scripts/scionMatchedReviewCandidates.mjs && node scripts/scionBlindReviewPacket.mjs --per-domain 40 --receipt verification-output/scion-blind-review/campaign-receipt.json",
+    "audit:scion:review-packet": "node scripts/scionSourceCapture.mjs --verify && npm run audit:scion:source-capture:expansion:verify && node scripts/scionMatchedReviewCandidates.mjs && node scripts/scionBlindReviewPacket.mjs --per-domain 40 --receipt verification-output/scion-blind-review/campaign-receipt.json",
     "audit:scion:reviewer-browser": "node scripts/scionReviewerBrowserSmoke.mjs",
     "audit:scion:reviews": "node scripts/scionBlindReviewPacket.mjs --ingest",
     "audit:scion:factual-canaries": "node scripts/scionFactualCanaryAudit.mjs",
