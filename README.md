@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.20
+**Current release:** v0.16.21
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.20**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.21**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -67,17 +67,21 @@ After exact-input matching, the ledger reaches 437 candidates and sixteen course
 
 v0.16.18 completes the first isolated A/B pass without turning one reading into a preference. Training-review protocol v2 now includes the exact neutral source above both artifacts, uses an atom-only prompt, and permits `winner`, `tie`, or `insufficient-evidence`. It explicitly excludes export integrity, package integrity, compiler burden, full-course coherence, device behavior, speed, and cost because an MC or key-term atom cannot support those claims. The 128-case pass passed structural validation, was encrypted with AES-256-GCM, and had its plaintext deleted. Only an outcome-sealed envelope is tracked. Two 0600 local key copies outside the template output passed an exact unseal round trip and remain absent from Git; a fresh clone cannot recover the outcome without a separate key transfer. Template regeneration now replaces only its three generated files instead of clearing the directory, preventing another evidence-loss incident. This keeps the future B/A judge from learning the first outcome while retaining the original pass for later ingestion.
 
+v0.16.21 turns the monolithic fresh B/A task into a resumable workbook without turning one reading into multiple votes. `npm run build:scion:codex-fresh-handoff` now emits eight immutable 16-case B/A templates and eight matching blank decisions skeletons. The 128 original indices are assigned modulo eight, so each chunk mixes Computer Science, Geology, Music Theory, and UX instead of creating a long single-domain run. Review templates fall from one 543,277-byte file to bounded 66,742–70,779-byte files; decision skeletons fall from one 123,877-byte file to 16,021-byte files.
+
+The tracked v0.16.21 receipt binds every payload byte, chunk index, pair-set digest, canonical full-template hash, and reconstruction order. Missing, added, changed, nested, or linked files fail closed. The fresh judge completes all eight working decision copies in one task with the same revision, runtime, session ID, completion time, and attestations. Finalization validates each chunk, restores the original 128-case order in memory, and creates one outcome-sealed envelope plus one 0600 key. Working decisions contain judgments and must be protected; no combined completed review pass is written. The real B/A judgment remains unperformed.
+
 v0.16.20 closes the plaintext gap after the two isolated readings. `npm run ingest:scion:codex-sealed-training-reviews` requires exactly two distinct AES-256-GCM envelopes and two distinct key files. It verifies canonical key encoding, key and ciphertext hashes, GCM authentication, plaintext hashes, envelope-to-batch metadata, packet and prompt identity, one A/B plus one B/A order, the same exact judge identity, and distinct fresh sessions before any output is touched. Both completed passes remain in memory and are never written as judgment plaintext.
 
 Only stable, score-qualified reverse-order agreements become derived chosen/rejected training rows. Ties, insufficient evidence, low winner scores, non-positive margins, missing concrete defects, changed source or artifact bytes, and side disagreement remain quarantined. If either envelope or key is missing, duplicated, swapped, malformed, or invalid, existing corpus and organizer-report bytes stay untouched. The approved corpus is intentionally unblinded training evidence after both orders agree; it is not either completed pass and remains explicitly single-model Codex evidence.
 
-v0.16.19 makes the required fresh B/A task reproducible without giving it the first outcome. `npm run build:scion:codex-fresh-handoff` reconstructs the exact packet and emits an immutable five-file allowlist: the B/A-only template, blank decisions skeleton, frozen atom judge prompt, fresh-task instructions, and manifest. A tracked receipt binds all 128 cases and every payload byte. The verifier rejects missing, added, modified, nested, or symlinked files; any nonblank judgment state; the wrong presentation order; and organizer, mapping, sealed-envelope, key, plaintext, or prior-outcome fields. It does not attempt to clean a contaminated directory.
+v0.16.19 introduced the clean B/A-only handoff without giving it the first outcome. The historical `build:scion:codex-fresh-handoff:legacy` command reconstructs its immutable five-file allowlist: the full B/A template, blank decisions skeleton, frozen atom judge prompt, fresh-task instructions, and manifest. A tracked receipt binds all 128 cases and every payload byte. The verifier rejects missing, added, modified, nested, or symlinked files; any nonblank judgment state; the wrong presentation order; and organizer, mapping, sealed-envelope, key, plaintext, or prior-outcome fields. It does not attempt to clean a contaminated directory.
 
-The fresh judge copies the blank decisions file outside the handoff and edits only that copy. `npm run complete:scion:codex-fresh-pass` re-verifies the untouched kit and tracked receipt, validates the completed scorecards and attestations in memory, encrypts directly with AES-256-GCM, and creates only a sealed envelope plus a 0600 key. It never writes completed judgment plaintext, prints no winner, and refuses to overwrite either output. This removes the fragile plaintext handoff that required recovery during the first order.
+The historical fresh judge copied the blank decisions file outside the handoff and edited only that copy. The legacy completion path re-verifies the untouched kit and tracked receipt, validates completed scorecards and attestations in memory, encrypts directly with AES-256-GCM, and creates only a sealed envelope plus a 0600 key. It prints no winner and refuses to overwrite either output. v0.16.21 keeps those guarantees while replacing the fragile monolithic working file with bounded chunks.
 
 The reverse B/A pass must occur in a genuinely fresh Codex task before the pass is unsealed and ingested. Until both orders resolve to the same anonymous, score-qualified winner, **stable preferences, approved quality-training rows, and trained quality adapters remain zero**. Ties, insufficient evidence, order disagreement, and below-floor winners remain visible non-training evidence rather than being repaired into wins. Hosted Scion therefore remains base-only.
 
-The general strict release evaluator remains honestly red at `compiler-contract-only`: compiler fixtures and retained production canaries pass, but the public quality ruler has zero independently validated held-out cases and the independent-instructor benchmark has zero completed reviews. v0.16.20 does not turn Codex into a human reviewer or claim classroom readiness.
+The general strict release evaluator remains honestly red at `compiler-contract-only`: compiler fixtures and retained production canaries pass, but the public quality ruler has zero independently validated held-out cases and the independent-instructor benchmark has zero completed reviews. v0.16.21 does not turn Codex into a human reviewer or claim classroom readiness.
 
 v0.16.12 closes a separate promotion-integrity hole. A browser-device evidence file no longer passes merely because its SHA-256 matches a manifest entry labeled `pass`. One frozen semantic protocol now requires Chrome and Edge across integrated-8 GB, integrated-16 GB, discrete-8 GB, and Apple-Silicon-16 GB profiles. Every profile must prove the exact adapter package and scale, cold and warm base loads, base and adapter completions, native output-changing activation, exact rollback, three repeated completions, measured memory budgets, and real recovery from an interrupted download, storage pressure, and WebGPU device loss. Browser traces, console logs, sanitized hardware probes, and runtime snapshots are byte-verified. Apple Silicon no longer substitutes for a discrete-GPU run.
 
@@ -168,7 +172,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.20)
+## Current Pipeline (v0.16.21)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -598,9 +602,9 @@ npm run audit:scion:factual-canaries # frozen source-anchored factual packet
 npm run audit:scion:review-packet # balanced anonymous atom packet
 npm run build:scion:codex-training-reviews # source-backed A/B and B/A Codex templates
 npm run audit:scion:codex-sealed-pass # verify the outcome-sealed v0.16.18 A/B envelope
-npm run build:scion:codex-fresh-handoff # immutable B/A-only fresh-task kit
-npm run audit:scion:codex-fresh-handoff # reconstruct and verify the tracked v0.16.19 receipt
-npm run complete:scion:codex-fresh-pass -- --decisions ... --sealed-output ... --key-output ...
+npm run build:scion:codex-fresh-handoff # eight-chunk immutable B/A fresh-task workbook
+npm run audit:scion:codex-fresh-handoff # reconstruct and verify the tracked v0.16.21 receipt
+npm run complete:scion:codex-fresh-pass -- --decisions-dir ... --sealed-output ... --key-output ...
 npm run ingest:scion:codex-training-reviews -- --review ... --review ...
 npm run ingest:scion:codex-sealed-training-reviews -- --sealed ... --key ... --sealed ... --key ...
 ```

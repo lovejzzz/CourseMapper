@@ -331,23 +331,18 @@ function templateKeyPacket(template) {
   };
 }
 
-async function materializeScionCodexTrainingDecisions({
+async function materializeScionCodexTrainingDecisionPayload({
   packetDir = DEFAULT_PACKET_DIR,
-  templateFile,
-  decisionsFile,
+  templateRaw,
+  decisions,
   templateOnly = false,
   expectedTemplateSha256 = '',
 } = {}) {
-  if (!templateFile || !decisionsFile) {
-    throw new Error('Completing a pass requires --template and --decisions');
-  }
   await assertJudgePromptIntegrity();
-  const templateRaw = await fs.readFile(templateFile);
   if (expectedTemplateSha256 && hashBytes(templateRaw) !== expectedTemplateSha256) {
     throw new Error('Codex review template no longer matches the verified handoff receipt');
   }
   const template = JSON.parse(templateRaw.toString('utf8'));
-  const decisions = JSON.parse(await fs.readFile(decisionsFile, 'utf8'));
   if (decisions?.schemaVersion !== 1 || decisions?.protocol !== 'scion-codex-training-decisions-v1') {
     throw new Error('Codex decision file protocol mismatch');
   }
@@ -437,6 +432,52 @@ async function materializeScionCodexTrainingDecisions({
     throw new Error(`Completed Codex review failed validation: ${validation.structuralIssues.join(', ')}`);
   }
   return { batch, raw, validation };
+}
+
+export async function materializeScionCodexTrainingDecisionsFromBytes({
+  packetDir = DEFAULT_PACKET_DIR,
+  templateRaw,
+  decisions,
+  templateOnly = false,
+  expectedTemplateSha256 = '',
+} = {}) {
+  if (!templateRaw || !decisions) {
+    throw new Error('Completing an in-memory pass requires template bytes and decisions');
+  }
+  const normalizedTemplateRaw = Buffer.isBuffer(templateRaw)
+    ? Buffer.from(templateRaw)
+    : Buffer.from(String(templateRaw));
+  const normalizedDecisions =
+    Buffer.isBuffer(decisions) || typeof decisions === 'string'
+      ? JSON.parse(decisions.toString('utf8'))
+      : structuredClone(decisions);
+  return materializeScionCodexTrainingDecisionPayload({
+    packetDir,
+    templateRaw: normalizedTemplateRaw,
+    decisions: normalizedDecisions,
+    templateOnly,
+    expectedTemplateSha256,
+  });
+}
+
+async function materializeScionCodexTrainingDecisions({
+  packetDir = DEFAULT_PACKET_DIR,
+  templateFile,
+  decisionsFile,
+  templateOnly = false,
+  expectedTemplateSha256 = '',
+} = {}) {
+  if (!templateFile || !decisionsFile) {
+    throw new Error('Completing a pass requires --template and --decisions');
+  }
+  const [templateRaw, decisions] = await Promise.all([fs.readFile(templateFile), fs.readFile(decisionsFile)]);
+  return materializeScionCodexTrainingDecisionsFromBytes({
+    packetDir,
+    templateRaw,
+    decisions,
+    templateOnly,
+    expectedTemplateSha256,
+  });
 }
 
 export async function applyScionCodexTrainingDecisions({
@@ -802,13 +843,17 @@ async function sealScionCodexTrainingReviewBytes({ raw, batch, sealedOutput, key
   await fs.mkdir(path.dirname(path.resolve(sealedOutput)), { recursive: true });
   await fs.mkdir(path.dirname(path.resolve(keyOutput)), { recursive: true });
   const writeOptions = exclusive ? { flag: 'wx' } : undefined;
-  await fs.writeFile(keyOutput, `${key.toString('base64')}\n`, { mode: 0o600, ...(writeOptions || {}) });
+  let keyCreated = false;
   try {
+    await fs.writeFile(keyOutput, `${key.toString('base64')}\n`, { mode: 0o600, ...(writeOptions || {}) });
+    keyCreated = true;
     await fs.chmod(keyOutput, 0o600);
     await fs.writeFile(sealedOutput, `${JSON.stringify(envelope, null, 2)}\n`, writeOptions);
   } catch (error) {
-    if (exclusive) await fs.rm(keyOutput, { force: true });
+    if (exclusive && keyCreated) await fs.rm(keyOutput, { force: true });
     throw error;
+  } finally {
+    key.fill(0);
   }
   return { envelope, sealedOutput: path.resolve(sealedOutput), keyOutput: path.resolve(keyOutput) };
 }
@@ -854,14 +899,50 @@ export async function completeAndSealScionCodexTrainingReviewPass({
     templateOnly: true,
     expectedTemplateSha256,
   });
-  const sealed = await sealScionCodexTrainingReviewBytes({
-    raw: completed.raw,
-    batch: completed.batch,
-    sealedOutput,
-    keyOutput,
-    exclusive: true,
+  try {
+    const sealed = await sealScionCodexTrainingReviewBytes({
+      raw: completed.raw,
+      batch: completed.batch,
+      sealedOutput,
+      keyOutput,
+      exclusive: true,
+    });
+    return { ...sealed, validation: completed.validation, plaintextWritten: false };
+  } finally {
+    completed.raw.fill(0);
+  }
+}
+
+export async function completeAndSealScionCodexTrainingReviewPassFromBytes({
+  templateRaw,
+  decisions,
+  sealedOutput,
+  keyOutput,
+  expectedTemplateSha256,
+} = {}) {
+  if (!templateRaw || !decisions || !sealedOutput || !keyOutput || !SHA256_RE.test(expectedTemplateSha256)) {
+    throw new Error(
+      'Atomic in-memory completion requires template bytes, decisions, sealed output, key output, and a verified template SHA-256',
+    );
+  }
+  const completed = await materializeScionCodexTrainingDecisionsFromBytes({
+    templateRaw,
+    decisions,
+    templateOnly: true,
+    expectedTemplateSha256,
   });
-  return { ...sealed, validation: completed.validation, plaintextWritten: false };
+  try {
+    const sealed = await sealScionCodexTrainingReviewBytes({
+      raw: completed.raw,
+      batch: completed.batch,
+      sealedOutput,
+      keyOutput,
+      exclusive: true,
+    });
+    return { ...sealed, validation: completed.validation, plaintextWritten: false };
+  } finally {
+    completed.raw.fill(0);
+  }
 }
 
 async function decryptScionCodexTrainingReviewPass({ sealedFile, keyFile, keyPacket }) {
