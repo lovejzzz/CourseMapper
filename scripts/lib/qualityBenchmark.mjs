@@ -460,6 +460,24 @@ export function aggregateQualityReviews(reviews, rubric, { benchmarkCase = null,
   }
   const evidenceClass = chosenEvidenceClass(validRows);
   const selectedRows = validRows.filter((row) => row.review.evaluator.evidenceClass === evidenceClass);
+  const selectedModelJudgeIdentities = new Map();
+  for (const row of selectedRows) {
+    if (row.review.evaluator.evidenceClass !== 'model-judge') continue;
+    const evaluator = row.review.evaluator;
+    const key = `${evaluator.model}\u0000${evaluator.modelRevision}\u0000${evaluator.promptSha256}`;
+    if (!selectedModelJudgeIdentities.has(key)) {
+      selectedModelJudgeIdentities.set(key, {
+        model: evaluator.model,
+        modelRevision: evaluator.modelRevision,
+        promptSha256: evaluator.promptSha256,
+      });
+    }
+  }
+  if (evidenceClass === 'model-judge' && selectedModelJudgeIdentities.size !== 1) {
+    aggregateIssues.push('model-judge scorecard requires one exact model, revision, and prompt identity');
+  }
+  const selectedModelJudgeIdentity =
+    selectedModelJudgeIdentities.size === 1 ? [...selectedModelJudgeIdentities.values()][0] : null;
   const dimensions = [];
   let scoredWeight = 0;
   let applicableWeight = 0;
@@ -657,6 +675,7 @@ export function aggregateQualityReviews(reviews, rubric, { benchmarkCase = null,
       uniqueQualifiedReviewerCount: uniqueQualifiedReviewers,
       reliabilityPass,
       independentCoveragePass,
+      modelJudgeIdentity: selectedModelJudgeIdentity,
       applicabilityDisagreementCount,
       perReviewerCoverage,
       reliability,
@@ -773,6 +792,34 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
   const minimumTrialsPerCase = Number(comparison?.preregistration?.minimumTrialsPerCase);
   if (!Number.isInteger(minimumTrialsPerCase) || minimumTrialsPerCase < 3)
     issues.push('preregistration.minimumTrialsPerCase must be at least 3');
+  const primaryPreferenceEvidence = comparison?.preregistration?.primaryPreferenceEvidence || 'qualified-human';
+  if (!['qualified-human', 'single-model-judge'].includes(primaryPreferenceEvidence)) {
+    issues.push('preregistration.primaryPreferenceEvidence must be qualified-human or single-model-judge');
+  }
+  const modelJudgeContract = comparison?.preregistration?.modelJudge || {};
+  const requiredModelJudgePassesPerTrial = Number(modelJudgeContract.requiredPassesPerTrial);
+  const requiredModelJudgeOrders = Array.isArray(modelJudgeContract.requiredOrders)
+    ? modelJudgeContract.requiredOrders
+    : [];
+  if (primaryPreferenceEvidence === 'single-model-judge') {
+    if (!concreteText(modelJudgeContract.model, 3))
+      issues.push('preregistration.modelJudge.model is required for single-model-judge comparisons');
+    if (!concreteText(modelJudgeContract.modelRevision, 3))
+      issues.push('preregistration.modelJudge.modelRevision is required for single-model-judge comparisons');
+    if (!SHA256.test(String(modelJudgeContract.promptSha256 || '')))
+      issues.push('preregistration.modelJudge.promptSha256 must be SHA-256');
+    if (!Number.isInteger(requiredModelJudgePassesPerTrial) || requiredModelJudgePassesPerTrial < 2) {
+      issues.push('preregistration.modelJudge.requiredPassesPerTrial must be at least 2');
+    }
+    if (
+      requiredModelJudgeOrders.length !== 2 ||
+      new Set(requiredModelJudgeOrders).size !== 2 ||
+      !requiredModelJudgeOrders.includes('A/B') ||
+      !requiredModelJudgeOrders.includes('B/A')
+    ) {
+      issues.push('preregistration.modelJudge.requiredOrders must contain A/B and B/A exactly once');
+    }
+  }
   if (!concreteText(comparison?.preregistration?.stoppingRule, 20))
     issues.push('preregistration.stoppingRule is required');
   if (!concreteText(comparison?.preregistration?.exclusionPolicy, 20))
@@ -788,7 +835,10 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
   const requiredQualifiedPreferencesPerTrial = Number(
     comparison?.preregistration?.requiredQualifiedPreferencesPerTrial,
   );
-  if (!Number.isInteger(requiredQualifiedPreferencesPerTrial) || requiredQualifiedPreferencesPerTrial < 2) {
+  if (
+    primaryPreferenceEvidence === 'qualified-human' &&
+    (!Number.isInteger(requiredQualifiedPreferencesPerTrial) || requiredQualifiedPreferencesPerTrial < 2)
+  ) {
     issues.push('preregistration.requiredQualifiedPreferencesPerTrial must be at least 2');
   }
   if (!concreteText(comparison?.environment?.compilerCommit, 7)) issues.push('environment.compilerCommit is required');
@@ -825,7 +875,7 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
   const burdenDeltas = new Map(burdenDeltaFields.map((field) => [field, []]));
   const dimensionDeltas = new Map();
   const humanOutcomes = [];
-  const advisoryModelOutcomes = [];
+  const modelJudgeOutcomes = [];
   const byDeliverable = new Map();
   const byCase = new Map();
   const trialIndexesByCase = new Map();
@@ -918,6 +968,18 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
             ['human-reviewed', 'human-reviewed-disputed', 'independently-validated'].includes(
               evidence?.validationTier,
             ));
+        const modelScoreIdentityValid =
+          evidence?.evidenceClass !== 'model-judge' ||
+          (concreteText(evidence?.model, 3) &&
+            concreteText(evidence?.modelRevision, 3) &&
+            SHA256.test(String(evidence?.promptSha256 || '')));
+        const modelScoreMatchesPreregistration =
+          primaryPreferenceEvidence !== 'single-model-judge' ||
+          (evidence?.evidenceClass === 'model-judge' &&
+            evidence?.validationTier === 'model-provisional' &&
+            evidence?.model === modelJudgeContract.model &&
+            evidence?.modelRevision === modelJudgeContract.modelRevision &&
+            evidence?.promptSha256 === modelJudgeContract.promptSha256);
         if (
           !evidence ||
           !SHA256.test(String(evidence.rubricSha256 || '')) ||
@@ -927,6 +989,8 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
           !EVIDENCE_CLASS_ORDER.includes(evidence.evidenceClass) ||
           !SCORE_EVIDENCE_TIERS.has(evidence.validationTier) ||
           !tierMatchesEvidenceClass ||
+          !modelScoreIdentityValid ||
+          !modelScoreMatchesPreregistration ||
           !verifiedScorecards.has(evidence.scorecardSha256) ||
           evidence.sourceSha256 !== trial.sourceSha256 ||
           evidence.artifactSha256 !== output?.outputSha256
@@ -948,6 +1012,13 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
         }
       } else if (Object.keys(dimensions).length) {
         issues.push(`${prefix} ${side} cannot report dimensionScores without a benchmarkScore`);
+      }
+      if (
+        primaryPreferenceEvidence === 'single-model-judge' &&
+        output?.status === 'success' &&
+        (score === null || score === undefined || !Number.isFinite(Number(score)))
+      ) {
+        issues.push(`${prefix} ${side} requires a scored model-judge scorecard before pairwise preference`);
       }
     }
     const candidate = trial.outputs?.candidate;
@@ -1018,6 +1089,24 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
       const artifactsBound =
         preference.candidateArtifactSha256 === candidate?.outputSha256 &&
         preference.controlArtifactSha256 === control?.outputSha256;
+      const modelJudgePreference = preference.evidenceClass === 'model-judge';
+      const modelJudgeIdentityValid =
+        !modelJudgePreference ||
+        (concreteText(preference.model, 3) &&
+          concreteText(preference.modelRevision, 3) &&
+          SHA256.test(String(preference.promptSha256 || '')));
+      const modelJudgeScorecardsBound =
+        !modelJudgePreference ||
+        (preference.scoredBeforePreference === true &&
+          preference.candidateScorecardSha256 === candidate?.scoreEvidence?.scorecardSha256 &&
+          preference.controlScorecardSha256 === control?.scoreEvidence?.scorecardSha256);
+      const modelJudgeOrderValid = !modelJudgePreference || ['A/B', 'B/A'].includes(preference.order);
+      const modelJudgeMatchesPreregistration =
+        !modelJudgePreference ||
+        primaryPreferenceEvidence !== 'single-model-judge' ||
+        (preference.model === modelJudgeContract.model &&
+          preference.modelRevision === modelJudgeContract.modelRevision &&
+          preference.promptSha256 === modelJudgeContract.promptSha256);
       const afterFreeze =
         validTimestamp && (!Number.isFinite(frozenAt) || Date.parse(preference.reviewedAt) >= frozenAt);
       if (
@@ -1027,6 +1116,10 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
         !blinded ||
         !concreteText(reviewerId, 3) ||
         !artifactsBound ||
+        !modelJudgeIdentityValid ||
+        !modelJudgeScorecardsBound ||
+        !modelJudgeOrderValid ||
+        !modelJudgeMatchesPreregistration ||
         duplicatePreference
       ) {
         issues.push(`${prefix} has an invalid pairwise preference from ${preference.reviewerId || '<unknown>'}`);
@@ -1044,12 +1137,17 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
         const reviewers = qualifiedReviewersByTrial.get(trialKey) || new Set();
         reviewers.add(reviewerId);
         qualifiedReviewersByTrial.set(trialKey, reviewers);
-      } else if (preference.evidenceClass === 'model-judge')
-        advisoryModelOutcomes.push({
+      } else if (modelJudgePreference)
+        modelJudgeOutcomes.push({
           outcome,
           caseId: trial.caseId,
+          trialIndex: trial.trialIndex,
+          trialKey,
           reviewerId: preference.reviewerId,
           order: preference.order,
+          model: preference.model,
+          modelRevision: preference.modelRevision,
+          promptSha256: preference.promptSha256,
         });
     }
   }
@@ -1072,39 +1170,113 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
   const effectiveWins = humanCounts.candidate + humanCounts.tie * 0.5;
   const effectiveWinRate = humanOutcomes.length ? effectiveWins / humanOutcomes.length : null;
   const winInterval = wilsonInterval(effectiveWins, humanOutcomes.length);
-  const modelCounts = { candidate: 0, control: 0, tie: 0 };
-  for (const row of advisoryModelOutcomes) modelCounts[row.outcome] += 1;
-  const modelCases = new Map();
-  for (const row of advisoryModelOutcomes) {
-    const rows = modelCases.get(row.caseId) || [];
+  const rawModelCounts = { candidate: 0, control: 0, tie: 0 };
+  for (const row of modelJudgeOutcomes) rawModelCounts[row.outcome] += 1;
+  const modelJudgeIdentities = new Map();
+  const modelRowsByTrial = new Map();
+  for (const row of modelJudgeOutcomes) {
+    const identityKey = `${row.model}\u0000${row.modelRevision}\u0000${row.promptSha256}`;
+    if (!modelJudgeIdentities.has(identityKey)) {
+      modelJudgeIdentities.set(identityKey, {
+        model: row.model,
+        modelRevision: row.modelRevision,
+        promptSha256: row.promptSha256,
+      });
+    }
+    const rows = modelRowsByTrial.get(row.trialKey) || [];
     rows.push(row);
-    modelCases.set(row.caseId, rows);
+    modelRowsByTrial.set(row.trialKey, rows);
   }
-  const positionSensitiveCases = [...modelCases.entries()]
-    .filter(([, rows]) => {
-      const orders = new Set(rows.map((row) => row.order));
-      const outcomes = new Set(rows.map((row) => row.outcome));
-      return orders.size < 2 || outcomes.size > 1;
-    })
-    .map(([caseId]) => caseId);
+  const effectiveRequiredModelPasses = Number.isInteger(requiredModelJudgePassesPerTrial)
+    ? requiredModelJudgePassesPerTrial
+    : 2;
+  const effectiveRequiredModelOrders = requiredModelJudgeOrders.length > 0 ? requiredModelJudgeOrders : ['A/B', 'B/A'];
+  const stableModelTrials = [];
+  const modelJudgeProtocolIssues = [];
+  for (const trial of trials) {
+    const trialKey = `${trial.caseId}\u0000${trial.trialIndex}`;
+    const rows = modelRowsByTrial.get(trialKey) || [];
+    const observedOrders = new Set(rows.map((row) => row.order));
+    const observedOutcomes = new Set(rows.map((row) => row.outcome));
+    const complete =
+      rows.length >= effectiveRequiredModelPasses &&
+      effectiveRequiredModelOrders.every((order) => observedOrders.has(order));
+    const positionConsistent = observedOutcomes.size === 1;
+    if (complete && positionConsistent) {
+      stableModelTrials.push({
+        caseId: trial.caseId,
+        trialIndex: trial.trialIndex,
+        trialKey,
+        outcome: rows[0].outcome,
+        passes: rows.length,
+        orders: [...observedOrders].sort(),
+      });
+    } else {
+      modelJudgeProtocolIssues.push({
+        caseId: trial.caseId,
+        trialIndex: trial.trialIndex,
+        trialKey,
+        passes: rows.length,
+        orders: [...observedOrders].sort(),
+        outcomes: [...observedOutcomes].sort(),
+        reason: !complete ? 'missing-required-passes-or-orders' : 'position-sensitive-outcome',
+      });
+    }
+  }
+  const stableModelCounts = { candidate: 0, control: 0, tie: 0 };
+  for (const row of stableModelTrials) stableModelCounts[row.outcome] += 1;
+  const stableModelEffectiveWins = stableModelCounts.candidate + stableModelCounts.tie * 0.5;
+  const stableModelEffectiveWinRate = stableModelTrials.length
+    ? stableModelEffectiveWins / stableModelTrials.length
+    : null;
+  const stableModelWinInterval = wilsonInterval(stableModelEffectiveWins, stableModelTrials.length);
+  const stableTrialsByCase = new Map();
+  for (const row of stableModelTrials) {
+    const rows = stableTrialsByCase.get(row.caseId) || [];
+    rows.push(row);
+    stableTrialsByCase.set(row.caseId, rows);
+  }
+  const completeModelJudgeCaseIds = [...declaredCaseSet].filter((caseId) => {
+    const observedTrialCount = trialIndexesByCase.get(caseId)?.size || 0;
+    return (
+      observedTrialCount >= minimumTrialsPerCase && (stableTrialsByCase.get(caseId)?.length || 0) === observedTrialCount
+    );
+  });
+  const modelJudgePrimaryUsable =
+    primaryPreferenceEvidence === 'single-model-judge' &&
+    trials.length > 0 &&
+    stableModelTrials.length === trials.length &&
+    completeModelJudgeCaseIds.length === declaredCaseSet.size &&
+    modelJudgeIdentities.size === 1;
+  const status = issues.length
+    ? 'invalid'
+    : primaryPreferenceEvidence === 'single-model-judge'
+      ? modelJudgePrimaryUsable
+        ? 'model-judged-for-declared-scope'
+        : modelJudgeOutcomes.length
+          ? 'partial-model-judgment'
+          : 'awaiting-model-judge-preferences'
+      : qualifiedPreferenceCompleteTrials === trials.length && trials.length > 0
+        ? 'measured-for-declared-scope'
+        : humanOutcomes.length
+          ? 'partial-measurement'
+          : 'awaiting-qualified-preferences';
 
   return {
     schemaVersion: 1,
     comparisonId: comparison?.comparisonId || '',
     candidateId: comparison?.candidateId || '',
     controlId: comparison?.controlId || '',
-    status: issues.length
-      ? 'invalid'
-      : qualifiedPreferenceCompleteTrials === trials.length && trials.length > 0
-        ? 'measured-for-declared-scope'
-        : humanOutcomes.length
-          ? 'partial-measurement'
-          : 'awaiting-qualified-preferences',
+    status,
+    primaryPreferenceEvidence,
     claimBoundary:
-      'Effects apply only to the bound corpus, model revisions, prompts, settings, compiler, and trial protocol. Model-judge preferences are advisory and never counted as instructor evidence.',
+      primaryPreferenceEvidence === 'single-model-judge'
+        ? 'Effects apply only to the bound corpus, model revisions, prompts, settings, compiler, and trial protocol. The primary preference is one provenance-bound model judge repeated in both presentation orders; it is never human, instructor, independent, classroom, or multi-judge evidence.'
+        : 'Effects apply only to the bound corpus, model revisions, prompts, settings, compiler, and trial protocol. Model-judge preferences are advisory and never counted as instructor evidence.',
     issues,
     trialCount: trials.length,
     declaredCaseCount: declaredCaseSet.size,
+    minimumTrialsPerCase: Number.isInteger(minimumTrialsPerCase) ? minimumTrialsPerCase : null,
     splitCounts: trials.reduce((counts, trial) => ({ ...counts, [trial.split]: (counts[trial.split] || 0) + 1 }), {}),
     scoreEvidenceTiers: [...scoreEvidenceTiers].sort(),
     absoluteScoreEffect: {
@@ -1165,12 +1337,47 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
       wilson95: winInterval.map((value) => round(value)),
       uniqueReviewers: new Set(humanOutcomes.map((row) => row.reviewerId)).size,
     },
+    singleModelJudgePreference: {
+      passCount: modelJudgeOutcomes.length,
+      requiredPassesPerTrial: effectiveRequiredModelPasses,
+      requiredOrders: effectiveRequiredModelOrders,
+      stableTrialCount: stableModelTrials.length,
+      completeCases: completeModelJudgeCaseIds.length,
+      completeCaseIds: completeModelJudgeCaseIds,
+      wins: stableModelCounts.candidate,
+      losses: stableModelCounts.control,
+      ties: stableModelCounts.tie,
+      effectiveWinRate: round(stableModelEffectiveWinRate),
+      wilson95: stableModelWinInterval.map((value) => round(value)),
+      consistencyRate: round(trials.length ? stableModelTrials.length / trials.length : null),
+      judgeIdentityCount: modelJudgeIdentities.size,
+      judgeIdentity: modelJudgeIdentities.size === 1 ? [...modelJudgeIdentities.values()][0] : null,
+      positionSensitiveOrIncompleteTrials: modelJudgeProtocolIssues,
+      byCase: Object.fromEntries(
+        [...declaredCaseSet].map((caseId) => {
+          const rows = stableTrialsByCase.get(caseId) || [];
+          return [
+            caseId,
+            {
+              stableTrials: rows.length,
+              wins: rows.filter((row) => row.outcome === 'candidate').length,
+              losses: rows.filter((row) => row.outcome === 'control').length,
+              ties: rows.filter((row) => row.outcome === 'tie').length,
+            },
+          ];
+        }),
+      ),
+      usableForPrimaryClaim: modelJudgePrimaryUsable,
+    },
     advisoryModelJudge: {
-      count: advisoryModelOutcomes.length,
-      wins: modelCounts.candidate,
-      losses: modelCounts.control,
-      ties: modelCounts.tie,
-      positionSensitiveOrIncompleteCases: positionSensitiveCases,
+      count: primaryPreferenceEvidence === 'qualified-human' ? modelJudgeOutcomes.length : 0,
+      wins: primaryPreferenceEvidence === 'qualified-human' ? rawModelCounts.candidate : 0,
+      losses: primaryPreferenceEvidence === 'qualified-human' ? rawModelCounts.control : 0,
+      ties: primaryPreferenceEvidence === 'qualified-human' ? rawModelCounts.tie : 0,
+      positionSensitiveOrIncompleteCases:
+        primaryPreferenceEvidence === 'qualified-human'
+          ? [...new Set(modelJudgeProtocolIssues.map((row) => row.caseId))]
+          : [],
       usableForPrimaryClaim: false,
     },
     operations: {

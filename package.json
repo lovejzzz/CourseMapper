@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.14",
+  "version": "0.16.15",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -39,6 +39,7 @@
     "audit:quality-benchmark": "node scripts/qualityBenchmarkAudit.mjs --mode structure",
     "audit:quality-benchmark:validated": "node scripts/qualityBenchmarkAudit.mjs --mode validation",
     "test:quality-benchmark": "node scripts/qualityBenchmarkSelfTest.mjs",
+    "test:quality-benchmark:unit": "vitest run --config vitest.quality-benchmark.config.js",
     "audit:quality-model-comparison": "node scripts/qualityModelComparison.mjs",
     "audit:canary": "node scripts/productionCanaryAudit.mjs --mode advisory",
     "audit:canary:strict": "node scripts/productionCanaryAudit.mjs --mode strict",
@@ -62,6 +63,7 @@
     "audit:scion:factual-canaries": "node scripts/scionFactualCanaryAudit.mjs",
     "audit:scion:model-bakeoff": "node scripts/scionModelBakeoff.mjs",
     "audit:scion:model-bakeoff:list": "node scripts/scionModelBakeoff.mjs --list",
+    "audit:scion:codex-judge": "node scripts/scionCodexJudgePolicyAudit.mjs",
     "audit:scion:compiler-burden": "node scripts/scionCompilerBurdenAudit.mjs",
     "build:scion:adapter-dataset": "node scripts/scionAdapterDataset.mjs",
     "build:scion:adapter-dataset:research": "node scripts/scionAdapterDataset.mjs --research",

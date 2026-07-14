@@ -157,7 +157,7 @@ Use for hashes, file presence, XML/Office structure, exact cross-artifact values
 
 ### Model judge
 
-Record provider, exact model/revision, complete prompt hash, parameters, source/artifact hashes, order, cost, latency, and raw judgment. The same blinded pair must be judged in both orders. A position flip, underlying preference flip, or material score shift makes the case inconclusive. Model scores are advisory until calibrated per dimension and deliverable/risk stratum against held-out human evidence.
+Record provider, exact model/revision, complete prompt hash, parameters, source/artifact hashes, order, cost, latency, and raw judgment. Model scores remain provisional and capped. In the explicit `single-model-judge` comparison lane, they may support a bounded model-judged ranking only when the judge is preregistered, both artifacts are scored first, both scorecards are byte-bound, and A/B plus B/A produce the same unblinded trial outcome. This never creates human, instructor, independent, classroom, or multi-judge validation. Outside that explicit lane, model preferences remain advisory.
 
 ### Qualified human
 
@@ -252,7 +252,7 @@ Calibration never changes the evidence class: a well-calibrated model judge rema
 
 ## Controlled model-comparison protocol
 
-The canonical input is [`comparison.template.json`](../evaluation/quality-benchmark/v1/comparison.template.json).
+The qualified-human input is [`comparison.template.json`](../evaluation/quality-benchmark/v1/comparison.template.json). The declared Codex input is [`comparison.model-judge.template.json`](../evaluation/quality-benchmark/v1/comparison.model-judge.template.json), governed by the hash-bound [`single-model-judge-prompt-v1.md`](../evaluation/quality-benchmark/v1/single-model-judge-prompt-v1.md).
 
 ### Freeze before generation
 
@@ -277,7 +277,9 @@ The analyzer rejects undeclared cases, duplicated case/trial rows, reused genera
 
 ### Blind review
 
-Create neutral A/B packets. Randomize labels per case/trial using a recorded seed. Keep the mapping outside reviewer packets. Normalize pairwise results back to candidate/control only after review. Require a concrete rationale and permit ties. Every qualified preference binds both output hashes, the reviewer role and domain match, the preregistration time boundary, and one unique reviewer/trial identity; duplicate reviewer rows cannot inflate a result.
+Create neutral A/B packets. Randomize labels per case/trial using a recorded seed. Keep the mapping outside reviewer packets. Normalize pairwise results back to candidate/control only after review. Require a concrete rationale and permit ties.
+
+The preregistration chooses one primary mode. `qualified-human` requires distinct qualified reviewers and preserves the existing reviewer-role and domain-match rules. `single-model-judge` requires one exact model, revision, and prompt identity on the preregistration, both scorecards, and every pass. Both anonymous artifacts must be scored before preference, and each pass binds both output and scorecard hashes. The same frozen pair is read in A/B and B/A order. Repeated passes by one judge count as one stable trial only when both orders agree after unblinding; missing or position-sensitive passes remain visible and block the primary model-judged claim.
 
 ### Report
 
@@ -290,7 +292,8 @@ The analysis emits:
 - unique reviewer count;
 - success/failure rates, all-attempt and success-conditioned latency, total/mean cost, mean provider calls, and retained retry counts;
 - candidate-minus-control compiler calls, repair calls, rejected atoms, and recovered atoms with paired intervals;
-- advisory model-judge outcomes and position-sensitive/incomplete cases;
+- provenance-bound single-model passes, stable trial outcomes, per-case outcomes, consistency, Wilson interval, and position-sensitive/incomplete trials;
+- advisory model-judge outcomes when qualified-human remains the primary mode;
 - exact scope and claim boundary.
 
 Do not report “wins” from a confidence interval that spans practical parity without explaining the uncertainty. Do not generalize beyond bound cases, versions, settings, and reviewer population.
@@ -330,6 +333,12 @@ Run a controlled comparison report:
 npm run audit:quality-model-comparison -- \
   --input /absolute/path/to/comparison.json \
   --bootstrap-samples 5000
+```
+
+Verify Scion's Codex-specific prompt, five-domain freeze, template, thresholds, and hash bindings:
+
+```bash
+npm run audit:scion:codex-judge
 ```
 
 Explicitly unlock the public-governed held-out corpus only after preregistration/freeze:

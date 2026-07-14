@@ -1,0 +1,114 @@
+{
+  "version": "0.16.15",
+  "date": "July 13, 2026",
+  "title": "One Judge, Two Orders: Codex becomes an honest ruler",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "node --check scripts/lib/qualityBenchmark.mjs",
+      "node --check scripts/qualityModelComparison.mjs",
+      "node --check scripts/scionModelBakeoff.mjs",
+      "node --check scripts/scionCodexJudgePolicyAudit.mjs",
+      "npm run audit:scion:codex-judge",
+      "npm run test:quality-benchmark",
+      "npm run test:quality-benchmark:unit",
+      "npm run audit:quality-benchmark",
+      "npm run audit:scion:model-bakeoff",
+      "npm run format:check",
+      "npm run build",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "The local release gates pass; the exact pushed v0.16.15 commit still requires Fast verification on GitHub Actions."
+    },
+    "ciDeep": {
+      "status": "manual-only",
+      "note": "No real adapter comparison, model generation, paid-reference run, or browser-device matrix is claimed by this evaluation-contract release."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages proof will be recorded after the v0.16.15 main merge deploys."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "This release changes offline benchmark, policy, analyzer, and reporting code only; it makes no provider call and changes no hosted model or adapter."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "The declared primary Scion preference lane is single-model-judge. Human review remains a separate optional evidence class and is not claimed here."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01615-explicit-single-model-primary-lane",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Controlled comparisons can explicitly preregister one provenance-bound model judge as primary for the declared scope without changing or impersonating the qualified-human lane.",
+      "anchors": [
+        "evaluation/quality-benchmark/v1/comparison.schema.json",
+        "scripts/lib/qualityBenchmark.mjs",
+        "docs/QUALITY_BENCHMARK_V1.md"
+      ],
+      "proofCommands": [
+        "npm run test:quality-benchmark",
+        "npm run test:quality-benchmark:unit",
+        "npm run audit:quality-benchmark"
+      ],
+      "proofScopes": ["unit", "static-audit", "doc"]
+    },
+    {
+      "id": "v01615-scorecard-and-judge-provenance",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Model-judge scores and preferences bind the exact judge model, revision, prompt, source, artifacts, and scorecard bytes, with scoring required before pairwise preference.",
+      "anchors": [
+        "scripts/lib/qualityBenchmark.mjs",
+        "scripts/qualityModelComparison.mjs",
+        "evaluation/quality-benchmark/v1/comparison.schema.json"
+      ],
+      "proofCommands": ["npm run test:quality-benchmark", "npm run test:quality-benchmark:unit"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01615-reversed-order-stable-trials",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "A model-judged trial counts once only after A/B and B/A passes agree after unblinding; missing and position-sensitive passes remain visible and block the primary claim.",
+      "anchors": [
+        "scripts/lib/qualityBenchmark.mjs",
+        "scripts/__tests__/qualityBenchmark.test.js",
+        "scripts/qualityBenchmarkSelfTest.mjs"
+      ],
+      "proofCommands": ["npm run test:quality-benchmark", "npm run test:quality-benchmark:unit"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01615-five-domain-codex-promotion-policy",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Scion promotion binds five frozen domains to ten trials each, two reversed-order Codex passes per trial, fifty stable outcomes, one hundred passes, and the existing score, preference, burden, factual, export, runtime, and device gates.",
+      "anchors": [
+        "evaluation/scion-adapters/codex-judge-policy-v1.json",
+        "evaluation/scion-model-candidates.json",
+        "scripts/scionCodexJudgePolicyAudit.mjs",
+        "scripts/scionModelBakeoff.mjs"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-judge",
+        "npm run audit:scion:model-bakeoff",
+        "npm run test:quality-benchmark:unit"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01615-no-adapter-or-paid-reference-win",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release makes the Codex ruler executable but promotes no model or adapter, changes no weights or hosted inference, and claims no paid-reference parity or device result.",
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "evaluation/scion-model-evidence"],
+      "proofCommands": ["npm run audit:scion:model-bakeoff", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

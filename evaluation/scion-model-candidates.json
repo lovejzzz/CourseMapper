@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "protocolVersion": "scion-model-bakeoff-v1",
   "controlCandidateId": "gemma-4-e2b",
-  "claimBoundary": "A candidate may pass factual screening without being promoted. Promotion additionally requires matched full-course, browser-device, and independent instructor evidence.",
+  "claimBoundary": "A candidate may pass factual screening without being promoted. Promotion additionally requires matched full-course and browser-device evidence plus an explicit provenance-bound single-model-judge comparison. That comparison is never human, instructor, independent, classroom, or multi-judge validation.",
   "candidates": [
     {
       "id": "gemma-4-e2b",
@@ -92,8 +92,12 @@
     "minimumPackageGrade": 99,
     "maximumP0": 0,
     "maximumP1": 0,
+    "qualityPreferenceMode": "single-model-judge",
     "minimumBlindCases": 50,
     "minimumIndependentReviewsPerCase": 2,
+    "minimumStableModelJudgeTrials": 50,
+    "minimumModelJudgePassesPerTrial": 2,
+    "requireBothModelJudgeOrders": true,
     "minimumWinnerFactualScore": 4,
     "minimumWinnerTeachabilityScore": 4,
     "minimumWilsonWinLowerBound": 0.5,
@@ -103,6 +107,7 @@
     "maximumScionCallAmplificationVsControl": 1.25,
     "requireHonestQualityBenchmark": true,
     "minimumQualityComparisonCases": 5,
+    "minimumQualityTrialsPerCase": 10,
     "minimumQualityDeltaLowerBound": 0,
     "maximumCompilerBurdenDeltaUpperBound": 0
   }

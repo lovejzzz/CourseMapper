@@ -51,8 +51,15 @@ function honestQualityComparison(candidate, control, caseIds) {
       frozenAt: '2026-07-13T10:00:00Z',
       analysisPlanSha256: 'a'.repeat(64),
       corpusManifestSha256: 'b'.repeat(64),
-      minimumTrialsPerCase: 5,
-      requiredQualifiedPreferencesPerTrial: 2,
+      minimumTrialsPerCase: 10,
+      primaryPreferenceEvidence: 'single-model-judge',
+      modelJudge: {
+        model: 'openai/codex',
+        modelRevision: 'gpt-5-session-test-revision',
+        promptSha256: '8'.repeat(64),
+        requiredPassesPerTrial: 2,
+        requiredOrders: ['A/B', 'B/A'],
+      },
       caseIds,
       stoppingRule: 'Run every declared case and trial without inspecting observed outcomes.',
       exclusionPolicy: 'Retain all attempts and report failures separately from successful quality.',
@@ -84,8 +91,11 @@ function honestQualityComparison(candidate, control, caseIds) {
           rubricSha256: 'f'.repeat(64),
           scorecardSha256: sha(ordinal + scorecardOffset),
           scorecardPath: `scorecards/${ordinal}-${scorecardOffset}.json`,
-          evidenceClass: 'human-qualified',
-          validationTier: 'independently-validated',
+          evidenceClass: 'model-judge',
+          validationTier: 'model-provisional',
+          model: 'openai/codex',
+          modelRevision: 'gpt-5-session-test-revision',
+          promptSha256: '8'.repeat(64),
           sourceSha256: sourceHash,
           artifactSha256,
         });
@@ -102,7 +112,7 @@ function honestQualityComparison(candidate, control, caseIds) {
             candidateLabel,
             controlLabel,
             seed: `${caseId}-blind-${trialOffset + 1}`,
-            method: 'seeded permutation before independent review assignment',
+            method: 'seeded permutation before reversed-order judge passes',
           },
           outputs: {
             candidate: {
@@ -132,20 +142,22 @@ function honestQualityComparison(candidate, control, caseIds) {
               scoreEvidence: scoreEvidence(controlHash, 5000),
             },
           },
-          preferences: [0, 1].map((reviewerIndex) => ({
-            reviewerId: `${caseId}-faculty-${trialOffset + 1}-${reviewerIndex + 1}`,
-            evidenceClass: 'human-qualified',
-            qualified: true,
-            independent: true,
-            conflictOfInterest: false,
-            domainMatch: true,
-            currentTeachingRole: 'Current domain-matched faculty instructor',
+          preferences: ['A/B', 'B/A'].map((order, passIndex) => ({
+            reviewerId: `${caseId}-codex-${trialOffset + 1}-pass-${passIndex + 1}`,
+            evidenceClass: 'model-judge',
+            model: 'openai/codex',
+            modelRevision: 'gpt-5-session-test-revision',
+            promptSha256: '8'.repeat(64),
             blinded: true,
             preference: candidateLabel,
-            rationale: 'The candidate is more accurate, aligned, usable, and complete for this course.',
+            order,
+            rationale: 'The candidate scores higher on accuracy, alignment, usability, and package coherence.',
             reviewedAt: '2026-07-13T12:00:00Z',
             candidateArtifactSha256: candidateHash,
             controlArtifactSha256: controlHash,
+            candidateScorecardSha256: scoreEvidence(candidateHash, 4000).scorecardSha256,
+            controlScorecardSha256: scoreEvidence(controlHash, 5000).scorecardSha256,
+            scoredBeforePreference: true,
           })),
         };
       }),
@@ -244,12 +256,12 @@ describe('Scion model bake-off', () => {
     expect(evaluation.promotionEvidence.validFullCourseDetails[0].rejectedQualityActions).toBe(35);
   });
 
-  it('requires a statistically defensible instructor preference, not a raw majority', () => {
+  it('requires a statistically defensible preference, not a raw majority', () => {
     expect(wilsonLowerBound(25, 50)).toBeLessThan(0.5);
     expect(wilsonLowerBound(34, 50)).toBeGreaterThan(0.5);
   });
 
-  it('promotes a challenger only after matched factual, course, browser, control, and instructor evidence', () => {
+  it('promotes a challenger only after matched factual, course, browser, control, and stable Codex evidence', () => {
     const control = registry.candidates[0];
     const candidate = registry.candidates[1];
     const domains = ['computer-science', 'geology', 'music-theory', 'user-experience-design', 'world-literature'];

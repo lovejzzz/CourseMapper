@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "comparisonId": "COMPARISON_ID",
+  "protocolVersion": "1.0.0",
+  "createdAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "preregistration": {
+    "frozenAt": "YYYY-MM-DDTHH:MM:SSZ",
+    "analysisPlanSha256": "ANALYSIS_PLAN_SHA256",
+    "corpusManifestSha256": "CORPUS_MANIFEST_SHA256",
+    "minimumTrialsPerCase": 10,
+    "primaryPreferenceEvidence": "single-model-judge",
+    "modelJudge": {
+      "model": "openai/codex",
+      "modelRevision": "RUNTIME_OR_SESSION_REVISION",
+      "promptSha256": "JUDGE_PROMPT_SHA256",
+      "requiredPassesPerTrial": 2,
+      "requiredOrders": ["A/B", "B/A"]
+    },
+    "caseIds": ["FROZEN_HELDOUT_CASE_ID"],
+    "stoppingRule": "Run every predeclared case and trial; do not stop after observing scores or preferences.",
+    "exclusionPolicy": "Retain every attempt and every inconsistent pass; report failures separately from successful quality."
+  },
+  "environment": {
+    "compilerCommit": "GIT_COMMIT",
+    "dirtyTree": false,
+    "runtime": "Exact browser and local runtime versions",
+    "hardware": "Exact execution hardware"
+  },
+  "candidateId": "scion-adapter",
+  "controlId": "scion-base",
+  "models": [
+    {
+      "id": "scion-adapter",
+      "provider": "local-browser",
+      "model": "PINNED_BASE_PLUS_ADAPTER_ID",
+      "revision": "BASE_AND_ADAPTER_SHA256_IDENTITY",
+      "promptSha256": "GENERATION_PROMPT_SHA256",
+      "configurationSha256": "CANDIDATE_CONFIGURATION_SHA256",
+      "parameters": { "temperature": 0, "topP": 1, "maxOutputTokens": 0 },
+      "compilerCommit": "GIT_COMMIT",
+      "graderVersion": "quality-benchmark-v1"
+    },
+    {
+      "id": "scion-base",
+      "provider": "local-browser",
+      "model": "PINNED_BASE_MODEL_ID",
+      "revision": "PINNED_BASE_REVISION",
+      "promptSha256": "GENERATION_PROMPT_SHA256",
+      "configurationSha256": "CONTROL_CONFIGURATION_SHA256",
+      "parameters": { "temperature": 0, "topP": 1, "maxOutputTokens": 0 },
+      "compilerCommit": "GIT_COMMIT",
+      "graderVersion": "quality-benchmark-v1"
+    }
+  ],
+  "trials": [
+    {
+      "caseId": "FROZEN_HELDOUT_CASE_ID",
+      "split": "heldout",
+      "deliverableType": "package",
+      "trialIndex": 1,
+      "seed": "GENERATION_SEED",
+      "sourceSha256": "SOURCE_PACKET_SHA256",
+      "matchedInputSha256": "SOURCE_AND_PROMPT_INPUT_SHA256",
+      "matchedSettingsSha256": "NON_MODEL_SETTINGS_SHA256",
+      "randomization": {
+        "candidateLabel": "B",
+        "controlLabel": "A",
+        "seed": "BLINDING_SEED",
+        "method": "cryptographic seeded permutation before judge passes"
+      },
+      "outputs": {
+        "candidate": {
+          "modelId": "scion-adapter",
+          "status": "success",
+          "outputSha256": "CANDIDATE_OUTPUT_SHA256",
+          "latencyMs": 0,
+          "costUsd": 0,
+          "providerCalls": 0,
+          "retryCount": 0,
+          "benchmarkScore": 0,
+          "dimensionScores": {},
+          "compilerBurden": {
+            "scionCalls": 0,
+            "repairCalls": 0,
+            "rejectedAtoms": 0,
+            "recoveredAtoms": 0
+          },
+          "scoreEvidence": {
+            "rubricVersion": "1.0.0",
+            "rubricSha256": "RUBRIC_SHA256",
+            "scorecardSha256": "CANDIDATE_SCORECARD_SHA256",
+            "scorecardPath": "relative/path/to/candidate-scorecard.json",
+            "evidenceClass": "model-judge",
+            "validationTier": "model-provisional",
+            "sourceSha256": "SOURCE_PACKET_SHA256",
+            "artifactSha256": "CANDIDATE_OUTPUT_SHA256",
+            "model": "openai/codex",
+            "modelRevision": "RUNTIME_OR_SESSION_REVISION",
+            "promptSha256": "JUDGE_PROMPT_SHA256"
+          }
+        },
+        "control": {
+          "modelId": "scion-base",
+          "status": "success",
+          "outputSha256": "CONTROL_OUTPUT_SHA256",
+          "latencyMs": 0,
+          "costUsd": 0,
+          "providerCalls": 0,
+          "retryCount": 0,
+          "benchmarkScore": 0,
+          "dimensionScores": {},
+          "compilerBurden": {
+            "scionCalls": 0,
+            "repairCalls": 0,
+            "rejectedAtoms": 0,
+            "recoveredAtoms": 0
+          },
+          "scoreEvidence": {
+            "rubricVersion": "1.0.0",
+            "rubricSha256": "RUBRIC_SHA256",
+            "scorecardSha256": "CONTROL_SCORECARD_SHA256",
+            "scorecardPath": "relative/path/to/control-scorecard.json",
+            "evidenceClass": "model-judge",
+            "validationTier": "model-provisional",
+            "sourceSha256": "SOURCE_PACKET_SHA256",
+            "artifactSha256": "CONTROL_OUTPUT_SHA256",
+            "model": "openai/codex",
+            "modelRevision": "RUNTIME_OR_SESSION_REVISION",
+            "promptSha256": "JUDGE_PROMPT_SHA256"
+          }
+        }
+      },
+      "preferences": [
+        {
+          "reviewerId": "CODEX_PASS_1_ID",
+          "evidenceClass": "model-judge",
+          "model": "openai/codex",
+          "modelRevision": "RUNTIME_OR_SESSION_REVISION",
+          "promptSha256": "JUDGE_PROMPT_SHA256",
+          "blinded": true,
+          "preference": "tie",
+          "order": "A/B",
+          "rationale": "Concrete artifact-grounded rationale naming the defects or advantages behind this decision.",
+          "reviewedAt": "YYYY-MM-DDTHH:MM:SSZ",
+          "candidateArtifactSha256": "CANDIDATE_OUTPUT_SHA256",
+          "controlArtifactSha256": "CONTROL_OUTPUT_SHA256",
+          "candidateScorecardSha256": "CANDIDATE_SCORECARD_SHA256",
+          "controlScorecardSha256": "CONTROL_SCORECARD_SHA256",
+          "scoredBeforePreference": true
+        },
+        {
+          "reviewerId": "CODEX_PASS_2_ID",
+          "evidenceClass": "model-judge",
+          "model": "openai/codex",
+          "modelRevision": "RUNTIME_OR_SESSION_REVISION",
+          "promptSha256": "JUDGE_PROMPT_SHA256",
+          "blinded": true,
+          "preference": "tie",
+          "order": "B/A",
+          "rationale": "Concrete artifact-grounded rationale naming the defects or advantages behind this decision.",
+          "reviewedAt": "YYYY-MM-DDTHH:MM:SSZ",
+          "candidateArtifactSha256": "CANDIDATE_OUTPUT_SHA256",
+          "controlArtifactSha256": "CONTROL_OUTPUT_SHA256",
+          "candidateScorecardSha256": "CANDIDATE_SCORECARD_SHA256",
+          "controlScorecardSha256": "CONTROL_SCORECARD_SHA256",
+          "scoredBeforePreference": true
+        }
+      ]
+    }
+  ]
+}

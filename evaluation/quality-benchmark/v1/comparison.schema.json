@@ -28,17 +28,22 @@
         "analysisPlanSha256",
         "corpusManifestSha256",
         "minimumTrialsPerCase",
-        "requiredQualifiedPreferencesPerTrial",
         "caseIds",
         "stoppingRule",
         "exclusionPolicy"
       ],
+      "additionalProperties": false,
       "properties": {
         "frozenAt": { "type": "string", "format": "date-time" },
         "analysisPlanSha256": { "$ref": "#/$defs/sha256" },
         "corpusManifestSha256": { "$ref": "#/$defs/sha256" },
         "minimumTrialsPerCase": { "type": "integer", "minimum": 3 },
+        "primaryPreferenceEvidence": {
+          "enum": ["qualified-human", "single-model-judge"],
+          "default": "qualified-human"
+        },
         "requiredQualifiedPreferencesPerTrial": { "type": "integer", "minimum": 2 },
+        "modelJudge": { "$ref": "#/$defs/modelJudgeContract" },
         "caseIds": {
           "type": "array",
           "minItems": 1,
@@ -47,7 +52,17 @@
         },
         "stoppingRule": { "type": "string", "minLength": 20 },
         "exclusionPolicy": { "type": "string", "minLength": 20 }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "primaryPreferenceEvidence": { "const": "single-model-judge" } },
+            "required": ["primaryPreferenceEvidence"]
+          },
+          "then": { "required": ["modelJudge"] },
+          "else": { "required": ["requiredQualifiedPreferencesPerTrial"] }
+        }
+      ]
     },
     "candidateId": { "type": "string", "minLength": 2 },
     "controlId": { "type": "string", "minLength": 2 },
@@ -66,6 +81,24 @@
   },
   "$defs": {
     "sha256": { "type": "string", "pattern": "^[A-Fa-f0-9]{64}$" },
+    "modelJudgeContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "modelRevision", "promptSha256", "requiredPassesPerTrial", "requiredOrders"],
+      "properties": {
+        "model": { "type": "string", "minLength": 3 },
+        "modelRevision": { "type": "string", "minLength": 3 },
+        "promptSha256": { "$ref": "#/$defs/sha256" },
+        "requiredPassesPerTrial": { "type": "integer", "minimum": 2 },
+        "requiredOrders": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["A/B", "B/A"] }
+        }
+      }
+    },
     "model": {
       "type": "object",
       "additionalProperties": false,
@@ -155,8 +188,20 @@
           ]
         },
         "sourceSha256": { "$ref": "#/$defs/sha256" },
-        "artifactSha256": { "$ref": "#/$defs/sha256" }
-      }
+        "artifactSha256": { "$ref": "#/$defs/sha256" },
+        "model": { "type": "string", "minLength": 3 },
+        "modelRevision": { "type": "string", "minLength": 3 },
+        "promptSha256": { "$ref": "#/$defs/sha256" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "evidenceClass": { "const": "model-judge" } },
+            "required": ["evidenceClass"]
+          },
+          "then": { "required": ["model", "modelRevision", "promptSha256"] }
+        }
+      ]
     },
     "preference": {
       "type": "object",
@@ -179,14 +224,39 @@
         "conflictOfInterest": { "type": "boolean" },
         "domainMatch": { "type": "boolean" },
         "currentTeachingRole": { "type": "string" },
+        "model": { "type": "string", "minLength": 3 },
+        "modelRevision": { "type": "string", "minLength": 3 },
+        "promptSha256": { "$ref": "#/$defs/sha256" },
         "blinded": { "const": true },
         "preference": { "enum": ["A", "B", "tie"] },
         "order": { "enum": ["A/B", "B/A"] },
         "rationale": { "type": "string", "minLength": 20 },
         "reviewedAt": { "type": "string", "format": "date-time" },
         "candidateArtifactSha256": { "$ref": "#/$defs/sha256" },
-        "controlArtifactSha256": { "$ref": "#/$defs/sha256" }
-      }
+        "controlArtifactSha256": { "$ref": "#/$defs/sha256" },
+        "candidateScorecardSha256": { "$ref": "#/$defs/sha256" },
+        "controlScorecardSha256": { "$ref": "#/$defs/sha256" },
+        "scoredBeforePreference": { "const": true }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "evidenceClass": { "const": "model-judge" } },
+            "required": ["evidenceClass"]
+          },
+          "then": {
+            "required": [
+              "model",
+              "modelRevision",
+              "promptSha256",
+              "order",
+              "candidateScorecardSha256",
+              "controlScorecardSha256",
+              "scoredBeforePreference"
+            ]
+          }
+        }
+      ]
     },
     "trial": {
       "type": "object",

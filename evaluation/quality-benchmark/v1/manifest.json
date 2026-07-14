@@ -15,10 +15,17 @@
     {
       "kind": "model-comparison-v1",
       "path": "evaluation/quality-benchmark/v1/comparison.schema.json",
-      "sha256": "3d9f73a9661b581ecd3da2c3ade69293970a25a26021ff362b8c85efa8051adb"
+      "sha256": "0b3e9b742c3969deedae7631fd1137ff97b09d0075ec64167f8d3081ae95badf"
     }
   ],
   "claimBoundary": "The corpus supports development, calibration, and matched comparisons. It does not by itself prove classroom effectiveness or instructor validation.",
+  "singleModelJudgePolicy": {
+    "templatePath": "evaluation/quality-benchmark/v1/comparison.model-judge.template.json",
+    "templateSha256": "d5e0cf7ffa651cd19a0d3f1b4a300e2bffd5eeb1d3e1deb7358dc7a538d4f4c5",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-judge-prompt-v1.md",
+    "promptSha256": "6f95f8806a094558ff4f266216e0140d7710e4f46eb155490868e54078bac266",
+    "claimBoundary": "A preregistered single model judge may support a bounded model-judged comparison only after exact provenance, scoring-first scorecard hashes, and stable A/B plus B/A outcomes. It never becomes human, instructor, independent, classroom, or multi-judge evidence."
+  },
   "splitPolicy": {
     "dev": "Open cases for scorer implementation, debugging, and failure discovery. Never use their results as held-out effect evidence.",
     "calibration": "Open cases for anchor training, rater calibration, model-judge calibration, and threshold selection. Freeze decisions before held-out access.",
