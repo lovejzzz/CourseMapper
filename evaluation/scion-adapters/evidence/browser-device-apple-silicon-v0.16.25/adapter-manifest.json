@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 2,
+  "adapter": {
+    "id": "scion-g4e2b-qat-smoke-v0167-browser",
+    "scionVersion": "0.16.7",
+    "format": "gguf-lora",
+    "scale": 16
+  },
+  "base": {
+    "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "architecture": "gemma4",
+    "role": "instruction",
+    "exactRevisionRequired": true
+  },
+  "training": {
+    "method": "orpo-lora",
+    "datasetManifestSha256": "f1c4e098ad98ca63ffb4e6454eaebad90907d4e43a753f62a0202ac2ff0cf581",
+    "datasetStatus": "smoke-only",
+    "pairCount": 101,
+    "domainCount": 5
+  },
+  "files": [
+    {
+      "path": "scion-g4e2b-qat-smoke-v0167-browser.gguf",
+      "bytes": 52704096,
+      "sha256": "0bd696e8fa582cbfcfe1ec2f9c503cbaa21c3d0dcaced86fabe9517f312135fe"
+    },
+    {
+      "path": "conversion-receipt.json",
+      "bytes": 2911,
+      "sha256": "7ba7b367275556b08624de3edbd36bb3ef921f6cdfbc07702b9292f301694c35"
+    }
+  ],
+  "runtime": {
+    "supported": [
+      "scion-wllama-webgpu-jspi-v1"
+    ]
+  },
+  "promotion": {
+    "status": "smoke",
+    "promotable": false,
+    "evidence": [
+      {
+        "type": "conversion-receipt",
+        "status": "pass",
+        "sha256": "7ba7b367275556b08624de3edbd36bb3ef921f6cdfbc07702b9292f301694c35"
+      }
+    ]
+  },
+  "generatedAt": "2026-07-13T09:42:52.497Z",
+  "conversion": {
+    "pipeline": "mlx-lora-to-peft-to-gguf-v1",
+    "sourceAdapterId": "scion-g4e2b-qat-smoke-v0167",
+    "sourceManifestSha256": "9314984be93faa4c4a8f637394e83c6363c2c397592ea032ae894dfea089286b",
+    "receiptPath": "conversion-receipt.json",
+    "converter": {
+      "id": "ggml-org/llama.cpp/convert_lora_to_gguf.py",
+      "revision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682",
+      "sha256": "7e82b74442df2faab81c30e7d83614d10905294cec92092ec2a1749700d1a378",
+      "outputType": "f16"
+    }
+  }
+}

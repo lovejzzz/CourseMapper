@@ -6,7 +6,9 @@ It does **not** answer whether the adapter writes better courses. Factual, held-
 
 ## Current status
 
-The matrix protocol and fail-closed semantic verifier ship in v0.16.12. v0.16.24 makes the localhost canary use the bounded registry end to end and quarantines any runtime that cannot prove exact rollback, but those are adversarial software-contract results rather than a new device run. No quality adapter exists and no four-profile matrix has passed. The retained v0.16.7 Chrome canary proves one Apple Silicon machine can download the public base, activate an exact-QAT smoke LoRA at scale 16, change a deterministic output, and restore base output. It does not identify all required hardware, exercise Edge, measure the memory budget, or prove interrupted-download, storage-pressure, and device-loss recovery. It therefore cannot count as promotion evidence.
+The matrix is **1/4**. v0.16.25 adds one real passing `apple-silicon-16gb` run for the permanently non-promotable scale-16 smoke adapter. Installed Chrome 150 on an Apple M4 Max with 48 GiB unified memory downloaded and independently hash-verified the exact public base, completed cold and warm loads, activated and rolled back the separate adapter, stayed inside the memory budget, recovered from a real network-aborted base download and adapter-cache eviction, and recovered after Chrome's actual GPU process was restarted. The retained path-scrubbed browser trace, console, sanitized hardware probe, runtime snapshot, and semantic run all verify.
+
+The complete matrix still fails, as it must: `integrated-8gb`, `integrated-16gb` with Edge, and `discrete-8gb` have no runs. No quality adapter exists, and this smoke run establishes neither normal-scale effect nor educational improvement. It cannot satisfy promotion evidence by itself.
 
 ## Frozen v1 profiles
 
@@ -65,9 +67,18 @@ npm run audit:scion:browser-device-matrix -- \
 
 The command writes `verification-output/scion-browser-device-matrix/latest.json` and exits nonzero unless the entire frozen matrix passes. `npm run audit:scion:adapter:promotion` runs the same semantic audit again when it verifies the manifest's `browser-device-matrix` evidence entry. A correct file hash is necessary but no longer sufficient.
 
+The reproducible Apple-Silicon capture and its expected-incomplete audit are:
+
+```bash
+npm run capture:scion:browser-device -- --reset-profile
+npm run audit:scion:browser-device-evidence
+```
+
+The capture keeps the 3.35 GB model and 52.7 MB GGUF outside Git. The tracked directory `evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25/` contains only the adapter manifest, semantic evidence/receipt, and the four bounded run artifacts. If the browser work completed but final receipt formatting failed, `--finalize-existing` reuses the finished artifacts instead of downloading the base again.
+
 ## Evidence hygiene
 
-Hardware probes must remove serial numbers, UUIDs, account names, local absolute paths, and device-management identifiers before retention. Keep only the operating-system family/version/architecture, coarse system-memory amount, GPU class/vendor/model, browser family/version, and measurements needed by the protocol. Review the trace and console log for prompts or course content before publishing them.
+Hardware probes must remove serial numbers, UUIDs, account names, local absolute paths, and device-management identifiers before retention. Keep only the operating-system family/version/architecture, coarse system-memory amount, GPU class/vendor/model, browser family/version, and measurements needed by the protocol. Capture finalization scrubs actual workspace, browser-profile, and home paths from every text-like trace entry. The retained-evidence audit independently rejects generic macOS, Linux, or Windows user paths, non-empty network cookies, authorization or API-key headers, and secret-bearing URLs. Review the trace and console log for prompts or course content before publishing them.
 
 ## Claim boundary
 

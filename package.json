@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.24",
+  "version": "0.16.25",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -95,6 +95,8 @@
     "build:scion:adapter-delivery": "node scripts/scionAdapterDeliveryBudgetAudit.mjs --write",
     "audit:scion:adapter-delivery": "node scripts/scionAdapterDeliveryBudgetAudit.mjs",
     "audit:scion:browser-device-matrix": "node scripts/scionBrowserDeviceMatrixAudit.mjs",
+    "capture:scion:browser-device": "node scripts/scionBrowserDeviceCapture.mjs",
+    "audit:scion:browser-device-evidence": "node scripts/scionBrowserDeviceEvidenceAudit.mjs",
     "train:scion:adapter": "zsh trellis/tendril/distill/run_orpo_g4.sh",
     "audit:deep-quality": "node scripts/deepProofQualityGate.mjs",
     "audit:self": "node scripts/internalSelfImprovementAudit.mjs",

@@ -12,7 +12,7 @@ import {
 } from '../src/lib/scionAdapterManifest.js';
 import { SCION_ADAPTER_MANIFEST_MAX_BYTES, SCION_ADAPTER_MAX_TOTAL_BYTES } from '../src/lib/scionAdapterRegistry.js';
 
-const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/adapter-lifecycle-v0.16.24.json';
+const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/adapter-lifecycle-v0.16.25.json';
 const BASE_CONTRACT = 'evaluation/scion-adapters/base-contracts/gemma-4-e2b.json';
 const SMOKE_EVIDENCE = 'evaluation/scion-adapters/evidence/browser-adapter-smoke-v0.16.7.json';
 const IMPLEMENTATION_FILES = [
@@ -132,7 +132,7 @@ export async function buildScionAdapterDeliveryBudgetReport({ cwd = process.cwd(
   return {
     schemaVersion: 1,
     protocol: 'scion-adapter-delivery-lifecycle-v2',
-    release: 'v0.16.24',
+    release: 'v0.16.25',
     generatedAt: generatedAt || new Date().toISOString(),
     status: 'pass-bounded-lifecycle-contract',
     promotionEligible: false,
