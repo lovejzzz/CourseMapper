@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.15",
+  "version": "0.16.16",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -64,6 +64,8 @@
     "audit:scion:model-bakeoff": "node scripts/scionModelBakeoff.mjs",
     "audit:scion:model-bakeoff:list": "node scripts/scionModelBakeoff.mjs --list",
     "audit:scion:codex-judge": "node scripts/scionCodexJudgePolicyAudit.mjs",
+    "build:scion:codex-training-reviews": "node scripts/scionCodexTrainingPreferences.mjs --templates",
+    "ingest:scion:codex-training-reviews": "node scripts/scionCodexTrainingPreferences.mjs --ingest",
     "audit:scion:compiler-burden": "node scripts/scionCompilerBurdenAudit.mjs",
     "build:scion:adapter-dataset": "node scripts/scionAdapterDataset.mjs",
     "build:scion:adapter-dataset:research": "node scripts/scionAdapterDataset.mjs --research",

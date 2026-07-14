@@ -8,11 +8,13 @@ import { pathToFileURL } from 'node:url';
 import { assessCorpusRow } from './scionPreferenceCorpusAudit.mjs';
 import { sha256File } from './scionAdapterPackage.mjs';
 import { deriveDeterministicContractEvidence } from '../src/lib/scionPreferenceGate.js';
+import { validateScionCodexTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
 
 const DEFAULT_SOURCES = [
   'trellis/tendril/distill/data-g4-orpo/train.jsonl',
   'trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl',
   'evaluation/scion-reviewed-preferences.jsonl',
+  'evaluation/scion-codex-reviewed-preferences.jsonl',
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
@@ -125,6 +127,12 @@ function lessonValue(value) {
 }
 
 function withDerivedContractEvidence(row) {
+  if (
+    row?.preferenceEvidence?.kind === 'single-model-judge-preference' &&
+    validateScionCodexTrainingPreferenceEvidence(row.preferenceEvidence).valid
+  ) {
+    return row;
+  }
   const kind = pairKind(row);
   if (!kind) return row;
   const chosen = kind === 'lesson' ? lessonValue(row.chosen) : parsed(row.chosen);
@@ -161,17 +169,17 @@ export async function buildScionAdapterDataset({
   minimumPairs = 3000,
   minimumDomains = 5,
   minimumGroupsPerDomain = 3,
-  minimumInstructorPairs = 100,
-  minimumInstructorDomains = 5,
-  minimumInstructorPairsPerDomain = 20,
+  minimumModelJudgePairs = 100,
+  minimumModelJudgeDomains = 5,
+  minimumModelJudgePairsPerDomain = 20,
   allowSmoke = false,
   allowResearch = false,
   researchMinimumPairs = 100,
   researchMinimumDomains = 4,
   researchMinimumGroupsPerDomain = 3,
-  researchMinimumInstructorPairs = 100,
-  researchMinimumInstructorDomains = 4,
-  researchMinimumInstructorPairsPerDomain = 20,
+  researchMinimumModelJudgePairs = 100,
+  researchMinimumModelJudgeDomains = 4,
+  researchMinimumModelJudgePairsPerDomain = 20,
   domainMapPath = DEFAULT_DOMAIN_MAP,
 } = {}) {
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
@@ -229,6 +237,7 @@ export async function buildScionAdapterDataset({
       ]),
   );
   const blindInstructorPairs = Number(evidenceCounts['blind-instructor-preference'] || 0);
+  const singleModelJudgePairs = Number(evidenceCounts['single-model-judge-preference'] || 0);
   const instructorDomainCounts = Object.fromEntries(
     domains.map((domain) => [
       domain,
@@ -239,6 +248,16 @@ export async function buildScionAdapterDataset({
     ]),
   );
   const blindInstructorDomains = Object.values(instructorDomainCounts).filter((count) => count > 0).length;
+  const modelJudgeDomainCounts = Object.fromEntries(
+    domains.map((domain) => [
+      domain,
+      eligible.filter(
+        (entry) =>
+          entry.domain === domain && normalize(entry.row?.preferenceEvidence?.kind) === 'single-model-judge-preference',
+      ).length,
+    ]),
+  );
+  const singleModelJudgeDomains = Object.values(modelJudgeDomainCounts).filter((count) => count > 0).length;
   const groups = [...new Set(eligible.map((entry) => entry.group))];
   const groupHashes = groups.map(stableHash).sort();
   const splitGroups = Object.fromEntries(
@@ -275,42 +294,42 @@ export async function buildScionAdapterDataset({
     pairs,
     domainCount,
     groupsPerDomain,
-    instructorPairs,
-    instructorDomains,
-    instructorPairsPerDomain,
+    modelJudgePairs,
+    modelJudgeDomains,
+    modelJudgePairsPerDomain,
   }) => {
     const issues = [...sharedIssues];
     if (eligible.length < pairs) issues.push(`verified-pairs:${eligible.length}<${pairs}`);
     if (domains.length < domainCount) issues.push(`domains:${domains.length}<${domainCount}`);
-    if (blindInstructorPairs < instructorPairs) {
-      issues.push(`blind-instructor-pairs:${blindInstructorPairs}<${instructorPairs}`);
+    if (singleModelJudgePairs < modelJudgePairs) {
+      issues.push(`single-model-judge-pairs:${singleModelJudgePairs}<${modelJudgePairs}`);
     }
-    const qualifiedInstructorDomains = Object.values(instructorDomainCounts).filter(
-      (count) => count >= instructorPairsPerDomain,
+    const qualifiedModelJudgeDomains = Object.values(modelJudgeDomainCounts).filter(
+      (count) => count >= modelJudgePairsPerDomain,
     ).length;
-    if (qualifiedInstructorDomains < instructorDomains) {
-      issues.push(`blind-instructor-qualified-domains:${qualifiedInstructorDomains}<${instructorDomains}`);
+    if (qualifiedModelJudgeDomains < modelJudgeDomains) {
+      issues.push(`single-model-judge-qualified-domains:${qualifiedModelJudgeDomains}<${modelJudgeDomains}`);
     }
     for (const [domain, count] of Object.entries(domainGroupCounts)) {
       if (count < groupsPerDomain) issues.push(`domain-groups:${domain}:${count}<${groupsPerDomain}`);
     }
-    return { issues, qualifiedInstructorDomains };
+    return { issues, qualifiedModelJudgeDomains };
   };
   const productionGate = profileGate({
     pairs: minimumPairs,
     domainCount: minimumDomains,
     groupsPerDomain: minimumGroupsPerDomain,
-    instructorPairs: minimumInstructorPairs,
-    instructorDomains: minimumInstructorDomains,
-    instructorPairsPerDomain: minimumInstructorPairsPerDomain,
+    modelJudgePairs: minimumModelJudgePairs,
+    modelJudgeDomains: minimumModelJudgeDomains,
+    modelJudgePairsPerDomain: minimumModelJudgePairsPerDomain,
   });
   const researchGate = profileGate({
     pairs: researchMinimumPairs,
     domainCount: researchMinimumDomains,
     groupsPerDomain: researchMinimumGroupsPerDomain,
-    instructorPairs: researchMinimumInstructorPairs,
-    instructorDomains: researchMinimumInstructorDomains,
-    instructorPairsPerDomain: researchMinimumInstructorPairsPerDomain,
+    modelJudgePairs: researchMinimumModelJudgePairs,
+    modelJudgeDomains: researchMinimumModelJudgeDomains,
+    modelJudgePairsPerDomain: researchMinimumModelJudgePairsPerDomain,
   });
   const productionIssues = productionGate.issues;
   const researchIssues = researchGate.issues;
@@ -343,9 +362,10 @@ export async function buildScionAdapterDataset({
     };
   }
   const manifest = {
-    schemaVersion: 2,
+    schemaVersion: 3,
     status,
     promotable: status === 'ready',
+    primaryPreferenceEvidence: 'single-model-judge',
     generatedAt: new Date().toISOString(),
     sources,
     domainMap: {
@@ -367,10 +387,13 @@ export async function buildScionAdapterDataset({
       testDomains: splitDomains.test.length,
       blindInstructorPairs,
       blindInstructorDomains,
+      singleModelJudgePairs,
+      singleModelJudgeDomains,
     },
     domains,
     evidenceCounts,
     instructorDomainCounts,
+    modelJudgeDomainCounts,
     domainGroupCounts,
     groupIdentity: {
       algorithm: 'sha256-domain-colon-course-id',
@@ -390,29 +413,30 @@ export async function buildScionAdapterDataset({
       minimumPairs,
       minimumDomains,
       minimumGroupsPerDomain,
-      minimumInstructorPairs,
-      minimumInstructorDomains,
-      minimumInstructorPairsPerDomain,
+      primaryPreferenceEvidence: 'single-model-judge',
+      minimumModelJudgePairs,
+      minimumModelJudgeDomains,
+      minimumModelJudgePairsPerDomain,
       issues: gateIssues,
       profiles: {
         production: {
           minimumPairs,
           minimumDomains,
           minimumGroupsPerDomain,
-          minimumInstructorPairs,
-          minimumInstructorDomains,
-          minimumInstructorPairsPerDomain,
-          qualifiedInstructorDomains: productionGate.qualifiedInstructorDomains,
+          minimumModelJudgePairs,
+          minimumModelJudgeDomains,
+          minimumModelJudgePairsPerDomain,
+          qualifiedModelJudgeDomains: productionGate.qualifiedModelJudgeDomains,
           issues: productionIssues,
         },
         research: {
           minimumPairs: researchMinimumPairs,
           minimumDomains: researchMinimumDomains,
           minimumGroupsPerDomain: researchMinimumGroupsPerDomain,
-          minimumInstructorPairs: researchMinimumInstructorPairs,
-          minimumInstructorDomains: researchMinimumInstructorDomains,
-          minimumInstructorPairsPerDomain: researchMinimumInstructorPairsPerDomain,
-          qualifiedInstructorDomains: researchGate.qualifiedInstructorDomains,
+          minimumModelJudgePairs: researchMinimumModelJudgePairs,
+          minimumModelJudgeDomains: researchMinimumModelJudgeDomains,
+          minimumModelJudgePairsPerDomain: researchMinimumModelJudgePairsPerDomain,
+          qualifiedModelJudgeDomains: researchGate.qualifiedModelJudgeDomains,
           issues: researchIssues,
         },
       },
@@ -433,15 +457,15 @@ function parseArgs(argv) {
     minimumPairs: 3000,
     minimumDomains: 5,
     minimumGroupsPerDomain: 3,
-    minimumInstructorPairs: 100,
-    minimumInstructorDomains: 5,
-    minimumInstructorPairsPerDomain: 20,
+    minimumModelJudgePairs: 100,
+    minimumModelJudgeDomains: 5,
+    minimumModelJudgePairsPerDomain: 20,
     researchMinimumPairs: 100,
     researchMinimumDomains: 4,
     researchMinimumGroupsPerDomain: 3,
-    researchMinimumInstructorPairs: 100,
-    researchMinimumInstructorDomains: 4,
-    researchMinimumInstructorPairsPerDomain: 20,
+    researchMinimumModelJudgePairs: 100,
+    researchMinimumModelJudgeDomains: 4,
+    researchMinimumModelJudgePairsPerDomain: 20,
     domainMapPath: DEFAULT_DOMAIN_MAP,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -451,20 +475,20 @@ function parseArgs(argv) {
     else if (arg === '--minimum-pairs') args.minimumPairs = Number(argv[++index]);
     else if (arg === '--minimum-domains') args.minimumDomains = Number(argv[++index]);
     else if (arg === '--minimum-groups-per-domain') args.minimumGroupsPerDomain = Number(argv[++index]);
-    else if (arg === '--minimum-instructor-pairs') args.minimumInstructorPairs = Number(argv[++index]);
-    else if (arg === '--minimum-instructor-domains') args.minimumInstructorDomains = Number(argv[++index]);
-    else if (arg === '--minimum-instructor-pairs-per-domain') {
-      args.minimumInstructorPairsPerDomain = Number(argv[++index]);
+    else if (arg === '--minimum-model-judge-pairs') args.minimumModelJudgePairs = Number(argv[++index]);
+    else if (arg === '--minimum-model-judge-domains') args.minimumModelJudgeDomains = Number(argv[++index]);
+    else if (arg === '--minimum-model-judge-pairs-per-domain') {
+      args.minimumModelJudgePairsPerDomain = Number(argv[++index]);
     } else if (arg === '--research-minimum-pairs') args.researchMinimumPairs = Number(argv[++index]);
     else if (arg === '--research-minimum-domains') args.researchMinimumDomains = Number(argv[++index]);
     else if (arg === '--research-minimum-groups-per-domain') {
       args.researchMinimumGroupsPerDomain = Number(argv[++index]);
-    } else if (arg === '--research-minimum-instructor-pairs') {
-      args.researchMinimumInstructorPairs = Number(argv[++index]);
-    } else if (arg === '--research-minimum-instructor-domains') {
-      args.researchMinimumInstructorDomains = Number(argv[++index]);
-    } else if (arg === '--research-minimum-instructor-pairs-per-domain') {
-      args.researchMinimumInstructorPairsPerDomain = Number(argv[++index]);
+    } else if (arg === '--research-minimum-model-judge-pairs') {
+      args.researchMinimumModelJudgePairs = Number(argv[++index]);
+    } else if (arg === '--research-minimum-model-judge-domains') {
+      args.researchMinimumModelJudgeDomains = Number(argv[++index]);
+    } else if (arg === '--research-minimum-model-judge-pairs-per-domain') {
+      args.researchMinimumModelJudgePairsPerDomain = Number(argv[++index]);
     } else if (arg === '--domain-map') args.domainMapPath = argv[++index];
     else if (arg === '--allow-smoke') args.allowSmoke = true;
     else if (arg === '--research') args.allowResearch = true;

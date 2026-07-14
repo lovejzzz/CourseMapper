@@ -75,11 +75,14 @@ export async function buildScionAdapterManifest({
       method,
       datasetManifestSha256: await sha256File(datasetPath),
       datasetStatus: dataset.status || 'unknown',
+      primaryPreferenceEvidence: dataset.primaryPreferenceEvidence || 'unknown',
       pairCount: Number(dataset.counts?.total || 0),
       domainCount: Number(dataset.counts?.domains || 0),
       groupCount: Number(dataset.counts?.groups || 0),
       instructorPairCount: Number(dataset.counts?.blindInstructorPairs || 0),
       instructorDomainCount: Number(dataset.counts?.blindInstructorDomains || 0),
+      modelJudgePairCount: Number(dataset.counts?.singleModelJudgePairs || 0),
+      modelJudgeDomainCount: Number(dataset.counts?.singleModelJudgeDomains || 0),
       domainGroupCounts:
         dataset.domainGroupCounts && typeof dataset.domainGroupCounts === 'object'
           ? structuredClone(dataset.domainGroupCounts)
@@ -87,6 +90,10 @@ export async function buildScionAdapterManifest({
       instructorDomainCounts:
         dataset.instructorDomainCounts && typeof dataset.instructorDomainCounts === 'object'
           ? structuredClone(dataset.instructorDomainCounts)
+          : {},
+      modelJudgeDomainCounts:
+        dataset.modelJudgeDomainCounts && typeof dataset.modelJudgeDomainCounts === 'object'
+          ? structuredClone(dataset.modelJudgeDomainCounts)
           : {},
       splitCounts: {
         train: Number(dataset.counts?.train || 0),

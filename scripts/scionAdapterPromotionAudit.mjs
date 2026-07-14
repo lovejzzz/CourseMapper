@@ -11,7 +11,7 @@ import { auditScionBrowserDeviceMatrix } from './lib/scionBrowserDeviceMatrix.mj
 
 const REQUIRED_EXTERNAL_EVIDENCE = [
   'factual-canaries',
-  'blind-instructor',
+  'single-model-judge',
   'browser-device-matrix',
   'production-canaries',
 ];

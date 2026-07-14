@@ -13,7 +13,9 @@ const DEFAULT_SOURCES = ['evaluation/scion-review-candidates.jsonl'];
 const DEFAULT_OUTPUT = 'verification-output/scion-blind-review';
 const DEFAULT_APPROVED = 'evaluation/scion-reviewed-preferences.jsonl';
 const DEFAULT_HELD_OUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v1.json';
-const REVIEW_PROTOCOL = 'scion-blind-instructor-review-v3';
+export const SCION_BLIND_ATOM_PACKET_PROTOCOL = 'scion-blind-atom-packet-v4';
+const REVIEW_PROTOCOL = SCION_BLIND_ATOM_PACKET_PROTOCOL;
+const INSTRUCTOR_REVIEW_PROTOCOL = 'scion-blind-instructor-review-v3';
 const FOUNDER_REVIEW_PROTOCOL = 'scion-blind-founder-review-v1';
 const REVIEW_ROLES = new Set(['working-instructor']);
 const REVIEW_CHOICES = new Set(['A', 'B', 'tie', 'both-bad']);
@@ -93,7 +95,7 @@ async function readHeldOutBenchmark(file) {
   return { path: file, sha256: hash(raw), domains };
 }
 
-function publicCaseDigest(caseRow) {
+export function publicCaseDigest(caseRow) {
   return hash(
     JSON.stringify({
       protocol: REVIEW_PROTOCOL,
@@ -110,7 +112,7 @@ function publicCaseDigest(caseRow) {
   );
 }
 
-function organizerKeyDigest(keys) {
+export function organizerKeyDigest(keys) {
   return hash(
     JSON.stringify({
       protocol: REVIEW_PROTOCOL,
@@ -131,11 +133,11 @@ function organizerKeyDigest(keys) {
   );
 }
 
-function packetDigest(cases, organizerDigest) {
+export function packetDigest(cases, organizerDigest) {
   return hash(JSON.stringify({ protocol: REVIEW_PROTOCOL, organizerDigest, cases }));
 }
 
-function organizerKeyIntegrity(key) {
+export function organizerKeyIntegrity(key) {
   if (!key?.case || key.caseDigest !== key.case.caseDigest || key.caseDigest !== publicCaseDigest(key.case)) {
     return false;
   }
@@ -192,6 +194,8 @@ export function createBlankScionReview(caseRow, reviewPacketId = '', reviewPacke
     courseGroupSha256: caseRow.courseGroupSha256,
     reviewPacketId,
     reviewPacketDigest,
+    reviewProtocol: INSTRUCTOR_REVIEW_PROTOCOL,
+    evidenceClass: 'qualified-human',
     reviewerId: '',
     reviewerRole: 'working-instructor',
     reviewerDomain: '',
@@ -686,6 +690,8 @@ export async function buildScionBlindReviewPacket({
     selectedCases: cases.length,
     availableCandidates: candidates.length,
     blind: true,
+    primaryPreferenceEvidence: 'single-model-judge',
+    requiredModelJudgeOrdersPerCase: 2,
     requiredIndependentReviewsPerCase: 2,
     domains,
     domainCounts,
@@ -775,7 +781,7 @@ export async function buildScionBlindReviewPacket({
       ),
       fs.writeFile(
         path.join(domainDir, 'README.md'),
-        `# Scion blind atom review — ${domain}\n\n## Independent instructor lane\n\nOpen \`review.html\` in a browser. It is a self-contained offline form that saves a local draft and downloads ingestion-compatible JSON when complete. Complete this lane only if you are a working instructor who currently teaches ${domain}; the final attestation confirms current domain teaching, independent review, and no conflict of interest. Two distinct domain-qualified instructors must agree on a winner, and both must score that side at least 4/5 on factual correctness and teachability before the pair can enter the curated corpus.\n\n## Solo founder-research lane\n\nOpen \`founder-review.html\` when the product founder is the only available human reviewer. It uses the same blinded cases and ratings, but exports explicitly non-independent \`founder-review\` evidence. Founder review can guide compiler repair and a non-promotable research adapter. It never satisfies the independent-instructor gate and cannot enter the production training corpus through the instructor ingestion command.\n\nBoth lanes show one case at a time, save progress locally, support case flags and navigation, and make no network requests. Review A and B without trying to identify their source. For every case, score factual correctness and teachability from 1 to 5, choose A, B, tie, or both-bad, and give a concrete rationale of at least 30 characters.\n`,
+        `# Scion blind atom review — ${domain}\n\n## Primary Codex lane\n\nThis model-neutral packet feeds the separate \`build:scion:codex-training-reviews\` workflow. Codex is the declared primary judge. Its A/B and B/A passes run in separate contexts, score both sides before preference, bind exact artifacts and scorecards, and remain explicitly single-model evidence.\n\n## Optional qualified-human lane\n\nOpen \`review.html\` only if a working instructor who currently teaches ${domain} volunteers calibration evidence. The form is self-contained, saves a local draft, and downloads ingestion-compatible JSON. Human review is optional and is never implied by the Codex lane.\n\n## Optional founder-research lane\n\nOpen \`founder-review.html\` for explicitly non-independent founder diagnostics. Founder review can guide compiler repair, but it does not become Codex, instructor, or promotion evidence.\n\nAll lanes use the same anonymous, hash-bound cases. Never describe Codex results as human, instructor, independent, classroom, or multi-judge validation.\n`,
       ),
     ];
   });
@@ -783,7 +789,7 @@ export async function buildScionBlindReviewPacket({
     fs.writeFile(path.join(reviewerDir, 'packet.json'), `${JSON.stringify({ meta, cases }, null, 2)}\n`),
     fs.writeFile(
       path.join(reviewerDir, 'README.md'),
-      `# Scion blind atom review\n\nThe full packet is an organizer overview. Each matching folder under \`by-domain/\` contains two evidence lanes that share the same blinded, hash-bound cases.\n\n- \`review.html\` is only for a working instructor who currently teaches that domain, completes the review independently, and declares no conflict of interest. Two distinct domain-qualified instructors must agree on a high-quality winner before a pair can enter the production corpus.\n- \`founder-review.html\` is for solo-founder research. Its export is explicitly non-independent, claim-ineligible \`founder-review\` evidence. It can guide compiler repair and research experiments, but it cannot promote an adapter or enter the production corpus through instructor ingestion.\n\nBoth offline pages show one case at a time, save progress locally, support flags and navigation, and make no network requests.\n`,
+      `# Scion blind atom packet\n\nThis is a model-neutral organizer overview over anonymous, hash-bound atom pairs. Codex is Scion's declared primary judge. Run \`build:scion:codex-training-reviews\` to create separate A/B and B/A batches; ingestion requires fresh sessions, scoring before preference, stable unblinded outcomes, source context, score floors, concrete defects, and exact hashes.\n\nThe \`review.html\` and \`founder-review.html\` pages remain optional calibration and diagnostic lanes. Their evidence classes stay separate. Codex results are single-model evidence and are never human, instructor, independent, classroom, or multi-judge validation.\n`,
     ),
     fs.writeFile(path.join(organizerDir, 'key.json'), `${JSON.stringify({ meta, keys }, null, 2)}\n`),
     ...domainWrites,
@@ -796,9 +802,9 @@ export async function buildScionBlindReviewPacket({
         cases.length === 0
           ? 'blocked-no-cases'
           : meta.campaignReady
-            ? 'ready-for-independent-review'
+            ? 'ready-for-model-judge'
             : meta.researchCampaignReady
-              ? 'ready-for-research-review'
+              ? 'ready-for-model-judge-research'
               : 'reviewable-incomplete-coverage',
       generatedAt: meta.generatedAt,
       packetId,
@@ -806,7 +812,9 @@ export async function buildScionBlindReviewPacket({
       organizerDigest: reviewOrganizerDigest,
       selectedCases: cases.length,
       availableCandidates: candidates.length,
-      requiredIndependentReviews: cases.length * meta.requiredIndependentReviewsPerCase,
+      primaryPreferenceEvidence: meta.primaryPreferenceEvidence,
+      requiredModelJudgePasses: cases.length * meta.requiredModelJudgeOrdersPerCase,
+      optionalQualifiedHumanReviews: cases.length * meta.requiredIndependentReviewsPerCase,
       domains,
       domainCounts,
       courseGroupCount: meta.courseGroupCount,
@@ -820,7 +828,7 @@ export async function buildScionBlindReviewPacket({
       excludedInvalidCourseGroups,
       sourceFiles: meta.sourceFiles,
       claimBoundary:
-        'This receipt proves a frozen, holdout-disjoint, hash-bound blind-review packet exists. It proves no instructor judgment, approved training pair, adapter quality, or promotion result.',
+        'This receipt proves a frozen, holdout-disjoint, hash-bound blind atom packet exists. It proves no Codex judgment, human judgment, approved training pair, adapter quality, or promotion result.',
     };
     await fs.mkdir(path.dirname(receiptOutput), { recursive: true });
     await fs.writeFile(receiptOutput, `${JSON.stringify(receipt, null, 2)}\n`);
@@ -869,6 +877,8 @@ export function validateScionBlindReview(review) {
   if (!SHA256.test(String(review?.courseGroupSha256 || ''))) issues.push('invalid-course-group-sha256');
   if (!String(review?.reviewPacketId || '').trim()) issues.push('missing-review-packet-id');
   if (!SHA256.test(String(review?.reviewPacketDigest || ''))) issues.push('invalid-review-packet-digest');
+  if (review?.reviewProtocol !== INSTRUCTOR_REVIEW_PROTOCOL) issues.push('invalid-instructor-review-protocol');
+  if (review?.evidenceClass !== 'qualified-human') issues.push('invalid-instructor-evidence-class');
   if (!String(review?.reviewerId || '').trim()) issues.push('missing-reviewer-id');
   if (!REVIEW_ROLES.has(review?.reviewerRole)) issues.push('reviewer-not-working-instructor');
   if (review?.disciplineFamiliarity !== 'teaches-domain') issues.push('reviewer-not-domain-teaching');
@@ -920,16 +930,11 @@ export function validateScionFounderReview(review) {
   return issues;
 }
 
-export async function ingestScionBlindReviews({
-  outputDir = DEFAULT_OUTPUT,
-  reviewFiles = [],
-  approvedOutput = DEFAULT_APPROVED,
-} = {}) {
-  const keyPacket = JSON.parse(await fs.readFile(path.join(outputDir, 'organizer', 'key.json'), 'utf8'));
+export function verifyScionBlindAtomOrganizerPacket(keyPacket) {
   const keys = Array.isArray(keyPacket?.keys) ? keyPacket.keys : [];
   const keyCases = keys.map((key) => key.case);
   const recomputedOrganizerDigest = organizerKeyDigest(keys);
-  const keyIntegrityPass =
+  return Boolean(
     keyPacket?.meta?.protocol === REVIEW_PROTOCOL &&
     SHA256.test(String(keyPacket?.meta?.packetDigest || '')) &&
     SHA256.test(String(keyPacket?.meta?.organizerDigest || '')) &&
@@ -938,8 +943,20 @@ export async function ingestScionBlindReviews({
     keys.every(organizerKeyIntegrity) &&
     keyPacket.meta.organizerDigest === recomputedOrganizerDigest &&
     keyPacket.meta.packetDigest === packetDigest(keyCases, recomputedOrganizerDigest) &&
-    keyPacket.meta.packetId === `scion-review-${keyPacket.meta.packetDigest.slice(0, 20)}`;
-  if (!keyIntegrityPass) throw new Error('Blind review organizer packet failed integrity verification');
+    keyPacket.meta.packetId === `scion-review-${keyPacket.meta.packetDigest.slice(0, 20)}`,
+  );
+}
+
+export async function ingestScionBlindReviews({
+  outputDir = DEFAULT_OUTPUT,
+  reviewFiles = [],
+  approvedOutput = DEFAULT_APPROVED,
+} = {}) {
+  const keyPacket = JSON.parse(await fs.readFile(path.join(outputDir, 'organizer', 'key.json'), 'utf8'));
+  const keys = Array.isArray(keyPacket?.keys) ? keyPacket.keys : [];
+  if (!verifyScionBlindAtomOrganizerPacket(keyPacket)) {
+    throw new Error('Blind review organizer packet failed integrity verification');
+  }
   const keyById = new Map(keys.map((row) => [row.pairId, row]));
   const reviews = (await Promise.all(reviewFiles.map(readReviewFile))).flat();
   const grouped = new Map();

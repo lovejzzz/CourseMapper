@@ -38,13 +38,14 @@ function browserManifest() {
       method: 'orpo-lora',
       datasetManifestSha256: HASH,
       datasetStatus: 'ready',
+      primaryPreferenceEvidence: 'single-model-judge',
       pairCount: 3000,
       domainCount: 5,
       groupCount: 15,
-      instructorPairCount: 100,
-      instructorDomainCount: 5,
+      modelJudgePairCount: 100,
+      modelJudgeDomainCount: 5,
       domainGroupCounts: domainCounts(3),
-      instructorDomainCounts: domainCounts(20),
+      modelJudgeDomainCounts: domainCounts(20),
       splitCounts: { train: 1000, valid: 1000, test: 1000 },
       splitDomainCounts: { train: 5, valid: 5, test: 5 },
     },
@@ -343,7 +344,7 @@ describe('Scion browser device matrix', () => {
     evidence.runs = evidence.runs.slice(0, 1);
     await fs.writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`);
     const evidenceFiles = {};
-    for (const type of ['factual-canaries', 'blind-instructor', 'production-canaries']) {
+    for (const type of ['factual-canaries', 'single-model-judge', 'production-canaries']) {
       const filePath = path.join(root, `${type}.json`);
       await fs.writeFile(filePath, `${JSON.stringify({ type, status: 'pass' })}\n`);
       evidenceFiles[type] = filePath;

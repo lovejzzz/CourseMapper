@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -24,6 +25,36 @@ function parseJson(value) {
   }
 }
 
+function sha256(value) {
+  return crypto.createHash('sha256').update(String(value)).digest('hex');
+}
+
+function modelJudgeBindingIssues(row, chosenRaw, rejectedRaw) {
+  if (row?.preferenceEvidence?.kind !== 'single-model-judge-preference') return [];
+  const evidence = row.preferenceEvidence;
+  const issues = [];
+  if (evidence.chosenArtifactSha256 !== sha256(JSON.stringify(chosenRaw))) {
+    issues.push('model-judge-chosen-artifact-binding');
+  }
+  if (evidence.rejectedArtifactSha256 !== sha256(JSON.stringify(rejectedRaw))) {
+    issues.push('model-judge-rejected-artifact-binding');
+  }
+  const trainingPairSha256 = sha256(
+    JSON.stringify({
+      kind: row.kind,
+      prompt: row.prompt,
+      chosen: row.chosen,
+      rejected: row.rejected,
+      domain: row.domain || row?.context?.domain,
+      courseGroupSha256: row.courseGroupSha256 || row?.context?.courseGroupSha256,
+    }),
+  );
+  if (evidence.trainingPairSha256 !== trainingPairSha256) {
+    issues.push('model-judge-training-pair-binding');
+  }
+  return issues;
+}
+
 function pairKind(row) {
   if (['lesson', 'mc-item', 'key-term'].includes(row?.kind)) return row.kind;
   if (row?.pass && row?.chosen && row?.rejected) return 'mc-item';
@@ -39,6 +70,7 @@ export function assessCorpusRow(row, source = '') {
   if (!cleanPrompt(row?.prompt)) issues.push('missing-training-prompt');
   if (!chosenRaw) issues.push('chosen-not-json');
   if (!rejectedRaw) issues.push('rejected-not-json');
+  if (chosenRaw && rejectedRaw) issues.push(...modelJudgeBindingIssues(row, chosenRaw, rejectedRaw));
   if (issues.length > 0) return { eligible: false, kind: kind || 'unknown', issues, source };
 
   const chosen = kind === 'lesson' ? (chosenRaw?.lessons?.[0] ?? chosenRaw) : chosenRaw;

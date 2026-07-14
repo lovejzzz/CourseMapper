@@ -1,0 +1,120 @@
+{
+  "version": "0.16.16",
+  "date": "July 14, 2026",
+  "title": "Judge to Gradient: Codex can teach Scion honestly",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "node --check scripts/scionCodexTrainingPreferences.mjs",
+      "node --check scripts/scionBlindReviewPacket.mjs",
+      "node --check scripts/scionAdapterDataset.mjs",
+      "npm run audit:scion:review-packet",
+      "npm run build:scion:codex-training-reviews",
+      "npm run audit:scion:codex-judge",
+      "npx vitest run tests/scion-codex-training-preferences.test.js tests/scion-preference-gate.test.js tests/scion-adapter-tooling.test.js tests/scion-adapter-manifest.test.js tests/scion-adapter-registry.test.js tests/scion-browser-device-matrix.test.js --no-file-parallelism",
+      "npm run audit:scion:model-bakeoff",
+      "npm run format:check",
+      "npm run build",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will run on the exact release commit after push."
+    },
+    "ciDeep": {
+      "status": "manual-only",
+      "note": "No model generation, adapter training, held-out adapter comparison, or browser-device matrix is claimed by this evidence-infrastructure release."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages deployment will be verified after the exact main merge passes Fast verification."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "This release generates and validates offline judge templates and training evidence; it changes no hosted model and makes no provider call."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "The primary training and comparison lane is explicitly single-model Codex evidence. Optional human lanes remain separate and are not claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01616-codex-training-preference-lane",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Neutral blind cases can enter a distinct single-model Codex training-review workflow without becoming human or independent evidence.",
+      "anchors": [
+        "scripts/scionCodexTrainingPreferences.mjs",
+        "src/lib/scionCodexTrainingEvidence.js",
+        "evaluation/scion-adapters/codex-training-review.schema.json"
+      ],
+      "proofCommands": [
+        "npm run build:scion:codex-training-reviews",
+        "npx vitest run tests/scion-codex-training-preferences.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01616-two-fresh-orders-and-score-floors",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "An accepted preference requires two fresh reversed-order Codex sessions, scoring before preference, stable unblinding, five dimension floors, a positive margin, and concrete defects.",
+      "anchors": [
+        "scripts/scionCodexTrainingPreferences.mjs",
+        "evaluation/scion-adapters/codex-judge-policy-v1.json",
+        "tests/scion-codex-training-preferences.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-codex-training-preferences.test.js tests/scion-preference-gate.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01616-end-to-end-training-byte-binding",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The corpus path binds packet, source, judge, artifacts, scorecards, passes, and exact training-pair bytes and rejects tampering, omission, identity drift, session reuse, and position disagreement.",
+      "anchors": [
+        "scripts/scionBlindReviewPacket.mjs",
+        "scripts/scionCodexTrainingPreferences.mjs",
+        "scripts/scionPreferenceCorpusAudit.mjs"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:review-packet",
+        "npx vitest run tests/scion-codex-training-preferences.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01616-model-judge-corpus-and-promotion-contract",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Dataset schema v3 and adapter gates require balanced single-model-judge evidence for research and candidate learned-quality claims while keeping optional instructor counts separate.",
+      "anchors": [
+        "scripts/scionAdapterDataset.mjs",
+        "scripts/scionAdapterPackage.mjs",
+        "src/lib/scionAdapterManifest.js",
+        "scripts/scionAdapterPromotionAudit.mjs"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-adapter-tooling.test.js tests/scion-adapter-manifest.test.js tests/scion-adapter-registry.test.js",
+        "npm run audit:scion:codex-judge"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01616-real-preflight-no-model-win",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The verified packet yields 63 source-backed cases and excludes 97, but no review is complete, no adapter exists, and no quality, speed, device, or paid-reference win is claimed.",
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "evaluation/scion-adapters/codex-judge-policy-v1.json"],
+      "proofCommands": [
+        "npm run audit:scion:review-packet",
+        "npm run build:scion:codex-training-reviews",
+        "npm run audit:scion:model-bakeoff"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

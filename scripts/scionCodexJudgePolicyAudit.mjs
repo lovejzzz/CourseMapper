@@ -5,10 +5,19 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
+import {
+  SCION_CODEX_JUDGE_POLICY_ID,
+  SCION_CODEX_TRAINING_MINIMUM_WINNER_SCORE,
+  SCION_CODEX_TRAINING_REQUIRED_ORDERS,
+  SCION_CODEX_TRAINING_REVIEW_PROTOCOL,
+  SCION_CODEX_TRAINING_SCORE_DIMENSIONS,
+} from '../src/lib/scionCodexTrainingEvidence.js';
+
 const ROOT = process.cwd();
 const POLICY_PATH = path.join(ROOT, 'evaluation', 'scion-adapters', 'codex-judge-policy-v1.json');
 const REGISTRY_PATH = path.join(ROOT, 'evaluation', 'scion-model-candidates.json');
 const TEMPLATE_PATH = path.join(ROOT, 'evaluation', 'quality-benchmark', 'v1', 'comparison.model-judge.template.json');
+const TRAINING_SCHEMA_PATH = path.join(ROOT, 'evaluation', 'scion-adapters', 'codex-training-review.schema.json');
 const DEFAULT_OUTPUT = path.join(ROOT, 'verification-output', 'scion-codex-judge-policy');
 const SHA256 = /^[a-f0-9]{64}$/;
 
@@ -25,10 +34,11 @@ function addIssue(issues, condition, message) {
 }
 
 export async function auditScionCodexJudgePolicy({ outputDir = DEFAULT_OUTPUT } = {}) {
-  const [policy, registry, template] = await Promise.all([
+  const [policy, registry, template, trainingSchema] = await Promise.all([
     readJson(POLICY_PATH),
     readJson(REGISTRY_PATH),
     readJson(TEMPLATE_PATH),
+    readJson(TRAINING_SCHEMA_PATH),
   ]);
   const issues = [];
   addIssue(issues, policy.schemaVersion === 1, 'policy schemaVersion must be 1');
@@ -90,6 +100,50 @@ export async function auditScionCodexJudgePolicy({ outputDir = DEFAULT_OUTPUT } 
   addIssue(issues, comparison.requireHashBoundArtifacts === true, 'artifact hashes must remain required');
   addIssue(issues, comparison.requireHashBoundScorecards === true, 'scorecard hashes must remain required');
   addIssue(issues, comparison.retainPositionDisagreements === true, 'position disagreements must be retained');
+
+  const training = policy.trainingPreferences || {};
+  addIssue(issues, policy.id === SCION_CODEX_JUDGE_POLICY_ID, 'judge policy id drifted');
+  addIssue(issues, training.protocol === SCION_CODEX_TRAINING_REVIEW_PROTOCOL, 'training protocol drifted');
+  addIssue(issues, training.sourcePacketProtocol === 'scion-blind-atom-packet-v4', 'atom packet protocol drifted');
+  addIssue(
+    issues,
+    training.primaryPreferenceEvidence === 'single-model-judge',
+    'training preference mode must remain single-model-judge',
+  );
+  addIssue(
+    issues,
+    JSON.stringify(training.requiredOrders) === JSON.stringify(SCION_CODEX_TRAINING_REQUIRED_ORDERS),
+    'training orders must be A/B and B/A',
+  );
+  addIssue(issues, training.requiredFreshSessions === 2, 'training must require two fresh Codex sessions');
+  addIssue(issues, training.scoreBeforePreference === true, 'training score-before-preference must remain required');
+  addIssue(issues, training.requireHashBoundArtifacts === true, 'training artifact hashes must remain required');
+  addIssue(issues, training.requireHashBoundScorecards === true, 'training scorecard hashes must remain required');
+  addIssue(issues, training.requireNeutralSourceContext === true, 'training source context must remain required');
+  addIssue(
+    issues,
+    training.minimumWinnerScore === SCION_CODEX_TRAINING_MINIMUM_WINNER_SCORE,
+    'training winner score floor drifted',
+  );
+  addIssue(
+    issues,
+    JSON.stringify(training.scoreDimensions) === JSON.stringify(SCION_CODEX_TRAINING_SCORE_DIMENSIONS),
+    'training score dimensions drifted',
+  );
+  addIssue(issues, training.minimumResearchPairs >= 100, 'research pair floor must be at least 100');
+  addIssue(issues, training.minimumResearchDomains >= 4, 'research domain floor must be at least four');
+  addIssue(issues, training.minimumCandidatePairs >= 3000, 'candidate pair floor must be at least 3000');
+  addIssue(issues, training.minimumCandidateDomains >= 5, 'candidate domain floor must be at least five');
+  addIssue(
+    issues,
+    trainingSchema.properties?.protocol?.const === SCION_CODEX_TRAINING_REVIEW_PROTOCOL,
+    'training review schema protocol drifted',
+  );
+  addIssue(
+    issues,
+    trainingSchema.properties?.judge?.properties?.promptSha256?.const === policy.judge.promptSha256,
+    'training review schema prompt hash drifted',
+  );
 
   const promotion = registry.promotionPolicy || {};
   addIssue(
@@ -163,6 +217,15 @@ export async function auditScionCodexJudgePolicy({ outputDir = DEFAULT_OUTPUT } 
       recordedPassFloor: comparison.minimumRecordedJudgePasses,
       requiredOrders: comparison.requiredOrders,
     },
+    trainingPreferences: {
+      protocol: training.protocol,
+      requiredOrders: training.requiredOrders,
+      requiredFreshSessions: training.requiredFreshSessions,
+      minimumWinnerScore: training.minimumWinnerScore,
+      minimumResearchPairs: training.minimumResearchPairs,
+      minimumCandidatePairs: training.minimumCandidatePairs,
+      approvedOutputPath: training.approvedOutputPath,
+    },
     issues,
   };
   await fs.mkdir(outputDir, { recursive: true });
@@ -179,6 +242,8 @@ export async function auditScionCodexJudgePolicy({ outputDir = DEFAULT_OUTPUT } 
       `Frozen held-out cases: ${report.heldout.caseCount}`,
       `Stable trial floor: ${report.comparison.stableTrialFloor}`,
       `Recorded reversed-order pass floor: ${report.comparison.recordedPassFloor}`,
+      `Training preference protocol: ${report.trainingPreferences.protocol}`,
+      `Training research floor: ${report.trainingPreferences.minimumResearchPairs} stable pairs`,
       '',
       `> ${report.claimBoundary}`,
       '',
