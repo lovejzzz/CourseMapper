@@ -864,6 +864,71 @@ export async function completeAndSealScionCodexTrainingReviewPass({
   return { ...sealed, validation: completed.validation, plaintextWritten: false };
 }
 
+async function decryptScionCodexTrainingReviewPass({ sealedFile, keyFile, keyPacket }) {
+  if (!sealedFile || !keyFile || !keyPacket)
+    throw new Error('Decrypting requires a sealed pass, key, and organizer packet');
+  const envelopeRaw = await fs.readFile(sealedFile);
+  const envelope = JSON.parse(envelopeRaw.toString('utf8'));
+  const envelopeCheck = verifyScionSealedCodexReviewEnvelope(envelope);
+  if (!envelopeCheck.valid)
+    throw new Error(`Sealed review envelope failed validation: ${envelopeCheck.issues.join(', ')}`);
+  const key = decodeCanonicalBase64(await fs.readFile(keyFile, 'utf8'));
+  if (!key || key.length !== 32 || hashBytes(key) !== envelope.keySha256) {
+    key?.fill(0);
+    throw new Error('Sealed review key mismatch');
+  }
+  const keySha256 = hashBytes(key);
+  let plaintext;
+  try {
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(envelope.encryption.ivBase64, 'base64'));
+    decipher.setAuthTag(Buffer.from(envelope.encryption.authTagBase64, 'base64'));
+    plaintext = Buffer.concat([decipher.update(Buffer.from(envelope.ciphertextBase64, 'base64')), decipher.final()]);
+  } catch {
+    throw new Error('Sealed review authentication failed');
+  } finally {
+    key.fill(0);
+  }
+  try {
+    if (hashBytes(plaintext) !== envelope.plaintextSha256) {
+      throw new Error('Unsealed review plaintext hash mismatch');
+    }
+    const batch = JSON.parse(plaintext.toString('utf8'));
+    const envelopeMetadata = {
+      reviewProtocol: envelope.reviewProtocol,
+      sourcePacket: envelope.sourcePacket,
+      order: envelope.order,
+      judge: envelope.judge,
+      reviewCount: envelope.reviewCount,
+    };
+    const plaintextMetadata = {
+      reviewProtocol: batch.protocol,
+      sourcePacket: batch.sourcePacket,
+      order: batch.order,
+      judge: batch.judge,
+      reviewCount: Array.isArray(batch.reviews) ? batch.reviews.length : null,
+    };
+    if (JSON.stringify(envelopeMetadata) !== JSON.stringify(plaintextMetadata)) {
+      throw new Error('Sealed review envelope metadata does not match decrypted review bytes');
+    }
+    const validation = validateCompletedBatch(batch, plaintext, keyPacket);
+    if (validation.structuralIssues.length > 0) {
+      throw new Error(`Unsealed review failed structural validation: ${validation.structuralIssues.join(', ')}`);
+    }
+    return {
+      envelope,
+      envelopeRaw,
+      envelopeSha256: hashBytes(envelopeRaw),
+      keySha256,
+      batch,
+      plaintext,
+      validation,
+    };
+  } catch (error) {
+    plaintext.fill(0);
+    throw error;
+  }
+}
+
 export async function unsealScionCodexTrainingReviewPass({
   packetDir = DEFAULT_PACKET_DIR,
   sealedFile,
@@ -874,45 +939,15 @@ export async function unsealScionCodexTrainingReviewPass({
     throw new Error('Unsealing requires --sealed, --key, and --output');
   }
   await assertJudgePromptIntegrity();
-  const envelope = JSON.parse(await fs.readFile(sealedFile, 'utf8'));
-  const envelopeCheck = verifyScionSealedCodexReviewEnvelope(envelope);
-  if (!envelopeCheck.valid)
-    throw new Error(`Sealed review envelope failed validation: ${envelopeCheck.issues.join(', ')}`);
-  const key = Buffer.from(clean(await fs.readFile(keyFile, 'utf8')), 'base64');
-  if (key.length !== 32 || hashBytes(key) !== envelope.keySha256) throw new Error('Sealed review key mismatch');
-  const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(envelope.encryption.ivBase64, 'base64'));
-  decipher.setAuthTag(Buffer.from(envelope.encryption.authTagBase64, 'base64'));
-  const plaintext = Buffer.concat([
-    decipher.update(Buffer.from(envelope.ciphertextBase64, 'base64')),
-    decipher.final(),
-  ]);
-  if (hashBytes(plaintext) !== envelope.plaintextSha256) throw new Error('Unsealed review plaintext hash mismatch');
   const { keyPacket } = await readOrganizerPacket(packetDir);
-  const batch = JSON.parse(plaintext.toString('utf8'));
-  const envelopeMetadata = {
-    reviewProtocol: envelope.reviewProtocol,
-    sourcePacket: envelope.sourcePacket,
-    order: envelope.order,
-    judge: envelope.judge,
-    reviewCount: envelope.reviewCount,
-  };
-  const plaintextMetadata = {
-    reviewProtocol: batch.protocol,
-    sourcePacket: batch.sourcePacket,
-    order: batch.order,
-    judge: batch.judge,
-    reviewCount: Array.isArray(batch.reviews) ? batch.reviews.length : null,
-  };
-  if (JSON.stringify(envelopeMetadata) !== JSON.stringify(plaintextMetadata)) {
-    throw new Error('Sealed review envelope metadata does not match decrypted review bytes');
+  const decrypted = await decryptScionCodexTrainingReviewPass({ sealedFile, keyFile, keyPacket });
+  try {
+    await fs.mkdir(path.dirname(path.resolve(outputFile)), { recursive: true });
+    await fs.writeFile(outputFile, decrypted.plaintext);
+  } finally {
+    decrypted.plaintext.fill(0);
   }
-  const validation = validateCompletedBatch(batch, plaintext, keyPacket);
-  if (validation.structuralIssues.length > 0) {
-    throw new Error(`Unsealed review failed structural validation: ${validation.structuralIssues.join(', ')}`);
-  }
-  await fs.mkdir(path.dirname(path.resolve(outputFile)), { recursive: true });
-  await fs.writeFile(outputFile, plaintext);
-  return { validation, outputFile: path.resolve(outputFile) };
+  return { validation: decrypted.validation, outputFile: path.resolve(outputFile) };
 }
 
 async function readRows(file) {
@@ -936,15 +971,16 @@ function rowIdentity(row) {
     : hash(JSON.stringify({ kind: row?.kind, prompt: row?.prompt, chosen: row?.chosen, rejected: row?.rejected }));
 }
 
-export async function ingestScionCodexTrainingReviews({
-  packetDir = DEFAULT_PACKET_DIR,
-  reviewFiles = [],
-  approvedOutput = DEFAULT_APPROVED,
-} = {}) {
-  if (reviewFiles.length !== 2) throw new Error('Provide exactly two Codex review batches: A/B and B/A.');
-  await assertJudgePromptIntegrity();
-  const { keyPacket } = await readOrganizerPacket(packetDir);
-  const batches = await Promise.all(reviewFiles.map(async (file) => JSON.parse(await fs.readFile(file, 'utf8'))));
+async function ingestScionCodexTrainingReviewBatches({
+  packetDir,
+  keyPacket,
+  batches,
+  approvedOutput,
+  sealedInputs = null,
+}) {
+  if (!Array.isArray(batches) || batches.length !== 2) {
+    throw new Error('Provide exactly two Codex review batches: A/B and B/A.');
+  }
   const byOrder = new Map(batches.map((batch) => [batch.order, batch]));
   if (byOrder.size !== 2 || !SCION_CODEX_TRAINING_REQUIRED_ORDERS.every((order) => byOrder.has(order))) {
     throw new Error('Codex review batches must contain exactly one A/B and one B/A pass.');
@@ -1141,12 +1177,94 @@ export async function ingestScionCodexTrainingReviews({
     judge: { ...judgeIdentities[0], sessionIds },
     orders: [...SCION_CODEX_TRAINING_REQUIRED_ORDERS],
     approvedOutput,
+    inputMode: sealedInputs ? 'sealed-dual-order' : 'plaintext-batches',
+    plaintextWrittenByIngestion: false,
+    ...(sealedInputs ? { sealedInputs } : {}),
     claimBoundary:
       'Approved rows are stable single-model Codex training preferences, not human, instructor, independent, classroom, or multi-judge evidence.',
   };
   const reportPath = path.join(path.resolve(packetDir), 'organizer', 'codex-ingestion-report.json');
   await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
   return { ...report, reportPath };
+}
+
+export async function ingestScionCodexTrainingReviews({
+  packetDir = DEFAULT_PACKET_DIR,
+  reviewFiles = [],
+  approvedOutput = DEFAULT_APPROVED,
+} = {}) {
+  if (reviewFiles.length !== 2) throw new Error('Provide exactly two Codex review batches: A/B and B/A.');
+  await assertJudgePromptIntegrity();
+  const { keyPacket } = await readOrganizerPacket(packetDir);
+  const batches = await Promise.all(reviewFiles.map(async (file) => JSON.parse(await fs.readFile(file, 'utf8'))));
+  return ingestScionCodexTrainingReviewBatches({ packetDir, keyPacket, batches, approvedOutput });
+}
+
+export async function ingestScionCodexSealedTrainingReviews({
+  packetDir = DEFAULT_PACKET_DIR,
+  sealedFiles = [],
+  keyFiles = [],
+  approvedOutput = DEFAULT_APPROVED,
+} = {}) {
+  if (sealedFiles.length !== 2 || keyFiles.length !== 2) {
+    throw new Error('Sealed ingestion requires exactly two envelopes and two keys: A/B and B/A.');
+  }
+  const resolvedSealedFiles = sealedFiles.map((file) => path.resolve(file));
+  const resolvedKeyFiles = keyFiles.map((file) => path.resolve(file));
+  if (new Set(resolvedSealedFiles).size !== 2) throw new Error('Sealed ingestion requires two distinct envelope files');
+  if (new Set(resolvedKeyFiles).size !== 2) throw new Error('Sealed ingestion requires two distinct key files');
+  await assertJudgePromptIntegrity();
+  const { keyPacket } = await readOrganizerPacket(packetDir);
+  const decryptionResults = await Promise.allSettled(
+    resolvedSealedFiles.map((sealedFile, index) =>
+      decryptScionCodexTrainingReviewPass({ sealedFile, keyFile: resolvedKeyFiles[index], keyPacket }),
+    ),
+  );
+  const failedDecryption = decryptionResults.find((result) => result.status === 'rejected');
+  if (failedDecryption) {
+    decryptionResults.forEach((result) => {
+      if (result.status === 'fulfilled') result.value.plaintext.fill(0);
+    });
+    throw failedDecryption.reason;
+  }
+  const decrypted = decryptionResults.map((result) => result.value);
+  let report;
+  try {
+    if (new Set(decrypted.map((entry) => entry.envelopeSha256)).size !== 2) {
+      throw new Error('Sealed ingestion requires two distinct envelope identities');
+    }
+    if (new Set(decrypted.map((entry) => entry.keySha256)).size !== 2) {
+      throw new Error('Sealed ingestion requires two independently sealed key identities');
+    }
+    const sealedInputs = decrypted
+      .map((entry) => ({
+        order: entry.batch.order,
+        envelopeSha256: entry.envelopeSha256,
+        keySha256: entry.keySha256,
+        plaintextSha256: entry.envelope.plaintextSha256,
+        reviewCount: entry.envelope.reviewCount,
+        validationStatus: entry.validation.status,
+      }))
+      .sort(
+        (left, right) =>
+          SCION_CODEX_TRAINING_REQUIRED_ORDERS.indexOf(left.order) -
+          SCION_CODEX_TRAINING_REQUIRED_ORDERS.indexOf(right.order),
+      );
+    report = await ingestScionCodexTrainingReviewBatches({
+      packetDir,
+      keyPacket,
+      batches: decrypted.map((entry) => entry.batch),
+      approvedOutput,
+      sealedInputs,
+    });
+  } finally {
+    decrypted.forEach((entry) => entry.plaintext.fill(0));
+  }
+  return {
+    ...report,
+    plaintextWritten: false,
+    outcomeDisclosure: 'combined-after-two-sealed-orders',
+  };
 }
 
 function parseArgs(argv) {
@@ -1161,6 +1279,8 @@ function parseArgs(argv) {
     keyOutput: '',
     sealedFile: '',
     keyFile: '',
+    sealedFiles: [],
+    keyFiles: [],
     outputFile: '',
     templateFile: '',
     decisionsFile: '',
@@ -1171,6 +1291,7 @@ function parseArgs(argv) {
     const arg = argv[index];
     if (arg === '--templates') args.mode = 'templates';
     else if (arg === '--ingest') args.mode = 'ingest';
+    else if (arg === '--ingest-sealed') args.mode = 'ingest-sealed';
     else if (arg === '--validate-pass') args.mode = 'validate-pass';
     else if (arg === '--complete-pass') args.mode = 'complete-pass';
     else if (arg === '--verify-sealed') args.mode = 'verify-sealed';
@@ -1190,9 +1311,19 @@ function parseArgs(argv) {
       }
     } else if (arg === '--sealed-output') args.sealedOutput = argv[++index] || args.sealedOutput;
     else if (arg === '--key-output') args.keyOutput = argv[++index] || args.keyOutput;
-    else if (arg === '--sealed') args.sealedFile = argv[++index] || args.sealedFile;
-    else if (arg === '--key') args.keyFile = argv[++index] || args.keyFile;
-    else if (arg === '--template') args.templateFile = argv[++index] || args.templateFile;
+    else if (arg === '--sealed') {
+      const sealed = argv[++index];
+      if (sealed) {
+        args.sealedFiles.push(sealed);
+        args.sealedFile = sealed;
+      }
+    } else if (arg === '--key') {
+      const key = argv[++index];
+      if (key) {
+        args.keyFiles.push(key);
+        args.keyFile = key;
+      }
+    } else if (arg === '--template') args.templateFile = argv[++index] || args.templateFile;
     else if (arg === '--decisions') args.decisionsFile = argv[++index] || args.decisionsFile;
     else if (arg === '--receipt') args.receiptFile = argv[++index] || args.receiptFile;
     else if (arg === '--delete-plaintext') args.deletePlaintext = true;
@@ -1250,6 +1381,15 @@ async function main() {
     console.log(`Scion Codex training reviews: ${report.approved} approved / ${report.quarantined} quarantined`);
     console.log(`Approved corpus: ${report.approvedOutput}`);
     console.log(`Report: ${report.reportPath}`);
+    return;
+  }
+  if (args.mode === 'ingest-sealed') {
+    const report = await ingestScionCodexSealedTrainingReviews(args);
+    console.log(`Scion sealed Codex reviews: ${report.approved} approved / ${report.quarantined} quarantined`);
+    console.log(`Approved corpus: ${report.approvedOutput}`);
+    console.log(`Report: ${report.reportPath}`);
+    console.log(`Outcome disclosure: ${report.outcomeDisclosure}`);
+    console.log(`Plaintext written: ${report.plaintextWritten}`);
     return;
   }
   const result = await buildScionCodexTrainingReviewTemplates(args);

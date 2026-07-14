@@ -10,6 +10,7 @@ import { buildScionBlindReviewPacket } from '../scripts/scionBlindReviewPacket.m
 import {
   applyScionCodexTrainingDecisions,
   buildScionCodexTrainingReviewTemplates,
+  ingestScionCodexSealedTrainingReviews,
   ingestScionCodexTrainingReviews,
   sealScionCodexTrainingReviewPass,
   unsealScionCodexTrainingReviewPass,
@@ -172,6 +173,29 @@ async function writeCompletedBatches(templateDir, options = {}) {
   return { abPath, baPath, ab, ba };
 }
 
+async function sealCompletedBatches(packetDir, templateDir, options = {}) {
+  const completed = await writeCompletedBatches(templateDir, options);
+  const abSealed = path.join(root, 'sealed', 'a-b.sealed.json');
+  const baSealed = path.join(root, 'sealed', 'b-a.sealed.json');
+  const abKey = path.join(root, 'keys', 'a-b.key');
+  const baKey = path.join(root, 'keys', 'b-a.key');
+  await sealScionCodexTrainingReviewPass({
+    packetDir,
+    reviewFile: completed.abPath,
+    sealedOutput: abSealed,
+    keyOutput: abKey,
+    deletePlaintext: true,
+  });
+  await sealScionCodexTrainingReviewPass({
+    packetDir,
+    reviewFile: completed.baPath,
+    sealedOutput: baSealed,
+    keyOutput: baKey,
+    deletePlaintext: true,
+  });
+  return { ...completed, abSealed, baSealed, abKey, baKey };
+}
+
 describe('Scion Codex training preferences', () => {
   it('builds separate reversed-order templates from source-backed anonymous cases', async () => {
     const { packet, templates, templateDir } = await buildPacket();
@@ -265,6 +289,118 @@ describe('Scion Codex training preferences', () => {
       counts: { total: 1, singleModelJudgePairs: 1, singleModelJudgeDomains: 1, blindInstructorPairs: 0 },
       modelJudgeDomainCounts: { 'user-experience-design': 1 },
     });
+  });
+
+  it('ingests two distinct sealed orders entirely in memory and emits only qualified corpus evidence', async () => {
+    const { packetDir, templateDir } = await buildPacket();
+    const sealed = await sealCompletedBatches(packetDir, templateDir);
+    const approvedOutput = path.join(root, 'sealed-approved.jsonl');
+    const report = await ingestScionCodexSealedTrainingReviews({
+      packetDir,
+      sealedFiles: [sealed.baSealed, sealed.abSealed],
+      keyFiles: [sealed.baKey, sealed.abKey],
+      approvedOutput,
+    });
+    expect(report).toMatchObject({
+      reviewedCases: 1,
+      approved: 1,
+      quarantined: 0,
+      orders: ['A/B', 'B/A'],
+      inputMode: 'sealed-dual-order',
+      plaintextWrittenByIngestion: false,
+      plaintextWritten: false,
+      outcomeDisclosure: 'combined-after-two-sealed-orders',
+      sealedInputs: [
+        {
+          order: 'A/B',
+          envelopeSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          keySha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          plaintextSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          reviewCount: 1,
+          validationStatus: 'structurally-valid-complete',
+        },
+        {
+          order: 'B/A',
+          envelopeSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          keySha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          plaintextSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          reviewCount: 1,
+          validationStatus: 'structurally-valid-complete',
+        },
+      ],
+    });
+    await expect(fs.access(sealed.abPath)).rejects.toThrow();
+    await expect(fs.access(sealed.baPath)).rejects.toThrow();
+    const row = JSON.parse((await fs.readFile(approvedOutput, 'utf8')).trim());
+    expect(assessCorpusRow(row)).toMatchObject({ eligible: true, issues: [] });
+    const persistedReport = JSON.parse(await fs.readFile(report.reportPath, 'utf8'));
+    expect(persistedReport).toMatchObject({
+      inputMode: 'sealed-dual-order',
+      plaintextWrittenByIngestion: false,
+      approved: 1,
+      quarantined: 0,
+    });
+    expect(JSON.stringify(persistedReport)).not.toContain('winnerPosition');
+  });
+
+  it('requires a complete distinct sealed pair and leaves existing outputs untouched when either key fails', async () => {
+    const { packetDir, templateDir } = await buildPacket();
+    const sealed = await sealCompletedBatches(packetDir, templateDir);
+    const approvedOutput = path.join(root, 'retained-approved.jsonl');
+    const retainedReport = path.join(packetDir, 'organizer', 'codex-ingestion-report.json');
+    await fs.writeFile(approvedOutput, 'retained-corpus-bytes\n');
+    await fs.writeFile(retainedReport, 'retained-report-bytes\n');
+    await expect(
+      ingestScionCodexSealedTrainingReviews({
+        packetDir,
+        sealedFiles: [sealed.abSealed],
+        keyFiles: [sealed.abKey],
+        approvedOutput,
+      }),
+    ).rejects.toThrow('exactly two envelopes and two keys');
+    await expect(
+      ingestScionCodexSealedTrainingReviews({
+        packetDir,
+        sealedFiles: [sealed.abSealed, sealed.baSealed],
+        keyFiles: [sealed.abKey, sealed.abKey],
+        approvedOutput,
+      }),
+    ).rejects.toThrow('two distinct key files');
+
+    const copiedEnvelope = path.join(root, 'sealed', 'copied-a-b.json');
+    const copiedKey = path.join(root, 'keys', 'copied-a-b.key');
+    await fs.copyFile(sealed.abSealed, copiedEnvelope);
+    await fs.copyFile(sealed.abKey, copiedKey);
+    await expect(
+      ingestScionCodexSealedTrainingReviews({
+        packetDir,
+        sealedFiles: [sealed.abSealed, copiedEnvelope],
+        keyFiles: [sealed.abKey, copiedKey],
+        approvedOutput,
+      }),
+    ).rejects.toThrow('two distinct envelope identities');
+
+    await expect(
+      ingestScionCodexSealedTrainingReviews({
+        packetDir,
+        sealedFiles: [sealed.abSealed, sealed.baSealed],
+        keyFiles: [sealed.baKey, sealed.abKey],
+        approvedOutput,
+      }),
+    ).rejects.toThrow('key mismatch');
+
+    const invalidKey = path.join(root, 'keys', 'invalid-b-a.key');
+    await fs.writeFile(invalidKey, 'not-a-canonical-key\n');
+    await expect(
+      ingestScionCodexSealedTrainingReviews({
+        packetDir,
+        sealedFiles: [sealed.abSealed, sealed.baSealed],
+        keyFiles: [sealed.abKey, invalidKey],
+        approvedOutput,
+      }),
+    ).rejects.toThrow('key mismatch');
+    await expect(fs.readFile(approvedOutput, 'utf8')).resolves.toBe('retained-corpus-bytes\n');
+    await expect(fs.readFile(retainedReport, 'utf8')).resolves.toBe('retained-report-bytes\n');
   });
 
   it('quarantines position-sensitive decisions instead of manufacturing consensus', async () => {

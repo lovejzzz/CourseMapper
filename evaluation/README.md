@@ -178,12 +178,14 @@ npm run build:scion:codex-training-reviews
 
 The packet derives neutral atom pairs from safely matchable real artifact entries; candidate/reference identity is metadata, never a preference label. Before matching lessons it requires exact canonical prompt and attachment identity and binds both saved-project hashes. World Literature remains excluded because its retained runs used different prompts and it belongs to the frozen held-out ruler. The 160-case packet is balanced at 40 cases each across computer science, geology, music theory, and user-experience design; all five held-out domains are excluded. Every case and the complete packet carry SHA-256 identities.
 
-The Codex templates contain only the 128 cases with neutral source context and reverse presentation order between files. Protocol v2 includes the exact source object and binds the atom-only prompt. Complete them in two isolated Codex passes with no prior outcome available, scoring both sides before selecting a winner, tie, or insufficient-evidence decision. Seal the first order before starting the second; after both fresh orders exist, unseal and ingest with:
+The Codex templates contain only the 128 cases with neutral source context and reverse presentation order between files. Protocol v2 includes the exact source object and binds the atom-only prompt. Complete them in two isolated Codex passes with no prior outcome available, scoring both sides before selecting a winner, tie, or insufficient-evidence decision. Seal the first order before starting the second; after both fresh sealed orders exist, ingest both without restoring completed pass plaintext:
 
 ```bash
-npm run ingest:scion:codex-training-reviews -- \
-  --review /path/to/codex-review-a-b.json \
-  --review /path/to/codex-review-b-a.json
+npm run ingest:scion:codex-sealed-training-reviews -- \
+  --sealed /path/to/codex-review-a-b.sealed.json \
+  --key /separate/path/to/a-b.key \
+  --sealed /path/to/codex-review-b-a.sealed.json \
+  --key /separate/path/to/b-a.key
 ```
 
 The retained v0.16.18 A/B pass is verified without outcome disclosure by `npm run audit:scion:codex-sealed-pass`. Its AES-256-GCM key is intentionally absent from Git. At release time, two 0600 local copies outside the volatile template directory passed an exact unseal/plaintext-hash round trip; a fresh clone still requires a separate key transfer. Template regeneration replaces only the two order files and receipt, preserving other nested evidence. The tracked envelope proves one structurally complete single-model pass existed at the bound hash; it proves no stable winner, training row, adapter improvement, or human evidence.
@@ -209,6 +211,10 @@ npm run complete:scion:codex-fresh-pass -- \
 ```
 
 That command re-verifies the unchanged kit and tracked receipt, validates completed decisions in memory, encrypts directly with AES-256-GCM, creates the envelope and 0600 key exclusively, and writes no completed plaintext. It prints no winner. The real B/A pass is still missing until a genuinely fresh task performs all 128 judgments; the handoff itself creates no preference or model result.
+
+v0.16.20 keeps both completed orders sealed until they can be opened together. The dual-envelope ingestion command rejects fewer or more than two envelopes or keys, duplicate paths, duplicate envelope or key identities, noncanonical keys, swapped keys, bad ciphertext or authentication tags, changed plaintext hashes, metadata drift, the wrong order pair, reused judge sessions, and any existing structural or qualification failure. Both batches are decrypted and validated in memory before the approved corpus or organizer report is touched. A failed second input therefore cannot partially ingest the first order or replace existing output bytes.
+
+Successful ingestion writes only derived evidence: stable score-qualified chosen/rejected rows and a report containing counts, hashes, and quarantine reasons. It never writes either completed pass. Stable ties, insufficient evidence, low-quality relative winners, non-positive margins, missing defects, changed bytes, and order-sensitive winners remain quarantined. The derived rows explicitly remain single-model Codex evidence. The bridge is tested, but no real B/A judgment exists yet, so the real approved corpus, adapter, held-out wins, and paid-reference parity remain zero.
 
 Ingestion reconstructs the organizer packet, verifies every prompt and artifact byte, binds four scorecards and two pass hashes, requires at least 4/5 for the winner on factual correctness, source fidelity, teachability, coherence, and task quality, and requires a positive aggregate margin plus concrete losing-side defects. Both orders must resolve to the same anonymous winner. Session reuse, identity drift, low scores, missing source context, changed bytes, missing passes, and position disagreement fail closed. The output is explicitly `single-model-judge` evidence—not human, instructor, independent, classroom, or multi-judge validation—and the dataset audit recomputes an exact training-pair digest before accepting it.
 
