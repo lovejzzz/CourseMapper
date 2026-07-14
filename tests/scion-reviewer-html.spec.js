@@ -4,7 +4,12 @@ import path from 'node:path';
 
 import { expect, test } from '@playwright/test';
 
-import { buildScionBlindReviewPacket, validateScionBlindReview } from '../scripts/scionBlindReviewPacket.mjs';
+import {
+  buildScionBlindReviewPacket,
+  buildScionReviewerHtml,
+  validateScionBlindReview,
+  validateScionFounderReview,
+} from '../scripts/scionBlindReviewPacket.mjs';
 
 test('offline instructor form exports ingestion-compatible blind review JSON', async ({ page }) => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-review-browser-'));
@@ -84,7 +89,92 @@ test('offline instructor form exports ingestion-compatible blind review JSON', a
     });
     expect(validateScionBlindReview(rows[0])).toEqual([]);
     expect(networkRequests).toEqual([]);
+
+    const founderHtml = await fs.readFile(
+      path.join(outputDir, 'reviewer', 'by-domain', 'interaction-design', 'founder-review.html'),
+      'utf8',
+    );
+    await page.setContent(founderHtml);
+    await expect(page.getByRole('heading', { name: 'Blind founder review' })).toBeVisible();
+    await expect(page.locator('.case-card:visible')).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Next case' })).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Download completed review JSON' })).toBeVisible();
+    await page.locator('[name="reviewerId"]').fill('founder-07');
+    for (const name of ['factualCorrectnessA-0', 'factualCorrectnessB-0', 'teachabilityA-0', 'teachabilityB-0']) {
+      await page.locator(`[name="${name}"]`).selectOption('5');
+    }
+    await page.locator('[name="choice-0"][value="B"]').check();
+    await page
+      .locator('[name="rationale-0"]')
+      .fill('Package B makes the bounded evidence decision more explicit for this founder research comparison.');
+    await page.locator('[name="attestation"]').check();
+    const [founderDownload] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: 'Download completed review JSON' }).click(),
+    ]);
+    expect(founderDownload.suggestedFilename()).toContain('scion-founder-review-interaction-design-founder-07');
+    const founderRows = JSON.parse(await fs.readFile(await founderDownload.path(), 'utf8'));
+    expect(founderRows).toHaveLength(1);
+    expect(founderRows[0]).toMatchObject({
+      evidenceClass: 'founder-review',
+      reviewerId: 'founder-07',
+      reviewerRole: 'product-founder',
+      reviewerDomain: 'interaction-design',
+      disciplineFamiliarity: 'self-declared',
+      independent: false,
+      conflictOfInterest: true,
+      claimEligible: false,
+      choice: 'B',
+      attestation: true,
+    });
+    expect(validateScionFounderReview(founderRows[0])).toEqual([]);
+    expect(validateScionBlindReview(founderRows[0])).toContain('reviewer-not-working-instructor');
+    expect(networkRequests).toEqual([]);
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }
+});
+
+test('founder reviewer keeps one case visible and lets a flagged case move forward', async ({ page }) => {
+  const cases = [0, 1].map((index) => ({
+    pairId: `pair-${index}`,
+    caseDigest: String(index + 1).repeat(64),
+    domain: 'interaction-design',
+    courseGroupSha256: 'a'.repeat(64),
+    lessonId: `lesson-${index + 1}`,
+    kind: 'mc-item',
+    prompt: `Judge interaction-design item ${index + 1}.`,
+    A: {
+      q: `Which observation supports decision A${index + 1}?`,
+      op: ['Repeated task failure', 'Color preference', 'Designer preference', 'Logo request'],
+      ai: 0,
+      ex: 'Repeated task failure is the directly observable evidence.',
+    },
+    B: {
+      q: `Which observation supports decision B${index + 1}?`,
+      op: ['Repeated task failure', 'Color preference', 'Designer preference', 'Logo request'],
+      ai: 0,
+      ex: 'Repeated task failure is the directly observable evidence.',
+    },
+  }));
+  const html = buildScionReviewerHtml({
+    meta: { packetId: 'navigation-packet', packetDigest: 'b'.repeat(64) },
+    domain: 'interaction-design',
+    cases,
+    mode: 'founder',
+  });
+  await page.setContent(html);
+  await expect(page.locator('.case-card:visible')).toHaveCount(1);
+  await expect(page.locator('[data-case-index="0"]')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Next case' }).click();
+  await expect(page.locator('#status')).toContainText('Complete this case or flag it');
+  await expect(page.locator('[data-case-index="0"]')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Flag for later' }).click();
+  await expect(page.locator('#case-state')).toContainText('flagged');
+  await page.getByRole('button', { name: 'Next case' }).click();
+  await expect(page.locator('[data-case-index="1"]')).toBeVisible();
+  await expect(page.locator('#progress-label')).toHaveText('Case 2 of 2 · 0 complete');
+  await expect(page.getByRole('button', { name: 'Download completed review JSON' })).toBeVisible();
 });
