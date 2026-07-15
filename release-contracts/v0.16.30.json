@@ -22,16 +22,18 @@
       "note": "A real Chrome production-preview pass verified the landing page and changelog at 1280x720 and 390x844: Scion and Scion V0.16.30 render correctly, the API field is disabled with No API key required, both routes have no horizontal overflow, and the browser console contains no warning or error logs."
     },
     "ciFast": {
-      "status": "pending-push",
-      "note": "The exact release commit must pass the full GitHub Actions fast-verification workflow."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29413129869",
+      "note": "GitHub Actions Fast verification run 29413129869 passed on exact main commit f5f8565bfafebce87ab7760db8bd49dc806a3313: formatting, lint, release history, full unit and closed-loop tests, proof smoke, the 40-course main evaluation, build, bundle budgets, and evaluation-report upload all completed successfully."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "This milestone changes an outcome-free evaluation handoff and makes no model inference or educational-quality claim; adversarial handoff fixtures and clean-checkout reconstruction are the proportional deep proof."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "The exact release commit must deploy successfully before the contract is sealed."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29414569813",
+      "note": "GitHub Pages deployment run 29414569813 built and deployed exact main commit f5f8565bfafebce87ab7760db8bd49dc806a3313 successfully. A cache-bypassed public fetch from edutool.dev returned HTTP 200 and the served release chunk contained v0.16.30, both release titles, and the no-model-quality-win boundary."
     },
     "liveProvider": {
       "status": "not-used",
