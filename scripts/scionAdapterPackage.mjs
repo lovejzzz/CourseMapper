@@ -55,13 +55,136 @@ export async function buildScionAdapterManifest({
   evidence = [],
   conversion,
   scale,
+  trainingPlan,
+  trainingResult,
+  trainingProvenance,
 } = {}) {
   if (!adapterDir) throw new Error('adapterDir is required');
   if (!datasetManifest) throw new Error('datasetManifest is required');
   const root = path.resolve(adapterDir);
   const datasetPath = path.resolve(datasetManifest);
-  const adapterFiles = await Promise.all(files.map((file) => inspectFile(root, file)));
   const dataset = JSON.parse(await fs.readFile(datasetPath, 'utf8'));
+  const requiresTrainingRun = ['research', 'candidate', 'promoted'].includes(status);
+  if (requiresTrainingRun && (!trainingPlan || !trainingResult) && !trainingProvenance) {
+    throw new Error(`${status} adapters require direct training receipts or inherited training provenance`);
+  }
+  let trainingRun = null;
+  const packageFiles = [...files];
+  if (trainingProvenance) {
+    if (trainingPlan || trainingResult) throw new Error('Direct and inherited training provenance cannot be combined');
+    if (format !== 'gguf-lora')
+      throw new Error('Inherited training provenance is only valid for converted GGUF adapters');
+    const sourceManifestPath = path.resolve(trainingProvenance.sourceManifest || '');
+    const sourceManifestFile = await inspectFile(path.dirname(sourceManifestPath), path.basename(sourceManifestPath));
+    const source = JSON.parse(await fs.readFile(sourceManifestPath, 'utf8'));
+    const sourceValidation = validateScionAdapterManifest(source);
+    if (!sourceValidation.valid) {
+      throw new Error(`Inherited source manifest is invalid: ${sourceValidation.issues.join(', ')}`);
+    }
+    if (source.adapter?.format !== 'mlx-lora-safetensors') {
+      throw new Error('Inherited training source must be an MLX LoRA adapter');
+    }
+    if (!source.training?.run) throw new Error('Inherited training source has no training run');
+    if (source.training.datasetManifestSha256 !== (await sha256File(datasetPath))) {
+      throw new Error('Inherited training source dataset does not match the converted package dataset');
+    }
+    if (conversion?.sourceAdapterId !== source.adapter?.id) {
+      throw new Error('Conversion source adapter ID does not match inherited training source');
+    }
+    if (conversion?.sourceManifestSha256 !== sourceManifestFile.sha256) {
+      throw new Error('Conversion source manifest digest does not match inherited training source');
+    }
+    const sourceRoot = path.dirname(sourceManifestPath);
+    const sourcePlanPath = path.resolve(sourceRoot, source.training.run.planPath || '');
+    const sourceResultPath = path.resolve(sourceRoot, source.training.run.resultPath || '');
+    const relativePlan = 'training-plan.json';
+    const relativeResult = 'training-result.json';
+    const relativeSourceManifest = 'source-adapter-manifest.json';
+    const targetPlanPath = path.resolve(root, relativePlan);
+    const targetResultPath = path.resolve(root, relativeResult);
+    const targetSourceManifestPath = path.resolve(root, relativeSourceManifest);
+    for (const [sourcePath, targetPath] of [
+      [sourcePlanPath, targetPlanPath],
+      [sourceResultPath, targetResultPath],
+      [sourceManifestPath, targetSourceManifestPath],
+    ]) {
+      const sourceFile = await inspectRegularFileForCopy(sourcePath);
+      try {
+        await fs.copyFile(sourceFile.absolutePath, targetPath, fs.constants.COPYFILE_EXCL);
+      } catch (error) {
+        if (error?.code !== 'EEXIST') throw error;
+        const targetFile = await inspectRegularFileForCopy(targetPath);
+        if (targetFile.sha256 !== sourceFile.sha256)
+          throw new Error(`Inherited training file already exists with different bytes: ${targetPath}`);
+      }
+    }
+    const planFile = await inspectFile(root, relativePlan);
+    const resultFile = await inspectFile(root, relativeResult);
+    const copiedSourceManifest = await inspectFile(root, relativeSourceManifest);
+    if (planFile.sha256 !== source.training.run.planSha256) throw new Error('Inherited training plan digest mismatch');
+    if (resultFile.sha256 !== source.training.run.resultSha256)
+      throw new Error('Inherited training result digest mismatch');
+    if (copiedSourceManifest.sha256 !== sourceManifestFile.sha256)
+      throw new Error('Inherited source manifest digest mismatch');
+    packageFiles.push(relativePlan, relativeResult, relativeSourceManifest);
+    trainingRun = {
+      ...structuredClone(source.training.run),
+      planPath: relativePlan,
+      resultPath: relativeResult,
+      sourceAdapterId: source.adapter.id,
+      sourceManifestPath: relativeSourceManifest,
+      sourceManifestSha256: sourceManifestFile.sha256,
+    };
+  } else if (trainingPlan || trainingResult) {
+    if (!trainingPlan || !trainingResult) throw new Error('Training plan and result must be provided together');
+    const { verifyScionAdapterTrainingRun } = await import('./scionAdapterTrainingRun.mjs');
+    const verified = await verifyScionAdapterTrainingRun({
+      planPath: trainingPlan,
+      resultPath: trainingResult,
+      datasetManifestPath: datasetPath,
+      sourceRoot: process.cwd(),
+    });
+    if (!verified.valid) throw new Error(`Invalid Scion training run: ${verified.issues.join(', ')}`);
+    if (verified.plan?.adapter?.id !== adapterId)
+      throw new Error('Training plan adapter ID does not match package adapter ID');
+    if (verified.plan?.scionVersion !== scionVersion)
+      throw new Error('Training plan Scion version does not match package version');
+    const expectedLane = status === 'research' ? 'research' : status === 'smoke' ? 'smoke' : 'production';
+    if (verified.plan?.lane !== expectedLane)
+      throw new Error(`Training plan lane does not match ${status} package status`);
+    const relativePlan = path.relative(root, path.resolve(trainingPlan)).replaceAll('\\', '/');
+    const relativeResult = path.relative(root, path.resolve(trainingResult)).replaceAll('\\', '/');
+    for (const [label, relativePath] of [
+      ['plan', relativePlan],
+      ['result', relativeResult],
+    ]) {
+      if (!relativePath || relativePath.startsWith('../') || path.isAbsolute(relativePath)) {
+        throw new Error(`Training ${label} must stay inside the adapter package`);
+      }
+      if (!packageFiles.includes(relativePath)) packageFiles.push(relativePath);
+    }
+    for (const trainedFile of verified.result?.files || []) {
+      const relativePath = String(trainedFile?.path || '').replaceAll('\\', '/');
+      if (relativePath && !packageFiles.includes(relativePath)) packageFiles.push(relativePath);
+    }
+    trainingRun = {
+      protocol: verified.plan.protocol,
+      lane: verified.plan.lane,
+      seed: verified.plan.trainer.seed,
+      planPath: relativePlan,
+      planSha256: verified.planSha256,
+      planIdentitySha256: verified.plan.identity.sha256,
+      resultPath: relativeResult,
+      resultSha256: verified.resultSha256,
+      resultIdentitySha256: verified.result.identity.sha256,
+      datasetIdentitySha256: verified.plan.dataset.identitySha256,
+      toolchainPolicySha256: verified.plan.toolchain.policySha256,
+      repositoryCommit: verified.plan.repository.commit,
+      repositoryTree: verified.plan.repository.tree,
+      repositoryDirty: false,
+    };
+  }
+  const adapterFiles = await Promise.all(packageFiles.map((file) => inspectFile(root, file)));
   const manifest = {
     schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
     adapter: {
@@ -74,6 +197,7 @@ export async function buildScionAdapterManifest({
     training: {
       method,
       datasetManifestSha256: await sha256File(datasetPath),
+      ...(dataset.identity?.sha256 ? { datasetIdentitySha256: dataset.identity.sha256 } : {}),
       datasetStatus: dataset.status || 'unknown',
       primaryPreferenceEvidence: dataset.primaryPreferenceEvidence || 'unknown',
       pairCount: Number(dataset.counts?.total || 0),
@@ -105,6 +229,7 @@ export async function buildScionAdapterManifest({
         valid: Number(dataset.counts?.validDomains || 0),
         test: Number(dataset.counts?.testDomains || 0),
       },
+      ...(trainingRun ? { run: trainingRun } : {}),
     },
     files: adapterFiles,
     runtime: { supported: RUNTIME_BY_FORMAT[format] || [] },
@@ -122,6 +247,15 @@ export async function buildScionAdapterManifest({
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
   await fs.writeFile(outputPath, `${JSON.stringify(manifest, null, 2)}\n`);
   return { manifest, outputPath };
+}
+
+async function inspectRegularFileForCopy(filePath) {
+  const absolutePath = path.resolve(filePath);
+  const stats = await fs.lstat(absolutePath);
+  if (!stats.isFile() || stats.isSymbolicLink() || stats.size <= 0) {
+    throw new Error(`Inherited training artifact must be a non-empty regular file: ${filePath}`);
+  }
+  return { absolutePath, bytes: stats.size, sha256: await sha256File(absolutePath) };
 }
 
 export async function verifyScionAdapterPackage({ manifestPath, adapterDir, requirePromoted = false } = {}) {
@@ -178,6 +312,8 @@ function parseArgs(argv) {
     else if (arg === '--method') args.method = argv[++index];
     else if (arg === '--status') args.status = argv[++index];
     else if (arg === '--evidence') args.evidence.push(argv[++index]);
+    else if (arg === '--training-plan') args.trainingPlan = argv[++index];
+    else if (arg === '--training-result') args.trainingResult = argv[++index];
     else if (arg === '--verify') args.verify = argv[++index];
     else if (arg === '--require-promoted') args.requirePromoted = true;
   }

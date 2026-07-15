@@ -32,19 +32,34 @@ if [ -n "$MODE" ] && ! $SMOKE && ! $RESEARCH; then
 fi
 
 PYTHON=${SCION_TRAIN_PYTHON:-$HOME/.cache/coursemapper/venv-g4/bin/python}
-DATASET_DIR=${SCION_ADAPTER_DATASET:-trellis/tendril/distill/data-g4-orpo/curated}
 BASE_MODEL=google/gemma-4-E2B-it-qat-q4_0-unquantized
 BASE_REVISION=1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce
 MODEL_CACHE=${SCION_MODEL_CACHE:-$HOME/.cache/coursemapper/scion-models}
-RUN_ID=${SCION_ADAPTER_ID:-scion-g4e2b-$(date -u +%Y%m%dT%H%M%SZ)}
-OUTPUT=${SCION_ADAPTER_OUTPUT:-$HOME/.cache/coursemapper/scion-adapters/$RUN_ID}
+OUTPUT_ROOT=${SCION_ADAPTER_OUTPUT_ROOT:-$HOME/.cache/coursemapper/scion-adapters}
+SEED=${SCION_TRAIN_SEED:-16031}
+LANE=production
+$SMOKE && LANE=smoke
+$RESEARCH && LANE=research
+COMMIT=$(git rev-parse HEAD^{commit})
+DATASET_DIR=${SCION_ADAPTER_DATASET:-$HOME/.cache/coursemapper/scion-datasets/$LANE-$COMMIT}
+GENERATED_AT=$(git show -s --format=%cI HEAD)
+
+if [ -n "${SCION_ADAPTER_ID:-}" ] || [ -n "${SCION_ADAPTER_OUTPUT:-}" ]; then
+  echo "REFUSING: adapter ID and output directory are derived from the hash-bound training plan; use SCION_ADAPTER_OUTPUT_ROOT."
+  exit 1
+fi
+if [ ! -x "$PYTHON" ]; then
+  echo "REFUSING: pinned Scion training Python is unavailable: $PYTHON"
+  exit 1
+fi
+mkdir -p "$DATASET_DIR" "$OUTPUT_ROOT"
 
 if $SMOKE; then
-  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --allow-smoke
+  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --generated-at "$GENERATED_AT" --allow-smoke
 elif $RESEARCH; then
-  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --research
+  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --generated-at "$GENERATED_AT" --research
 else
-  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR"
+  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --generated-at "$GENERATED_AT"
 fi
 
 MANIFEST="$DATASET_DIR/dataset-manifest.json"
@@ -72,19 +87,62 @@ BASE_PATH=$(
     --revision "$BASE_REVISION" \
     --cache-dir "$MODEL_CACHE"
 )
-mkdir -p "$OUTPUT"
+TOOLCHAIN_RECEIPT=$(mktemp "${TMPDIR:-/tmp}/scion-toolchain.XXXXXX.json")
+trap 'rm -f "$TOOLCHAIN_RECEIPT"' EXIT
+"$PYTHON" trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py --inspect-toolchain > "$TOOLCHAIN_RECEIPT"
 
-"$PYTHON" -m mlx_vlm.lora \
+PLAN_JSON=$(node scripts/scionAdapterTrainingRun.mjs \
+  --plan \
+  --lane "$LANE" \
+  --dataset-manifest "$MANIFEST" \
+  --base-snapshot "$BASE_PATH" \
+  --toolchain-receipt "$TOOLCHAIN_RECEIPT" \
+  --output-root "$OUTPUT_ROOT" \
+  --seed "$SEED" \
+  --iterations "$ITERS")
+OUTPUT=$(node -e 'const value=JSON.parse(process.argv[1]); process.stdout.write(value.outputDir)' "$PLAN_JSON")
+RUN_ID=$(node -e 'const value=JSON.parse(process.argv[1]); process.stdout.write(value.adapterId)' "$PLAN_JSON")
+PLAN="$OUTPUT/training-plan.json"
+
+set +e
+"$PYTHON" trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py \
+  --scion-seed "$SEED" \
+  --scion-validation-split validation \
+  -- \
   --model-path "$BASE_PATH" \
   --dataset "$DATASET_DIR" \
   --split train \
   --train-mode orpo \
   --iters "$ITERS" \
-  --batch-size 2 \
+  --batch-size 1 \
+  --learning-rate 0.00002 \
   --steps-per-report 20 \
+  --steps-per-eval 200 \
   --steps-per-save 100 \
+  --val-batches 4 \
+  --max-seq-length 2048 \
+  --grad-checkpoint \
+  --gradient-accumulation-steps 2 \
   --lora-rank 16 \
-  --output-path "$OUTPUT"
+  --lora-alpha 16 \
+  --lora-dropout 0 \
+  --beta 0.1 \
+  --eps 0.00000001 \
+  --output-path "$OUTPUT" 2>&1 | tee "$OUTPUT/training.log"
+TRAIN_STATUS=$pipestatus[1]
+set -e
+if [ "$TRAIN_STATUS" -ne 0 ]; then
+  echo "REFUSING: seeded Scion training failed; the incomplete plan remains non-packaged at $OUTPUT"
+  exit "$TRAIN_STATUS"
+fi
+
+node scripts/scionAdapterTrainingRun.mjs --complete --plan-file "$PLAN"
+RESULT="$OUTPUT/training-result.json"
+node scripts/scionAdapterTrainingRun.mjs \
+  --verify \
+  --plan-file "$PLAN" \
+  --result-file "$RESULT" \
+  --dataset-manifest "$MANIFEST"
 
 SCION_VERSION=$(node -p 'require("./package.json").version')
 PACKAGE_STATUS=candidate
@@ -95,9 +153,15 @@ node scripts/scionAdapterPackage.mjs \
   --adapter-id "$RUN_ID" \
   --scion-version "$SCION_VERSION" \
   --dataset-manifest "$MANIFEST" \
+  --training-plan "$PLAN" \
+  --training-result "$RESULT" \
   --status "$PACKAGE_STATUS" \
   --output "$OUTPUT/scion-adapter.json"
 
-echo "=== training done — run the checkpoint gates before ANY adoption ==="
+node scripts/scionAdapterPackage.mjs --verify "$OUTPUT/scion-adapter.json"
+
+echo "=== seeded, receipt-bound training done — run the checkpoint gates before ANY adoption ==="
+echo "training plan: $PLAN"
+echo "training result: $RESULT"
 echo "adapter package: $OUTPUT/scion-adapter.json"
 echo "serve a checkpoint: SCION_ADAPTER_MANIFEST=$OUTPUT/scion-adapter.json npm run local-model"

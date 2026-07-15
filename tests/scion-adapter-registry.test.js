@@ -63,6 +63,10 @@ function binaryResponse(
 async function fixture(adapterId = 'scion-g4e2b-v1') {
   const adapterBytes = encoder.encode(`adapter-weights:${adapterId}`);
   const adapterSha256 = await sha256Hex(adapterBytes);
+  const trainingPlanBytes = encoder.encode(`{"adapterId":"${adapterId}","kind":"training-plan"}\n`);
+  const trainingResultBytes = encoder.encode(`{"adapterId":"${adapterId}","kind":"training-result"}\n`);
+  const trainingPlanSha256 = await sha256Hex(trainingPlanBytes);
+  const trainingResultSha256 = await sha256Hex(trainingResultBytes);
   const manifest = {
     schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
     adapter: { id: adapterId, scionVersion: '0.16.7', format: 'mlx-lora-safetensors' },
@@ -70,6 +74,7 @@ async function fixture(adapterId = 'scion-g4e2b-v1') {
     training: {
       method: 'orpo-lora',
       datasetManifestSha256: 'd'.repeat(64),
+      datasetIdentitySha256: 'c'.repeat(64),
       datasetStatus: 'ready',
       primaryPreferenceEvidence: 'single-model-judge',
       pairCount: 3200,
@@ -81,8 +86,28 @@ async function fixture(adapterId = 'scion-g4e2b-v1') {
       modelJudgeDomainCounts: Object.fromEntries(TRAINING_DOMAINS.map((domain) => [domain, 20])),
       splitCounts: { train: 1200, valid: 1000, test: 1000 },
       splitDomainCounts: { train: 5, valid: 5, test: 5 },
+      run: {
+        protocol: 'scion-adapter-training-run-v1',
+        lane: 'production',
+        seed: 16031,
+        planPath: 'training-plan.json',
+        planSha256: trainingPlanSha256,
+        planIdentitySha256: '1'.repeat(64),
+        resultPath: 'training-result.json',
+        resultSha256: trainingResultSha256,
+        resultIdentitySha256: '2'.repeat(64),
+        datasetIdentitySha256: 'c'.repeat(64),
+        toolchainPolicySha256: '3'.repeat(64),
+        repositoryCommit: '4'.repeat(40),
+        repositoryTree: '5'.repeat(40),
+        repositoryDirty: false,
+      },
     },
-    files: [{ path: 'adapters.safetensors', bytes: adapterBytes.byteLength, sha256: adapterSha256 }],
+    files: [
+      { path: 'adapters.safetensors', bytes: adapterBytes.byteLength, sha256: adapterSha256 },
+      { path: 'training-plan.json', bytes: trainingPlanBytes.byteLength, sha256: trainingPlanSha256 },
+      { path: 'training-result.json', bytes: trainingResultBytes.byteLength, sha256: trainingResultSha256 },
+    ],
     runtime: { supported: ['mlx-vlm'] },
     promotion: {
       status: 'promoted',
@@ -92,7 +117,14 @@ async function fixture(adapterId = 'scion-g4e2b-v1') {
   };
   const manifestBytes = encoder.encode(`${JSON.stringify(manifest, null, 2)}\n`);
   const manifestSha256 = await sha256Hex(manifestBytes);
-  return { adapterBytes, manifest, manifestBytes, manifestSha256 };
+  return {
+    adapterBytes,
+    trainingPlanBytes,
+    trainingResultBytes,
+    manifest,
+    manifestBytes,
+    manifestSha256,
+  };
 }
 
 async function replacementFixture(currentFixture, content) {
@@ -105,14 +137,35 @@ async function replacementFixture(currentFixture, content) {
   };
   const manifestBytes = encoder.encode(`${JSON.stringify(manifest, null, 2)}\n`);
   const manifestSha256 = await sha256Hex(manifestBytes);
-  return { adapterBytes, manifest, manifestBytes, manifestSha256 };
+  return {
+    adapterBytes,
+    trainingPlanBytes: currentFixture.trainingPlanBytes,
+    trainingResultBytes: currentFixture.trainingResultBytes,
+    manifest,
+    manifestBytes,
+    manifestSha256,
+  };
 }
 
-function fetchFixture({ manifestBytes, adapterBytes, fileOverride, manifestOptions, fileOptions } = {}) {
+function fetchFixture({
+  manifestBytes,
+  adapterBytes,
+  trainingPlanBytes,
+  trainingResultBytes,
+  fileOverride,
+  manifestOptions,
+  fileOptions,
+} = {}) {
   return vi.fn(async (url) => {
     if (url === MANIFEST_URL) return binaryResponse(manifestBytes, manifestOptions);
     if (url === new URL('adapters.safetensors', MANIFEST_URL).href) {
       return binaryResponse(fileOverride || adapterBytes, fileOptions);
+    }
+    if (url === new URL('training-plan.json', MANIFEST_URL).href) {
+      return binaryResponse(trainingPlanBytes || new Uint8Array());
+    }
+    if (url === new URL('training-result.json', MANIFEST_URL).href) {
+      return binaryResponse(trainingResultBytes || new Uint8Array());
     }
     return binaryResponse(new Uint8Array(), { status: 404 });
   });
@@ -150,13 +203,16 @@ describe('Scion browser adapter registry', () => {
       adapterId: 'scion-g4e2b-v1',
       manifestSha256: currentFixture.manifestSha256,
       state: 'installed',
-      totalBytes: currentFixture.adapterBytes.byteLength,
+      totalBytes:
+        currentFixture.adapterBytes.byteLength +
+        currentFixture.trainingPlanBytes.byteLength +
+        currentFixture.trainingResultBytes.byteLength,
     });
     await expect(verifyInstalledScionAdapter({ adapterId: record.adapterId, store })).resolves.toMatchObject({
       valid: true,
       issues: [],
     });
-    expect(progress.filter((entry) => entry.phase === 'downloading')).toHaveLength(2);
+    expect(progress.filter((entry) => entry.phase === 'downloading')).toHaveLength(4);
     expect(progress[0].progress).toBeGreaterThan(0);
     expect(progress[0].progress).toBeLessThan(1);
     expect(progress.at(-1)).toMatchObject({ phase: 'installed', progress: 1 });
@@ -256,6 +312,12 @@ describe('Scion browser adapter registry', () => {
       if (url === new URL('adapters.safetensors', MANIFEST_URL).href) {
         return binaryResponse(currentFixture.adapterBytes);
       }
+      if (url === new URL('training-plan.json', MANIFEST_URL).href) {
+        return binaryResponse(currentFixture.trainingPlanBytes);
+      }
+      if (url === new URL('training-result.json', MANIFEST_URL).href) {
+        return binaryResponse(currentFixture.trainingResultBytes);
+      }
       if (url === new URL('conversion-receipt.json', MANIFEST_URL).href) {
         return binaryResponse(tamperedReceipt);
       }
@@ -270,7 +332,7 @@ describe('Scion browser adapter registry', () => {
         store,
       }),
     ).rejects.toMatchObject({ code: 'SCION_ADAPTER_FILE_INTEGRITY' });
-    expect(fetchImpl).toHaveBeenCalledTimes(3);
+    expect(fetchImpl).toHaveBeenCalledTimes(5);
     expect(commitAdapter).not.toHaveBeenCalled();
     await expect(store.listAdapters()).resolves.toEqual([]);
   });

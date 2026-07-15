@@ -128,6 +128,33 @@ function balancedTrainingEvidence(domains = TRAINING_DOMAINS, modelJudgePairsPer
   };
 }
 
+function bindSyntheticTrainingRun(manifest, lane = 'production') {
+  const planSha256 = '1'.repeat(64);
+  const resultSha256 = '2'.repeat(64);
+  manifest.training.datasetIdentitySha256 ||= '3'.repeat(64);
+  manifest.training.run = {
+    protocol: 'scion-adapter-training-run-v1',
+    lane,
+    seed: 16031,
+    planPath: 'training-plan.json',
+    planSha256,
+    planIdentitySha256: '4'.repeat(64),
+    resultPath: 'training-result.json',
+    resultSha256,
+    resultIdentitySha256: '5'.repeat(64),
+    datasetIdentitySha256: manifest.training.datasetIdentitySha256,
+    toolchainPolicySha256: '6'.repeat(64),
+    repositoryCommit: '7'.repeat(40),
+    repositoryTree: '8'.repeat(40),
+    repositoryDirty: false,
+  };
+  manifest.files.push(
+    { path: 'training-plan.json', bytes: 512, sha256: planSha256 },
+    { path: 'training-result.json', bytes: 512, sha256: resultSha256 },
+  );
+  return manifest;
+}
+
 describe('Scion adapter tooling', () => {
   it('builds a leakage-safe smoke dataset while quarantining duplicate pairs', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-dataset-'));
@@ -360,8 +387,11 @@ describe('Scion adapter tooling', () => {
       adapterId: 'scion-heldout-test-v1',
       scionVersion: '0.16.8',
       datasetManifest: datasetManifestPath,
-      status: 'candidate',
+      status: 'smoke',
     });
+    built.manifest.promotion = { status: 'candidate', promotable: false, evidence: [] };
+    bindSyntheticTrainingRun(built.manifest);
+    await fs.writeFile(built.outputPath, `${JSON.stringify(built.manifest, null, 2)}\n`);
     const adapterManifestSha256 = await sha256File(built.outputPath);
     const adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(built.manifest).sha256;
     await fs.writeFile(path.join(root, 'package-lock.json'), '{"lockfileVersion":3}\n');
@@ -581,10 +611,11 @@ describe('Scion adapter tooling', () => {
       domainMap: { entries: 1, sha256: expect.stringMatching(/^[a-f0-9]{64}$/) },
     });
     expect(JSON.parse(curated)).toMatchObject({
-      context: { domain: 'user-experience-design', courseId: 'ux-101', domainSource: 'registry' },
-      preferenceEvidence: {
-        kind: 'deterministic-contract-margin',
-        scope: 'non-semantic-contract-only',
+      provenance: {
+        domain: 'user-experience-design',
+        domainSource: 'registry',
+        preferenceEvidenceKind: 'deterministic-contract-margin',
+        preferenceEvidenceScope: 'non-semantic-contract-only',
       },
     });
   });
@@ -667,6 +698,7 @@ describe('Scion adapter tooling', () => {
         ),
       },
     };
+    bindSyntheticTrainingRun(manifest);
     const adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(manifest).sha256;
     const domains = ['ethics', 'music', 'ux', 'geology', 'literature'];
     const pairedComparison = (domain, index, variant) => ({
@@ -805,6 +837,7 @@ describe('Scion adapter tooling', () => {
         ),
       },
     };
+    bindSyntheticTrainingRun(manifest);
     const adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(manifest).sha256;
     const comparison = (variant) => ({
       protocolVersion: 1,

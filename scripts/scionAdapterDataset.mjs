@@ -18,6 +18,12 @@ const DEFAULT_SOURCES = [
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
+export const SCION_ORPO_TRAINING_FORMAT = Object.freeze({
+  protocol: 'scion-orpo-conversations-v1',
+  columns: Object.freeze(['chosen', 'rejected', 'provenance']),
+  sequence: Object.freeze(['user', 'assistant']),
+  promptIncludedInBothSequences: true,
+});
 
 function normalize(value) {
   return String(value ?? '')
@@ -28,6 +34,55 @@ function normalize(value) {
 
 function stableHash(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
+}
+
+function canonicalize(value) {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, canonicalize(value[key])]),
+  );
+}
+
+function stableJson(value) {
+  return JSON.stringify(canonicalize(value));
+}
+
+export function computeScionAdapterDatasetIdentity(manifest) {
+  const sourceReceipts = Array.isArray(manifest?.sourceReceipts)
+    ? manifest.sourceReceipts.map((entry) => ({
+        status: entry?.status,
+        ...(entry?.status === 'verified' ? { bytes: entry?.bytes, sha256: entry?.sha256 } : {}),
+      }))
+    : [];
+  return stableHash(
+    stableJson({
+      protocol: 'scion-adapter-dataset-identity-v1',
+      schemaVersion: manifest?.schemaVersion,
+      status: manifest?.status,
+      promotable: manifest?.promotable,
+      primaryPreferenceEvidence: manifest?.primaryPreferenceEvidence,
+      sourceReceipts,
+      domainMap: {
+        entries: manifest?.domainMap?.entries,
+        sha256: manifest?.domainMap?.sha256 || null,
+      },
+      counts: manifest?.counts,
+      domains: manifest?.domains,
+      evidenceCounts: manifest?.evidenceCounts,
+      instructorDomainCounts: manifest?.instructorDomainCounts,
+      modelJudgeDomainCounts: manifest?.modelJudgeDomainCounts,
+      domainGroupCounts: manifest?.domainGroupCounts,
+      groupIdentity: manifest?.groupIdentity,
+      splitIdentity: manifest?.splitIdentity,
+      trainingFormat: manifest?.trainingFormat,
+      gate: manifest?.gate,
+      leakage: manifest?.leakage,
+      files: manifest?.files,
+    }),
+  );
 }
 
 function parsed(value) {
@@ -115,6 +170,24 @@ async function readJsonl(source) {
   }
 }
 
+async function inspectDatasetSource(source) {
+  try {
+    const stats = await fs.lstat(source);
+    if (!stats.isFile() || stats.isSymbolicLink()) {
+      throw new Error(`Dataset source must be a regular file: ${source}`);
+    }
+    return {
+      path: source,
+      status: 'verified',
+      bytes: stats.size,
+      sha256: await sha256File(source),
+    };
+  } catch (error) {
+    if (error?.code === 'ENOENT') return { path: source, status: 'missing' };
+    throw error;
+  }
+}
+
 function pairKind(row) {
   if (['lesson', 'mc-item', 'key-term'].includes(row?.kind)) return row.kind;
   if (row?.pass && row?.chosen && row?.rejected) return 'mc-item';
@@ -124,6 +197,36 @@ function pairKind(row) {
 function lessonValue(value) {
   const object = parsed(value);
   return object?.lessons?.[0] ?? object;
+}
+
+function trainingText(value) {
+  if (typeof value === 'string') return value.trim();
+  return stableJson(value);
+}
+
+export function toScionOrpoTrainingRow(entry) {
+  const row = entry?.row || entry;
+  const prompt = trainingText(row?.prompt);
+  const sequence = (response) => [
+    { role: 'user', content: prompt },
+    { role: 'assistant', content: trainingText(response) },
+  ];
+  return {
+    chosen: sequence(row?.chosen),
+    rejected: sequence(row?.rejected),
+    provenance: {
+      pairSha256: entry?.fingerprint || pairFingerprint(row),
+      sourceIndex: Number.isSafeInteger(entry?.sourceIndex) ? entry.sourceIndex : -1,
+      sourceLine: Number.isSafeInteger(entry?.line) ? entry.line : -1,
+      split: entry?.split || '',
+      domain: entry?.domain || normalize(row?.context?.domain).toLowerCase(),
+      courseGroupSha256: entry?.group ? stableHash(entry.group) : '',
+      domainSource: normalize(row?.context?.domainSource),
+      pairKind: pairKind(row),
+      preferenceEvidenceKind: normalize(row?.preferenceEvidence?.kind),
+      preferenceEvidenceScope: normalize(row?.preferenceEvidence?.scope),
+    },
+  };
 }
 
 function withDerivedContractEvidence(row) {
@@ -181,7 +284,9 @@ export async function buildScionAdapterDataset({
   researchMinimumModelJudgeDomains = 4,
   researchMinimumModelJudgePairsPerDomain = 20,
   domainMapPath = DEFAULT_DOMAIN_MAP,
+  generatedAt = new Date().toISOString(),
 } = {}) {
+  const sourceReceipts = await Promise.all(sources.map(inspectDatasetSource));
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
   const domainMap = await readDomainMap(domainMapPath);
   const eligible = [];
@@ -220,13 +325,20 @@ export async function buildScionAdapterDataset({
         domainSource,
       },
     };
-    eligible.push({ ...entry, row: curatedRow, fingerprint, group, domain });
+    eligible.push({
+      ...entry,
+      sourceIndex: sources.indexOf(entry.source),
+      row: curatedRow,
+      fingerprint,
+      group,
+      domain,
+    });
   }
 
   const groupSplits = assignGroupSplits(eligible);
   for (const entry of eligible) entry.split = groupSplits.get(entry.group);
   const splitRows = { train: [], valid: [], test: [] };
-  for (const entry of eligible) splitRows[entry.split].push(entry.row);
+  for (const entry of eligible) splitRows[entry.split].push(toScionOrpoTrainingRow(entry));
   const domains = [...new Set(eligible.map((entry) => entry.domain).filter((domain) => domain !== 'unknown'))].sort();
   const evidenceCounts = Object.fromEntries(
     [...new Set(eligible.map((entry) => normalize(entry.row?.preferenceEvidence?.kind) || 'missing'))]
@@ -366,8 +478,9 @@ export async function buildScionAdapterDataset({
     status,
     promotable: status === 'ready',
     primaryPreferenceEvidence: 'single-model-judge',
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     sources,
+    sourceReceipts,
     domainMap: {
       path: domainMapPath,
       entries: Object.keys(domainMap).length,
@@ -409,6 +522,7 @@ export async function buildScionAdapterDataset({
       ),
       domains: splitDomains,
     },
+    trainingFormat: SCION_ORPO_TRAINING_FORMAT,
     gate: {
       minimumPairs,
       minimumDomains,
@@ -444,6 +558,10 @@ export async function buildScionAdapterDataset({
     leakage: { groupOverlapCount: leakage.length, overlaps: leakage },
     files,
     quarantine,
+  };
+  manifest.identity = {
+    protocol: 'scion-adapter-dataset-identity-v1',
+    sha256: computeScionAdapterDatasetIdentity(manifest),
   };
   const manifestPath = path.join(absoluteOutput, 'dataset-manifest.json');
   await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
@@ -490,6 +608,7 @@ function parseArgs(argv) {
     } else if (arg === '--research-minimum-model-judge-pairs-per-domain') {
       args.researchMinimumModelJudgePairsPerDomain = Number(argv[++index]);
     } else if (arg === '--domain-map') args.domainMapPath = argv[++index];
+    else if (arg === '--generated-at') args.generatedAt = argv[++index];
     else if (arg === '--allow-smoke') args.allowSmoke = true;
     else if (arg === '--research') args.allowResearch = true;
   }

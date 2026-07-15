@@ -1,4 +1,5 @@
-export const SCION_ADAPTER_MANIFEST_SCHEMA_VERSION = 2;
+export const SCION_ADAPTER_MANIFEST_SCHEMA_VERSION = 3;
+const SUPPORTED_SCION_ADAPTER_MANIFEST_SCHEMA_VERSIONS = new Set([2, SCION_ADAPTER_MANIFEST_SCHEMA_VERSION]);
 
 export const SCION_LLAMA_CPP_REVISION = '5ec717d1256e34558a44dc09adf1e6e16f2e2682';
 export const SCION_LLAMA_CPP_LORA_CONVERTER_SHA256 = '7e82b74442df2faab81c30e7d83614d10905294cec92092ec2a1749700d1a378';
@@ -97,7 +98,7 @@ export function validateScionAdapterManifest(
   if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
     return { valid: false, issues: ['manifest-not-object'] };
   }
-  if (manifest.schemaVersion !== SCION_ADAPTER_MANIFEST_SCHEMA_VERSION) issues.push('schema-version');
+  if (!SUPPORTED_SCION_ADAPTER_MANIFEST_SCHEMA_VERSIONS.has(manifest.schemaVersion)) issues.push('schema-version');
   if (!ADAPTER_ID_RE.test(clean(manifest.adapter?.id))) issues.push('adapter-id');
   if (!/^\d+\.\d+\.\d+(?:[-+][a-z0-9.-]+)?$/i.test(clean(manifest.adapter?.scionVersion))) {
     issues.push('scion-version');
@@ -133,6 +134,58 @@ export function validateScionAdapterManifest(
     issues.push(`${promotionStatus || 'unknown'}-must-not-promote`);
   }
   if (promotionStatus === 'promoted' && manifest.promotion?.promotable !== true) issues.push('promoted-flag');
+  if (manifest.schemaVersion === 2 && !['smoke', 'rejected'].includes(promotionStatus)) {
+    issues.push('legacy-schema-mechanical-only');
+  }
+  const requiresTrainingRun = ['research', 'candidate', 'promoted'].includes(promotionStatus);
+  const trainingRun = manifest.training?.run;
+  if (requiresTrainingRun && manifest.schemaVersion !== SCION_ADAPTER_MANIFEST_SCHEMA_VERSION) {
+    issues.push('training-run-schema-version');
+  }
+  if (requiresTrainingRun || trainingRun != null) {
+    if (!trainingRun || typeof trainingRun !== 'object' || Array.isArray(trainingRun)) {
+      issues.push('training-run-missing');
+    } else {
+      const expectedLane =
+        promotionStatus === 'research' ? 'research' : promotionStatus === 'smoke' ? 'smoke' : 'production';
+      if (clean(trainingRun.protocol) !== 'scion-adapter-training-run-v1') issues.push('training-run-protocol');
+      if (clean(trainingRun.lane) !== expectedLane) issues.push('training-run-lane');
+      if (!Number.isSafeInteger(trainingRun.seed) || trainingRun.seed < 0 || trainingRun.seed > 0xffffffff) {
+        issues.push('training-run-seed');
+      }
+      for (const key of [
+        'planSha256',
+        'planIdentitySha256',
+        'resultSha256',
+        'resultIdentitySha256',
+        'datasetIdentitySha256',
+        'toolchainPolicySha256',
+      ]) {
+        if (!SHA256_RE.test(clean(trainingRun[key]))) issues.push(`training-run-${key}`);
+      }
+      if (!REVISION_RE.test(clean(trainingRun.repositoryCommit))) issues.push('training-run-repository-commit');
+      if (!REVISION_RE.test(clean(trainingRun.repositoryTree))) issues.push('training-run-repository-tree');
+      if (trainingRun.repositoryDirty !== false) issues.push('training-run-repository-dirty');
+      if (!SHA256_RE.test(clean(manifest.training?.datasetIdentitySha256))) issues.push('dataset-identity-sha256');
+      if (clean(manifest.training?.datasetIdentitySha256) !== clean(trainingRun.datasetIdentitySha256)) {
+        issues.push('training-run-dataset-identity-mismatch');
+      }
+      const planPath = clean(trainingRun.planPath).replaceAll('\\', '/');
+      const resultPath = clean(trainingRun.resultPath).replaceAll('\\', '/');
+      if (!safeRelativePath(planPath)) issues.push('training-run-plan-path');
+      if (!safeRelativePath(resultPath)) issues.push('training-run-result-path');
+      if (planPath === resultPath) issues.push('training-run-receipt-path-collision');
+      const planFile = files.find((file) => clean(file?.path).replaceAll('\\', '/') === planPath);
+      const resultFile = files.find((file) => clean(file?.path).replaceAll('\\', '/') === resultPath);
+      if (!planFile) issues.push('training-run-plan-unbound');
+      else if (clean(planFile.sha256) !== clean(trainingRun.planSha256))
+        issues.push('training-run-plan-sha256-mismatch');
+      if (!resultFile) issues.push('training-run-result-unbound');
+      else if (clean(resultFile.sha256) !== clean(trainingRun.resultSha256)) {
+        issues.push('training-run-result-sha256-mismatch');
+      }
+    }
+  }
   if (
     promotionStatus === 'promoted' &&
     !(Array.isArray(manifest.promotion?.evidence) ? manifest.promotion.evidence : []).some(
@@ -254,6 +307,25 @@ export function validateScionAdapterManifest(
       if (clean(conversion.converter?.outputType) !== 'f16') issues.push('gguf-converter-output-type');
     }
     if (!runtimeIds.includes('scion-wllama-webgpu-jspi-v1')) issues.push('gguf-browser-runtime-missing');
+    if (requiresTrainingRun) {
+      if (!ADAPTER_ID_RE.test(clean(trainingRun?.sourceAdapterId))) issues.push('gguf-training-source-adapter-id');
+      if (clean(trainingRun?.sourceAdapterId) !== clean(manifest.conversion?.sourceAdapterId)) {
+        issues.push('gguf-training-source-adapter-mismatch');
+      }
+      if (!SHA256_RE.test(clean(trainingRun?.sourceManifestSha256))) {
+        issues.push('gguf-training-source-manifest-sha256');
+      }
+      if (clean(trainingRun?.sourceManifestSha256) !== clean(manifest.conversion?.sourceManifestSha256)) {
+        issues.push('gguf-training-source-manifest-mismatch');
+      }
+      const sourceManifestPath = clean(trainingRun?.sourceManifestPath).replaceAll('\\', '/');
+      if (!safeRelativePath(sourceManifestPath)) issues.push('gguf-training-source-manifest-path');
+      const sourceManifestFile = files.find((file) => clean(file?.path).replaceAll('\\', '/') === sourceManifestPath);
+      if (!sourceManifestFile) issues.push('gguf-training-source-manifest-unbound');
+      else if (clean(sourceManifestFile.sha256) !== clean(trainingRun?.sourceManifestSha256)) {
+        issues.push('gguf-training-source-manifest-file-mismatch');
+      }
+    }
   } else if (manifest.conversion != null) {
     issues.push('conversion-only-valid-for-gguf');
   }
