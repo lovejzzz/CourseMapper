@@ -17,16 +17,19 @@
       "npx playwright test tests/coursemapper.spec.js tests/local-ai-runtime.spec.js"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The release branch has not yet completed the remote Fast verification workflow. This receipt must be updated with the exact successful merged-commit run before final release proof."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29441173007",
+      "note": "The exact merged release commit 30998156 passed remote formatting, lint, release history, the 4,467-test closed-loop suite, proof smoke, all 34 canonical main-evaluation courses, build, and bundle budgets in 22m37s. The main evaluation retained compiler-contract-only claim status."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "This release changes deterministic dataset, training, and held-out-boundary contracts. Focused tests and the reproducible corpus audit exercise the new failure modes without model calls, weight training, or device capture."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "The hosted release has not yet been deployed or cache-bypass probed."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29442700014",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.33-30998156-20260715T190009Z",
+      "note": "GitHub Pages deployed the exact Fast-verified merge commit. A cache-bypassed production probe returned HTTP 200 with a 2026-07-15T18:59:42Z deploy timestamp, resolved the new release and Scion configuration bundles, and found v0.16.33, Do Not Train on the Exam, 75 of 418 stored pairs, zero admissible same-identity preferences, Scion V0.16.33, EduTool's customized local course-building AI, and No API key required."
     },
     "liveProvider": {
       "status": "not-used",
@@ -37,9 +40,9 @@
       "note": "The milestone is a machine-verifiable anti-leakage boundary and makes no human, instructor, classroom, independent-review, or multi-judge claim."
     },
     "strictLayeredEvaluation": {
-      "status": "pending-push",
+      "status": "success",
       "claimStatus": "compiler-contract-only",
-      "note": "The canonical evaluation and browser release gates must complete on the merged commit before final proof; neither can turn the smoke-only corpus into adapter-quality evidence."
+      "note": "All 34 canonical gold courses passed the merged-commit main evaluation, and the focused real-Chromium release suite passed 81 tests locally. These gates prove compiler and browser regression safety; they do not turn the smoke-only corpus into adapter, weight, human, or independent quality evidence."
     }
   },
   "claims": [
