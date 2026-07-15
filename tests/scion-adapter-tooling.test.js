@@ -177,10 +177,58 @@ describe('Scion adapter tooling', () => {
       groupIdentity: {
         algorithm: 'sha256-domain-colon-course-id',
         hashes: [sha256Value('user experience design:ux-101')],
+        courseIdAlgorithm: 'sha256-course-id',
+        courseIdHashes: [sha256Value('ux-101')],
       },
       leakage: { groupOverlapCount: 0 },
     });
     expect(result.manifest.quarantine[0].issues).toContain('duplicate-pair');
+  });
+
+  it('quarantines frozen holdout domains and course IDs before any training split is written', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-holdout-firewall-'));
+    const source = path.join(root, 'source.jsonl');
+    const rows = [
+      approvedRow({
+        prompt: 'Write one astronomy training item.',
+        context: { domain: 'astronomy', courseId: 'astronomy-training-101' },
+      }),
+      approvedRow({
+        prompt: 'Write one relabeled held-out course item.',
+        context: { domain: 'computer-science', courseId: 'astro-101' },
+      }),
+      approvedRow({
+        prompt: 'Write one safe computer science item.',
+        context: { domain: 'computer-science', courseId: 'cs-safe-101' },
+      }),
+    ];
+    await fs.writeFile(source, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+
+    const result = await buildScionAdapterDataset({
+      sources: [source],
+      outputDir: path.join(root, 'dataset'),
+      allowSmoke: true,
+    });
+
+    expect(result.manifest).toMatchObject({
+      schemaVersion: 4,
+      status: 'smoke-only',
+      counts: { loaded: 3, total: 1, quarantined: 2 },
+      holdoutBoundary: {
+        protocol: 'scion-training-holdout-firewall-v1',
+        status: 'pass',
+        admittedDomainOverlapCount: 0,
+        admittedCourseGroupOverlapCount: 0,
+        excludedPairCount: 2,
+        excludedDomainPairCount: 1,
+        excludedCourseGroupPairCount: 1,
+      },
+      identity: { protocol: 'scion-adapter-dataset-identity-v2' },
+    });
+    expect(result.manifest.quarantine.map((entry) => entry.issues)).toEqual(
+      expect.arrayContaining([['heldout-domain:astronomy'], ['heldout-course-group:astro-101']]),
+    );
+    expect(result.manifest.groupIdentity.courseIdHashes).not.toContain(sha256Value('astro-101'));
   });
 
   it('builds a non-promotable research tier only with balanced course groups', async () => {
@@ -308,11 +356,17 @@ describe('Scion adapter tooling', () => {
 
     const cleanDataset = {
       domains: ['computer-science', 'geology', 'business-ethics'],
-      groupIdentity: { algorithm: 'sha256-domain-colon-course-id', hashes: [sha256Value('geology:geo-101')] },
+      groupIdentity: {
+        algorithm: 'sha256-domain-colon-course-id',
+        hashes: [sha256Value('geology:geo-101')],
+        courseIdAlgorithm: 'sha256-course-id',
+        courseIdHashes: [sha256Value('geo-101')],
+      },
     };
     expect(assessHeldoutDatasetBoundary(benchmark, cleanDataset)).toMatchObject({
       pass: true,
       groupProofAvailable: true,
+      courseIdProofAvailable: true,
       domainOverlap: [],
       groupOverlap: [],
     });
@@ -323,15 +377,17 @@ describe('Scion adapter tooling', () => {
     });
     expect(
       assessHeldoutDatasetBoundary(benchmark, {
-        domains: ['astronomy'],
+        domains: ['computer-science'],
         groupIdentity: {
           algorithm: 'sha256-domain-colon-course-id',
-          hashes: [sha256Value('world-literature:world-lit-readings')],
+          hashes: [sha256Value('computer-science:world-lit-readings')],
+          courseIdAlgorithm: 'sha256-course-id',
+          courseIdHashes: [sha256Value('world-lit-readings')],
         },
       }),
     ).toMatchObject({
       pass: false,
-      domainOverlap: ['astronomy'],
+      domainOverlap: [],
       groupOverlap: ['world-lit-readings'],
     });
   });
@@ -355,7 +411,7 @@ describe('Scion adapter tooling', () => {
     await fs.writeFile(
       datasetManifestPath,
       `${JSON.stringify({
-        schemaVersion: 3,
+        schemaVersion: 4,
         status: 'ready',
         primaryPreferenceEvidence: 'single-model-judge',
         counts: {
@@ -377,6 +433,8 @@ describe('Scion adapter tooling', () => {
         groupIdentity: {
           algorithm: 'sha256-domain-colon-course-id',
           hashes: [sha256Value('geology:geo-training-101')],
+          courseIdAlgorithm: 'sha256-course-id',
+          courseIdHashes: [sha256Value('geo-training-101')],
         },
       })}\n`,
     );
@@ -605,7 +663,7 @@ describe('Scion adapter tooling', () => {
     const curated = await fs.readFile(path.join(root, 'dataset', 'test.jsonl'), 'utf8');
 
     expect(result.manifest).toMatchObject({
-      schemaVersion: 3,
+      schemaVersion: 4,
       status: 'smoke-only',
       counts: { total: 1, domains: 1, groups: 1 },
       domainMap: { entries: 1, sha256: expect.stringMatching(/^[a-f0-9]{64}$/) },

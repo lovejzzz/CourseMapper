@@ -124,19 +124,32 @@ export function assessHeldoutDatasetBoundary(benchmark, dataset) {
       return [sha256Value(`${clean(course?.domain).toLowerCase()}:${courseId}`), courseId];
     }),
   );
+  const benchmarkCourseIdHashes = new Map([...benchmarkGroups].map((courseId) => [sha256Value(courseId), courseId]));
   const groupProofAvailable =
     dataset?.groupIdentity?.algorithm === 'sha256-domain-colon-course-id' &&
     Array.isArray(dataset?.groupIdentity?.hashes) &&
     dataset.groupIdentity.hashes.every((hash) => SHA256.test(clean(hash)));
+  const courseIdProofAvailable =
+    dataset?.groupIdentity?.courseIdAlgorithm === 'sha256-course-id' &&
+    Array.isArray(dataset?.groupIdentity?.courseIdHashes) &&
+    dataset.groupIdentity.courseIdHashes.every((hash) => SHA256.test(clean(hash)));
   const datasetGroupHashes = new Set(groupProofAvailable ? dataset.groupIdentity.hashes : []);
+  const datasetCourseIdHashes = new Set(courseIdProofAvailable ? dataset.groupIdentity.courseIdHashes : []);
   const domainOverlap = [...benchmarkDomains].filter((domain) => datasetDomains.has(domain)).sort();
-  const groupOverlap = [...benchmarkGroupHashes.entries()]
-    .filter(([hash]) => datasetGroupHashes.has(hash))
-    .map(([, courseId]) => courseId)
-    .sort();
+  const groupOverlap = [
+    ...new Set([
+      ...[...benchmarkGroupHashes.entries()]
+        .filter(([hash]) => datasetGroupHashes.has(hash))
+        .map(([, courseId]) => courseId),
+      ...[...benchmarkCourseIdHashes.entries()]
+        .filter(([hash]) => datasetCourseIdHashes.has(hash))
+        .map(([, courseId]) => courseId),
+    ]),
+  ].sort();
   return {
-    pass: groupProofAvailable && domainOverlap.length === 0 && groupOverlap.length === 0,
+    pass: groupProofAvailable && courseIdProofAvailable && domainOverlap.length === 0 && groupOverlap.length === 0,
     groupProofAvailable,
+    courseIdProofAvailable,
     domainOverlap,
     groupOverlap,
   };

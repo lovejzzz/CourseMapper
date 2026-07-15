@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.32
+**Current release:** v0.16.33
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.32**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.33**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -86,6 +86,12 @@ The analysis-only reading agrees on 113/128 outcomes: 105 stable score-qualified
 The compiler now learns from the safest part of that loss without changing model weights. Across the exact 46 local multiple-choice artifacts, the judge identifies 27 pairs with local answer-key defects. Sixteen contain a deterministic affirmative cue such as “Option B is correct,” an exact displayed option marked correct, or an explicit correction label; Scion now realigns those keys with provenance. Conflicting cues refuse repair, misconception/contrast prose is excluded from affirmative support, and the remaining 11 defects are left unresolved instead of receiving a semantic guess. Two all-placeholder option sets such as `index: 0` through `index: 3` now fail admission entirely. These shared compiler protections also benefit user-selected paid models when their outputs travel through the same model-neutral admission path. The frozen v0.16.22 recovery replay explicitly uses its historical pre-v0.16.32 cue clock, so stronger current admission cannot retroactively rewrite the older baseline.
 
 The tracked receipt `evaluation/scion-adapters/evidence/codex-cross-revision-analysis-v0.16.32.json` binds both sealed envelopes, both public judge identities, aggregate outcomes, defect classes, the exact compiler projection, and implementation hashes. `npm run audit:scion:codex-cross-revision-evidence` verifies it without review plaintext or encryption keys. No Gemma weights changed, no production adapter was activated, and hosted Scion remains the immutable public base plus the improved compiler.
+
+v0.16.33 closes a prerequisite that must be true before Scion learns from any future preference: **the training pipeline cannot touch its frozen exam**. Dataset schema v4 validates the exact five-domain held-out benchmark before admitting a row. It quarantines a row if its domain is Astronomy, Nutrition, Psychology, World Languages, or World Literature, and also quarantines any frozen course ID even if someone relabels that course under another domain. The check occurs before deduplication and train/validation/test assignment.
+
+Dataset identity v2 binds the frozen benchmark SHA-256, policy and exclusion result along with every source receipt, admitted group, evidence count, and split byte. Group proof now includes both `domain:course-id` hashes and course-ID-only hashes, closing the relabeling loophole. Before creating any smoke, research, or production plan, training reopens and validates the benchmark, checks its recorded digest, and recomputes separation. The paired adapter evaluator uses the same stronger proof, so a contaminated adapter cannot simply train and discover the problem only after an expensive run.
+
+The reproducible receipt `evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.33.json` also records the real starting point. Of 418 stored rows, 75 pass deterministic structural evidence across four domains and five course groups; **zero** carry admissible same-identity, two-order Codex preferences. Research therefore remains `smoke-only`, below its 100 qualified preferences and three groups per domain. This is an anti-leakage and readiness release, not a learned-quality improvement: no adapter was trained, activated, compared against base, or promoted. `npm run audit:scion:adapter:corpus-readiness` rebuilds the receipt from the tracked sources.
 
 v0.16.29 closes the remaining adapter-promotion truth gaps and repairs a constructibility defect found during the audit. v0.16.28 asked judge evidence to contain the SHA-256 of the manifest that contained the judge-evidence SHA-256; adding either digest changes the other. Promotion evidence now binds a stable adapter **package identity** over the exact adapter, base, training, files, runtime, and conversion contract while excluding mutable promotion attestations. The manifest can therefore hash each evidence file and each evidence file can identify the exact package without an impossible circular fixed point.
 
@@ -240,7 +246,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.32)
+## Current Pipeline (v0.16.33)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
