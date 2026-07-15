@@ -21,16 +21,22 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification must pass on the exact v0.16.25 content commit before the release proof becomes final."
+      "status": "success",
+      "commit": "b7766c31e7a755ac8fac8e9eda75c11b3d26e2c6",
+      "runId": 29377323322,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29377323322",
+      "note": "Fast verification passed on the exact v0.16.25 content merge in 23m2s, including formatting, lint, release-history audit, 4,423 passing unit and closed-loop tests with 162 intentional pending or skipped cases, proof smoke, the full main evaluation at compiler-contract-only, production build, bundle budgets, and uploaded evaluation reports."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "A real isolated Chrome 150 run passed the Apple-Silicon recovery profile and retained hash-bound artifacts. The other three frozen hardware/browser profiles and the separate quality ruler remain unrun."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and a cache-busted production browser check remain required after the exact content commit is merged."
+      "status": "success",
+      "commit": "b7766c31e7a755ac8fac8e9eda75c11b3d26e2c6",
+      "runId": 29378454710,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29378454710",
+      "note": "GitHub Pages built and deployed the exact verified content merge. A cache-busted production browser check at 2026-07-15T00:17:29Z rendered Provider Scion, disabled API as No API key required, Scion V0.16.25, the One Real Machine changelog, trace-privacy gate, exact one-of-four device boundary, and explicit no-educational-improvement language. The landing and changelog had no horizontal overflow at a 1,275-pixel viewport, and the browser error log was empty."
     },
     "liveProvider": {
       "status": "not-used",
