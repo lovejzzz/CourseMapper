@@ -37,6 +37,7 @@ const PROMOTION_STATUS_BY_LANE = Object.freeze({ smoke: 'smoke', research: 'rese
 export const SCION_ORPO_DEFAULTS = Object.freeze({
   trainingMode: 'orpo',
   split: 'train',
+  validationSplit: 'validation',
   iterations: 600,
   batchSize: 1,
   learningRate: 0.00002,
@@ -290,6 +291,7 @@ function validateHyperparameters(hyperparameters, lane, seed) {
   }
   if (hyperparameters?.trainingMode !== 'orpo') issues.push('hyperparameter:trainingMode');
   if (hyperparameters?.split !== 'train') issues.push('hyperparameter:split');
+  if (hyperparameters?.validationSplit !== 'validation') issues.push('hyperparameter:validationSplit');
   if (hyperparameters?.gradientCheckpointing !== true) issues.push('hyperparameter:gradientCheckpointing');
   if (lane === 'smoke' && hyperparameters?.iterations !== 10) issues.push('smoke-iterations');
   if (lane !== 'smoke' && hyperparameters?.iterations < 100) issues.push(`${lane}-iterations`);
@@ -497,6 +499,8 @@ export async function createScionAdapterTrainingPlan({
         'trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py',
         '--scion-seed',
         String(seed),
+        '--scion-validation-split',
+        hyperparameters.validationSplit,
         '--',
         ...trainerArgs(hyperparameters),
       ],
@@ -717,6 +721,7 @@ async function main() {
     if (
       selfTest?.status !== 'pass' ||
       selfTest?.seed !== 16031 ||
+      selfTest?.validationSplit !== 'validation' ||
       stableJson(selfTest?.forwarded) !== stableJson(['--train-mode', 'orpo'])
     ) {
       policyIssues.push('seed-wrapper-self-test');
@@ -724,6 +729,7 @@ async function main() {
     const launcher = await fs.readFile(path.resolve(codeRoot, 'trellis/tendril/distill/run_orpo_g4.sh'), 'utf8');
     for (const required of [
       'scion_seeded_mlx_vlm_lora.py',
+      '--scion-validation-split validation',
       'scionAdapterTrainingRun.mjs --complete',
       '--verify',
       '--training-plan',

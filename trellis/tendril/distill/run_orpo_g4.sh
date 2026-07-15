@@ -107,6 +107,7 @@ PLAN="$OUTPUT/training-plan.json"
 set +e
 "$PYTHON" trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py \
   --scion-seed "$SEED" \
+  --scion-validation-split validation \
   -- \
   --model-path "$BASE_PATH" \
   --dataset "$DATASET_DIR" \

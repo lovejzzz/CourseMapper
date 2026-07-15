@@ -169,6 +169,7 @@ describe('Scion adapter training receipts', () => {
         seed: 16031,
         hyperparameters: {
           trainingMode: 'orpo',
+          validationSplit: 'validation',
           iterations: 10,
           batchSize: 1,
           learningRate: 0.00002,
@@ -180,6 +181,8 @@ describe('Scion adapter training receipts', () => {
         command: expect.arrayContaining([
           '--scion-seed',
           '16031',
+          '--scion-validation-split',
+          'validation',
           '--batch-size',
           '1',
           '--grad-checkpoint',
@@ -276,6 +279,7 @@ describe('Scion adapter training receipts', () => {
       forwarded: ['--train-mode', 'orpo'],
       seed: 16031,
       status: 'pass',
+      validationSplit: 'validation',
     });
   });
 
