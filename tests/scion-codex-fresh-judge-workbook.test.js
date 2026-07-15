@@ -227,6 +227,100 @@ describe('Scion fresh Codex judge workbook', () => {
     expect(allRaw.join('\n')).toContain('same exact judge revision, runtime, fresh session ID');
   });
 
+  it('builds an A/B-only first-order workbook with the judge identity declared before scoring', async () => {
+    const packetDir = await buildPacket(5);
+    const handoffDir = path.join(root, 'first-order-workbook');
+    const receiptOutput = path.join(root, 'first-order-receipt.json');
+    const declaredJudgeIdentity = {
+      model: 'openai/codex',
+      revision: 'codex-fresh-workbook-test-2026-07-14',
+      runtime: 'vitest-fresh-workbook',
+      promptPath: 'evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md',
+      promptSha256: '0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7',
+    };
+    const built = await buildScionCodexFreshJudgeWorkbook({
+      packetDir,
+      outputDir: handoffDir,
+      receiptOutput,
+      generatedAt: '2026-07-15T22:00:00.000Z',
+      chunkSize: 2,
+      order: 'A/B',
+      release: 'v0.16.35',
+      declaredJudgeIdentity,
+    });
+    expect(built.manifest).toMatchObject({
+      release: 'v0.16.35',
+      order: 'A/B',
+      selectedCases: 5,
+      requiredJudgeIdentity: {
+        source: 'declared-first-order-judge-identity',
+        order: 'A/B',
+        identity: declaredJudgeIdentity,
+      },
+      isolation: {
+        organizerMappingIncluded: false,
+        priorOutcomeIncluded: false,
+        blankOutcomeState: true,
+      },
+    });
+    expect(built.manifest.chunks.every((chunk) => chunk.templateFile.endsWith('-review-a-b.json'))).toBe(true);
+    expect(built.manifest.chunks.every((chunk) => chunk.decisionsFile.endsWith('-decisions-a-b.json'))).toBe(true);
+    const verification = await verifyScionCodexFreshJudgeWorkbook({
+      handoffDir,
+      expectedReceipt: built.manifest,
+    });
+    expect(verification).toMatchObject({ valid: true, issues: [] });
+    const canonical = JSON.parse(verification.fullTemplateRaw.toString('utf8'));
+    expect(canonical.order).toBe('A/B');
+    expect(
+      canonical.reviews.every((review) => review.presentation.map((item) => item.anonymousSide).join('/') === 'A/B'),
+    ).toBe(true);
+    const allNames = await fs.readdir(handoffDir);
+    expect(allNames.some((name) => name.includes('review-b-a') || name.includes('decisions-b-a'))).toBe(false);
+    const instructions = await fs.readFile(path.join(handoffDir, 'FRESH_TASK_INSTRUCTIONS.md'), 'utf8');
+    expect(instructions).toContain('If any identity is unavailable or different, stop before judgment');
+    expect(instructions).toContain('Do not unseal, ingest, or begin the B/A order');
+
+    const decisionsDir = await writeCompletedWorkingDecisions(handoffDir, built.manifest);
+    await expect(
+      completeAndSealScionCodexFreshJudgeWorkbook({
+        handoffDir,
+        expectedReceipt: built.manifest,
+        decisionsDir,
+        sealedOutput: path.join(root, 'first-order-sealed', 'a-b.json'),
+        keyOutput: path.join(root, 'first-order-secret', 'a-b.key'),
+      }),
+    ).resolves.toMatchObject({ combinedPlaintextWritten: false, canonicalReviewCount: 5 });
+
+    for (const chunk of built.manifest.chunks) {
+      const decisionsPath = path.join(decisionsDir, chunk.decisionsFile);
+      const decisions = JSON.parse(await fs.readFile(decisionsPath, 'utf8'));
+      decisions.judge.runtime = 'different-codex-runtime';
+      await fs.writeFile(decisionsPath, `${JSON.stringify(decisions, null, 2)}\n`);
+    }
+    await expect(
+      completeAndSealScionCodexFreshJudgeWorkbook({
+        handoffDir,
+        expectedReceipt: built.manifest,
+        decisionsDir,
+        sealedOutput: path.join(root, 'drifted-first-order-sealed', 'a-b.json'),
+        keyOutput: path.join(root, 'drifted-first-order-secret', 'a-b.key'),
+      }),
+    ).rejects.toThrow('does not match the declared first-order identity');
+  });
+
+  it('refuses to build a first-order workbook without a predeclared judge identity', async () => {
+    const packetDir = await buildPacket(2);
+    await expect(
+      buildScionCodexFreshJudgeWorkbook({
+        packetDir,
+        outputDir: path.join(root, 'unbound-first-order-workbook'),
+        order: 'A/B',
+        release: 'v0.16.35',
+      }),
+    ).rejects.toThrow('requires a declared judge identity before scoring');
+  });
+
   it('rebuilds from the frozen canonical handoff and reports the exact receipt field that drifted', async () => {
     const packetDir = await buildPacket(5);
     const canonicalHandoffDir = path.join(root, 'frozen-canonical-handoff');

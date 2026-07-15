@@ -1,0 +1,1677 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-423315b77cf6219c9a46",
+    "packetDigest": "423315b77cf6219c9a46de559f53490cee107745c006bb8d16daf358534e8f69",
+    "organizerDigest": "0ddd7990e2cafa094c5828c82f411d1bad8b7e69a42d718639688f064213089b"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-259e30939bef4603709e",
+      "caseDigest": "618ac64509d1385f98ea3c007a7fd402d349636ac14e1eba632db13d8b8822d7",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "d043bd7677de3faae4ebcbb710aa5fec58cbe00ec70c7a873291a7b4b7f3b6c1",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/conditionals",
+        "term": "Conditionals and boolean logic",
+        "claims": [
+          "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+          "An else clause holds statements that run when the if condition is false.",
+          "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "fdd3df75b2f241dec6a47950ae98a7078dc361a3b9749adec1a16f35ef1c092c",
+          "artifact": {
+            "q": "In a short Python program, you want to print a reminder only when the user enters a value greater than 10. Which control-flow structure fits best?",
+            "op": [
+              "A plain if statement",
+              "A loop with break",
+              "A try/except block",
+              "A function definition"
+            ],
+            "ai": 0,
+            "ex": "A plain if statement fits because it runs its body only when the condition is true. The common misconception is to pick a loop or exception handler for every decision, but those structures solve different problems."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "426deb45682c300bbfc3cf00a3198b832f70cdafebc50725b2069e59fe385f95",
+          "artifact": {
+            "q": "Which structure executes code only when a specific test evaluates to true?",
+            "op": [
+              "index: 0",
+              "index: 1",
+              "index: 2",
+              "index: 3"
+            ],
+            "ai": 1,
+            "ex": "The if statement runs its body only when the condition is true. Misconception: Thinking the if statement runs the body regardless of the condition. Correction: The if statement skips the body when the condition is false."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "fdd3df75b2f241dec6a47950ae98a7078dc361a3b9749adec1a16f35ef1c092c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "426deb45682c300bbfc3cf00a3198b832f70cdafebc50725b2069e59fe385f95",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-74e6213e58139115123c",
+      "caseDigest": "4b63e2a11d9adfa55f349f1f8a77c01311fbbe37757d775eed5452ad93316ef9",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "dd3c79b87dec550ae65fc3148b9861aaa086a2f8f8b9aa2cb9bd425e18b3a247",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/recursion",
+        "term": "Recursion",
+        "claims": [
+          "Recursion solves a problem by reducing it to a simpler version of the same problem; a recursive function calls itself on a smaller input until it reaches a base case.",
+          "A recursive function calls itself on a smaller input.",
+          "The process continues until the problem is small enough that the solution is known or easily found — the base case.",
+          "Without a base case that stops the self-calls, recursion never terminates and overflows the call stack."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §12.1 Recursion basics"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4ac9a23c0454b64b416cc3a007438d5bf3bcce7ed11c81bf9be79f944eb87d4a",
+          "artifact": {
+            "q": "What is the fundamental mechanism by which a recursive function progresses toward a solution?",
+            "op": [
+              "A) Iteratively applying a transformation until a condition is met.",
+              "b) Calling itself with a larger input until a stop condition is reached.",
+              "C) Reducing the problem to a simpler version until a known solution is found.",
+              "D) Storing the result in a loop variable for later use."
+            ],
+            "ai": 2,
+            "ex": "Option C is correct because recursion solves a problem by reducing it to a simpler version of the same problem until a base case is reached. Option B is a misconception because recursive functions call themselves on a *smaller* input, not a larger one."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "2e703fe417dffb89137d64110d14dc04667bce99427d1822f08f9003ada71355",
+          "artifact": {
+            "q": "A student writes a function to sum numbers from n down to 1 by calling the same function on n-1. What feature must be present so the program eventually stops?",
+            "op": [
+              "A stopping condition for a small enough input",
+              "A loop counter that increases forever",
+              "A second function that replaces every call",
+              "A print statement after each call"
+            ],
+            "ai": 0,
+            "ex": "A stopping condition is the base case: it ends the self-calls once the input is small enough. The common misconception is that recursion stops just because the input changes; without a base case, the calls continue instead of terminating."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4ac9a23c0454b64b416cc3a007438d5bf3bcce7ed11c81bf9be79f944eb87d4a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "2e703fe417dffb89137d64110d14dc04667bce99427d1822f08f9003ada71355",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4af707fef5c5ac0d7eb2",
+      "caseDigest": "6aaa74d95ac76e7b728690459c86b9e3c3f2832c4f4946401e4470982ebde5e8",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "4085d08bdb0b443dbd2af7d263e9f9a90b20c2cf8c41ed543473e0c9ba58cede",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/file-io",
+        "term": "File input and output",
+        "claims": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f8b7a61f8e3ca3edd261ffafa5b3b09a8f75bc5472b4153553149213bbd0c20c",
+          "artifact": {
+            "tr": "readlines()",
+            "df": "A file method that returns every line from the file as a list.",
+            "eg": "A program loads a poem file and gets a list where each line is a separate item.",
+            "mi": "It returns one large string like read().",
+            "cx": "That behavior matches read(); readlines() instead gives a list of lines."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "79c7b4a1f8c831f9211f9f79f77813e4a3bb28dba352e2e00ace4ce75ad4d7b2",
+          "artifact": {
+            "tr": "readlines()",
+            "df": "A function that returns a list containing every line present in a file.",
+            "eg": "Calling readlines() on a text file to store all lines in a list.",
+            "mi": "Confusing readlines() with read(), which only returns the next single line.",
+            "cx": "readlines() is used when you need to process all lines of a file as a list."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f8b7a61f8e3ca3edd261ffafa5b3b09a8f75bc5472b4153553149213bbd0c20c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "79c7b4a1f8c831f9211f9f79f77813e4a3bb28dba352e2e00ace4ce75ad4d7b2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-f8c24987902063be3488",
+      "caseDigest": "916e8dfafa9e7f1b71fa34195773cd931076c4dd0b92dfe73e1b5ca6fe6aef38",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "c70a8deaee462a861b2cb5d3a1276686991cdf60f0212bf74babf077d4d9f90c",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/classes",
+        "term": "Objects and classes",
+        "claims": [
+          "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "A class is a blueprint for creating objects.",
+          "Individual objects created from a class are called instances.",
+          "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "abeb3b3ca9ffe1314b7eda1dccccde999871093bea41fda114ce052f2b6601d0",
+          "artifact": {
+            "tr": "Instance",
+            "df": "A specific object created from a class, with its own attribute values.",
+            "eg": "If a class models a playlist, one saved playlist on screen is an instance.",
+            "mi": "It means the class itself, or a shared template with no real data.",
+            "cx": "An instance is a built object; the class is the blueprint that produced it."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e0f2edd5f2211bfe9d5ffae9d02984458594d132bb0eec112109529975eec2a4",
+          "artifact": {
+            "tr": "Blueprint",
+            "df": "A structural plan used to construct objects in programming.",
+            "eg": "A class definition serves as the blueprint for creating instances of a Car class.",
+            "mi": "Thinking a blueprint is the actual object created from the class.",
+            "cx": "A class is the blueprint; the object is the instance built from it."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "abeb3b3ca9ffe1314b7eda1dccccde999871093bea41fda114ce052f2b6601d0",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e0f2edd5f2211bfe9d5ffae9d02984458594d132bb0eec112109529975eec2a4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-1f633209365dc86199f1",
+      "caseDigest": "efa9cafd96db2d95bebdb4c3eda44f1b8eebb4efa7853942229158ccc30580ab",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "c5407e5008d9e7da1f10b9c8f7ac3fcb45289d8b7413829a323c4fd655a44fcc",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/plate-tectonics",
+        "term": "Plate tectonics and boundaries",
+        "claims": [
+          "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+          "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+          "At convergent boundaries, two or more plates move toward each other and lithosphere is destroyed.",
+          "At a transform boundary, plates slide horizontally past each other."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4828e78447d63f28821ffaf7e0c8c138f1144e5aee51cf0b9ca5b45b64a5b882",
+          "artifact": {
+            "tr": "Lithosphere",
+            "df": "The rigid outer layer of Earth's crust and upper mantle.",
+            "eg": "The oceanic crust involved in a subduction zone.",
+            "mi": "The entire Earth's interior.",
+            "cx": "The rigid lithosphere is broken into plates that move over the ductile asthenosphere."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e35801425c98c3d1c4e5a0b8b65cde52e5f702f3232e83dfa4563be5e5a50306",
+          "artifact": {
+            "tr": "Lithosphere",
+            "df": "The rigid outer layer broken into moving plates.",
+            "eg": "A tectonic plate in a lab map represents part of the lithosphere.",
+            "mi": "It is a single continuous shell with no breaks.",
+            "cx": "It is divided into plates that shift over the ductile asthenosphere."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4828e78447d63f28821ffaf7e0c8c138f1144e5aee51cf0b9ca5b45b64a5b882",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e35801425c98c3d1c4e5a0b8b65cde52e5f702f3232e83dfa4563be5e5a50306",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-3f5a9f035a17efa20050",
+      "caseDigest": "b250554f3d0b6f79aea09970cbaf9e2154efe4b25595a0526d9373220332e89b",
+      "domain": "geology",
+      "courseGroupSha256": "19100d3e734a3486006f9dd67ed9f35322cc9cc7d549b3cabb3114748621df27",
+      "sourceContextSha256": "1ea43c5482cd56c029edd7ccac0ce85965f9bee919953b159cd2b630c9357fe0",
+      "sourceContext": {
+        "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9",
+        "kernelId": "geo/volcanism",
+        "term": "Volcanism and volcanic hazards",
+        "claims": [
+          "A volcano's eruptive style is set largely by magma viscosity, which rises with silica content: runny low-silica magma erupts gently, while sticky high-silica magma traps gas and erupts explosively.",
+          "Low-viscosity (low-silica, basaltic) magma flows easily like syrup, producing the gentle eruptions of Hawaiian shield volcanoes.",
+          "High-viscosity (high-silica, felsic) magma is thick and sticky and flows slowly like toothpaste, trapping gas until it erupts violently.",
+          "The most dangerous volcanic hazard is the pyroclastic flow, a fast cloud of hot ash and gas typical of explosive high-silica volcanoes."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4.4 Volcanic eruptions and hazards"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0455ee2616dc10943fe864de8421398bbb722a72168830bec4ff9f92a1eb38bb",
+          "artifact": {
+            "tr": "Pyroclastic flow",
+            "df": "A fast-moving mixture of hot ash and gas produced in explosive eruptions.",
+            "eg": "An explosive high-silica volcano can send a pyroclastic flow downslope at dangerous speed.",
+            "mi": "It is just a slow lava river.",
+            "cx": "Lava flows are molten rock that usually move more slowly; this hazard is a hot ash-and-gas cloud."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "5cf66112f57aeecc556d2bd18eeda7a18e7ced773eccddd41ddd3c4273471077",
+          "artifact": {
+            "tr": "Pyroclastic flow",
+            "df": "A fast-moving cloud of hot ash and gas. Example: Typical of explosive high-silica volcanoes. Misconception: It is a slow, viscous lava flow. Correction: It is a fast cloud of hot ash and gas.",
+            "eg": "The most dangerous volcanic hazard is the pyroclastic flow, a fast cloud of hot ash and gas typical of explosive high-silica volcanoes.",
+            "mi": "Pyroclastic flow is a slow, viscous lava flow.",
+            "cx": "Pyroclastic flow is a fast cloud of hot ash and gas."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0455ee2616dc10943fe864de8421398bbb722a72168830bec4ff9f92a1eb38bb",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "5cf66112f57aeecc556d2bd18eeda7a18e7ced773eccddd41ddd3c4273471077",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-65f3cb51f96b9b11182f",
+      "caseDigest": "b0e056189a52fb1c7e9e2a35d8d282790c5228fd2096b9e40e062e189e53053f",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "23c589d4cdb33d2ac5c0d82cc414095c49290bb0a3175dcf22947e3ef0d9bad1",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/geologic-time",
+        "term": "Geologic time and relative dating",
+        "claims": [
+          "Geologic time spans the roughly 4.5-billion-year history of Earth; relative dating orders events by which is older or younger, while absolute dating assigns numerical ages in years.",
+          "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock.",
+          "By the principle of superposition, in an undisturbed sequence the bottom layers are oldest and the upper layers younger.",
+          "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+          "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b057a7b283b708306240e8cb65b8a13e84452dabc0c2c2feb211d8cc05ba4253",
+          "artifact": {
+            "q": "Which principle dictates that in an undisturbed sequence, the lowest layers of rock are the oldest?",
+            "op": [
+              "Original horizontality",
+              "Principle of superposition",
+              "Absolute dating",
+              "Relative dating"
+            ],
+            "ai": 2,
+            "ex": "The principle of superposition states that in an undisturbed sequence, the bottom layers are oldest. Misconception: Original horizontality suggests that all rock layers must be laid down horizontally, which is not the primary concept for determining relative age order."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6d37329fc359d0f66b884e9dc65363c1c3fc2e7519446de4c62a5f1e41230163",
+          "artifact": {
+            "q": "A geology student compares two rock layers in an undisturbed outcrop and needs the older layer without assigning a calendar age. Which approach fits best?",
+            "op": [
+              "Use relative dating to rank the layers",
+              "Use absolute dating to rank the layers",
+              "Use original horizontality to rank the layers",
+              "Use geologic time to rank the layers"
+            ],
+            "ai": 0,
+            "ex": "Relative dating is the correct choice because it determines whether one layer is older or younger than another. Absolute dating is the common misconception here because it gives numerical ages in years rather than just an order."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b057a7b283b708306240e8cb65b8a13e84452dabc0c2c2feb211d8cc05ba4253",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6d37329fc359d0f66b884e9dc65363c1c3fc2e7519446de4c62a5f1e41230163",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9b0924f3483c96a3a3d1",
+      "caseDigest": "fc12244d537f487fc1769a5606960bc9350012fa9647bef25631ffff6e99489d",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "29f38881f5140b6f3b7a2e46dcb223d3573cb3fbb3c1464c584b5900b200ef7b",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/metamorphic-rocks",
+        "term": "Metamorphic rocks and protoliths",
+        "claims": [
+          "Metamorphic rock forms when heat, pressure, and fluids change a preexisting parent rock (the protolith) in the solid state, without melting it.",
+          "Metamorphism changes a solid rock's composition and texture without the mineral crystals melting.",
+          "The starting rock that undergoes metamorphism is called the parent rock, or protolith.",
+          "Directed stress aligns mineral crystals into planes, producing foliation."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §6.1 Metamorphism and metamorphic rocks"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7d26f44b1c9c148ca115b0f05710004fdc8e146b46aa14810d13abc29f79ad98",
+          "artifact": {
+            "q": "A clay-rich shale is buried deep enough to be altered by heat, pressure, and fluids, but it never melts. What best describes the change it undergoes?",
+            "op": [
+              "Solid-state transformation into metamorphic rock",
+              "Breakdown into sediment by surface weathering",
+              "Fusion into a magma that cools later",
+              "Fragmentation into rounded particles by transport"
+            ],
+            "ai": 0,
+            "ex": "The correct choice is solid-state transformation because metamorphism changes an existing rock without melting it. A common misconception is to treat any deep rock change as melting into magma, but that would require melting, which is not part of metamorphism."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f05aee534877d50ab82f939f2caf307dc8de36d57b18c4dd360693aa844066a7",
+          "artifact": {
+            "q": "What feature results from directed stress aligning mineral crystals?",
+            "op": [
+              "Crystalline structure",
+              "Foliation",
+              "Melting",
+              "Erosion"
+            ],
+            "ai": 3,
+            "ex": "Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7d26f44b1c9c148ca115b0f05710004fdc8e146b46aa14810d13abc29f79ad98",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f05aee534877d50ab82f939f2caf307dc8de36d57b18c4dd360693aa844066a7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-c689a13263968dab3911",
+      "caseDigest": "d86a05638dca5490a0e95b4e45ce75b56edf405f56e7b53da05c0368266d6773",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "b85643eddf0a2cf47888cff6fc00ddbeac6b431baef2dff0416a8b877ef67a54",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/minerals",
+        "term": "Minerals and identification",
+        "claims": [
+          "A mineral is a naturally occurring, inorganic solid with a definite chemical composition and an ordered crystal structure; minerals are identified by physical properties such as hardness, streak, luster, and cleavage.",
+          "Hardness is measured on the Mohs scale; diamond is a 10 and is about four times harder than corundum, a 9.",
+          "Streak is the color of a mineral's powder, and is more reliable than the color of the whole specimen.",
+          "Cleavage is the tendency of a mineral to break along flat planes of weak bonding; minerals without such planes fracture irregularly.",
+          "Luster describes how a mineral's surface reflects light — metallic, glassy, or dull."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §3.1 What is a mineral; §3.5 Identifying minerals"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "33b9aff707f62ee3a1db981e5d89bfa5f1aba81d2c2cc0cad0267a2bc63b6bc9",
+          "artifact": {
+            "tr": "Color of a mineral's powder",
+            "df": "Streak: The color of a mineral's powder. Example: The reddish-brown streak of hematite. Misconception: Streak is the color of the whole specimen. Correction: Streak is more reliable than the color of the whole specimen.",
+            "eg": "Hematite (iron oxide)",
+            "mi": "The color of the whole specimen",
+            "cx": "Streak is more reliable than the color of the whole specimen."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6c88cd31a5f902fdfdcc1b9d63109d6768070659de7ca1724674ae29afeafb7d",
+          "artifact": {
+            "tr": "streak",
+            "df": "The powder color left when a mineral is rubbed on a plate.",
+            "eg": "A dark specimen may leave a white streak, which helps identify it more reliably than surface color.",
+            "mi": "Assuming the streak always matches the outside color of the mineral.",
+            "cx": "The powder can differ from the visible specimen color, so streak is often a better clue for identification."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "33b9aff707f62ee3a1db981e5d89bfa5f1aba81d2c2cc0cad0267a2bc63b6bc9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6c88cd31a5f902fdfdcc1b9d63109d6768070659de7ca1724674ae29afeafb7d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7697c38db3cbdce9d85f",
+      "caseDigest": "90f169ef30463ce4963626aba76839b7128f149eeb1b6e61237249f2d8fb23b1",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "2ea0a82c55c2fb5b937f262e1f58db93de4805417c315713417de3388ea7494d",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/musical-form",
+        "term": "Musical form",
+        "claims": [
+          "In music, form refers to the structure of a musical composition or performance.",
+          "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+          "Musical form unfolds over time through the expansion and development of these ideas.",
+          "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+          "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+          "The next level concerns the entire structure of any single self-contained musical piece or movement."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7b98a37fc3d7779841aa32e26ded6363be0da2b031f31b2d9787556c01662363",
+          "artifact": {
+            "q": "Which description best fits a piece identified as binary form?",
+            "op": [
+              "the structure of a musical composition",
+              "the interaction of sound, harmony, melody, and rhythm",
+              "a pair of sections about equal length",
+              "lowercase labels for subdivisions"
+            ],
+            "ai": 2,
+            "ex": "The correct choice matches binary form as two sections about equal length. The most plausible misconception is to think any structural description of a piece or movement counts as binary form, when the defining feature is the two-section balance."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0782d519b608dc5767b923932b1ffa93358efa1bbc982dc79347fb95516310dc",
+          "artifact": {
+            "q": "What describes a musical piece composed of two sections of equal length?",
+            "op": [
+              "A) Sonata form",
+              "b) Binary form",
+              "C) Ternary form",
+              "D) Rondo form"
+            ],
+            "ai": 1,
+            "ex": "The correct choice, binary form, describes a piece with two equal sections. Ternary form is incorrect because it implies three sections, and sonata form is a different structural concept."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7b98a37fc3d7779841aa32e26ded6363be0da2b031f31b2d9787556c01662363",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0782d519b608dc5767b923932b1ffa93358efa1bbc982dc79347fb95516310dc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-85b391af51956f2efd11",
+      "caseDigest": "ba82946d74d63b2de83129053aaaf3a6d59f3268ee6632e583840767215d5832",
+      "domain": "music-theory",
+      "courseGroupSha256": "abd9179b4ea6b87d8a66c2873abc3d80d2536ff2e260ceea34f67f4728b84d82",
+      "sourceContextSha256": "ac739bca3e893f461ceaa3c95cdf29a7411ce2aea85d4224fa84ca1d350e32ea",
+      "sourceContext": {
+        "sourcePacketSha256": "4f8665de42ed5888872183fe359968e2ed762767005c9b442852fad349e4fd12",
+        "kernelId": "music/intervals",
+        "term": "Interval (music)",
+        "claims": [
+          "In music theory, an interval is a difference in pitch between two sounds.",
+          "In physical terms, an interval is the ratio between two sonic frequencies.",
+          "Intervals between successive notes of a scale are also known as scale steps."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "15283ec89978b4847dc50da68971d376b154b1732f3db9e2ffbbcf7620e64167",
+          "artifact": {
+            "q": "What is the definition of an interval in music theory?",
+            "op": [
+              "A. The ratio between two sonic frequencies.",
+              "B. A difference in pitch between two sounds.",
+              "C. The ratio between two notes in a scale.",
+              "D. The difference in pitch between two sounds."
+            ],
+            "ai": 1,
+            "ex": "Option B is correct because an interval is defined as a difference in pitch between two sounds (Claim 0). Option A is a physical description, not the theoretical definition."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "853cd4d1271cb91186b01c177ea0ea0205c578b8972cb4e9b03edba6103a92f5",
+          "artifact": {
+            "q": "In music theory, what is an interval?",
+            "op": [
+              "The difference in pitch between two sounds",
+              "The ratio between two sonic frequencies",
+              "The notes that fill a measure",
+              "The pattern of accents in a rhythm"
+            ],
+            "ai": 0,
+            "ex": "The correct choice names the pitch difference between two sounds. A common misconception is to treat an interval as a physical frequency ratio; that ratio is a related physical description, but it is not the theory definition asked for here."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "15283ec89978b4847dc50da68971d376b154b1732f3db9e2ffbbcf7620e64167",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "853cd4d1271cb91186b01c177ea0ea0205c578b8972cb4e9b03edba6103a92f5",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e9e6a9fa486bb0466d72",
+      "caseDigest": "9f6afb47181da803ece03a974a76840c9a7fe8bca22bc9ea76dd37313980be72",
+      "domain": "music-theory",
+      "courseGroupSha256": "abd9179b4ea6b87d8a66c2873abc3d80d2536ff2e260ceea34f67f4728b84d82",
+      "sourceContextSha256": "ac739bca3e893f461ceaa3c95cdf29a7411ce2aea85d4224fa84ca1d350e32ea",
+      "sourceContext": {
+        "sourcePacketSha256": "4f8665de42ed5888872183fe359968e2ed762767005c9b442852fad349e4fd12",
+        "kernelId": "music/intervals",
+        "term": "Interval (music)",
+        "claims": [
+          "In music theory, an interval is a difference in pitch between two sounds.",
+          "In physical terms, an interval is the ratio between two sonic frequencies.",
+          "Intervals between successive notes of a scale are also known as scale steps."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "1a9fd3dcb04170548fbbb4f4435846275f61bb29a0692b3a9c881a9abe22f191",
+          "artifact": {
+            "tr": "Pitch difference measure",
+            "df": "A quantitative comparison of two sounds' frequencies.",
+            "eg": "Comparing the frequency of a C to the frequency of an E.",
+            "mi": "Confusing the interval with the ratio between two sonic frequencies.",
+            "cx": "The interval is the difference in pitch between two sounds (Claim 0)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "8af16380e22bae19ce50ffcac5b9241461135950f0c290bf2468d645660109cf",
+          "artifact": {
+            "tr": "Interval",
+            "df": "A difference in pitch between two sounds; in physical terms, it can be described as a ratio between two sonic frequencies.",
+            "eg": "From C to E in a melody, a listener identifies the spacing between the two pitches as an interval.",
+            "mi": "It is only a notation symbol or only a loudness change.",
+            "cx": "The term refers to pitch spacing, not to dynamics or a marking on the page."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "1a9fd3dcb04170548fbbb4f4435846275f61bb29a0692b3a9c881a9abe22f191",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "8af16380e22bae19ce50ffcac5b9241461135950f0c290bf2468d645660109cf",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-fe261315cbeb4453de38",
+      "caseDigest": "58dcd917f8ff258a8f4892d716801dd494c6271960fd0bd98471d9fd3ec2cb86",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "5f18a980ba2c17a3065865cd9b4b4a65d17eea22c603b12eff77d6ad61020a2b",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/staff-clefs-pitch-notation",
+        "term": "Staff and clefs",
+        "claims": [
+          "In Western musical notation, the staff (UK usually stave); (plural: staves), also occasionally referred to as a pentagram, is a set of horizontal lines (usually five) with spaces between them, that each represent a different musical pitch.",
+          "Which staff positions represent which notes is determined by a clef placed at the beginning of the staff.",
+          "A clef (from French: clef 'key') is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+          "The treble clef is also the upper staff of the grand staff used for harp and keyboard instruments.",
+          "Bass clef is the bottom clef in the grand staff for harp and keyboard instruments."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "84b7617fc2e2be72c576ed5f847091db13e84994b90eea2f5afd8671a5adcc1e",
+          "artifact": {
+            "tr": "clef",
+            "df": "A musical symbol placed at the start of a staff to show how its positions map to notes.",
+            "eg": "A treble clef at the beginning of a keyboard part shows how the upper staff’s notes should be read.",
+            "mi": "It tells the performer the volume or tempo.",
+            "cx": "It identifies note names for the staff’s lines and spaces, not dynamics or speed."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "bbaa6613ac31a6fa709cd99ad73d52ebd124258ac046307370bf6bb9f0ef5cae",
+          "artifact": {
+            "tr": "Clef",
+            "df": "A musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+            "eg": "The symbol placed at the beginning of the staff that dictates note representation.",
+            "mi": "A specific musical pitch.",
+            "cx": "A set of horizontal lines and spaces."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "84b7617fc2e2be72c576ed5f847091db13e84994b90eea2f5afd8671a5adcc1e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "bbaa6613ac31a6fa709cd99ad73d52ebd124258ac046307370bf6bb9f0ef5cae",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7340802109c1b9677f41",
+      "caseDigest": "33612143333a85650d7f6be60426e56bd0b0383f08d90bbd6fd728091e474401",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+      "sourceContextSha256": "5a16715b444d616660d7a8ebaf6ae66efed71f094d8fb9fe866c48122381b16b",
+      "sourceContext": {
+        "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+        "kernelId": "ux/journey-mapping",
+        "term": "Journey mapping",
+        "claims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "02b5cedd90f32877f9fb6d82c25787732cf85fe2b54c41853743b7978dfe3d42",
+          "artifact": {
+            "q": "A team is building a journey map for students using a campus advising service. Which choice best matches the source guidance for what the map should be based on first?",
+            "op": [
+              "Observed steps users actually take and the transactions involved",
+              "The advisor's preferred workflow and policy checklist",
+              "A list of frustrations the team expects students to have",
+              "A summary of the service's online tools only"
+            ],
+            "ai": 0,
+            "ex": "Correct: the map should start from research on what users actually do and the transactions involved. The common misconception is to begin with internal process steps or assumptions about frustration before grounding the map in observed behavior."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d69b6f9d8e1a13343ae424c4e59f834e5ab753ad7b1dcb37287fccaf959ead4e",
+          "artifact": {
+            "q": "What is the primary function of a journey map in a UX context?",
+            "op": [
+              "To document individual user thoughts during a session.",
+              "To show connected steps, boundaries, breakdowns, and opportunities.",
+              "To list all possible features a service offers.",
+              "To predict future user behavior based on assumptions."
+            ],
+            "ai": 1,
+            "ex": "The correct choice shows the map's purpose is to visualize the entire user experience flow, contrasting with the misconception that it is merely a collection of individual user thoughts."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "02b5cedd90f32877f9fb6d82c25787732cf85fe2b54c41853743b7978dfe3d42",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d69b6f9d8e1a13343ae424c4e59f834e5ab753ad7b1dcb37287fccaf959ead4e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a3985f12cbf179b52d32",
+      "caseDigest": "d1beb04ad1ffe17adb0c55fe35adef0616880ef3b438f1dd00e934c85601e1e0",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+      "sourceContextSha256": "1318755b36aa33d35f51b7c59a5b931302c658a85acd5f336a1f4a9bffe9533c",
+      "sourceContext": {
+        "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+        "kernelId": "ux/task-flow-analysis",
+        "term": "Task flow analysis",
+        "claims": [
+          "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "The diagram may include multiple possible paths, task sequences, and decision points."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f58fb4288e67e2dd8fe1d031adfb3ded3bbe875d4748b7645c60f1f3844a3a4c",
+          "artifact": {
+            "tr": "Diagramming user interaction progression",
+            "df": "A visual representation showing the sequence of steps and choices a user makes to achieve an objective.",
+            "eg": "Mapping the steps a user takes to complete a checkout process.",
+            "mi": "Thinking the diagram must only show the successful path to the goal.",
+            "cx": "The diagram must show how a user progresses through tasks to accomplish a goal."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "abc802687797d6284ffac50d372a967afec6241edf6e5e9ae732bf4c6d996cb6",
+          "artifact": {
+            "tr": "Task flow analysis",
+            "df": "A diagram-based method for mapping how a user moves through steps and decisions toward a goal.",
+            "eg": "A checkout flow that shows choosing items, reviewing the cart, entering shipping details, and confirming payment.",
+            "mi": "It is only a screen inventory or wireframe set.",
+            "cx": "It focuses on user actions, sequences, and decision points, not just pages or visuals."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f58fb4288e67e2dd8fe1d031adfb3ded3bbe875d4748b7645c60f1f3844a3a4c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "abc802687797d6284ffac50d372a967afec6241edf6e5e9ae732bf4c6d996cb6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a6082cc85798c0cce0c1",
+      "caseDigest": "70a03dec9a6cb14665d645622df185a76cfb6ff43c9bd7a224f027b3fa2d86dd",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "de39397d8e8e858b4ebe3dc7ad48469a778bfef6586665a71c86319b4ca01b87",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/task-flow-analysis",
+        "term": "Task flow analysis",
+        "claims": [
+          "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "The diagram may include multiple possible paths, task sequences, and decision points."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "51b893468cbdd20a2c7fbaf9a40c824ef2fb793ee7c4714f10dba814f8ab4899",
+          "artifact": {
+            "tr": "Goal progression mapping",
+            "df": "A visual representation of the sequence of actions and choices a user makes to achieve a desired outcome.",
+            "eg": "Mapping the steps from logging in to successfully submitting a purchase form.",
+            "mi": "Thinking this is just a linear list of steps without considering branching choices.",
+            "cx": "This mapping must include multiple possible paths, task sequences, and decision points (Claim 4)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1f3064a340ba7b9228b0449422e1595d2e76d397d5fa7fe1653e441aa42a6649",
+          "artifact": {
+            "tr": "Task flow analysis",
+            "df": "A diagramming method that maps the steps and decision points a person follows to reach a defined goal.",
+            "eg": "A student team maps how a user signs in, searches, and completes checkout before building a testable prototype.",
+            "mi": "It is just a screen inventory or page list.",
+            "cx": "It focuses on actions, branching paths, and goal completion, not simply on collecting screens."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "51b893468cbdd20a2c7fbaf9a40c824ef2fb793ee7c4714f10dba814f8ab4899",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1f3064a340ba7b9228b0449422e1595d2e76d397d5fa7fe1653e441aa42a6649",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

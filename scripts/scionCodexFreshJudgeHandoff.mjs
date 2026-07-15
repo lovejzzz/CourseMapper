@@ -115,12 +115,16 @@ Return only the sealed envelope path, a separately transferred key path, and the
 `;
 }
 
-export function validateScionCodexFreshBlankTemplate(template, issues = []) {
+export function validateScionCodexFreshBlankTemplate(
+  template,
+  issues = [],
+  expectedOrder = SCION_CODEX_FRESH_HANDOFF_ORDER,
+) {
   if (template?.schemaVersion !== 2 || template?.protocol !== SCION_CODEX_TRAINING_REVIEW_PROTOCOL) {
     issues.push('template-protocol');
   }
   if (template?.benchmarkProtocol !== 'honest-quality-benchmark-v1') issues.push('template-benchmark');
-  if (template?.order !== SCION_CODEX_FRESH_HANDOFF_ORDER) issues.push('template-order');
+  if (template?.order !== expectedOrder) issues.push('template-order');
   if (template?.sourcePacket?.protocol !== SCION_BLIND_ATOM_PACKET_PROTOCOL) issues.push('template-packet-protocol');
   if (template?.judge?.model !== SCION_CODEX_JUDGE_MODEL) issues.push('template-judge-model');
   if (template?.judge?.promptPath !== SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH) issues.push('template-prompt-path');
@@ -137,7 +141,7 @@ export function validateScionCodexFreshBlankTemplate(template, issues = []) {
   if (template?.completedAt !== '') issues.push('template-completion-not-blank');
   if (!Array.isArray(template?.reviews) || template.reviews.length === 0) issues.push('template-reviews-empty');
   for (const review of template?.reviews || []) {
-    if (review?.presentation?.map((artifact) => artifact?.anonymousSide).join('/') !== 'B/A') {
+    if (review?.presentation?.map((artifact) => artifact?.anonymousSide).join('/') !== expectedOrder) {
       issues.push(`template-presentation-order:${review?.pairId || 'unknown'}`);
     }
     if (!review?.sourceContext || !clean(review?.sourceContextSha256)) {
@@ -166,12 +170,18 @@ export function validateScionCodexFreshBlankTemplate(template, issues = []) {
   collectForbiddenFields(template, '$.template', issues);
 }
 
-export function validateScionCodexFreshBlankDecisions(decisions, template, templateRaw, issues = []) {
+export function validateScionCodexFreshBlankDecisions(
+  decisions,
+  template,
+  templateRaw,
+  issues = [],
+  expectedOrder = SCION_CODEX_FRESH_HANDOFF_ORDER,
+) {
   if (decisions?.schemaVersion !== 1 || decisions?.protocol !== 'scion-codex-training-decisions-v1') {
     issues.push('decisions-protocol');
   }
   if (decisions?.templateSha256 !== hashBytes(templateRaw)) issues.push('decisions-template-sha256');
-  if (decisions?.order !== SCION_CODEX_FRESH_HANDOFF_ORDER) issues.push('decisions-order');
+  if (decisions?.order !== expectedOrder) issues.push('decisions-order');
   if (decisions?.judge?.model !== SCION_CODEX_JUDGE_MODEL) issues.push('decisions-judge-model');
   if (decisions?.judge?.promptPath !== SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH) issues.push('decisions-prompt-path');
   if (decisions?.judge?.promptSha256 !== SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256) {

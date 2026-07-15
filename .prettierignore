@@ -24,6 +24,8 @@ evaluation/scion-adapters/evidence/key-term-recovery-v0.16.27.json
 evaluation/scion-adapters/handoffs/fresh-b-a-canonical-v0.16.19
 evaluation/scion-adapters/handoffs/fresh-b-a-workbook-v0.16.30
 evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.30.json
+evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.35
+evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.35.json
 .firebase
 .claude
 **/.venv*/
