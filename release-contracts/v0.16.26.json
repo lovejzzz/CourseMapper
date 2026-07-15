@@ -24,16 +24,24 @@
       "note": "The exact built dist was inspected in a real Chromium session at 1280px: the landing selector and footer showed Scion V0.16.26, the provider/API/model controls matched the Scion contract, the full v0.16.26 changelog and claim boundary rendered, and neither landing nor changelog had horizontal overflow. A broader local Playwright attempt was not counted because the post-app-update loader stalled before producing a clean command result."
     },
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification will run against the exact v0.16.26 content merge before the release proof is finalized."
+      "status": "success",
+      "commit": "95910af48310000c4284e947ecfaaa6514f9353a",
+      "runId": 29386258276,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29386258276",
+      "note": "The exact main content merge passed formatting, lint, release history, 4,425 passing unit and closed-loop tests with 162 intentional skips, proof smoke, strict main evaluation, production build, and bundle budgets. PR run 29385748855 independently passed the pull-request profile before merge."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The release deterministically replays retained research-domain responses. It does not perform the fresh B/A judgment, train a quality adapter, or run the five frozen held-out domains."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and a cache-busted production browser proof are required after the exact content merge."
+      "status": "success",
+      "commit": "95910af48310000c4284e947ecfaaa6514f9353a",
+      "runId": 29387194279,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29387194279",
+      "liveUrl": "https://edutool.dev/?proof=95910af48310000c4284e947ecfaaa6514f9353a",
+      "verifiedAt": "2026-07-15T03:46:09.148Z",
+      "note": "GitHub Pages deployed the exact main content merge. A cache-busted real Chromium session verified Scion V0.16.26 on the landing selector and footer, the Scion provider with disabled No API key required field, the full v0.16.26 compiler-lift changelog and claim boundary, and no horizontal overflow at a 1280px viewport."
     },
     "liveProvider": {
       "status": "not-used",
