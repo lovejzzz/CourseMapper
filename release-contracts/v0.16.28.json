@@ -19,16 +19,24 @@
       "note": "The exact production build was inspected in the in-app Chromium browser at 1280x720 and 390x844. Landing, expanded Scion configuration, footer, and changelog showed v0.16.28; Provider showed Scion; API was disabled with No API key required; Model showed Scion V0.16.28; the simple customized-local-model description remained visible; neither viewport had horizontal overflow; and browser warnings/errors were empty."
     },
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification will run after the release commit is pushed."
+      "status": "success",
+      "commit": "ba48ef5b96980ad4afc8cc814dc62f2f8fe16df6",
+      "runId": 29399966878,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29399966878",
+      "note": "The exact main content merge passed formatting, lint, release history, the full unit and closed-loop suite, proof smoke, strict main evaluation, production build, bundle budgets, and evaluation report upload in 15m18s. PR run 29399203633 independently passed the pull-request profile, build, and bundle gates in 12m02s before merge."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The milestone strengthens the semantic prerequisite for later held-out judgments. It does not perform a new adapter generation, quality judgment, or device campaign."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "The exact main content merge has not yet been deployed."
+      "status": "success",
+      "commit": "ba48ef5b96980ad4afc8cc814dc62f2f8fe16df6",
+      "runId": 29400874813,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29400874813",
+      "liveUrl": "https://edutool.dev/?proof=ba48ef5b96980ad4afc8cc814dc62f2f8fe16df6",
+      "verifiedAt": "2026-07-15T08:31:09.000Z",
+      "note": "GitHub Pages deployed the exact main content merge. A cache-busted real Chromium session verified the v0.16.28 changelog and claim boundary at 1280x720 and 390x844; the landing summary and expanded configuration showed Provider Scion, disabled No API key required, and Scion V0.16.28; neither viewport had horizontal overflow; and browser warnings/errors were empty."
     },
     "liveProvider": {
       "status": "not-used",
