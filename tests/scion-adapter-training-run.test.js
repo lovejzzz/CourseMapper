@@ -97,6 +97,50 @@ async function createPlanFixture() {
 }
 
 describe('Scion adapter training receipts', () => {
+  it('keeps the twin-run smoke receipt metadata-only and permanently outside quality claims', async () => {
+    const evidencePath = 'evaluation/scion-adapters/evidence/seeded-training-smoke-v0.16.31.json';
+    const text = await fs.readFile(evidencePath, 'utf8');
+    const evidence = JSON.parse(text);
+
+    expect(evidence).toMatchObject({
+      status: 'pass-mechanics-only',
+      source: { dirty: false },
+      dataset: {
+        status: 'smoke-only',
+        promotable: false,
+        counts: { eligible: 76, singleModelJudgePairs: 0 },
+      },
+      replay: {
+        independentOutputRoots: 2,
+        samePlanIdentity: true,
+        sameAdapterConfig: true,
+        sameAdapterWeights: true,
+        sameTrainingMetrics: true,
+        sameValidationMetrics: true,
+        adapterWeights: {
+          bytes: 105459677,
+          sha256: '6bc70b0f74dc3586a6b9c1b646a005eab6a0262d6f20399c082e261a1522b8cb',
+        },
+        runs: [{ label: 'primary' }, { label: 'separate-output-root-replay' }],
+      },
+      verification: {
+        weightsStoredInRepository: false,
+        weightsDeployed: false,
+        adapterActivated: false,
+      },
+      claimBoundary: {
+        qualityEvidence: false,
+        researchEvidence: false,
+        productionEvidence: false,
+        adapterVersusBaseWin: false,
+        paidReferenceParity: false,
+      },
+    });
+    expect(text).not.toContain('/Users/');
+    expect(new Set(evidence.replay.runs.map((run) => run.manifestSha256)).size).toBe(2);
+    expect(new Set(evidence.replay.runs.map((run) => run.localLog.sha256)).size).toBe(2);
+  });
+
   it('keeps dataset identity stable across generation timestamps while binding source and split bytes', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-dataset-identity-'));
     const first = await buildSmokeDataset(path.join(root, 'first'), '2026-07-15T00:00:00.000Z');

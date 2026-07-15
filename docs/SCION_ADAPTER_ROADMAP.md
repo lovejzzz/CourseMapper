@@ -18,7 +18,9 @@
 
 **Completion and conversion:** the completion receipt binds the canonical plan, final adapter configuration and weight bytes, and a digest of the locally retained log. Raw logs are not added to the distributed package. Manifest schema v3 makes direct receipts mandatory for research, candidate, and promoted MLX packages. Browser conversion first verifies that MLX package, then copies its plan, result, and source manifest into the GGUF package and binds all three through the conversion receipt. Schema v2 remains valid only for historical smoke or rejected mechanics artifacts.
 
-**Release boundary:** the new contract was tested against synthetic byte-bound outputs and the real installed toolchain. It does not train a new quality adapter, change the public base, complete the fresh B/A judgment, create stable preferences, add a device profile, beat exact base, or match the paid reference. Hosted Scion remains the pinned public base plus compiler.
+**Real replay:** two ten-iteration mechanics runs from clean commit `07fe816b1a3a4837373d5a77174d1c1d0bdc44b7` used separate external output roots but the same plan identity, seed, exact base, dataset identity, and pinned toolchain. Both executed validation at iterations 1 and 10, reported validation loss 2.700 then 2.252, trained 17,011 tokens, and emitted byte-identical 105,459,677-byte weights with SHA-256 `6bc70b0f74dc3586a6b9c1b646a005eab6a0262d6f20399c082e261a1522b8cb`. Timestamp-bearing plan/result/package bytes and local logs correctly differ. The metadata-only receipt is `evaluation/scion-adapters/evidence/seeded-training-smoke-v0.16.31.json`; no weight or raw log enters Git.
+
+**Release boundary:** this proves the pinned mechanics replay, not a quality adapter. The 76 smoke rows contain zero approved single-model-judge preferences and cannot promote. The release does not change the public base, complete the fresh B/A judgment, create stable preferences, add a device profile, beat exact base, or match the paid reference. Hosted Scion remains the pinned public base plus compiler.
 
 ## v0.16.30 — The Handoff Is the Evidence
 

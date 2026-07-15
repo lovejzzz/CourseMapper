@@ -7,6 +7,8 @@
     "local": [
       "npm run audit:scion:adapter:training:contract",
       "npm run audit:scion:adapter:training:toolchain",
+      "npm run train:scion:adapter -- --smoke",
+      "SCION_ADAPTER_OUTPUT_ROOT=<separate-external-root> npm run train:scion:adapter -- --smoke",
       "npx vitest run tests/scion-adapter-training-run.test.js tests/scion-adapter-tooling.test.js tests/scion-adapter-manifest.test.js tests/scion-adapter-registry.test.js tests/scion-browser-device-matrix.test.js",
       "npm run format:check",
       "npm run lint",
@@ -22,7 +24,7 @@
     },
     "ciDeep": {
       "status": "local-only",
-      "note": "The real installed Apple MLX toolchain is audited locally because GitHub's Linux runner does not provide the pinned MLX training environment. CI exercises the dependency-free seed-wrapper contract and all byte-bound adversarial fixtures."
+      "note": "The real installed Apple MLX toolchain is audited locally because GitHub's Linux runner does not provide the pinned MLX training environment. Two same-commit local runs in separate external roots reproduced the exact 105,459,677-byte weight SHA-256 and validation metrics. CI exercises the dependency-free seed-wrapper contract and all byte-bound adversarial fixtures."
     },
     "deploy": {
       "status": "pending-push",
@@ -30,7 +32,7 @@
     },
     "liveProvider": {
       "status": "not-used",
-      "note": "No model or paid-provider request is needed to verify training provenance. A bounded ten-iteration mechanics smoke may verify the seeded local path but cannot create a quality claim."
+      "note": "No paid-provider request was needed. Two bounded ten-iteration local mechanics runs completed and reproduced exact weight bytes; their 76 structural rows include zero approved judge preferences and cannot create a quality claim."
     },
     "manualHuman": {
       "status": "not-applicable",
@@ -81,6 +83,7 @@
         "trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py",
         "trellis/tendril/distill/run_orpo_g4.sh",
         "scripts/scionAdapterTrainingRun.mjs",
+        "evaluation/scion-adapters/evidence/seeded-training-smoke-v0.16.31.json",
         "tests/scion-adapter-training-run.test.js"
       ],
       "proofCommands": [

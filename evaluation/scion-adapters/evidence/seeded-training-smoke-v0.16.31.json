@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-seeded-training-smoke-evidence-v1",
+  "release": "0.16.31",
+  "recordedAt": "2026-07-15T14:00:00.000Z",
+  "status": "pass-mechanics-only",
+  "command": "npm run train:scion:adapter -- --smoke",
+  "replayCommand": "SCION_ADAPTER_OUTPUT_ROOT=<separate-external-root> npm run train:scion:adapter -- --smoke",
+  "source": {
+    "commit": "07fe816b1a3a4837373d5a77174d1c1d0bdc44b7",
+    "tree": "fe90a68c7bbc29ae20f9a967fd44223e70a95acf",
+    "dirty": false
+  },
+  "base": {
+    "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "contractSha256": "ecb6bbc3b1a23f90ec27c4a6d35b5ee04b28574179595a6bad3cde8f6e9c4286"
+  },
+  "dataset": {
+    "status": "smoke-only",
+    "promotable": false,
+    "identitySha256": "03328f1b7d8daff4b40352b562f09aaf557fe2a2987967dadddac2b30468f7a2",
+    "manifestSha256": "120ce92c2d0dce803ef2acaeac5c6eb726f3dade05284a09a7a81acd7c1e5ce2",
+    "trainingFormat": "scion-orpo-conversations-v1",
+    "counts": {
+      "loaded": 418,
+      "eligible": 76,
+      "quarantined": 342,
+      "domains": 4,
+      "groups": 5,
+      "train": 11,
+      "validation": 22,
+      "test": 43,
+      "singleModelJudgePairs": 0
+    },
+    "evidence": "deterministic-contract-margin-only"
+  },
+  "toolchain": {
+    "policy": "evaluation/scion-adapters/training-toolchain-v1.json",
+    "policySha256": "4d1e2f55376491ec54eb2c760e1f37f75e8b7d77f121f0b70c5f1202c9513db4",
+    "liveAudit": "pass"
+  },
+  "plan": {
+    "adapterId": "scion-g4e2b-smoke-c4fe1ad1228ceb80",
+    "identitySha256": "c4fe1ad1228ceb802128334df22ff002a0874170a0b1f9468a5ac54071bf2c09",
+    "seed": 16031,
+    "hyperparameters": {
+      "trainingMode": "orpo",
+      "split": "train",
+      "validationSplit": "validation",
+      "iterations": 10,
+      "batchSize": 1,
+      "gradientAccumulationSteps": 2,
+      "gradientCheckpointing": true,
+      "learningRate": 0.00002,
+      "maxSequenceLength": 2048,
+      "loraRank": 16,
+      "loraAlpha": 16,
+      "loraDropout": 0,
+      "beta": 0.1,
+      "epsilon": 1e-8,
+      "validationBatches": 4
+    }
+  },
+  "replay": {
+    "independentOutputRoots": 2,
+    "samePlanIdentity": true,
+    "sameAdapterConfig": true,
+    "sameAdapterWeights": true,
+    "sameTrainingMetrics": true,
+    "sameValidationMetrics": true,
+    "adapterConfig": {
+      "bytes": 15688,
+      "sha256": "8cf75878413cd46dcbe9572d7329d0b842fc579cf8c64e287036f41e992f6900"
+    },
+    "adapterWeights": {
+      "bytes": 105459677,
+      "sha256": "6bc70b0f74dc3586a6b9c1b646a005eab6a0262d6f20399c082e261a1522b8cb"
+    },
+    "metrics": {
+      "validationLossAtIteration1": 2.7,
+      "validationLossAtIteration10": 2.252,
+      "trainLossAtIteration10": 3.109,
+      "trainedTokens": 17011
+    },
+    "runs": [
+      {
+        "label": "primary",
+        "durationMs": 37120,
+        "peakMemoryGb": 22.81,
+        "tokensPerSecond": 637.695,
+        "planSha256": "9c15b3dfa031bc24ca6916d0ba8d6faec62e1890c14ca3b30608bf5e450be47f",
+        "resultSha256": "c7e88596f4fe716e168c501b2615a00d11dd334e93a54266a025fcf2f4f1765e",
+        "resultIdentitySha256": "e0aac4630a1cebddb2ffc0b9bbd199601a71c897e2d2eeb5a60c0b3167297252",
+        "manifestSha256": "6d8838ed802e281175e3cb493086730fae214b06eb048d3cdae7ecbdf3e2783a",
+        "localLog": {
+          "bytes": 2857,
+          "sha256": "ad0dff670e96697a41a658ca6a09557afd9014e9af872045d9740e0e99a7fd63",
+          "includedInRepository": false,
+          "includedInPackage": false
+        }
+      },
+      {
+        "label": "separate-output-root-replay",
+        "durationMs": 37599,
+        "peakMemoryGb": 22.793,
+        "tokensPerSecond": 634.985,
+        "planSha256": "fa3b6668a100662b71b1d096a82894af1beb6fce84672448be59c48c9cbe9c9b",
+        "resultSha256": "d182f7e710a5348ebb0082bf6356afc84f7b9ddc60cd0ad01b7426f1958432da",
+        "resultIdentitySha256": "0d65a44f900c45d1fdf49f8605f5c3ec992cee95cdc3361dd0ef82f01a865597",
+        "manifestSha256": "374f9e523c3081f0d6f5a6e7502cbc08dc5a6aa49cf003b89ca95ddf55e1956d",
+        "localLog": {
+          "bytes": 2885,
+          "sha256": "7b34f45a3661783ff6db5e731d0bee7ef46b3bdef5fb418773350a29cb3bf12d",
+          "includedInRepository": false,
+          "includedInPackage": false
+        }
+      }
+    ]
+  },
+  "verification": {
+    "trainingRunReceipts": "pass",
+    "adapterPackageReceipts": "pass",
+    "validationActuallyExecuted": true,
+    "weightsStoredInRepository": false,
+    "weightsDeployed": false,
+    "adapterActivated": false
+  },
+  "claimBoundary": {
+    "qualityEvidence": false,
+    "researchEvidence": false,
+    "productionEvidence": false,
+    "adapterVersusBaseWin": false,
+    "paidReferenceParity": false,
+    "note": "The two runs prove deterministic training mechanics on the pinned local stack. The 76 rows are smoke-only structural preferences with zero approved single-model-judge pairs, so these weights are permanently non-promotable and must not be used as Scion quality evidence."
+  }
+}
