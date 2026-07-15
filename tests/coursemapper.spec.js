@@ -158,7 +158,7 @@ test.describe('Landing Page', () => {
     await expect(page.getByLabel('API')).toBeDisabled();
     await expect(page.getByLabel('API')).toHaveValue('No API key required');
     await expect(page.getByLabel('Model')).toHaveValue('scion-public');
-    await expect(page.getByLabel('Model').locator('option')).toHaveText('Scion V0.16.26');
+    await expect(page.getByLabel('Model').locator('option')).toHaveText('Scion V0.16.27');
   });
 
   test('Resume restores the saved project model instead of the landing-page model', async ({ page }) => {

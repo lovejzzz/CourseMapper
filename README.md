@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.26
+**Current release:** v0.16.27
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.26**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.27**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -58,6 +58,12 @@ v0.16.25 adds the first complete real-device recovery receipt. An isolated insta
 The same run hash-verified and activated the separate 52.7 MB scale-16 smoke adapter, produced a different output digest, cleared the LoRA, and restored both the exact base-output digest and the unchanged synthetic project-data digest. It then evicted and redownloaded the adapter, restarted Chrome's real GPU process, observed the old inference fail, and proved base usability after unload and cached reload. A browser trace, console log, sanitized hardware probe, and redacted runtime snapshot are each byte-counted and SHA-256-bound under `evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25/`. The trace is deterministically scrubbed of local paths and rejected if its text or network records expose local absolute paths, cookies, authorization headers, API keys, or secret-bearing URLs.
 
 That is **one passing device profile out of four**, not a passing matrix and not a quality result. Chrome on integrated 8 GiB hardware, Edge on integrated 16 GiB hardware, and Chrome or Edge on a discrete GPU with at least 8 GiB remain untested. The adapter is still a permanently non-promotable ten-iteration mechanics smoke; hosted Scion remains base-only, and the fresh reverse-order B/A judgment still must happen in a separate clean task.
+
+v0.16.27 follows the fourteen residual key-term failures to the production boundary. Compact local JSON, full provider JSON, and the legacy line protocol now share one key-term contract: every admitted term needs a lesson-specific name, non-circular definition, concrete example, plausible misconception, separately worded correction, and valid source indexes. The local browser route checks those semantics before admission, accumulates every observed defect across its bounded retry ladder, and can retain an earlier model-authored field only when that retention strictly reduces the deterministic issue count. Such retention is recorded as compiler repair provenance and is never treated as verified or training-eligible evidence.
+
+A hash-bound installed-Chrome run rebuilt the exact fourteen v0.16.26 deficits from both immutable source-capture campaigns. The exact revision-pinned 3,349,514,112-byte public Gemma 4 base admitted **14/14**: nine on the first attempt and five after one bounded retry. Three accepted responses also needed the conservative cross-attempt field-retention repair. The stronger copied-clause detector forced retries instead of accepting a correction hidden inside an expanded definition. This is targeted contract recovery, not a claim that the recovered content is factually correct, educationally superior, equal to a paid model, or produced by a quality adapter.
+
+The compiler improvement has two scopes. The shared contract, full/legacy parsers, and native incomplete-kernel recovery are **model-neutral**, so user-selected paid providers such as GPT-5.4-mini can benefit when their output enters those paths. The focused browser retry feedback, accumulated local defect loop, and cross-attempt response merge are **Scion-local** because they operate inside the public browser provider. No Gemma weight changed, no Scion quality adapter was activated, and public Scion remains the pinned base plus compiler.
 
 v0.16.26 answers whether compiler improvements also help a user-selected paid model. A fail-closed replay applies the same current compiler to both immutable source-capture campaigns: 12 course groups, 48 prompts, and 192 requested atoms for local Gemma, plus the exact same workload for GPT-5.4-mini. It re-verifies every retained project, source packet, prompt, response, admission decision, graph, and compiler byte before measuring anything.
 
@@ -198,7 +204,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.26)
+## Current Pipeline (v0.16.27)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -635,6 +641,7 @@ npm run ingest:scion:codex-training-reviews -- --review ... --review ...
 npm run ingest:scion:codex-sealed-training-reviews -- --sealed ... --key ... --sealed ... --key ...
 npm run audit:scion:mc-recovery # replay hash-bound local MC evidence through v0.16.22 recovery
 npm run audit:scion:compiler-lift # compare current compiler admission lift on immutable local/reference arms
+npm run audit:scion:key-term-recovery # verify the v0.16.27 real-browser 14/14 frozen-deficit receipt
 npm run audit:scion:adapter-delivery # verify the v0.16.24 bounded lifecycle and retained smoke-package receipt
 npm run capture:scion:browser-device -- --reset-profile # run the isolated real Chrome recovery profile
 npm run audit:scion:browser-device-evidence # verify the retained v0.16.25 Apple run and exact 1/4 boundary

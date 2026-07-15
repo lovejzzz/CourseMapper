@@ -3,6 +3,7 @@ import { analyzeDecisionScenario } from './scenarioContract.js';
 import { findScionExplanationKeyConflict, normalizeScionMcItem } from './scionAnswerKeyAlignment.js';
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
 import { validateScionCodexTrainingPreferenceEvidence } from './scionCodexTrainingEvidence.js';
+import { assessScionKeyTermContract } from './scionKeyTermContract.js';
 
 export { findScionExplanationKeyConflict } from './scionAnswerKeyAlignment.js';
 
@@ -109,29 +110,8 @@ export function assessScionMcItem(item, { topicWords = [] } = {}) {
 }
 
 export function assessScionKeyTerm(term = {}, { lessonTitle = '' } = {}) {
-  const issues = [];
-  for (const [key, min, max] of [
-    ['tr', 3, 60],
-    ['df', 45, 380],
-    ['eg', 12, 300],
-    ['mi', 12, 300],
-    ['cx', 12, 300],
-  ]) {
-    if (!stringInBand(term?.[key], min, max)) issues.push(`${key}-length`);
-  }
-  const name = clean(term?.tr);
-  const definition = clean(term?.df);
-  const normalizedLessonTitle = clean(lessonTitle)
-    .replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, '')
-    .toLowerCase();
-  if (name && normalizedLessonTitle && name.toLowerCase() === normalizedLessonTitle)
-    issues.push('term-is-lesson-title');
-  if (name.length > 6 && definition.split(/\s+/).slice(0, 6).join(' ').toLowerCase().includes(name.toLowerCase())) {
-    issues.push('circular-definition');
-  }
-  if (META_SURFACE_RE.test(`${definition} ${clean(term?.eg)}`)) issues.push('meta-definition');
-  if (clean(term?.df).toLowerCase() === clean(term?.cx).toLowerCase()) issues.push('correction-repeats-definition');
-  return { eligible: issues.length === 0, issues, score: Math.max(0, 100 - issues.length * 15) };
+  const result = assessScionKeyTermContract(term, { lessonTitle, definitionMin: 45 });
+  return { eligible: result.eligible, issues: result.issues, score: result.score };
 }
 
 /** Validate the full compact kernel contract used by the Scion training seat. */

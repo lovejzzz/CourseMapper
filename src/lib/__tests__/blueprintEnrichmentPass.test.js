@@ -447,7 +447,13 @@ describe('lintEnrichedKeyTerm script-aware term length', () => {
 
   it('accepts a 2-character hanzi term', () => {
     const issues = lintEnrichedKeyTerm(
-      { term: '你好', definition, example: '你好！我是王老师。(Nǐ hǎo! Wǒ shì Wáng lǎoshī.)' },
+      {
+        term: '你好',
+        definition,
+        example: '你好！我是王老师。(Nǐ hǎo! Wǒ shì Wáng lǎoshī.)',
+        misconception: 'It is reserved only for formal introductions with strangers.',
+        correction: 'Speakers use it as a general greeting across many ordinary meeting contexts.',
+      },
       { lessonTitle: 'Lesson 3: Greetings and Introductions' },
     );
     expect(issues).not.toContain('term-missing');

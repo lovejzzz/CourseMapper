@@ -4,6 +4,7 @@ import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
 import { lintDecisionScenario } from './scenarioContract';
 import { repairScionMcItem } from './scionAnswerKeyAlignment';
+import { assessScionKeyTermContract } from './scionKeyTermContract';
 
 const DEFAULT_MAX_LESSONS = 12;
 const MAX_TEXT_CHARS = 320;
@@ -869,6 +870,7 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
             df: 'correct 1-2 sentence definition in subject language',
             eg: 'concrete domain example',
             mi: 'common student misunderstanding of this term',
+            cx: 'a direct correction that refutes mi in different wording and does not repeat df',
           },
         ],
         slideContent: [
@@ -904,7 +906,7 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
     // v0.14.1 round-2 (fix 4): same romanization contract as the kernel path.
     ...(courseUsesNonLatinScript(courseMap) ? [ROMANIZATION_PROMPT_LINE] : []),
     'Question difficulty and cognitive level must match the plan. Use the objectives verbatim as the knowledge targets.',
-    'Use the abbreviated JSON keys exactly as shown: q=question, op=options, ai=answerIndex, dr=distractorRationales, an=answer, ex=explanation, sg=scoringGuidance, tr=term, df=definition, eg=example, mi=misconception, ti=title, bu=bullets, no=notes, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters.',
+    'Use the abbreviated JSON keys exactly as shown: q=question, op=options, ai=answerIndex, dr=distractorRationales, an=answer, ex=explanation, sg=scoringGuidance, tr=term, df=definition, eg=example, mi=misconception, cx=correction, ti=title, bu=bullets, no=notes, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters.',
     'Return JSON matching this shape:',
     JSON.stringify(schema),
     '',
@@ -956,27 +958,17 @@ export function lintEnrichedQuizItem(item, { groundingText = '' } = {}) {
 }
 
 export function lintEnrichedKeyTerm(term, { lessonTitle = '' } = {}) {
-  const issues = [];
-  const name = cleanText(term?.term);
-  const definition = cleanText(term?.definition);
-  // v0.14.1 round-2 (fix 4): `rm` (romanization) is an OPTIONAL field —
-  // requested only for language courses, fine when absent everywhere. It is
-  // sanitized at parse time (sanitizeRomanization) rather than linted, so a
-  // malformed rm never costs the whole term.
-  // Script-aware minimum: 你好 / 谢谢 / 水 are complete terms at 1-2 chars, so
-  // non-Latin-script terms pass at 1+; the 3-char floor stays for Latin script.
-  const minTermLength = NON_LATIN_SCRIPT_RE.test(name) ? 1 : 3;
-  if (name.length < minTermLength) issues.push('term-missing');
-  if (definition.length < 40) issues.push('definition-too-short');
-  if (META_SURFACE_RE.test(definition) || META_SURFACE_RE.test(cleanText(term?.example)))
-    issues.push('meta-definition');
-  const titleTopic = cleanText(lessonTitle)
-    .replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, '')
-    .toLowerCase();
-  if (name.toLowerCase() === titleTopic) issues.push('term-is-lesson-title');
-  const definitionLead = words(definition).slice(0, 6).join(' ').toLowerCase();
-  if (name.length > 6 && definitionLead.includes(name.toLowerCase())) issues.push('circular-definition');
-  return issues;
+  // `rm` remains optional and is sanitized at parse time. All substantive
+  // fields share the same compact/full-key contract used by Scion admission.
+  const result = assessScionKeyTermContract(term, { lessonTitle, definitionMin: 40 });
+  const labels = {
+    'tr-length': 'term-missing',
+    'df-length': 'definition-too-short',
+    'eg-length': 'example-too-short',
+    'mi-length': 'misconception-too-short',
+    'cx-length': 'correction-too-short',
+  };
+  return result.issues.map((issue) => labels[issue] || issue);
 }
 
 export function lintEnrichedSlideContent(slide) {
@@ -1056,6 +1048,7 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
         definition: cleanText(term.definition),
         example: cleanText(term.example),
         misconception: cleanText(term.misconception),
+        correction: cleanText(term.correction),
         // v0.14.1 round-2 (fix 4): optional romanization rides along so the
         // study guide renders "你好 (nǐ hǎo)".
         ...(romanization ? { romanization } : {}),

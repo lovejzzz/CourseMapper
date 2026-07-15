@@ -57,6 +57,7 @@ const GOOD_TERM = {
     'The warming that results when atmospheric gases absorb outgoing longwave radiation and re-emit part of it back toward the surface.',
   example: 'CO2 and methane absorb infrared radiation that would otherwise escape to space.',
   misconception: 'Students often believe the greenhouse effect is caused by the ozone hole.',
+  correction: 'Greenhouse warming comes from gases absorbing outgoing infrared radiation, not from ozone depletion.',
 };
 
 describe('lesson content enrichment contracts', () => {
@@ -108,7 +109,9 @@ describe('lesson content enrichment contracts', () => {
     expect(prompt.userPrompt).toContain('"q":');
     expect(prompt.userPrompt).toContain('"dr":');
     expect(prompt.userPrompt).toContain('"tr":');
+    expect(prompt.userPrompt).toContain('"cx":');
     expect(prompt.userPrompt).toContain('q=question');
+    expect(prompt.userPrompt).toContain('cx=correction');
 
     const shortItem = {
       index: GOOD_ITEM.index,
@@ -124,6 +127,7 @@ describe('lesson content enrichment contracts', () => {
       df: GOOD_TERM.definition,
       eg: GOOD_TERM.example,
       mi: GOOD_TERM.misconception,
+      cx: GOOD_TERM.correction,
     };
     const shortResponse = JSON.stringify({
       lessons: [
@@ -158,6 +162,7 @@ describe('lesson content enrichment contracts', () => {
     const fromFull = parseLessonContentEnrichmentResponse(fullResponse, { prompt });
     expect(fromShort.lessons['lesson-1'].quizItems).toEqual(fromFull.lessons['lesson-1'].quizItems);
     expect(fromShort.lessons['lesson-1'].keyTerms).toEqual(fromFull.lessons['lesson-1'].keyTerms);
+    expect(fromShort.lessons['lesson-1'].keyTerms[0].correction).toContain('not from ozone depletion');
     expect(fromShort.lessons['lesson-1'].slideContent).toHaveLength(1);
     expect(fromShort.lessons['lesson-1'].discussionPrompt.positions).toHaveLength(2);
     expect(fromShort.lessons['lesson-1'].assignmentCore.parameters).toHaveLength(2);
@@ -179,6 +184,19 @@ describe('lesson content enrichment contracts', () => {
     expect(parsed.lessons['lesson-1'].quizItems).toHaveLength(1);
     expect(parsed.lessons['lesson-1'].keyTerms).toHaveLength(1);
     expect(parsed.issues.length).toBeGreaterThan(0);
+  });
+
+  it('rejects missing or definition-copy corrections before compilation', () => {
+    expect(lintEnrichedKeyTerm({ ...GOOD_TERM, correction: '' })).toContain('correction-too-short');
+    expect(lintEnrichedKeyTerm({ ...GOOD_TERM, correction: GOOD_TERM.definition })).toContain(
+      'correction-repeats-definition',
+    );
+    expect(
+      lintEnrichedKeyTerm({
+        ...GOOD_TERM,
+        definition: `${GOOD_TERM.correction} It also has a second defining property.`,
+      }),
+    ).toContain('correction-repeats-definition');
   });
 });
 

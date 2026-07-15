@@ -261,6 +261,16 @@ Local raw admission is 132/192 and current compiled admission is 168/192, a 36-a
 
 The remaining fourteen cross-arm admissions are entirely local key terms: twelve `correction-repeats-definition` failures, one invalid `source-fact-index`, and one missing expected seat. The compiler cannot safely author those semantic corrections, so they remain an explicit future adapter target. The audit performs no model call, rewrites no retained response, and creates no factual, educational, model, adapter, held-out, paid-reference-quality, independent-review, or human-validation claim.
 
+v0.16.27 rebuilds those exact fourteen deficits and measures the bounded production recovery path in installed Chrome:
+
+```bash
+npm run audit:scion:key-term-recovery
+```
+
+The tracked `key-term-recovery-v0.16.27.json` receipt verifies both immutable campaign manifests and every referenced local project before reconstructing the source packet, original term or missing seat, and defect accounting for each case. It binds the pinned 3,349,514,112-byte public Gemma 4 GGUF identity, browser capabilities, retry ladder, messages, raw responses, contract decisions, baseline receipt, and relevant implementation bytes.
+
+All 14/14 deficits admit: nine on the first model attempt and five after one bounded retry. The stronger copied-clause detector caused those retries by rejecting a correction embedded verbatim inside an expanded definition. Three accepted responses contain one deterministic raw defect and become admissible only when the conservative cross-attempt merge retains an earlier model-authored field that strictly lowers issue count. These repairs are explicit and training-ineligible. This is real-browser local targeted contract recovery only—not factual correctness, educational superiority, full-course parity, an adapter win, paid-reference quality parity, human validation, or independent review.
+
 v0.16.20 keeps both completed orders sealed until they can be opened together. The dual-envelope ingestion command rejects fewer or more than two envelopes or keys, duplicate paths, duplicate envelope or key identities, noncanonical keys, swapped keys, bad ciphertext or authentication tags, changed plaintext hashes, metadata drift, the wrong order pair, reused judge sessions, and any existing structural or qualification failure. Both batches are decrypted and validated in memory before the approved corpus or organizer report is touched. A failed second input therefore cannot partially ingest the first order or replace existing output bytes.
 
 Successful ingestion writes only derived evidence: stable score-qualified chosen/rejected rows and a report containing counts, hashes, and quarantine reasons. It never writes either completed pass. Stable ties, insufficient evidence, low-quality relative winners, non-positive margins, missing defects, changed bytes, and order-sensitive winners remain quarantined. The derived rows explicitly remain single-model Codex evidence. The bridge is tested, but no real B/A judgment exists yet, so the real approved corpus, adapter, held-out wins, and paid-reference parity remain zero.

@@ -1,8 +1,10 @@
 import {
   PUBLIC_SCION_MAX_COMPLETION_TOKENS,
   PUBLIC_SCION_MIN_RETRIES,
+  assessPublicScionKernelResponse,
   buildPublicScionMessages,
-  publicScionKernelResponseNeedsRetry,
+  buildPublicScionRetryFeedback,
+  mergePublicScionKernelAttempts,
   publicScionRetryDelay,
   repairPublicScionJson,
 } from './publicScionProvider';
@@ -73,14 +75,29 @@ export async function runScionLocalCompletion({
 
   await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
 
+  let retryAssessment = null;
+  const observedRetryIssues = new Set();
+  let retainedIncompleteText = null;
   for (let attempt = 0; attempt <= retryLimit; attempt += 1) {
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
     const attemptTemperature = completionTemperature(attempt, temperature);
+    const attemptMessages = retryAssessment?.needsRetry
+      ? messages.map((message, index) =>
+          index === messages.length - 1
+            ? { ...message, content: `${message.content}\n\n${buildPublicScionRetryFeedback(retryAssessment)}` }
+            : message,
+        )
+      : messages;
     if (typeof onAttemptStart === 'function') {
-      onAttemptStart({ attempt: attempt + 1, maxAttempts: retryLimit + 1, temperature: attemptTemperature, messages });
+      onAttemptStart({
+        attempt: attempt + 1,
+        maxAttempts: retryLimit + 1,
+        temperature: attemptTemperature,
+        messages: attemptMessages,
+      });
     }
     let tokenCount = 0;
-    const rawText = await runtimeApi.completeScionBrowserWllama(messages, {
+    const rawText = await runtimeApi.completeScionBrowserWllama(attemptMessages, {
       maxNewTokens: outputLimit,
       temperature: attemptTemperature,
       topK: attemptTemperature > 0 ? 40 : 1,
@@ -93,15 +110,21 @@ export async function runScionLocalCompletion({
       },
     });
     const repaired = repairPublicScionJson(rawText);
-    const fullText = repaired.text;
+    const merged = retainedIncompleteText
+      ? mergePublicScionKernelAttempts(retainedIncompleteText, repaired.text, userPrompt)
+      : { text: repaired.text, repairs: [] };
+    const fullText = merged.text;
     const empty = !fullText.trim();
-    const incomplete = !empty && publicScionKernelResponseNeedsRetry(fullText, userPrompt, task);
+    const assessment = empty
+      ? { needsRetry: true, issues: ['empty-response'] }
+      : assessPublicScionKernelResponse(fullText, userPrompt, task);
+    const incomplete = !empty && assessment.needsRetry;
     if (!empty && !incomplete) {
       return {
         fullText,
         rawText,
-        repairs: repaired.repairs,
-        messages,
+        repairs: [...repaired.repairs, ...merged.repairs],
+        messages: attemptMessages,
         attempt: attempt + 1,
         retryCount: attempt,
         maxRetries: retryLimit,
@@ -115,6 +138,9 @@ export async function runScionLocalCompletion({
           retryable: true,
         });
     if (attempt >= retryLimit) throw failure;
+    for (const issue of assessment.issues || []) observedRetryIssues.add(issue);
+    retryAssessment = { needsRetry: true, issues: [...observedRetryIssues] };
+    retainedIncompleteText = fullText;
     const retryNumber = attempt + 1;
     const delay = publicScionRetryDelay(retryNumber);
     if (typeof onRetry === 'function') onRetry(retryNumber, retryLimit, delay, failure);

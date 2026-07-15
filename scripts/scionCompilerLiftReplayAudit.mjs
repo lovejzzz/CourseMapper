@@ -489,11 +489,42 @@ export async function runScionCompilerLiftReplayAudit(options = {}) {
     return { report, receipt, wrote: true };
   }
   const tracked = JSON.parse(await fs.readFile(receiptPath, 'utf8'));
-  const report = await buildScionCompilerLiftReplayReport({ cwd, generatedAt: tracked.generatedAt });
-  if (canonical(report) !== canonical(tracked)) {
-    throw new Error(`${receipt} does not match the immutable evidence replay and implementation hashes.`);
+  assertExact('historical protocol', tracked.protocol, 'scion-cross-arm-compiler-lift-replay-v1');
+  assertExact('historical release', tracked.release, 'v0.16.26');
+  assertExact('historical status', tracked.status, 'cross-arm-compiler-lift-measured');
+  assertExact('historical summary', tracked.summary, EXPECTED_SUMMARY);
+  assertExact(
+    'historical implementation inventory',
+    tracked.implementation?.map((entry) => entry.file),
+    IMPLEMENTATION_FILES,
+  );
+  for (const entry of tracked.implementation || []) {
+    if (!Number.isInteger(entry.bytes) || entry.bytes <= 0 || !/^[a-f0-9]{64}$/.test(String(entry.sha256 || ''))) {
+      throw new Error(`Historical implementation binding is malformed: ${entry.file}`);
+    }
   }
-  return { report, receipt, wrote: false };
+  for (const config of CAMPAIGNS) {
+    const campaign = await materializeSourceCaptureCampaign({ cwd, manifestPath: config.manifest });
+    const retainedCampaign = tracked.campaigns?.find((entry) => entry.id === config.id);
+    if (!retainedCampaign) throw new Error(`Historical compiler receipt is missing campaign ${config.id}.`);
+    assertExact(`${config.id} manifest file`, retainedCampaign.manifest?.file, campaign.manifestPath);
+    assertExact(`${config.id} manifest hash`, retainedCampaign.manifest?.sha256, campaign.manifestSha256);
+    assertExact(`${config.id} prompt-set hash`, retainedCampaign.manifest?.promptSetSha256, campaign.promptSetSha256);
+    for (const arm of ARMS) {
+      assertExact(`${config.id} ${arm} model`, retainedCampaign.arms?.[arm]?.model, EXPECTED_MODELS[arm]);
+      for (const evidence of retainedCampaign.arms?.[arm]?.evidence || []) {
+        const bytes = await fs.readFile(path.join(cwd, evidence.file));
+        if (bytes.length !== evidence.bytes || sha256(bytes) !== evidence.sha256) {
+          throw new Error(`Historical compiler evidence changed: ${evidence.file}`);
+        }
+      }
+    }
+  }
+  // The receipt is historical once a later release changes admission logic.
+  // Re-running today's compiler would produce a new experiment, not verify the
+  // v0.16.26 claim. Current implementation bytes are bound by the new release;
+  // this path verifies the retained summary, manifests, and every evidence byte.
+  return { report: tracked, receipt, wrote: false };
 }
 
 async function main() {

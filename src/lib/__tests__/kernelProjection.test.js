@@ -65,6 +65,12 @@ const TERMS = [
   },
 ];
 
+const TERM_CORRECTIONS = [
+  'Greenhouse gases warm the surface by absorbing outgoing infrared radiation, independently of ozone depletion.',
+  'Albedo changes incoming sunlight reflection, whereas greenhouse gases alter outgoing radiation.',
+  'Added CO2 changes the radiative energy balance rather than heating air through a chemical reaction.',
+];
+
 const MC_ITEM = {
   question: 'Which process explains why increasing atmospheric CO2 raises global mean surface temperature?',
   options: [
@@ -463,11 +469,12 @@ describe('kernel parse → project → compile (end to end)', () => {
       {
         lessonId: 'lesson-1',
         facts: KERNEL.facts,
-        keyTerms: TERMS.map((term) => ({
+        keyTerms: TERMS.map((term, index) => ({
           tr: term.term,
           df: term.definition,
           eg: term.example,
           mi: term.misconception,
+          cx: TERM_CORRECTIONS[index],
         })),
         scenario: { su: KERNEL.scenario.setup, ma: KERNEL.scenario.materials },
         discussionPrompt: {

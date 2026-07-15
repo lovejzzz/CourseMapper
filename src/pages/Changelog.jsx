@@ -2085,7 +2085,7 @@ export default function Changelog() {
                       {release.highlights.map((h, i) => (
                         <li key={i} className="flex items-start gap-2.5 text-sm text-slate-700 leading-relaxed">
                           <span className="mt-1 w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
-                          {h}
+                          <span className="min-w-0 break-words">{h}</span>
                         </li>
                       ))}
                     </ul>
@@ -2114,7 +2114,7 @@ export default function Changelog() {
                             {items.map((item, i) => (
                               <li key={i} className="flex items-start gap-3 text-sm text-slate-700 leading-relaxed">
                                 <span className={`mt-[7px] w-1.5 h-1.5 rounded-full ${colors.dot} flex-shrink-0`} />
-                                {item}
+                                <span className="min-w-0 break-words">{item}</span>
                               </li>
                             ))}
                           </ul>

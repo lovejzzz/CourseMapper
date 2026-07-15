@@ -12,12 +12,15 @@ import {
   PUBLIC_SCION_MODEL_ID,
   PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
+  assessPublicScionKernelResponse,
+  buildPublicScionRetryFeedback,
   buildPublicScionMessages,
   extractPublicScionKernelLessons,
   extractPublicScionLessonWindow,
   extractPublicScionPriorLessonTitles,
   extractPublicScionTotalLessonCount,
   extractPublicScionVoiceSurfaces,
+  mergePublicScionKernelAttempts,
   publicScionModelOption,
   publicScionKernelResponseNeedsRetry,
   publicScionRetryDelay,
@@ -26,6 +29,14 @@ import {
 } from '../src/lib/publicScionProvider';
 
 describe('Scion Public provider', () => {
+  const completeTerms = [0, 1, 2].map((index) => ({
+    tr: `Term ${index + 1}`,
+    df: `A precise disciplinary definition number ${index + 1} that is long enough for local admission.`,
+    eg: `A concrete domain example number ${index + 1}.`,
+    mi: `A plausible misunderstanding number ${index + 1}.`,
+    cx: `The correction refutes misunderstanding number ${index + 1} with a distinct mechanism.`,
+  }));
+
   it('reserves bounded compiler recovery calls for browser-local Scion', () => {
     expect(PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS).toBe(4);
   });
@@ -41,10 +52,60 @@ describe('Scion Public provider', () => {
     expect(
       publicScionKernelResponseNeedsRetry('{"lessons":[{"lessonId":"lesson-8"}]}', prompt, 'blueprintEnrichment'),
     ).toBe(true);
-    expect(
-      publicScionKernelResponseNeedsRetry('{"lessons":[{"lessonId":"lesson-9"}]}', prompt, 'blueprintEnrichment'),
-    ).toBe(false);
+    const complete = JSON.stringify({ lessons: [{ lessonId: 'lesson-9', keyTerms: completeTerms }] });
+    expect(publicScionKernelResponseNeedsRetry(complete, prompt, 'blueprintEnrichment')).toBe(false);
+    const repeated = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-9',
+          keyTerms: completeTerms.map((term, index) => (index === 1 ? { ...term, cx: term.df } : term)),
+        },
+      ],
+    });
+    const assessment = assessPublicScionKernelResponse(repeated, prompt, 'blueprintEnrichment');
+    expect(assessment.needsRetry).toBe(true);
+    expect(assessment.issues).toContain('lesson-9:key-term-1:correction-repeats-definition');
+    const hiddenCopy = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-9',
+          keyTerms: completeTerms.map((term, index) =>
+            index === 1 ? { ...term, df: `${term.cx} It also has a second defining property.` } : term,
+          ),
+        },
+      ],
+    });
+    expect(assessPublicScionKernelResponse(hiddenCopy, prompt, 'blueprintEnrichment').issues).toContain(
+      'lesson-9:key-term-1:correction-repeats-definition',
+    );
+    expect(buildPublicScionRetryFeedback(assessment)).toContain('cx must directly refute mi');
     expect(publicScionKernelResponseNeedsRetry('{"lessons":[]}', prompt, 'course-map')).toBe(false);
+  });
+
+  it('merges only earlier fields that strictly reduce cross-attempt contract defects', () => {
+    const previousTerms = completeTerms.map((term, index) => (index === 0 ? { ...term, cx: term.df } : term));
+    const currentTerms = completeTerms.map((term, index) =>
+      index === 0
+        ? {
+            ...term,
+            tr: 'A term name accidentally expanded into a complete sentence that exceeds the compact field limit',
+            cx: 'This correction directly refutes the misconception without copying the definition.',
+          }
+        : term,
+    );
+    const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
+    const merged = mergePublicScionKernelAttempts(
+      JSON.stringify({ lessons: [{ lessonId: 'lesson-9', keyTerms: previousTerms }] }),
+      JSON.stringify({ lessons: [{ lessonId: 'lesson-9', keyTerms: currentTerms }] }),
+      prompt,
+    );
+    const first = JSON.parse(merged.text).lessons[0].keyTerms[0];
+    expect(first.tr).toBe(previousTerms[0].tr);
+    expect(first.cx).toBe(currentTerms[0].cx);
+    expect(merged.repairs).toEqual([
+      expect.objectContaining({ pass: 'crossAttemptContractMerge', field: 'term', trainingEligible: false }),
+    ]);
+    expect(publicScionKernelResponseNeedsRetry(merged.text, prompt, 'blueprintEnrichment')).toBe(false);
   });
 
   it('ships a keyless browser-local model option with prompt-only structure support', () => {
@@ -120,6 +181,7 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(messages[1].content).toContain('LESSONS TO AUTHOR');
     expect(messages[1].content).toContain('Lesson 4: Affinity Mapping');
     expect(messages[1].content).toContain('Write exactly 4 mc items');
+    expect(messages[1].content).toContain('cx directly refutes mi in different wording and never repeats df');
     expect(messages[1].content).toContain('one field-note evidence analysis');
     expect(messages[1].content).toContain('At least 3 mc stems include specific observed behavior or evidence');
     expect(messages[1].content).toContain('Never infer motive from one ambiguous behavior');

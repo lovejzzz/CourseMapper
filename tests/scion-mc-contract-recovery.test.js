@@ -39,7 +39,7 @@ describe('Scion immutable MC recovery replay', () => {
     expect(report.domains.every((domain) => /^[a-f0-9]{64}$/.test(domain.evidence.sha256))).toBe(true);
   });
 
-  it('verifies the tracked receipt against evidence and implementation bytes', async () => {
+  it('verifies the historical receipt identity and every immutable evidence byte', async () => {
     const result = await runScionMcContractRecoveryAudit({ cwd: repoRoot });
     expect(result.wrote).toBe(false);
     expect(result.report.summary.afterIncompleteTailRecovery).toBe(45);

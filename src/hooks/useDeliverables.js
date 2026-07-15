@@ -1413,11 +1413,11 @@ export default function useDeliverables({
 
             // Recovery (same budget discipline as the prose kernel stage,
             // v0.14.1 P2.3): ≤2 extra sequential calls for lessons whose
-            // kernel OR authored outcomes never arrived. Sparse admitted
-            // kernels keep the compiler's deterministic surface fallback;
-            // retrying them in the foreground proved slower and less safe.
+            // kernel is absent OR contract-incomplete, or whose authored
+            // outcomes never arrived. Deterministic fallbacks remain the
+            // fail-closed last resort after the bounded repair budget.
             const listMissingKernelIndices = () =>
-              allLessonIndices.filter((lessonIdx) => !lessonContent[lessonIdOf(lessonIdx)]);
+              allLessonIndices.filter((lessonIdx) => !kernelIsComplete(lessonContent[lessonIdOf(lessonIdx)]));
             const listMissingAuthoredIndices = () =>
               allLessonIndices.filter((lessonIdx) => !nativeAuthored[lessonIdOf(lessonIdx)]);
             let nativeRecoveryCalls = 0;

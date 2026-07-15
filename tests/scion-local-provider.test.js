@@ -16,6 +16,23 @@ function runtimeWith(outputs) {
   };
 }
 
+function completeKernelResponse(lessonId = 'lesson-4') {
+  return JSON.stringify({
+    lessons: [
+      {
+        lessonId,
+        keyTerms: [0, 1, 2].map((index) => ({
+          tr: `Term ${index + 1}`,
+          df: `A precise disciplinary definition number ${index + 1} that is long enough for local admission.`,
+          eg: `A concrete domain example number ${index + 1}.`,
+          mi: `A plausible misunderstanding number ${index + 1}.`,
+          cx: `The correction refutes misunderstanding number ${index + 1} with a distinct mechanism.`,
+        })),
+      },
+    ],
+  });
+}
+
 describe('Scion browser-local provider', () => {
   it('loads the pinned runtime, streams locally, and repairs the final JSON', async () => {
     const runtime = runtimeWith(['```json\n{"courseName":"Design","lessons":[]}\n```']);
@@ -54,10 +71,7 @@ describe('Scion browser-local provider', () => {
   });
 
   it('retries only incomplete kernel envelopes with bounded temperature escalation', async () => {
-    const runtime = runtimeWith([
-      '{"lessons":[]}',
-      '{"lessons":[{"lessonId":"lesson-4","facts":["A sufficiently specific subject fact."]}]}',
-    ]);
+    const runtime = runtimeWith(['{"lessons":[]}', completeKernelResponse()]);
     const delays = [];
     const onRetry = vi.fn();
     const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
@@ -82,8 +96,75 @@ describe('Scion browser-local provider', () => {
       topP: 0.9,
       seed: 8,
     });
+    expect(runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content).toContain('LOCAL ADMISSION RETRY');
+    expect(runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content).toContain('lesson-4:missing-lesson');
     expect(onRetry).toHaveBeenCalledWith(1, 2, 250, expect.objectContaining({ code: 'SCION_LOCAL_INCOMPLETE' }));
     expect(delays).toEqual([250]);
+  });
+
+  it('retries a correction that merely copies its definition and returns the repaired lesson', async () => {
+    const valid = JSON.parse(completeKernelResponse());
+    const repeated = structuredClone(valid);
+    repeated.lessons[0].keyTerms[0].cx = repeated.lessons[0].keyTerms[0].df;
+    const runtime = runtimeWith([JSON.stringify(repeated), JSON.stringify(valid)]);
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result.attempt).toBe(2);
+    expect(runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content).toContain(
+      'correction-repeats-definition',
+    );
+  });
+
+  it('retains earlier defects in retry feedback when later attempts expose a different defect', async () => {
+    const valid = JSON.parse(completeKernelResponse());
+    const repeated = structuredClone(valid);
+    repeated.lessons[0].keyTerms[0].cx = repeated.lessons[0].keyTerms[0].df;
+    const runtime = runtimeWith(['{"lessons":[]}', JSON.stringify(repeated), JSON.stringify(valid)]);
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result.attempt).toBe(3);
+    const finalFeedback = runtime.completeScionBrowserWllama.mock.calls[2][0].at(-1).content;
+    expect(finalFeedback).toContain('lesson-4:missing-lesson');
+    expect(finalFeedback).toContain('correction-repeats-definition');
+  });
+
+  it('retains an earlier valid term name when a retry fixes cx but expands tr into a sentence', async () => {
+    const repeated = JSON.parse(completeKernelResponse());
+    repeated.lessons[0].keyTerms[0].cx = repeated.lessons[0].keyTerms[0].df;
+    const retry = JSON.parse(completeKernelResponse());
+    retry.lessons[0].keyTerms[0].tr =
+      'A term name accidentally expanded into a complete sentence that exceeds the compact field limit';
+    retry.lessons[0].keyTerms[0].cx =
+      'This correction directly refutes the misconception without copying the definition.';
+    const runtime = runtimeWith([JSON.stringify(repeated), JSON.stringify(retry)]);
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result.attempt).toBe(2);
+    expect(JSON.parse(result.fullText).lessons[0].keyTerms[0].tr).toBe('Term 1');
+    expect(result.repairs).toEqual([
+      expect.objectContaining({ pass: 'crossAttemptContractMerge', field: 'term', trainingEligible: false }),
+    ]);
   });
 
   it('returns compiler repair provenance with the repaired browser-local text', async () => {

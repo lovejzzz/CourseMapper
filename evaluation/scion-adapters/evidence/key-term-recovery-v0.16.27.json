@@ -1,0 +1,1460 @@
+{
+  "protocol": "scion-browser-key-term-recovery-v1",
+  "release": "v0.16.27",
+  "generatedAt": "2026-07-15T05:57:22.035Z",
+  "status": "all-frozen-deficits-recovered",
+  "baseline": {
+    "file": "evaluation/scion-adapters/evidence/compiler-cross-arm-replay-v0.16.26.json",
+    "sha256": "8a87530df8fd0350e13fab002e32c45c7d12f93c6ffb023ad86edf58491c73ab"
+  },
+  "implementation": [
+    {
+      "file": "scripts/scionKeyTermRecoveryAudit.mjs",
+      "bytes": 16569,
+      "sha256": "2b13c53c50e62c7ad3903beee55fcc8422462e07673c38a5b943f02a357670df"
+    },
+    {
+      "file": "scripts/lib/scionKeyTermRecovery.mjs",
+      "bytes": 16459,
+      "sha256": "5fbb6e7d604a96599f3fcb3749de560feb98476ace129f9993cbc048b84d68c2"
+    },
+    {
+      "file": "scripts/lib/scionSourceCapture.mjs",
+      "bytes": 31832,
+      "sha256": "2a2b1c51212a6ccbb2d3a899f1ec0ea0c04b6bcdf58d3d269b01db413c984ac3"
+    },
+    {
+      "file": "scripts/scionSourceCapture.mjs",
+      "bytes": 33685,
+      "sha256": "189a95ef3357760c450820915932b0370177bec4e203440705cb9e8b6afa32c5"
+    },
+    {
+      "file": "scripts/scionCompilerLiftReplayAudit.mjs",
+      "bytes": 22552,
+      "sha256": "01f5ab5c7db76b0a66195ed99e74056377ff2afcdb4447d6a432c4426cc4abc4"
+    },
+    {
+      "file": "scripts/scionMcContractRecoveryAudit.mjs",
+      "bytes": 12127,
+      "sha256": "fa2733ea7a1048480ed89af7d6ba06d3bcee909ae5af6f3e1a5d6b0477f6be80"
+    },
+    {
+      "file": "src/lib/scionKeyTermContract.js",
+      "bytes": 5727,
+      "sha256": "b0b592f428ae0019dd6d6a14497a6dd2c2187ea8d49f1f54ea3d3d62b93d736b"
+    },
+    {
+      "file": "src/lib/publicScionProvider.js",
+      "bytes": 29775,
+      "sha256": "716938f9ac5b2a81d0b7971687c05fdb1131dcdc49253d2d968ce3e1baecbb38"
+    },
+    {
+      "file": "src/lib/scionLocalProvider.js",
+      "bytes": 5475,
+      "sha256": "045aca1e61df98ed8021b1141a31db29581e43bf7d22ef9f86c56ed2f0498c02"
+    },
+    {
+      "file": "src/lib/blueprintEnrichmentPass.js",
+      "bytes": 70253,
+      "sha256": "97dd6d570a97ba8c9da946bfcd6005eedad251c86d9e536ac8e938c254d7bd22"
+    },
+    {
+      "file": "src/hooks/useDeliverables.js",
+      "bytes": 250651,
+      "sha256": "a2166c84c043fa2843730c4fd445074bf805d7e255654b53adc8a2fa5f63685d"
+    },
+    {
+      "file": "src/lib/scionBrowserDeviceLab.js",
+      "bytes": 10097,
+      "sha256": "fc13a475382f51f2c62767944438be6440ce93da1295ef3e398af377796bab12"
+    }
+  ],
+  "runtime": {
+    "route": "real-browser-local-base-only",
+    "model": {
+      "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+      "revision": "69536a21d70340464240401ba38223d805f6a709",
+      "file": "gemma-4-E2B_q4_0-it.gguf",
+      "bytes": 3349514112,
+      "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "format": "gguf-q4_0-qat"
+    },
+    "browserProbe": {
+      "secureContext": true,
+      "crossOriginIsolated": true,
+      "webgpu": true,
+      "jspi": true,
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+      "userAgentData": {
+        "architecture": "arm",
+        "bitness": "64",
+        "brands": [
+          {
+            "brand": "Not;A=Brand",
+            "version": "8"
+          },
+          {
+            "brand": "Chromium",
+            "version": "150"
+          },
+          {
+            "brand": "Google Chrome",
+            "version": "150"
+          }
+        ],
+        "fullVersionList": [
+          {
+            "brand": "Not;A=Brand",
+            "version": "8.0.0.0"
+          },
+          {
+            "brand": "Chromium",
+            "version": "150.0.7871.124"
+          },
+          {
+            "brand": "Google Chrome",
+            "version": "150.0.7871.124"
+          }
+        ],
+        "mobile": false,
+        "model": "",
+        "platform": "macOS",
+        "platformVersion": "26.5.1"
+      },
+      "hardwareConcurrency": 16,
+      "deviceMemoryGiB": 32,
+      "gpu": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "device": "",
+        "description": ""
+      }
+    },
+    "baseLoad": {
+      "completed": true,
+      "durationMs": 1008,
+      "maximumProgress": 1,
+      "progressEventCount": 4,
+      "finalProgressEvent": {
+        "phase": "ready",
+        "progress": 1,
+        "message": "Scion local Gemma 4 is ready."
+      },
+      "runtimeMetadataArchitecture": "gemma4",
+      "runtimeMetadataType": "model",
+      "webgpuActive": true,
+      "status": {
+        "phase": "ready",
+        "progress": 1,
+        "message": "Scion local Gemma 4 is ready.",
+        "error": null,
+        "runtime": {
+          "id": "scion-wllama-webgpu-jspi-v1",
+          "modulePath": "/scion/runtime/v1/wllama.js",
+          "moduleSha256": "ca1b99d084b649a89400d8a839f3e772a46d1f65f145b80d9aa49bc43ddbc41a",
+          "wasmPath": "/scion/runtime/v1/jspi-single-thread/wllama.wasm",
+          "wasmSha256": "732bac4661d613461cee0b3132660beab159b926910c8431181ee01608e44229",
+          "upstreamRevision": "58903000dbea6acfc0eb9c738d8be50d1052cf23",
+          "llamaCppRevision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682"
+        },
+        "trainingBase": {
+          "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+          "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+          "architecture": "gemma4"
+        },
+        "activeWeightIdentity": {
+          "modelId": "google/gemma-4-E2B-it-qat-q4_0-gguf",
+          "revision": "69536a21d70340464240401ba38223d805f6a709",
+          "file": "gemma-4-E2B_q4_0-it.gguf",
+          "bytes": 3349514112,
+          "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+          "format": "gguf-q4_0-qat"
+        },
+        "baseIntegrity": {
+          "expectedSha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+          "runtimeCheck": "metadata-and-pinned-url",
+          "fullDigestEvidence": "evaluation/scion-adapters/base-contracts/gemma-4-e2b.json"
+        },
+        "adapter": {
+          "mode": "base-only",
+          "active": false,
+          "id": null,
+          "manifestSha256": null
+        },
+        "metadata": {
+          "hparams": {
+            "nVocab": 262144,
+            "nCtxTrain": 131072,
+            "nEmbd": 1536,
+            "nLayer": 35
+          },
+          "meta": {
+            "tokenizer.ggml.add_bos_token": "true",
+            "general.quantization_version": "2",
+            "tokenizer.ggml.mask_token_id": "4",
+            "tokenizer.ggml.eos_token_id": "1",
+            "tokenizer.ggml.model": "gemma4",
+            "gemma4.rope.dimension_count_swa": "256",
+            "gemma4.rope.dimension_count": "512",
+            "gemma4.embedding_length_per_layer_input": "256",
+            "general.name": "2B_dequant_qat_it_hf",
+            "gemma4.attention.sliding_window": "512",
+            "general.sampling.temp": "1.000000",
+            "gemma4.attention.layer_norm_rms_epsilon": "0.000001",
+            "general.size_label": "4.6B",
+            "gemma4.attention.key_length": "512",
+            "gemma4.rope.freq_base_swa": "10000.000000",
+            "gemma4.attention.head_count_kv": "1",
+            "gemma4.attention.head_count": "8",
+            "tokenizer.chat_template": "{%- macro format_parameters(properties, required, filter_keys=false) -%}\n    {%- set standard_keys = ['description', 'type', 'properties', 'required', 'nullable'] -%}\n    {%- set ns = namespace(found_first=false) -%}\n    {%- for key, value in properties | dictsort -%}\n        {%- set add_comma = false -%}\n        {%- if not filter_keys or key not in standard_keys -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {{ key }}:{\n            {%- if value['description'] -%}\n                description:<|\"|>{{ value['description'] }}<|\"|>\n                {%- set add_comma = true -%}\n            {%- endif -%}\n            {%- if value['type'] | upper == 'STRING' -%}\n                {%- if value['enum'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    enum:{{ format_argument(value['enum']) }}\n                {%- endif -%}\n            {%- elif value['type'] | upper == 'ARRAY' -%}\n                {%- if value['items'] is mapping and value['items'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    items:{\n                    {%- set ns_items = namespace(found_first=false) -%}\n                    {%- for item_key, item_value in value['items'] | dictsort -%}\n                        {%- if item_value is not none -%}\n                            {%- if ns_items.found_first %},{% endif -%}\n                            {%- set ns_items.found_first = true -%}\n                            {%- if item_key == 'properties' -%}\n                                properties:{\n                                {%- if item_value is mapping -%}\n                                    {{- format_parameters(item_value, value['items']['required'] | default([])) -}}\n                                {%- endif -%}\n                                }\n                            {%- elif item_key == 'required' -%}\n                                required:[\n                                {%- for req_item in item_value -%}\n                                    <|\"|>{{- req_item -}}<|\"|>\n                                    {%- if not loop.last %},{% endif -%}\n                                {%- endfor -%}\n                                ]\n                            {%- elif item_key == 'type' -%}\n                                {%- if item_value is string -%}\n                                    type:{{ format_argument(item_value | upper) }}\n                                {%- else -%}\n                                    type:{{ format_argument(item_value | map('upper') | list) }}\n                                {%- endif -%}\n                            {%- else -%}\n                                {{ item_key }}:{{ format_argument(item_value) }}\n                            {%- endif -%}\n                        {%- endif -%}\n                    {%- endfor -%}\n                    }\n                {%- endif -%}\n            {%- endif -%}\n            {%- if value['nullable'] %}\n                {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                nullable:true\n            {%- endif -%}\n            {%- if value['type'] | upper == 'OBJECT' -%}\n                {%- if value['properties'] is defined and value['properties'] is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value['properties'], value['required'] | default([])) -}}\n                    }\n                {%- elif value is mapping -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    properties:{\n                    {{- format_parameters(value, value['required'] | default([]), filter_keys=true) -}}\n                    }\n                {%- endif -%}\n                {%- if value['required'] -%}\n                    {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n                    required:[\n                    {%- for item in value['required'] | default([]) -%}\n                        <|\"|>{{- item -}}<|\"|>\n                        {%- if not loop.last %},{% endif -%}\n                    {%- endfor -%}\n                    ]\n                {%- endif -%}\n            {%- endif -%}\n            {%- if add_comma %},{%- else -%} {%- set add_comma = true -%} {% endif -%}\n            type:<|\"|>{{ value['type'] | upper }}<|\"|>}\n        {%- endif -%}\n    {%- endfor -%}\n{%- endmacro -%}\n{%- macro format_function_declaration(tool_data) -%}\n    declaration:{{- tool_data['function']['name'] -}}{description:<|\"|>{{- tool_data['function']['description'] -}}<|\"|>\n    {%- set params = tool_data['function']['parameters'] -%}\n    {%- if params -%}\n        ,parameters:{\n        {%- if params['properties'] -%}\n            properties:{ {{- format_parameters(params['properties'], params['required']) -}} },\n        {%- endif -%}\n        {%- if params['required'] -%}\n            required:[\n            {%- for item in params['required'] -%}\n                <|\"|>{{- item -}}<|\"|>\n                {{- ',' if not loop.last -}}\n            {%- endfor -%}\n            ],\n        {%- endif -%}\n        {%- if params['type'] -%}\n            type:<|\"|>{{- params['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    {%- if 'response' in tool_data['function'] -%}\n        {%- set response_declaration = tool_data['function']['response'] -%}\n        ,response:{\n        {%- if response_declaration['description'] -%}\n            description:<|\"|>{{- response_declaration['description'] -}}<|\"|>,\n        {%- endif -%}\n        {%- if response_declaration['type'] | upper == 'OBJECT' -%}\n            type:<|\"|>{{- response_declaration['type'] | upper -}}<|\"|>}\n        {%- endif -%}\n    {%- endif -%}\n    }\n{%- endmacro -%}\n{%- macro format_argument(argument, escape_keys=True) -%}\n    {%- if argument is string -%}\n        {{- '<|\"|>' + argument + '<|\"|>' -}}\n    {%- elif argument is boolean -%}\n        {{- 'true' if argument else 'false' -}}\n    {%- elif argument is mapping -%}\n        {{- '{' -}}\n        {%- set ns = namespace(found_first=false) -%}\n        {%- for key, value in argument | dictsort -%}\n            {%- if ns.found_first %},{% endif -%}\n            {%- set ns.found_first = true -%}\n            {%- if escape_keys -%}\n                {{- '<|\"|>' + key + '<|\"|>' -}}\n            {%- else -%}\n                {{- key -}}\n            {%- endif -%}\n            :{{- format_argument(value, escape_keys=escape_keys) -}}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- elif argument is sequence -%}\n        {{- '[' -}}\n        {%- for item in argument -%}\n            {{- format_argument(item, escape_keys=escape_keys) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- ']' -}}\n    {%- else -%}\n        {{- argument -}}\n    {%- endif -%}\n{%- endmacro -%}\n{%- macro strip_thinking(text) -%}\n    {%- set ns = namespace(result='') -%}\n    {%- for part in text.split('<channel|>') -%}\n        {%- if '<|channel>' in part -%}\n            {%- set ns.result = ns.result + part.split('<|channel>')[0] -%}\n        {%- else -%}\n            {%- set ns.result = ns.result + part -%}\n        {%- endif -%}\n    {%- endfor -%}\n    {{- ns.result | trim -}}\n{%- endmacro -%}\n\n{%- macro format_tool_response_block(tool_name, response) -%}\n    {{- '<|tool_response>' -}}\n    {%- if response is mapping -%}\n        {{- 'response:' + tool_name + '{' -}}\n        {%- for key, value in response | dictsort -%}\n            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n            {%- if not loop.last %},{% endif -%}\n        {%- endfor -%}\n        {{- '}' -}}\n    {%- else -%}\n        {{- 'response:' + tool_name + '{value:' + format_argument(response, escape_keys=False) + '}' -}}\n    {%- endif -%}\n    {{- '<tool_response|>' -}}\n{%- endmacro -%}\n\n{%- set ns = namespace(prev_message_type=None) -%}\n{%- set loop_messages = messages -%}\n{{- bos_token -}}\n{#- Handle System/Tool Definitions Block -#}\n{%- if (enable_thinking is defined and enable_thinking) or tools or messages[0]['role'] in ['system', 'developer'] -%}\n    {{- '<|turn>system\\n' -}}\n    {#- Inject Thinking token at the very top of the FIRST system turn -#}\n    {%- if enable_thinking is defined and enable_thinking -%}\n        {{- '<|think|>\\n' -}}\n        {%- set ns.prev_message_type = 'think' -%}\n    {%- endif -%}\n    {%- if messages[0]['role'] in ['system', 'developer'] -%}\n        {%- if messages[0]['content'] is string -%}\n            {{- messages[0]['content'] | trim -}}\n        {%- elif messages[0]['content'] is sequence -%}\n            {%- for item in messages[0]['content'] -%}\n                {{- item['text'] | trim + ' '-}}\n            {%- endfor -%}\n        {%- endif -%}\n        {%- set loop_messages = messages[1:] -%}\n    {%- endif -%}\n    {%- if tools -%}\n        {%- for tool in tools %}\n            {{- '<|tool>' -}}\n            {{- format_function_declaration(tool) | trim -}}\n            {{- '<tool|>' -}}\n        {%- endfor %}\n        {%- set ns.prev_message_type = 'tool' -%}\n    {%- endif -%}\n    {{- '<turn|>\\n' -}}\n{%- endif %}\n\n{#- Pre-scan: find last user message index for reasoning guard -#}\n{%- set ns_turn = namespace(last_user_idx=-1) -%}\n{%- for i in range(loop_messages | length) -%}\n    {%- if loop_messages[i]['role'] == 'user' -%}\n        {%- set ns_turn.last_user_idx = i -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{#- Loop through messages -#}\n{%- for message in loop_messages -%}\n    {%- if message['role'] != 'tool' -%}\n    {%- set ns.prev_message_type = None -%}\n    {%- set role = 'model' if message['role'] == 'assistant' else message['role'] -%}\n    {#- Detect continuation: suppress duplicate <|turn>model when previous non-tool message was also assistant -#}\n    {%- set prev_nt = namespace(role=None, found=false) -%}\n    {%- if loop.index0 > 0 -%}\n        {%- for j in range(loop.index0 - 1, -1, -1) -%}\n            {%- if not prev_nt.found -%}\n                {%- if loop_messages[j]['role'] != 'tool' -%}\n                    {%- set prev_nt.role = loop_messages[j]['role'] -%}\n                    {%- set prev_nt.found = true -%}\n                {%- endif -%}\n            {%- endif -%}\n        {%- endfor -%}\n    {%- endif -%}\n    {%- set continue_same_model_turn = (role == 'model' and prev_nt.role == 'assistant') -%}\n    {%- if not continue_same_model_turn -%}\n        {{- '<|turn>' + role + '\\n' }}\n    {%- endif -%}\n\n    {#- Render reasoning/reasoning_content as thinking channel -#}\n    {%- set thinking_text = message.get('reasoning') or message.get('reasoning_content') -%}\n    {%- if thinking_text and loop.index0 > ns_turn.last_user_idx and message.get('tool_calls') -%}\n        {{- '<|channel>thought\\n' + thinking_text + '\\n<channel|>' -}}\n    {%- endif -%}\n\n            {%- if message['tool_calls'] -%}\n                {%- for tool_call in message['tool_calls'] -%}\n                    {%- set function = tool_call['function'] -%}\n                    {{- '<|tool_call>call:' + function['name'] + '{' -}}\n                    {%- if function['arguments'] is mapping -%}\n                        {%- set ns_args = namespace(found_first=false) -%}\n                        {%- for key, value in function['arguments'] | dictsort -%}\n                            {%- if ns_args.found_first %},{% endif -%}\n                            {%- set ns_args.found_first = true -%}\n                            {{- key -}}:{{- format_argument(value, escape_keys=False) -}}\n                        {%- endfor -%}\n                    {%- elif function['arguments'] is string -%}\n                        {{- function['arguments'] -}}\n                    {%- endif -%}\n                    {{- '}<tool_call|>' -}}\n                {%- endfor -%}\n                {%- set ns.prev_message_type = 'tool_call' -%}\n            {%- endif -%}\n\n            {%- set ns_tr_out = namespace(flag=false) -%}\n            {%- if message.get('tool_responses') -%}\n                {#- Legacy: tool_responses embedded on the assistant message (Google/Gemma native) -#}\n                {%- for tool_response in message['tool_responses'] -%}\n                    {{- format_tool_response_block(tool_response['name'] | default('unknown'), tool_response['response']) -}}\n                    {%- set ns_tr_out.flag = true -%}\n                    {%- set ns.prev_message_type = 'tool_response' -%}\n                {%- endfor -%}\n            {%- elif message.get('tool_calls') -%}\n                {#- OpenAI Chat Completions: forward-scan consecutive role:tool messages -#}\n                {%- set ns_tool_scan = namespace(stopped=false) -%}\n                {%- for k in range(loop.index0 + 1, loop_messages | length) -%}\n                    {%- if ns_tool_scan.stopped -%}\n                    {%- elif loop_messages[k]['role'] != 'tool' -%}\n                        {%- set ns_tool_scan.stopped = true -%}\n                    {%- else -%}\n                        {%- set follow = loop_messages[k] -%}\n                        {#- Resolve tool_call_id to function name -#}\n                        {%- set ns_tname = namespace(name=follow.get('name') | default('unknown')) -%}\n                        {%- for tc in message['tool_calls'] -%}\n                            {%- if tc.get('id') == follow.get('tool_call_id') -%}\n                                {%- set ns_tname.name = tc['function']['name'] -%}\n                            {%- endif -%}\n                        {%- endfor -%}\n                        {#- Handle content as string or content-parts array -#}\n                        {%- set tool_body = follow.get('content') -%}\n                        {%- if tool_body is string -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- elif tool_body is sequence and tool_body is not string -%}\n                            {%- set ns_txt = namespace(s='') -%}\n                            {%- for part in tool_body -%}\n                                {%- if part.get('type') == 'text' -%}\n                                    {%- set ns_txt.s = ns_txt.s + (part.get('text') | default('')) -%}\n                                {%- endif -%}\n                            {%- endfor -%}\n                            {{- format_tool_response_block(ns_tname.name, ns_txt.s) -}}\n                        {%- else -%}\n                            {{- format_tool_response_block(ns_tname.name, tool_body) -}}\n                        {%- endif -%}\n                        {%- set ns_tr_out.flag = true -%}\n                        {%- set ns.prev_message_type = 'tool_response' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n\n            {%- set captured_content -%}\n            {%- if message['content'] is string -%}\n                {%- if role == 'model' -%}\n                    {{- strip_thinking(message['content']) -}}\n                {%- else -%}\n                    {{- message['content'] | trim -}}\n                {%- endif -%}\n            {%- elif message['content'] is sequence -%}\n                {%- for item in message['content'] -%}\n                    {%- if item['type'] == 'text' -%}\n                        {%- if role == 'model' -%}\n                            {{- strip_thinking(item['text']) -}}\n                        {%- else -%}\n                            {{- item['text'] | trim -}}\n                        {%- endif -%}\n                    {%- elif item['type'] == 'image' -%}\n                        {{- '<|image|>' -}}\n                        {%- set ns.prev_message_type = 'image' -%}\n                    {%- elif item['type'] == 'audio' -%}\n                        {{- '<|audio|>' -}}\n                        {%- set ns.prev_message_type = 'audio' -%}\n                    {%- elif item['type'] == 'video' -%}\n                        {{- '<|video|>' -}}\n                        {%- set ns.prev_message_type = 'video' -%}\n                    {%- endif -%}\n                {%- endfor -%}\n            {%- endif -%}\n            {%- endset -%}\n\n            {{- captured_content -}}\n            {%- set has_content = captured_content | trim | length > 0 -%}\n\n        {%- if ns.prev_message_type == 'tool_call' and not ns_tr_out.flag -%}\n            {{- '<|tool_response>' -}}\n        {%- elif not (ns_tr_out.flag and not has_content) -%}\n            {{- '<turn|>\\n' -}}\n        {%- endif -%}\n    {%- endif -%}\n{%- endfor -%}\n\n{%- if add_generation_prompt -%}\n    {%- if ns.prev_message_type != 'tool_response' and ns.prev_message_type != 'tool_call' -%}\n        {{- '<|turn>model\\n' -}}\n    {%- endif -%}\n{%- endif -%}",
+            "gemma4.attention.shared_kv_layers": "20",
+            "gemma4.final_logit_softcapping": "30.000000",
+            "gemma4.attention.key_length_swa": "256",
+            "gemma4.context_length": "131072",
+            "general.file_type": "2",
+            "general.finetune": "2B_dequant_qat_it_hf",
+            "gemma4.embedding_length": "1536",
+            "tokenizer.ggml.add_space_prefix": "false",
+            "general.architecture": "gemma4",
+            "tokenizer.ggml.padding_token_id": "0",
+            "general.sampling.top_k": "64",
+            "gemma4.block_count": "35",
+            "tokenizer.ggml.bos_token_id": "2",
+            "gemma4.attention.value_length_swa": "256",
+            "general.type": "model",
+            "tokenizer.ggml.unknown_token_id": "3",
+            "general.sampling.top_p": "0.950000",
+            "gemma4.attention.value_length": "512",
+            "gemma4.rope.freq_base": "1000000.000000"
+          }
+        }
+      }
+    },
+    "cachedBase": {
+      "bytes": 3349514112,
+      "sha256": "3646b4c147cd235a44d91df1546d3b7d8e29b547dbe4e1f80856419aa455e6fd",
+      "profileRelativePath": "Default/File System/000/t/00/00000000"
+    },
+    "retryLadder": [
+      {
+        "temperature": 0,
+        "seed": 7
+      },
+      {
+        "temperature": 0.15,
+        "seed": 8
+      },
+      {
+        "temperature": 0.3,
+        "seed": 9
+      }
+    ]
+  },
+  "cases": [
+    {
+      "input": {
+        "id": "python-data-structures-lab:cs/functions:key-term-0",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/python-data-structures-lab-local.json",
+          "sha256": "ebebf160b30440e6ba8edf86f4b1e42cfaa011cc6c9b0f7e588df9ba24e90501",
+          "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34"
+        },
+        "promptId": "python-data-structures-lab:cs/functions",
+        "kernelId": "cs/functions",
+        "lessonTitle": "Functions and scope",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Named code block",
+          "df": "A named, reusable block of code defined with def that runs only when it is called.",
+          "eg": "Defining a function named 'calculate_area' to perform a calculation.",
+          "mi": "A block of code that runs every time the program starts.",
+          "cx": "A named, reusable block of code defined with def that runs only when it is called.",
+          "sourceFactIndexes": [
+            0
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "A function is a named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call.",
+          "A function is defined with the def keyword, a name, parentheses, and a colon, with an indented body.",
+          "A variable's scope is the part of the program where it can be accessed.",
+          "A variable created inside a function has local scope and cannot be accessed outside the function.",
+          "A variable created outside any function has global scope and can be accessed anywhere in the program."
+        ]
+      },
+      "inputSha256": "1bf894e9b9e2879a221d53eb4d466f1df692a4447cb1c4c118515b97feb90c32",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "cc6a9bc6d21051923e8e4886eae0fe690574623f47550d7bcd128b4921c9247d",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"Named code block\",\"df\":\"A named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call.\",\"eg\":\"Defining a function named 'calculate_area' to perform a calculation.\",\"mi\":\"A block of code that runs every time the program starts.\",\"cx\":\"A named, reusable block of code defined with def that runs only when it is called.\"}}",
+          "outputSha256": "e71e294a4dc43693d04194870a0d608fcaa755661050f4fb0c92d1d779f5142d",
+          "firstTokenMs": 914,
+          "totalMs": 2787,
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "correction-repeats-definition"
+            ],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Named code block",
+              "df": "A named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call.",
+              "eg": "Defining a function named 'calculate_area' to perform a calculation.",
+              "mi": "A block of code that runs every time the program starts.",
+              "cx": "A named, reusable block of code defined with def that runs only when it is called."
+            },
+            "rawIssues": [
+              "correction-repeats-definition"
+            ],
+            "compilerRepairs": []
+          }
+        },
+        {
+          "attempt": 2,
+          "temperature": 0.15,
+          "seed": 8,
+          "messagesSha256": "7f56b40cf0be768af5606c6c85c78bc093764327e2a1f4c35d9326168a0a2114",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"Named code block\",\"df\":\"A named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call.\",\"eg\":\"Defining a function named 'calculate_area' to perform a calculation.\",\"mi\":\"A block of code that runs every time the program starts.\",\"cx\":\"The misconception fails because a function only executes when called, whereas a block of code that runs every time the program starts is a different concept.\"}}",
+          "outputSha256": "86d93f69a0da0cffac42a182b836e8623dcca59534f7eb182caecbd94e7b0555",
+          "firstTokenMs": 916,
+          "totalMs": 2960,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Named code block",
+              "df": "A named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call.",
+              "eg": "Defining a function named 'calculate_area' to perform a calculation.",
+              "mi": "A block of code that runs every time the program starts.",
+              "cx": "The misconception fails because a function only executes when called, whereas a block of code that runs every time the program starts is a different concept."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 2,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "python-data-structures-lab:cs/functions:key-term-1",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/python-data-structures-lab-local.json",
+          "sha256": "ebebf160b30440e6ba8edf86f4b1e42cfaa011cc6c9b0f7e588df9ba24e90501",
+          "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34"
+        },
+        "promptId": "python-data-structures-lab:cs/functions",
+        "kernelId": "cs/functions",
+        "lessonTitle": "Functions and scope",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Variable accessibility",
+          "df": "The part of the program where a variable can be accessed.",
+          "eg": "Accessing a variable defined globally from inside a function.",
+          "mi": "The specific line of code where the variable was first assigned a value.",
+          "cx": "The part of the program where a variable can be accessed.",
+          "sourceFactIndexes": [
+            2
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "A function is a named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call.",
+          "A function is defined with the def keyword, a name, parentheses, and a colon, with an indented body.",
+          "A variable's scope is the part of the program where it can be accessed.",
+          "A variable created inside a function has local scope and cannot be accessed outside the function.",
+          "A variable created outside any function has global scope and can be accessed anywhere in the program."
+        ]
+      },
+      "inputSha256": "5f2524a7d7a4506501f353a4e26c7c82284fd69c08a2b75ae9fd174f70c43b52",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "dac07945085120be6d16ea5b2e876e6b45f667062d0c99cd0eb07d86b64b8072",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"Variable accessibility\",\"df\":\"The part of the program where a variable can be accessed.\",\"eg\":\"Accessing a variable defined globally from inside a function.\",\"mi\":\"The specific line of code where the variable was first assigned a value.\",\"cx\":\"The region of the program where a variable is accessible, which is restricted if created within a function.\"}, \"sourceFactIndexes\":[0]}",
+          "outputSha256": "7095b8729bfc9d6d8270a46354fd6e373407ad74a5a35ae991aa7c6be36ca94d",
+          "firstTokenMs": 817,
+          "totalMs": 2514,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Variable accessibility",
+              "df": "The part of the program where a variable can be accessed.",
+              "eg": "Accessing a variable defined globally from inside a function.",
+              "mi": "The specific line of code where the variable was first assigned a value.",
+              "cx": "The region of the program where a variable is accessible, which is restricted if created within a function."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 1,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "python-data-structures-lab:cs/lists:key-term-0",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/python-data-structures-lab-local.json",
+          "sha256": "ebebf160b30440e6ba8edf86f4b1e42cfaa011cc6c9b0f7e588df9ba24e90501",
+          "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34"
+        },
+        "promptId": "python-data-structures-lab:cs/lists",
+        "kernelId": "cs/lists",
+        "lessonTitle": "Lists",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Ordered collection of values",
+          "df": "A sequence where the arrangement of items matters.",
+          "eg": "A list of student scores in the order they were recorded.",
+          "mi": "A collection where the order of items does not affect retrieval.",
+          "cx": "A sequence where the arrangement of items matters.",
+          "sourceFactIndexes": [
+            0
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+          "A list is written with square brackets [] holding comma-separated values.",
+          "Individual elements are accessed directly using an index.",
+          "Indexes begin at 0 and end at one less than the length of the sequence.",
+          "A for loop can iterate through a list, visiting each element in order."
+        ]
+      },
+      "inputSha256": "fa5f086c2e986bb4fb4b648f2fcccf01d5fbf12f452a9456a63b6200643373de",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "2eb038c813f865f783607e1df195c539a625c39cf32ec7f7ff4c8f480b64d543",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"An ordered collection of values written in square brackets; each element has an index, beginning at 0.\",\"df\":\"A sequence where the arrangement of items matters.\",\"eg\":\"A list of student scores in the order they were recorded.\",\"mi\":\"A collection where the order of items does not affect retrieval.\",\"cx\":\"A sequence where the arrangement of items matters, unlike a collection where the order of items does not affect retrieval.\",\"sourceFactIndexes\":[0]}}",
+          "outputSha256": "cba5bdd1c365043a0df95ed06cf46c36c19a75630e608a5d25d926de9fcb6eb1",
+          "firstTokenMs": 768,
+          "totalMs": 2785,
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "correction-repeats-definition"
+            ],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Ordered collection of values",
+              "df": "A sequence where the arrangement of items matters.",
+              "eg": "A list of student scores in the order they were recorded.",
+              "mi": "A collection where the order of items does not affect retrieval.",
+              "cx": "A sequence where the arrangement of items matters, unlike a collection where the order of items does not affect retrieval."
+            },
+            "rawIssues": [
+              "tr-length",
+              "correction-repeats-definition"
+            ],
+            "compilerRepairs": [
+              {
+                "field": "term",
+                "before": "An ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+                "after": "Ordered collection of values",
+                "issueCountBefore": 2,
+                "issueCountAfter": 1
+              }
+            ]
+          }
+        },
+        {
+          "attempt": 2,
+          "temperature": 0.15,
+          "seed": 8,
+          "messagesSha256": "af629fd01a6dac1913aacfc59b86151aaa82afaf21186fb141c0b8e00d2c54a6",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"An ordered collection of values written in square brackets; each element has an index, beginning at 0.\",\"df\":\"A sequence where the arrangement of items matters.\",\"eg\":\"A list of student scores in the order they were recorded.\",\"mi\":\"A collection where the order of items does not affect retrieval.\",\"cx\":\"The misconception fails because the arrangement of items does not affect retrieval is incorrect; the order of items is significant for lists.\"}}",
+          "outputSha256": "60ba3698cd288acdfb943065a4e63c2dc5f4646ef1e79aaa2afecc873ac056a1",
+          "firstTokenMs": 864,
+          "totalMs": 2774,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Ordered collection of values",
+              "df": "A sequence where the arrangement of items matters.",
+              "eg": "A list of student scores in the order they were recorded.",
+              "mi": "A collection where the order of items does not affect retrieval.",
+              "cx": "The misconception fails because the arrangement of items does not affect retrieval is incorrect; the order of items is significant for lists."
+            },
+            "rawIssues": [
+              "tr-length"
+            ],
+            "compilerRepairs": [
+              {
+                "field": "term",
+                "before": "An ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+                "after": "Ordered collection of values",
+                "issueCountBefore": 1,
+                "issueCountAfter": 0
+              }
+            ]
+          }
+        }
+      ],
+      "acceptedAttempt": 2,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "igneous-volcanic-processes:geo/silicate-structures:missing-key-term-1",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/igneous-volcanic-processes-local.json",
+          "sha256": "df5bc5b48c806ffc937469202267bb8b415850fa9fd11c3aa863d3d7c53704eb",
+          "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9"
+        },
+        "promptId": "igneous-volcanic-processes:geo/silicate-structures",
+        "kernelId": "geo/silicate-structures",
+        "lessonTitle": "Silicate structures",
+        "defectKind": "missing-expected-seat",
+        "originalIssues": [
+          "missing-expected-seat"
+        ],
+        "originalTerm": null,
+        "excludedTerms": [
+          "Tetrahedral linkage"
+        ],
+        "sourceClaims": [
+          "Silicate minerals, built from the silicon-oxygen tetrahedron, are the most abundant rock-forming minerals; the way tetrahedra link together defines the major silicate structures.",
+          "The silicon-oxygen tetrahedron (SiO4) is one silicon atom at the center bonded to four oxygen atoms at the corners.",
+          "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+          "How much oxygen is shared between tetrahedra controls the silicate group — isolated tetrahedra, single chains, sheets, or frameworks like quartz."
+        ]
+      },
+      "inputSha256": "057b841f473ddb7bca86999b7d163c4791ede6dda30be7bf4472176ec40a1103",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "cd62b82160a9e854a5ac96f31bd26d07d864eca057f877fe51eda23adac6f627",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"Silicate structure formation\",\"df\":\"The way silicon-oxygen tetrahedra link together determines the major silicate structures. This linkage involves sharing corner oxygen atoms to form chains, sheets, or three-dimensional frameworks. The degree of oxygen sharing dictates the specific silicate group, ranging from isolated tetrahedra to complex frameworks like quartz.\",\"eg\":\"The arrangement of silicon-oxygen tetrahedra defines the major silicate structures.\",\"mi\":\"The linkage mechanism of the silicon-oxygen tetrahedron dictates the resulting silicate structure.\",\"cx\":\"The degree of oxygen sharing controls the silicate group, which is distinct from the general definition of silicate minerals as the most abundant rock-forming minerals.\"}",
+          "outputSha256": "ddc4abcab680f92d3dbd10b4740d2a799dd372a3de3e4b4cee9f2aff479d0ed1",
+          "firstTokenMs": 669,
+          "totalMs": 3337,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Silicate structure formation",
+              "df": "The way silicon-oxygen tetrahedra link together determines the major silicate structures. This linkage involves sharing corner oxygen atoms to form chains, sheets, or three-dimensional frameworks. The degree of oxygen sharing dictates the specific silicate group, ranging from isolated tetrahedra to complex frameworks like quartz.",
+              "eg": "The arrangement of silicon-oxygen tetrahedra defines the major silicate structures.",
+              "mi": "The linkage mechanism of the silicon-oxygen tetrahedron dictates the resulting silicate structure.",
+              "cx": "The degree of oxygen sharing controls the silicate group, which is distinct from the general definition of silicate minerals as the most abundant rock-forming minerals."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 1,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "igneous-volcanic-processes:geo/igneous-rocks:key-term-1",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/igneous-volcanic-processes-local.json",
+          "sha256": "df5bc5b48c806ffc937469202267bb8b415850fa9fd11c3aa863d3d7c53704eb",
+          "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9"
+        },
+        "promptId": "igneous-volcanic-processes:geo/igneous-rocks",
+        "kernelId": "geo/igneous-rocks",
+        "lessonTitle": "Igneous rocks and magma",
+        "defectKind": "invalid-source-fact-index",
+        "originalIssues": [
+          "source-fact-index"
+        ],
+        "originalTerm": {
+          "tr": "Extrusive rock",
+          "df": "Rock formed when molten material cools quickly at or near the Earth's surface.",
+          "eg": "Basalt (fine-grained)",
+          "mi": "Rock formed by slow cooling deep within the crust.",
+          "cx": "Rock formed by rapid cooling at or near the surface.",
+          "sourceFactIndexes": [
+            4
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "Igneous rock forms when molten magma or lava cools and crystallizes; how fast it cools controls crystal size, distinguishing coarse intrusive rocks from fine-grained extrusive rocks.",
+          "Lava cooling quickly at the surface forms tiny crystals, while magma cooling slowly at depth forms large crystals.",
+          "Magma that cools slowly deep within the crust forms intrusive (plutonic) rock with a coarse-grained texture.",
+          "Lava cooling at or near the surface forms extrusive (volcanic) rock with a fine-grained texture."
+        ]
+      },
+      "inputSha256": "97ae3813dd8661d11eea106d5646940142eef74696597bbddd403d6f15e2aaa1",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "4767160f831ec182db06ce1c08c1deba65c6f8f21abd3f76a1ecf2ae72cdf39d",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[3],\"tr\":\"Extrusive rock\",\"df\":\"Rock formed when molten material cools quickly at or near the Earth's surface.\",\"eg\":\"Basalt (fine-grained)\",\"mi\":\"Rock formed by slow cooling deep within the crust.\",\"cx\":\"Rock formed by rapid cooling at or near the surface.\"}}",
+          "outputSha256": "41ec46790b991e9acd20943df1f29d74570fb10339fdf6dd967bd77ba98c40e8",
+          "firstTokenMs": 814,
+          "totalMs": 2186,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                3
+              ],
+              "tr": "Extrusive rock",
+              "df": "Rock formed when molten material cools quickly at or near the Earth's surface.",
+              "eg": "Basalt (fine-grained)",
+              "mi": "Rock formed by slow cooling deep within the crust.",
+              "cx": "Rock formed by rapid cooling at or near the surface."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 1,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "harmony-form-analysis:music/harmony-and-progressions:key-term-0",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/harmony-form-analysis-local.json",
+          "sha256": "7e01abcb815b01952975105d7fe4ac9310b89b11e07afa08f76afe44932c8810",
+          "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6"
+        },
+        "promptId": "harmony-form-analysis:music/harmony-and-progressions",
+        "kernelId": "music/harmony-and-progressions",
+        "lessonTitle": "Harmony and chord progressions",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Chord progression",
+          "df": "A sequence of chords that forms the foundation of harmony in Western musical tradition.",
+          "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
+          "mi": "A single chord used repeatedly throughout a piece.",
+          "cx": "A sequence of chords that forms the foundation of harmony in Western musical tradition.",
+          "sourceFactIndexes": [
+            2,
+            3,
+            4
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+          "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+          "A first chord forms a 'progression' with a second chord, and a second with a third.",
+          "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+          "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+        ]
+      },
+      "inputSha256": "3e4b7718352c7382e3bdb8dc83d74fb7d192f6533df5392dd7410d39f82f0e21",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "f3f686534b79f8a24d3df96635a2327234f9ab78d6be633f28820f08be17aacf",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[2,3,4],\"tr\":\"Chord progression\",\"df\":\"A sequence of chords that forms the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.\",\"eg\":\"The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).\",\"mi\":\"A single chord used repeatedly throughout a piece.\",\"cx\":\"A sequence of chords that forms the foundation of harmony in Western musical tradition, which is built upon the relationship between successive chords rather than a single repeated chord.\"}}",
+          "outputSha256": "0ec213f538facc8130e9393d2c5f5ec4d5e8f64b2fd6b2900c1123b8ad374833",
+          "firstTokenMs": 915,
+          "totalMs": 3300,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ],
+              "tr": "Chord progression",
+              "df": "A sequence of chords that forms the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+              "eg": "The progression of i, iv, and v chords in the key of A minor (A minor, D minor, E minor).",
+              "mi": "A single chord used repeatedly throughout a piece.",
+              "cx": "A sequence of chords that forms the foundation of harmony in Western musical tradition, which is built upon the relationship between successive chords rather than a single repeated chord."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 1,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "harmony-form-analysis:music/harmony-and-progressions:key-term-1",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/harmony-form-analysis-local.json",
+          "sha256": "7e01abcb815b01952975105d7fe4ac9310b89b11e07afa08f76afe44932c8810",
+          "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6"
+        },
+        "promptId": "harmony-form-analysis:music/harmony-and-progressions",
+        "kernelId": "music/harmony-and-progressions",
+        "lessonTitle": "Harmony and chord progressions",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Harmony",
+          "df": "The concept of combining different sounds to create new, distinct musical ideas.",
+          "eg": "Combining sounds to create new, distinct musical ideas.",
+          "mi": "The specific arrangement of notes in a single chord.",
+          "cx": "The concept of combining different sounds to create new, distinct musical ideas.",
+          "sourceFactIndexes": [
+            0
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+          "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+          "A first chord forms a 'progression' with a second chord, and a second with a third.",
+          "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+          "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+        ]
+      },
+      "inputSha256": "ec957c35905264be6982abe8fd833792121d77c32f1e8b76eb1dc67a45a488ce",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "cb3dccb3f13ce64a2fc62a15c25bf1428d781325fa8635ea5c3a15df368ccc94",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"Harmony\",\"df\":\"The concept of combining different sounds in order to create new, distinct musical ideas.\",\"eg\":\"Combining sounds to create new, distinct musical ideas.\",\"mi\":\"The specific arrangement of notes in a single chord.\",\"cx\":\"Chord progressions are the defining feature on which melody and rhythm are built in these genres.\",\"sourceFactIndexes\":[0]}}",
+          "outputSha256": "15eab917a6d9722492dc5041d2cb0e78fdb1c7457ce36413c5b263f6496fa003",
+          "firstTokenMs": 892,
+          "totalMs": 2482,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Harmony",
+              "df": "The concept of combining different sounds in order to create new, distinct musical ideas.",
+              "eg": "Combining sounds to create new, distinct musical ideas.",
+              "mi": "The specific arrangement of notes in a single chord.",
+              "cx": "Chord progressions are the defining feature on which melody and rhythm are built in these genres."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 1,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "ux-research-synthesis-studio:ux/journey-mapping:key-term-0",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/ux-research-synthesis-studio-local.json",
+          "sha256": "bb41aa56d1382e69302e731828fd0a6fdb01960b2c57ba8eb3b9b5572e39ba46",
+          "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e"
+        },
+        "promptId": "ux-research-synthesis-studio:ux/journey-mapping",
+        "kernelId": "ux/journey-mapping",
+        "lessonTitle": "Journey mapping",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "End-to-end experience visualization",
+          "df": "A visual representation covering the entire user path.",
+          "eg": "Mapping the steps from initial search to final purchase.",
+          "mi": "Thinking a map is just a list of features.",
+          "cx": "A visual representation covering the entire user path.",
+          "sourceFactIndexes": [
+            0
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ]
+      },
+      "inputSha256": "b506f3dbaecb6780a28552c858daef409c8aeafec15e05472876c9b794c5be73",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "b9a3f83c0a677a3fe1bca163080b358f228bd22aa9104c4ff6bc0ce8e83ea74f",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"End-to-end experience visualization\",\"df\":\"A visual representation covering the entire user path, allowing a team to see connected steps, boundaries, breakdowns, and opportunities.\",\"eg\":\"Mapping the steps from initial search to final purchase.\",\"mi\":\"Thinking a map is just a list of features.\",\"cx\":\"This is not just a list of features; it is a visual representation covering the entire user path that highlights connected steps, boundaries, breakdowns, and opportunities.\"}}",
+          "outputSha256": "55f90ca38169de81aa60b0eb976b4a9c2b873d36c33bac69ebd7b41ee50f8594",
+          "firstTokenMs": 810,
+          "totalMs": 2820,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "End-to-end experience visualization",
+              "df": "A visual representation covering the entire user path, allowing a team to see connected steps, boundaries, breakdowns, and opportunities.",
+              "eg": "Mapping the steps from initial search to final purchase.",
+              "mi": "Thinking a map is just a list of features.",
+              "cx": "This is not just a list of features; it is a visual representation covering the entire user path that highlights connected steps, boundaries, breakdowns, and opportunities."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 1,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "ux-research-synthesis-studio:ux/journey-mapping:key-term-1",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/ux-research-synthesis-studio-local.json",
+          "sha256": "bb41aa56d1382e69302e731828fd0a6fdb01960b2c57ba8eb3b9b5572e39ba46",
+          "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e"
+        },
+        "promptId": "ux-research-synthesis-studio:ux/journey-mapping",
+        "kernelId": "ux/journey-mapping",
+        "lessonTitle": "Journey mapping",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Service flow analysis",
+          "df": "Examining the sequence of user actions and transactions.",
+          "eg": "Analyzing the steps users take to complete a banking task.",
+          "mi": "Confusing flow analysis with simple feature listing.",
+          "cx": "Examining the sequence of user actions and transactions.",
+          "sourceFactIndexes": [
+            1
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ]
+      },
+      "inputSha256": "5f2dbb6dafad1c74798ae1ee66ebf85a572811aca24a61baddb1f5ddb56fea3d",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "362dc90335ab2ca01fe0fbb1674299e76126397510ac7b553b70b175c449219f",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[1],\"tr\":\"Service flow analysis\",\"df\":\"Examining the sequence of user actions and transactions.\",\"eg\":\"Analyzing the steps users take to complete a banking task.\",\"mi\":\"Confusing flow analysis with simple feature listing.\",\"cx\":\"This process goes beyond simple feature listing by examining the sequence of user actions and transactions.\"}}",
+          "outputSha256": "13fed923bf827af1b56f70e84d9407ad6e4cf8baa790aeb2b395d4b213fda778",
+          "firstTokenMs": 810,
+          "totalMs": 2239,
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "correction-repeats-definition"
+            ],
+            "term": {
+              "sourceFactIndexes": [
+                1
+              ],
+              "tr": "Service flow analysis",
+              "df": "Examining the sequence of user actions and transactions.",
+              "eg": "Analyzing the steps users take to complete a banking task.",
+              "mi": "Confusing flow analysis with simple feature listing.",
+              "cx": "This process goes beyond simple feature listing by examining the sequence of user actions and transactions."
+            },
+            "rawIssues": [
+              "correction-repeats-definition"
+            ],
+            "compilerRepairs": []
+          }
+        },
+        {
+          "attempt": 2,
+          "temperature": 0.15,
+          "seed": 8,
+          "messagesSha256": "261296dc7cf6cca4bdff3fb7bee8a6907b3b5f59ce5c8a219c2878e25b098b97",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[1],\"tr\":\"Service flow analysis\",\"df\":\"Examining the sequence of user actions and transactions.\",\"eg\":\"Analyzing the steps users take to complete a banking task.\",\"mi\":\"Confusing flow analysis with simple feature listing.\",\"cx\":\"The misconception fails because it confuses mapping the sequence of actions with merely listing features; journey mapping focuses on the end-to-end experience.\"}}",
+          "outputSha256": "d2005824cbd61bbcfb31062275c729dc1cb163beca1206c6e435e8e9158a3634",
+          "firstTokenMs": 871,
+          "totalMs": 2465,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                1
+              ],
+              "tr": "Service flow analysis",
+              "df": "Examining the sequence of user actions and transactions.",
+              "eg": "Analyzing the steps users take to complete a banking task.",
+              "mi": "Confusing flow analysis with simple feature listing.",
+              "cx": "The misconception fails because it confuses mapping the sequence of actions with merely listing features; journey mapping focuses on the end-to-end experience."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 2,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "ux-prototyping-accessibility-lab:ux/accessibility-usability-evaluation:key-term-0",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-local.json",
+          "sha256": "a0a70f7e2078e0a83d8a439a8df5ee4cce01c5d8eae73e227b1e93d1cd152522",
+          "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a"
+        },
+        "promptId": "ux-prototyping-accessibility-lab:ux/accessibility-usability-evaluation",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "lessonTitle": "Accessibility and usability evaluation",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Standard-based conformance checks",
+          "df": "Verification against established guidelines for accessibility.",
+          "eg": "Checking if a website meets WCAG criteria for contrast ratios.",
+          "mi": "Assuming that meeting all technical standards guarantees full usability.",
+          "cx": "Verification against established guidelines for accessibility.",
+          "sourceFactIndexes": [
+            1
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "A single disabled participant's experience should not be generalized to all people with disabilities."
+        ]
+      },
+      "inputSha256": "124a45bfffae44a453d014abe7c57c8a38b2543c25fb47206fc46c07f2cb8c06",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "de7239be00c710c5b695994d32c6e3b601b9261070d0140716bc866fe56f065a",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.\",\"df\":\"Verification against established guidelines for accessibility.\",\"eg\":\"Checking if a website meets WCAG criteria for contrast ratios.\",\"mi\":\"Assuming that meeting all technical standards guarantees full usability.\",\"cx\":\"Conformance evaluation alone does not reveal barriers that can be found through evaluation with disabled and older users.\"}}",
+          "outputSha256": "aa76fa8a2da3d1752e4b30f1ef89bb89a9ad3974fe0f3fb0cb6fd4ecd81e17ad",
+          "firstTokenMs": 782,
+          "totalMs": 2519,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Standard-based conformance checks",
+              "df": "Verification against established guidelines for accessibility.",
+              "eg": "Checking if a website meets WCAG criteria for contrast ratios.",
+              "mi": "Assuming that meeting all technical standards guarantees full usability.",
+              "cx": "Conformance evaluation alone does not reveal barriers that can be found through evaluation with disabled and older users."
+            },
+            "rawIssues": [
+              "tr-length"
+            ],
+            "compilerRepairs": [
+              {
+                "field": "term",
+                "before": "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+                "after": "Standard-based conformance checks",
+                "issueCountBefore": 1,
+                "issueCountAfter": 0
+              }
+            ]
+          }
+        }
+      ],
+      "acceptedAttempt": 1,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "ux-prototyping-accessibility-lab:ux/accessibility-usability-evaluation:key-term-1",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-campaign.json",
+          "manifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+          "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-local.json",
+          "sha256": "a0a70f7e2078e0a83d8a439a8df5ee4cce01c5d8eae73e227b1e93d1cd152522",
+          "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a"
+        },
+        "promptId": "ux-prototyping-accessibility-lab:ux/accessibility-usability-evaluation",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "lessonTitle": "Accessibility and usability evaluation",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Usability test",
+          "df": "Observing users attempting to use a product or service while thinking aloud.",
+          "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
+          "mi": "A usability test only measures task completion time without observing user thought processes.",
+          "cx": "Observing users attempting to use a product or service while thinking aloud.",
+          "sourceFactIndexes": [
+            3
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "A single disabled participant's experience should not be generalized to all people with disabilities."
+        ]
+      },
+      "inputSha256": "7a828280327a867b1276d4859d8fe8daffc29cc91e9cfb9d7e33f2613cec92b7",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "c03e595e8f53ebf65482d3741d537e11dec9795a545772285bbc314a1b820aa7",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[3],\"tr\":\"Usability test\",\"df\":\"A usability test observes users attempting to use a product or service while thinking aloud.\",\"eg\":\"Watching a user struggle to complete a checkout process while verbalizing their confusion.\",\"mi\":\"A usability test only measures task completion time without observing user thought processes.\",\"cx\":\"Unlike measuring only task completion time, a usability test involves observing users as they attempt to use a product or service while thinking aloud.\"}}",
+          "outputSha256": "14e61edbd6013dc2e14dc15504ccb582f82d8dd3761d9b623b61a4a05ee36400",
+          "firstTokenMs": 816,
+          "totalMs": 2660,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                3
+              ],
+              "tr": "Usability test",
+              "df": "Observing users attempting to use a product or service while thinking aloud.",
+              "eg": "Watching a user struggle to complete a checkout process while verbalizing their confusion.",
+              "mi": "A usability test only measures task completion time without observing user thought processes.",
+              "cx": "Unlike measuring only task completion time, a usability test involves observing users as they attempt to use a product or service while thinking aloud."
+            },
+            "rawIssues": [
+              "circular-definition"
+            ],
+            "compilerRepairs": [
+              {
+                "field": "definition",
+                "before": "A usability test observes users attempting to use a product or service while thinking aloud.",
+                "after": "Observing users attempting to use a product or service while thinking aloud.",
+                "issueCountBefore": 1,
+                "issueCountAfter": 0
+              }
+            ]
+          }
+        }
+      ],
+      "acceptedAttempt": 1,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "python-program-architecture-studio:cs/for-loops:key-term-1",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+          "manifestSha256": "7745ab25f0b006d1d84913f8df9b95acb09414b05cd611944abcd0da34f872da",
+          "promptSetSha256": "0355e7ee7588f6bcfaa114043b19cfb9afe03dbc8e9095aeeaa9b548b2d1835e"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-local.json",
+          "sha256": "ea0a095bee5074043d7d7810041da78c6ab903fc886081b464f23bfe56b9fff5",
+          "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00"
+        },
+        "promptId": "python-program-architecture-studio:cs/for-loops",
+        "kernelId": "cs/for-loops",
+        "lessonTitle": "For loops and range",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Range function",
+          "df": "A function that generates a sequence of integers.",
+          "eg": "Using range(5) to loop exactly five times.",
+          "mi": "Thinking range() is the loop itself.",
+          "cx": "A function that generates a sequence of integers.",
+          "sourceFactIndexes": [
+            3
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time.",
+          "A container can be a range of numbers, a string of characters, or a list of values.",
+          "The loop retrieves the objects of a container one at a time.",
+          "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1."
+        ]
+      },
+      "inputSha256": "69b2765b95774922063073f3f218b0cddd8f64cc23d35c3f2ccbc4c9ebf99a49",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "96c12755412aeb8fb9ae3eed3487279c3533e37340e7a6063008046c5faf80b5",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[3],\"tr\":\"Range function\",\"df\":\"A function that generates a sequence of integers.\",\"eg\":\"Using range(5) to loop exactly five times.\",\"mi\":\"Thinking range() is the loop itself.\",\"cx\":\"The range function is not the loop itself; it is a function that generates a sequence of integers used in conjunction with a for loop.\"}}",
+          "outputSha256": "f358c80340c2b0062d31ebac6577776862b6675e335627bcff315930faf6ee05",
+          "firstTokenMs": 810,
+          "totalMs": 2378,
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "correction-repeats-definition"
+            ],
+            "term": {
+              "sourceFactIndexes": [
+                3
+              ],
+              "tr": "Range function",
+              "df": "A function that generates a sequence of integers.",
+              "eg": "Using range(5) to loop exactly five times.",
+              "mi": "Thinking range() is the loop itself.",
+              "cx": "The range function is not the loop itself; it is a function that generates a sequence of integers used in conjunction with a for loop."
+            },
+            "rawIssues": [
+              "correction-repeats-definition"
+            ],
+            "compilerRepairs": []
+          }
+        },
+        {
+          "attempt": 2,
+          "temperature": 0.15,
+          "seed": 8,
+          "messagesSha256": "b05704bfffefe2920dae7f543ecafa6563d3940172d2ab847e338dbdb142c312",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[3],\"tr\":\"Range function\",\"df\":\"A function that generates a sequence of integers.\",\"eg\":\"Using range(5) to loop exactly five times.\",\"mi\":\"Thinking range() is the loop itself.\",\"cx\":\"The misconception fails because the range function is not the loop itself; it is a tool used with a for loop to repeat a block of code a fixed number of times.\"}}",
+          "outputSha256": "c1297d2cb1d4ee23f73184925041b5dc46cbabb083fbe9e3a0df51edba1c02d3",
+          "firstTokenMs": 868,
+          "totalMs": 2529,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                3
+              ],
+              "tr": "Range function",
+              "df": "A function that generates a sequence of integers.",
+              "eg": "Using range(5) to loop exactly five times.",
+              "mi": "Thinking range() is the loop itself.",
+              "cx": "The misconception fails because the range function is not the loop itself; it is a tool used with a for loop to repeat a block of code a fixed number of times."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 2,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping:key-term-0",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+          "manifestSha256": "7745ab25f0b006d1d84913f8df9b95acb09414b05cd611944abcd0da34f872da",
+          "promptSetSha256": "0355e7ee7588f6bcfaa114043b19cfb9afe03dbc8e9095aeeaa9b548b2d1835e"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
+          "sha256": "e9a6a0bb699b20003e95a754a07b8ab0a4a32ab1e3c14ae3c0931aae089da905",
+          "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e"
+        },
+        "promptId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping",
+        "kernelId": "ux/interactive-prototyping",
+        "lessonTitle": "Interactive prototyping",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Testable representation",
+          "df": "A visual model of an experience that can be used for testing.",
+          "eg": "A low-fidelity wireframe of a new mobile app screen.",
+          "mi": "A prototype that includes every production detail.",
+          "cx": "A visual model of an experience that can be used for testing.",
+          "sourceFactIndexes": [
+            0
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ]
+      },
+      "inputSha256": "527dbdd0b4d4f583fd240c7b02cae5cb83d0a4ca82599ffd20ff5ad2cdc70b45",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "eed852890fea0fa1e78ac208f8754a67a3464c7ef83a9477e7d47025b4920043",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"Testable representation\",\"df\":\"A visual model of an experience that can be used for testing.\",\"eg\":\"A low-fidelity wireframe of a new mobile app screen.\",\"mi\":\"A prototype that includes every production detail.\",\"cx\":\"A visual model of an experience that can be used for testing, not one that includes every production detail.\"}}",
+          "outputSha256": "b119e7c63f359b11ae2ee4638396fbef7563fa5e2fca42c08f3927fcb94bacc3",
+          "firstTokenMs": 810,
+          "totalMs": 2361,
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "correction-repeats-definition"
+            ],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Testable representation",
+              "df": "A visual model of an experience that can be used for testing.",
+              "eg": "A low-fidelity wireframe of a new mobile app screen.",
+              "mi": "A prototype that includes every production detail.",
+              "cx": "A visual model of an experience that can be used for testing, not one that includes every production detail."
+            },
+            "rawIssues": [
+              "correction-repeats-definition"
+            ],
+            "compilerRepairs": []
+          }
+        },
+        {
+          "attempt": 2,
+          "temperature": 0.15,
+          "seed": 8,
+          "messagesSha256": "266d03bbc9ef647a64eafca9b11ff293a02b7c0abfe56af844ed8ad2b911d225",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[0],\"tr\":\"Testable representation\",\"df\":\"A visual model of an experience that can be used for testing.\",\"eg\":\"A low-fidelity wireframe of a new mobile app screen.\",\"mi\":\"A prototype that includes every production detail.\",\"cx\":\"The misconception fails because a prototype should not include every production detail; it should focus on major interactions even if not fully functional.\"}}",
+          "outputSha256": "782375f473dea28ffc59534fed6716048430c5d2d775bf13c3e7797aec90e448",
+          "firstTokenMs": 868,
+          "totalMs": 2517,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                0
+              ],
+              "tr": "Testable representation",
+              "df": "A visual model of an experience that can be used for testing.",
+              "eg": "A low-fidelity wireframe of a new mobile app screen.",
+              "mi": "A prototype that includes every production detail.",
+              "cx": "The misconception fails because a prototype should not include every production detail; it should focus on major interactions even if not fully functional."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 2,
+      "admitted": true
+    },
+    {
+      "input": {
+        "id": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping:key-term-1",
+        "campaign": {
+          "manifest": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+          "manifestSha256": "7745ab25f0b006d1d84913f8df9b95acb09414b05cd611944abcd0da34f872da",
+          "promptSetSha256": "0355e7ee7588f6bcfaa114043b19cfb9afe03dbc8e9095aeeaa9b548b2d1835e"
+        },
+        "project": {
+          "file": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
+          "sha256": "e9a6a0bb699b20003e95a754a07b8ab0a4a32ab1e3c14ae3c0931aae089da905",
+          "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e"
+        },
+        "promptId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping",
+        "kernelId": "ux/interactive-prototyping",
+        "lessonTitle": "Interactive prototyping",
+        "defectKind": "correction-repeats-definition",
+        "originalIssues": [
+          "correction-repeats-definition"
+        ],
+        "originalTerm": {
+          "tr": "Functional prototypes",
+          "df": "Models that allow users to observe how they interact with a product.",
+          "eg": "A clickable mock-up demonstrating the main navigation flow.",
+          "mi": "A prototype that only shows major interactions without functionality.",
+          "cx": "Models that allow users to observe how they interact with a product.",
+          "sourceFactIndexes": [
+            2
+          ]
+        },
+        "excludedTerms": [],
+        "sourceClaims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ]
+      },
+      "inputSha256": "3fd1d49c53de8d9ef068789f6c510068303483764795177ac2503249ac6c14a5",
+      "attempts": [
+        {
+          "attempt": 1,
+          "temperature": 0,
+          "seed": 7,
+          "messagesSha256": "103231ecdb42037b6775951d5caf7205cccf443342b2cf000444f01647cf158b",
+          "output": "{\"keyTerm\":{\"sourceFactIndexes\":[2],\"tr\":\"Functional prototypes\",\"df\":\"Models that allow users to observe how users interact with a product.\",\"eg\":\"A clickable mock-up demonstrating the main navigation flow.\",\"mi\":\"A prototype that only shows major interactions without functionality.\",\"cx\":\"Prototypes must demonstrate the major interactions even if not every interaction is functional, unlike a prototype that only shows major interactions without functionality.\"}}",
+          "outputSha256": "b105978de2c636b96ac6e6c4742b41c0d80cd564dc4976d5887a199ffa952a27",
+          "firstTokenMs": 808,
+          "totalMs": 2426,
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "term": {
+              "sourceFactIndexes": [
+                2
+              ],
+              "tr": "Functional prototypes",
+              "df": "Models that allow users to observe how users interact with a product.",
+              "eg": "A clickable mock-up demonstrating the main navigation flow.",
+              "mi": "A prototype that only shows major interactions without functionality.",
+              "cx": "Prototypes must demonstrate the major interactions even if not every interaction is functional, unlike a prototype that only shows major interactions without functionality."
+            },
+            "rawIssues": [],
+            "compilerRepairs": []
+          }
+        }
+      ],
+      "acceptedAttempt": 1,
+      "admitted": true
+    }
+  ],
+  "summary": {
+    "frozenDeficits": 14,
+    "admitted": 14,
+    "failed": 0,
+    "firstAttempt": 9,
+    "retryRecovered": 5,
+    "defectAccounting": {
+      "cases": 14,
+      "correctionRepeatsDefinition": 12,
+      "invalidSourceFactIndex": 1,
+      "missingExpectedSeat": 1
+    }
+  },
+  "qualityBoundary": {
+    "evidenceType": "real-browser-local-targeted-contract-recovery",
+    "claim": "the pinned public browser base can recover the exact frozen v0.16.26 key-term contract deficits under a bounded retry ladder",
+    "details": "Each case is rebuilt from hash-bound retained source-capture evidence. Existing-term repairs preserve term identity while allowing the production-style complete atom to be re-authored; the missing seat forbids duplicate term names. Admission checks structure and valid claim indexes only.",
+    "doesNotProve": [
+      "factual-correctness",
+      "educational-quality-superiority",
+      "full-course-regeneration-parity",
+      "adapter-win",
+      "paid-reference-win",
+      "human-or-independent-review"
+    ]
+  }
+}
