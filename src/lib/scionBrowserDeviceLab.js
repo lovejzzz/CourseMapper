@@ -174,15 +174,24 @@ export async function loadScionDeviceBase({ contextSize = 2048 } = {}) {
   };
 }
 
-export async function completeScionDevicePrompt({ prompt = DEVICE_PROMPT, maxNewTokens = 64, signal } = {}) {
+export async function completeScionDevicePrompt({
+  prompt = DEVICE_PROMPT,
+  maxNewTokens = 64,
+  temperature = 0,
+  topK,
+  topP,
+  seed = 7,
+  signal,
+} = {}) {
   const startedAt = now();
   let firstTokenAt = null;
+  const boundedTemperature = Math.max(0, Math.min(0.45, Number(temperature) || 0));
   const output = await completeScionBrowserWllama(prompt, {
     maxNewTokens,
-    temperature: 0,
-    topK: 1,
-    topP: 1,
-    seed: 7,
+    temperature: boundedTemperature,
+    topK: Number.isInteger(topK) ? topK : boundedTemperature > 0 ? 40 : 1,
+    topP: Number.isFinite(Number(topP)) ? Number(topP) : boundedTemperature > 0 ? 0.9 : 1,
+    seed: Number.isInteger(seed) ? seed : 7,
     signal,
     onToken() {
       firstTokenAt ??= now();

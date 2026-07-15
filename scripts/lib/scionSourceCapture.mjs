@@ -509,7 +509,7 @@ export function buildSourceCaptureProject({
   };
 }
 
-function verifyCapturedCall(call, prompt, generationPrompt = prompt) {
+function verifyCapturedCall(call, prompt, generationPrompt = prompt, { admissionMode = 'current' } = {}) {
   const issues = [];
   if (call?.kernelId !== prompt.kernelId) issues.push(`kernel-id-mismatch:${call?.promptId || 'missing'}`);
   const basePromptSha256 = sourceCaptureSha256({ system: prompt.system, user: prompt.user });
@@ -539,6 +539,20 @@ function verifyCapturedCall(call, prompt, generationPrompt = prompt) {
   if (call.responseSha256 !== sourceCaptureSha256(call.response)) {
     issues.push(`response-digest-mismatch:${call.promptId}`);
   }
+  // Immutable capture packets retain the admission decision produced by the
+  // historical gate. Later compiler research may intentionally tighten that
+  // gate; `captured` mode verifies the retained response/admission bytes and
+  // project topology without pretending the new implementation was the old
+  // one. Callers must separately bind the whole project to a frozen receipt.
+  if (admissionMode === 'captured') {
+    if (call.admittedResponseSha256 !== sourceCaptureSha256(call.admittedResponse)) {
+      issues.push(`admitted-response-digest-mismatch:${call.promptId}`);
+    }
+    if (!call.assessment || typeof call.assessment.eligible !== 'boolean') {
+      issues.push(`missing-captured-assessment:${call.promptId}`);
+    }
+    return { issues, eligible: Boolean(call.assessment?.eligible) };
+  }
   const assessment = assessSourceAtomResponse(call.response, { sourceClaimCount: prompt.sourceClaims.length });
   if (Boolean(call.assessment?.eligible) !== assessment.eligible) {
     issues.push(`assessment-status-mismatch:${call.promptId}`);
@@ -558,8 +572,12 @@ function verifyCapturedCall(call, prompt, generationPrompt = prompt) {
   return { issues, eligible: assessment.eligible };
 }
 
-export function verifySourceCaptureProject(project, { campaign, group, arm, model: expectedModel = null }) {
+export function verifySourceCaptureProject(
+  project,
+  { campaign, group, arm, model: expectedModel = null, admissionMode = 'current' },
+) {
   const issues = [];
+  if (!['current', 'captured'].includes(admissionMode)) issues.push('invalid-admission-verification-mode');
   const capture = project?.scionSourceCapture || {};
   const expectedProjectId = `scion-source-capture-${group.id}-${arm}`;
   const expectedFileNames = group.fileNames;
@@ -618,7 +636,9 @@ export function verifySourceCaptureProject(project, { campaign, group, arm, mode
   for (const prompt of group.prompts) {
     const rawCall = rawByPrompt.get(prompt.id);
     if (!rawCall) continue;
-    issues.push(...verifyCapturedCall(rawCall, prompt).issues.map((issue) => `raw-${issue}`));
+    issues.push(
+      ...verifyCapturedCall(rawCall, prompt, prompt, { admissionMode }).issues.map((issue) => `raw-${issue}`),
+    );
     const recoveryCall = recoveryByPrompt.get(prompt.id);
     if (recoveryCall) {
       if (rawCall.assessment?.eligible) issues.push(`recovery-for-eligible-call:${prompt.id}`);
@@ -631,7 +651,9 @@ export function verifySourceCaptureProject(project, { campaign, group, arm, mode
       }
       const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall);
       issues.push(
-        ...verifyCapturedCall(recoveryCall, prompt, recoveryPrompt).issues.map((issue) => `recovery-${issue}`),
+        ...verifyCapturedCall(recoveryCall, prompt, recoveryPrompt, { admissionMode }).issues.map(
+          (issue) => `recovery-${issue}`,
+        ),
       );
     }
     const expectedEffective = rawCall.assessment?.eligible ? rawCall : recoveryCall || rawCall;
@@ -659,7 +681,7 @@ export function verifySourceCaptureProject(project, { campaign, group, arm, mode
       rawCall && !rawCall.assessment?.eligible && recoveryByPrompt.has(prompt.id)
         ? buildSourceRecoveryPrompt(prompt, rawCall)
         : prompt;
-    const verification = verifyCapturedCall(call, prompt, recoveryPrompt);
+    const verification = verifyCapturedCall(call, prompt, recoveryPrompt, { admissionMode });
     issues.push(...verification.issues);
     (verification.eligible ? expectedAdmittedPromptIds : expectedRejectedPromptIds).push(call.promptId);
   }

@@ -8,6 +8,7 @@ import { jsonrepair } from 'jsonrepair';
 import { APP_VERSION } from './appVersion.js';
 import { repairScionMcItem } from './scionAnswerKeyAlignment.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
+import { assessScionKeyTermContract, mergeScionKeyTermContractAttempts } from './scionKeyTermContract.js';
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
@@ -156,21 +157,109 @@ export function repairPublicScionJsonText(text = '') {
   return repairPublicScionJson(text).text;
 }
 
-export function publicScionKernelResponseNeedsRetry(responseText, userPrompt, task) {
-  if (task !== 'blueprintEnrichment') return false;
-  const expectedIds = extractPublicScionKernelLessons(userPrompt)
-    .map((lesson) => lesson?.lessonId)
-    .filter(Boolean);
-  if (expectedIds.length === 0) return false;
+export function assessPublicScionKernelResponse(responseText, userPrompt, task) {
+  if (task !== 'blueprintEnrichment') return { needsRetry: false, issues: [] };
+  const expectedLessons = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
+  if (expectedLessons.length === 0) return { needsRetry: false, issues: [] };
   try {
     const parsed = JSON.parse(repairPublicScionJsonText(responseText));
-    const returnedIds = new Set(
-      (Array.isArray(parsed?.lessons) ? parsed.lessons : []).map((lesson) => lesson?.lessonId).filter(Boolean),
+    const returned = new Map(
+      (Array.isArray(parsed?.lessons) ? parsed.lessons : [])
+        .filter((lesson) => lesson?.lessonId)
+        .map((lesson) => [lesson.lessonId, lesson]),
     );
-    return expectedIds.some((lessonId) => !returnedIds.has(lessonId));
+    const issues = [];
+    for (const expected of expectedLessons) {
+      const lesson = returned.get(expected.lessonId);
+      if (!lesson) {
+        issues.push(`${expected.lessonId}:missing-lesson`);
+        continue;
+      }
+      const keyTerms = Array.isArray(lesson.keyTerms) ? lesson.keyTerms : [];
+      if (keyTerms.length < 3) issues.push(`${expected.lessonId}:key-terms-count:${keyTerms.length}/3`);
+      keyTerms.forEach((term, index) => {
+        const result = assessScionKeyTermContract(term, {
+          lessonTitle: expected.title || '',
+          definitionMin: 40,
+        });
+        for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
+      });
+    }
+    return { needsRetry: issues.length > 0, issues };
   } catch {
-    return true;
+    return { needsRetry: true, issues: ['invalid-json'] };
   }
+}
+
+export function publicScionKernelResponseNeedsRetry(responseText, userPrompt, task) {
+  return assessPublicScionKernelResponse(responseText, userPrompt, task).needsRetry;
+}
+
+export function mergePublicScionKernelAttempts(previousText, currentText, userPrompt = '') {
+  try {
+    const previous = JSON.parse(previousText);
+    const current = JSON.parse(currentText);
+    const previousById = new Map(
+      (Array.isArray(previous?.lessons) ? previous.lessons : [])
+        .filter((lesson) => lesson?.lessonId)
+        .map((lesson) => [lesson.lessonId, lesson]),
+    );
+    const expectedById = new Map(
+      extractPublicScionKernelLessons(userPrompt)
+        .filter((lesson) => lesson?.lessonId)
+        .map((lesson) => [lesson.lessonId, lesson]),
+    );
+    const repairs = [];
+    for (const lesson of Array.isArray(current?.lessons) ? current.lessons : []) {
+      const priorLesson = previousById.get(lesson?.lessonId);
+      if (!priorLesson || !Array.isArray(lesson?.keyTerms) || !Array.isArray(priorLesson?.keyTerms)) continue;
+      lesson.keyTerms = lesson.keyTerms.map((term, index) => {
+        const merged = mergeScionKeyTermContractAttempts(priorLesson.keyTerms[index], term, {
+          lessonTitle: expectedById.get(lesson.lessonId)?.title || '',
+          definitionMin: 40,
+        });
+        repairs.push(
+          ...merged.repairs.map((repair) => ({
+            kind: 'key-term',
+            pass: 'crossAttemptContractMerge',
+            lessonId: lesson.lessonId,
+            item: index,
+            ...repair,
+            trainingEligible: false,
+            preferenceEvidence: { evidenceScope: 'deterministic-contract-only', verified: false },
+          })),
+        );
+        return merged.term;
+      });
+    }
+    return { text: JSON.stringify(current), repairs };
+  } catch {
+    return { text: currentText, repairs: [] };
+  }
+}
+
+export function buildPublicScionRetryFeedback(assessment = {}) {
+  const issues = Array.isArray(assessment?.issues) ? assessment.issues.slice(0, 12) : [];
+  const focusedRules = [
+    ...(issues.some((issue) => issue.includes('correction-repeats-definition'))
+      ? ['A repeated correction must be replaced with a direct refutation of mi that uses different wording from df.']
+      : []),
+    ...(issues.some((issue) => issue.includes('circular-definition'))
+      ? [
+          'A definition must not repeat its tr term within the first six words. Begin df with a broader category phrase such as "A process in which".',
+        ]
+      : []),
+    ...(issues.some((issue) => issue.includes('source-fact-index'))
+      ? ['sourceFactIndexes is required and may cite only supplied zero-based claim indexes.']
+      : []),
+  ];
+  return [
+    'LOCAL ADMISSION RETRY:',
+    `The previous response failed: ${issues.join(', ') || 'incomplete-kernel'}.`,
+    'Re-author the complete requested JSON; do not return only the repaired field.',
+    'Every lesson needs 3 complete keyTerms. Each cx must directly refute mi in different wording and must not repeat df.',
+    ...focusedRules,
+  ].join('\n');
 }
 
 export function publicScionModelOption() {
@@ -438,7 +527,7 @@ ${
     ? `- RECOVERY ${recoveryAttempt}: a previous response was incomplete. Re-author the full requested lesson now; do not summarize, apologize, or repeat an empty response.\n`
     : ''
 }- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
-- Write 3 keyTerms per lesson. Every df is at least 40 characters; eg is concrete; mi is a plausible misconception; cx directly corrects mi.
+- Write 3 keyTerms per lesson. Every df is at least 40 characters; eg is concrete; mi is a plausible misconception; cx directly refutes mi in different wording and never repeats df.
 - Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable decision or problem, at least 2 inspectable observations/results/records/artifacts, and a real tension or constraint. su has exactly 2 specific sentences; ma names the evidence packet rather than saying "scenario evidence" or "course materials". Evidence may live in ma instead of being repeated in su.
 - Keep each scenario focused on one construct or decision target. Do not mix accessibility, usability, preference, learning, or performance evidence unless the task explicitly asks students to compare those constructs.
 - Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, and po has exactly 3 defensible positions — a main position, a contrast, and a conditional or synthesis position. The third position must add real reasoning, not split the difference mechanically.

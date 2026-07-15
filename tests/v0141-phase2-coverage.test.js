@@ -59,18 +59,21 @@ const GOOD_KERNEL_ENTRY = {
         'The warming that results when atmospheric gases absorb outgoing longwave radiation and re-emit part of it back toward the surface.',
       example: 'CO2 and methane absorb infrared radiation that would otherwise escape to space.',
       misconception: 'Students often believe the greenhouse effect is caused by the ozone layer hole.',
+      correction: 'Greenhouse warming comes from infrared absorption and re-emission, not ozone depletion.',
     },
     {
       term: 'Albedo',
       definition: 'The fraction of incoming sunlight a surface reflects back to space rather than absorbing.',
       example: 'Fresh snow reflects most incoming sunlight while dark ocean water absorbs it.',
       misconception: 'Students confuse albedo-driven reflection of incoming sunlight with greenhouse trapping.',
+      correction: 'Albedo concerns reflected incoming sunlight, while greenhouse gases affect outgoing radiation.',
     },
     {
       term: 'Radiative forcing',
       definition: 'The change in the energy balance of the climate system caused by a factor such as added CO2.',
       example: 'Doubling CO2 adds roughly 3.7 watts per square meter of forcing.',
       misconception: 'Many assume CO2 produces direct heating of air through chemical reactions instead of radiation.',
+      correction: 'CO2 changes radiative energy flow; it does not warm air through an exothermic chemical reaction.',
     },
   ],
   mc: [

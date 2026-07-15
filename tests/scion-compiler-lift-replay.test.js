@@ -2,19 +2,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-import {
-  buildScionCompilerLiftReplayReport,
-  runScionCompilerLiftReplayAudit,
-} from '../scripts/scionCompilerLiftReplayAudit.mjs';
+import { runScionCompilerLiftReplayAudit } from '../scripts/scionCompilerLiftReplayAudit.mjs';
 
 const repoRoot = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 
 describe('Scion immutable cross-arm compiler replay', () => {
-  it('measures model-neutral compiler lift without claiming a quality win', async () => {
-    const report = await buildScionCompilerLiftReplayReport({
-      cwd: repoRoot,
-      generatedAt: '2026-07-15T00:00:00.000Z',
-    });
+  it('retains the historical model-neutral lift without claiming a quality win', async () => {
+    const { report } = await runScionCompilerLiftReplayAudit({ cwd: repoRoot });
     expect(report).toMatchObject({
       protocol: 'scion-cross-arm-compiler-lift-replay-v1',
       status: 'cross-arm-compiler-lift-measured',

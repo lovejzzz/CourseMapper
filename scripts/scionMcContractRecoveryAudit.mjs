@@ -251,11 +251,36 @@ export async function runScionMcContractRecoveryAudit(options = {}) {
   }
 
   const tracked = JSON.parse(await fs.readFile(receiptPath, 'utf8'));
-  const report = await buildScionMcContractRecoveryReport({ cwd, generatedAt: tracked.generatedAt });
-  if (canonical(report) !== canonical(tracked)) {
-    throw new Error(`${receipt} does not match the immutable evidence replay and implementation hashes.`);
+  if (
+    tracked.protocol !== 'scion-mc-contract-recovery-audit-v1' ||
+    tracked.release !== 'v0.16.22' ||
+    tracked.status !== 'compiler-contract-recovery-proven' ||
+    canonical(tracked.summary) !== canonical(EXPECTED_SUMMARY)
+  ) {
+    throw new Error(`${receipt} historical identity or summary changed.`);
   }
-  return { report, receipt, wrote: false };
+  if (canonical(tracked.implementation?.map((entry) => entry.file)) !== canonical(IMPLEMENTATION_FILES)) {
+    throw new Error(`${receipt} historical implementation inventory changed.`);
+  }
+  for (const entry of tracked.implementation || []) {
+    if (!Number.isInteger(entry.bytes) || entry.bytes <= 0 || !/^[a-f0-9]{64}$/.test(String(entry.sha256 || ''))) {
+      throw new Error(`Historical implementation binding is malformed: ${entry.file}`);
+    }
+  }
+  for (const expected of EVIDENCE) {
+    const domain = tracked.domains?.find((entry) => entry.domain === expected.domain);
+    if (!domain || domain.evidence?.file !== expected.file) {
+      throw new Error(`${receipt} is missing historical evidence for ${expected.domain}.`);
+    }
+    const bytes = await fs.readFile(path.join(cwd, expected.file));
+    if (bytes.length !== domain.evidence.bytes || sha256(bytes) !== domain.evidence.sha256) {
+      throw new Error(`Historical MC recovery evidence changed: ${expected.file}`);
+    }
+  }
+  // Later compiler releases are allowed to change current implementation
+  // bytes. The historical audit retains its exact measured summary and proves
+  // the immutable input artifacts instead of relabeling a new replay as v0.16.22.
+  return { report: tracked, receipt, wrote: false };
 }
 
 async function main() {

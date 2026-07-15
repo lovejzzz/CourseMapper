@@ -671,7 +671,13 @@ export async function verifySourceCaptureArtifacts({ campaign, outputDir, models
         });
         continue;
       }
-      const verification = verifySourceCaptureProject(project, { campaign, group, arm, model: models[arm] || null });
+      const verification = verifySourceCaptureProject(project, {
+        campaign,
+        group,
+        arm,
+        model: models[arm] || null,
+        admissionMode: 'captured',
+      });
       if (verification.valid) {
         const capture = project?.scionSourceCapture || {};
         callsByArm[arm].raw.push(...(capture.compilerRecovery?.rawCalls || capture.calls || []));

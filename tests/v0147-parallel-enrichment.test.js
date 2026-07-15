@@ -143,6 +143,9 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
 
     expect(nativeRecoverySource).toContain('recoveryAttempt: nativeRecoveryCalls');
     expect(nativeRecoverySource).toContain('retrying with stricter instructions');
+    expect(hookSource).toContain(
+      'allLessonIndices.filter((lessonIdx) => !kernelIsComplete(lessonContent[lessonIdOf(lessonIdx)]))',
+    );
     expect(nativeRecoverySource).not.toContain('let previousRecoverySignature');
   });
 

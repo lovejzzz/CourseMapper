@@ -336,10 +336,12 @@ describe('Scion source-grounded atom capture', () => {
         const raw = fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
         const project = JSON.parse(raw);
         const model = project.scionSourceCapture.model;
-        expect(verifySourceCaptureProject(project, { campaign, group, arm, model })).toEqual({
-          valid: true,
-          issues: [],
-        });
+        expect(verifySourceCaptureProject(project, { campaign, group, arm, model, admissionMode: 'captured' })).toEqual(
+          {
+            valid: true,
+            issues: [],
+          },
+        );
         projects[arm].push(project);
         artifactRows.push({ path: relativePath, sha256: fileSha256(raw) });
       }
@@ -424,7 +426,13 @@ describe('Scion source-grounded atom capture', () => {
         const raw = fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
         const project = JSON.parse(raw);
         expect(
-          verifySourceCaptureProject(project, { campaign, group, arm, model: project.scionSourceCapture.model }),
+          verifySourceCaptureProject(project, {
+            campaign,
+            group,
+            arm,
+            model: project.scionSourceCapture.model,
+            admissionMode: 'captured',
+          }),
         ).toEqual({ valid: true, issues: [] });
         projects[arm].push(project);
         artifactRows.push({ path: relativePath, sha256: fileSha256(raw) });
