@@ -10,6 +10,31 @@ import { analyzeModelComparison } from './lib/qualityBenchmark.mjs';
 const ROOT = process.cwd();
 const DEFAULT_OUTPUT = path.join(ROOT, 'verification-output', 'quality-model-comparison');
 
+async function resolveBoundScorecard(baseDir, declaredPath) {
+  const normalized = String(declaredPath || '')
+    .trim()
+    .replaceAll('\\', '/');
+  if (
+    !normalized ||
+    path.isAbsolute(normalized) ||
+    normalized.split('/').some((part) => !part || part === '.' || part === '..')
+  ) {
+    throw new Error('scorecardPath must be a safe relative path');
+  }
+  const [realBase, absolute] = await Promise.all([
+    fs.realpath(path.resolve(baseDir)),
+    Promise.resolve(path.resolve(baseDir, normalized)),
+  ]);
+  const stats = await fs.lstat(absolute);
+  if (!stats.isFile() || stats.isSymbolicLink()) throw new Error('scorecard must be a regular non-symlink file');
+  const realScorecard = await fs.realpath(absolute);
+  const relative = path.relative(realBase, realScorecard);
+  if (!relative || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error('scorecardPath escapes its comparison directory');
+  }
+  return absolute;
+}
+
 export async function verifyComparisonScorecards(comparison, { baseDir = ROOT } = {}) {
   const verifiedScorecardSha256s = new Set();
   const issues = [];
@@ -19,8 +44,8 @@ export async function verifyComparisonScorecards(comparison, { baseDir = ROOT } 
       if (!Number.isFinite(Number(output?.benchmarkScore))) continue;
       const evidence = output?.scoreEvidence;
       const prefix = `${trial.caseId || '<case>'}/trial-${trial.trialIndex ?? '?'}/${side}`;
-      const absolute = path.resolve(baseDir, evidence?.scorecardPath || '');
       try {
+        const absolute = await resolveBoundScorecard(baseDir, evidence?.scorecardPath);
         const bytes = await fs.readFile(absolute);
         const observedSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
         if (observedSha256 !== evidence?.scorecardSha256) {

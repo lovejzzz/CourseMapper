@@ -8,6 +8,7 @@ import { validateScionAdapterManifest } from '../src/lib/scionAdapterManifest.js
 import { sha256File } from './scionAdapterPackage.mjs';
 import { SCION_PAIRED_EVIDENCE_PRODUCER } from './scionAdapterPairedEvidence.mjs';
 import { auditScionBrowserDeviceMatrix } from './lib/scionBrowserDeviceMatrix.mjs';
+import { auditScionAdapterSingleModelJudgeEvidence } from './lib/scionAdapterJudgePromotion.mjs';
 
 const REQUIRED_EXTERNAL_EVIDENCE = [
   'factual-canaries',
@@ -132,7 +133,7 @@ function evidencePasses(manifest, type, verifiedExternalEvidence = {}) {
 
 const BROWSER_DEVICE_PROTOCOL_PATH = path.resolve('evaluation/scion-adapters/browser-device-matrix-protocol-v1.json');
 
-export async function verifyExternalEvidenceFiles(manifest) {
+export async function verifyExternalEvidenceFiles(manifest, { manifestSha256 } = {}) {
   const details = {};
   for (const type of REQUIRED_EXTERNAL_EVIDENCE) {
     const entry = (manifest?.promotion?.evidence || []).find((candidate) => candidate?.type === type);
@@ -159,6 +160,15 @@ export async function verifyExternalEvidenceFiles(manifest) {
           evidence,
           evidencePath: absolutePath,
           adapterManifest: manifest,
+        });
+      } else if (actualSha256 === entry.sha256 && type === 'single-model-judge') {
+        const evidence = JSON.parse(await fs.readFile(absolutePath, 'utf8'));
+        semanticAudit = await auditScionAdapterSingleModelJudgeEvidence({
+          root: process.cwd(),
+          evidencePath: absolutePath,
+          evidence,
+          adapterManifest: manifest,
+          adapterManifestSha256: manifestSha256,
         });
       }
       const semanticVerified = semanticAudit == null || semanticAudit.status === 'pass';
@@ -311,6 +321,11 @@ async function readJsonFiles(paths) {
 }
 
 function renderMarkdown(report) {
+  const externalEvidenceRows = Object.entries(report.externalEvidenceVerification || {}).map(([type, result]) => {
+    const semanticStatus = result.semanticAudit?.status || (result.verified ? 'hash-bound' : 'not-verified');
+    const detail = result.semanticAudit?.issues?.join('; ') || result.reason || '';
+    return `| ${type} | ${result.verified ? 'PASS' : 'FAIL'} | ${semanticStatus} | ${detail} |`;
+  });
   return [
     '# Scion Adapter Promotion Audit',
     '',
@@ -322,6 +337,12 @@ function renderMarkdown(report) {
     '## Gates',
     '',
     ...Object.entries(report.gates).map(([gate, passed]) => `- ${passed ? 'PASS' : 'FAIL'} — ${gate}`),
+    '',
+    '## External evidence',
+    '',
+    '| Type | Verified | Semantic status | Detail |',
+    '| --- | --- | --- | --- |',
+    ...externalEvidenceRows,
     '',
     '| Domain | Pass | Pairing | Candidate calls | Base calls | Ratio |',
     '| --- | --- | --- | ---: | ---: | ---: |',
@@ -349,7 +370,7 @@ export async function runScionAdapterPromotionAudit({
     readJsonFiles(basePaths),
     sha256File(manifestPath),
   ]);
-  const externalEvidenceVerification = await verifyExternalEvidenceFiles(manifest);
+  const externalEvidenceVerification = await verifyExternalEvidenceFiles(manifest, { manifestSha256 });
   const report = assessScionAdapterPromotion({
     manifest,
     manifestSha256,

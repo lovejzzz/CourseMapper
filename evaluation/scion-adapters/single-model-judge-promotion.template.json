@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "scion-adapter-single-model-judge-promotion-v1",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "claimBoundary": "This is one provenance-bound model judge repeated in both presentation orders. It is not human, instructor, independent, classroom, or multi-judge evidence.",
+  "benchmark": {
+    "qualityManifest": {
+      "path": "evaluation/quality-benchmark/v1/manifest.json",
+      "sha256": "3373cb3259f6d9e99222cfbfc02c573b99b42a5f5367cccd971edd53505eb4f3"
+    },
+    "rubric": {
+      "path": "evaluation/quality-benchmark/v1/rubric.json",
+      "sha256": "508486c8e2db26c6a146903caa20e2f39384437d2066ec040fe206ff757382bd"
+    },
+    "judgePrompt": {
+      "path": "evaluation/quality-benchmark/v1/single-model-judge-prompt-v1.md",
+      "sha256": "6f95f8806a094558ff4f266216e0140d7710e4f46eb155490868e54078bac266"
+    },
+    "heldOutCourseBenchmark": {
+      "path": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+      "sha256": "e3f07d2ccdf197315556e0205b97b30aee7a447399e14c440d6c1865e11b08a5"
+    }
+  },
+  "adapter": {
+    "id": "REPLACE_WITH_EXACT_ADAPTER_ID",
+    "manifestSha256": "REPLACE_WITH_64_HEX_SHA256",
+    "baseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "scale": 1
+  },
+  "base": {
+    "id": "scion-base-only",
+    "model": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce"
+  },
+  "paidReference": {
+    "id": "scion-paid-reference-gpt-5.4-mini",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "modelRevision": "REPLACE_WITH_CONCRETE_SNAPSHOT_OR_RUNTIME_FINGERPRINT",
+    "route": "responses-api",
+    "reasoningEffort": "low"
+  },
+  "comparisons": [
+    {
+      "role": "adapter-vs-base",
+      "path": "relative/path/to/adapter-vs-base.json",
+      "sha256": "REPLACE_WITH_64_HEX_SHA256"
+    },
+    {
+      "role": "adapter-vs-paid-reference",
+      "path": "relative/path/to/adapter-vs-paid-reference.json",
+      "sha256": "REPLACE_WITH_64_HEX_SHA256"
+    }
+  ]
+}
