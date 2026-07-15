@@ -14,6 +14,7 @@ import {
 } from '../src/lib/scionAdapterManifest.js';
 
 const HASH = 'a'.repeat(64);
+const RESULT_HASH = 'b'.repeat(64);
 const PRODUCTION_DOMAINS = ['computer-science', 'geology', 'music-theory', 'user-experience-design', 'world-history'];
 
 function domainCounts(domains, count) {
@@ -21,30 +22,68 @@ function domainCounts(domains, count) {
 }
 
 function manifest(overrides = {}) {
-  return {
+  const defaultTraining = {
+    method: 'orpo-lora',
+    datasetManifestSha256: HASH,
+    datasetIdentitySha256: HASH,
+    datasetStatus: 'ready',
+    primaryPreferenceEvidence: 'single-model-judge',
+    pairCount: 3000,
+    domainCount: 5,
+    groupCount: 15,
+    modelJudgePairCount: 100,
+    modelJudgeDomainCount: 5,
+    domainGroupCounts: domainCounts(PRODUCTION_DOMAINS, 3),
+    modelJudgeDomainCounts: domainCounts(PRODUCTION_DOMAINS, 20),
+    splitCounts: { train: 1000, valid: 1000, test: 1000 },
+    splitDomainCounts: { train: 5, valid: 5, test: 5 },
+  };
+  const base = {
     schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
     adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.6', format: 'mlx-lora-safetensors' },
     base: { ...SCION_GEMMA4_E2B_BASE, exactRevisionRequired: true },
-    training: {
-      method: 'orpo-lora',
-      datasetManifestSha256: HASH,
-      datasetStatus: 'ready',
-      primaryPreferenceEvidence: 'single-model-judge',
-      pairCount: 3000,
-      domainCount: 5,
-      groupCount: 15,
-      modelJudgePairCount: 100,
-      modelJudgeDomainCount: 5,
-      domainGroupCounts: domainCounts(PRODUCTION_DOMAINS, 3),
-      modelJudgeDomainCounts: domainCounts(PRODUCTION_DOMAINS, 20),
-      splitCounts: { train: 1000, valid: 1000, test: 1000 },
-      splitDomainCounts: { train: 5, valid: 5, test: 5 },
-    },
+    training: defaultTraining,
     files: [{ path: 'adapters.safetensors', bytes: 1024, sha256: HASH }],
     runtime: { supported: ['mlx-vlm'] },
     promotion: { status: 'candidate', promotable: false },
     ...overrides,
   };
+  const result = {
+    ...base,
+    training: { ...defaultTraining, ...(overrides.training || {}) },
+    files: [...(overrides.files || base.files)],
+  };
+  const status = result.promotion?.status;
+  if (['research', 'candidate', 'promoted'].includes(status)) {
+    const lane = status === 'research' ? 'research' : 'production';
+    result.training.run = {
+      protocol: 'scion-adapter-training-run-v1',
+      lane,
+      seed: 16031,
+      planPath: 'training-plan.json',
+      planSha256: HASH,
+      planIdentitySha256: HASH,
+      resultPath: 'training-result.json',
+      resultSha256: RESULT_HASH,
+      resultIdentitySha256: RESULT_HASH,
+      datasetIdentitySha256: result.training.datasetIdentitySha256 || HASH,
+      toolchainPolicySha256: HASH,
+      repositoryCommit: 'a'.repeat(40),
+      repositoryTree: 'b'.repeat(40),
+      repositoryDirty: false,
+    };
+    result.files.push(
+      { path: 'training-plan.json', bytes: 512, sha256: HASH },
+      { path: 'training-result.json', bytes: 512, sha256: RESULT_HASH },
+    );
+    if (result.adapter?.format === 'gguf-lora') {
+      result.training.run.sourceAdapterId = result.conversion?.sourceAdapterId;
+      result.training.run.sourceManifestPath = 'source-adapter-manifest.json';
+      result.training.run.sourceManifestSha256 = result.conversion?.sourceManifestSha256;
+      result.files.push({ path: 'source-adapter-manifest.json', bytes: 512, sha256: HASH });
+    }
+  }
+  return result;
 }
 
 function browserConversion() {
@@ -191,6 +230,31 @@ describe('Scion adapter manifest', () => {
     );
     expect(result.valid).toBe(false);
     expect(result.issues).toEqual(expect.arrayContaining(['adapter-file-path', 'smoke-must-not-promote']));
+  });
+
+  it('keeps schema-v2 mechanical history but refuses to relabel it as learned evidence', () => {
+    const legacySmoke = manifest({
+      schemaVersion: 2,
+      promotion: { status: 'smoke', promotable: false },
+    });
+    expect(validateScionAdapterManifest(legacySmoke)).toEqual({ valid: true, issues: [] });
+
+    const legacyCandidate = manifest({ schemaVersion: 2 });
+    expect(validateScionAdapterManifest(legacyCandidate)).toMatchObject({ valid: false });
+    expect(validateScionAdapterManifest(legacyCandidate).issues).toEqual(
+      expect.arrayContaining(['legacy-schema-mechanical-only', 'training-run-schema-version']),
+    );
+  });
+
+  it('refuses a schema-v3 learned adapter without its bound training receipts', () => {
+    const candidate = manifest();
+    delete candidate.training.run;
+    candidate.files = candidate.files.filter(
+      (file) => !['training-plan.json', 'training-result.json'].includes(file.path),
+    );
+    const result = validateScionAdapterManifest(candidate);
+    expect(result.valid).toBe(false);
+    expect(result.issues).toContain('training-run-missing');
   });
 
   it('refuses candidate status for a smoke-sized or unidentified dataset', () => {

@@ -1,0 +1,124 @@
+{
+  "version": "0.16.31",
+  "date": "July 15, 2026",
+  "title": "Seed Before You Graft: make every learned Scion delta reproducible",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:adapter:training:contract",
+      "npm run audit:scion:adapter:training:toolchain",
+      "npx vitest run tests/scion-adapter-training-run.test.js tests/scion-adapter-tooling.test.js tests/scion-adapter-manifest.test.js tests/scion-adapter-registry.test.js tests/scion-browser-device-matrix.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test -- --maxWorkers=4",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:evaluation:main",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "The release will be pushed only after the focused provenance fixtures, full suite, build, bundle, evaluation, and release-history gates pass locally."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The real installed Apple MLX toolchain is audited locally because GitHub's Linux runner does not provide the pinned MLX training environment. CI exercises the dependency-free seed-wrapper contract and all byte-bound adversarial fixtures."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages deployment and cache-bypassed production verification remain pending until the exact release commit passes remote Fast verification."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "No model or paid-provider request is needed to verify training provenance. A bounded ten-iteration mechanics smoke may verify the seeded local path but cannot create a quality claim."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "This release changes machine-verifiable training provenance and explicitly creates no human, instructor, classroom, independent-review, or completed-judgment evidence."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-contract-only",
+      "note": "The canonical compiler evaluation remains the release regression gate. Reproducible training infrastructure does not create held-out adapter quality or independent instructor evidence."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01631-stable-dataset-identity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Adapter datasets bind exact source receipts and admitted split bytes in a timestamp-independent identity that is independently recomputed before training.",
+      "anchors": [
+        "scripts/scionAdapterDataset.mjs",
+        "scripts/scionAdapterTrainingRun.mjs",
+        "tests/scion-adapter-training-run.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-adapter-training-run.test.js tests/scion-adapter-tooling.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01631-pinned-mlx-toolchain",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The Scion Apple training environment is pinned by Python and package versions plus exact trainer module hashes, with separate CI-safe and live audits.",
+      "anchors": [
+        "evaluation/scion-adapters/training-toolchain-v1.json",
+        "trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py",
+        "scripts/scionAdapterTrainingRun.mjs"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:adapter:training:contract",
+        "npm run audit:scion:adapter:training:toolchain"
+      ],
+      "proofScopes": ["static-audit", "unit"]
+    },
+    {
+      "id": "v01631-seeded-canonical-plan",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Scion seeds NumPy and MLX before trainer import, records every ORPO parameter explicitly, refuses dirty source state, and derives adapter identity from the canonical plan.",
+      "anchors": [
+        "trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py",
+        "trellis/tendril/distill/run_orpo_g4.sh",
+        "scripts/scionAdapterTrainingRun.mjs",
+        "tests/scion-adapter-training-run.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:adapter:training:contract",
+        "npx vitest run tests/scion-adapter-training-run.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01631-schema-v3-training-chain",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Manifest schema v3 binds plan and completion receipts for learned adapters and carries the verified MLX source chain into separately converted browser GGUF packages.",
+      "anchors": [
+        "scripts/scionAdapterPackage.mjs",
+        "scripts/scionAdapterBrowserPackage.mjs",
+        "src/lib/scionAdapterManifest.js",
+        "tests/scion-adapter-training-run.test.js",
+        "tests/scion-adapter-manifest.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-adapter-training-run.test.js tests/scion-adapter-manifest.test.js tests/scion-adapter-registry.test.js tests/scion-browser-device-matrix.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01631-reproducibility-not-quality",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release improves future training reproducibility without claiming a fresh judgment, approved preferences, new quality weights, adapter activation, base superiority, or paid-reference parity.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/README.md",
+        "release-contracts/v0.16.31.json"
+      ],
+      "proofCommands": ["npm run audit:release-history", "npm run audit:scion:adapter:training:contract"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

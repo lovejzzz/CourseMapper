@@ -30,6 +30,54 @@ function stableHash(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
 
+function canonicalize(value) {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, canonicalize(value[key])]),
+  );
+}
+
+function stableJson(value) {
+  return JSON.stringify(canonicalize(value));
+}
+
+export function computeScionAdapterDatasetIdentity(manifest) {
+  const sourceReceipts = Array.isArray(manifest?.sourceReceipts)
+    ? manifest.sourceReceipts.map((entry) => ({
+        status: entry?.status,
+        ...(entry?.status === 'verified' ? { bytes: entry?.bytes, sha256: entry?.sha256 } : {}),
+      }))
+    : [];
+  return stableHash(
+    stableJson({
+      protocol: 'scion-adapter-dataset-identity-v1',
+      schemaVersion: manifest?.schemaVersion,
+      status: manifest?.status,
+      promotable: manifest?.promotable,
+      primaryPreferenceEvidence: manifest?.primaryPreferenceEvidence,
+      sourceReceipts,
+      domainMap: {
+        entries: manifest?.domainMap?.entries,
+        sha256: manifest?.domainMap?.sha256 || null,
+      },
+      counts: manifest?.counts,
+      domains: manifest?.domains,
+      evidenceCounts: manifest?.evidenceCounts,
+      instructorDomainCounts: manifest?.instructorDomainCounts,
+      modelJudgeDomainCounts: manifest?.modelJudgeDomainCounts,
+      domainGroupCounts: manifest?.domainGroupCounts,
+      groupIdentity: manifest?.groupIdentity,
+      splitIdentity: manifest?.splitIdentity,
+      gate: manifest?.gate,
+      leakage: manifest?.leakage,
+      files: manifest?.files,
+    }),
+  );
+}
+
 function parsed(value) {
   if (value && typeof value === 'object') return value;
   try {
@@ -115,6 +163,24 @@ async function readJsonl(source) {
   }
 }
 
+async function inspectDatasetSource(source) {
+  try {
+    const stats = await fs.lstat(source);
+    if (!stats.isFile() || stats.isSymbolicLink()) {
+      throw new Error(`Dataset source must be a regular file: ${source}`);
+    }
+    return {
+      path: source,
+      status: 'verified',
+      bytes: stats.size,
+      sha256: await sha256File(source),
+    };
+  } catch (error) {
+    if (error?.code === 'ENOENT') return { path: source, status: 'missing' };
+    throw error;
+  }
+}
+
 function pairKind(row) {
   if (['lesson', 'mc-item', 'key-term'].includes(row?.kind)) return row.kind;
   if (row?.pass && row?.chosen && row?.rejected) return 'mc-item';
@@ -181,7 +247,9 @@ export async function buildScionAdapterDataset({
   researchMinimumModelJudgeDomains = 4,
   researchMinimumModelJudgePairsPerDomain = 20,
   domainMapPath = DEFAULT_DOMAIN_MAP,
+  generatedAt = new Date().toISOString(),
 } = {}) {
+  const sourceReceipts = await Promise.all(sources.map(inspectDatasetSource));
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
   const domainMap = await readDomainMap(domainMapPath);
   const eligible = [];
@@ -366,8 +434,9 @@ export async function buildScionAdapterDataset({
     status,
     promotable: status === 'ready',
     primaryPreferenceEvidence: 'single-model-judge',
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     sources,
+    sourceReceipts,
     domainMap: {
       path: domainMapPath,
       entries: Object.keys(domainMap).length,
@@ -445,6 +514,10 @@ export async function buildScionAdapterDataset({
     files,
     quarantine,
   };
+  manifest.identity = {
+    protocol: 'scion-adapter-dataset-identity-v1',
+    sha256: computeScionAdapterDatasetIdentity(manifest),
+  };
   const manifestPath = path.join(absoluteOutput, 'dataset-manifest.json');
   await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   return { manifest, manifestPath };
@@ -490,6 +563,7 @@ function parseArgs(argv) {
     } else if (arg === '--research-minimum-model-judge-pairs-per-domain') {
       args.researchMinimumModelJudgePairsPerDomain = Number(argv[++index]);
     } else if (arg === '--domain-map') args.domainMapPath = argv[++index];
+    else if (arg === '--generated-at') args.generatedAt = argv[++index];
     else if (arg === '--allow-smoke') args.allowSmoke = true;
     else if (arg === '--research') args.allowResearch = true;
   }

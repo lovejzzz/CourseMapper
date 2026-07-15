@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-mlx-orpo-toolchain-v1",
+  "status": "pinned",
+  "platform": {
+    "system": "Darwin",
+    "machine": "arm64",
+    "python": "3.13.3"
+  },
+  "packages": {
+    "mlx": "0.31.2",
+    "mlx-vlm": "0.6.3",
+    "numpy": "2.5.1",
+    "transformers": "5.13.0",
+    "huggingface-hub": "1.22.0",
+    "safetensors": "0.8.0"
+  },
+  "modules": {
+    "mlx_vlm.lora": {
+      "sha256": "31a15803dcdefe95f996b87ed35fae6695ed08792f6236208499c26224095a3a"
+    },
+    "mlx_vlm.trainer.lora": {
+      "sha256": "ffb1977d5f43d23f5679fa18864d86db72cca34f6f23491271f0135bd88e62c8"
+    },
+    "mlx_vlm.trainer.orpo_trainer": {
+      "sha256": "77235aa4676e90618d5ed5f7a32649eded34578f4fe8b87832622b32f00ef4af"
+    }
+  },
+  "trainer": {
+    "module": "mlx_vlm.lora",
+    "mode": "orpo",
+    "seedControl": "numpy-random-plus-mlx-random-before-trainer-import"
+  }
+}

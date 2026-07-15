@@ -259,6 +259,7 @@ export async function buildScionBrowserAdapter({
       scale: conversionReceipt.inference.scale,
       evidence: [{ type: 'conversion-receipt', status: 'pass', sha256: receipt.sha256 }],
       conversion,
+      trainingProvenance: { sourceManifest: sourceManifestPath },
     });
     const verification = await verifyScionAdapterPackage({ manifestPath: built.outputPath, adapterDir: targetDir });
     if (!verification.valid)
