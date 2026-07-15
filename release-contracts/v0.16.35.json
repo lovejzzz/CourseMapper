@@ -1,0 +1,114 @@
+{
+  "version": "0.16.35",
+  "date": "July 15, 2026",
+  "title": "The First Order Gets a Clean Room: bind the judge before Scion learns",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:codex-first-order",
+      "npm run audit:scion:codex-fresh-handoff",
+      "npx vitest run tests/scion-codex-fresh-judge-workbook.test.js tests/scion-codex-fresh-judge-handoff.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test -- --maxWorkers=4",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:evaluation:main",
+      "npm run audit:release-history",
+      "npx playwright test tests/coursemapper.spec.js tests/local-ai-runtime.spec.js tests/export-smoke.spec.js"
+    ],
+    "ciFast": {
+      "status": "pending",
+      "note": "The implementation commit must pass Fast verification before merge."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This release changes deterministic clean-room construction, validation, and sealing contracts. It performs no model call, judgment, adapter training, device capture, or provider request."
+    },
+    "deploy": {
+      "status": "pending",
+      "liveUrl": "https://edutool.dev",
+      "note": "Production proof will be sealed after the exact merged commit deploys and passes a cache-bypassed probe."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "No model provider is used. The tracked workbook is reconstructed from the frozen blank anonymous handoff and contains no completed judgment."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "Codex remains the declared sole judge. This release makes no human, instructor, classroom, independent-review, or multi-judge claim and does not yet perform a Codex judgment."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-contract-only",
+      "note": "All 34 canonical gold courses, 4,479 unit tests, and 107 real-Chromium tests passed locally. These gates establish software and compiler regression safety only; they do not turn a blank workbook into model-quality evidence."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01635-order-generic-clean-room",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The chunked clean-room workbook validates and seals either A/B or B/A while retaining exact reconstruction of the historical B/A artifact.",
+      "anchors": [
+        "scripts/scionCodexFreshJudgeHandoff.mjs",
+        "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "tests/scion-codex-fresh-judge-workbook.test.js",
+        "tests/scion-codex-fresh-judge-handoff.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-fresh-handoff",
+        "npx vitest run tests/scion-codex-fresh-judge-workbook.test.js tests/scion-codex-fresh-judge-handoff.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01635-tracked-first-order-workbook",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "A tracked A/B-only workbook binds 128 source-backed anonymous cases into eight immutable chunks without a reverse-order payload, organizer mapping, model mapping, or outcome.",
+      "anchors": [
+        "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.35",
+        "evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.35.json"
+      ],
+      "proofCommands": ["npm run audit:scion:codex-first-order"],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v01635-predeclared-judge-identity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "First-order construction refuses a missing Codex identity and completion refuses model, revision, runtime, or prompt drift from the predeclared campaign identity.",
+      "anchors": [
+        "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.35.json",
+        "tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-codex-fresh-judge-workbook.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01635-plaintext-free-first-order-sealing",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Completed chunks must share one fresh matching judge session and are assembled only in memory before atomic encrypted-envelope and 0600-key output.",
+      "anchors": ["scripts/scionCodexFreshJudgeWorkbook.mjs", "tests/scion-codex-fresh-judge-workbook.test.js"],
+      "proofCommands": ["npx vitest run tests/scion-codex-fresh-judge-workbook.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01635-zero-outcome-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release records campaign readiness with zero completed judgments, zero approved preferences, zero training rows, and no adapter or model-quality claim.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/README.md",
+        "evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.35.json"
+      ],
+      "proofCommands": ["npm run audit:scion:codex-first-order", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.34
+**Current release:** v0.16.35
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.34**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.35**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -92,6 +92,12 @@ v0.16.33 closes a prerequisite that must be true before Scion learns from any fu
 Dataset identity v2 binds the frozen benchmark SHA-256, policy and exclusion result along with every source receipt, admitted group, evidence count, and split byte. Group proof now includes both `domain:course-id` hashes and course-ID-only hashes, closing the relabeling loophole. Before creating any smoke, research, or production plan, training reopens and validates the benchmark, checks its recorded digest, and recomputes separation. The paired adapter evaluator uses the same stronger proof, so a contaminated adapter cannot simply train and discover the problem only after an expensive run.
 
 The reproducible receipt `evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.33.json` also records the real starting point. Of 418 stored rows, 75 pass deterministic structural evidence across four domains and five course groups; **zero** carry admissible same-identity, two-order Codex preferences. Research therefore remains `smoke-only`, below its 100 qualified preferences and three groups per domain. This is an anti-leakage and readiness release, not a learned-quality improvement: no adapter was trained, activated, compared against base, or promoted. `npm run audit:scion:adapter:corpus-readiness` rebuilds the receipt from the tracked sources.
+
+v0.16.35 gives the missing first order the same clean-room discipline as the reverse order. The tracked `evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.35/` contains only the judge prompt, instructions, eight immutable 16-case A/B review chunks, eight blank decision skeletons, and one manifest. It reconstructs all 128 source-bound anonymous cases from the frozen canonical handoff without reading the organizer mapping. No B/A payload, unblinded model identity, completed decision, outcome, or aggregate is present. `npm run audit:scion:codex-first-order` verifies the exact file allowlist, regular-file boundary, blank state, hashes, interleaving, canonical template, and pair set.
+
+The workbook pins `openai/codex`, revision `codex-gpt-5-2026-07-15`, runtime `codex-desktop`, the canonical judge prompt path, and prompt SHA-256 before scoring. A first-order build without that identity is refused; a completed chunk with a different identity cannot be sealed. When all chunks are honestly judged in one fresh session, the completion command reconstructs the canonical pass only in memory and emits one AES-256-GCM envelope plus a separately held 0600 key. It never writes the combined completed plaintext pass.
+
+This release does **not** perform that judgment. It creates zero decisions, zero stable preferences, zero training rows, and zero adapter weights. The next step is a fresh A/B Codex judging task using only this workbook; only after it is sealed may a distinct B/A task be built from the first envelope's public identity. The research adapter remains blocked until at least 100 stable, score-qualified, same-identity reverse-order preferences exist.
 
 v0.16.34 turns the safest part of the two sealed readings into a stricter teaching-content boundary. Key-term fields must now be distinct, learner-facing, and semantically coherent: embedded labels, internal claim markers, copied definitions/examples/misconceptions, and a lesson fact mislabeled as a misconception fail admission and trigger Scion's bounded local retry. The keyless receipt `evaluation/scion-adapters/evidence/key-term-quality-gate-v0.16.34.json` replays 82 source-bound key-term cases per model in both sealed orders. The strengthened gate rejects 19 local Scion-base cases—14 more than v0.16.33—and all 19 have judge defects in both readings. It rejects 0 GPT-5.4-mini artifacts in this frozen subset. Fifty-nine local cases with an any-order defect remain outside the deliberately high-confidence rules.
 
@@ -252,7 +258,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.34)
+## Current Pipeline (v0.16.35)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
