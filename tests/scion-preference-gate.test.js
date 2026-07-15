@@ -177,6 +177,18 @@ describe('Scion preference admission gate', () => {
     });
   });
 
+  it('rejects semantic index placeholders before a quiz item can ship or enter training', () => {
+    const rejected = goodMc({ op: ['index: 0', 'index: 1', 'index: 2', 'index: 3'] });
+    expect(assessScionMcItem(rejected)).toMatchObject({
+      eligible: false,
+      issues: expect.arrayContaining(['placeholder-options']),
+    });
+    expect(deriveDeterministicContractEvidence({ kind: 'mc-item', chosen: goodMc(), rejected })).toMatchObject({
+      kind: 'deterministic-contract-margin',
+      rejectedIssues: expect.arrayContaining(['placeholder-options']),
+    });
+  });
+
   it('rejects forged deterministic evidence and semantic answer-key repairs', () => {
     const chosen = goodMc();
     const structuralRejected = goodMc({ op: ['A', 'A', 'B', 'C'] });

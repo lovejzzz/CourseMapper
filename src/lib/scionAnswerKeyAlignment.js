@@ -2,6 +2,8 @@ const ALIGNMENT_STOP_WORDS = new Set(['and', 'are', 'because', 'for', 'from', 't
 const TERMINAL_PUNCT_RE = /[.!?][\])}"']?$/;
 const SENTENCE_BOUNDARY_RE = /[.!?][\])}"']?(?=\s+[A-Z0-9"'“‘]|$)/g;
 const ABBREVIATION_BOUNDARY_RE = /(?:\b(?:e\.g|i\.e|u\.s|vs|dr|mr|mrs|ms|prof|fig|no)|\b[A-Z])\.$/i;
+const EXPLANATION_CONTRAST_RE =
+  /\b(?:misconception|common misconception|likely misconception|plausible misconception|tempting misconception|by contrast|in contrast|whereas|while|rather than|unlike)\b/i;
 
 function clean(value) {
   return String(value ?? '')
@@ -21,6 +23,129 @@ function alignmentTokens(value) {
       })
       .filter((token) => token.length >= 3 && !ALIGNMENT_STOP_WORDS.has(token)),
   );
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function stripOptionLabel(value) {
+  return clean(value).replace(/^(?:(?:option|choice|answer)\s*)?(?:[a-d]|[1-4])\s*[).:\-]\s*/i, '');
+}
+
+function optionLabelIndex(value) {
+  const normalized = clean(value).toUpperCase();
+  if (/^[A-D]$/.test(normalized)) return normalized.charCodeAt(0) - 65;
+  if (/^[1-4]$/.test(normalized)) return Number(normalized) - 1;
+  return null;
+}
+
+/**
+ * Read only explicit affirmative answer declarations from the explanation.
+ *
+ * This is intentionally narrower than semantic inference. It accepts an
+ * option label ("Option B is correct") or the exact displayed option text in
+ * a correctness construction, and stops before misconception/contrast prose.
+ * A conflicting or multi-option cue blocks lexical repair instead of guessing.
+ */
+function findExplicitExplanationAnswerCue(normalized) {
+  const affirmative = clean(normalized.explanation).split(EXPLANATION_CONTRAST_RE)[0];
+  if (!affirmative) return { status: 'none' };
+  const cues = [];
+  const addCue = (supportedIndex, type, surface) => {
+    if (Number.isInteger(supportedIndex) && supportedIndex >= 0 && supportedIndex < normalized.options.length) {
+      cues.push({ supportedIndex, type, surface: clean(surface) });
+    }
+  };
+  const addPhraseCue = (phrase, type, surface) => {
+    const normalizedPhrase = stripOptionLabel(phrase)
+      .replace(/^(?:that\s+)?(?:the\s+)?/i, '')
+      .trim();
+    if (normalizedPhrase.length < 3) return;
+    const phraseComparable = normalizedPhrase
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+    const optionComparables = normalized.options.map((option) =>
+      stripOptionLabel(option)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim(),
+    );
+    const direct = optionComparables
+      .map((option, index) =>
+        option &&
+        phraseComparable &&
+        (option === phraseComparable || option.includes(phraseComparable) || phraseComparable.includes(option))
+          ? index
+          : -1,
+      )
+      .filter((index) => index >= 0);
+    if (direct.length === 1) {
+      addCue(direct[0], type, surface);
+      return;
+    }
+    const phraseTokens = alignmentTokens(normalizedPhrase);
+    const scores = normalized.options.map((option) => {
+      const optionTokens = alignmentTokens(stripOptionLabel(option));
+      return [...optionTokens].filter((token) => phraseTokens.has(token)).length;
+    });
+    const best = Math.max(...scores);
+    const bestIndices = scores.map((score, index) => (score === best ? index : -1)).filter((index) => index >= 0);
+    const nextBest = Math.max(0, ...scores.filter((_, index) => !bestIndices.includes(index)));
+    if (best >= 3 && bestIndices.length === 1 && best >= nextBest + 2) {
+      addCue(bestIndices[0], type, surface);
+    }
+  };
+
+  for (const pattern of [
+    /\b(?:option|choice|answer)\s*([A-D1-4])\s+(?:is|was)\s+(?:the\s+)?correct\b/gi,
+    /\b(?:the\s+)?correct\s+(?:option|choice|answer)\s+(?:is|was|:)\s*(?:option\s*)?([A-D1-4])\b/gi,
+  ]) {
+    for (const match of affirmative.matchAll(pattern)) {
+      addCue(optionLabelIndex(match[1]), 'explicit-option-label', match[0]);
+    }
+  }
+
+  const namedAnswer = affirmative.match(
+    /\b(?:the\s+)?correct\s+(?:option|choice|answer)\s*(?:is|was|:|,)\s*(.+?)(?=\s*(?:[.;]|\bbecause\b|\bwhich\b|\bsince\b|$))/i,
+  );
+  if (namedAnswer) addPhraseCue(namedAnswer[1], 'explicit-named-answer', namedAnswer[0]);
+
+  for (const correction of clean(normalized.explanation).matchAll(
+    /\bCorrect(?:ion)?\s*:\s*(.+?)(?=\s*(?:[.;]|\bbecause\b|\bwhich\b|\bsince\b|$))/gi,
+  )) {
+    addPhraseCue(correction[1], 'explicit-correction-label', correction[0]);
+  }
+
+  normalized.options.forEach((rawOption, index) => {
+    const option = stripOptionLabel(rawOption);
+    if (option.length < 3) return;
+    const escaped = escapeRegExp(option);
+    const patterns = [
+      new RegExp(
+        `(?:^|[.!?]\\s+)(?:the\\s+)?${escaped}\\s+(?:is|are)\\s+(?:the\\s+)?correct(?:\\s+(?:choice|answer|option|result))?\\b`,
+        'i',
+      ),
+      new RegExp(
+        `\\b(?:the\\s+)?correct\\s+(?:choice|answer|option)\\s*(?:is|:|,)\\s*(?:the\\s+)?${escaped}(?=\\s*(?:[,.;]|\\bbecause\\b|\\bwhich\\b|\\bfor\\b|$))`,
+        'i',
+      ),
+      new RegExp(`(?:^|[.!?]\\s+)(?:the\\s+)?${escaped}\\s*[.!?]?\\s*\\(correct\\)`, 'i'),
+      new RegExp(`(?:^|[.!?]\\s+)(?:the\\s+)?${escaped}\\s+(?:fits|matches)\\s+because\\b`, 'i'),
+    ];
+    const match = patterns.map((pattern) => affirmative.match(pattern)).find(Boolean);
+    if (match) addCue(index, 'explicit-option-text', match[0]);
+  });
+
+  const supported = [...new Set(cues.map((cue) => cue.supportedIndex))];
+  if (supported.length === 0) return { status: 'none' };
+  if (supported.length !== 1) return { status: 'ambiguous', cues };
+  return {
+    status: 'supported',
+    supportedIndex: supported[0],
+    cues: cues.filter((cue) => cue.supportedIndex === supported[0]),
+  };
 }
 
 export function normalizeScionMcItem(item = {}) {
@@ -90,7 +215,10 @@ export function buildScionExplanationTailRepair({ item, lessonId = '', itemIndex
 }
 
 /** Find a conservative lexical contradiction between the declared key and explanation. */
-export function findScionExplanationKeyConflict(item = {}, { minimumBestScore = 3, minimumMargin = 3 } = {}) {
+export function findScionExplanationKeyConflict(
+  item = {},
+  { minimumBestScore = 3, minimumMargin = 3, allowExplicitCues = true } = {},
+) {
   const normalized = normalizeScionMcItem(item);
   if (
     normalized.options.length !== 4 ||
@@ -101,12 +229,24 @@ export function findScionExplanationKeyConflict(item = {}, { minimumBestScore = 
   ) {
     return null;
   }
+  if (allowExplicitCues) {
+    const explicitCue = findExplicitExplanationAnswerCue(normalized);
+    if (explicitCue.status === 'ambiguous') return null;
+    if (explicitCue.status === 'supported') {
+      if (explicitCue.supportedIndex === normalized.answerIndex) return null;
+      return {
+        declaredIndex: normalized.answerIndex,
+        supportedIndex: explicitCue.supportedIndex,
+        scores: normalized.options.map(() => 0),
+        supportMethod: 'explicit-explanation-cue',
+        explicitCues: explicitCue.cues,
+      };
+    }
+  }
   // Scion explanations deliberately contrast the nearest distractor after
   // explaining the key. Score only the affirmative lead; otherwise a quoted
   // distractor in "By contrast, X does not..." looks lexically supported.
-  const affirmativeLead = normalized.explanation.split(
-    /\b(?:by contrast|in contrast|whereas|while|rather than|unlike)\b/i,
-  )[0];
+  const affirmativeLead = normalized.explanation.split(EXPLANATION_CONTRAST_RE)[0];
   const explanationTokens = alignmentTokens(affirmativeLead);
   const scores = normalized.options.map((option) => {
     const optionTokens = alignmentTokens(option);
@@ -121,13 +261,19 @@ export function findScionExplanationKeyConflict(item = {}, { minimumBestScore = 
     bestIndices[0] !== normalized.answerIndex &&
     bestScore >= currentScore + minimumMargin
   ) {
-    return { declaredIndex: normalized.answerIndex, supportedIndex: bestIndices[0], scores };
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: bestIndices[0],
+      scores,
+      supportMethod: 'lexical-margin',
+      explicitCues: [],
+    };
   }
   return null;
 }
 
 export function buildScionAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, conflict } = {}) {
-  const detected = conflict || findScionExplanationKeyConflict(item);
+  const detected = conflict === undefined ? findScionExplanationKeyConflict(item) : conflict;
   if (!detected) return null;
   const rejected = normalizeScionMcItem(item);
   const chosen = { ...rejected, answerIndex: detected.supportedIndex };
@@ -147,6 +293,8 @@ export function buildScionAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, 
       declaredIndex: detected.declaredIndex,
       supportedIndex: detected.supportedIndex,
       scores: detected.scores,
+      supportMethod: detected.supportMethod || 'lexical-margin',
+      explicitCues: detected.explicitCues || [],
       minimumBestScore: 3,
       minimumMargin: 3,
     },

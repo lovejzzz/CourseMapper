@@ -12,6 +12,8 @@ import {
   verifyScionCodexFreshJudgeWorkbook,
 } from '../scripts/scionCodexFreshJudgeWorkbook.mjs';
 import {
+  buildScionCodexTrainingReviewTemplates,
+  sealScionCodexTrainingReviewPass,
   unsealScionCodexTrainingReviewPass,
   verifyScionSealedCodexReviewEnvelope,
 } from '../scripts/scionCodexTrainingPreferences.mjs';
@@ -82,6 +84,51 @@ async function buildWorkbook(count = 5, chunkSize = 2) {
     chunkSize,
   });
   return { packetDir, handoffDir, receiptOutput, built };
+}
+
+async function buildPriorSealedAb(packetDir) {
+  const templateDir = path.join(root, 'prior-templates');
+  await buildScionCodexTrainingReviewTemplates({ packetDir, outputDir: templateDir });
+  const completedPath = path.join(root, 'prior-completed-a-b.json');
+  const batch = JSON.parse(await fs.readFile(path.join(templateDir, 'codex-review-a-b.json'), 'utf8'));
+  batch.judge.revision = 'codex-fresh-workbook-test-2026-07-14';
+  batch.judge.runtime = 'vitest-fresh-workbook';
+  batch.judge.sessionId = 'prior-a-b-session';
+  batch.previousOutcomeAvailable = false;
+  batch.contextResetAttestation = true;
+  batch.attestation = true;
+  batch.completedAt = '2026-07-14T15:30:00.000Z';
+  for (const review of batch.reviews) {
+    review.scorecards = review.presentation.map((artifact) => ({
+      position: artifact.position,
+      anonymousSide: artifact.anonymousSide,
+      artifactSha256: artifact.artifactSha256,
+      evaluationStatus: 'scored',
+      scores:
+        artifact.position === 1
+          ? { factualCorrectness: 5, sourceFidelity: 5, teachability: 5, coherence: 5, taskQuality: 5 }
+          : { factualCorrectness: 4, sourceFidelity: 4, teachability: 4, coherence: 4, taskQuality: 3 },
+      evidence: ['The score is grounded in the supplied anonymous artifact and neutral source context.'],
+      defects:
+        artifact.position === 1 ? [] : ['The losing artifact is less direct and less useful for the declared task.'],
+    }));
+    review.preference = {
+      scoredBeforePreference: true,
+      decision: 'winner',
+      winnerPosition: 1,
+      rationale: 'Position one is more direct, source-grounded, coherent, teachable, and useful for the declared task.',
+      decisionDefects: ['Position two weakens the source-grounded task into a less direct response.'],
+    };
+  }
+  await fs.writeFile(completedPath, `${JSON.stringify(batch, null, 2)}\n`);
+  const sealedOutput = path.join(root, 'prior-sealed', 'a-b.sealed.json');
+  await sealScionCodexTrainingReviewPass({
+    packetDir,
+    reviewFile: completedPath,
+    sealedOutput,
+    keyOutput: path.join(root, 'prior-secret', 'a-b.key'),
+  });
+  return sealedOutput;
 }
 
 async function writeCompletedWorkingDecisions(handoffDir, manifest, { sessionByChunk = {} } = {}) {
@@ -303,6 +350,57 @@ describe('Scion fresh Codex judge workbook', () => {
       submittedReviews: 5,
       structuralIssues: [],
     });
+  });
+
+  it('pins public first-order judge metadata and rejects revision drift before sealing the reverse order', async () => {
+    const packetDir = await buildPacket(3);
+    const priorSealedEnvelope = await buildPriorSealedAb(packetDir);
+    const handoffDir = path.join(root, 'identity-pinned-workbook');
+    const built = await buildScionCodexFreshJudgeWorkbook({
+      packetDir,
+      priorSealedEnvelope,
+      outputDir: handoffDir,
+      chunkSize: 2,
+      generatedAt: '2026-07-14T16:00:00.000Z',
+    });
+    expect(built.manifest.requiredJudgeIdentity).toMatchObject({
+      source: 'sealed-first-order-envelope-metadata',
+      order: 'A/B',
+      identity: {
+        model: 'openai/codex',
+        revision: 'codex-fresh-workbook-test-2026-07-14',
+        runtime: 'vitest-fresh-workbook',
+      },
+      priorSessionId: 'prior-a-b-session',
+    });
+    const instructions = await fs.readFile(path.join(handoffDir, 'FRESH_TASK_INSTRUCTIONS.md'), 'utf8');
+    expect(instructions).toContain('stop before judgment');
+    const decisionsDir = await writeCompletedWorkingDecisions(handoffDir, built.manifest);
+    await expect(
+      completeAndSealScionCodexFreshJudgeWorkbook({
+        handoffDir,
+        expectedReceipt: built.manifest,
+        decisionsDir,
+        sealedOutput: path.join(root, 'identity-pinned-sealed', 'b-a.json'),
+        keyOutput: path.join(root, 'identity-pinned-secret', 'b-a.key'),
+      }),
+    ).resolves.toMatchObject({ combinedPlaintextWritten: false });
+
+    for (const chunk of built.manifest.chunks) {
+      const decisionsPath = path.join(decisionsDir, chunk.decisionsFile);
+      const decisions = JSON.parse(await fs.readFile(decisionsPath, 'utf8'));
+      decisions.judge.revision = 'codex-updated-revision-2026-07-15';
+      await fs.writeFile(decisionsPath, `${JSON.stringify(decisions, null, 2)}\n`);
+    }
+    await expect(
+      completeAndSealScionCodexFreshJudgeWorkbook({
+        handoffDir,
+        expectedReceipt: built.manifest,
+        decisionsDir,
+        sealedOutput: path.join(root, 'drifted-sealed', 'b-a.json'),
+        keyOutput: path.join(root, 'drifted-secret', 'b-a.key'),
+      }),
+    ).rejects.toThrow('does not match the sealed first-order identity');
   });
 
   it('fails before outputs on partial work, extra files, or cross-chunk session drift', async () => {

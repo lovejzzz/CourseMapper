@@ -16,6 +16,7 @@ import {
   buildScionCodexTrainingDecisionSkeleton,
   completeAndSealScionCodexTrainingReviewPassFromBytes,
   materializeScionCodexTrainingDecisionsFromBytes,
+  verifyScionSealedCodexReviewEnvelope,
 } from './scionCodexTrainingPreferences.mjs';
 import {
   SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH,
@@ -63,6 +64,21 @@ async function fileIdentity(filePath) {
 
 function pairIdsSha256(pairIds) {
   return hashBytes(Buffer.from(JSON.stringify(pairIds)));
+}
+
+function validIdentity(value) {
+  const normalized = String(value ?? '').trim();
+  return normalized.length >= 3 && !/^(?:unknown|unset|placeholder|tbd|todo|replace|n\/a)$/i.test(normalized);
+}
+
+function publicJudgeIdentity(judge = {}) {
+  return {
+    model: judge.model,
+    revision: judge.revision,
+    runtime: judge.runtime,
+    promptPath: judge.promptPath,
+    promptSha256: judge.promptSha256,
+  };
 }
 
 function valueCounts(values) {
@@ -122,7 +138,7 @@ function metadataWithoutReviews(template) {
   return metadata;
 }
 
-function freshTaskInstructions(chunks) {
+function freshTaskInstructions(chunks, requiredJudgeIdentity = null) {
   const chunkList = chunks
     .map((chunk) => `- \`${chunk.templateFile}\` + \`${chunk.decisionsFile}\` — ${chunk.caseCount} anonymous cases`)
     .join('\n');
@@ -148,6 +164,22 @@ cp ${DEFAULT_OUTPUT}/chunk-*-decisions-b-a.json ${DEFAULT_WORKING_DECISIONS}/
 Process chunks in numeric order. For each case, score both artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`. Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
 
 Every completed chunk must carry the same exact judge revision, runtime, fresh session ID, completion time, no-prior-outcome statement, context-reset attestation, and judgment attestation. Edit only the working decisions copies; never modify this hash-bound workbook.
+
+${
+  requiredJudgeIdentity
+    ? 'This workbook pins the outcome-independent judge identity from the sealed first order. Before scoring any case, verify that this task can honestly use model "' +
+      requiredJudgeIdentity.identity.model +
+      '", revision "' +
+      requiredJudgeIdentity.identity.revision +
+      '", runtime "' +
+      requiredJudgeIdentity.identity.runtime +
+      '", and prompt SHA-256 "' +
+      requiredJudgeIdentity.identity.promptSha256 +
+      '". The fresh session ID must differ from "' +
+      requiredJudgeIdentity.priorSessionId +
+      '". If any identity is unavailable or different, stop before judgment; do not substitute a newer runtime and do not relabel it as the pinned identity.'
+    : 'This legacy workbook does not pin a first-order judge identity. A future campaign must supply the first sealed envelope so revision drift is detected before judgment.'
+}
 
 ## Assemble and seal without a combined plaintext pass
 
@@ -283,6 +315,22 @@ export async function verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedR
   if (manifest?.schedule?.sameFreshSessionRequired !== true) issues.push('manifest-session-boundary');
   if (manifest?.completion?.plaintextWritten !== false) issues.push('manifest-plaintext-boundary');
   if (manifest?.completion?.exclusiveOutputs !== true) issues.push('manifest-exclusive-output-boundary');
+  if (manifest?.requiredJudgeIdentity !== undefined) {
+    const required = manifest.requiredJudgeIdentity;
+    const identity = required?.identity;
+    if (required?.source !== 'sealed-first-order-envelope-metadata') issues.push('manifest-judge-identity-source');
+    if (required?.order !== 'A/B') issues.push('manifest-judge-identity-order');
+    if (!identity || Object.keys(identity).sort().join(',') !== 'model,promptPath,promptSha256,revision,runtime') {
+      issues.push('manifest-judge-identity-shape');
+    } else {
+      for (const field of ['model', 'revision', 'runtime', 'promptPath']) {
+        if (!validIdentity(identity[field])) issues.push(`manifest-judge-identity-${field}`);
+      }
+      if (!/^[a-f0-9]{64}$/.test(identity.promptSha256 || '')) issues.push('manifest-judge-identity-prompt-sha256');
+    }
+    if (!validIdentity(required?.priorSessionId)) issues.push('manifest-prior-session-id');
+    if (!/^[a-f0-9]{64}$/.test(required?.envelopeSha256 || '')) issues.push('manifest-prior-envelope-sha256');
+  }
   if (JSON.stringify(Object.keys(manifest?.files || {}).sort()) !== JSON.stringify(payloadFiles(chunks).sort())) {
     issues.push('manifest-files-set');
   }
@@ -372,6 +420,7 @@ export async function buildScionCodexFreshJudgeWorkbook({
   receiptOutput,
   generatedAt = new Date().toISOString(),
   chunkSize = SCION_CODEX_FRESH_WORKBOOK_CHUNK_SIZE,
+  priorSealedEnvelope = '',
 } = {}) {
   const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-fresh-judge-workbook-'));
   try {
@@ -395,6 +444,26 @@ export async function buildScionCodexFreshJudgeWorkbook({
       canonicalTemplateRaw = await fs.readFile(canonicalVerification.templatePath);
     }
     const canonicalTemplate = JSON.parse(canonicalTemplateRaw.toString('utf8'));
+    let requiredJudgeIdentity = null;
+    if (priorSealedEnvelope) {
+      const priorRaw = await fs.readFile(priorSealedEnvelope);
+      const priorEnvelope = JSON.parse(priorRaw.toString('utf8'));
+      const priorVerification = verifyScionSealedCodexReviewEnvelope(priorEnvelope);
+      if (!priorVerification.valid) {
+        throw new Error(`Prior sealed judge pass failed verification: ${priorVerification.issues.join(', ')}`);
+      }
+      if (priorEnvelope.order !== 'A/B') throw new Error('Prior sealed judge pass must be the A/B order');
+      if (JSON.stringify(priorEnvelope.sourcePacket) !== JSON.stringify(canonicalTemplate.sourcePacket)) {
+        throw new Error('Prior sealed judge pass does not match the workbook source packet');
+      }
+      requiredJudgeIdentity = {
+        source: 'sealed-first-order-envelope-metadata',
+        order: priorEnvelope.order,
+        envelopeSha256: hashBytes(priorRaw),
+        identity: publicJudgeIdentity(priorEnvelope.judge),
+        priorSessionId: priorEnvelope.judge.sessionId,
+      };
+    }
     const plan = buildChunkPlan(canonicalTemplate.reviews.length, chunkSize);
     const absoluteOutput = await prepareOutputDirectory(outputDir, ownedFiles(plan));
     const descriptors = [];
@@ -418,7 +487,10 @@ export async function buildScionCodexFreshJudgeWorkbook({
       path.join(REPOSITORY_ROOT, SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH),
       path.join(absoluteOutput, PROMPT_FILE),
     );
-    await fs.writeFile(path.join(absoluteOutput, INSTRUCTIONS_FILE), freshTaskInstructions(descriptors));
+    await fs.writeFile(
+      path.join(absoluteOutput, INSTRUCTIONS_FILE),
+      freshTaskInstructions(descriptors, requiredJudgeIdentity),
+    );
     const files = Object.fromEntries(
       await Promise.all(
         payloadFiles(descriptors).map(async (fileName) => [
@@ -442,6 +514,7 @@ export async function buildScionCodexFreshJudgeWorkbook({
         path: SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH,
         sha256: SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256,
       },
+      ...(requiredJudgeIdentity ? { requiredJudgeIdentity } : {}),
       schedule: {
         chunkSize,
         chunkCount: descriptors.length,
@@ -563,6 +636,18 @@ export async function completeAndSealScionCodexFreshJudgeWorkbook({
   if (decisionsByOriginalIndex.some((decision) => !decision)) {
     throw new Error('Completed workbook does not cover every canonical review index');
   }
+  const requiredJudgeIdentity = verification.manifest.requiredJudgeIdentity;
+  if (requiredJudgeIdentity) {
+    if (
+      JSON.stringify(publicJudgeIdentity(sharedCampaignIdentity.judge)) !==
+      JSON.stringify(requiredJudgeIdentity.identity)
+    ) {
+      throw new Error('Completed workbook judge identity does not match the sealed first-order identity');
+    }
+    if (sharedCampaignIdentity.judge.sessionId === requiredJudgeIdentity.priorSessionId) {
+      throw new Error('Completed workbook must use a fresh session distinct from the sealed first order');
+    }
+  }
   const combinedDecisions = {
     schemaVersion: 1,
     protocol: 'scion-codex-training-decisions-v1',
@@ -622,6 +707,7 @@ function parseArgs(argv) {
     decisionsDir: '',
     sealedOutput: '',
     keyOutput: '',
+    priorSealedEnvelope: '',
     chunkSize: SCION_CODEX_FRESH_WORKBOOK_CHUNK_SIZE,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -637,6 +723,7 @@ function parseArgs(argv) {
     else if (arg === '--decisions-dir') args.decisionsDir = argv[++index] || args.decisionsDir;
     else if (arg === '--sealed-output') args.sealedOutput = argv[++index] || args.sealedOutput;
     else if (arg === '--key-output') args.keyOutput = argv[++index] || args.keyOutput;
+    else if (arg === '--prior-sealed') args.priorSealedEnvelope = argv[++index] || args.priorSealedEnvelope;
     else if (arg === '--chunk-size') args.chunkSize = Number(argv[++index] || args.chunkSize);
   }
   return args;
@@ -689,6 +776,7 @@ async function main() {
     receiptOutput: args.receiptOutput || undefined,
     generatedAt: expectedReceipt?.generatedAt,
     chunkSize: expectedReceipt?.schedule?.chunkSize || args.chunkSize,
+    priorSealedEnvelope: args.priorSealedEnvelope,
   });
   if (expectedReceipt) {
     const verification = await verifyScionCodexFreshJudgeWorkbook({
