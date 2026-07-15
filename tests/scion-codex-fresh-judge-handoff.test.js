@@ -161,6 +161,14 @@ describe('Scion fresh Codex judge handoff', () => {
       valid: true,
       issues: [],
     });
+    const staleReceipt = structuredClone(receipt);
+    staleReceipt.selectedCases = 2;
+    await expect(
+      verifyScionCodexFreshJudgeHandoff({ handoffDir, expectedReceipt: staleReceipt }),
+    ).resolves.toMatchObject({
+      valid: false,
+      issues: expect.arrayContaining(['tracked-receipt-mismatch', 'tracked-receipt-mismatch:$.selectedCases']),
+    });
   });
 
   it('rejects added files and preserves them instead of clearing an output directory', async () => {
@@ -198,6 +206,18 @@ describe('Scion fresh Codex judge handoff', () => {
       issues: ['handoff-nonregular-file'],
       manifest: null,
     });
+
+    const linkedHandoff = path.join(root, 'linked-handoff');
+    await fs.symlink(handoffDir, linkedHandoff);
+    await expect(verifyScionCodexFreshJudgeHandoff({ handoffDir: linkedHandoff })).resolves.toMatchObject({
+      valid: false,
+      issues: ['handoff-directory'],
+      manifest: null,
+    });
+
+    await expect(
+      verifyScionCodexFreshJudgeHandoff({ handoffDir: path.join(root, 'missing-handoff') }),
+    ).resolves.toMatchObject({ valid: false, issues: ['handoff-directory'], manifest: null });
   });
 
   it('atomically completes and seals a copied decision file without creating plaintext', async () => {

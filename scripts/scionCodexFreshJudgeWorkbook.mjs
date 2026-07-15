@@ -10,6 +10,7 @@ import {
   buildScionCodexFreshJudgeHandoff,
   validateScionCodexFreshBlankDecisions,
   validateScionCodexFreshBlankTemplate,
+  verifyScionCodexFreshJudgeHandoff,
 } from './scionCodexFreshJudgeHandoff.mjs';
 import {
   buildScionCodexTrainingDecisionSkeleton,
@@ -20,14 +21,18 @@ import {
   SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH,
   SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256,
 } from '../src/lib/scionCodexTrainingEvidence.js';
+import { appendScionReceiptMismatchIssues } from './lib/scionReceiptDiff.mjs';
 
 export const SCION_CODEX_FRESH_WORKBOOK_PROTOCOL = 'scion-codex-fresh-judge-workbook-v1';
 export const SCION_CODEX_FRESH_WORKBOOK_ORDER = 'B/A';
 export const SCION_CODEX_FRESH_WORKBOOK_CHUNK_SIZE = 16;
+export const SCION_CODEX_FRESH_WORKBOOK_RELEASE = 'v0.16.30';
 
 const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_OUTPUT = 'verification-output/scion-codex-fresh-b-a-workbook';
-const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.21.json';
+const DEFAULT_OUTPUT = 'evaluation/scion-adapters/handoffs/fresh-b-a-workbook-v0.16.30';
+const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.30.json';
+const DEFAULT_CANONICAL_HANDOFF = 'evaluation/scion-adapters/handoffs/fresh-b-a-canonical-v0.16.19';
+const DEFAULT_CANONICAL_HANDOFF_RECEIPT = 'evaluation/scion-adapters/evidence/fresh-b-a-handoff-v0.16.19.json';
 const DEFAULT_WORKING_DECISIONS = 'verification-output/scion-codex-fresh-b-a-working';
 const PROMPT_FILE = 'single-model-training-atom-judge-prompt-v2.md';
 const INSTRUCTIONS_FILE = 'FRESH_TASK_INSTRUCTIONS.md';
@@ -153,8 +158,8 @@ npm run complete:scion:codex-fresh-pass -- \\
   --handoff ${DEFAULT_OUTPUT} \\
   --receipt ${DEFAULT_RECEIPT} \\
   --decisions-dir ${DEFAULT_WORKING_DECISIONS} \\
-  --sealed-output verification-output/scion-codex-sealed-passes/v0.16.21-b-a.sealed.json \\
-  --key-output ~/.codex/scion-secrets/CourseMapper/v0.16.21-b-a.key
+  --sealed-output verification-output/scion-codex-sealed-passes/v0.16.30-b-a.sealed.json \\
+  --key-output ~/.codex/scion-secrets/CourseMapper/v0.16.30-b-a.key
 \`\`\`
 
 The command re-verifies every immutable chunk and the tracked receipt, rejects missing or extra working files, validates each completed chunk, requires one identical fresh judge session across all chunks, reconstructs canonical case order in memory, and creates only one AES-256-GCM envelope plus one 0600 key. It never writes the combined completed 128-case pass.
@@ -227,7 +232,13 @@ export async function verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedR
   if (!handoffDir) throw new Error('Fresh workbook verification requires --handoff');
   const absoluteHandoff = path.resolve(handoffDir);
   const issues = [];
-  const handoffStat = await fs.lstat(absoluteHandoff);
+  let handoffStat;
+  try {
+    handoffStat = await fs.lstat(absoluteHandoff);
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+    return invalidVerification(['workbook-directory']);
+  }
   if (!handoffStat.isDirectory() || handoffStat.isSymbolicLink()) {
     return invalidVerification(['workbook-directory']);
   }
@@ -246,7 +257,7 @@ export async function verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedR
     issues.push('manifest-protocol');
   }
   if (manifest?.status !== 'fresh-task-ready') issues.push('manifest-status');
-  if (manifest?.release !== 'v0.16.21') issues.push('manifest-release');
+  if (manifest?.release !== SCION_CODEX_FRESH_WORKBOOK_RELEASE) issues.push('manifest-release');
   if (manifest?.order !== SCION_CODEX_FRESH_WORKBOOK_ORDER) issues.push('manifest-order');
   if (manifest?.benchmarkProtocol !== 'honest-quality-benchmark-v1') issues.push('manifest-benchmark');
   collectForbiddenFields(manifest, '$.manifest', issues);
@@ -343,9 +354,7 @@ export async function verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedR
       issues.push(`manifest-file-identity:${fileName}`);
     }
   }
-  if (expectedReceipt && JSON.stringify(manifest) !== JSON.stringify(expectedReceipt)) {
-    issues.push('tracked-receipt-mismatch');
-  }
+  appendScionReceiptMismatchIssues(issues, manifest, expectedReceipt);
   return {
     valid: issues.length === 0,
     issues: [...new Set(issues)],
@@ -357,6 +366,8 @@ export async function verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedR
 
 export async function buildScionCodexFreshJudgeWorkbook({
   packetDir,
+  canonicalHandoffDir = DEFAULT_CANONICAL_HANDOFF,
+  canonicalHandoffReceipt = DEFAULT_CANONICAL_HANDOFF_RECEIPT,
   outputDir = DEFAULT_OUTPUT,
   receiptOutput,
   generatedAt = new Date().toISOString(),
@@ -364,12 +375,25 @@ export async function buildScionCodexFreshJudgeWorkbook({
 } = {}) {
   const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-fresh-judge-workbook-'));
   try {
-    const legacy = await buildScionCodexFreshJudgeHandoff({
-      packetDir,
-      outputDir: path.join(temporaryRoot, 'canonical'),
-      generatedAt,
-    });
-    const canonicalTemplateRaw = await fs.readFile(path.join(legacy.outputDir, 'codex-review-b-a.json'));
+    let canonicalTemplateRaw;
+    if (packetDir) {
+      const legacy = await buildScionCodexFreshJudgeHandoff({
+        packetDir,
+        outputDir: path.join(temporaryRoot, 'canonical'),
+        generatedAt,
+      });
+      canonicalTemplateRaw = await fs.readFile(path.join(legacy.outputDir, 'codex-review-b-a.json'));
+    } else {
+      const expectedCanonicalReceipt = JSON.parse(await fs.readFile(canonicalHandoffReceipt, 'utf8'));
+      const canonicalVerification = await verifyScionCodexFreshJudgeHandoff({
+        handoffDir: canonicalHandoffDir,
+        expectedReceipt: expectedCanonicalReceipt,
+      });
+      if (!canonicalVerification.valid) {
+        throw new Error(`Frozen canonical handoff failed verification: ${canonicalVerification.issues.join(', ')}`);
+      }
+      canonicalTemplateRaw = await fs.readFile(canonicalVerification.templatePath);
+    }
     const canonicalTemplate = JSON.parse(canonicalTemplateRaw.toString('utf8'));
     const plan = buildChunkPlan(canonicalTemplate.reviews.length, chunkSize);
     const absoluteOutput = await prepareOutputDirectory(outputDir, ownedFiles(plan));
@@ -407,7 +431,7 @@ export async function buildScionCodexFreshJudgeWorkbook({
       schemaVersion: 1,
       protocol: SCION_CODEX_FRESH_WORKBOOK_PROTOCOL,
       status: 'fresh-task-ready',
-      release: 'v0.16.21',
+      release: SCION_CODEX_FRESH_WORKBOOK_RELEASE,
       generatedAt,
       order: SCION_CODEX_FRESH_WORKBOOK_ORDER,
       benchmarkProtocol: 'honest-quality-benchmark-v1',
@@ -561,8 +585,10 @@ export async function completeAndSealScionCodexFreshJudgeWorkbook({
   };
 }
 
-async function auditTrackedWorkbook(receiptFile) {
+async function auditTrackedWorkbook(receiptFile, handoffDir = DEFAULT_OUTPUT) {
   const expectedReceipt = JSON.parse(await fs.readFile(receiptFile, 'utf8'));
+  const tracked = await verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedReceipt });
+  if (!tracked.valid) return tracked;
   const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-fresh-workbook-audit-'));
   try {
     const result = await buildScionCodexFreshJudgeWorkbook({
@@ -570,7 +596,17 @@ async function auditTrackedWorkbook(receiptFile) {
       generatedAt: expectedReceipt.generatedAt,
       chunkSize: expectedReceipt.schedule.chunkSize,
     });
-    return await verifyScionCodexFreshJudgeWorkbook({ handoffDir: result.outputDir, expectedReceipt });
+    const reconstruction = await verifyScionCodexFreshJudgeWorkbook({
+      handoffDir: result.outputDir,
+      expectedReceipt,
+    });
+    if (!reconstruction.valid) {
+      return {
+        ...reconstruction,
+        issues: reconstruction.issues.map((issue) => `reconstruction:${issue}`),
+      };
+    }
+    return tracked;
   } finally {
     await fs.rm(temporaryRoot, { recursive: true, force: true });
   }
@@ -609,7 +645,7 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.mode === 'audit') {
-    const verification = await auditTrackedWorkbook(args.receiptFile);
+    const verification = await auditTrackedWorkbook(args.receiptFile, args.handoffDir);
     console.log(JSON.stringify({ valid: verification.valid, issues: verification.issues }, null, 2));
     if (!verification.valid) process.exitCode = 1;
     return;
@@ -642,7 +678,7 @@ async function main() {
   let expectedReceipt = null;
   if (!args.receiptOutput && args.receiptFile) {
     expectedReceipt = JSON.parse(await fs.readFile(args.receiptFile, 'utf8'));
-    const reconstruction = await auditTrackedWorkbook(args.receiptFile);
+    const reconstruction = await auditTrackedWorkbook(args.receiptFile, args.handoffDir);
     if (!reconstruction.valid) {
       throw new Error(`Tracked fresh workbook no longer reconstructs: ${reconstruction.issues.join(', ')}`);
     }

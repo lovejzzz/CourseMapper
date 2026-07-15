@@ -45,7 +45,7 @@ export async function runScionAdapterJudgePromotionContractAudit({ root = proces
   const heldOut = JSON.parse(await fs.readFile(path.join(root, CANONICAL_PATHS.heldOutCourseBenchmark), 'utf8'));
   const dummyManifest = {
     schemaVersion: 2,
-    adapter: { id: 'scion-contract-audit', scionVersion: '0.16.29', format: 'mlx-lora-safetensors', scale: 1 },
+    adapter: { id: 'scion-contract-audit', scionVersion: '0.16.30', format: 'mlx-lora-safetensors', scale: 1 },
     base: { modelId: heldOut.base.modelId, revision: heldOut.base.revision },
     training: {},
     files: [],

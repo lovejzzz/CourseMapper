@@ -1,0 +1,1688 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-423315b77cf6219c9a46",
+    "packetDigest": "423315b77cf6219c9a46de559f53490cee107745c006bb8d16daf358534e8f69",
+    "organizerDigest": "0ddd7990e2cafa094c5828c82f411d1bad8b7e69a42d718639688f064213089b"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-65188ac5477fc29561fa",
+      "caseDigest": "7fdfb81781bdc8e4726aed63557cc9f408839ee119458df401efcc4f7fc1967e",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "7d6e604b7ee6db3e0be91d9564d34598a9733454c22b6464b355e905067c2fc3",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/strings",
+        "term": "Strings and slicing",
+        "claims": [
+          "A string is a sequence of characters indexed from left to right starting at 0; slicing extracts a contiguous substring with the [a:b] notation.",
+          "For a string s, the left-most character is index 0 and the right-most is index len(s) - 1.",
+          "Negative indexing refers to characters from right to left starting at -1.",
+          "A slice s[a:b] returns characters from index a (inclusive) up to index b (exclusive)."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.4 String basics; §8.2 String slicing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "52a8abbf706bc8c0027181e15a731b0e1b0c9e06e871080baf040eea15e27e8f",
+          "artifact": {
+            "q": "If a string $s$ has a length of 5, what is the index of the right-most character?",
+            "op": [
+              "0 [1]",
+              "4 [2]",
+              "5 [3]",
+              "len(s) [0]"
+            ],
+            "ai": 1,
+            "ex": "Option 4 is incorrect because the right-most character is at index len(s) - 1, which is 4 for a string of length 5. Option 2 is correct because the right-most character is at index len(s) - 1, which is 4 for a string of length 5."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "221681f52dfbcddf0eb43bffc14122bcefc5f1c91cf8253cb5dcc2a6a7539250",
+          "artifact": {
+            "q": "In Python, if s = \"studio\", which expression returns the substring \"tud\"?",
+            "op": [
+              "s[1:4]",
+              "s[0:3]",
+              "s[-4:-1]",
+              "s[1:5]"
+            ],
+            "ai": 0,
+            "ex": "s[1:4] is correct because slicing includes the start index 1 and stops before index 4, giving characters at positions 1, 2, and 3. The most plausible mistake is choosing s[0:3], which also has three characters but starts one position too early and returns \"stu\" instead."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "52a8abbf706bc8c0027181e15a731b0e1b0c9e06e871080baf040eea15e27e8f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "221681f52dfbcddf0eb43bffc14122bcefc5f1c91cf8253cb5dcc2a6a7539250",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-ec4dbcf74138ec2bc564",
+      "caseDigest": "8d9b6e1128490572177c3fd63131b1190265fa22f453dcea5e1a63eca2ffb82c",
+      "domain": "computer-science",
+      "courseGroupSha256": "a221877bef9b05f6d79d1385030773dfb135b99f93ad11a5141bdee946750954",
+      "sourceContextSha256": "932c96bb2d48e632aa82605f1c7dd1d6c3c156541fb5165beecaa0954159e64c",
+      "sourceContext": {
+        "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+        "kernelId": "cs/dictionaries",
+        "term": "Dictionaries",
+        "claims": [
+          "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+          "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §10.1 Dictionary basics"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e3f4ee914f61b3e8845958ea180803e9f0334c4ae1bb538ff0236bcb78164876",
+          "artifact": {
+            "q": "A lab group needs to store student test scores under each student’s name and retrieve a score later by name. Which structure best fits that task?",
+            "op": [
+              "A collection of key-value pairs",
+              "A numbered sequence of positions",
+              "A table with only repeated labels",
+              "A single value with no labels"
+            ],
+            "ai": 0,
+            "ex": "A collection of key-value pairs is correct because the data is labeled and values are retrieved by key rather than by numeric position. The numbered-sequence choice fits ordered positions better, which is the common misconception here."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "ae4ae4c1695e0a99a29cd2da8efe85d813d37126fa52fc6f91575d57a35b7da5",
+          "artifact": {
+            "q": "Which data structure is best suited for representing data where items are naturally labeled rather than ordered?",
+            "op": [
+              "List, because it maintains a numeric position.",
+              "Dictionary, because it uses key-value pairs.",
+              "Tuple, because it enforces a fixed order.",
+              "Array, because it stores sequential data."
+            ],
+            "ai": 2,
+            "ex": "The correct choice is Dictionary because it is ideal when data is naturally labeled rather than ordered. A common misconception is choosing a List because it maintains a numeric position, which is incorrect as lists are ordered by index."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e3f4ee914f61b3e8845958ea180803e9f0334c4ae1bb538ff0236bcb78164876",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "ae4ae4c1695e0a99a29cd2da8efe85d813d37126fa52fc6f91575d57a35b7da5",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-ea4abc9b4653212badae",
+      "caseDigest": "86950dada377ba0a32246c89df8dda17c206e4ddee6bfac112fbd10db8c1b502",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "b90861d3634ef018651b86b99dabe29b80ddc54ab07b46fb38080b7c07b58089",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/variables",
+        "term": "Variables and assignment",
+        "claims": [
+          "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+          "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+          "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+          "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+          "Variable names are case-sensitive, so total and Total are two different variables."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.3 Variables"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8650caa375d300fa8b4dddc0c8778187a48ac520b28b40a45386005fde9f96d5",
+          "artifact": {
+            "tr": "Name for a stored value",
+            "df": "A label referring to a piece of data in memory, such as 'count' in a loop.",
+            "eg": "In a program, 'user_age' is the name referring to the stored integer value of 30.",
+            "mi": "Thinking the name itself is the value stored, rather than a reference to it.",
+            "cx": "The name is a reference to the stored value, and the assignment operator binds the name to the value produced on the right."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6bd4887d34bd2ec30fb2d549c0f0553f3dce74b62da9cb4e396fe0bee73224da",
+          "artifact": {
+            "tr": "Assignment",
+            "df": "A statement that gives a name a value by putting the name on the left of = and the value on the right.",
+            "eg": "x = 5 stores 5 in x in a short tracing exercise.",
+            "mi": "It means the same thing as mathematical equality.",
+            "cx": "In Python, = is used to set a variable, not to test whether two expressions are equal."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8650caa375d300fa8b4dddc0c8778187a48ac520b28b40a45386005fde9f96d5",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6bd4887d34bd2ec30fb2d549c0f0553f3dce74b62da9cb4e396fe0bee73224da",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-0de88e17714e75348c7d",
+      "caseDigest": "356215f5855379fff30c511228b659b57e77d3b5cdfb6286138d021d7e6a5c3d",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "c5407e5008d9e7da1f10b9c8f7ac3fcb45289d8b7413829a323c4fd655a44fcc",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/plate-tectonics",
+        "term": "Plate tectonics and boundaries",
+        "claims": [
+          "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+          "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+          "At convergent boundaries, two or more plates move toward each other and lithosphere is destroyed.",
+          "At a transform boundary, plates slide horizontally past each other."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b96f56bf7882f494ca9f8b456e2f11252cff30ef94b22a4da6733f415290b760",
+          "artifact": {
+            "tr": "Asthenosphere",
+            "df": "The ductile layer beneath the lithosphere that allows plate movement.",
+            "eg": "The layer beneath the Pacific Plate where movement occurs.",
+            "mi": "The solid, brittle outer crust.",
+            "cx": "Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "48b008889816cdf138121c0d76cecae16b5d866d1e7f1308349842e19cc52dc8",
+          "artifact": {
+            "tr": "Transform boundary",
+            "df": "A plate boundary where adjacent plates move sideways past one another.",
+            "eg": "A fault zone where two blocks slide horizontally with little opening or closing.",
+            "mi": "It means plates are colliding or pulling apart.",
+            "cx": "Sideways motion defines transform motion; collision and separation describe convergent and divergent boundaries."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b96f56bf7882f494ca9f8b456e2f11252cff30ef94b22a4da6733f415290b760",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "48b008889816cdf138121c0d76cecae16b5d866d1e7f1308349842e19cc52dc8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2fdd41cc7b87f4817e6a",
+      "caseDigest": "e96b08d1af9e680fb97e00db10df911c202d0f41b1adfd5048d6f88a3ff14a21",
+      "domain": "geology",
+      "courseGroupSha256": "19100d3e734a3486006f9dd67ed9f35322cc9cc7d549b3cabb3114748621df27",
+      "sourceContextSha256": "1ea43c5482cd56c029edd7ccac0ce85965f9bee919953b159cd2b630c9357fe0",
+      "sourceContext": {
+        "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9",
+        "kernelId": "geo/volcanism",
+        "term": "Volcanism and volcanic hazards",
+        "claims": [
+          "A volcano's eruptive style is set largely by magma viscosity, which rises with silica content: runny low-silica magma erupts gently, while sticky high-silica magma traps gas and erupts explosively.",
+          "Low-viscosity (low-silica, basaltic) magma flows easily like syrup, producing the gentle eruptions of Hawaiian shield volcanoes.",
+          "High-viscosity (high-silica, felsic) magma is thick and sticky and flows slowly like toothpaste, trapping gas until it erupts violently.",
+          "The most dangerous volcanic hazard is the pyroclastic flow, a fast cloud of hot ash and gas typical of explosive high-silica volcanoes."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4.4 Volcanic eruptions and hazards"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ff1437f040666b8e528de3e455f0a3291399df601e81aa0db352e0e1e0e514fa",
+          "artifact": {
+            "tr": "Magma viscosity",
+            "df": "The resistance of molten rock to flow. Example: Basaltic magma has low viscosity; felsic magma has high viscosity. Misconception: Viscosity is solely determined by silica content. Correction: Viscosity rises with silica content.",
+            "eg": "Low-silica magma flows easily like syrup, producing the gentle eruptions of Hawaiian shield volcanoes.",
+            "mi": "High silica content always results in high viscosity.",
+            "cx": "Magma viscosity rises with silica content."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "d0a4ddc74ef8f39cc02ba2d4ecaf5ca045117b00eb7baf17af551b6c88eaaeda",
+          "artifact": {
+            "tr": "Viscosity",
+            "df": "Resistance to flow in magma or lava, controlling how easily it moves.",
+            "eg": "Basaltic magma in a Hawaiian shield volcano has low viscosity and flows like syrup.",
+            "mi": "It means how hot the magma is.",
+            "cx": "Temperature matters, but this term specifically describes flow resistance, not heat itself."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ff1437f040666b8e528de3e455f0a3291399df601e81aa0db352e0e1e0e514fa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "d0a4ddc74ef8f39cc02ba2d4ecaf5ca045117b00eb7baf17af551b6c88eaaeda",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-1c20653bd2b4e5e0efdf",
+      "caseDigest": "2aec977fa00753ae48356902939ceab0aeb7ea70e8918509dd534eceb02f2a92",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "a95651e0bfce941c3d674d3c73b51fd9bfb42e78eba86dee94e3c690cd03452e",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/weathering-erosion",
+        "term": "Weathering and erosion",
+        "claims": [
+          "Weathering breaks bedrock into sediment in place, while erosion is the transport of that sediment away by water, wind, gravity, or ice.",
+          "Erosion is a mechanical process, driven by water, wind, gravity, or ice, that transports sediment.",
+          "Mechanical weathering physically breaks bedrock into smaller pieces without changing its chemistry.",
+          "Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §5.1 Weathering and erosion"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f87aef24ffb8c756642dc0a92a10ace1948dd3f27f973d2a36c307b16c893131",
+          "artifact": {
+            "tr": "Erosion",
+            "df": "The transport of sediment away by water, wind, gravity, or ice.",
+            "eg": "Rainwater moving soil and sand from a slope into a stream channel.",
+            "mi": "It is the same as breaking rock into smaller pieces.",
+            "cx": "Breaking rock in place is weathering; erosion begins when the sediment is moved."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "89b7ea69e522a63023454942aa493894281d7c87a8d88d3f29d01f7618e61cfa",
+          "artifact": {
+            "tr": "Alteration of minerals through chemical change",
+            "df": "The dissolution or transformation of minerals into new substances, often occurring in warm, humid settings.",
+            "eg": "Limestone dissolving in acidic rainwater.",
+            "mi": "Assuming all breakdown of rock is purely physical, ignoring chemical alteration.",
+            "cx": "Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f87aef24ffb8c756642dc0a92a10ace1948dd3f27f973d2a36c307b16c893131",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "89b7ea69e522a63023454942aa493894281d7c87a8d88d3f29d01f7618e61cfa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4961e24b1a1291ac5d4a",
+      "caseDigest": "286a5882b851442b6a00c780382eec15b1f75c21a08ac04ecfec25a48046c6f1",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "0b2f4c7328fdc2137122fc9a68d59ad6639b61aed21fcf36a1a18c0dc7f59d0c",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/rock-cycle",
+        "term": "The rock cycle",
+        "claims": [
+          "The rock cycle describes how Earth's three rock families — igneous, sedimentary, and metamorphic — form and continually transform into one another through geologic processes.",
+          "The rock cycle describes the major Earth materials, the processes that form them, and how they relate to each other.",
+          "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+          "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4 The rock cycle"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "12026f98eb91fe52bbd86a25108446e516f7818c611270c8994421bea9a6d733",
+          "artifact": {
+            "tr": "Igneous rock",
+            "df": "Rock created when liquid rock freezes solid into a solid state.",
+            "eg": "Basalt formed from cooling lava.",
+            "mi": "Thinking all rocks must be sedimentary.",
+            "cx": "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "435fcf69d76f743623579b89b0349ed7e6db020c2a83ef11820e952cfd1a2872",
+          "artifact": {
+            "tr": "lithified sediment",
+            "df": "Sediment that has been turned into rock by compaction and cementation.",
+            "eg": "Sand laid down in layers becomes sandstone after lithification.",
+            "mi": "Any sediment near water is already sedimentary rock.",
+            "cx": "Sediment must be lithified before it counts as sedimentary rock; loose sediment is not yet rock."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "12026f98eb91fe52bbd86a25108446e516f7818c611270c8994421bea9a6d733",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "435fcf69d76f743623579b89b0349ed7e6db020c2a83ef11820e952cfd1a2872",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-ae3d3e782a0b3a48cffa",
+      "caseDigest": "7f1e9605cb193ea912e89cab58e7cccf303b02268711acf99393d5e4dbd96046",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "bb1aec1482bb90844701b35166ea23c2908ce6ffa73c8ccc12fdd1dab384a51b",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/sedimentary-rocks",
+        "term": "Sedimentary rocks and environments",
+        "claims": [
+          "Sedimentary rock forms when sediment is deposited, compacted under burial, and cemented into stone — a process called lithification — and its features record the depositional environment.",
+          "Compaction occurs as more material accumulates on top, squeezing the grains together.",
+          "Cementation glues the grains together with minerals; compaction and cementation together are lithification.",
+          "Clastic (detrital) sedimentary rocks are made of pieces of preexisting weathered rock.",
+          "The features of a sedimentary rock are read to reconstruct its original depositional environment."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §5.3 Sedimentary rocks"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6ca32cba4a0e3c20c79d28a4f51b58a5c86976acdf473a18e2aadf16f5f0ebdd",
+          "artifact": {
+            "q": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+            "op": [
+              "Erosion",
+              "Lithification",
+              "Metamorphism",
+              "Weathering"
+            ],
+            "ai": 2,
+            "ex": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "475aaf9e832506863e55390fe45b23f1d9c02e0a7798cc720502bdece821c7bd",
+          "artifact": {
+            "q": "A student studies a sandstone layer and wants to explain how it became stone. Which process best describes its formation?",
+            "op": [
+              "Sediment is deposited, then compacted and cemented into rock",
+              "Melt cools slowly underground until crystals interlock",
+              "Existing rock is changed by heat and pressure alone",
+              "Minerals dissolve completely and leave a hollow bed"
+            ],
+            "ai": 0,
+            "ex": "Sedimentary rock forms after deposition, burial compaction, and mineral cementation; the common misconception is to confuse this with igneous cooling or metamorphic change."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6ca32cba4a0e3c20c79d28a4f51b58a5c86976acdf473a18e2aadf16f5f0ebdd",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "475aaf9e832506863e55390fe45b23f1d9c02e0a7798cc720502bdece821c7bd",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-099f122ef7687c3b114b",
+      "caseDigest": "9b49e049e50ae7d7e9b8b08bea6cf15253414fe10fc6d725df7704a0b6d0692e",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "066b2a92278e7cc3ad0251333c3249993f512a9e25a5f158f842da330c3d584e",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/triads-and-seventh-chords",
+        "term": "Triads and seventh chords",
+        "claims": [
+          "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+          "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+          "There are four different inversions of a seventh chord."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9ed5f622cbbeec13f5fc8113b9114acaa873484657b0d350f2fb41535205f2b6",
+          "artifact": {
+            "q": "A student stacks scale degrees 1–3–5 in thirds to label a sonority before adding one more note a seventh above the root. Which description fits the finished sonority best?",
+            "op": [
+              "a triad",
+              "a seventh chord",
+              "a suspended chord",
+              "a pedal point"
+            ],
+            "ai": 1,
+            "ex": "A seventh chord is triad plus a note a seventh above the root. The common misconception is to stop at the three-note stack; that describes a triad, not the completed four-note sonority."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "0cf52914faa338e4eb41dc10b196d9092bf2363e801864b5c95742629ad430da",
+          "artifact": {
+            "q": "What is the fundamental structure of a triad in music?",
+            "op": [
+              "A) A set of four notes stacked vertically in fourths.",
+              "b) A set of three notes stacked vertically in thirds.",
+              "c) A set of five notes stacked vertically in thirds.",
+              "d) A set of two notes stacked vertically in thirds."
+            ],
+            "ai": 0,
+            "ex": "Option B is correct because a triad is defined as a set of three notes stacked vertically in thirds. Option A is incorrect because a triad involves three notes, not four, and the interval is a third, not a fourth."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9ed5f622cbbeec13f5fc8113b9114acaa873484657b0d350f2fb41535205f2b6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "0cf52914faa338e4eb41dc10b196d9092bf2363e801864b5c95742629ad430da",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4c7f02b988241d375420",
+      "caseDigest": "0e468bf7a2e7ddddd5b8ef0626317f54658392cd8613c7ec157830f14f0a4031",
+      "domain": "music-theory",
+      "courseGroupSha256": "abd9179b4ea6b87d8a66c2873abc3d80d2536ff2e260ceea34f67f4728b84d82",
+      "sourceContextSha256": "acedb5a0451f3f5dbade57ae6dbf317f0222f5f8484f650e8a33fd8f1a0411f7",
+      "sourceContext": {
+        "sourcePacketSha256": "4f8665de42ed5888872183fe359968e2ed762767005c9b442852fad349e4fd12",
+        "kernelId": "music/staff-clefs-pitch-notation",
+        "term": "Staff and clefs",
+        "claims": [
+          "In Western musical notation, the staff (UK usually stave); (plural: staves), also occasionally referred to as a pentagram, is a set of horizontal lines (usually five) with spaces between them, that each represent a different musical pitch.",
+          "Which staff positions represent which notes is determined by a clef placed at the beginning of the staff.",
+          "A clef (from French: clef 'key') is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+          "The treble clef is also the upper staff of the grand staff used for harp and keyboard instruments.",
+          "Bass clef is the bottom clef in the grand staff for harp and keyboard instruments."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "1802d2120a782fe9566455f5616c88c1a985a595440dc1721b0b6aab3fda981c",
+          "artifact": {
+            "q": "Which symbol is used to denote the upper staff of the grand staff for instruments like the harp?",
+            "op": [
+              "Bass clef",
+              "Treble clef",
+              "Staff",
+              "Clef 'key'"
+            ],
+            "ai": 3,
+            "ex": "The correct choice is the treble clef, which is also the upper staff of the grand staff used for harp and keyboard instruments. The misconception is selecting the bass clef, which is the bottom clef in the grand staff for harp and keyboard instruments."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "9139253ab7fcd44872ab9fe6c7d0efa1ee00133f07635dcae9e92883f853a823",
+          "artifact": {
+            "q": "What tells a reader which notes the lines and spaces on a musical staff represent?",
+            "op": [
+              "The clef placed at the beginning",
+              "The number of measures in the piece",
+              "The tempo marking above the staff",
+              "The key signature at the end"
+            ],
+            "ai": 0,
+            "ex": "The clef is correct because it is placed at the beginning of the staff and indicates which notes the lines and spaces stand for. A common misconception is to treat the tempo or key signature as the sign that assigns staff positions, but the provided claims assign that job to the clef."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "1802d2120a782fe9566455f5616c88c1a985a595440dc1721b0b6aab3fda981c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "9139253ab7fcd44872ab9fe6c7d0efa1ee00133f07635dcae9e92883f853a823",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-75bc8bc5d43d3c775825",
+      "caseDigest": "40b0ef0a712d76a244ad2683a003a667d201b56c135216535ef98c66d888b7f6",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "fb48e198d508eff299f348aef676c2c349adaf06e2688fc9d364dffb79bf38ac",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/harmony-and-progressions",
+        "term": "Harmony and chord progressions",
+        "claims": [
+          "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+          "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+          "A first chord forms a 'progression' with a second chord, and a second with a third.",
+          "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+          "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "de42378621642630a423914f8259ca1642ff1b55631427c00dbc0bc2e93a9fff",
+          "artifact": {
+            "q": "What element serves as the primary structural basis upon which melody and rhythm are built in certain genres?",
+            "op": [
+              "A. Chord progressions",
+              "B. Musical motion",
+              "C. Sectional evidence",
+              "D. Harmonic motion"
+            ],
+            "ai": 1,
+            "ex": "Chord progressions are the defining feature on which melody and rhythm are built. (Misconception: Musical motion is the defining feature on which melody and rhythm are built.)"
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "44baf8938a0ab315aa7f64a20d57d43f1ea05d6f5de75962357c818cd4e1811b",
+          "artifact": {
+            "q": "Which example shows a chord progression in A minor?",
+            "op": [
+              "A minor, D minor, E minor",
+              "C major, F major, G major",
+              "A minor, C major, E major",
+              "E minor, A minor, D minor"
+            ],
+            "ai": 0,
+            "ex": "Correct: in A minor, the i, iv, and v chords are A minor, D minor, and E minor. A common misconception is to choose a familiar major-key pattern, but the source gives the minor-key set explicitly."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "de42378621642630a423914f8259ca1642ff1b55631427c00dbc0bc2e93a9fff",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "44baf8938a0ab315aa7f64a20d57d43f1ea05d6f5de75962357c818cd4e1811b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-f6cce1c75bbfadb28c80",
+      "caseDigest": "7da372dd560e91fa41187b518434c3b86fe84d809fffd61783c5b4b6c9cf13e7",
+      "domain": "music-theory",
+      "courseGroupSha256": "abd9179b4ea6b87d8a66c2873abc3d80d2536ff2e260ceea34f67f4728b84d82",
+      "sourceContextSha256": "acedb5a0451f3f5dbade57ae6dbf317f0222f5f8484f650e8a33fd8f1a0411f7",
+      "sourceContext": {
+        "sourcePacketSha256": "4f8665de42ed5888872183fe359968e2ed762767005c9b442852fad349e4fd12",
+        "kernelId": "music/staff-clefs-pitch-notation",
+        "term": "Staff and clefs",
+        "claims": [
+          "In Western musical notation, the staff (UK usually stave); (plural: staves), also occasionally referred to as a pentagram, is a set of horizontal lines (usually five) with spaces between them, that each represent a different musical pitch.",
+          "Which staff positions represent which notes is determined by a clef placed at the beginning of the staff.",
+          "A clef (from French: clef 'key') is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+          "The treble clef is also the upper staff of the grand staff used for harp and keyboard instruments.",
+          "Bass clef is the bottom clef in the grand staff for harp and keyboard instruments."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "23dcf7dac90fe2c34b94874e34428e0dbd64a90d674bf85bd1326be045a916e8",
+          "artifact": {
+            "tr": "Musical symbol for pitch indication",
+            "df": "A graphic mark used on the staff to show which notes correspond to the lines and spaces.",
+            "eg": "The treble clef shows the notes C, D, E, F, G on the lines.",
+            "mi": "A clef is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff. Correction: A clef is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+            "cx": "A musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7795755fed9124ccbf015eda85b1f24280a2245a300951a9dbfd6ce19540e853",
+          "artifact": {
+            "tr": "staff",
+            "df": "A set of horizontal lines with spaces that represent different musical pitches.",
+            "eg": "On a five-line staff, a note can sit on a line or in a space and stand for a specific pitch.",
+            "mi": "It is just a blank grid for rhythm.",
+            "cx": "The staff organizes pitch placement; rhythm may appear there too, but the claim here is that the lines and spaces represent pitch."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "23dcf7dac90fe2c34b94874e34428e0dbd64a90d674bf85bd1326be045a916e8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7795755fed9124ccbf015eda85b1f24280a2245a300951a9dbfd6ce19540e853",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-3915151d03175168b2e4",
+      "caseDigest": "e3fd5888e240eb2c3759bf132efb713126ab339b672ad8e44ccf93128216db65",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+      "sourceContextSha256": "bed17b815a9bff08178677b9e68315fcd8228583e69b7c6a23756bfb10308e62",
+      "sourceContext": {
+        "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+        "kernelId": "ux/research-planning",
+        "term": "Research planning",
+        "claims": [
+          "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "The team should agree what it wants to learn from the research round before selecting study details.",
+          "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+          "Researchers should run through test tasks on the day before the research session.",
+          "A practice session with a team member can expose procedure problems before participants arrive."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "16a1ac4740c71f05f01bd1cdea7b394349287f67fe55a87daf8a3ee6e3399d12",
+          "artifact": {
+            "q": "A team is planning a UX research round for a new checkout flow. What should it settle first?",
+            "op": [
+              "What it wants to learn from the research round",
+              "Which questions the facilitator will ask first",
+              "How many screens the prototype contains",
+              "Which note-taking app the team prefers"
+            ],
+            "ai": 0,
+            "ex": "The correct choice is what the team wants to learn, because the plan starts by agreeing the learning goal before study details are selected. A common misconception is to jump straight to logistics such as tools, questions, or screen count, but those come after the learning need is clear."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "de16a5b2fabcfd87f64323413df975596e9b652dbcdfe72e4c4d2d0b0175b2a5",
+          "artifact": {
+            "q": "What is the primary function of a UX research plan?",
+            "op": [
+              "To select study details before defining learning objectives.",
+              "To turn a decision need into actionable learning objectives, participants, tasks, and setup.",
+              "To rehearse test tasks with participants on the day of the session.",
+              "To ensure the prototype is usable and accessible in the venue."
+            ],
+            "ai": 1,
+            "ex": "Selecting study details before defining objectives is incorrect because the team must agree on what it wants to learn first. The correct choice focuses on turning a need into actionable objectives and setup."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "16a1ac4740c71f05f01bd1cdea7b394349287f67fe55a87daf8a3ee6e3399d12",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "de16a5b2fabcfd87f64323413df975596e9b652dbcdfe72e4c4d2d0b0175b2a5",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a6485eea884380a81d69",
+      "caseDigest": "986cd7a1168bb7d3c0624dc04d7ece652f73412b1d291c8f04d7eedbba72bce6",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "a70c8f06affd7fff739a324888bb31d80cb05b1c9851142e36fd91f46f1cf18f",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/research-planning",
+        "term": "Research planning",
+        "claims": [
+          "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "The team should agree what it wants to learn from the research round before selecting study details.",
+          "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+          "Researchers should run through test tasks on the day before the research session.",
+          "A practice session with a team member can expose procedure problems before participants arrive."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "5f6a64bfcccd46c81dac1d9d2f15264a5dfb2311826147074342605072c3441f",
+          "artifact": {
+            "q": "What should the team establish prior to selecting study details?",
+            "op": [
+              "The specific evidence capture roles",
+              "The desired learning objectives",
+              "The rehearsal-ready study setup",
+              "The specific tasks"
+            ],
+            "ai": 1,
+            "ex": "Selecting study details should follow agreement on what the team wants to learn from the research round. Choosing the specific tasks is premature before defining the learning goals."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "810176216ee9626c73801631cdaf9e56d683b6a0b6933f969ef82b6adfaa77ef",
+          "artifact": {
+            "q": "What preparation best supports a research session for a prototype being tested with users?",
+            "op": [
+              "Ensure the prototype works end-to-end and is usable and accessible in the venue.",
+              "Add extra features so participants can explore beyond the task.",
+              "Delay practice until after the first participant finishes.",
+              "Use a partial mockup if the final screens are not ready."
+            ],
+            "ai": 0,
+            "ex": "Correct: the prototype should work end-to-end and be usable and accessible in the research venue. The most plausible misconception is that a partial mockup is enough for testing; the source says the prototype used in research should already function across the flow and fit the venue conditions."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "5f6a64bfcccd46c81dac1d9d2f15264a5dfb2311826147074342605072c3441f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "810176216ee9626c73801631cdaf9e56d683b6a0b6933f969ef82b6adfaa77ef",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-5e92eddae889d6886b5a",
+      "caseDigest": "8dd1e0ece65761b9c2831308225123d07be7b13b86f20ff8c74a43b0483ad45a",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+      "sourceContextSha256": "bed17b815a9bff08178677b9e68315fcd8228583e69b7c6a23756bfb10308e62",
+      "sourceContext": {
+        "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+        "kernelId": "ux/research-planning",
+        "term": "Research planning",
+        "claims": [
+          "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "The team should agree what it wants to learn from the research round before selecting study details.",
+          "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+          "Researchers should run through test tasks on the day before the research session.",
+          "A practice session with a team member can expose procedure problems before participants arrive."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b47c5d7bbd33c738d5466f7210f9ee700664f2da123ebfa04ffb05b0bf6e6f7d",
+          "artifact": {
+            "tr": "Rehearsal-ready study setup",
+            "df": "A study arrangement that has been checked so the tasks, participants, evidence capture, and venue can be used smoothly.",
+            "eg": "Before the session, the team confirms the prototype works end-to-end and runs the tasks with a teammate.",
+            "mi": "Once the prototype exists, the session can proceed without any practice.",
+            "cx": "Check the flow ahead of time; a practice run can expose procedure problems before participants arrive."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "80df019f11da4c8129533c6ab99e17294cf9fa25bd7c50e40b4ee80ea8d58bd3",
+          "artifact": {
+            "tr": "Rehearsal setup",
+            "df": "The preparation of the study environment and tasks prior to participant arrival.",
+            "eg": "Running through test tasks on the day of the research session.",
+            "mi": "Assuming rehearsal is only necessary for the participants.",
+            "cx": "Researchers should run through test tasks on the day before the research session."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b47c5d7bbd33c738d5466f7210f9ee700664f2da123ebfa04ffb05b0bf6e6f7d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "80df019f11da4c8129533c6ab99e17294cf9fa25bd7c50e40b4ee80ea8d58bd3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-f97afa568925ad8eb14c",
+      "caseDigest": "f08a41107c637e4bcec9560c1b0b0636a06265a2f166cfedcbba2bd23aa9cfe8",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "de39397d8e8e858b4ebe3dc7ad48469a778bfef6586665a71c86319b4ca01b87",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/task-flow-analysis",
+        "term": "Task flow analysis",
+        "claims": [
+          "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "The diagram may include multiple possible paths, task sequences, and decision points."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "d3c4868281f29094df9ecdc41c05e9c3186b87fd5ec34e886027a6d99804e24a",
+          "artifact": {
+            "tr": "User objective validation",
+            "df": "The process of confirming the team's comprehension of user aims, common situations, and required actions.",
+            "eg": "Reviewing a flow to ensure it accurately reflects how a user intends to complete a specific workflow.",
+            "mi": "Believing that simply drawing the steps automatically proves the team understands the user's true objectives.",
+            "cx": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks (Claim 1)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "00c6178571bb916655d0af64566a9c890dd7a9bb190572ca720647bbc33f05b3",
+          "artifact": {
+            "tr": "Decision point",
+            "df": "A place in a flow where one action leads to different next steps.",
+            "eg": "In a checkout flow, choosing guest checkout versus signing in creates a decision point.",
+            "mi": "It is the final success state of the task.",
+            "cx": "The final success state is the goal or end point; a decision point is where the path splits."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "d3c4868281f29094df9ecdc41c05e9c3186b87fd5ec34e886027a6d99804e24a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "00c6178571bb916655d0af64566a9c890dd7a9bb190572ca720647bbc33f05b3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}
