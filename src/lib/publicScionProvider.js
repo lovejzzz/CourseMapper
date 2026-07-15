@@ -181,6 +181,7 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
         const result = assessScionKeyTermContract(term, {
           lessonTitle: expected.title || '',
           definitionMin: 40,
+          knownFacts: Array.isArray(lesson.facts) ? lesson.facts : [],
         });
         for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
       });
@@ -241,8 +242,22 @@ export function mergePublicScionKernelAttempts(previousText, currentText, userPr
 export function buildPublicScionRetryFeedback(assessment = {}) {
   const issues = Array.isArray(assessment?.issues) ? assessment.issues.slice(0, 12) : [];
   const focusedRules = [
-    ...(issues.some((issue) => issue.includes('correction-repeats-definition'))
-      ? ['A repeated correction must be replaced with a direct refutation of mi that uses different wording from df.']
+    ...(issues.some((issue) => issue.includes('-repeats-'))
+      ? [
+          'Every df, eg, mi, and cx field must make a different instructional move; replace repeated or paraphrased fields.',
+          'cx must directly refute mi while using different wording from df and eg.',
+        ]
+      : []),
+    ...(issues.some((issue) => issue.includes('embedded-field-label'))
+      ? [
+          'Return only each field value. Never embed labels such as Definition:, Example:, Misconception:, or Correction:.',
+        ]
+      : []),
+    ...(issues.some((issue) => issue.includes('claim-marker-residue'))
+      ? ['Remove internal claim numbers and bracketed claim markers from learner-facing key-term fields.']
+      : []),
+    ...(issues.some((issue) => issue.includes('misconception-repeats-known-fact'))
+      ? ['mi must be a genuinely false learner belief. Never label one of the lesson facts as a misconception.']
       : []),
     ...(issues.some((issue) => issue.includes('circular-definition'))
       ? [
@@ -527,7 +542,7 @@ ${
     ? `- RECOVERY ${recoveryAttempt}: a previous response was incomplete. Re-author the full requested lesson now; do not summarize, apologize, or repeat an empty response.\n`
     : ''
 }- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
-- Write 3 keyTerms per lesson. Every df is at least 40 characters; eg is concrete; mi is a plausible misconception; cx directly refutes mi in different wording and never repeats df.
+- Write 3 keyTerms per lesson. Every df is at least 40 characters; eg is concrete; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never embed field labels or internal claim numbers.
 - Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable decision or problem, at least 2 inspectable observations/results/records/artifacts, and a real tension or constraint. su has exactly 2 specific sentences; ma names the evidence packet rather than saying "scenario evidence" or "course materials". Evidence may live in ma instead of being repeated in su.
 - Keep each scenario focused on one construct or decision target. Do not mix accessibility, usability, preference, learning, or performance evidence unless the task explicitly asks students to compare those constructs.
 - Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, and po has exactly 3 defensible positions — a main position, a contrast, and a conditional or synthesis position. The third position must add real reasoning, not split the difference mechanically.
@@ -587,6 +602,31 @@ Rules:
 export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = null, task = 'generation' } = {}) {
   const kernelTask = task === 'blueprintEnrichment';
   const voiceTask = task === 'voicePass';
+  const conversationalTask = task === 'chat' || task === 'agent';
+  if (conversationalTask) {
+    const role =
+      task === 'agent'
+        ? "You are Scion, CourseMapper's browser-local course workspace agent."
+        : "You are Scion, CourseMapper's browser-local pedagogical assistant.";
+    return [
+      {
+        role: 'system',
+        content: [
+          'Reasoning: low.',
+          role,
+          'Answer the user directly in concise Markdown.',
+          'Ground the answer in the supplied workspace context. Never invent sources, citations, or completed edits.',
+          task === 'agent'
+            ? 'You are advisory in this local mode: explain what you recommend, but never claim that you changed the workspace.'
+            : '',
+          clip(systemPrompt, 5200),
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      },
+      { role: 'user', content: clip(userPrompt, 4200) },
+    ];
+  }
   const system = [
     'Reasoning: low.',
     kernelTask

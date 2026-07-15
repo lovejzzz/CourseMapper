@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildAgentChatHistory, getSystemPrompt, streamChat } from '../useStreamProcessor';
+import { buildAgentChatHistory, fetchAgentResponseNative, getSystemPrompt, streamChat } from '../useStreamProcessor';
+import { runScionLocalCompletion } from '../../../lib/scionLocalProvider';
+
+vi.mock('../../../lib/scionLocalProvider', () => ({
+  runScionLocalCompletion: vi.fn(async ({ onToken, task }) => {
+    const fullText = task === 'agent' ? 'Scion agent advice.' : 'Scion chat answer.';
+    onToken?.(fullText);
+    return { fullText };
+  }),
+}));
 
 function responseWithStream() {
   return {
@@ -54,6 +63,42 @@ describe('chat system prompt', () => {
     const [url, request] = fetchMock.mock.calls[0];
     expect(url).toContain('aiplatform.googleapis.com/v1/publishers/google/models/gemini-2.5-pro');
     expect(JSON.parse(request.body).systemInstruction.parts[0].text).toBe('System');
+  });
+
+  it('streams keyless chat through the browser-local Scion runtime', async () => {
+    const { reader, parseChunk } = await streamChat(
+      [{ role: 'user', content: 'Review Lesson 2' }],
+      'Course context',
+      null,
+      '',
+      'public',
+      'scion-public',
+    );
+    const { value } = await reader.read();
+    const line = new TextDecoder().decode(value).trim();
+    const parsed = JSON.parse(line.slice('data: '.length));
+
+    expect(parseChunk(parsed)).toBe('Scion chat answer.');
+    expect(runScionLocalCompletion).toHaveBeenCalledWith(
+      expect.objectContaining({ task: 'chat', systemPrompt: 'Course context', maxRetries: 0 }),
+    );
+  });
+
+  it('connects Agent advisory turns to Scion without pretending native tools exist', async () => {
+    const result = await fetchAgentResponseNative(
+      [{ role: 'user', content: 'Audit this course' }],
+      'Workspace context',
+      null,
+      '',
+      'public',
+      'scion-public',
+      [],
+    );
+
+    expect(result).toEqual({ toolCalls: null, textContent: 'Scion agent advice.', stopReason: 'stop' });
+    expect(runScionLocalCompletion).toHaveBeenCalledWith(
+      expect.objectContaining({ task: 'agent', systemPrompt: 'Workspace context', maxRetries: 0 }),
+    );
   });
 });
 

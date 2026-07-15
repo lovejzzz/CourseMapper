@@ -6,6 +6,7 @@ import { useAIConfig } from './contexts/AIConfigContext';
 import { useCourse } from './contexts/CourseContext';
 import { useUI } from './contexts/UIContext';
 import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
+import useScionRuntimeStatus from './hooks/useScionRuntimeStatus';
 
 const Landing = lazy(() => import('./screens/Landing'));
 const loadAppFlow = () => import('./AppFlow');
@@ -27,6 +28,8 @@ export default function App() {
   const { screen, setScreen, showProjectPicker, setShowProjectPicker } = useUI();
   const { files, promptText, setPromptText, resetGeneratedProjectState } = useCourse();
   const { provider, apiKey, apiStatus, modelId } = useAIConfig();
+  const scionEnabled = provider === PUBLIC_SCION_PROVIDER_ID;
+  const scionRuntimeStatus = useScionRuntimeStatus(scionEnabled);
   const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
   const [flowActive, setFlowActive] = useState(() => screen !== 'landing');
   const [startupAction, setStartupAction] = useState(null);
@@ -153,9 +156,10 @@ export default function App() {
             startupAction={startupAction}
             onStartupHandled={() => setStartupAction(null)}
             onReturnToLanding={handleReturnToLanding}
+            scionRuntimeStatus={scionRuntimeStatus}
           />
         </Suspense>
-        <ScionRuntimeStatusBanner enabled={provider === PUBLIC_SCION_PROVIDER_ID} />
+        <ScionRuntimeStatusBanner enabled={scionEnabled} status={scionRuntimeStatus} />
       </>
     );
   }
@@ -200,7 +204,7 @@ export default function App() {
           />
         </Suspense>
       )}
-      <ScionRuntimeStatusBanner enabled={provider === PUBLIC_SCION_PROVIDER_ID} />
+      <ScionRuntimeStatusBanner enabled={scionEnabled} status={scionRuntimeStatus} />
     </>
   );
 }

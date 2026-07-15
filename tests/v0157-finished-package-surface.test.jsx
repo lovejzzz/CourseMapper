@@ -121,10 +121,10 @@ describe('v0.15.7 finished package surface', () => {
     expect(appFlow).toContain('ribbonModel={buildRibbonModel}');
     expect(appFlow).toContain("activeTab === 'courseMap'");
     expect(appFlow).toContain('<CourseMapPreview');
-    expect(appFlow).toContain('coursemapper:request-zip-download');
+    expect(appFlow).not.toContain('coursemapper:request-zip-download');
 
     const exportPanel = read('src/components/ExportSidePanel.jsx');
-    expect(exportPanel).toContain('const headerOwnsZipCta = false');
+    expect(exportPanel).not.toContain('headerOwnsZipCta');
     expect(exportPanel).toContain('data-testid="export-download-zip"');
 
     const overview = read('src/components/FinishedPackageOverview.jsx');

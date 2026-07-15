@@ -5,10 +5,8 @@
  *
  * F1 — PrimaryCta, the morphing header CTA: pipeline running → "Building…"
  *      (disabled, spinner); ready with reviews outstanding → "Review N"
- *      (indigo, opens the queue); ready and clear with a graded package →
- *      "Download ZIP" (dark primary, routes to the export panel's
- *      doExport('zip') via the 'coursemapper:request-zip-download' window
- *      event); anything else → nothing. Project/file actions stay in the
+ *      (indigo, opens the queue); ready and downloadable → nothing, because
+ *      Download ZIP belongs only to the export panel. Project/file actions stay in the
  *      workspace disclosure; package actions stay with export/agent surfaces.
  *
  * F2 — quick start on the landing prompt box: "Generate full course",
@@ -90,19 +88,10 @@ describe('F1 — the morphing CTA state matrix', () => {
     expect(onReview).toHaveBeenCalledTimes(1);
   });
 
-  it('ready + downloadable package → "Download ZIP" (dark primary), click downloads even with reviews', () => {
-    const onDownload = vi.fn();
-    const { container } = mount(
-      <PrimaryCta ribbonModel={READY_MODEL} reviewCount={3} canDownload onDownload={onDownload} />,
-    );
-    const cta = container.querySelector('[data-testid="primary-cta"]');
-    expect(cta.textContent).toContain('Download ZIP');
-    expect(cta.className).toContain('bg-slate-950');
-    expect(cta.className).toContain('dark:bg-white');
-    act(() => {
-      cta.click();
-    });
-    expect(onDownload).toHaveBeenCalledTimes(1);
+  it('ready + downloadable package → no duplicate header ZIP action', () => {
+    const { container } = mount(<PrimaryCta ribbonModel={READY_MODEL} reviewCount={3} canDownload />);
+    expect(container.querySelector('[data-testid="primary-cta"]')).toBeNull();
+    expect(container.textContent).toBe('');
   });
 
   it('no package yet / blocked → renders nothing (null model, non-ready stage, ready-but-blocked)', () => {
@@ -123,7 +112,7 @@ describe('F1 — ONE disclosure: the workspace Project menu stays project-only',
     const { container } = mount(<PrimaryCta ribbonModel={READY_MODEL} reviewCount={0} canDownload />);
     expect(container.querySelector('[data-testid="primary-cta-more"]')).toBeNull();
     expect(container.querySelector('[data-testid="primary-cta-menu"]')).toBeNull();
-    expect(container.querySelectorAll('button')).toHaveLength(1); // the one verb
+    expect(container.querySelectorAll('button')).toHaveLength(0);
   });
 
   it('the workspace Project menu hosts file/project actions, not package or editing actions', () => {
@@ -152,23 +141,20 @@ describe('F1/F2 — source wiring (the header has ONE verb; the paths exist)', (
     // the export/agent surfaces and the header CTA stays one verb.
     expect(read('src/components/PrimaryCta.jsx')).not.toContain('workspace-finish-package');
     expect(appFlow).not.toContain('data-testid="workspace-finish-package"');
-    // Download routes through the one export executor, not a second builder.
-    expect(appFlow).toContain("new CustomEvent('coursemapper:request-zip-download')");
+    // Download has one owner: the export panel.
+    expect(appFlow).not.toContain("new CustomEvent('coursemapper:request-zip-download')");
     // v0.14.9 B1: the CTA shows the HEADLINE count — outstanding judgment
     // items (sync + observations + structural), never the spot-check tally.
     expect(appFlow).toContain('reviewCount={outstandingReview.counts.headline}');
     expect(appFlow).toContain('onReview={() => handleReviewQueueOpenChange(true)}');
   });
 
-  it('ExportSidePanel listens for the header download request and reuses the ZIP guards', () => {
+  it('ExportSidePanel is the single ZIP owner and keeps its export guards', () => {
     const panel = read('src/components/ExportSidePanel.jsx');
-    expect(panel).toContain("window.addEventListener('coursemapper:request-zip-download'");
-    expect(panel).toContain("window.removeEventListener('coursemapper:request-zip-download'");
-    // One guard expression, shared by the button and the event path.
+    expect(panel).not.toContain('coursemapper:request-zip-download');
     expect(panel).toContain('const zipDownloadDisabled =');
     expect(panel).toContain('disabled={zipDownloadDisabled}');
-    expect(panel).toContain('if (zipDownloadDisabled) return;');
-    // The header route must download the same source-proof package the finish
+    // The package export must download the same source-proof package the finish
     // grade saw; dropping courseGraph makes SOURCE_REPORT.md disappear.
     expect(read('src/AppFlow.jsx')).toContain('courseGraph={courseGraph}');
     expect(read('src/AppFlow.jsx')).toContain('courseGraph: courseGraphRef.current || null');

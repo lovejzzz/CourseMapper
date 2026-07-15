@@ -1077,7 +1077,7 @@ export function getWorkspaceModelStatus({
     };
   }
 
-  if (provider !== 'webllm' && !hasKey) {
+  if (provider !== 'webllm' && provider !== 'public' && !hasKey) {
     return {
       label: savedModelLabel || 'Configure model',
       tone: 'idle',

@@ -32,6 +32,42 @@ const IMPLEMENTATION_FILES = [
   'src/lib/scionAnswerKeyAlignment.js',
   'src/lib/scionPreferenceGate.js',
 ];
+// This receipt describes the v0.16.32 implementation snapshot. Later compiler
+// releases must not invalidate that historical evidence merely because the
+// current worktree has moved on; current implementation identity belongs in a
+// new release receipt.
+const EXPECTED_IMPLEMENTATION = [
+  {
+    path: 'scripts/scionCodexCrossRevisionEvidence.mjs',
+    bytes: 17476,
+    sha256: 'b98524e96592c1b91ed8d6a2e1c086ccf586f53a12408fb03ccb4aa949a9709a',
+  },
+  {
+    path: 'scripts/scionCodexFreshJudgeWorkbook.mjs',
+    bytes: 36453,
+    sha256: '35f719611edaa2fff85096c800cf98285352c1693423e4eae75131f9a026a472',
+  },
+  {
+    path: 'scripts/scionMcContractRecoveryAudit.mjs',
+    bytes: 13071,
+    sha256: '13d0d01960bc1d6528ff12143178f4637eababb77caac825ead277d720b3eda9',
+  },
+  {
+    path: 'scripts/scionCodexTrainingPreferences.mjs',
+    bytes: 66265,
+    sha256: 'ced8e5a41bf275aaf6a257d3fe42c9f4e87cf17346894d442eb95b5b677228a0',
+  },
+  {
+    path: 'src/lib/scionAnswerKeyAlignment.js',
+    bytes: 15236,
+    sha256: '9bafad99aa4edd3dfe90982eb37d5988355051d34605aa8c290c9cb4e7979aef',
+  },
+  {
+    path: 'src/lib/scionPreferenceGate.js',
+    bytes: 14666,
+    sha256: '3ae0e56fadf18a287075c85eec907699d76800738a0c6e13a3a5d20e6343e3ad',
+  },
+];
 const EXPECTED_ANALYSIS = {
   status: 'analysis-only-judge-identity-confounded',
   judgeIdentityCompatible: false,
@@ -351,16 +387,7 @@ async function verifyReceipt(options) {
   for (const expectedPath of IMPLEMENTATION_FILES) {
     if (!implementationPaths.includes(expectedPath)) issues.push(`implementation-missing:${expectedPath}`);
   }
-  for (const expected of receipt.implementation || []) {
-    if (!IMPLEMENTATION_FILES.includes(expected.path)) {
-      issues.push(`implementation-unexpected:${expected.path}`);
-      continue;
-    }
-    const current = await identity(expected.path);
-    if (current.bytes !== expected.bytes || current.sha256 !== expected.sha256) {
-      issues.push(`implementation-drift:${expected.path}`);
-    }
-  }
+  if (!sameJson(receipt.implementation, EXPECTED_IMPLEMENTATION)) issues.push('implementation-identity');
   if ((receipt.implementation || []).length !== IMPLEMENTATION_FILES.length) issues.push('implementation-count');
   return { valid: issues.length === 0, issues: [...new Set(issues)], receipt };
 }

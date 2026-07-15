@@ -8,6 +8,18 @@ const META_SURFACE_RE =
 
 const NON_LATIN_SCRIPT_RE = /[^\u0000-\u024f\u1e00-\u1eff]/u;
 
+const EMBEDDED_FIELD_LABEL_RE = /\b(?:definition|example|misconception|correction)\s*:/i;
+const CLAIM_MARKER_RESIDUE_RE = /(?:[.!?]\s*\[\s*\d+(?:\s*[,–-]\s*\d+)*\s*\]|\bclaims?\s*#?\d+)\s*$/i;
+const MISCONCEPTION_CUE_RE =
+  /^(?:believing|thinking|assuming|the idea|the belief|students? (?:believe|think|assume))\s+(?:that\s+)?/i;
+const MISCONCEPTION_CONTRAST_RE =
+  /\b(?:not|never|always|only|all|none|every|must|cannot|can't|exactly|identical|equally|entirely|solely)\b/i;
+const REPETITION_STOP_WORDS = new Set(
+  'a an and are as at be because been being both but by can could did do does each for from had has have if in into is it its may more most must of on one or other should so than that the their then there these they this those through to true two under when where which while with would your'.split(
+    ' ',
+  ),
+);
+
 function comparableScionKeyTermText(value) {
   return (
     cleanScionKeyTermText(value)
@@ -15,6 +27,42 @@ function comparableScionKeyTermText(value) {
       .match(/[\p{L}\p{N}]+/gu)
       ?.join(' ') ?? ''
   );
+}
+
+function comparableScionKeyTermTokens(value) {
+  return new Set(
+    comparableScionKeyTermText(value)
+      .split(' ')
+      .filter((token) => token && (token.length > 2 || /^\d+$/.test(token)) && !REPETITION_STOP_WORDS.has(token)),
+  );
+}
+
+function repeatsScionKeyTermField(left, right) {
+  const comparableLeft = comparableScionKeyTermText(left);
+  const comparableRight = comparableScionKeyTermText(right);
+  const shorterLength = Math.min(comparableLeft.length, comparableRight.length);
+  if (shorterLength < 28) return false;
+  if (comparableLeft.includes(comparableRight) || comparableRight.includes(comparableLeft)) return true;
+
+  const leftTokens = comparableScionKeyTermTokens(left);
+  const rightTokens = comparableScionKeyTermTokens(right);
+  const intersection = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  const containment = intersection / Math.max(1, Math.min(leftTokens.size, rightTokens.size));
+  const union = new Set([...leftTokens, ...rightTokens]).size;
+  return containment >= 0.84 && intersection / Math.max(1, union) >= 0.66;
+}
+
+function misconceptionRestatesKnownFact(misconception, knownFacts) {
+  const candidate = cleanScionKeyTermText(misconception).replace(MISCONCEPTION_CUE_RE, '');
+  if (candidate.length < 24 || MISCONCEPTION_CONTRAST_RE.test(candidate)) return false;
+  const candidateTokens = comparableScionKeyTermTokens(candidate);
+  return knownFacts.some((fact) => {
+    const factTokens = comparableScionKeyTermTokens(fact);
+    const intersection = [...candidateTokens].filter((token) => factTokens.has(token)).length;
+    const containment = intersection / Math.max(1, Math.min(candidateTokens.size, factTokens.size));
+    const union = new Set([...candidateTokens, ...factTokens]).size;
+    return containment >= 0.82 && intersection / Math.max(1, union) >= 0.55;
+  });
 }
 
 export function cleanScionKeyTermText(value) {
@@ -33,7 +81,10 @@ export function normalizeScionKeyTerm(term = {}) {
   };
 }
 
-export function assessScionKeyTermContract(term = {}, { lessonTitle = '', definitionMin = 45, maxLength = 380 } = {}) {
+export function assessScionKeyTermContract(
+  term = {},
+  { lessonTitle = '', definitionMin = 45, maxLength = 380, knownFacts = [] } = {},
+) {
   const normalized = normalizeScionKeyTerm(term);
   const issues = [];
   const minTermLength = NON_LATIN_SCRIPT_RE.test(normalized.term) ? 1 : 3;
@@ -58,19 +109,31 @@ export function assessScionKeyTermContract(term = {}, { lessonTitle = '', defini
     issues.push('circular-definition');
   }
   if (META_SURFACE_RE.test(`${normalized.definition} ${normalized.example}`)) issues.push('meta-definition');
-  const comparableDefinition = comparableScionKeyTermText(normalized.definition);
-  const comparableCorrection = comparableScionKeyTermText(normalized.correction);
-  const shorterCorrectionSurface =
-    comparableDefinition && comparableCorrection
-      ? comparableDefinition.length <= comparableCorrection.length
-        ? comparableDefinition
-        : comparableCorrection
-      : '';
-  const correctionReusesDefinition =
-    shorterCorrectionSurface.length >= 36 &&
-    (comparableDefinition.includes(comparableCorrection) || comparableCorrection.includes(comparableDefinition));
-  if (correctionReusesDefinition) {
-    issues.push('correction-repeats-definition');
+  const instructionalFields = [
+    normalized.definition,
+    normalized.example,
+    normalized.misconception,
+    normalized.correction,
+  ];
+  if (EMBEDDED_FIELD_LABEL_RE.test(instructionalFields.join(' '))) issues.push('embedded-field-label');
+  if (instructionalFields.some((value) => CLAIM_MARKER_RESIDUE_RE.test(value))) issues.push('claim-marker-residue');
+  for (const [left, right, issue] of [
+    [normalized.definition, normalized.example, 'example-repeats-definition'],
+    [normalized.definition, normalized.misconception, 'misconception-repeats-definition'],
+    [normalized.definition, normalized.correction, 'correction-repeats-definition'],
+    [normalized.example, normalized.misconception, 'misconception-repeats-example'],
+    [normalized.example, normalized.correction, 'correction-repeats-example'],
+    [normalized.misconception, normalized.correction, 'correction-repeats-misconception'],
+  ]) {
+    if (repeatsScionKeyTermField(left, right)) issues.push(issue);
+  }
+  if (
+    misconceptionRestatesKnownFact(
+      normalized.misconception,
+      (Array.isArray(knownFacts) ? knownFacts : []).map(cleanScionKeyTermText).filter(Boolean),
+    )
+  ) {
+    issues.push('misconception-repeats-known-fact');
   }
   return {
     eligible: issues.length === 0,

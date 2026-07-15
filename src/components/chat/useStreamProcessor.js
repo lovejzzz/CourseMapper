@@ -28,6 +28,7 @@ import {
   isAgentSourceContextText,
 } from '../../lib/agentSourceContext';
 import { resolveLabel } from './constants';
+import { runScionLocalCompletion } from '../../lib/scionLocalProvider';
 // webllm is dynamically imported only by legacy compatibility paths.
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
@@ -94,7 +95,7 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 
 // ── Streaming call to user's configured provider ────────────────────────────
 export async function streamChat(messages, systemPrompt, signal, apiKey, provider, modelId, maxTokens = 2048) {
-  if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && provider !== 'public' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   const chatModel = modelId;
@@ -127,6 +128,51 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
         } catch (err) {
           controller.error(err);
         }
+      },
+    });
+    return {
+      reader: stream.getReader(),
+      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+    };
+  }
+
+  // Scion: the same pinned browser-local runtime used for course generation.
+  // Adapt its cumulative token callback to the SSE-shaped reader the existing
+  // chat UI already consumes, so no prompt or response leaves the device.
+  if (provider === 'public') {
+    const encoder = new TextEncoder();
+    const conversation = messages
+      .slice(-8)
+      .map((message) => `${message.role === 'assistant' ? 'Assistant' : 'User'}: ${message.content}`)
+      .join('\n\n');
+    const stream = new ReadableStream({
+      start(controller) {
+        let emitted = '';
+        const emit = (currentText) => {
+          const current = String(currentText || '');
+          const delta = current.startsWith(emitted) ? current.slice(emitted.length) : current;
+          emitted = current;
+          if (!delta) return;
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: delta } }] })}\n\n`),
+          );
+        };
+        runScionLocalCompletion({
+          systemPrompt,
+          userPrompt: conversation,
+          task: 'chat',
+          maxOutputTokens: Math.min(900, maxTokens),
+          maxRetries: 0,
+          temperature: 0.25,
+          signal,
+          onToken: emit,
+        })
+          .then((result) => {
+            emit(result.fullText);
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          })
+          .catch((error) => controller.error(error));
       },
     });
     return {
@@ -260,7 +306,7 @@ export async function fetchAgentResponseNative(
   nativeTools,
   { temperature: tempOverride, onThinkingText } = {},
 ) {
-  if (provider !== 'webllm' && !apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && provider !== 'public' && !apiKey) throw new Error('NO_API_KEY');
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   // WebLLM: local inference without tool calling — return text-only response
@@ -273,6 +319,32 @@ export async function fetchAgentResponseNative(
     );
     const text = response.choices?.[0]?.message?.content || '';
     return { toolCalls: null, textContent: text, stopReason: 'stop' };
+  }
+
+  // Scion does not advertise native tool calling yet. It still participates
+  // in Agent mode as an honest, model-backed advisory turn; runAgentLoop's
+  // text-only branch renders the answer without pretending workspace edits
+  // occurred.
+  if (provider === 'public') {
+    const flattenedSystem =
+      systemPrompt && typeof systemPrompt === 'object'
+        ? [systemPrompt.staticPart, systemPrompt.dynamicPart].filter(Boolean).join('\n\n')
+        : String(systemPrompt || '');
+    const conversation = loopMessages
+      .slice(-8)
+      .map((message) => `${message.role === 'assistant' ? 'Assistant' : 'User'}: ${message.content || ''}`)
+      .join('\n\n');
+    const result = await runScionLocalCompletion({
+      systemPrompt: flattenedSystem,
+      userPrompt: conversation,
+      task: 'agent',
+      maxOutputTokens: 900,
+      maxRetries: 0,
+      temperature: tempOverride ?? 0.25,
+      signal,
+      onToken: onThinkingText,
+    });
+    return { toolCalls: null, textContent: result.fullText, stopReason: 'stop' };
   }
 
   // Streaming for OpenAI/DeepSeek — shows partial text while LLM is thinking

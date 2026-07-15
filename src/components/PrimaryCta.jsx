@@ -5,16 +5,13 @@
  * pipeline machine's ribbon model:
  *
  *   running                  → "Building…" (disabled — the ribbon narrates)
- *   ready + package          → "Download ZIP" (routes to the export panel's
- *                              doExport('zip') via a window event — the panel
- *                              stays the ONE export executor)
  *   ready + reviews pending  → "Review N" only when the package is not yet
  *                              downloadable
  *   anything else            → nothing (the pre-generation header stays as-is)
  *
- * v0.15.88 calm pass: this component no longer carries its own More menu, and
- * the workspace disclosure is project/file-only. Package export stays here/the
- * export panel; material creation and edit history stay with their own rows.
+ * v0.16.34: downloadable packages no longer grow a second ZIP action here.
+ * Export belongs to the export panel; this header surface only narrates an
+ * active build or opens a blocking review queue.
  */
 import React from 'react';
 
@@ -32,10 +29,10 @@ function Spinner() {
   );
 }
 
-export default function PrimaryCta({ ribbonModel, reviewCount = 0, canDownload = false, onDownload, onReview }) {
+export default function PrimaryCta({ ribbonModel, reviewCount = 0, canDownload = false, onReview }) {
   const running = Boolean(ribbonModel?.running);
   const ready = !running && ribbonModel?.stage === 'ready';
-  const state = running ? 'building' : ready && canDownload ? 'download' : ready && reviewCount > 0 ? 'review' : null;
+  const state = running ? 'building' : ready && !canDownload && reviewCount > 0 ? 'review' : null;
   // No package yet (fresh/restored-idle workspace) or blocked with nothing to
   // review — the header shows no verb; the export panel keeps full controls.
   if (!state) return null;
@@ -61,23 +58,5 @@ export default function PrimaryCta({ ribbonModel, reviewCount = 0, canDownload =
       </button>
     );
   }
-  return (
-    <button
-      type="button"
-      data-testid="primary-cta"
-      onClick={onDownload}
-      title="Download the finished package as a ZIP"
-      className={PRIMARY_DARK}
-    >
-      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-        />
-      </svg>
-      Download ZIP
-    </button>
-  );
+  return null;
 }

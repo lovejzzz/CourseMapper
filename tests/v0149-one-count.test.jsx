@@ -152,7 +152,7 @@ describe('B1 — both surfaces render from the one queue object', () => {
     expect(drawer.container.querySelector('[data-testid="review-queue-class-spotChecks"]')).toBeTruthy();
   });
 
-  it('a clear headline morphs the CTA to Download ZIP even with spot-checks outstanding', () => {
+  it('a downloadable package leaves ZIP ownership to the export panel', () => {
     const queue = buildFixtureQueue();
     // All judgment items handled, all spot-checks still open.
     const judged = [...queue.classes.sync, ...queue.classes.observations, ...queue.classes.structural].map(
@@ -162,15 +162,8 @@ describe('B1 — both surfaces render from the one queue object', () => {
     expect(outstanding.counts.headline).toBe(0);
     expect(outstanding.counts.spotChecks).toBe(3);
 
-    const cta = mount(
-      <PrimaryCta
-        ribbonModel={READY_MODEL}
-        reviewCount={outstanding.counts.headline}
-        canDownload
-        onDownload={() => {}}
-      />,
-    );
-    expect(cta.container.querySelector('[data-testid="primary-cta"]').textContent).toContain('Download ZIP');
+    const cta = mount(<PrimaryCta ribbonModel={READY_MODEL} reviewCount={outstanding.counts.headline} canDownload />);
+    expect(cta.container.querySelector('[data-testid="primary-cta"]')).toBeNull();
   });
 
   it('the spot-check class header carries Confirm all, wired to every open item', () => {

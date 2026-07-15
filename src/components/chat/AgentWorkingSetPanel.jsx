@@ -11,6 +11,7 @@ const GOOD_TONE = 'border-emerald-200 bg-emerald-50 text-emerald-700';
 const WARN_TONE = 'border-amber-200 bg-amber-50 text-amber-700';
 const BAD_TONE = 'border-red-200 bg-red-50 text-red-700';
 const MODE_TONE = 'border-indigo-200 bg-indigo-50 text-indigo-700';
+const NOTE_TONE = 'border-sky-200 bg-sky-50 text-sky-700';
 
 function compactCount(value) {
   const number = Number(value || 0);
@@ -54,7 +55,7 @@ function buildPackageStatus(packageQualityPass) {
   if (status === 'running') return { label: 'Finishing', tone: WARN_TONE };
   if (trustStatus.clean) return { label: 'Ready', tone: GOOD_TONE };
   if (trustStatus.blocked) return { label: 'Needs attention', tone: BAD_TONE };
-  if (trustStatus.review) return { label: 'Notes', tone: WARN_TONE, readyWithNotes: true };
+  if (trustStatus.review) return { label: 'Review notes', tone: NOTE_TONE, readyWithNotes: true };
   return { label: 'Not checked', tone: MUTED_TONE };
 }
 
@@ -313,7 +314,7 @@ export default function AgentWorkingSetPanel(props) {
       : summary.packageStatus.label === 'Finishing'
         ? 'Finishing package'
         : readyWithNotes
-          ? 'Ready with notes'
+          ? 'Ready to export'
           : needsAttention
             ? 'Review before export'
             : summary.packageStatus.label === 'Ready'

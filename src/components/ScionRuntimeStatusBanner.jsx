@@ -2,12 +2,16 @@ import React from 'react';
 import useScionRuntimeStatus from '../hooks/useScionRuntimeStatus';
 import { SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL } from '../lib/scionBrowserConstants';
 
-export default function ScionRuntimeStatusBanner({ enabled = false }) {
-  const status = useScionRuntimeStatus(enabled);
+export default function ScionRuntimeStatusBanner({ enabled = false, status: suppliedStatus = null }) {
+  const subscribedStatus = useScionRuntimeStatus(enabled && suppliedStatus == null);
+  const status = suppliedStatus || subscribedStatus;
   if (!enabled || !['loading-runtime', 'loading-model', 'error'].includes(status.phase)) return null;
 
   const failed = status.phase === 'error';
   const progress = Math.max(0, Math.min(1, Number(status.progress) || 0));
+  // Model preparation is the first 15% of the same end-to-end meter the
+  // workspace ribbon continues through map, enrich, compile, verify, and grade.
+  const overallProgress = Math.round(progress * 15);
   return (
     <div
       data-testid="scion-runtime-status"
@@ -21,7 +25,7 @@ export default function ScionRuntimeStatusBanner({ enabled = false }) {
         <div className="h-1.5 bg-slate-100 dark:bg-slate-800">
           <div
             className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-[width] duration-300"
-            style={{ width: `${Math.max(2, progress * 100)}%` }}
+            style={{ width: `${Math.max(1, overallProgress)}%` }}
           />
         </div>
       )}
@@ -33,16 +37,19 @@ export default function ScionRuntimeStatusBanner({ enabled = false }) {
         />
         <div className="min-w-0">
           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            {failed ? 'Scion could not start on this device' : 'Preparing Scion on this device'}
+            {failed ? 'Scion could not start on this device' : 'Preparing Scion · step 1 of 6'}
           </p>
           <p className="mt-0.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
             {failed
               ? status.error || 'Scion requires a WebGPU and WebAssembly JSPI capable browser.'
-              : `${status.message} The first run downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL}; later runs reuse the local copy.`}
+              : `${status.message} The first run downloads ${SCION_BROWSER_GEMMA4_DOWNLOAD_LABEL}; then Scion maps, enriches, compiles, verifies, and grades the package.`}
           </p>
         </div>
         {!failed && (
-          <span className="ml-auto shrink-0 text-xs font-semibold text-indigo-600">{Math.floor(progress * 100)}%</span>
+          <span className="ml-auto shrink-0 text-right text-xs font-semibold text-indigo-600">
+            <span className="block">Overall {overallProgress}%</span>
+            <span className="block text-[10px] font-medium text-slate-400">Model {Math.floor(progress * 100)}%</span>
+          </span>
         )}
       </div>
     </div>
