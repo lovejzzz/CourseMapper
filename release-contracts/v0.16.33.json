@@ -1,0 +1,116 @@
+{
+  "version": "0.16.33",
+  "date": "July 15, 2026",
+  "title": "Do Not Train on the Exam: make Scion’s holdout a firewall",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:adapter:corpus-readiness",
+      "npx vitest run tests/scion-adapter-tooling.test.js tests/scion-adapter-training-run.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test -- --maxWorkers=4",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:evaluation:main",
+      "npm run audit:release-history",
+      "npx playwright test tests/coursemapper.spec.js tests/local-ai-runtime.spec.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "The release branch has not yet completed the remote Fast verification workflow. This receipt must be updated with the exact successful merged-commit run before final release proof."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This release changes deterministic dataset, training, and held-out-boundary contracts. Focused tests and the reproducible corpus audit exercise the new failure modes without model calls, weight training, or device capture."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "The hosted release has not yet been deployed or cache-bypass probed."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "No provider request is needed. The corpus receipt rebuilds from tracked source rows and deterministic validators; the release trains no weights."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "The milestone is a machine-verifiable anti-leakage boundary and makes no human, instructor, classroom, independent-review, or multi-judge claim."
+    },
+    "strictLayeredEvaluation": {
+      "status": "pending-push",
+      "claimStatus": "compiler-contract-only",
+      "note": "The canonical evaluation and browser release gates must complete on the merged commit before final proof; neither can turn the smoke-only corpus into adapter-quality evidence."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01633-frozen-holdout-firewall",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Dataset schema v4 validates the exact frozen five-domain benchmark before admitting or splitting any training row and fails closed on unavailable, linked, malformed, or invalid benchmark input.",
+      "anchors": [
+        "scripts/scionAdapterDataset.mjs",
+        "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+        "tests/scion-adapter-tooling.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:adapter:corpus-readiness",
+        "npx vitest run tests/scion-adapter-tooling.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01633-domain-and-course-id-quarantine",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Held-out domain rows and held-out course IDs are quarantined before deduplication or split assignment, including a frozen course relabeled under a training domain.",
+      "anchors": ["scripts/scionAdapterDataset.mjs", "tests/scion-adapter-tooling.test.js"],
+      "proofCommands": ["npx vitest run tests/scion-adapter-tooling.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01633-dataset-identity-v2",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Dataset identity v2 binds the frozen benchmark receipt and records domain-plus-course and course-ID-only group hashes alongside exact sources, evidence distributions, and split bytes.",
+      "anchors": [
+        "scripts/scionAdapterDataset.mjs",
+        "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.33.json",
+        "tests/scion-adapter-training-run.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:adapter:corpus-readiness",
+        "npx vitest run tests/scion-adapter-training-run.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01633-training-and-evaluation-refusal",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Training reopens and validates the exact benchmark, rejects digest or separation drift, and the paired evaluator requires the same course-ID-only proof before a held-out run.",
+      "anchors": [
+        "scripts/scionAdapterTrainingRun.mjs",
+        "scripts/scionAdapterPairedEvidence.mjs",
+        "tests/scion-adapter-tooling.test.js",
+        "tests/scion-adapter-training-run.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-adapter-tooling.test.js tests/scion-adapter-training-run.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01633-honest-corpus-readiness",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "A reproducible tracked audit finds 75 of 418 stored rows structurally usable across four domains and five groups, zero admissible single-model-judge preferences, and a smoke-only lane with no trained or promoted adapter.",
+      "anchors": [
+        "scripts/scionAdapterCorpusReadinessAudit.mjs",
+        "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.33.json",
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md"
+      ],
+      "proofCommands": ["npm run audit:scion:adapter:corpus-readiness", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

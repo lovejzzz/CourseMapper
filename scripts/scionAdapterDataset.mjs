@@ -7,10 +7,11 @@ import { pathToFileURL } from 'node:url';
 
 import { assessCorpusRow } from './scionPreferenceCorpusAudit.mjs';
 import { sha256File } from './scionAdapterPackage.mjs';
+import { validateScionHeldoutBenchmark } from './scionAdapterPairedEvidence.mjs';
 import { deriveDeterministicContractEvidence } from '../src/lib/scionPreferenceGate.js';
 import { validateScionCodexTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
 
-const DEFAULT_SOURCES = [
+export const SCION_ADAPTER_DEFAULT_SOURCES = [
   'trellis/tendril/distill/data-g4-orpo/train.jsonl',
   'trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl',
   'evaluation/scion-reviewed-preferences.jsonl',
@@ -18,6 +19,9 @@ const DEFAULT_SOURCES = [
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
+export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v1.json';
+const DEFAULT_SOURCES = SCION_ADAPTER_DEFAULT_SOURCES;
+const DEFAULT_HELDOUT_BENCHMARK = SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK;
 export const SCION_ORPO_TRAINING_FORMAT = Object.freeze({
   protocol: 'scion-orpo-conversations-v1',
   columns: Object.freeze(['chosen', 'rejected', 'provenance']),
@@ -59,7 +63,7 @@ export function computeScionAdapterDatasetIdentity(manifest) {
     : [];
   return stableHash(
     stableJson({
-      protocol: 'scion-adapter-dataset-identity-v1',
+      protocol: 'scion-adapter-dataset-identity-v2',
       schemaVersion: manifest?.schemaVersion,
       status: manifest?.status,
       promotable: manifest?.promotable,
@@ -69,6 +73,7 @@ export function computeScionAdapterDatasetIdentity(manifest) {
         entries: manifest?.domainMap?.entries,
         sha256: manifest?.domainMap?.sha256 || null,
       },
+      holdoutBoundary: manifest?.holdoutBoundary,
       counts: manifest?.counts,
       domains: manifest?.domains,
       evidenceCounts: manifest?.evidenceCounts,
@@ -266,6 +271,45 @@ async function readDomainMap(domainMapPath) {
   }
 }
 
+async function readHeldoutBoundary(benchmarkPath) {
+  const stats = await fs.lstat(benchmarkPath);
+  if (!stats.isFile() || stats.isSymbolicLink()) {
+    throw new Error(`Held-out benchmark must be a regular file: ${benchmarkPath}`);
+  }
+  const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
+  const validation = validateScionHeldoutBenchmark(benchmark);
+  if (!validation.valid) {
+    throw new Error(`Held-out benchmark failed validation: ${validation.issues.join(', ')}`);
+  }
+  const courses = benchmark.courses.map((course) => ({
+    courseId: normalize(course.courseId).toLowerCase(),
+    domain: normalize(course.domain).toLowerCase(),
+  }));
+  return {
+    benchmark,
+    receipt: {
+      protocol: 'scion-training-holdout-firewall-v1',
+      status: 'pass',
+      manifestPath: benchmarkPath,
+      manifestSha256: await sha256File(benchmarkPath),
+      benchmarkId: benchmark.id,
+      frozenAt: benchmark.frozenAt,
+      domainDisjointRequired: true,
+      courseGroupDisjointRequired: true,
+      domains: [...new Set(courses.map((course) => course.domain))].sort(),
+      domainCount: new Set(courses.map((course) => course.domain)).size,
+      courseGroupCount: courses.length,
+      admittedDomainOverlapCount: 0,
+      admittedCourseGroupOverlapCount: 0,
+      excludedPairCount: 0,
+      excludedDomainPairCount: 0,
+      excludedCourseGroupPairCount: 0,
+    },
+    domainSet: new Set(courses.map((course) => course.domain)),
+    courseIdSet: new Set(courses.map((course) => course.courseId)),
+  };
+}
+
 export async function buildScionAdapterDataset({
   sources = DEFAULT_SOURCES,
   outputDir = DEFAULT_OUTPUT,
@@ -284,11 +328,13 @@ export async function buildScionAdapterDataset({
   researchMinimumModelJudgeDomains = 4,
   researchMinimumModelJudgePairsPerDomain = 20,
   domainMapPath = DEFAULT_DOMAIN_MAP,
+  heldoutBenchmarkPath = DEFAULT_HELDOUT_BENCHMARK,
   generatedAt = new Date().toISOString(),
 } = {}) {
   const sourceReceipts = await Promise.all(sources.map(inspectDatasetSource));
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
   const domainMap = await readDomainMap(domainMapPath);
+  const holdout = await readHeldoutBoundary(heldoutBenchmarkPath);
   const eligible = [];
   const quarantine = [];
   const seen = new Set();
@@ -307,6 +353,17 @@ export async function buildScionAdapterDataset({
     ];
     if (identityIssues.length > 0) {
       quarantine.push({ source: entry.source, line: entry.line, issues: identityIssues });
+      continue;
+    }
+    const holdoutIssues = [
+      ...(holdout.domainSet.has(domain) ? [`heldout-domain:${domain}`] : []),
+      ...(holdout.courseIdSet.has(groupIdentity) ? [`heldout-course-group:${groupIdentity}`] : []),
+    ];
+    if (holdoutIssues.length > 0) {
+      holdout.receipt.excludedPairCount += 1;
+      if (holdout.domainSet.has(domain)) holdout.receipt.excludedDomainPairCount += 1;
+      if (holdout.courseIdSet.has(groupIdentity)) holdout.receipt.excludedCourseGroupPairCount += 1;
+      quarantine.push({ source: entry.source, line: entry.line, issues: holdoutIssues });
       continue;
     }
     const fingerprint = pairFingerprint(auditedRow);
@@ -372,6 +429,7 @@ export async function buildScionAdapterDataset({
   const singleModelJudgeDomains = Object.values(modelJudgeDomainCounts).filter((count) => count > 0).length;
   const groups = [...new Set(eligible.map((entry) => entry.group))];
   const groupHashes = groups.map(stableHash).sort();
+  const courseIdHashes = [...new Set(eligible.map((entry) => explicitGroupIdentity(entry.row)))].map(stableHash).sort();
   const splitGroups = Object.fromEntries(
     Object.keys(splitRows).map((split) => [
       split,
@@ -474,7 +532,7 @@ export async function buildScionAdapterDataset({
     };
   }
   const manifest = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     status,
     promotable: status === 'ready',
     primaryPreferenceEvidence: 'single-model-judge',
@@ -486,6 +544,7 @@ export async function buildScionAdapterDataset({
       entries: Object.keys(domainMap).length,
       ...(Object.keys(domainMap).length > 0 ? { sha256: await sha256File(domainMapPath) } : {}),
     },
+    holdoutBoundary: holdout.receipt,
     counts: {
       loaded: loaded.length,
       total: eligible.length,
@@ -511,6 +570,8 @@ export async function buildScionAdapterDataset({
     groupIdentity: {
       algorithm: 'sha256-domain-colon-course-id',
       hashes: groupHashes,
+      courseIdAlgorithm: 'sha256-course-id',
+      courseIdHashes,
     },
     splitIdentity: {
       strategy: 'domain-stratified-hash-v1',
@@ -560,7 +621,7 @@ export async function buildScionAdapterDataset({
     quarantine,
   };
   manifest.identity = {
-    protocol: 'scion-adapter-dataset-identity-v1',
+    protocol: 'scion-adapter-dataset-identity-v2',
     sha256: computeScionAdapterDatasetIdentity(manifest),
   };
   const manifestPath = path.join(absoluteOutput, 'dataset-manifest.json');
@@ -585,6 +646,7 @@ function parseArgs(argv) {
     researchMinimumModelJudgeDomains: 4,
     researchMinimumModelJudgePairsPerDomain: 20,
     domainMapPath: DEFAULT_DOMAIN_MAP,
+    heldoutBenchmarkPath: DEFAULT_HELDOUT_BENCHMARK,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -608,6 +670,7 @@ function parseArgs(argv) {
     } else if (arg === '--research-minimum-model-judge-pairs-per-domain') {
       args.researchMinimumModelJudgePairsPerDomain = Number(argv[++index]);
     } else if (arg === '--domain-map') args.domainMapPath = argv[++index];
+    else if (arg === '--heldout-benchmark') args.heldoutBenchmarkPath = argv[++index];
     else if (arg === '--generated-at') args.generatedAt = argv[++index];
     else if (arg === '--allow-smoke') args.allowSmoke = true;
     else if (arg === '--research') args.allowResearch = true;

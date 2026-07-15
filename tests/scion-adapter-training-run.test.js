@@ -16,6 +16,7 @@ import {
   completeScionAdapterTrainingRun,
   createScionAdapterTrainingPlan,
   sha256File,
+  verifyScionAdapterDatasetForTraining,
   verifyScionAdapterTrainingRun,
 } from '../scripts/scionAdapterTrainingRun.mjs';
 import { buildScionAdapterManifest, verifyScionAdapterPackage } from '../scripts/scionAdapterPackage.mjs';
@@ -157,6 +158,34 @@ describe('Scion adapter training receipts', () => {
       }),
     ]);
     expect(await sha256File(first.manifestPath)).not.toBe(await sha256File(second.manifestPath));
+  });
+
+  it('refuses training when the frozen holdout bytes change after dataset curation', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-dataset-holdout-drift-'));
+    const heldoutPath = path.join(root, 'heldout.json');
+    await fs.copyFile('evaluation/scion-adapters/held-out-course-benchmark-v1.json', heldoutPath);
+    const source = path.join(root, 'source.jsonl');
+    await fs.writeFile(source, `${JSON.stringify(sourceRow())}\n`);
+    const dataset = await buildScionAdapterDataset({
+      sources: [source],
+      outputDir: path.join(root, 'dataset'),
+      heldoutBenchmarkPath: heldoutPath,
+      allowSmoke: true,
+    });
+
+    await expect(
+      verifyScionAdapterDatasetForTraining({ manifestPath: dataset.manifestPath, lane: 'smoke' }),
+    ).resolves.toMatchObject({ valid: true, issues: [] });
+
+    const heldout = JSON.parse(await fs.readFile(heldoutPath, 'utf8'));
+    heldout.frozenAt = '2026-07-15T18:20:00Z';
+    await fs.writeFile(heldoutPath, `${JSON.stringify(heldout, null, 2)}\n`);
+    const drift = await verifyScionAdapterDatasetForTraining({
+      manifestPath: dataset.manifestPath,
+      lane: 'smoke',
+    });
+    expect(drift.valid).toBe(false);
+    expect(drift.issues).toContain('holdout-manifest-sha256');
   });
 
   it('writes one conditional conversation schema across every Hugging Face split', async () => {

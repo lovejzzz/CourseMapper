@@ -8,6 +8,7 @@ import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
 import { computeScionAdapterDatasetIdentity, SCION_ORPO_TRAINING_FORMAT } from './scionAdapterDataset.mjs';
+import { assessHeldoutDatasetBoundary, validateScionHeldoutBenchmark } from './scionAdapterPairedEvidence.mjs';
 import { SCION_GEMMA4_E2B_BASE } from '../src/lib/scionAdapterManifest.js';
 
 const execFile = promisify(execFileCallback);
@@ -22,6 +23,7 @@ const DEFAULT_BASE_CONTRACT = 'evaluation/scion-adapters/base-contracts/gemma-4-
 const TRAINING_CODE_PATHS = [
   'scripts/scionAdapterDataset.mjs',
   'scripts/scionAdapterPackage.mjs',
+  'scripts/scionAdapterPairedEvidence.mjs',
   'scripts/scionAdapterTrainingRun.mjs',
   'trellis/tendril/distill/prepare_adapter_base.py',
   'trellis/tendril/distill/run_orpo_g4.sh',
@@ -171,13 +173,44 @@ async function verifySourceReceipts(manifest, sourceRoot) {
   return issues;
 }
 
+async function verifyHoldoutBoundary(manifest, sourceRoot) {
+  const boundary = manifest?.holdoutBoundary;
+  const issues = [];
+  if (boundary?.protocol !== 'scion-training-holdout-firewall-v1') issues.push('holdout-boundary-protocol');
+  if (boundary?.status !== 'pass') issues.push('holdout-boundary-status');
+  if (boundary?.domainDisjointRequired !== true) issues.push('holdout-domain-policy');
+  if (boundary?.courseGroupDisjointRequired !== true) issues.push('holdout-course-group-policy');
+  if (boundary?.admittedDomainOverlapCount !== 0) issues.push('holdout-domain-overlap');
+  if (boundary?.admittedCourseGroupOverlapCount !== 0) issues.push('holdout-course-group-overlap');
+  const benchmarkPath = path.isAbsolute(boundary?.manifestPath || '')
+    ? path.resolve(boundary.manifestPath)
+    : path.resolve(sourceRoot, boundary?.manifestPath || '');
+  try {
+    const benchmarkFile = await inspectRegularFile(benchmarkPath);
+    if (benchmarkFile.sha256 !== boundary?.manifestSha256) issues.push('holdout-manifest-sha256');
+    const benchmark = await readRegularJson(benchmarkPath);
+    const validation = validateScionHeldoutBenchmark(benchmark);
+    if (!validation.valid) issues.push(...validation.issues.map((issue) => `holdout-manifest:${issue}`));
+    const assessment = assessHeldoutDatasetBoundary(benchmark, manifest);
+    if (!assessment.pass) {
+      if (!assessment.groupProofAvailable) issues.push('holdout-group-proof');
+      if (!assessment.courseIdProofAvailable) issues.push('holdout-course-id-proof');
+      if (assessment.domainOverlap.length > 0) issues.push('holdout-domain-overlap');
+      if (assessment.groupOverlap.length > 0) issues.push('holdout-course-group-overlap');
+    }
+  } catch (error) {
+    issues.push(`holdout-manifest-unavailable:${error?.code || 'invalid'}`);
+  }
+  return [...new Set(issues)];
+}
+
 export async function verifyScionAdapterDatasetForTraining({ manifestPath, lane, sourceRoot = process.cwd() } = {}) {
   if (!DATASET_STATUS_BY_LANE[lane]) throw new Error(`Unknown training lane: ${lane || 'missing'}`);
   const manifestFile = await inspectRegularFile(manifestPath);
   const manifest = await readRegularJson(manifestFile.absolutePath);
   const datasetDir = path.dirname(manifestFile.absolutePath);
   const issues = [];
-  if (manifest?.schemaVersion !== 3) issues.push('dataset-schema-version');
+  if (manifest?.schemaVersion !== 4) issues.push('dataset-schema-version');
   if (stableJson(manifest?.trainingFormat) !== stableJson(SCION_ORPO_TRAINING_FORMAT)) {
     issues.push('dataset-training-format');
   }
@@ -189,7 +222,7 @@ export async function verifyScionAdapterDatasetForTraining({ manifestPath, lane,
   if (manifest?.primaryPreferenceEvidence !== 'single-model-judge') issues.push('primary-preference-evidence');
   if (manifest?.leakage?.groupOverlapCount !== 0) issues.push('dataset-group-leakage');
   const expectedIdentity = computeScionAdapterDatasetIdentity(manifest);
-  if (manifest?.identity?.protocol !== 'scion-adapter-dataset-identity-v1') issues.push('dataset-identity-protocol');
+  if (manifest?.identity?.protocol !== 'scion-adapter-dataset-identity-v2') issues.push('dataset-identity-protocol');
   if (manifest?.identity?.sha256 !== expectedIdentity) issues.push('dataset-identity-sha256');
   const splitFiles = {};
   let splitRows = 0;
@@ -227,6 +260,7 @@ export async function verifyScionAdapterDatasetForTraining({ manifestPath, lane,
   if (splitRows !== manifest?.counts?.total) issues.push('dataset-total-count');
   const profile = lane === 'production' ? 'production' : lane === 'research' ? 'research' : null;
   if (profile && (manifest?.gate?.profiles?.[profile]?.issues || []).length > 0) issues.push(`${profile}-gate-issues`);
+  issues.push(...(await verifyHoldoutBoundary(manifest, sourceRoot)));
   issues.push(...(await verifySourceReceipts(manifest, sourceRoot)));
   return {
     valid: issues.length === 0,
