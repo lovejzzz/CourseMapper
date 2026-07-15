@@ -21,16 +21,24 @@
       "note": "The exact production preview was inspected in the Codex in-app browser at 1280x720 and 390x844. Landing and changelog had no horizontal overflow or console warnings/errors; both exposed v0.16.29, the collapsed Scion V0.16.29 state, and the expanded Scion provider, disabled no-key API field, and Scion V0.16.29 model identity."
     },
     "ciFast": {
-      "status": "pending-push",
-      "note": "The content commit has not yet been pushed."
+      "status": "success",
+      "commit": "362530721c722c28487869614398102a4d2bd88f",
+      "runId": 29406638327,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29406638327",
+      "note": "The exact main content merge passed formatting, lint, release history, all 4,441 unit and closed-loop tests, proof smoke, the strict 40-course main evaluation, production build, bundle budgets, and evaluation report upload in 23m07s. PR run 29405846547 independently passed the pull-request profile, build, and bundle gates in 12m45s before merge."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The milestone changes promotion-evidence verification and no model inference or educational-quality result. Focused semantic and adversarial fixtures are the proportional deep proof."
     },
     "deploy": {
-      "status": "pending",
-      "note": "Deployment proof will be recorded after the content merge reaches GitHub Pages."
+      "status": "success",
+      "commit": "362530721c722c28487869614398102a4d2bd88f",
+      "runId": 29408019290,
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29408019290",
+      "liveUrl": "https://edutool.dev/?proof=v0.16.29-3625307",
+      "verifiedAt": "2026-07-15T10:27:11.000Z",
+      "note": "GitHub Pages deployed the exact main content merge. A cache-busted live request returned HTTP 200 from GitHub Pages with a July 15, 2026 10:25:45 GMT last-modified time, loaded /assets/index-D7H2abr-.js, and the served production bundle identified Scion as version 0.16.29."
     },
     "liveProvider": {
       "status": "not-used",
