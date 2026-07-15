@@ -5,6 +5,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { buildScionBlindReviewPacket } from '../scripts/scionBlindReviewPacket.mjs';
+import { buildScionCodexFreshJudgeHandoff } from '../scripts/scionCodexFreshJudgeHandoff.mjs';
 import {
   buildScionCodexFreshJudgeWorkbook,
   completeAndSealScionCodexFreshJudgeWorkbook,
@@ -146,7 +147,7 @@ describe('Scion fresh Codex judge workbook', () => {
     const { handoffDir, receiptOutput, built } = await buildWorkbook();
     expect(built.manifest).toMatchObject({
       protocol: 'scion-codex-fresh-judge-workbook-v1',
-      release: 'v0.16.21',
+      release: 'v0.16.30',
       status: 'fresh-task-ready',
       order: 'B/A',
       selectedCases: 5,
@@ -179,6 +180,38 @@ describe('Scion fresh Codex judge workbook', () => {
     expect(allRaw.join('\n')).toContain('same exact judge revision, runtime, fresh session ID');
   });
 
+  it('rebuilds from the frozen canonical handoff and reports the exact receipt field that drifted', async () => {
+    const packetDir = await buildPacket(5);
+    const canonicalHandoffDir = path.join(root, 'frozen-canonical-handoff');
+    const canonicalHandoffReceipt = path.join(root, 'frozen-canonical-receipt.json');
+    await buildScionCodexFreshJudgeHandoff({
+      packetDir,
+      outputDir: canonicalHandoffDir,
+      receiptOutput: canonicalHandoffReceipt,
+      generatedAt: '2026-07-14T15:00:00.000Z',
+    });
+    await fs.rm(packetDir, { recursive: true, force: true });
+
+    const handoffDir = path.join(root, 'rebuilt-workbook');
+    const rebuilt = await buildScionCodexFreshJudgeWorkbook({
+      canonicalHandoffDir,
+      canonicalHandoffReceipt,
+      outputDir: handoffDir,
+      generatedAt: '2026-07-15T07:00:00.000Z',
+      chunkSize: 2,
+    });
+    expect(rebuilt.manifest).toMatchObject({ selectedCases: 5, release: 'v0.16.30' });
+
+    const staleReceipt = structuredClone(rebuilt.manifest);
+    staleReceipt.selectedCases = 6;
+    await expect(
+      verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedReceipt: staleReceipt }),
+    ).resolves.toMatchObject({
+      valid: false,
+      issues: expect.arrayContaining(['tracked-receipt-mismatch', 'tracked-receipt-mismatch:$.selectedCases']),
+    });
+  });
+
   it('rejects added, missing, changed, and linked workbook inputs without deleting unknown files', async () => {
     const { packetDir, handoffDir, built } = await buildWorkbook();
     const manifestPath = path.join(handoffDir, 'workbook-manifest.json');
@@ -207,6 +240,9 @@ describe('Scion fresh Codex judge workbook', () => {
       valid: false,
       issues: ['workbook-directory'],
     });
+    await expect(
+      verifyScionCodexFreshJudgeWorkbook({ handoffDir: path.join(root, 'missing-workbook') }),
+    ).resolves.toMatchObject({ valid: false, issues: ['workbook-directory'] });
 
     const retained = path.join(handoffDir, 'unexpected.key');
     await fs.writeFile(retained, 'must-not-be-deleted');

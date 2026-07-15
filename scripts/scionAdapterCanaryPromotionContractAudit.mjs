@@ -57,7 +57,7 @@ export async function runScionAdapterCanaryPromotionContractAudit({ root = proce
   ]);
   const adapterManifest = {
     schemaVersion: 2,
-    adapter: { id: 'scion-contract-audit', scionVersion: '0.16.29', format: 'gguf-lora', scale: 1 },
+    adapter: { id: 'scion-contract-audit', scionVersion: '0.16.30', format: 'gguf-lora', scale: 1 },
     base: {
       modelId: 'google/gemma-4-E2B-it-qat-q4_0-unquantized',
       revision: '1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce',

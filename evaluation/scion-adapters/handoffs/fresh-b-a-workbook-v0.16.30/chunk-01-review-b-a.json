@@ -1,0 +1,1662 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-423315b77cf6219c9a46",
+    "packetDigest": "423315b77cf6219c9a46de559f53490cee107745c006bb8d16daf358534e8f69",
+    "organizerDigest": "0ddd7990e2cafa094c5828c82f411d1bad8b7e69a42d718639688f064213089b"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-02a5d0ec6e43df67665b",
+      "caseDigest": "47a76def47427fcefb40207448405661cdf1595b316fae50b66a30b343eb8e31",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "71111315f4747364eab13bb21de8e02b558a45b0c33dc38a25b9d69dffbe5a7d",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/while-loops",
+        "term": "While loops",
+        "claims": [
+          "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+          "After each pass through the body, the loop expression is evaluated again to decide whether to continue.",
+          "If the loop expression is true, the body runs again; if it is false, the loop terminates.",
+          "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §5.1 While loop"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b0c012ea66934a9e3a2eaafcd6a0a52be11820ec1228052a1a92104640d6ffd0",
+          "artifact": {
+            "tr": "Loop control structure",
+            "df": "A programming construct that repeats a block of code based on a specified criterion.",
+            "eg": "Using a while loop to process user input until a specific command is entered.",
+            "mi": "Thinking a loop only runs once per condition check.",
+            "cx": "The construct repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "25eeb854f4ead2d3dd43ca6900797f4c1a15409e202eaf6198fd6ce094b1ea0b",
+          "artifact": {
+            "tr": "infinite loop",
+            "df": "A loop that keeps running because its condition never turns false.",
+            "eg": "A file-reading loop that never advances the file position can keep printing the same line forever.",
+            "mi": "It is any loop that runs a lot of times.",
+            "cx": "A loop can run many times and still end normally; it becomes infinite only when the stopping condition never changes."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b0c012ea66934a9e3a2eaafcd6a0a52be11820ec1228052a1a92104640d6ffd0",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "25eeb854f4ead2d3dd43ca6900797f4c1a15409e202eaf6198fd6ce094b1ea0b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-73f3a5021e100fb0b1b5",
+      "caseDigest": "e5aa1c6857fc455bcc2d5a7268a9d9d6882c57009c205a47f960621fdf9b47b7",
+      "domain": "computer-science",
+      "courseGroupSha256": "a221877bef9b05f6d79d1385030773dfb135b99f93ad11a5141bdee946750954",
+      "sourceContextSha256": "23dab0a9add28285e651a8bbf017b313ad7fb9cab5175d5841b1e96a220a38b4",
+      "sourceContext": {
+        "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+        "kernelId": "cs/lists",
+        "term": "Lists",
+        "claims": [
+          "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+          "A list is written with square brackets [] holding comma-separated values.",
+          "Individual elements are accessed directly using an index.",
+          "Indexes begin at 0 and end at one less than the length of the sequence.",
+          "A for loop can iterate through a list, visiting each element in order."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §3.4 List basics; §9.1 Modifying and iterating lists"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "87a763c26a19d1596a15d6c9afeabd179135a7530c1fbe0dfb441bb9fabba2e3",
+          "artifact": {
+            "tr": "List",
+            "df": "An ordered collection written with square brackets, where each element has an index.",
+            "eg": "[3, 5, 8] is a list of three values, and 5 is at index 1.",
+            "mi": "A common mistake is thinking the first position is index 1.",
+            "cx": "Indexes begin at 0, so the first element is at index 0."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "275787210c475248133aacc726bd41a8c3bc021ea358c458aa37b2f4ab726e4f",
+          "artifact": {
+            "tr": "Square bracket notation",
+            "df": "The specific syntax used to define a list in Python.",
+            "eg": "Defining a list as [10, 20, 30].",
+            "mi": "Using parentheses () to define a collection of items.",
+            "cx": "Using square brackets [] to define a list."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "87a763c26a19d1596a15d6c9afeabd179135a7530c1fbe0dfb441bb9fabba2e3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "275787210c475248133aacc726bd41a8c3bc021ea358c458aa37b2f4ab726e4f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-96b55673adf1f7b43b0e",
+      "caseDigest": "1499923ae74f72cd91a9f62fdab4550de1d06ad4f6c8fb2be6396a78fcf303a3",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "b5d0b3780788f9095eb878e4ad18f8c405453dcfecba548d3104c19e078ef7f6",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/expressions-and-types",
+        "term": "Expressions and data types",
+        "claims": [
+          "Every Python value has a data type (such as int, float, or str); expressions combine values, and conversion functions move a value from one type to another.",
+          "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.",
+          "int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.",
+          "True division (/) converts numbers to floats before dividing and always returns a float.",
+          "Floor division (//) computes the whole-number quotient, discarding the remainder."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §2.2 Type conversion; §2.5 Dividing integers"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "0687147482b1e0c3f399e0f7b4d4d4480c7875612453983f96497a2dc544426e",
+          "artifact": {
+            "tr": "Type conversion",
+            "df": "The process of changing a value from one data type to another.",
+            "eg": "Using int(3.9) results in 3.",
+            "mi": "Believing that all operations automatically maintain the original data type.",
+            "cx": "Explicitly using conversion functions like int() to change types."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "8d17404b8a181eada24b7e92f5bca753d86e3bd2adbab468a44b1d3c901b2d51",
+          "artifact": {
+            "tr": "type conversion",
+            "df": "A change that turns a value from one data type into another.",
+            "eg": "A trace of `int(3.9)` shows a float becoming an integer before the program keeps going.",
+            "mi": "It only happens when the programmer writes an explicit conversion function.",
+            "cx": "Python can also promote types automatically inside a mixed expression, and `int()` is one explicit way to convert."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "0687147482b1e0c3f399e0f7b4d4d4480c7875612453983f96497a2dc544426e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "8d17404b8a181eada24b7e92f5bca753d86e3bd2adbab468a44b1d3c901b2d51",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-6ed7a1e76072b2df755d",
+      "caseDigest": "0082c29d7fb9589f9e366a9d52fa7b53b0c40d932690cfe1a0c7c8476604dac4",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "c70a8deaee462a861b2cb5d3a1276686991cdf60f0212bf74babf077d4d9f90c",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/classes",
+        "term": "Objects and classes",
+        "claims": [
+          "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "A class is a blueprint for creating objects.",
+          "Individual objects created from a class are called instances.",
+          "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "3af4f9ab0a5cb69820736db4a808d961fc3885f274909299fc437575a1e990e7",
+          "artifact": {
+            "tr": "Instance",
+            "df": "A specific entity created from a class definition.",
+            "eg": "A specific Car object created from the Car class is an instance.",
+            "mi": "Confusing the class definition with the actual object created from it.",
+            "cx": "Individual objects created from a class are called instances."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "92b2ada05af5242b47ac9a2c2bbf4fd0ef1a9717c5d15ab9d1eb272c5dfa088e",
+          "artifact": {
+            "tr": "Class",
+            "df": "A reusable blueprint that specifies what data and behavior objects will have.",
+            "eg": "A course program might use a class to describe a bank account with balances and deposit actions.",
+            "mi": "It is a single object already holding one set of values.",
+            "cx": "A class is the source pattern; objects made from it are the instances."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "3af4f9ab0a5cb69820736db4a808d961fc3885f274909299fc437575a1e990e7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "92b2ada05af5242b47ac9a2c2bbf4fd0ef1a9717c5d15ab9d1eb272c5dfa088e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-71c5a670085dd2f877d8",
+      "caseDigest": "1e9cbeeb227afeb00454745ca56c11622d1820112c168461d5f359f8b7cd023e",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "c5407e5008d9e7da1f10b9c8f7ac3fcb45289d8b7413829a323c4fd655a44fcc",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/plate-tectonics",
+        "term": "Plate tectonics and boundaries",
+        "claims": [
+          "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+          "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+          "At convergent boundaries, two or more plates move toward each other and lithosphere is destroyed.",
+          "At a transform boundary, plates slide horizontally past each other."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "47a7106d3a28b019a15ba91a2388a64862b7becf7044ed801cc541b622570d3e",
+          "artifact": {
+            "q": "Which boundary type is characterized by plates sliding horizontally past one another?",
+            "op": [
+              "Divergent boundary",
+              "Convergent boundary",
+              "Transform boundary",
+              "Subduction zone"
+            ],
+            "ai": 3,
+            "ex": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "282ce7e3bed30646dc580820438826ce809a5fd5dc642f3bde74d305d686c513",
+          "artifact": {
+            "q": "A field map shows two oceanic plates separating and a broad band of fresh rock forming between them. Which boundary best matches this pattern?",
+            "op": [
+              "Divergent boundary",
+              "Convergent boundary",
+              "Transform boundary",
+              "Stable interior"
+            ],
+            "ai": 0,
+            "ex": "Divergent boundaries fit because plates move away from each other and new lithosphere is created. A common misconception is to call any plate edge convergent, but convergence involves plates moving toward each other and destroying lithosphere instead."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "47a7106d3a28b019a15ba91a2388a64862b7becf7044ed801cc541b622570d3e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "282ce7e3bed30646dc580820438826ce809a5fd5dc642f3bde74d305d686c513",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-430c78bd62bc56c2b941",
+      "caseDigest": "8181dc0725e3f7e1e5b703b6dbe06a329fa98f846fa1d9cd1b0ddede8faf3650",
+      "domain": "geology",
+      "courseGroupSha256": "19100d3e734a3486006f9dd67ed9f35322cc9cc7d549b3cabb3114748621df27",
+      "sourceContextSha256": "b449c20e6ca2c7fec7f05a01d82e9f160786e0c6c71f9d69b907973108bcb081",
+      "sourceContext": {
+        "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9",
+        "kernelId": "geo/igneous-rocks",
+        "term": "Igneous rocks and magma",
+        "claims": [
+          "Igneous rock forms when molten magma or lava cools and crystallizes; how fast it cools controls crystal size, distinguishing coarse intrusive rocks from fine-grained extrusive rocks.",
+          "Lava cooling quickly at the surface forms tiny crystals, while magma cooling slowly at depth forms large crystals.",
+          "Magma that cools slowly deep within the crust forms intrusive (plutonic) rock with a coarse-grained texture.",
+          "Lava cooling at or near the surface forms extrusive (volcanic) rock with a fine-grained texture."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4.1 Magma generation and igneous textures"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c23a90a70b821dbed59cec4f9ff0f5fc2ff9d7d7794ac76f797bd8b206369618",
+          "artifact": {
+            "q": "A rock with a fine-grained texture is typically formed by which cooling scenario?",
+            "op": [
+              "Slow cooling deep within the crust.",
+              "Rapid cooling at or near the surface.",
+              "Slow cooling at the surface.",
+              "Rapid cooling deep within the crust."
+            ],
+            "ai": 3,
+            "ex": "Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "36f79ceb9ac19fa10c6735c338cf35ccdc275f07e67ce4e770232b0b743f5477",
+          "artifact": {
+            "q": "A magma body remains deep within the crust and cools slowly. What igneous texture should a student expect?",
+            "op": [
+              "Fine-grained volcanic texture",
+              "Coarse-grained plutonic texture",
+              "Rounded clastic texture",
+              "Layered sedimentary texture"
+            ],
+            "ai": 1,
+            "ex": "Correct: coarse-grained plutonic texture, because slow cooling deep in the crust allows large crystals to grow. A plausible misconception is to link all cooling with tiny crystals, but that applies to rapid surface cooling of lava."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c23a90a70b821dbed59cec4f9ff0f5fc2ff9d7d7794ac76f797bd8b206369618",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "36f79ceb9ac19fa10c6735c338cf35ccdc275f07e67ce4e770232b0b743f5477",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-3f7974ec8e20d1e70517",
+      "caseDigest": "5b1c6ba8e83a8daf5801360a8324d629960c84fc0e2a75b8c63f17dd405efe62",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "b85643eddf0a2cf47888cff6fc00ddbeac6b431baef2dff0416a8b877ef67a54",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/minerals",
+        "term": "Minerals and identification",
+        "claims": [
+          "A mineral is a naturally occurring, inorganic solid with a definite chemical composition and an ordered crystal structure; minerals are identified by physical properties such as hardness, streak, luster, and cleavage.",
+          "Hardness is measured on the Mohs scale; diamond is a 10 and is about four times harder than corundum, a 9.",
+          "Streak is the color of a mineral's powder, and is more reliable than the color of the whole specimen.",
+          "Cleavage is the tendency of a mineral to break along flat planes of weak bonding; minerals without such planes fracture irregularly.",
+          "Luster describes how a mineral's surface reflects light — metallic, glassy, or dull."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §3.1 What is a mineral; §3.5 Identifying minerals"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "eb3559d3b935584be799240893123fea1618060ca03c017f79ce4ac75cd18ce4",
+          "artifact": {
+            "q": "A mineral sample breaks into thin, flat sheets along repeated smooth surfaces. Which description best matches that behavior?",
+            "op": [
+              "cleavage",
+              "streak",
+              "hardness",
+              "luster"
+            ],
+            "ai": 0,
+            "ex": "Cleavage is the tendency to break along flat planes of weak bonding. The most plausible misconception is to call any breakage a fracture, but fracture is irregular breakage when no such planes are present."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "64bc6ec8c55d79d82474e2cf53c9bac235b2617e931b826a6460e745b6ab97f0",
+          "artifact": {
+            "q": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+            "op": [
+              "Luster",
+              "Streak",
+              "Cleavage",
+              "Hardness"
+            ],
+            "ai": 3,
+            "ex": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "eb3559d3b935584be799240893123fea1618060ca03c017f79ce4ac75cd18ce4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "64bc6ec8c55d79d82474e2cf53c9bac235b2617e931b826a6460e745b6ab97f0",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-79f69e04cf5d9df96c3f",
+      "caseDigest": "0c5547949b984dd6e523b1e40f3af38f430080d0b2c22215232fb106e1cb56a8",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "0b2f4c7328fdc2137122fc9a68d59ad6639b61aed21fcf36a1a18c0dc7f59d0c",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/rock-cycle",
+        "term": "The rock cycle",
+        "claims": [
+          "The rock cycle describes how Earth's three rock families — igneous, sedimentary, and metamorphic — form and continually transform into one another through geologic processes.",
+          "The rock cycle describes the major Earth materials, the processes that form them, and how they relate to each other.",
+          "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+          "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4 The rock cycle"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "29b08b0999502640103636ad69a14d194b416fda90a244acb390c48a9aa0ccf9",
+          "artifact": {
+            "q": "Which process is central to the rock cycle as described in the source material?",
+            "op": [
+              "A) Weathering and erosion",
+              "B) Formation of igneous rock",
+              "C) Transformation between rock families",
+              "D) Ordering events in geologic time"
+            ],
+            "ai": 0,
+            "ex": "Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "43d1c73d4d2f8004ed6534983e3dcdb001da91528f1dddcb46d690f159c5a8b3",
+          "artifact": {
+            "q": "A student heats a buried sedimentary rock until minerals recrystallize without melting. Which rock family best fits the product?",
+            "op": [
+              "igneous rock",
+              "sedimentary rock",
+              "metamorphic rock",
+              "magma"
+            ],
+            "ai": 2,
+            "ex": "The best choice is metamorphic rock because pre-existing rock can transform into metamorphic rock. A common misconception is to call any altered rock igneous, but igneous rock requires liquid rock to freeze solid; here, the rock changed without melting."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "29b08b0999502640103636ad69a14d194b416fda90a244acb390c48a9aa0ccf9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "43d1c73d4d2f8004ed6534983e3dcdb001da91528f1dddcb46d690f159c5a8b3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a1b976d17b6959ca1468",
+      "caseDigest": "b8c5f88196c5151f3a12b3e8c4d060f48d4c6fffba064a9a3e138d1a3a8ee59f",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "0b2f4c7328fdc2137122fc9a68d59ad6639b61aed21fcf36a1a18c0dc7f59d0c",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/rock-cycle",
+        "term": "The rock cycle",
+        "claims": [
+          "The rock cycle describes how Earth's three rock families — igneous, sedimentary, and metamorphic — form and continually transform into one another through geologic processes.",
+          "The rock cycle describes the major Earth materials, the processes that form them, and how they relate to each other.",
+          "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+          "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4 The rock cycle"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "31c343428148cc09542aebf8773049d959b2560eb96845c284b4f3e5d34b2515",
+          "artifact": {
+            "tr": "Rock cycle",
+            "df": "The continuous transformation of Earth's three rock families.",
+            "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
+            "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
+            "cx": "The cycle involves igneous, sedimentary, and metamorphic rocks continually transforming into one another."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "2b1deff813cd94ca69a6dd1311194aefb3d4a3da6c7888f111dcb0b6a05df65b",
+          "artifact": {
+            "tr": "rock cycle",
+            "df": "A description of Earth's main rock families and the processes that create and transform them.",
+            "eg": "Magma cools into igneous rock, which can later become sedimentary or metamorphic rock.",
+            "mi": "It is just a sequence of rock names.",
+            "cx": "The cycle links igneous, sedimentary, and metamorphic rocks through geologic processes and can begin again if rocks melt into magma."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "31c343428148cc09542aebf8773049d959b2560eb96845c284b4f3e5d34b2515",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "2b1deff813cd94ca69a6dd1311194aefb3d4a3da6c7888f111dcb0b6a05df65b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-41965f7a7bad4721b341",
+      "caseDigest": "030cd827dbdcc69a15050d1e62a841a8af88976526e1ccf48b8add0d869be922",
+      "domain": "music-theory",
+      "courseGroupSha256": "abd9179b4ea6b87d8a66c2873abc3d80d2536ff2e260ceea34f67f4728b84d82",
+      "sourceContextSha256": "859f6c70025f32349e3850964fa67f26a6b9aab420b6fb6be868cb1d5c51c502",
+      "sourceContext": {
+        "sourcePacketSha256": "4f8665de42ed5888872183fe359968e2ed762767005c9b442852fad349e4fd12",
+        "kernelId": "music/scales-and-key-signatures",
+        "term": "Scales and key signatures",
+        "claims": [
+          "In music theory, a scale is \"any consecutive series of notes that form a progression between one note and its octave\", typically by order of pitch or fundamental frequency.",
+          "A measure of the width of each scale step provides a method to classify scales.",
+          "Scales can be abstracted from performance or composition.",
+          "Therefore, any scale is distinguishable by its \"step-pattern\", or how its intervals interact with each other.",
+          "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic).",
+          "The expression scale degree refers to these numerical labels."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ed71a7df24da9dfd7882d9817096b356a6636a5d9d6a99aed9308088ece216ea",
+          "artifact": {
+            "tr": "Tonic",
+            "df": "The first degree that anchors a specific scale.",
+            "eg": "In C major, C is the tonic.",
+            "mi": "It means the highest note in the octave.",
+            "cx": "The tonic is the first degree, not the top pitch."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e863bb69db62750b503dd291d74339a035f74b148a1ce8a3711ef4ebf92b1e87",
+          "artifact": {
+            "tr": "The defining feature that allows for the classification of a",
+            "df": "A measure of the width of each scale step provides a method to classify scales.",
+            "eg": "A scale with very wide steps is classified differently than one with narrow steps.",
+            "mi": "Misconception: The width of the steps is the only factor determining the scale type.",
+            "cx": "Correction: The measure of the width of each scale step provides a method to classify scales."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ed71a7df24da9dfd7882d9817096b356a6636a5d9d6a99aed9308088ece216ea",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e863bb69db62750b503dd291d74339a035f74b148a1ce8a3711ef4ebf92b1e87",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-0662a38b59390b6ddbee",
+      "caseDigest": "4939786e9360972903a74d31aa091e7d09461a94f95e123308c08a14caef08bc",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "ef93480f90ed75647a62b70f383d83e59b888f6538dd5e921616370a702004e5",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/musical-form",
+        "term": "Musical form",
+        "claims": [
+          "In music, form refers to the structure of a musical composition or performance.",
+          "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+          "Musical form unfolds over time through the expansion and development of these ideas.",
+          "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+          "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+          "The next level concerns the entire structure of any single self-contained musical piece or movement."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "df29f50af95438963943ffcd76913e356f72c3489cb1216ca9c4749dcaf4ed1f",
+          "artifact": {
+            "tr": "Composition structure",
+            "df": "The overall arrangement of musical ideas within a piece.",
+            "eg": "A sonata form movement.",
+            "mi": "Thinking structure is the same as musical form.",
+            "cx": "Musical form is the structure of a musical composition or performance."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "5fab88d9019769416bc8d9121eb096cbbb1af96418ac23e3167a7bd035cd1b29",
+          "artifact": {
+            "tr": "Musical form",
+            "df": "The overall structure of a musical composition or performance.",
+            "eg": "A listener describes how a movement is organized from beginning to end.",
+            "mi": "It means only the melody line.",
+            "cx": "Form includes the full structure, not just one element like melody."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "df29f50af95438963943ffcd76913e356f72c3489cb1216ca9c4749dcaf4ed1f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "5fab88d9019769416bc8d9121eb096cbbb1af96418ac23e3167a7bd035cd1b29",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9644fbbddb88c87faa4c",
+      "caseDigest": "a26a2ae2709cba0d59dd786c7bd4375005253b44558191e62d5f974342d04763",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "2ea0a82c55c2fb5b937f262e1f58db93de4805417c315713417de3388ea7494d",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/musical-form",
+        "term": "Musical form",
+        "claims": [
+          "In music, form refers to the structure of a musical composition or performance.",
+          "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+          "Musical form unfolds over time through the expansion and development of these ideas.",
+          "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+          "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+          "The next level concerns the entire structure of any single self-contained musical piece or movement."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "5c20e64a07d3e5bdbace170863812151bdea636d7c895800ef59b923c99d5fab",
+          "artifact": {
+            "tr": "Compositional framework",
+            "df": "The result of the interaction of sound, harmony, melody, and rhythm.",
+            "eg": "Examining how sound, harmony, melody, and rhythm interact to create the piece.",
+            "mi": "A single musical element like rhythm.",
+            "cx": "The interaction of the four structural elements described above [sound, harmony, melody, rhythm]."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "1d9917010e83555dc5be0a891436e3252886e782b7baa6b613d0c5ab73a28161",
+          "artifact": {
+            "tr": "Binary form",
+            "df": "A two-part design with sections of about equal length.",
+            "eg": "A short piece divided into two roughly equal sections fits this description.",
+            "mi": "It means any piece with two themes.",
+            "cx": "The key feature is two sections that are about equal in length."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "5c20e64a07d3e5bdbace170863812151bdea636d7c895800ef59b923c99d5fab",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "1d9917010e83555dc5be0a891436e3252886e782b7baa6b613d0c5ab73a28161",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-bff6e09bad3496c4d200",
+      "caseDigest": "d5d0c65a59f9be6eea3535b6dd04610c7cd7d9363cd4e31e973ebfb53f1b5735",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "ba9ca1fad3e1e58f64f361067cb74b7c5a77a5c9b15cd4ea1efb2b3b5dfad0a2",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/harmony-and-progressions",
+        "term": "Harmony and chord progressions",
+        "claims": [
+          "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+          "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+          "A first chord forms a 'progression' with a second chord, and a second with a third.",
+          "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+          "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "59b64af013723d237f27929ded6fcac3b2d9f8a7b7a8c9c4c00505bf640dff32",
+          "artifact": {
+            "tr": "Harmony",
+            "df": "Combining different sounds so they form a new musical idea.",
+            "eg": "A chord change that supports a melody in a song can show harmony at work.",
+            "mi": "Harmony means only loudness or volume.",
+            "cx": "It is not just one sound; it depends on sounds being combined in a musically meaningful way."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "de15416f4badfba5a94f79cd6ce6241ae29df7847677cea317a8993a4c97c600",
+          "artifact": {
+            "tr": "Harmonic foundation",
+            "df": "The structural base of harmony in Western music.",
+            "eg": "The i, iv, and v chords in the key of A minor.",
+            "mi": "Misconception: Thinking that only the melody establishes the harmonic foundation. Correction: The chord progression forms the foundation of harmony in Western musical tradition (Claim 2).",
+            "cx": "The i, iv, and v chords in the key of A minor."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "59b64af013723d237f27929ded6fcac3b2d9f8a7b7a8c9c4c00505bf640dff32",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "de15416f4badfba5a94f79cd6ce6241ae29df7847677cea317a8993a4c97c600",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-27b55b2991a5e7a54c58",
+      "caseDigest": "901d68878d9c6c98fd488cd21e598e478f84e3412ab0970cc999eda8cc4fc88e",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "ab10b15269aa5d7e3e8b051f33db9774e4921e4969bd1a9591587a2099e8c480",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "term": "Accessibility and usability evaluation",
+        "claims": [
+          "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "A single disabled participant's experience should not be generalized to all people with disabilities."
+        ],
+        "attribution": [
+          "W3C Web Accessibility Initiative",
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "W3C Document License and U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "3d1395915885e2fb92d7c2288120f6c652ae0fcf3bf08bbbe614f9483f0bd233",
+          "artifact": {
+            "tr": "WCAG",
+            "df": "A web-accessibility framework organized around four principles.",
+            "eg": "A course team checks whether a prototype is perceivable, operable, understandable, and robust before user testing.",
+            "mi": "It is mainly a checklist for visual design polish.",
+            "cx": "The principles guide accessibility review beyond appearance and support structured conformance checks."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "457b123773afd69b1aef18df9909314b7c6ec6012d7ca753ec5b1467967c075b",
+          "artifact": {
+            "tr": "Usability testing",
+            "df": "A method of observing users attempting to use a product or service while thinking aloud.",
+            "eg": "Watching a user struggle to find the 'submit' button on a prototype while verbalizing their confusion.",
+            "mi": "Usability testing is just watching users without any verbal feedback.",
+            "cx": "Usability testing is observing users attempting to use a product or service while thinking aloud (Claim 3)."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "3d1395915885e2fb92d7c2288120f6c652ae0fcf3bf08bbbe614f9483f0bd233",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "457b123773afd69b1aef18df9909314b7c6ec6012d7ca753ec5b1467967c075b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-45f7974b712e10c0d9ec",
+      "caseDigest": "d6b8af82e8c01ed4eadba60c0c696b8804f8c091b034dca97e2a1941f9029949",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+      "sourceContextSha256": "eae886b2eb2486d3a7ef1c8e1962b766242f767255a2d950e9b59bd9f6387afa",
+      "sourceContext": {
+        "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c283545066ba22b3d8779acef304be04dc64ca6d4d62657d386e4f9b4db6d1a6",
+          "artifact": {
+            "tr": "Testable representation",
+            "df": "A preliminary model of an experience that can be used to verify design concepts.",
+            "eg": "A low-fidelity wireframe used to test the flow of a new navigation menu.",
+            "mi": "A testable representation must include every production detail.",
+            "cx": "A testable representation builds a testable representation of how a planned experience looks and works without requiring every production detail."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "ab749492f2bd0bba51b63aae5474f2d9d4551e4974f9be141297a9f43e8924c3",
+          "artifact": {
+            "tr": "Interactive prototyping",
+            "df": "Building a testable representation of an intended experience that shows how it looks and works before every production detail exists.",
+            "eg": "A team creates a clickable app mockup to check the main screen changes and button behavior before full development.",
+            "mi": "It is the same as a finished product.",
+            "cx": "A prototype is for learning and testing, and it may leave some details unfinished."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c283545066ba22b3d8779acef304be04dc64ca6d4d62657d386e4f9b4db6d1a6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "ab749492f2bd0bba51b63aae5474f2d9d4551e4974f9be141297a9f43e8924c3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-541b27f6cf991e0f4085",
+      "caseDigest": "c9b314f697092e1488a76e07ac94f1ae111e78e18e3da482f83a0fdd7a8ab21d",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "9e63834d6d05656f879aa25eb35eb0aa921c6279a7d5bbc555f6ba4ab57d9df2",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/journey-mapping",
+        "term": "Journey mapping",
+        "claims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "42538f3e0e480c20793474b965cf36d09c3d81e8ef823779741d182cb668e47d",
+          "artifact": {
+            "tr": "Journey mapping",
+            "df": "A research-backed way to chart the user's full experience from start to finish, including boundaries, breakdowns, and opportunities.",
+            "eg": "In the capstone, students could map how someone signs up, submits a request, switches between web and phone support, and reaches the final outcome.",
+            "mi": "It is just a flowchart of interface screens.",
+            "cx": "The correction is that it focuses on the user's end-to-end experience, not only screens or system steps."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "58a56d60960430c74ef8803cd695204fabec86eb90d33f385c946eb56d254696",
+          "artifact": {
+            "tr": "End-to-end experience visualization",
+            "df": "A visual representation of the complete user path.",
+            "eg": "Mapping the entire process from initial search to final purchase.",
+            "mi": "Thinking a map only shows the main features.",
+            "cx": "It shows connected steps, boundaries, breakdowns, and opportunities."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "42538f3e0e480c20793474b965cf36d09c3d81e8ef823779741d182cb668e47d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "58a56d60960430c74ef8803cd695204fabec86eb90d33f385c946eb56d254696",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

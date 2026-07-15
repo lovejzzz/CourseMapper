@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.29
+**Current release:** v0.16.30
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.29**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.30**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -64,6 +64,12 @@ v0.16.27 follows the fourteen residual key-term failures to the production bound
 A hash-bound installed-Chrome run rebuilt the exact fourteen v0.16.26 deficits from both immutable source-capture campaigns. The exact revision-pinned 3,349,514,112-byte public Gemma 4 base admitted **14/14**: nine on the first attempt and five after one bounded retry. Three accepted responses also needed the conservative cross-attempt field-retention repair. The stronger copied-clause detector forced retries instead of accepting a correction hidden inside an expanded definition. This is targeted contract recovery, not a claim that the recovered content is factually correct, educationally superior, equal to a paid model, or produced by a quality adapter.
 
 The compiler improvement has two scopes. The shared contract, full/legacy parsers, and native incomplete-kernel recovery are **model-neutral**, so user-selected paid providers such as GPT-5.4-mini can benefit when their output enters those paths. The focused browser retry feedback, accumulated local defect loop, and cross-attempt response merge are **Scion-local** because they operate inside the public browser provider. No Gemma weight changed, no Scion quality adapter was activated, and public Scion remains the pinned base plus compiler.
+
+v0.16.30 repairs the clean-room bridge required to turn Codex judgment into real adapter training evidence. The audit found that the old workbook command reconstructed from the current review-candidate pool. That pool has changed since the sealed A/B pass and now yields 123 cases, so it cannot reproduce the exact 128-case B/A order needed for a valid reversed comparison. The release does not accept the smaller packet or rewrite history.
+
+The exact blank B/A-only kit is now committed under `evaluation/scion-adapters/handoffs/`: the verified v0.16.19 canonical handoff plus a v0.16.30 workbook with eight immutable 16-case chunks, blank decision skeletons, the exact judge prompt, clean-task instructions, and byte-bound manifests. It contains no earlier outcome, organizer mapping, unblinded model identity, key, completed decision, or judgment plaintext. `npm run audit:scion:codex-fresh-handoff` verifies the tracked workbook and independently reconstructs all 128 cases from the frozen canonical handoff; it no longer follows mutable upstream candidates. Receipt failures also name the exact drifting JSON field instead of returning only an opaque mismatch.
+
+This makes the next judgment reproducible in a clean checkout, but it is not the judgment itself. The reverse-order pass still must run in one genuinely fresh Codex task that has not seen the A/B outcome. Until both sealed orders agree after unblinding, Scion still has zero approved quality preferences, zero quality-adapter weights, and no adapter-versus-base or paid-reference win.
 
 v0.16.29 closes the remaining adapter-promotion truth gaps and repairs a constructibility defect found during the audit. v0.16.28 asked judge evidence to contain the SHA-256 of the manifest that contained the judge-evidence SHA-256; adding either digest changes the other. Promotion evidence now binds a stable adapter **package identity** over the exact adapter, base, training, files, runtime, and conversion contract while excluding mutable promotion attestations. The manifest can therefore hash each evidence file and each evidence file can identify the exact package without an impossible circular fixed point.
 
@@ -218,7 +224,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.29)
+## Current Pipeline (v0.16.30)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

@@ -19,12 +19,13 @@ import {
   SCION_CODEX_TRAINING_REVIEW_PROTOCOL,
   SCION_CODEX_TRAINING_SCORE_DIMENSIONS,
 } from '../src/lib/scionCodexTrainingEvidence.js';
+import { appendScionReceiptMismatchIssues } from './lib/scionReceiptDiff.mjs';
 
 export const SCION_CODEX_FRESH_HANDOFF_PROTOCOL = 'scion-codex-fresh-judge-handoff-v1';
 export const SCION_CODEX_FRESH_HANDOFF_ORDER = 'B/A';
 
 const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DEFAULT_OUTPUT = 'verification-output/scion-codex-fresh-b-a';
+const DEFAULT_OUTPUT = 'evaluation/scion-adapters/handoffs/fresh-b-a-canonical-v0.16.19';
 const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/fresh-b-a-handoff-v0.16.19.json';
 const TEMPLATE_FILE = 'codex-review-b-a.json';
 const DECISIONS_FILE = 'codex-decisions-b-a.json';
@@ -236,14 +237,24 @@ async function prepareOutputDirectory(outputDir) {
 export async function verifyScionCodexFreshJudgeHandoff({ handoffDir, expectedReceipt } = {}) {
   if (!handoffDir) throw new Error('Fresh handoff verification requires --handoff');
   const absoluteHandoff = path.resolve(handoffDir);
+  const templatePath = path.join(absoluteHandoff, TEMPLATE_FILE);
+  const decisionsPath = path.join(absoluteHandoff, DECISIONS_FILE);
   const issues = [];
+  let handoffStat;
+  try {
+    handoffStat = await fs.lstat(absoluteHandoff);
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+    return { valid: false, issues: ['handoff-directory'], manifest: null, templatePath, decisionsPath };
+  }
+  if (!handoffStat.isDirectory() || handoffStat.isSymbolicLink()) {
+    return { valid: false, issues: ['handoff-directory'], manifest: null, templatePath, decisionsPath };
+  }
   const entries = await fs.readdir(absoluteHandoff, { withFileTypes: true });
   const names = entries.map((entry) => entry.name).sort();
   if (JSON.stringify(names) !== JSON.stringify([...OWNED_FILES].sort())) issues.push('handoff-file-set');
   if (entries.some((entry) => !entry.isFile() || entry.isSymbolicLink())) issues.push('handoff-nonregular-file');
 
-  const templatePath = path.join(absoluteHandoff, TEMPLATE_FILE);
-  const decisionsPath = path.join(absoluteHandoff, DECISIONS_FILE);
   if (issues.length > 0) {
     return {
       valid: false,
@@ -295,9 +306,7 @@ export async function verifyScionCodexFreshJudgeHandoff({ handoffDir, expectedRe
       issues.push(`manifest-file-identity:${fileName}`);
     }
   }
-  if (expectedReceipt && JSON.stringify(manifest) !== JSON.stringify(expectedReceipt)) {
-    issues.push('tracked-receipt-mismatch');
-  }
+  appendScionReceiptMismatchIssues(issues, manifest, expectedReceipt);
   return {
     valid: issues.length === 0,
     issues: [...new Set(issues)],
@@ -394,21 +403,9 @@ export async function buildScionCodexFreshJudgeHandoff({
   }
 }
 
-async function auditTrackedHandoff(receiptFile) {
+async function auditTrackedHandoff(receiptFile, handoffDir = DEFAULT_OUTPUT) {
   const expectedReceipt = JSON.parse(await fs.readFile(receiptFile, 'utf8'));
-  const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-fresh-judge-audit-'));
-  try {
-    const result = await buildScionCodexFreshJudgeHandoff({
-      outputDir: path.join(temporaryRoot, 'handoff'),
-      generatedAt: expectedReceipt.generatedAt,
-    });
-    return await verifyScionCodexFreshJudgeHandoff({
-      handoffDir: result.outputDir,
-      expectedReceipt,
-    });
-  } finally {
-    await fs.rm(temporaryRoot, { recursive: true, force: true });
-  }
+  return await verifyScionCodexFreshJudgeHandoff({ handoffDir, expectedReceipt });
 }
 
 function parseArgs(argv) {
@@ -442,7 +439,7 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.mode === 'audit') {
-    const verification = await auditTrackedHandoff(args.receiptFile);
+    const verification = await auditTrackedHandoff(args.receiptFile, args.handoffDir);
     console.log(JSON.stringify({ valid: verification.valid, issues: verification.issues }, null, 2));
     if (!verification.valid) process.exitCode = 1;
     return;
@@ -483,9 +480,16 @@ async function main() {
   let expectedReceipt = null;
   if (!args.receiptOutput && args.receiptFile) {
     expectedReceipt = JSON.parse(await fs.readFile(args.receiptFile, 'utf8'));
-    const reconstruction = await auditTrackedHandoff(args.receiptFile);
+    const reconstruction = await auditTrackedHandoff(args.receiptFile, args.handoffDir);
     if (!reconstruction.valid) {
       throw new Error(`Tracked fresh handoff no longer reconstructs: ${reconstruction.issues.join(', ')}`);
+    }
+    if (!args.packetDir) {
+      console.log(`Fresh B/A handoff: ${reconstruction.manifest.selectedCases} cases`);
+      console.log(`Output: ${path.resolve(args.handoffDir)}`);
+      console.log('Receipt: verified frozen handoff; not regenerated from mutable upstream inputs');
+      console.log('Prior outcome included: false');
+      return;
     }
   }
   const result = await buildScionCodexFreshJudgeHandoff({

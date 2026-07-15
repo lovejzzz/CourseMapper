@@ -271,6 +271,19 @@ The tracked `key-term-recovery-v0.16.27.json` receipt verifies both immutable ca
 
 All 14/14 deficits admit: nine on the first model attempt and five after one bounded retry. The stronger copied-clause detector caused those retries by rejecting a correction embedded verbatim inside an expanded definition. Three accepted responses contain one deterministic raw defect and become admissible only when the conservative cross-attempt merge retains an earlier model-authored field that strictly lowers issue count. These repairs are explicit and training-ineligible. This is real-browser local targeted contract recovery only—not factual correctness, educational superiority, full-course parity, an adapter win, paid-reference quality parity, human validation, or independent review.
 
+v0.16.30 makes the exact fresh B/A judgment input part of the reproducible evaluation corpus:
+
+```bash
+npm run audit:scion:codex-fresh-handoff
+npm run build:scion:codex-fresh-handoff
+```
+
+The audit discovered that historical reconstruction followed the current mutable review-candidate pool. That pool now yields 123 source-backed cases, while the sealed A/B pass and its reverse-order contract require the original 128. The historical receipt caught the drift, but the blank payload and its canonical source lived only in ignored local `verification-output`, so a clean checkout could neither verify nor execute the intended B/A task.
+
+The exact outcome-free inputs now live under `evaluation/scion-adapters/handoffs/`. `fresh-b-a-canonical-v0.16.19/` is the five-file verified B/A-only source. `fresh-b-a-workbook-v0.16.30/` contains the judge prompt, clean-task instructions, manifest, eight immutable 16-case review chunks, and eight blank decisions chunks. The v0.16.30 receipt binds all 128 cases, original-order reconstruction, pair-set and domain digests, and every file byte. These directories contain no A/B result, organizer mapping, unblinded model identity, encryption key, ciphertext, completed scorecard, or judgment plaintext.
+
+Default workbook construction now verifies the frozen canonical handoff against its historical receipt and refuses to read a mutable packet. The audit first verifies the tracked workbook, then independently reconstructs it in a temporary directory and demands byte equality. Receipt drift reports bounded exact JSON paths in addition to the fail-closed summary. This proves a reproducible blank clean-room input—not a completed judgment, stable preference, training row, adapter, model win, paid-reference result, human evidence, or independent review.
+
 v0.16.29 makes the remaining adapter canaries semantic and removes a circular identity from the promotion protocol:
 
 ```bash
