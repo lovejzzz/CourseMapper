@@ -7,7 +7,7 @@ import { execFile as execFileCallback } from 'node:child_process';
 import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
-import { computeScionAdapterDatasetIdentity } from './scionAdapterDataset.mjs';
+import { computeScionAdapterDatasetIdentity, SCION_ORPO_TRAINING_FORMAT } from './scionAdapterDataset.mjs';
 import { SCION_GEMMA4_E2B_BASE } from '../src/lib/scionAdapterManifest.js';
 
 const execFile = promisify(execFileCallback);
@@ -176,6 +176,9 @@ export async function verifyScionAdapterDatasetForTraining({ manifestPath, lane,
   const datasetDir = path.dirname(manifestFile.absolutePath);
   const issues = [];
   if (manifest?.schemaVersion !== 3) issues.push('dataset-schema-version');
+  if (stableJson(manifest?.trainingFormat) !== stableJson(SCION_ORPO_TRAINING_FORMAT)) {
+    issues.push('dataset-training-format');
+  }
   if (manifest?.status !== DATASET_STATUS_BY_LANE[lane]) {
     issues.push(`dataset-status:${manifest?.status || 'missing'}!=${DATASET_STATUS_BY_LANE[lane]}`);
   }

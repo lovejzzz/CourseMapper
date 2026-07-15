@@ -611,10 +611,11 @@ describe('Scion adapter tooling', () => {
       domainMap: { entries: 1, sha256: expect.stringMatching(/^[a-f0-9]{64}$/) },
     });
     expect(JSON.parse(curated)).toMatchObject({
-      context: { domain: 'user-experience-design', courseId: 'ux-101', domainSource: 'registry' },
-      preferenceEvidence: {
-        kind: 'deterministic-contract-margin',
-        scope: 'non-semantic-contract-only',
+      provenance: {
+        domain: 'user-experience-design',
+        domainSource: 'registry',
+        preferenceEvidenceKind: 'deterministic-contract-margin',
+        preferenceEvidenceScope: 'non-semantic-contract-only',
       },
     });
   });

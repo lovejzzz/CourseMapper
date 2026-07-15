@@ -18,6 +18,12 @@ const DEFAULT_SOURCES = [
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
+export const SCION_ORPO_TRAINING_FORMAT = Object.freeze({
+  protocol: 'scion-orpo-conversations-v1',
+  columns: Object.freeze(['chosen', 'rejected', 'provenance']),
+  sequence: Object.freeze(['user', 'assistant']),
+  promptIncludedInBothSequences: true,
+});
 
 function normalize(value) {
   return String(value ?? '')
@@ -71,6 +77,7 @@ export function computeScionAdapterDatasetIdentity(manifest) {
       domainGroupCounts: manifest?.domainGroupCounts,
       groupIdentity: manifest?.groupIdentity,
       splitIdentity: manifest?.splitIdentity,
+      trainingFormat: manifest?.trainingFormat,
       gate: manifest?.gate,
       leakage: manifest?.leakage,
       files: manifest?.files,
@@ -192,6 +199,36 @@ function lessonValue(value) {
   return object?.lessons?.[0] ?? object;
 }
 
+function trainingText(value) {
+  if (typeof value === 'string') return value.trim();
+  return stableJson(value);
+}
+
+export function toScionOrpoTrainingRow(entry) {
+  const row = entry?.row || entry;
+  const prompt = trainingText(row?.prompt);
+  const sequence = (response) => [
+    { role: 'user', content: prompt },
+    { role: 'assistant', content: trainingText(response) },
+  ];
+  return {
+    chosen: sequence(row?.chosen),
+    rejected: sequence(row?.rejected),
+    provenance: {
+      pairSha256: entry?.fingerprint || pairFingerprint(row),
+      sourceIndex: Number.isSafeInteger(entry?.sourceIndex) ? entry.sourceIndex : -1,
+      sourceLine: Number.isSafeInteger(entry?.line) ? entry.line : -1,
+      split: entry?.split || '',
+      domain: entry?.domain || normalize(row?.context?.domain).toLowerCase(),
+      courseGroupSha256: entry?.group ? stableHash(entry.group) : '',
+      domainSource: normalize(row?.context?.domainSource),
+      pairKind: pairKind(row),
+      preferenceEvidenceKind: normalize(row?.preferenceEvidence?.kind),
+      preferenceEvidenceScope: normalize(row?.preferenceEvidence?.scope),
+    },
+  };
+}
+
 function withDerivedContractEvidence(row) {
   if (
     row?.preferenceEvidence?.kind === 'single-model-judge-preference' &&
@@ -288,13 +325,20 @@ export async function buildScionAdapterDataset({
         domainSource,
       },
     };
-    eligible.push({ ...entry, row: curatedRow, fingerprint, group, domain });
+    eligible.push({
+      ...entry,
+      sourceIndex: sources.indexOf(entry.source),
+      row: curatedRow,
+      fingerprint,
+      group,
+      domain,
+    });
   }
 
   const groupSplits = assignGroupSplits(eligible);
   for (const entry of eligible) entry.split = groupSplits.get(entry.group);
   const splitRows = { train: [], valid: [], test: [] };
-  for (const entry of eligible) splitRows[entry.split].push(entry.row);
+  for (const entry of eligible) splitRows[entry.split].push(toScionOrpoTrainingRow(entry));
   const domains = [...new Set(eligible.map((entry) => entry.domain).filter((domain) => domain !== 'unknown'))].sort();
   const evidenceCounts = Object.fromEntries(
     [...new Set(eligible.map((entry) => normalize(entry.row?.preferenceEvidence?.kind) || 'missing'))]
@@ -478,6 +522,7 @@ export async function buildScionAdapterDataset({
       ),
       domains: splitDomains,
     },
+    trainingFormat: SCION_ORPO_TRAINING_FORMAT,
     gate: {
       minimumPairs,
       minimumDomains,

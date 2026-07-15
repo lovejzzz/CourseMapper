@@ -13,7 +13,10 @@
     "numpy": "2.5.1",
     "transformers": "5.13.0",
     "huggingface-hub": "1.22.0",
-    "safetensors": "0.8.0"
+    "safetensors": "0.8.0",
+    "datasets": "5.0.0",
+    "pyarrow": "25.0.0",
+    "tokenizers": "0.22.2"
   },
   "modules": {
     "mlx_vlm.lora": {
@@ -24,6 +27,15 @@
     },
     "mlx_vlm.trainer.orpo_trainer": {
       "sha256": "77235aa4676e90618d5ed5f7a32649eded34578f4fe8b87832622b32f00ef4af"
+    },
+    "mlx_vlm.trainer.datasets": {
+      "sha256": "133c93398f2f8a6aacdd224fb5c988f11dff6b1e23ef6108affc1c29c3285bbc"
+    },
+    "mlx_vlm.prompt_utils": {
+      "sha256": "05c81178fdc01ffec62a117ded1bd72a470d8c9bfe84e46997ec9e417fc56712"
+    },
+    "mlx_vlm.models.gemma4.processing_gemma4": {
+      "sha256": "c657ef75f2451b6e5d6e2caf43c7027532398cef0e37c4bde617f51467630fed"
     }
   },
   "trainer": {

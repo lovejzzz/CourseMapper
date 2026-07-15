@@ -6,7 +6,11 @@ import { promisify } from 'node:util';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildScionAdapterDataset, computeScionAdapterDatasetIdentity } from '../scripts/scionAdapterDataset.mjs';
+import {
+  buildScionAdapterDataset,
+  computeScionAdapterDatasetIdentity,
+  SCION_ORPO_TRAINING_FORMAT,
+} from '../scripts/scionAdapterDataset.mjs';
 import {
   assessScionTrainingToolchain,
   completeScionAdapterTrainingRun,
@@ -109,6 +113,42 @@ describe('Scion adapter training receipts', () => {
       }),
     ]);
     expect(await sha256File(first.manifestPath)).not.toBe(await sha256File(second.manifestPath));
+  });
+
+  it('writes one conditional conversation schema across every Hugging Face split', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-orpo-schema-'));
+    const dataset = await buildSmokeDataset(path.join(root, 'dataset'), '2026-07-15T00:00:00.000Z');
+
+    expect(dataset.manifest.trainingFormat).toEqual(SCION_ORPO_TRAINING_FORMAT);
+    for (const split of ['train', 'valid', 'test']) {
+      const text = await fs.readFile(path.join(root, 'dataset', `${split}.jsonl`), 'utf8');
+      const rows = text
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => JSON.parse(line));
+      for (const row of rows) {
+        expect(Object.keys(row).sort()).toEqual(['chosen', 'provenance', 'rejected']);
+        expect(row.chosen).toEqual([
+          { role: 'user', content: expect.any(String) },
+          { role: 'assistant', content: expect.any(String) },
+        ]);
+        expect(row.rejected[0]).toEqual(row.chosen[0]);
+        expect(row.rejected[1]).toEqual({ role: 'assistant', content: expect.any(String) });
+        expect(row.provenance).toEqual({
+          pairSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          sourceIndex: 0,
+          sourceLine: 1,
+          split,
+          domain: 'user-experience-design',
+          courseGroupSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+          domainSource: 'row',
+          pairKind: 'mc-item',
+          preferenceEvidenceKind: 'deterministic-contract-margin',
+          preferenceEvidenceScope: 'non-semantic-contract-only',
+        });
+      }
+    }
   });
 
   it('creates a derived adapter identity from exact data, code, base, toolchain, seed, and explicit ORPO parameters', async () => {

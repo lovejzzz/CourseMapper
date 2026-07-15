@@ -47,7 +47,7 @@
       "id": "v01631-stable-dataset-identity",
       "status": "verified-current",
       "changelogHighlightIndex": 0,
-      "summary": "Adapter datasets bind exact source receipts and admitted split bytes in a timestamp-independent identity that is independently recomputed before training.",
+      "summary": "Adapter datasets bind exact source receipts, one conditional conversation schema, and admitted split bytes in a timestamp-independent identity that is independently recomputed before training.",
       "anchors": [
         "scripts/scionAdapterDataset.mjs",
         "scripts/scionAdapterTrainingRun.mjs",

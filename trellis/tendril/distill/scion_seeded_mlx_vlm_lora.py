@@ -25,11 +25,17 @@ PACKAGE_NAMES = (
     "transformers",
     "huggingface-hub",
     "safetensors",
+    "datasets",
+    "pyarrow",
+    "tokenizers",
 )
 MODULE_NAMES = (
     "mlx_vlm.lora",
     "mlx_vlm.trainer.lora",
     "mlx_vlm.trainer.orpo_trainer",
+    "mlx_vlm.trainer.datasets",
+    "mlx_vlm.prompt_utils",
+    "mlx_vlm.models.gemma4.processing_gemma4",
 )
 
 

@@ -6,7 +6,7 @@ export const CURRENT_RELEASE = {
   title: 'Seed Before You Graft: make every learned Scion delta reproducible',
   landingTitle: 'Scion’s Future Adapter Now Has a Reproducible Training Chain',
   highlights: [
-    'Adapter datasets now carry a timestamp-independent SHA-256 identity over exact source receipts, admitted split bytes, group boundaries, evidence counts, leakage gates, and training profiles. A changed source, split, row count, or dataset claim fails before training starts.',
+    'Adapter datasets now carry a timestamp-independent SHA-256 identity over exact source receipts, one conditional conversation schema, admitted split bytes, group boundaries, evidence counts, leakage gates, and training profiles. A changed source, schema, split, row count, or dataset claim fails before training starts.',
     'Scion pins the Apple training stack down to Python and package versions plus the exact MLX-VLM trainer module bytes. Both a CI-safe contract audit and a live local audit reject toolchain drift instead of treating the same command name as the same experiment.',
     'The training launcher no longer invokes MLX-VLM’s unseeded CLI directly. A narrow Scion runner seeds NumPy shuffling and MLX LoRA initialization before trainer import, records every ORPO parameter explicitly, and derives the adapter ID from the canonical run identity.',
     'Training plans and completion receipts bind the clean Git commit and tree, exact base revision, dataset and toolchain identities, seed, command, adapter files, and retained local log digest. Manifest schema v3 requires that chain for research, candidate, and promoted adapters and carries it through GGUF conversion.',
@@ -39,9 +39,9 @@ export const CURRENT_RELEASE_CHANGELOG = {
       icon: 'AI',
       color: 'emerald',
       items: [
-        'Dataset schema v3 now records every present or absent source, hashes each present source, and computes a canonical identity from source receipts, admitted split bytes and row counts, domain and course-group coverage, evidence distribution, leakage state, and profile gates. Generation time is deliberately excluded from that identity.',
+        'Dataset schema v3 now records every present or absent source, hashes each present source, and computes a canonical identity from source receipts, an explicit training format, admitted split bytes and row counts, domain and course-group coverage, evidence distribution, leakage state, and profile gates. Every split embeds the same user prompt in both chosen and rejected conversations and uses one fixed provenance object, eliminating source-dependent Hugging Face schemas without discarding row identity. Generation time is deliberately excluded from the canonical identity.',
         'The training preflight verifies every JSONL row, split count, byte count, SHA-256, source receipt, dataset identity, exact QAT base contract and snapshot revision, and clean Git commit and tree before it creates an output directory.',
-        'The pinned toolchain policy names Python 3.13.3, MLX 0.31.2, MLX-VLM 0.6.3, NumPy 2.5.1, Transformers 5.13.0, Hugging Face Hub 1.22.0, Safetensors 0.8.0, and the exact source hashes of the MLX-VLM entrypoint, LoRA layer, and ORPO trainer.',
+        'The pinned toolchain policy names Python 3.13.3, MLX 0.31.2, MLX-VLM 0.6.3, NumPy 2.5.1, Transformers 5.13.0, Hugging Face Hub 1.22.0, Safetensors 0.8.0, Datasets 5.0.0, PyArrow 25.0.0, Tokenizers 0.22.2, and the exact source hashes of the MLX-VLM entrypoint, LoRA layer, ORPO trainer, dataset adapter, prompt renderer, and Gemma 4 processor.',
         'The resulting adapter ID is derived from the canonical training-plan identity instead of a clock. The plan binds the clean repository, base, dataset, policy and live receipt, seed, every explicit ORPO parameter, command vector, and training-code bytes.',
       ],
     },
