@@ -76,7 +76,7 @@
       "id": "v01631-seeded-canonical-plan",
       "status": "verified-current",
       "changelogHighlightIndex": 2,
-      "summary": "Scion seeds NumPy and MLX before trainer import, records every ORPO parameter explicitly, refuses dirty source state, and derives adapter identity from the canonical plan.",
+      "summary": "Scion seeds NumPy and MLX before trainer import, bounds Metal memory with a declared physical batch, accumulation, and activation-checkpointing contract, records every ORPO parameter explicitly, refuses dirty source state, and derives adapter identity from the canonical plan.",
       "anchors": [
         "trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py",
         "trellis/tendril/distill/run_orpo_g4.sh",

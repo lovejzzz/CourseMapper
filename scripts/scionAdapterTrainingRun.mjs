@@ -38,14 +38,15 @@ export const SCION_ORPO_DEFAULTS = Object.freeze({
   trainingMode: 'orpo',
   split: 'train',
   iterations: 600,
-  batchSize: 2,
+  batchSize: 1,
   learningRate: 0.00002,
   stepsPerReport: 20,
   stepsPerEval: 200,
   stepsPerSave: 100,
   validationBatches: 4,
   maxSequenceLength: 2048,
-  gradientAccumulationSteps: 1,
+  gradientCheckpointing: true,
+  gradientAccumulationSteps: 2,
   loraRank: 16,
   loraAlpha: 16,
   loraDropout: 0,
@@ -289,6 +290,7 @@ function validateHyperparameters(hyperparameters, lane, seed) {
   }
   if (hyperparameters?.trainingMode !== 'orpo') issues.push('hyperparameter:trainingMode');
   if (hyperparameters?.split !== 'train') issues.push('hyperparameter:split');
+  if (hyperparameters?.gradientCheckpointing !== true) issues.push('hyperparameter:gradientCheckpointing');
   if (lane === 'smoke' && hyperparameters?.iterations !== 10) issues.push('smoke-iterations');
   if (lane !== 'smoke' && hyperparameters?.iterations < 100) issues.push(`${lane}-iterations`);
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 0xffffffff) issues.push('seed');
@@ -296,7 +298,7 @@ function validateHyperparameters(hyperparameters, lane, seed) {
 }
 
 function trainerArgs(hyperparameters) {
-  return [
+  const args = [
     '--model-path',
     '{BASE_SNAPSHOT}',
     '--dataset',
@@ -321,6 +323,9 @@ function trainerArgs(hyperparameters) {
     String(hyperparameters.validationBatches),
     '--max-seq-length',
     String(hyperparameters.maxSequenceLength),
+  ];
+  if (hyperparameters.gradientCheckpointing) args.push('--grad-checkpoint');
+  args.push(
     '--gradient-accumulation-steps',
     String(hyperparameters.gradientAccumulationSteps),
     '--lora-rank',
@@ -335,7 +340,8 @@ function trainerArgs(hyperparameters) {
     String(hyperparameters.epsilon),
     '--output-path',
     '{OUTPUT_DIR}',
-  ];
+  );
+  return args;
 }
 
 function trainingPlanIdentityPayload(plan) {

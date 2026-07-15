@@ -113,14 +113,15 @@ set +e
   --split train \
   --train-mode orpo \
   --iters "$ITERS" \
-  --batch-size 2 \
+  --batch-size 1 \
   --learning-rate 0.00002 \
   --steps-per-report 20 \
   --steps-per-eval 200 \
   --steps-per-save 100 \
   --val-batches 4 \
   --max-seq-length 2048 \
-  --gradient-accumulation-steps 1 \
+  --grad-checkpoint \
+  --gradient-accumulation-steps 2 \
   --lora-rank 16 \
   --lora-alpha 16 \
   --lora-dropout 0 \
