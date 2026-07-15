@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url';
 import JSZip from 'jszip';
 
 import { getCourseById } from './crucible/courses.mjs';
+import { computeScionAdapterPackageIdentity } from './lib/scionBrowserDeviceMatrix.mjs';
 import { summarizeScionCompilerBurden, parseScionConsoleEvents } from './lib/scionCompilerBurden.mjs';
 import { sha256File } from './scionAdapterPackage.mjs';
 import { SCION_GEMMA4_E2B_BASE, validateScionAdapterManifest } from '../src/lib/scionAdapterManifest.js';
@@ -222,6 +223,7 @@ async function verifyBenchmarkFiles({ benchmarkPath, datasetPath, adapterManifes
     benchmarkSha256: await sha256File(benchmarkPath),
     datasetSha256,
     adapterManifestSha256: await sha256File(adapterManifestPath),
+    adapterPackageIdentitySha256: computeScionAdapterPackageIdentity(adapterManifest).sha256,
     heldoutBoundary,
   };
 }
@@ -267,11 +269,16 @@ export async function prepareScionBenchmarkRun({
     if (
       localModel?.adapterActive !== true ||
       localModel?.adapterId !== verified.adapterManifest.adapter.id ||
-      localModel?.adapterManifestSha256 !== verified.adapterManifestSha256
+      localModel?.adapterPackageIdentitySha256 !== verified.adapterPackageIdentitySha256
     ) {
       throw new Error('Adapter arm does not report the exact active adapter identity.');
     }
-  } else if (localModel?.adapterActive === true || localModel?.adapterId || localModel?.adapterManifestSha256) {
+  } else if (
+    localModel?.adapterActive === true ||
+    localModel?.adapterId ||
+    localModel?.adapterManifestSha256 ||
+    localModel?.adapterPackageIdentitySha256
+  ) {
     throw new Error('Base-only arm reports an active adapter.');
   }
   const compilerConfig = {
@@ -348,7 +355,7 @@ async function buildCourseEvidence({
   benchmarkCourse,
   expectedArm,
   adapterManifest,
-  adapterManifestSha256,
+  adapterPackageIdentitySha256,
 }) {
   const [report, digest, packageManifest, packageManifestText, project, consoleText, fileNames] = await Promise.all([
     readJson(path.join(courseDir, 'report.json')),
@@ -421,8 +428,9 @@ async function buildCourseEvidence({
     isAdapter !== (localModel.adapterActive === true) ||
     (isAdapter &&
       (localModel.adapterId !== adapterManifest.adapter.id ||
-        localModel.adapterManifestSha256 !== adapterManifestSha256)) ||
-    (!isAdapter && (localModel.adapterId || localModel.adapterManifestSha256))
+        localModel.adapterPackageIdentitySha256 !== adapterPackageIdentitySha256)) ||
+    (!isAdapter &&
+      (localModel.adapterId || localModel.adapterManifestSha256 || localModel.adapterPackageIdentitySha256))
   ) {
     throw new Error(`Course ${benchmarkCourse.courseId} used the wrong adapter state.`);
   }
@@ -461,6 +469,7 @@ async function buildCourseEvidence({
     adapterActive: localModel.adapterActive === true,
     adapterId: localModel.adapterId || null,
     adapterManifestSha256: localModel.adapterManifestSha256 || null,
+    adapterPackageIdentitySha256: localModel.adapterPackageIdentitySha256 || null,
     adapterScale: isAdapter ? Number(localModel.adapterScale ?? adapterManifest.adapter?.scale ?? 1) : 0,
     evidenceProducer: SCION_PAIRED_EVIDENCE_PRODUCER,
     artifactReceiptSha256,
@@ -521,7 +530,7 @@ export async function produceScionPairedEvidence({
           ...artifact,
           expectedArm: 'adapter',
           adapterManifest: verified.adapterManifest,
-          adapterManifestSha256: verified.adapterManifestSha256,
+          adapterPackageIdentitySha256: verified.adapterPackageIdentitySha256,
         }),
       ),
     ),
@@ -531,7 +540,7 @@ export async function produceScionPairedEvidence({
           ...artifact,
           expectedArm: 'base-only',
           adapterManifest: verified.adapterManifest,
-          adapterManifestSha256: verified.adapterManifestSha256,
+          adapterPackageIdentitySha256: verified.adapterPackageIdentitySha256,
         }),
       ),
     ),
@@ -545,6 +554,7 @@ export async function produceScionPairedEvidence({
     benchmarkManifestSha256: verified.benchmarkSha256,
     datasetManifestSha256: verified.datasetSha256,
     adapterManifestSha256: verified.adapterManifestSha256,
+    adapterPackageIdentitySha256: verified.adapterPackageIdentitySha256,
     observedAt: new Date().toISOString(),
   };
   const candidateEvidence = {

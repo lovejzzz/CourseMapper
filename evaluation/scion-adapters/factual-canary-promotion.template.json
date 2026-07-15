@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "scion-adapter-factual-canary-promotion-v1",
+  "claimBoundary": "This evidence proves exact-answer factual screening for one exact browser adapter on the frozen source-anchored packet. It does not prove full-course quality, paid-model parity, or classroom validity.",
+  "canonical": {
+    "canaryManifest": {
+      "path": "evaluation/scion-factual-canaries.json",
+      "sha256": "5b7d8fcb86c673d6ecad9a4ef97ec553d60792296e47f69603469b5c8e5c7a01"
+    },
+    "modelRegistry": {
+      "path": "evaluation/scion-model-candidates.json",
+      "sha256": "7b09fe4628185d8ff4baabe5991405b527aef2144413bdb7361face901900225"
+    }
+  },
+  "canaryPacketSha256": "4d4a5687e9b34e028b1eb5937c4575e9caec9ee042bb6b220a64675e2a46fb9f",
+  "adapter": {
+    "id": "REPLACE_WITH_EXACT_ADAPTER_ID",
+    "packageIdentitySha256": "REPLACE_WITH_PROMOTION_INDEPENDENT_PACKAGE_IDENTITY_SHA256",
+    "baseModelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "baseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "scale": 1
+  },
+  "campaign": {
+    "status": "complete",
+    "startedAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "completedAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "stoppingRule": "Run exactly two cold and two source-grounded trials before inspecting any result."
+  },
+  "runs": [
+    {
+      "id": "cold-1",
+      "mode": "cold",
+      "path": "runs/cold-1.json",
+      "sha256": "REPLACE_WITH_64_HEX_SHA256"
+    },
+    {
+      "id": "cold-2",
+      "mode": "cold",
+      "path": "runs/cold-2.json",
+      "sha256": "REPLACE_WITH_64_HEX_SHA256"
+    },
+    {
+      "id": "source-grounded-1",
+      "mode": "source-grounded",
+      "path": "runs/source-grounded-1.json",
+      "sha256": "REPLACE_WITH_64_HEX_SHA256"
+    },
+    {
+      "id": "source-grounded-2",
+      "mode": "source-grounded",
+      "path": "runs/source-grounded-2.json",
+      "sha256": "REPLACE_WITH_64_HEX_SHA256"
+    }
+  ]
+}

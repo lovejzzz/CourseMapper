@@ -372,6 +372,16 @@ describe('Scion browser device matrix', () => {
       reason: 'semantic-audit-failed',
       semanticAudit: { status: 'blocked', promotionEligible: false },
     });
+    expect(verification['factual-canaries']).toMatchObject({
+      verified: false,
+      reason: 'semantic-audit-failed',
+      semanticAudit: { status: 'blocked', promotionEligible: false },
+    });
+    expect(verification['production-canaries']).toMatchObject({
+      verified: false,
+      reason: 'semantic-audit-failed',
+      semanticAudit: { status: 'blocked', promotionEligible: false },
+    });
     expect(verification['browser-device-matrix']).toMatchObject({
       verified: false,
       reason: 'semantic-audit-failed',

@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { analyzeModelComparison } from './qualityBenchmark.mjs';
+import { computeScionAdapterPackageIdentity } from './scionBrowserDeviceMatrix.mjs';
 import { verifyComparisonScorecards } from '../qualityModelComparison.mjs';
 import { sha256File } from '../scionAdapterPackage.mjs';
 
@@ -108,7 +109,7 @@ function modelById(comparison, id) {
   return (comparison?.models || []).find((model) => model?.id === id);
 }
 
-function adapterModelIdentityPass(model, evidence, adapterManifest, adapterManifestSha256) {
+function adapterModelIdentityPass(model, evidence, adapterManifest, adapterPackageIdentitySha256) {
   return (
     model?.id === evidence?.adapter?.id &&
     model?.provider === 'local-browser' &&
@@ -116,7 +117,7 @@ function adapterModelIdentityPass(model, evidence, adapterManifest, adapterManif
     model?.revision === adapterManifest?.base?.revision &&
     model?.parameters?.adapterActive === true &&
     model?.parameters?.adapterId === adapterManifest?.adapter?.id &&
-    model?.parameters?.adapterManifestSha256 === adapterManifestSha256 &&
+    model?.parameters?.adapterPackageIdentitySha256 === adapterPackageIdentitySha256 &&
     Number(model?.parameters?.adapterScale) === Number(adapterManifest?.adapter?.scale ?? 1)
   );
 }
@@ -144,14 +145,21 @@ function controlModelIdentityPass(role, model, evidence, adapterManifest) {
   );
 }
 
-function comparisonBindingIssues({ comparison, role, evidence, adapterManifest, adapterManifestSha256, canonical }) {
+function comparisonBindingIssues({
+  comparison,
+  role,
+  evidence,
+  adapterManifest,
+  adapterPackageIdentitySha256,
+  canonical,
+}) {
   const issues = [];
   const expectedCourses = canonical.heldOutCourseBenchmark.courses || [];
   const expectedCaseIds = expectedCourses.map((course) => course.courseId);
   const courseById = new Map(expectedCourses.map((course) => [course.courseId, course]));
   const candidateModel = modelById(comparison, comparison?.candidateId);
   const controlModel = modelById(comparison, comparison?.controlId);
-  if (!adapterModelIdentityPass(candidateModel, evidence, adapterManifest, adapterManifestSha256)) {
+  if (!adapterModelIdentityPass(candidateModel, evidence, adapterManifest, adapterPackageIdentitySha256)) {
     issues.push(`${role}:adapter-model-identity-mismatch`);
   }
   if (!controlModelIdentityPass(role, controlModel, evidence, adapterManifest)) {
@@ -290,7 +298,7 @@ export async function auditScionAdapterSingleModelJudgeEvidence({
   evidencePath,
   evidence,
   adapterManifest,
-  adapterManifestSha256,
+  adapterPackageIdentitySha256,
   bootstrapSamples = 1000,
 } = {}) {
   const issues = [];
@@ -298,7 +306,11 @@ export async function auditScionAdapterSingleModelJudgeEvidence({
   if (evidence?.protocolVersion !== SCION_ADAPTER_JUDGE_PROMOTION_PROTOCOL) issues.push('evidence-protocol-version');
   if (evidence?.benchmarkProtocol !== 'honest-quality-benchmark-v1') issues.push('benchmark-protocol');
   if (evidence?.claimBoundary !== SCION_ADAPTER_JUDGE_CLAIM_BOUNDARY) issues.push('claim-boundary');
-  if (!SHA256.test(clean(adapterManifestSha256))) issues.push('adapter-manifest-sha256-missing');
+  const computedPackageIdentity = computeScionAdapterPackageIdentity(adapterManifest).sha256;
+  if (!SHA256.test(clean(adapterPackageIdentitySha256))) issues.push('adapter-package-identity-sha256-missing');
+  if (clean(adapterPackageIdentitySha256) !== computedPackageIdentity) {
+    issues.push('adapter-package-identity-sha256-mismatch');
+  }
   const canonical = await loadCanonical(path.resolve(root));
   if (
     canonical.qualityManifest?.benchmarkVersion !== '1.0.0' ||
@@ -338,7 +350,7 @@ export async function auditScionAdapterSingleModelJudgeEvidence({
   }
   if (
     evidence?.adapter?.id !== adapterManifest?.adapter?.id ||
-    evidence?.adapter?.manifestSha256 !== adapterManifestSha256 ||
+    evidence?.adapter?.packageIdentitySha256 !== adapterPackageIdentitySha256 ||
     evidence?.adapter?.baseRevision !== adapterManifest?.base?.revision ||
     Number(evidence?.adapter?.scale) !== Number(adapterManifest?.adapter?.scale ?? 1)
   ) {
@@ -395,7 +407,7 @@ export async function auditScionAdapterSingleModelJudgeEvidence({
           role,
           evidence,
           adapterManifest,
-          adapterManifestSha256,
+          adapterPackageIdentitySha256,
           canonical,
         }),
       );
@@ -414,7 +426,7 @@ export async function auditScionAdapterSingleModelJudgeEvidence({
     promotionEligible: uniqueIssues.length === 0,
     claimBoundary: SCION_ADAPTER_JUDGE_CLAIM_BOUNDARY,
     adapterId: adapterManifest?.adapter?.id || null,
-    adapterManifestSha256: adapterManifestSha256 || null,
+    adapterPackageIdentitySha256: adapterPackageIdentitySha256 || null,
     expectedCases: canonical.heldOutCourseBenchmark.courses.map((course) => ({
       courseId: course.courseId,
       domain: course.domain,

@@ -7,7 +7,11 @@ import { pathToFileURL } from 'node:url';
 import { validateScionAdapterManifest } from '../src/lib/scionAdapterManifest.js';
 import { sha256File } from './scionAdapterPackage.mjs';
 import { SCION_PAIRED_EVIDENCE_PRODUCER } from './scionAdapterPairedEvidence.mjs';
-import { auditScionBrowserDeviceMatrix } from './lib/scionBrowserDeviceMatrix.mjs';
+import { auditScionBrowserDeviceMatrix, computeScionAdapterPackageIdentity } from './lib/scionBrowserDeviceMatrix.mjs';
+import {
+  auditScionAdapterFactualCanaryEvidence,
+  auditScionAdapterProductionCanaryEvidence,
+} from './lib/scionAdapterCanaryPromotion.mjs';
 import { auditScionAdapterSingleModelJudgeEvidence } from './lib/scionAdapterJudgePromotion.mjs';
 
 const REQUIRED_EXTERNAL_EVIDENCE = [
@@ -102,7 +106,7 @@ function assessPairingContract({ candidateCourse, baseCourse, manifest }) {
     baseCourse?.baseRevision === manifest?.base?.revision &&
     baseCourse?.adapterActive === false &&
     baseCourse?.adapterId == null &&
-    baseCourse?.adapterManifestSha256 == null;
+    baseCourse?.adapterPackageIdentitySha256 == null;
   const expectedScale = Number.isFinite(Number(manifest?.adapter?.scale)) ? Number(manifest.adapter.scale) : 1;
   const scalePass = Number(candidateCourse?.adapterScale) === expectedScale && Number(baseCourse?.adapterScale) === 0;
   return {
@@ -133,7 +137,8 @@ function evidencePasses(manifest, type, verifiedExternalEvidence = {}) {
 
 const BROWSER_DEVICE_PROTOCOL_PATH = path.resolve('evaluation/scion-adapters/browser-device-matrix-protocol-v1.json');
 
-export async function verifyExternalEvidenceFiles(manifest, { manifestSha256 } = {}) {
+export async function verifyExternalEvidenceFiles(manifest, { adapterPackageIdentitySha256 } = {}) {
+  const packageIdentitySha256 = adapterPackageIdentitySha256 || computeScionAdapterPackageIdentity(manifest).sha256;
   const details = {};
   for (const type of REQUIRED_EXTERNAL_EVIDENCE) {
     const entry = (manifest?.promotion?.evidence || []).find((candidate) => candidate?.type === type);
@@ -168,7 +173,25 @@ export async function verifyExternalEvidenceFiles(manifest, { manifestSha256 } =
           evidencePath: absolutePath,
           evidence,
           adapterManifest: manifest,
-          adapterManifestSha256: manifestSha256,
+          adapterPackageIdentitySha256: packageIdentitySha256,
+        });
+      } else if (actualSha256 === entry.sha256 && type === 'factual-canaries') {
+        const evidence = JSON.parse(await fs.readFile(absolutePath, 'utf8'));
+        semanticAudit = await auditScionAdapterFactualCanaryEvidence({
+          root: process.cwd(),
+          evidencePath: absolutePath,
+          evidence,
+          adapterManifest: manifest,
+          adapterPackageIdentitySha256: packageIdentitySha256,
+        });
+      } else if (actualSha256 === entry.sha256 && type === 'production-canaries') {
+        const evidence = JSON.parse(await fs.readFile(absolutePath, 'utf8'));
+        semanticAudit = await auditScionAdapterProductionCanaryEvidence({
+          root: process.cwd(),
+          evidencePath: absolutePath,
+          evidence,
+          adapterManifest: manifest,
+          adapterPackageIdentitySha256: packageIdentitySha256,
         });
       }
       const semanticVerified = semanticAudit == null || semanticAudit.status === 'pass';
@@ -193,12 +216,13 @@ export async function verifyExternalEvidenceFiles(manifest, { manifestSha256 } =
 
 export function assessScionAdapterPromotion({
   manifest,
-  manifestSha256,
+  adapterPackageIdentitySha256,
   candidateEvidence = [],
   baseEvidence = [],
   minimumDomains = 5,
   verifiedExternalEvidence = {},
 } = {}) {
+  const packageIdentitySha256 = adapterPackageIdentitySha256 || computeScionAdapterPackageIdentity(manifest).sha256;
   const manifestValidation = validateScionAdapterManifest(manifest);
   const candidate = groupByDomain(flattenCourses(candidateEvidence));
   const base = groupByDomain(flattenCourses(baseEvidence));
@@ -222,7 +246,7 @@ export function assessScionAdapterPromotion({
     const adapterIdentityPass =
       candidateCourse?.adapterActive === true &&
       candidateCourse?.adapterId === manifest?.adapter?.id &&
-      candidateCourse?.adapterManifestSha256 === manifestSha256 &&
+      candidateCourse?.adapterPackageIdentitySha256 === packageIdentitySha256 &&
       candidateCourse?.baseRevision === manifest?.base?.revision;
     const pairing = assessPairingContract({ candidateCourse, baseCourse, manifest });
     const qualityPass =
@@ -364,16 +388,18 @@ export async function runScionAdapterPromotionAudit({
   if (!manifestPath) throw new Error('manifestPath is required');
   if (candidatePaths.length === 0 || basePaths.length === 0)
     throw new Error('candidate and base evidence are required');
-  const [manifest, candidateEvidence, baseEvidence, manifestSha256] = await Promise.all([
+  const [manifest, candidateEvidence, baseEvidence] = await Promise.all([
     fs.readFile(manifestPath, 'utf8').then(JSON.parse),
     readJsonFiles(candidatePaths),
     readJsonFiles(basePaths),
-    sha256File(manifestPath),
   ]);
-  const externalEvidenceVerification = await verifyExternalEvidenceFiles(manifest, { manifestSha256 });
+  const adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(manifest).sha256;
+  const externalEvidenceVerification = await verifyExternalEvidenceFiles(manifest, {
+    adapterPackageIdentitySha256,
+  });
   const report = assessScionAdapterPromotion({
     manifest,
-    manifestSha256,
+    adapterPackageIdentitySha256,
     candidateEvidence,
     baseEvidence,
     minimumDomains,

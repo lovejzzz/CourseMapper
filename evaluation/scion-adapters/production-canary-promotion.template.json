@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "protocolVersion": "scion-adapter-production-canary-promotion-v1",
+  "claimBoundary": "This evidence proves recent retained live-browser packages for one exact adapter across the declared production-canary scope. It does not prove general model superiority, paid-model parity, or classroom validity.",
+  "canonical": {
+    "policy": {
+      "path": "evaluation/scion-adapters/production-canary-promotion-policy-v1.json",
+      "sha256": "1f3f7d3f005b928935afc8bc327a7be4b042394ba4bb5e9a1271ea802c9af646"
+    },
+    "auditImplementation": {
+      "path": "scripts/productionCanaryAudit.mjs",
+      "sha256": "e7291b839a4b904b94a2bf6c90bd02fea19dad6732659d36e07d0c6861f375f3"
+    }
+  },
+  "adapter": {
+    "id": "REPLACE_WITH_EXACT_ADAPTER_ID",
+    "packageIdentitySha256": "REPLACE_WITH_PROMOTION_INDEPENDENT_PACKAGE_IDENTITY_SHA256",
+    "baseModelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "baseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "scale": 1
+  },
+  "campaign": {
+    "status": "complete",
+    "startedAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "completedAt": "REPLACE_WITH_ISO_TIMESTAMP",
+    "stoppingRule": "Retain exactly three predeclared live browser runs across at least two domains; every run must pass."
+  },
+  "runs": [
+    {
+      "id": "production-run-1",
+      "path": "runs/production-run-1.json",
+      "sha256": "REPLACE_WITH_64_HEX_SHA256"
+    },
+    {
+      "id": "production-run-2",
+      "path": "runs/production-run-2.json",
+      "sha256": "REPLACE_WITH_64_HEX_SHA256"
+    },
+    {
+      "id": "production-run-3",
+      "path": "runs/production-run-3.json",
+      "sha256": "REPLACE_WITH_64_HEX_SHA256"
+    }
+  ]
+}

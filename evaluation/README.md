@@ -271,14 +271,30 @@ The tracked `key-term-recovery-v0.16.27.json` receipt verifies both immutable ca
 
 All 14/14 deficits admit: nine on the first model attempt and five after one bounded retry. The stronger copied-clause detector caused those retries by rejecting a correction embedded verbatim inside an expanded definition. Three accepted responses contain one deterministic raw defect and become admissible only when the conservative cross-attempt merge retains an earlier model-authored field that strictly lowers issue count. These repairs are explicit and training-ineligible. This is real-browser local targeted contract recovery only—not factual correctness, educational superiority, full-course parity, an adapter win, paid-reference quality parity, human validation, or independent review.
 
-v0.16.28 makes the future adapter judgment itself promotion-grade instead of trusting an external file's label:
+v0.16.29 makes the remaining adapter canaries semantic and removes a circular identity from the promotion protocol:
+
+```bash
+npm run audit:scion:adapter:canaries:contract
+npm run audit:scion:adapter:factual -- --manifest /path/to/adapter.json --evidence /path/to/factual-canaries.json
+npm run audit:scion:adapter:production -- --manifest /path/to/adapter.json --evidence /path/to/production-canaries.json
+```
+
+Promotion evidence identifies the exact adapter with the canonical package identity already used by the browser-device matrix. That digest covers the adapter, base, training, files, runtime, and conversion contract but excludes mutable promotion attestations. This matters because a full manifest digest inside an evidence file is circular when the manifest also contains that evidence file's digest. The contract audit proves that adding or changing promotion attestations leaves the package identity stable.
+
+The factual template requires exactly two cold and two source-grounded trials against the frozen 25-case packet. Each run is campaign-local and hash-bound, uses one request per case, binds the exact browser runtime and native LoRA identity, and retains both answer indexes and exact option text. The audit reconstructs the indexes from text and rescores them. Cold trials require 23/25; grounded trials require 25/25 and 5/5 in every domain. Duplicate IDs or artifacts, extra convenient trials, mixed packets, endpoint relabeling, malformed answers, and summary-only pass objects fail closed.
+
+The production template requires exactly three recent live public-Scion browser runs across at least two domains. Every run must retain a ZIP, trace, console log, and runtime receipt as regular non-symlinked files under the campaign directory. The audit opens the ZIP and checks its package manifest and file count; parses trace readiness, export, and quality gates; binds a clean app commit and exact Scion version; verifies the native adapter receipt; cross-checks every digest; and requires twelve lessons, complete requests, Codex visual QA, 99 quality, and zero P0/P1/P2. Historical base-only canaries remain operational evidence but cannot certify an adapter because they do not contain exact adapter runtime receipts.
+
+The general promotion runner now semantically verifies factual canaries, single-model judgment, the browser-device matrix, and production canaries. v0.16.29 creates no new adapter run and makes no model-quality claim.
+
+v0.16.28 made the future adapter judgment itself promotion-grade instead of trusting an external file's label:
 
 ```bash
 npm run audit:scion:adapter:judge:contract
 npm run audit:scion:adapter:judge -- --manifest /path/to/adapter.json --evidence /path/to/single-model-judge.json
 ```
 
-The published wrapper binds `honest-quality-benchmark-v1`, its canonical manifest, rubric, and prompt, the exact adapter manifest and base, the frozen five-course benchmark, and one concrete GPT-5.4-mini reference revision. Both adapter-versus-base and adapter-versus-paid-reference comparison files are required. Their candidate artifacts and scorecards must be identical, so the candidate cannot be regenerated differently for the easier control.
+The published wrapper binds `honest-quality-benchmark-v1`, its canonical manifest, rubric, and prompt, the exact adapter identity and base, the frozen five-course benchmark, and one concrete GPT-5.4-mini reference revision. Both adapter-versus-base and adapter-versus-paid-reference comparison files are required. Their candidate artifacts and scorecards must be identical, so the candidate cannot be regenerated differently for the easier control. v0.16.29 replaces the historical circular full-manifest digest with the stable package identity.
 
 Each comparison must contain exactly ten trials per frozen course, all nine rubric dimensions, balanced candidate placement, byte-verified scoring-first scorecards, and exactly one A/B plus one B/A preference from one bound judge. The analyzer recomputes order consistency, aggregate and per-domain Wilson bounds, aggregate and per-domain score-delta intervals, and compiler-call burden; it rejects source or input substitution, model or compiler drift, incomplete dimensions, missing reverse passes, floating reference aliases, and scorecard paths that are absolute, traversing, escaping, or symlinked. The adapter promotion runner exposes the semantic audit in JSON and Markdown instead of reducing it to a trusted hash.
 

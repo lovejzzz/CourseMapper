@@ -9,6 +9,7 @@ import JSZip from 'jszip';
 
 import { buildScionAdapterDataset } from '../scripts/scionAdapterDataset.mjs';
 import { getCourseById } from '../scripts/crucible/courses.mjs';
+import { computeScionAdapterPackageIdentity } from '../scripts/lib/scionBrowserDeviceMatrix.mjs';
 import { buildScionAdapterManifest, sha256File, verifyScionAdapterPackage } from '../scripts/scionAdapterPackage.mjs';
 import { assessScionAdapterPromotion } from '../scripts/scionAdapterPromotionAudit.mjs';
 import {
@@ -362,6 +363,7 @@ describe('Scion adapter tooling', () => {
       status: 'candidate',
     });
     const adapterManifestSha256 = await sha256File(built.outputPath);
+    const adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(built.manifest).sha256;
     await fs.writeFile(path.join(root, 'package-lock.json'), '{"lockfileVersion":3}\n');
     await execFile('git', ['init', '-b', 'main'], { cwd: root });
     await execFile('git', ['config', 'user.email', 'scion-test@example.invalid'], { cwd: root });
@@ -381,6 +383,7 @@ describe('Scion adapter tooling', () => {
         adapterActive: true,
         adapterId: built.manifest.adapter.id,
         adapterManifestSha256,
+        adapterPackageIdentitySha256,
         adapterScale: 1,
       },
       cwd: root,
@@ -439,6 +442,7 @@ describe('Scion adapter tooling', () => {
               adapterActive: isAdapter,
               adapterId: isAdapter ? built.manifest.adapter.id : null,
               adapterManifestSha256: isAdapter ? adapterManifestSha256 : null,
+              adapterPackageIdentitySha256: isAdapter ? adapterPackageIdentitySha256 : null,
               adapterScale: isAdapter ? 1 : 0,
             },
           })}\n`,
@@ -639,7 +643,6 @@ describe('Scion adapter tooling', () => {
   });
 
   it('promotes only exact adapter evidence with five clean domains and a real call reduction', () => {
-    const manifestSha256 = 'c'.repeat(64);
     const manifest = {
       schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
       adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.6', format: 'mlx-lora-safetensors' },
@@ -664,6 +667,7 @@ describe('Scion adapter tooling', () => {
         ),
       },
     };
+    const adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(manifest).sha256;
     const domains = ['ethics', 'music', 'ux', 'geology', 'literature'];
     const pairedComparison = (domain, index, variant) => ({
       protocolVersion: 1,
@@ -695,7 +699,7 @@ describe('Scion adapter tooling', () => {
           scionPassCalls: 75,
           adapterActive: true,
           adapterId: manifest.adapter.id,
-          adapterManifestSha256: manifestSha256,
+          adapterPackageIdentitySha256,
           baseRevision: manifest.base.revision,
           adapterScale: 1,
           evidenceProducer: 'scion-paired-evidence-v1',
@@ -718,7 +722,7 @@ describe('Scion adapter tooling', () => {
           scionPassCalls: 100,
           adapterActive: false,
           adapterId: null,
-          adapterManifestSha256: null,
+          adapterPackageIdentitySha256: null,
           baseRevision: manifest.base.revision,
           adapterScale: 0,
           evidenceProducer: 'scion-paired-evidence-v1',
@@ -730,7 +734,7 @@ describe('Scion adapter tooling', () => {
 
     const report = assessScionAdapterPromotion({
       manifest,
-      manifestSha256,
+      adapterPackageIdentitySha256,
       candidateEvidence,
       baseEvidence,
       verifiedExternalEvidence: Object.fromEntries(
@@ -745,7 +749,7 @@ describe('Scion adapter tooling', () => {
     baseEvidence[0].fullCourses[0].packageGrade = 100;
     const qualityRegression = assessScionAdapterPromotion({
       manifest,
-      manifestSha256,
+      adapterPackageIdentitySha256,
       candidateEvidence,
       baseEvidence,
       verifiedExternalEvidence: Object.fromEntries(
@@ -759,10 +763,10 @@ describe('Scion adapter tooling', () => {
     expect(qualityRegression.courseChecks[0].qualityNonRegression).toBe(false);
     baseEvidence[0].fullCourses[0].packageGrade = 99;
 
-    candidateEvidence[0].fullCourses[0].adapterManifestSha256 = '0'.repeat(64);
+    candidateEvidence[0].fullCourses[0].adapterPackageIdentitySha256 = '0'.repeat(64);
     const mismatched = assessScionAdapterPromotion({
       manifest,
-      manifestSha256,
+      adapterPackageIdentitySha256,
       candidateEvidence,
       baseEvidence,
       verifiedExternalEvidence: Object.fromEntries(
@@ -777,7 +781,6 @@ describe('Scion adapter tooling', () => {
   });
 
   it('rejects unpaired, dirty, duplicate, or scale-mismatched adapter course evidence', () => {
-    const manifestSha256 = 'c'.repeat(64);
     const manifest = {
       schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
       adapter: { id: 'scion-g4e2b-v1', scionVersion: '0.16.7', format: 'mlx-lora-safetensors' },
@@ -802,6 +805,7 @@ describe('Scion adapter tooling', () => {
         ),
       },
     };
+    const adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(manifest).sha256;
     const comparison = (variant) => ({
       protocolVersion: 1,
       evidenceProducer: 'scion-paired-evidence-v1',
@@ -830,7 +834,7 @@ describe('Scion adapter tooling', () => {
       scionPassCalls: variant === 'adapter' ? 75 : 100,
       adapterActive: variant === 'adapter',
       adapterId: variant === 'adapter' ? manifest.adapter.id : null,
-      adapterManifestSha256: variant === 'adapter' ? manifestSha256 : null,
+      adapterPackageIdentitySha256: variant === 'adapter' ? adapterPackageIdentitySha256 : null,
       baseRevision: manifest.base.revision,
       adapterScale: variant === 'adapter' ? 1 : 0,
       evidenceProducer: 'scion-paired-evidence-v1',
@@ -847,7 +851,7 @@ describe('Scion adapter tooling', () => {
 
     const report = assessScionAdapterPromotion({
       manifest,
-      manifestSha256,
+      adapterPackageIdentitySha256,
       candidateEvidence: [{ fullCourses: candidateCourses }],
       baseEvidence: [{ fullCourses: baseCourses }],
       verifiedExternalEvidence: Object.fromEntries(

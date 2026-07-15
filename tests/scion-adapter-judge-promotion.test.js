@@ -10,6 +10,7 @@ import {
   SCION_ADAPTER_JUDGE_CLAIM_BOUNDARY,
   SCION_ADAPTER_JUDGE_PROMOTION_PROTOCOL,
 } from '../scripts/lib/scionAdapterJudgePromotion.mjs';
+import { computeScionAdapterPackageIdentity } from '../scripts/lib/scionBrowserDeviceMatrix.mjs';
 
 const SOURCE_ROOT = process.cwd();
 const CANONICAL_PATHS = {
@@ -57,11 +58,11 @@ async function buildFixture() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-judge-promotion-'));
   const hashes = await copyCanonical(root);
   const heldOut = JSON.parse(await fs.readFile(path.join(root, CANONICAL_PATHS.heldOutCourseBenchmark), 'utf8'));
-  const adapterManifestSha256 = 'c'.repeat(64);
   const adapterManifest = {
     adapter: { id: 'scion-g4e2b-test-adapter', scale: 1 },
     base: { modelId: heldOut.base.modelId, revision: heldOut.base.revision },
   };
+  const adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(adapterManifest).sha256;
   const judge = {
     model: 'openai/codex',
     modelRevision: 'gpt-5.4-session-judge-revision',
@@ -159,7 +160,7 @@ async function buildFixture() {
         parameters: {
           adapterActive: true,
           adapterId: adapterManifest.adapter.id,
-          adapterManifestSha256,
+          adapterPackageIdentitySha256,
           adapterScale: 1,
         },
         compilerCommit: 'abcdef1234567890',
@@ -303,7 +304,7 @@ async function buildFixture() {
     ),
     adapter: {
       id: adapterManifest.adapter.id,
-      manifestSha256: adapterManifestSha256,
+      packageIdentitySha256: adapterPackageIdentitySha256,
       baseRevision: adapterManifest.base.revision,
       scale: 1,
     },
@@ -317,7 +318,7 @@ async function buildFixture() {
   };
   const evidencePath = path.join(root, 'single-model-judge.json');
   await writeJson(evidencePath, evidence);
-  return { root, adapterManifest, adapterManifestSha256, evidence, evidencePath, comparisons };
+  return { root, adapterManifest, adapterPackageIdentitySha256, evidence, evidencePath, comparisons };
 }
 
 async function audit(fixture) {
@@ -326,7 +327,7 @@ async function audit(fixture) {
     evidencePath: fixture.evidencePath,
     evidence: fixture.evidence,
     adapterManifest: fixture.adapterManifest,
-    adapterManifestSha256: fixture.adapterManifestSha256,
+    adapterPackageIdentitySha256: fixture.adapterPackageIdentitySha256,
     bootstrapSamples: 200,
   });
 }
@@ -344,6 +345,8 @@ describe('Scion adapter single-model-judge promotion evidence', () => {
     );
     expect(template.protocolVersion).toBe(SCION_ADAPTER_JUDGE_PROMOTION_PROTOCOL);
     expect(template.claimBoundary).toBe(SCION_ADAPTER_JUDGE_CLAIM_BOUNDARY);
+    expect(template.adapter.packageIdentitySha256).toContain('PROMOTION_INDEPENDENT');
+    expect(template.adapter.manifestSha256).toBeUndefined();
     for (const [key, relativePath] of Object.entries(CANONICAL_PATHS)) {
       const bytes = await fs.readFile(path.join(SOURCE_ROOT, relativePath));
       expect(template.benchmark[key]).toEqual({ path: relativePath, sha256: sha256(bytes) });
