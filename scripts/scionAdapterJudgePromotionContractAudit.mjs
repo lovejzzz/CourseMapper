@@ -10,6 +10,7 @@ import {
   SCION_ADAPTER_JUDGE_CLAIM_BOUNDARY,
   SCION_ADAPTER_JUDGE_PROMOTION_PROTOCOL,
 } from './lib/scionAdapterJudgePromotion.mjs';
+import { computeScionAdapterPackageIdentity } from './lib/scionBrowserDeviceMatrix.mjs';
 
 const TEMPLATE_PATH = 'evaluation/scion-adapters/single-model-judge-promotion.template.json';
 const CANONICAL_PATHS = {
@@ -28,6 +29,10 @@ export async function runScionAdapterJudgePromotionContractAudit({ root = proces
   const issues = [];
   if (template.protocolVersion !== SCION_ADAPTER_JUDGE_PROMOTION_PROTOCOL) issues.push('template-protocol-mismatch');
   if (template.claimBoundary !== SCION_ADAPTER_JUDGE_CLAIM_BOUNDARY) issues.push('template-claim-boundary-mismatch');
+  if (!String(template.adapter?.packageIdentitySha256 || '').includes('PROMOTION_INDEPENDENT')) {
+    issues.push('template-package-identity-missing');
+  }
+  if (template.adapter?.manifestSha256 != null) issues.push('template-circular-manifest-identity-present');
   const canonical = {};
   for (const [key, relativePath] of Object.entries(CANONICAL_PATHS)) {
     const bytes = await fs.readFile(path.join(root, relativePath));
@@ -38,15 +43,20 @@ export async function runScionAdapterJudgePromotionContractAudit({ root = proces
     }
   }
   const heldOut = JSON.parse(await fs.readFile(path.join(root, CANONICAL_PATHS.heldOutCourseBenchmark), 'utf8'));
+  const dummyManifest = {
+    schemaVersion: 2,
+    adapter: { id: 'scion-contract-audit', scionVersion: '0.16.29', format: 'mlx-lora-safetensors', scale: 1 },
+    base: { modelId: heldOut.base.modelId, revision: heldOut.base.revision },
+    training: {},
+    files: [],
+    runtime: {},
+  };
   const dummyAudit = await auditScionAdapterSingleModelJudgeEvidence({
     root,
     evidencePath: path.join(root, 'evaluation/scion-adapters/dummy-single-model-judge.json'),
     evidence: { type: 'single-model-judge', status: 'pass' },
-    adapterManifest: {
-      adapter: { id: 'scion-contract-audit', scale: 1 },
-      base: { modelId: heldOut.base.modelId, revision: heldOut.base.revision },
-    },
-    adapterManifestSha256: 'c'.repeat(64),
+    adapterManifest: dummyManifest,
+    adapterPackageIdentitySha256: computeScionAdapterPackageIdentity(dummyManifest).sha256,
     bootstrapSamples: 100,
   });
   if (dummyAudit.status !== 'blocked' || dummyAudit.promotionEligible !== false) {

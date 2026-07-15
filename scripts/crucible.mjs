@@ -1611,6 +1611,7 @@ async function runLiveRounds(options) {
         adapterActive: model.adapter_active === true,
         adapterId: model.adapter_id || null,
         adapterManifestSha256: model.adapter_manifest_sha256 || null,
+        adapterPackageIdentitySha256: model.adapter_package_identity_sha256 || null,
         adapterScale: model.adapter_active === true ? Number(model.adapter_scale ?? 1) : 0,
       };
       modelId = localModel.id;

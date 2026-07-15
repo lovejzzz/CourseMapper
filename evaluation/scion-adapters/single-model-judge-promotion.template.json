@@ -23,7 +23,7 @@
   },
   "adapter": {
     "id": "REPLACE_WITH_EXACT_ADAPTER_ID",
-    "manifestSha256": "REPLACE_WITH_64_HEX_SHA256",
+    "packageIdentitySha256": "REPLACE_WITH_PROMOTION_INDEPENDENT_PACKAGE_IDENTITY_SHA256",
     "baseRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
     "scale": 1
   },

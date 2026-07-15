@@ -14,6 +14,7 @@ import path from 'node:path';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { sGenerate, startItems, stopS } from '../../trellis/tendril/sModel.mjs';
 import { sha256File, verifyScionAdapterPackage } from '../scionAdapterPackage.mjs';
+import { computeScionAdapterPackageIdentity } from '../lib/scionBrowserDeviceMatrix.mjs';
 
 const PORT = Number(process.argv[2] ?? 8799);
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
@@ -50,6 +51,7 @@ let adapterState =
 let adapterId = '';
 let adapterManifestPath = '';
 let adapterManifestSha256 = '';
+let adapterPackageIdentitySha256 = '';
 let adapterScale = null;
 let adapterError = '';
 const requestMetrics = new AsyncLocalStorage();
@@ -81,6 +83,7 @@ async function prepareScionAdapter() {
   adapterId = manifest.adapter.id;
   adapterManifestPath = report.manifestPath;
   adapterManifestSha256 = await sha256File(report.manifestPath);
+  adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(manifest).sha256;
   adapterScale = Number(manifest.adapter?.scale ?? 1);
   adapterState = 'verified';
   adapterError = '';
@@ -1030,6 +1033,7 @@ const server = http.createServer(async (req, res) => {
           adapterId: adapterId || null,
           adapterManifestPath: adapterManifestPath || null,
           adapterManifestSha256: adapterManifestSha256 || null,
+          adapterPackageIdentitySha256: adapterPackageIdentitySha256 || null,
           adapterScale,
           adapterError,
           calls,
@@ -1062,6 +1066,7 @@ const server = http.createServer(async (req, res) => {
               adapter_active: adapterState === 'active',
               adapter_id: adapterId || null,
               adapter_manifest_sha256: adapterManifestSha256 || null,
+              adapter_package_identity_sha256: adapterPackageIdentitySha256 || null,
               adapter_scale: adapterScale,
               ready: modelState === 'ready',
             },

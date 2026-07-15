@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.28
+**Current release:** v0.16.29
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.28**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.29**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -65,7 +65,15 @@ A hash-bound installed-Chrome run rebuilt the exact fourteen v0.16.26 deficits f
 
 The compiler improvement has two scopes. The shared contract, full/legacy parsers, and native incomplete-kernel recovery are **model-neutral**, so user-selected paid providers such as GPT-5.4-mini can benefit when their output enters those paths. The focused browser retry feedback, accumulated local defect loop, and cross-attempt response merge are **Scion-local** because they operate inside the public browser provider. No Gemma weight changed, no Scion quality adapter was activated, and public Scion remains the pinned base plus compiler.
 
-v0.16.28 hardens the evidence boundary that a future quality adapter must cross. A `single-model-judge` promotion file no longer passes merely because its bytes match a declared SHA-256 and its JSON says `status: pass`. The promotion runner now parses it, binds it to `honest-quality-benchmark-v1`, the exact canonical rubric and judge prompt, the adapter manifest and scale, and the frozen five-course held-out benchmark, then independently verifies both controlled comparisons and every scorecard byte.
+v0.16.29 closes the remaining adapter-promotion truth gaps and repairs a constructibility defect found during the audit. v0.16.28 asked judge evidence to contain the SHA-256 of the manifest that contained the judge-evidence SHA-256; adding either digest changes the other. Promotion evidence now binds a stable adapter **package identity** over the exact adapter, base, training, files, runtime, and conversion contract while excluding mutable promotion attestations. The manifest can therefore hash each evidence file and each evidence file can identify the exact package without an impossible circular fixed point.
+
+Factual-canary evidence is now semantic: exactly two cold and two source-grounded browser runs must use the frozen 25-case packet, the exact base and adapter identity, one request per case, and retained raw option text. The audit reconstructs each chosen option and independently rescores it; cold runs need 23/25 and grounded runs need 25/25 with perfect domain floors. Production evidence is semantic too: exactly three predeclared live-browser runs across at least two domains must bind regular campaign-local ZIP, trace, console-log, and runtime-receipt files. The audit opens the ZIP, parses its package manifest, checks trace gates, exact native LoRA identity, clean app commit, Codex visual QA, complete requests, and a 99 quality score with zero P0/P1/P2.
+
+All four external promotion gates—factual canaries, the single-model judge, browser-device matrix, and production canaries—are now parsed and independently checked. Existing base-only production canaries remain useful operational history but cannot certify a future adapter because they do not contain the new exact adapter runtime receipt. Use `npm run audit:scion:adapter:canaries:contract` to prove both pass-shaped dummies are rejected; future real campaigns use `audit:scion:adapter:factual` and `audit:scion:adapter:production` with an exact manifest and evidence wrapper.
+
+This is a better and now constructible ruler, not a better model result. No fresh B/A judgment, quality adapter, five-domain adapter win, paid-reference parity, new Gemma weights, or complete device matrix is claimed. Public Scion remains the pinned public base plus compiler.
+
+v0.16.28 hardened the evidence boundary that a future quality adapter must cross. A `single-model-judge` promotion file no longer passes merely because its bytes match a declared SHA-256 and its JSON says `status: pass`. The promotion runner parses it, binds it to `honest-quality-benchmark-v1`, the exact canonical rubric and judge prompt, the adapter identity and scale, and the frozen five-course held-out benchmark, then independently verifies both controlled comparisons and every scorecard byte. v0.16.29 replaces its circular full-manifest digest with the stable package identity.
 
 The contract requires **five domains × ten trials**, balanced candidate placement, all nine rubric dimensions, one scoring-first A/B judgment plus one B/A judgment per trial, stable unblinded outcomes, and exact source, input, settings, compiler, judge, model, artifact, and scorecard identities. The same candidate artifacts must be reused against base-only Scion and the pinned GPT-5.4-mini reference. Promotion evidence needs preference bounds above chance and positive score-delta intervals globally and in every domain; adapter-versus-base also needs a strictly lower compiler-call interval. Absolute, traversing, escaping, and symlinked scorecard paths are rejected before bytes are read.
 
@@ -210,7 +218,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.28)
+## Current Pipeline (v0.16.29)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -650,6 +658,9 @@ npm run audit:scion:compiler-lift # compare current compiler admission lift on i
 npm run audit:scion:key-term-recovery # verify the v0.16.27 real-browser 14/14 frozen-deficit receipt
 npm run audit:scion:adapter:judge:contract # reject hash-only judge attestations and verify canonical ruler bindings
 npm run audit:scion:adapter:judge -- --manifest ... --evidence ... # semantically verify a real base + paid-reference campaign
+npm run audit:scion:adapter:canaries:contract # reject hash-only factual/production evidence and prove stable identity
+npm run audit:scion:adapter:factual -- --manifest ... --evidence ... # recompute a real four-run factual campaign
+npm run audit:scion:adapter:production -- --manifest ... --evidence ... # verify three retained live-browser packages
 npm run audit:scion:adapter-delivery # verify the v0.16.24 bounded lifecycle and retained smoke-package receipt
 npm run capture:scion:browser-device -- --reset-profile # run the isolated real Chrome recovery profile
 npm run audit:scion:browser-device-evidence # verify the retained v0.16.25 Apple run and exact 1/4 boundary
