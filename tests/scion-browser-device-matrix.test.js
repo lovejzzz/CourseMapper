@@ -367,6 +367,11 @@ describe('Scion browser device matrix', () => {
       if (!entry.sha256) entry.sha256 = await digestFile(entry.path);
     }
     const verification = await verifyExternalEvidenceFiles(manifest);
+    expect(verification['single-model-judge']).toMatchObject({
+      verified: false,
+      reason: 'semantic-audit-failed',
+      semanticAudit: { status: 'blocked', promotionEligible: false },
+    });
     expect(verification['browser-device-matrix']).toMatchObject({
       verified: false,
       reason: 'semantic-audit-failed',

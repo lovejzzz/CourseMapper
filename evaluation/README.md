@@ -271,6 +271,19 @@ The tracked `key-term-recovery-v0.16.27.json` receipt verifies both immutable ca
 
 All 14/14 deficits admit: nine on the first model attempt and five after one bounded retry. The stronger copied-clause detector caused those retries by rejecting a correction embedded verbatim inside an expanded definition. Three accepted responses contain one deterministic raw defect and become admissible only when the conservative cross-attempt merge retains an earlier model-authored field that strictly lowers issue count. These repairs are explicit and training-ineligible. This is real-browser local targeted contract recovery only—not factual correctness, educational superiority, full-course parity, an adapter win, paid-reference quality parity, human validation, or independent review.
 
+v0.16.28 makes the future adapter judgment itself promotion-grade instead of trusting an external file's label:
+
+```bash
+npm run audit:scion:adapter:judge:contract
+npm run audit:scion:adapter:judge -- --manifest /path/to/adapter.json --evidence /path/to/single-model-judge.json
+```
+
+The published wrapper binds `honest-quality-benchmark-v1`, its canonical manifest, rubric, and prompt, the exact adapter manifest and base, the frozen five-course benchmark, and one concrete GPT-5.4-mini reference revision. Both adapter-versus-base and adapter-versus-paid-reference comparison files are required. Their candidate artifacts and scorecards must be identical, so the candidate cannot be regenerated differently for the easier control.
+
+Each comparison must contain exactly ten trials per frozen course, all nine rubric dimensions, balanced candidate placement, byte-verified scoring-first scorecards, and exactly one A/B plus one B/A preference from one bound judge. The analyzer recomputes order consistency, aggregate and per-domain Wilson bounds, aggregate and per-domain score-delta intervals, and compiler-call burden; it rejects source or input substitution, model or compiler drift, incomplete dimensions, missing reverse passes, floating reference aliases, and scorecard paths that are absolute, traversing, escaping, or symlinked. The adapter promotion runner exposes the semantic audit in JSON and Markdown instead of reducing it to a trusted hash.
+
+The contract self-audit intentionally feeds a hashable `{ "type": "single-model-judge", "status": "pass" }` object into the production semantic verifier and passes only when that placeholder is blocked. This release creates no real judgment and changes no weights, adapter state, or quality result. The fresh reverse-order B/A reading remains a separate clean-task dependency.
+
 v0.16.20 keeps both completed orders sealed until they can be opened together. The dual-envelope ingestion command rejects fewer or more than two envelopes or keys, duplicate paths, duplicate envelope or key identities, noncanonical keys, swapped keys, bad ciphertext or authentication tags, changed plaintext hashes, metadata drift, the wrong order pair, reused judge sessions, and any existing structural or qualification failure. Both batches are decrypted and validated in memory before the approved corpus or organizer report is touched. A failed second input therefore cannot partially ingest the first order or replace existing output bytes.
 
 Successful ingestion writes only derived evidence: stable score-qualified chosen/rejected rows and a report containing counts, hashes, and quarantine reasons. It never writes either completed pass. Stable ties, insufficient evidence, low-quality relative winners, non-positive margins, missing defects, changed bytes, and order-sensitive winners remain quarantined. The derived rows explicitly remain single-model Codex evidence. The bridge is tested, but no real B/A judgment exists yet, so the real approved corpus, adapter, held-out wins, and paid-reference parity remain zero.

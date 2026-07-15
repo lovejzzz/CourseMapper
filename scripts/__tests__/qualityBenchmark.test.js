@@ -434,6 +434,12 @@ describe('controlled model comparison', () => {
       expect(contentCheck.issues).toContain(
         'case-a/trial-1/candidate scorecard content does not match the declared score, dimensions, artifact, or evidence tier',
       );
+
+      candidateEvidence.scorecardPath = '../outside-scorecard.json';
+      const escapedPath = await verifyComparisonScorecards(fixture, { baseDir: directory });
+      expect(escapedPath.issues).toContain(
+        'case-a/trial-1/candidate scorecard cannot be verified: scorecardPath must be a safe relative path',
+      );
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
