@@ -283,7 +283,7 @@ describe('Scion Codex training preferences', () => {
       allowSmoke: true,
     });
     expect(dataset.manifest).toMatchObject({
-      schemaVersion: 3,
+      schemaVersion: 4,
       primaryPreferenceEvidence: 'single-model-judge',
       status: 'smoke-only',
       counts: { total: 1, singleModelJudgePairs: 1, singleModelJudgeDomains: 1, blindInstructorPairs: 0 },
