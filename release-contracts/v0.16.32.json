@@ -14,19 +14,23 @@
       "npm run build",
       "npm run bundle:check",
       "npm run audit:evaluation:main",
-      "npm run audit:release-history"
+      "npm run audit:release-history",
+      "npx playwright test tests/coursemapper.spec.js tests/local-ai-runtime.spec.js"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The release will not be called complete until the exact main commit passes remote formatting, lint, release history, closed-loop tests, proof smoke, main evaluation, build, and bundle budgets."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29434190385",
+      "note": "The exact merged release commit a9b0467e passed remote formatting, lint, release history, the 4,465-test closed-loop suite, proof smoke, canonical main evaluation, build, and bundle budgets in 15m33s. The main evaluation retained compiler-contract-only claim status."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The release changes deterministic evaluation, compiler, and workbook contracts. Its focused 55-test battery and keyless cross-revision receipt audit run locally and in the normal unit suite; no model call, weight training, or external device capture is required."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages deployment and a cache-bypassed production probe remain required after Fast verification passes on the merged release commit."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29435245500",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.32-a9b0467e-20260715T1709Z",
+      "note": "GitHub Pages deployed the exact Fast-verified merge commit. A cache-bypassed production probe returned HTTP 200 with a 2026-07-15T17:09:02Z deploy timestamp, resolved the new release and Scion configuration bundles, and found v0.16.32, Confounded Means Quarantined, 105 stable qualified comparisons, EduTool's customized local course-building AI, and No API key required."
     },
     "liveProvider": {
       "status": "not-used",
@@ -35,6 +39,11 @@
     "manualHuman": {
       "status": "not-applicable",
       "note": "This release is explicitly single-model-judge cross-revision analysis. It creates no human, instructor, classroom, independent-review, or multi-judge evidence."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-contract-only",
+      "note": "All 34 canonical gold courses passed the merged-commit main evaluation. The gate proves compiler-contract regression safety; it does not convert the confounded single-model comparison into adapter, weight, human, or independent quality evidence."
     }
   },
   "claims": [
