@@ -40,7 +40,9 @@ jobs:
         run: npm run lint
 
       - name: Release history audit
-        run: npm run audit:release-history
+        run: |
+          npm run audit:release-history
+          npm run audit:scion:codex-cross-revision-evidence
 
       - name: Unit and closed-loop tests
         run: npm test

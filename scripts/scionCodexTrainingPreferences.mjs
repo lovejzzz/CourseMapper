@@ -1077,9 +1077,7 @@ async function ingestScionCodexTrainingReviewBatches({
     promptPath: batch.judge.promptPath,
     promptSha256: batch.judge.promptSha256,
   }));
-  if (JSON.stringify(judgeIdentities[0]) !== JSON.stringify(judgeIdentities[1])) {
-    throw new Error('Codex review batches use different judge identities');
-  }
+  const judgeIdentityCompatible = JSON.stringify(judgeIdentities[0]) === JSON.stringify(judgeIdentities[1]);
   const sessionIds = batches.map((batch) => batch.judge.sessionId);
   if (new Set(sessionIds).size !== 2) throw new Error('Codex reverse-order passes require two distinct session ids');
 
@@ -1094,8 +1092,39 @@ async function ingestScionCodexTrainingReviewBatches({
   const pairIds = [...new Set([...expectedPairIds, ...submittedPairIds])].sort();
   const approved = [];
   const quarantined = [];
+  const analysis = {
+    status: judgeIdentityCompatible ? 'same-identity-order-analysis' : 'analysis-only-judge-identity-confounded',
+    judgeIdentityCompatible,
+    stableWinners: 0,
+    stableTies: 0,
+    winnerTieDisagreements: 0,
+    oppositeWinnerDisagreements: 0,
+    insufficientOrInvalid: 0,
+    byDomain: {},
+    stableWinnerByModel: {},
+    confounding: judgeIdentityCompatible
+      ? ''
+      : 'Order and judge revision/runtime changed together, so disagreements cannot be attributed to position order alone and no training preference may be approved.',
+  };
+  const domainAnalysis = (domain) => {
+    analysis.byDomain[domain] ||= {
+      total: 0,
+      stableWinners: 0,
+      stableTies: 0,
+      disagreements: 0,
+      stableWinnerByModel: {},
+    };
+    return analysis.byDomain[domain];
+  };
+  const bump = (record, key) => {
+    const normalized = clean(key) || 'unidentified-model';
+    record[normalized] = (record[normalized] || 0) + 1;
+  };
   for (const pairId of pairIds) {
     const key = keyById.get(pairId);
+    const domain = clean(key?.domain) || 'unknown-domain';
+    const domainRow = domainAnalysis(domain);
+    domainRow.total += 1;
     const passes = [];
     for (const order of SCION_CODEX_TRAINING_REQUIRED_ORDERS) {
       const entry = reviewsByOrder[order].get(pairId);
@@ -1108,6 +1137,8 @@ async function ingestScionCodexTrainingReviewBatches({
     }
     const passIssues = passes.flatMap((pass) => pass.issues.map((issue) => `${pass.order}:${issue}`));
     if (passIssues.length > 0) {
+      analysis.insufficientOrInvalid += 1;
+      domainRow.disagreements += 1;
       quarantined.push({ pairId, issues: passIssues });
       continue;
     }
@@ -1115,36 +1146,69 @@ async function ingestScionCodexTrainingReviewBatches({
       pass.qualificationIssues.map((issue) => `${pass.order}:${issue}`),
     );
     if (qualificationIssues.length > 0) {
+      analysis.insufficientOrInvalid += 1;
+      domainRow.disagreements += 1;
       quarantined.push({ pairId, issues: qualificationIssues });
       continue;
     }
     const decisions = passes.map((pass) => pass.decision);
     if (decisions.includes('insufficient-evidence')) {
+      analysis.insufficientOrInvalid += 1;
+      domainRow.disagreements += 1;
       quarantined.push({ pairId, issues: ['insufficient-evidence-model-judge'] });
       continue;
     }
     if (decisions.includes('tie')) {
+      const stableTie = decisions.every((decision) => decision === 'tie');
+      if (stableTie) {
+        analysis.stableTies += 1;
+        domainRow.stableTies += 1;
+      } else {
+        analysis.winnerTieDisagreements += 1;
+        domainRow.disagreements += 1;
+      }
       quarantined.push({
         pairId,
         issues: [
-          decisions.every((decision) => decision === 'tie')
+          stableTie
             ? 'stable-tie-model-judge'
-            : 'order-sensitive-model-judge-decision',
+            : judgeIdentityCompatible
+              ? 'order-sensitive-model-judge-decision'
+              : 'cross-order-cross-revision-winner-tie-disagreement',
         ],
       });
       continue;
     }
     if (passes[0].winnerSide !== passes[1].winnerSide) {
-      quarantined.push({ pairId, issues: ['position-sensitive-model-judge'] });
+      analysis.oppositeWinnerDisagreements += 1;
+      domainRow.disagreements += 1;
+      quarantined.push({
+        pairId,
+        issues: [
+          judgeIdentityCompatible ? 'position-sensitive-model-judge' : 'cross-order-cross-revision-opposite-winner',
+        ],
+      });
       continue;
     }
     const winner = passes[0].winnerSide;
     if (!['A', 'B'].includes(winner)) {
+      analysis.insufficientOrInvalid += 1;
+      domainRow.disagreements += 1;
       quarantined.push({ pairId, issues: ['no-stable-model-judge-winner'] });
       continue;
     }
     const winnerRole = key.mapping[winner];
     const loserRole = key.mapping[winner === 'A' ? 'B' : 'A'];
+    const winnerModel =
+      winnerRole === 'left' ? key.sourceRow?.pairSource?.leftModel : key.sourceRow?.pairSource?.rightModel;
+    analysis.stableWinners += 1;
+    domainRow.stableWinners += 1;
+    bump(analysis.stableWinnerByModel, winnerModel);
+    bump(domainRow.stableWinnerByModel, winnerModel);
+    if (!judgeIdentityCompatible) {
+      quarantined.push({ pairId, issues: ['cross-order-judge-identity-drift'] });
+      continue;
+    }
     const winnerMinimumScores = Object.fromEntries(
       SCION_CODEX_TRAINING_SCORE_DIMENSIONS.map((dimension) => [
         dimension,
@@ -1255,14 +1319,30 @@ async function ingestScionCodexTrainingReviewBatches({
     approvedTotal: mergedApproved.length,
     quarantined: quarantined.length,
     quarantine: quarantined,
-    judge: { ...judgeIdentities[0], sessionIds },
+    judgeIdentityCompatible,
+    judgeIdentities,
+    judge: judgeIdentityCompatible
+      ? { ...judgeIdentities[0], sessionIds }
+      : {
+          model: SCION_CODEX_JUDGE_MODEL,
+          identityCount: judgeIdentities.length,
+          identities: judgeIdentities,
+          sessionIds,
+        },
+    analysis: {
+      ...analysis,
+      crossOrderAgreement: analysis.stableWinners + analysis.stableTies,
+      agreementRate:
+        pairIds.length > 0 ? Number(((analysis.stableWinners + analysis.stableTies) / pairIds.length).toFixed(6)) : 0,
+    },
     orders: [...SCION_CODEX_TRAINING_REQUIRED_ORDERS],
     approvedOutput,
     inputMode: sealedInputs ? 'sealed-dual-order' : 'plaintext-batches',
     plaintextWrittenByIngestion: false,
     ...(sealedInputs ? { sealedInputs } : {}),
-    claimBoundary:
-      'Approved rows are stable single-model Codex training preferences, not human, instructor, independent, classroom, or multi-judge evidence.',
+    claimBoundary: judgeIdentityCompatible
+      ? 'Approved rows are stable single-model Codex training preferences, not human, instructor, independent, classroom, or multi-judge evidence.'
+      : 'The two orders used different Codex revision/runtime identities. Results are analysis-only, order and revision are confounded, and no training preference is approved.',
   };
   const reportPath = path.join(path.resolve(packetDir), 'organizer', 'codex-ingestion-report.json');
   await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);

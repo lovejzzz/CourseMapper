@@ -291,6 +291,39 @@ describe('Scion Codex training preferences', () => {
     });
   });
 
+  it('analyzes but never approves cross-order results when judge revision and runtime drift together', async () => {
+    const { packetDir, templateDir } = await buildPacket();
+    const { abPath, baPath } = await writeCompletedBatches(templateDir);
+    const ba = JSON.parse(await fs.readFile(baPath, 'utf8'));
+    ba.judge.revision = 'codex-test-revision-2026-07-15';
+    ba.judge.runtime = 'vitest-updated-runtime';
+    await fs.writeFile(baPath, JSON.stringify(ba));
+    const approvedOutput = path.join(root, 'cross-revision-approved.jsonl');
+
+    const report = await ingestScionCodexTrainingReviews({
+      packetDir,
+      reviewFiles: [abPath, baPath],
+      approvedOutput,
+    });
+
+    expect(report).toMatchObject({
+      reviewedCases: 1,
+      approved: 0,
+      quarantined: 1,
+      judgeIdentityCompatible: false,
+      analysis: {
+        status: 'analysis-only-judge-identity-confounded',
+        stableWinners: 1,
+        stableTies: 0,
+        crossOrderAgreement: 1,
+        agreementRate: 1,
+      },
+      claimBoundary: expect.stringContaining('no training preference is approved'),
+    });
+    expect(report.quarantine).toEqual([expect.objectContaining({ issues: ['cross-order-judge-identity-drift'] })]);
+    await expect(fs.readFile(approvedOutput, 'utf8')).resolves.toBe('');
+  });
+
   it('ingests two distinct sealed orders entirely in memory and emits only qualified corpus evidence', async () => {
     const { packetDir, templateDir } = await buildPacket();
     const sealed = await sealCompletedBatches(packetDir, templateDir);

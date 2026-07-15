@@ -90,4 +90,95 @@ describe('Scion MC contract recovery', () => {
       type: 'multiple_choice',
     });
   });
+
+  it('realigns a short answer when the explanation explicitly names the correct option text', () => {
+    const repaired = repairScionMcItem({
+      q: 'Which process transports sediment away from its source?',
+      op: ['Mechanical weathering', 'Chemical weathering', 'Erosion', 'Deposition'],
+      ai: 0,
+      ex: 'Erosion is the correct choice because water, wind, gravity, or ice moves sediment away.',
+    });
+    expect(repaired.item.ai).toBe(2);
+    expect(repaired.repairs[0]).toMatchObject({
+      pass: 'explanationKeyAlignment',
+      preferenceEvidence: {
+        supportMethod: 'explicit-explanation-cue',
+        declaredIndex: 0,
+        supportedIndex: 2,
+      },
+    });
+  });
+
+  it('realigns from an explicit option label even when option wording has little lexical overlap', () => {
+    const repaired = repairScionMcItem({
+      q: 'What results when directed stress aligns mineral crystals?',
+      op: ['Crystalline structure', 'Foliation', 'Melting', 'Erosion'],
+      ai: 3,
+      ex: 'Option B is correct because directed stress produces planar foliation.',
+    });
+    expect(repaired.item.ai).toBe(1);
+    expect(repaired.repairs[0].preferenceEvidence).toMatchObject({
+      supportMethod: 'explicit-explanation-cue',
+      supportedIndex: 1,
+    });
+  });
+
+  it('can replay the pre-explicit-cue historical contract without rewriting old receipts', () => {
+    const item = {
+      q: 'What results when directed stress aligns mineral crystals?',
+      op: ['Crystalline structure', 'Foliation', 'Melting', 'Erosion'],
+      ai: 3,
+      ex: 'Option B is correct because directed stress produces planar foliation.',
+    };
+    expect(repairScionMcItem(item, { keyConflictOptions: { allowExplicitCues: false } })).toEqual({
+      item,
+      repairs: [],
+    });
+  });
+
+  it('realigns when the exact displayed option is explicitly marked correct', () => {
+    const repaired = repairScionMcItem({
+      q: 'Which cooling scenario usually creates fine-grained igneous rock?',
+      op: [
+        'Slow cooling deep within the crust.',
+        'Rapid cooling at or near the surface.',
+        'Slow cooling at the surface.',
+        'Rapid cooling deep within the crust.',
+      ],
+      ai: 3,
+      ex: 'Rapid cooling at or near the surface. (Correct) This produces crystals too small to grow large.',
+    });
+    expect(repaired.item.ai).toBe(1);
+    expect(repaired.repairs[0].preferenceEvidence.supportMethod).toBe('explicit-explanation-cue');
+  });
+
+  it('does not repair from an explicit cue that already supports the declared key', () => {
+    const item = {
+      q: 'Which layer lies below the crust and above the core?',
+      op: ['Mantle', 'Crust', 'Inner core', 'Outer core'],
+      ai: 0,
+      ex: 'The correct choice is Mantle because it lies between the crust and the core.',
+    };
+    expect(repairScionMcItem(item)).toEqual({ item, repairs: [] });
+  });
+
+  it('does not treat a later misconception as affirmative answer support', () => {
+    const item = {
+      q: 'Which boundary creates new lithosphere as plates move apart?',
+      op: ['Convergent boundary', 'Transform boundary', 'Divergent boundary', 'Subduction zone'],
+      ai: 2,
+      ex: 'Divergent boundary is the correct choice because the plates separate. Misconception: Transform boundary is correct whenever plates move.',
+    };
+    expect(repairScionMcItem(item)).toEqual({ item, repairs: [] });
+  });
+
+  it('refuses to guess when the affirmative explanation marks two options correct', () => {
+    const item = {
+      q: 'Which structure should the program use for a two-way branch?',
+      op: ['if-else', 'for loop', 'while loop', 'function'],
+      ai: 3,
+      ex: 'Option A is correct. The correct choice is B.',
+    };
+    expect(repairScionMcItem(item)).toEqual({ item, repairs: [] });
+  });
 });

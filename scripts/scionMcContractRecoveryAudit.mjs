@@ -5,7 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-import { repairScionMcItem } from '../src/lib/scionAnswerKeyAlignment.js';
+import { findScionExplanationKeyConflict, repairScionMcItem } from '../src/lib/scionAnswerKeyAlignment.js';
 import { assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
 
 const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/compiler-mc-recovery-v0.16.22.json';
@@ -79,6 +79,19 @@ function assessItem(item, factCount) {
   return { eligible: issues.length === 0, issues: [...new Set(issues)] };
 }
 
+// This v0.16.22 replay must preserve the admission clock that produced its
+// historical receipt. Later rules (currently explicit answer cues and
+// placeholder-option rejection) are measured by their own release receipts;
+// they must not rewrite which raw items the frozen capture said it admitted.
+function assessHistoricalItem(item, factCount) {
+  const current = assessItem(item, factCount);
+  const legacyConflict = findScionExplanationKeyConflict(item, { allowExplicitCues: false });
+  const issues = current.issues.filter(
+    (issue) => issue !== 'placeholder-options' && !(issue === 'explanation-key-conflict' && legacyConflict === null),
+  );
+  return { eligible: issues.length === 0, issues };
+}
+
 function addIssues(histogram, issues) {
   for (const issue of issues) histogram[issue] = (histogram[issue] || 0) + 1;
 }
@@ -132,7 +145,7 @@ export async function buildScionMcContractRecoveryReport({ cwd = process.cwd(), 
 
       for (const [itemIndex, rawItem] of candidates.entries()) {
         metrics.mcItems += 1;
-        const historical = assessItem(rawItem, sourceClaimCount);
+        const historical = assessHistoricalItem(rawItem, sourceClaimCount);
         if (historical.eligible) {
           metrics.historicalAdmitted += 1;
           callHistoricalAdmitted += 1;
@@ -142,14 +155,21 @@ export async function buildScionMcContractRecoveryReport({ cwd = process.cwd(), 
           lessonId: call.promptId,
           itemIndex,
           recoverIncompleteExplanation: false,
+          keyConflictOptions: { allowExplicitCues: false },
         });
-        if (assessItem(keyOnly.item, sourceClaimCount).eligible) metrics.afterConservativeKeyAlignment += 1;
+        if (assessHistoricalItem(keyOnly.item, sourceClaimCount).eligible) {
+          metrics.afterConservativeKeyAlignment += 1;
+        }
 
-        const recovered = repairScionMcItem(rawItem, { lessonId: call.promptId, itemIndex });
+        const recovered = repairScionMcItem(rawItem, {
+          lessonId: call.promptId,
+          itemIndex,
+          keyConflictOptions: { allowExplicitCues: false },
+        });
         for (const repair of recovered.repairs) {
           repairHistogram[repair.pass] = (repairHistogram[repair.pass] || 0) + 1;
         }
-        const finalAssessment = assessItem(recovered.item, sourceClaimCount);
+        const finalAssessment = assessHistoricalItem(recovered.item, sourceClaimCount);
         if (finalAssessment.eligible) metrics.afterIncompleteTailRecovery += 1;
         else addIssues(remainingIssueHistogram, finalAssessment.issues);
       }

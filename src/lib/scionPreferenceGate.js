@@ -12,6 +12,7 @@ const PROCESS_LEAK_RE =
 const META_SURFACE_RE =
   /\b(?:evidence move|success criteri\w*|course evidence|lesson evidence|rubric|the (?:Week\s*\d+|weekly) \w+|this (?:course|lesson)|the lesson|artifact|submission|checkpoint)\b/i;
 const TERMINAL_PUNCT_RE = /[.!?][\])}"']?$/;
+const PLACEHOLDER_OPTION_RE = /^(?:index|option|choice|answer)\s*[:#=\-]?\s*(?:[0-9]+|[a-d])$/i;
 const NON_DISTINCTIVE_GROUNDING = new Set([
   'and',
   'claim',
@@ -40,7 +41,7 @@ export const SCION_PREFERENCE_GATE_VERSION = '1.0.0';
 // training pair is admitted only when the chosen side clears the whole gate
 // and the rejected side fails exclusively inside this non-semantic set.
 const DETERMINISTIC_CONTRACT_ISSUE_RE =
-  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|explanation-length|truncated-explanation|process-leakage|meta-surface|all-none-of-above|longest-option-cue|clang-association-cue))$/;
+  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|explanation-length|truncated-explanation|process-leakage|meta-surface|all-none-of-above|longest-option-cue|clang-association-cue))$/;
 
 function clean(value) {
   return String(value ?? '')
@@ -82,6 +83,9 @@ export function assessScionMcItem(item, { topicWords = [] } = {}) {
     if (Math.max(...optionLengths) > Math.min(...optionLengths) * 3 + 20) issues.push('option-homogeneity');
   }
   if (normalized.options.length === 4 && !unique(normalized.options)) issues.push('duplicate-options');
+  if (normalized.options.filter((option) => PLACEHOLDER_OPTION_RE.test(option)).length >= 2) {
+    issues.push('placeholder-options');
+  }
   if (!Number.isInteger(normalized.answerIndex) || normalized.answerIndex < 0 || normalized.answerIndex > 3) {
     issues.push('answer-index');
   }

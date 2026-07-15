@@ -1,0 +1,124 @@
+{
+  "version": "0.16.32",
+  "date": "July 15, 2026",
+  "title": "Confounded Means Quarantined: turn an honest loss into a safer Scion",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:codex-sealed-pass",
+      "npm run audit:scion:codex-cross-revision-evidence",
+      "npx vitest run tests/scion-answer-key-alignment.test.js tests/scion-preference-gate.test.js tests/scion-codex-training-preferences.test.js tests/scion-codex-fresh-judge-workbook.test.js",
+      "npm run format:check",
+      "npm run lint",
+      "npm test -- --maxWorkers=4",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:evaluation:main",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "The release will not be called complete until the exact main commit passes remote formatting, lint, release history, closed-loop tests, proof smoke, main evaluation, build, and bundle budgets."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "The release changes deterministic evaluation, compiler, and workbook contracts. Its focused 55-test battery and keyless cross-revision receipt audit run locally and in the normal unit suite; no model call, weight training, or external device capture is required."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "GitHub Pages deployment and a cache-bypassed production probe remain required after Fast verification passes on the merged release commit."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "No provider request was needed. The release analyzes two already sealed judge passes and replays deterministic compiler behavior over their exact captured artifacts."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "This release is explicitly single-model-judge cross-revision analysis. It creates no human, instructor, classroom, independent-review, or multi-judge evidence."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01632-fresh-ba-sealed",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The exact 128-case B/A workbook completed in eight hash-bound chunks and was sealed without a combined plaintext review, while its separately held key remains outside Git.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/codex-review-v0.16.30-b-a.sealed.json",
+        "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-cross-revision-evidence",
+        "npx vitest run tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01632-identity-drift-quarantine",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Dual-order ingestion preserves analysis but approves zero training rows when judge revision/runtime identity differs, and it does not misattribute cross-revision disagreements to position order.",
+      "anchors": [
+        "scripts/scionCodexTrainingPreferences.mjs",
+        "evaluation/scion-adapters/evidence/codex-cross-revision-analysis-v0.16.32.json",
+        "tests/scion-codex-training-preferences.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-cross-revision-evidence",
+        "npx vitest run tests/scion-codex-training-preferences.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01632-measured-base-gap",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The analysis-only record contains 113/128 agreements and 105 score-qualified stable winners, all for GPT-5.4-mini over the captured Scion-base pipeline in four research domains, without relabeling the result as an adapter or held-out promotion comparison.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/codex-cross-revision-analysis-v0.16.32.json",
+        "scripts/scionCodexCrossRevisionEvidence.mjs",
+        "README.md"
+      ],
+      "proofCommands": ["npm run audit:scion:codex-cross-revision-evidence"],
+      "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01632-deterministic-compiler-protection",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Explicit affirmative explanation cues realign 16 of 27 judge-identified local answer-key defects, two placeholder option sets fail admission, and eleven uncertain keys remain unrepaired rather than being semantically guessed.",
+      "anchors": [
+        "src/lib/scionAnswerKeyAlignment.js",
+        "src/lib/scionPreferenceGate.js",
+        "scripts/scionMcContractRecoveryAudit.mjs",
+        "evaluation/scion-adapters/evidence/codex-cross-revision-analysis-v0.16.32.json",
+        "tests/scion-answer-key-alignment.test.js",
+        "tests/scion-mc-contract-recovery.test.js",
+        "tests/scion-preference-gate.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-cross-revision-evidence",
+        "npx vitest run tests/scion-answer-key-alignment.test.js tests/scion-preference-gate.test.js tests/scion-mc-contract-recovery.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01632-first-order-identity-pin",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Future reverse-order workbooks can bind verified public model, revision, runtime, and prompt metadata from the first sealed pass before scoring and refuse changed identity or session reuse at completion; no model weight or production adapter changes.",
+      "anchors": [
+        "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "tests/scion-codex-fresh-judge-workbook.test.js",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "release-contracts/v0.16.32.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-codex-fresh-judge-workbook.test.js",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["unit", "doc", "static-audit"]
+    }
+  ]
+}
