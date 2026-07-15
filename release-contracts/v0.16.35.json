@@ -18,17 +18,19 @@
       "npx playwright test tests/coursemapper.spec.js tests/local-ai-runtime.spec.js tests/export-smoke.spec.js"
     ],
     "ciFast": {
-      "status": "pending",
-      "note": "The implementation commit must pass Fast verification before merge."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29456054943",
+      "note": "The exact merged release commit 591311b1 passed remote formatting, lint, release history, the 4,479-test closed-loop suite, proof smoke, all 34 canonical main-evaluation courses, build, bundle budgets, and evaluation-report upload in 23m05s. The main evaluation retained compiler-contract-only claim status."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "This release changes deterministic clean-room construction, validation, and sealing contracts. It performs no model call, judgment, adapter training, device capture, or provider request."
     },
     "deploy": {
-      "status": "pending",
-      "liveUrl": "https://edutool.dev",
-      "note": "Production proof will be sealed after the exact merged commit deploys and passes a cache-bypassed probe."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29457271810",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.35-591311b1-20260715T230259Z",
+      "note": "GitHub Pages deployed the exact Fast-verified merge commit. A cache-bypassed production probe returned HTTP 200 and cache MISS with a 2026-07-15T23:02:31Z last-modified timestamp. The served index.html, index-Df8Eo_Fn.js, releaseManifest-CcAak83H.js, and AppFlow-CWBGnnAS.js files were byte-for-byte identical to the verified local build (SHA-256 0e0527feee1a28a370ec2a7cf855e17b43693e39f00cc6358c7d1abf35525412, 9066cae66310e8f8c22f244c756d6af031da4a2c8399a20643c96293f36950c9, 0310dabb0a818685ca952d193cc82d1e59afd5e899d289aa9419cc0057fbfa53, and 5763fcb14d254a622c93f8067d68aa79c18051d01d031d403c29296fca424d9b) and exposed v0.16.35, the first-order clean-room title, the pinned judge-identity boundary, and zero completed judgments."
     },
     "liveProvider": {
       "status": "not-used",
