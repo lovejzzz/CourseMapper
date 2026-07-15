@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.25",
+  "version": "0.16.26",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -82,6 +82,8 @@
     "audit:scion:compiler-burden": "node scripts/scionCompilerBurdenAudit.mjs",
     "build:scion:mc-recovery": "node scripts/scionMcContractRecoveryAudit.mjs --write",
     "audit:scion:mc-recovery": "node scripts/scionMcContractRecoveryAudit.mjs",
+    "build:scion:compiler-lift": "node scripts/scionCompilerLiftReplayAudit.mjs --write",
+    "audit:scion:compiler-lift": "node scripts/scionCompilerLiftReplayAudit.mjs",
     "build:scion:adapter-dataset": "node scripts/scionAdapterDataset.mjs",
     "build:scion:adapter-dataset:research": "node scripts/scionAdapterDataset.mjs --research",
     "package:scion:adapter": "node scripts/scionAdapterPackage.mjs",

@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.25
+**Current release:** v0.16.26
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.25**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.26**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -59,6 +59,12 @@ The same run hash-verified and activated the separate 52.7 MB scale-16 smoke ada
 
 That is **one passing device profile out of four**, not a passing matrix and not a quality result. Chrome on integrated 8 GiB hardware, Edge on integrated 16 GiB hardware, and Chrome or Edge on a discrete GPU with at least 8 GiB remain untested. The adapter is still a permanently non-promotable ten-iteration mechanics smoke; hosted Scion remains base-only, and the fresh reverse-order B/A judgment still must happen in a separate clean task.
 
+v0.16.26 answers whether compiler improvements also help a user-selected paid model. A fail-closed replay applies the same current compiler to both immutable source-capture campaigns: 12 course groups, 48 prompts, and 192 requested atoms for local Gemma, plus the exact same workload for GPT-5.4-mini. It re-verifies every retained project, source packet, prompt, response, admission decision, graph, and compiler byte before measuring anything.
+
+The answer is **yes, both models benefit—but not equally**. Local Gemma moves from 132/192 raw contract admissions to 168/192 after compilation, a gain of 36 atoms or 18.75 percentage points. GPT-5.4-mini moves from 177/192 to 182/192, a gain of 5 atoms or 2.6042 points. The measured cross-arm admission gap falls from 45 atoms to 14, so the compiler closes 31/45, or 68.8889%, of this particular contract gap. Both arms finish at 86/96 admitted MC items.
+
+That 86/96 result is **MC contract-admission parity, not educational-quality parity**. The remaining 14 cross-arm admissions are all local key terms: twelve corrections repeat the definition, one cites an invalid source fact, and one expected term was not produced. The compiler cannot safely invent those semantic corrections, so misconception/correction grounding is now the clearest future adapter target. The replay makes no new model call and proves no factual, educational, model, adapter, held-out, or paid-reference quality win.
+
 A real browser hash-verified that artifact, activated it through the native Gemma 4 dynamic-LoRA path, and restored the exact cached base output after rollback. Scale 1 and scale 4 produced no deterministic output change; scale 16 changed the strict JSON course-authoring canary and then rolled back exactly. That result proves the conversion, delivery, activation, effect-detection, and rollback path while also showing that this ten-iteration smoke adapter is too weak to establish educational quality. The hosted website therefore runs **base-only local Scion** today.
 
 The original strict production audit admitted 0 of 471 raw model/compiler events because they lacked pair-level evidence and safe split identity. A separate smoke-only derivation admits 101 structurally evidenced pairs across five registered domains solely to exercise training and packaging; those pairs are not judged quality preferences. A production Scion adapter will activate only after at least 3,000 verified pairs and the five-domain, factual, device, export, compiler-burden, and declared Codex comparison gates pass. Human review remains a separate optional evidence lane and is required only for human or instructor claims. No trained EduTool weights are implied by today's Scion Vx label.
@@ -73,7 +79,7 @@ The result exposes the actual model gap. Base-only Gemma admitted 62 of 96 reque
 
 The resulting ledger contains 372 neutral candidates. The frozen 160-case packet spans twelve exact course groups—three in each of four research domains—and 63 selected cases show the same neutral source claims, attribution, and license above both anonymous candidates. The other 97 cases are excluded from Codex training review because they lack neutral source context. Research course-depth coverage is ready; learned-quality evidence is not. There are still zero completed Codex review passes, zero approved training pairs, no trained quality adapter, and no held-out adapter-versus-base result. Hosted Scion remains base-only.
 
-v0.16.17 adds a second campaign instead of changing that historical evidence. Four new six-kernel courses contribute another 24 prompts per arm and eight verified projects while retaining the original manifest, prompt set, and 16 project hashes. On the additive packet, the pinned Gemma base generated 96 and admitted 70 atoms; GPT-5.4-mini generated 96 and admitted 86. Local burden is therefore 26 atoms versus 10, a 16-atom or 16.6666-point deficit. Repeated explanation-key conflicts and truncated explanations concentrate the local gap in multiple-choice output, especially in Music Theory and UX. This is a measured target for the compiler and future adapter, not a Scion win.
+v0.16.17 adds a second campaign instead of changing that historical evidence. Four new six-kernel courses contribute another 24 prompts per arm and eight verified projects while retaining the original manifest, prompt set, and 16 project hashes. On the additive packet, the pinned Gemma base generated 96 and admitted 70 atoms; GPT-5.4-mini generated 96 and admitted 86. Local burden is therefore 26 atoms versus 10, a 16-atom or 16.6666-point deficit. Repeated explanation-key conflicts and truncated explanations concentrate the historical local gap in multiple-choice output, especially in Music Theory and UX. v0.16.26 replays both campaigns through the current compiler and shows that most of that repairable MC contract gap is now recovered; this historical raw measurement remains immutable.
 
 After exact-input matching, the ledger reaches 437 candidates and sixteen course groups—four per research domain. Source-first selection retains all 128 source-backed cases in the 160-case packet: 31 Computer Science, 39 Geology, 32 Music Theory, and 26 UX. Separate A/B and B/A Codex templates exist for all 128.
 
@@ -192,7 +198,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.25)
+## Current Pipeline (v0.16.26)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
@@ -628,6 +634,7 @@ npm run complete:scion:codex-fresh-pass -- --decisions-dir ... --sealed-output .
 npm run ingest:scion:codex-training-reviews -- --review ... --review ...
 npm run ingest:scion:codex-sealed-training-reviews -- --sealed ... --key ... --sealed ... --key ...
 npm run audit:scion:mc-recovery # replay hash-bound local MC evidence through v0.16.22 recovery
+npm run audit:scion:compiler-lift # compare current compiler admission lift on immutable local/reference arms
 npm run audit:scion:adapter-delivery # verify the v0.16.24 bounded lifecycle and retained smoke-package receipt
 npm run capture:scion:browser-device -- --reset-profile # run the isolated real Chrome recovery profile
 npm run audit:scion:browser-device-evidence # verify the retained v0.16.25 Apple run and exact 1/4 boundary

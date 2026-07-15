@@ -1,0 +1,525 @@
+{
+  "protocol": "scion-cross-arm-compiler-lift-replay-v1",
+  "release": "v0.16.26",
+  "generatedAt": "2026-07-15T01:46:52.685Z",
+  "status": "cross-arm-compiler-lift-measured",
+  "implementation": [
+    {
+      "file": "scripts/scionCompilerLiftReplayAudit.mjs",
+      "bytes": 20602,
+      "sha256": "f9425940b0ee806ca59b06faf7c18264c56c3321d155715c97978f6bd7dd2c26"
+    },
+    {
+      "file": "scripts/lib/scionSourceCapture.mjs",
+      "bytes": 30743,
+      "sha256": "525050d9368a5ed8056fb9e47f88cd9e4aa1c7a092bee6ec8b3642e77efb3f9f"
+    },
+    {
+      "file": "src/lib/blueprintEnrichmentPass.js",
+      "bytes": 70767,
+      "sha256": "f08c04cd8cfa3df50d6832baf031afce707341937e90c4ef188424b0fef09a8a"
+    },
+    {
+      "file": "src/lib/courseGraph/blueprintFromGraph.js",
+      "bytes": 8847,
+      "sha256": "cbcc3b9fb8dcbb57c6034052b15ce7e43d78e52382d97ec9550820955e5a86c5"
+    },
+    {
+      "file": "src/lib/itemAdmissionLint.js",
+      "bytes": 9336,
+      "sha256": "5bd552e5c6d921cb92dfbd98c1d303ba5ed866bb4cb6719851705c71747684ff"
+    },
+    {
+      "file": "src/lib/publicScionProvider.js",
+      "bytes": 25727,
+      "sha256": "cd64176e8f3dccba47586a41d04abf25d991f98e16331455d7bd6fe3f410e74c"
+    },
+    {
+      "file": "src/lib/scionAnswerKeyAlignment.js",
+      "bytes": 9246,
+      "sha256": "c5d2f3f53f27532470465cbf5ea306dfd95c4e9a166ec373eaad6ad5a12b5d31"
+    },
+    {
+      "file": "src/lib/scionLocalProvider.js",
+      "bytes": 4412,
+      "sha256": "5baf665e90a22ce21afb430f55d9b3ffe69dd3ce92d9c71b047447eddb6cb394"
+    },
+    {
+      "file": "src/lib/scionPreferenceGate.js",
+      "bytes": 15204,
+      "sha256": "127481201918a84b2231b75eb88fad66122d44410adae67ff5863bddc00bc3f2"
+    },
+    {
+      "file": "src/hooks/useStreamReader.js",
+      "bytes": 44300,
+      "sha256": "21762b011bc5470d4bdb064589d3a633e8cd2cc5ad14ca7d1e1d22e3663b6379"
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "primary",
+      "manifest": {
+        "file": "evaluation/scion-source-capture-campaign.json",
+        "sha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+        "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d"
+      },
+      "groups": 8,
+      "prompts": 24,
+      "expectedAtomsPerArm": 96,
+      "arms": {
+        "local": {
+          "model": {
+            "provider": "local",
+            "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+            "name": "Scion base (Gemma 4 E2B)",
+            "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+            "route": "mlx-vlm-base-only",
+            "decoding": "greedy-json-schema",
+            "maxOutputTokens": 2200
+          },
+          "evidence": [
+            {
+              "file": "evaluation/scion-source-capture-evidence/python-control-flow-workshop-local.json",
+              "bytes": 50351,
+              "sha256": "99f04381d261ac92be347d96b83d7cedc832277b35cec9ed5acaf2691e2925fc"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/python-data-structures-lab-local.json",
+              "bytes": 42384,
+              "sha256": "ebebf160b30440e6ba8edf86f4b1e42cfaa011cc6c9b0f7e588df9ba24e90501"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/igneous-volcanic-processes-local.json",
+              "bytes": 42509,
+              "sha256": "df5bc5b48c806ffc937469202267bb8b415850fa9fd11c3aa863d3d7c53704eb"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/tectonics-seismology-field-lab-local.json",
+              "bytes": 47930,
+              "sha256": "bd9550519f3f68019050d874b0cb0ba955e0fc4bbedd452a2b2deb433ddf38ef"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/music-notation-ear-training-local.json",
+              "bytes": 48629,
+              "sha256": "4f3d254db6d2aef6d91ab7d6eab92563c08b313db110424ee80027324bc1ca01"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/harmony-form-analysis-local.json",
+              "bytes": 46282,
+              "sha256": "7e01abcb815b01952975105d7fe4ac9310b89b11e07afa08f76afe44932c8810"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/ux-research-synthesis-studio-local.json",
+              "bytes": 45625,
+              "sha256": "bb41aa56d1382e69302e731828fd0a6fdb01960b2c57ba8eb3b9b5572e39ba46"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-local.json",
+              "bytes": 48471,
+              "sha256": "a0a70f7e2078e0a83d8a439a8df5ee4cce01c5d8eae73e227b1e93d1cd152522"
+            }
+          ],
+          "raw": {
+            "mc": 26,
+            "keyTerms": 36,
+            "total": 62
+          },
+          "compiled": {
+            "mc": 41,
+            "keyTerms": 37,
+            "total": 78
+          },
+          "lift": {
+            "mc": 15,
+            "keyTerms": 1,
+            "total": 16,
+            "percentagePoints": 16.6667
+          },
+          "recoveryUsed": {
+            "mc": 0,
+            "keyTerms": 1,
+            "total": 1
+          },
+          "repairHistogram": {
+            "explanationKeyAlignment": 13,
+            "incompleteExplanationTail": 6
+          },
+          "remainingIssueHistogram": {
+            "mc": {
+              "clang-association-cue": 1,
+              "duplicate-options": 1,
+              "longest-option-cue": 4,
+              "truncated-explanation": 1
+            },
+            "keyTerms": {
+              "correction-repeats-definition": 9,
+              "source-fact-index": 1
+            }
+          }
+        },
+        "reference": {
+          "model": {
+            "provider": "openai",
+            "id": "gpt-5.4-mini",
+            "name": "gpt-5.4-mini",
+            "route": "responses-api",
+            "reasoningEffort": "low",
+            "maxOutputTokens": 4000
+          },
+          "evidence": [
+            {
+              "file": "evaluation/scion-source-capture-evidence/python-control-flow-workshop-reference.json",
+              "bytes": 56040,
+              "sha256": "2df58c1ed5a8ca53de2076ee15979b3b04dbbc79b1b403f46484f89a9e583068"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/python-data-structures-lab-reference.json",
+              "bytes": 55494,
+              "sha256": "d3b1e83609dc755ed1864076013573b492b9a9400fe541a627f25f2901e7085a"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/igneous-volcanic-processes-reference.json",
+              "bytes": 56750,
+              "sha256": "07e65241d9291e7e3cafe499315b037b8ca1601107de22fec0bb7a4598d8f78c"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/tectonics-seismology-field-lab-reference.json",
+              "bytes": 57557,
+              "sha256": "5408ea68e4ef2e0064b42ec4b9c45bc6516925000563e6ff6942442c8e5c4263"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/music-notation-ear-training-reference.json",
+              "bytes": 53376,
+              "sha256": "61909bbf0b68d25a3f55fa6d58c00bf6fe5ef594a5f3c65e3c6bd02e91a458cb"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/harmony-form-analysis-reference.json",
+              "bytes": 54911,
+              "sha256": "70822a8ce78cd3097d1b8be5b2b579f0925e1cd442dda301716b68e9d53056bd"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/ux-research-synthesis-studio-reference.json",
+              "bytes": 58636,
+              "sha256": "ca93fd43d0307dd001105c5b9cba94522addad7f7a939a73c5458a9f477c6fca"
+            },
+            {
+              "file": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-reference.json",
+              "bytes": 57328,
+              "sha256": "eaa3b086962e97791bdd34c61210fd2329344aab2f7a7b6b384a08e494cc1489"
+            }
+          ],
+          "raw": {
+            "mc": 43,
+            "keyTerms": 48,
+            "total": 91
+          },
+          "compiled": {
+            "mc": 44,
+            "keyTerms": 48,
+            "total": 92
+          },
+          "lift": {
+            "mc": 1,
+            "keyTerms": 0,
+            "total": 1,
+            "percentagePoints": 1.0417
+          },
+          "recoveryUsed": {
+            "mc": 0,
+            "keyTerms": 0,
+            "total": 0
+          },
+          "repairHistogram": {
+            "incompleteExplanationTail": 1
+          },
+          "remainingIssueHistogram": {
+            "mc": {
+              "longest-option-cue": 2,
+              "meta-surface": 1,
+              "unsupported-behavior-inference": 1
+            },
+            "keyTerms": {}
+          }
+        }
+      }
+    },
+    {
+      "id": "expansion",
+      "manifest": {
+        "file": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+        "sha256": "7745ab25f0b006d1d84913f8df9b95acb09414b05cd611944abcd0da34f872da",
+        "promptSetSha256": "0355e7ee7588f6bcfaa114043b19cfb9afe03dbc8e9095aeeaa9b548b2d1835e"
+      },
+      "groups": 4,
+      "prompts": 24,
+      "expectedAtomsPerArm": 96,
+      "arms": {
+        "local": {
+          "model": {
+            "provider": "local",
+            "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+            "name": "Scion base (Gemma 4 E2B)",
+            "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+            "route": "mlx-vlm-base-only",
+            "decoding": "greedy-json-schema",
+            "maxOutputTokens": 2200
+          },
+          "evidence": [
+            {
+              "file": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-local.json",
+              "bytes": 86823,
+              "sha256": "ea0a095bee5074043d7d7810041da78c6ab903fc886081b464f23bfe56b9fff5"
+            },
+            {
+              "file": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-local.json",
+              "bytes": 91900,
+              "sha256": "5bd7f866e860907faa719e8e3d5abd0b59a19e576856e8c32488b9211b0d0ed5"
+            },
+            {
+              "file": "evaluation/scion-source-capture-expansion-evidence/tonal-analysis-integration-studio-local.json",
+              "bytes": 82707,
+              "sha256": "add66a66f2eb96dadc71345d5f3011987093072ef71a31f55dbe4982f34f2843"
+            },
+            {
+              "file": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
+              "bytes": 85792,
+              "sha256": "e9a6a0bb699b20003e95a754a07b8ab0a4a32ab1e3c14ae3c0931aae089da905"
+            }
+          ],
+          "raw": {
+            "mc": 25,
+            "keyTerms": 45,
+            "total": 70
+          },
+          "compiled": {
+            "mc": 45,
+            "keyTerms": 45,
+            "total": 90
+          },
+          "lift": {
+            "mc": 20,
+            "keyTerms": 0,
+            "total": 20,
+            "percentagePoints": 20.8333
+          },
+          "recoveryUsed": {
+            "mc": 0,
+            "keyTerms": 0,
+            "total": 0
+          },
+          "repairHistogram": {
+            "explanationKeyAlignment": 13,
+            "incompleteExplanationTail": 14
+          },
+          "remainingIssueHistogram": {
+            "mc": {
+              "longest-option-cue": 3
+            },
+            "keyTerms": {
+              "correction-repeats-definition": 3
+            }
+          }
+        },
+        "reference": {
+          "model": {
+            "provider": "openai",
+            "id": "gpt-5.4-mini",
+            "name": "gpt-5.4-mini",
+            "route": "responses-api",
+            "reasoningEffort": "low",
+            "maxOutputTokens": 4000
+          },
+          "evidence": [
+            {
+              "file": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-reference.json",
+              "bytes": 98340,
+              "sha256": "254680cf489d62834243cef287fb5431872bbc47af85883e181a1ba03227a306"
+            },
+            {
+              "file": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-reference.json",
+              "bytes": 106228,
+              "sha256": "848866826f59bda860d6c7865170665314504d9ccd79cf6604221358523ded8e"
+            },
+            {
+              "file": "evaluation/scion-source-capture-expansion-evidence/tonal-analysis-integration-studio-reference.json",
+              "bytes": 98982,
+              "sha256": "9152156a21a74fcc09a3123c046642d68202b4d53566cf591648003bdd1a9cce"
+            },
+            {
+              "file": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-reference.json",
+              "bytes": 107500,
+              "sha256": "301336f3053533b88b9ff5224f42535fbf6016b5a1ed15f54ac11426b17f0bc8"
+            }
+          ],
+          "raw": {
+            "mc": 38,
+            "keyTerms": 48,
+            "total": 86
+          },
+          "compiled": {
+            "mc": 42,
+            "keyTerms": 48,
+            "total": 90
+          },
+          "lift": {
+            "mc": 4,
+            "keyTerms": 0,
+            "total": 4,
+            "percentagePoints": 4.1667
+          },
+          "recoveryUsed": {
+            "mc": 0,
+            "keyTerms": 0,
+            "total": 0
+          },
+          "repairHistogram": {
+            "incompleteExplanationTail": 6
+          },
+          "remainingIssueHistogram": {
+            "mc": {
+              "clang-association-cue": 2,
+              "meta-surface": 3,
+              "option-homogeneity": 1
+            },
+            "keyTerms": {}
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "campaigns": 2,
+    "groups": 12,
+    "promptsPerArm": 48,
+    "expectedAtomsPerArm": 192,
+    "local": {
+      "raw": {
+        "mc": 51,
+        "keyTerms": 81,
+        "total": 132
+      },
+      "compiled": {
+        "mc": 86,
+        "keyTerms": 82,
+        "total": 168
+      },
+      "lift": {
+        "mc": 35,
+        "keyTerms": 1,
+        "total": 36,
+        "percentagePoints": 18.75
+      }
+    },
+    "reference": {
+      "raw": {
+        "mc": 81,
+        "keyTerms": 96,
+        "total": 177
+      },
+      "compiled": {
+        "mc": 86,
+        "keyTerms": 96,
+        "total": 182
+      },
+      "lift": {
+        "mc": 5,
+        "keyTerms": 0,
+        "total": 5,
+        "percentagePoints": 2.6042
+      }
+    },
+    "rawReferenceAdvantage": {
+      "atoms": 45,
+      "percentagePoints": 23.4375
+    },
+    "compiledReferenceAdvantage": {
+      "atoms": 14,
+      "percentagePoints": 7.2917
+    },
+    "measuredGapClosedByCompiler": {
+      "atoms": 31,
+      "rate": 0.688889
+    },
+    "mcContractAdmission": {
+      "local": 86,
+      "reference": 86,
+      "expectedPerArm": 96,
+      "difference": 0
+    },
+    "remainingAdmissionGap": {
+      "atoms": 14,
+      "kind": "local-key-term-contract-admission",
+      "accounting": {
+        "correctionRepeatsDefinition": 12,
+        "invalidSourceFactIndex": 1,
+        "missingExpectedSeat": 1
+      }
+    }
+  },
+  "aggregateMechanics": {
+    "recoveryUsed": {
+      "local": {
+        "mc": 0,
+        "keyTerms": 1,
+        "total": 1
+      },
+      "reference": {
+        "mc": 0,
+        "keyTerms": 0,
+        "total": 0
+      }
+    },
+    "repairHistogram": {
+      "local": {
+        "explanationKeyAlignment": 26,
+        "incompleteExplanationTail": 20
+      },
+      "reference": {
+        "incompleteExplanationTail": 7
+      }
+    },
+    "remainingIssueHistogram": {
+      "local": {
+        "mc": {
+          "clang-association-cue": 1,
+          "duplicate-options": 1,
+          "longest-option-cue": 7,
+          "truncated-explanation": 1
+        },
+        "keyTerms": {
+          "correction-repeats-definition": 12,
+          "source-fact-index": 1
+        }
+      },
+      "reference": {
+        "mc": {
+          "clang-association-cue": 2,
+          "longest-option-cue": 2,
+          "meta-surface": 4,
+          "option-homogeneity": 1,
+          "unsupported-behavior-inference": 1
+        },
+        "keyTerms": {}
+      }
+    }
+  },
+  "interpretation": {
+    "compilerBenefit": "Both retained model arms improve under the same deterministic compiler replay.",
+    "asymmetricLift": "The local arm gains 36 admitted atoms while the paid-reference arm gains 5, so the compiler compensates for substantially more contract failure in the smaller local model.",
+    "modelGap": "MC contract admission reaches 86/96 in both arms. The remaining 14-atom admission difference is entirely local key-term output, primarily misconception/correction contract failures; that is the highest-value adapter target exposed by this replay."
+  },
+  "qualityBoundary": {
+    "evidenceType": "deterministic-cross-arm-replay-of-immutable-model-responses",
+    "claim": "compiler-contract-admission-lift-only",
+    "details": "The audit verifies retained projects, source packets, prompts, responses, and implementation bytes; makes no new model calls; repairs MC items only through existing sentence retention and decisive explanation/key alignment; and counts an already-retained recovery response without rewriting evidence.",
+    "doesNotProve": [
+      "factual-superiority",
+      "educational-quality-win",
+      "model-or-adapter-win",
+      "held-out-domain-win",
+      "paid-reference-quality-parity",
+      "independent-review",
+      "human-or-instructor-validation"
+    ]
+  }
+}

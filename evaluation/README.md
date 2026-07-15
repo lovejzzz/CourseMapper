@@ -249,6 +249,18 @@ The isolated Chrome runner uses the immutable public base URL, independently has
 
 `audit:scion:browser-device-evidence` accepts the exact Apple run only when every artifact and scenario verifies and when the full matrix remains blocked on exactly the other three profiles. `adapter-lifecycle-v0.16.25.json` separately rebinds the browser runtime and focused lifecycle tests after native activation metadata became directly observable, leaving the v0.16.24 receipt immutable. This is real mechanics evidence for a permanently non-promotable smoke adapter, not educational-quality, factual, held-out, paid-reference, production-adapter, human-review, or completed B/A evidence.
 
+v0.16.26 adds a cross-arm compiler-lift replay over both immutable source-capture campaigns:
+
+```bash
+npm run audit:scion:compiler-lift
+```
+
+The tracked `compiler-cross-arm-replay-v0.16.26.json` receipt materializes both manifests, reconstructs their source packets, and verifies all 24 local/reference project pairs before applying the current production MC repair and key-term admission gate. It covers twelve course groups, 48 prompts, and 192 expected atoms per arm. Every evidence file and relevant compiler, gate, provider, graph, stream, and source-capture implementation file is byte-counted and SHA-256-bound.
+
+Local raw admission is 132/192 and current compiled admission is 168/192, a 36-atom or 18.75-point lift. GPT-5.4-mini raw admission is 177/192 and compiled admission is 182/192, a 5-atom or 2.6042-point lift. The measured admission gap therefore contracts from 45 atoms to 14, closing 31/45 or 68.8889%. Both arms finish at 86/96 MC admissions. This demonstrates model-neutral compiler leverage, not equivalent model quality.
+
+The remaining fourteen cross-arm admissions are entirely local key terms: twelve `correction-repeats-definition` failures, one invalid `source-fact-index`, and one missing expected seat. The compiler cannot safely author those semantic corrections, so they remain an explicit future adapter target. The audit performs no model call, rewrites no retained response, and creates no factual, educational, model, adapter, held-out, paid-reference-quality, independent-review, or human-validation claim.
+
 v0.16.20 keeps both completed orders sealed until they can be opened together. The dual-envelope ingestion command rejects fewer or more than two envelopes or keys, duplicate paths, duplicate envelope or key identities, noncanonical keys, swapped keys, bad ciphertext or authentication tags, changed plaintext hashes, metadata drift, the wrong order pair, reused judge sessions, and any existing structural or qualification failure. Both batches are decrypted and validated in memory before the approved corpus or organizer report is touched. A failed second input therefore cannot partially ingest the first order or replace existing output bytes.
 
 Successful ingestion writes only derived evidence: stable score-qualified chosen/rejected rows and a report containing counts, hashes, and quarantine reasons. It never writes either completed pass. Stable ties, insufficient evidence, low-quality relative winners, non-positive margins, missing defects, changed bytes, and order-sensitive winners remain quarantined. The derived rows explicitly remain single-model Codex evidence. The bridge is tested, but no real B/A judgment exists yet, so the real approved corpus, adapter, held-out wins, and paid-reference parity remain zero.
