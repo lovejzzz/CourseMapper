@@ -17,17 +17,19 @@
       "npx playwright test tests/coursemapper.spec.js tests/local-ai-runtime.spec.js tests/export-smoke.spec.js"
     ],
     "ciFast": {
-      "status": "pending",
-      "note": "The implementation commit must pass Fast verification before merge."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29449473515",
+      "note": "The exact merged release commit ffc7b8e0 passed remote formatting, lint, release history, the 4,477-test closed-loop suite, proof smoke, all 34 canonical main-evaluation courses, build, bundle budgets, and evaluation-report upload in 22m51s. The main evaluation retained compiler-contract-only claim status."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The evidence replay is deterministic and keyless; no model call, adapter training, or device capture is required for this compiler and UX milestone."
     },
     "deploy": {
-      "status": "pending",
-      "liveUrl": "https://edutool.dev",
-      "note": "Production proof will be sealed after the exact merged commit deploys and passes a cache-bypassed probe."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29450833969",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.34-ffc7b8e0-20260715T210942Z",
+      "note": "GitHub Pages deployed the exact Fast-verified merge commit. A cache-bypassed production probe returned HTTP 200 and cache MISS with a 2026-07-15T21:09:13Z last-modified timestamp. The served index-B1-4uzYQ.js and AppFlow-B3HIuAnV.js bundles were byte-for-byte identical to the verified local build (SHA-256 3625547cd3ddf1b8a932e677ba1f50832ead215688efad4805ea63c8de61d4bd and 8ce932406e5d554833d97e62f97d1a4a12733ccd863784454d4abb7bd59d2b60) and exposed v0.16.34, Preparing Scion, step 1 of 6, Ready to download, Review notes in Agent, the Scion runtime chunks, and the single-export release manifest."
     },
     "liveProvider": {
       "status": "not-used",
