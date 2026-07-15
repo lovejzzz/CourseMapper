@@ -170,7 +170,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
   });
 
-  it('uses amber review state when a downloadable package has quality and export caveats', async () => {
+  it('uses a neutral information state when a downloadable package has quality and export caveats', async () => {
     await renderPanel({
       courseMapInput: cleanCourseMap,
       preferPackageScope: true,
@@ -194,8 +194,9 @@ describe('ExportSidePanel readiness repair timing', () => {
     });
 
     const panel = container.querySelector('[data-testid="readiness-panel"]');
-    expect(panel?.textContent).toContain('Ready with notes');
-    expect(panel?.textContent).toContain('Notes in Agent');
+    expect(panel?.textContent).toContain('Ready to download');
+    expect(panel?.textContent).toContain('Review notes in Agent');
+    expect(panel?.className).toContain('sky');
     expect(panel?.textContent).not.toContain('Download available');
     expect(panel?.textContent).not.toContain('Download is ready. Review notes are saved');
     expect(panel?.textContent).not.toContain('Show notes');

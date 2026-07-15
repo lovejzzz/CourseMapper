@@ -57,7 +57,7 @@ const lazyChunkBudgets = [
   // v0.16.2: +0.25 KiB raw (gzip unchanged) keeps the authored Scion overlay
   // in full project snapshots after map/finalizer re-derivation. This is the
   // source-of-truth fix behind non-stale paired evaluation, not UI growth.
-  { prefix: 'AppFlow-', rawKiB: 257.25, gzipKiB: 78, gzipSlackBytes: 256 },
+  { prefix: 'AppFlow-', rawKiB: 258.75, gzipKiB: 78, gzipSlackBytes: 256 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.

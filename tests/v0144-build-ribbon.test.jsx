@@ -31,6 +31,7 @@ import { fileURLToPath } from 'node:url';
 import BuildRibbon, { TabReadyTick } from '../src/components/BuildRibbon.jsx';
 import {
   buildBuildRibbonModel,
+  deriveRibbonProgress,
   formatLessonRange,
   parseGenomeLinkerDetail,
   parseJudgmentDetail,
@@ -156,7 +157,12 @@ describe('B1 — buildRibbonModel selector', () => {
     const budget = applyEvents(createApiCallBudget(), [{ type: 'reset', runId: 'run-ribbon-1' }, ...MAP_EVENTS]);
     const model = buildBuildRibbonModel({
       budget,
-      generation: { progressStep: 'generating', isStreaming: true, streamDetail: 'Streaming lesson 4 of 13' },
+      generation: {
+        progressStep: 'generating',
+        isStreaming: true,
+        streamDetail: 'Streaming lesson 4 of 13',
+        streamProgress: 50,
+      },
       deliverables: NO_DELIVERABLES,
       packageQualityPass: { status: 'idle' },
     });
@@ -166,6 +172,70 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.steps.map((step) => step.status)).toEqual(['active', 'pending', 'pending', 'pending', 'pending']);
     expect(model.spendDisplay).toBe('$0.13');
     expect(model.pipelineChips).toEqual([]);
+    expect(model.progressPct).toBe(23);
+  });
+
+  it('continues one observable progress scale from model setup through ready', () => {
+    const preparing = buildBuildRibbonModel({
+      budget: applyEvents(createApiCallBudget(), [{ type: 'reset', runId: 'run-scion-model' }, ...MAP_EVENTS]),
+      generation: {
+        progressStep: 'generating',
+        isStreaming: true,
+        isScion: true,
+        scionRuntimeStatus: {
+          phase: 'loading-model',
+          progress: 0.5,
+          message: 'Downloading the public Gemma 4 base (50%)…',
+        },
+      },
+      deliverables: NO_DELIVERABLES,
+      packageQualityPass: { status: 'idle' },
+    });
+    expect(preparing.stage).toBe('model');
+    expect(preparing.stageLabel).toBe('Downloading the public Gemma 4 base (50%)…');
+    expect(preparing.progressPct).toBe(8);
+    expect(preparing.steps.map((step) => [step.id, step.status])).toEqual([
+      ['model', 'active'],
+      ['map', 'pending'],
+      ['enrich', 'pending'],
+      ['compile', 'pending'],
+      ['verify', 'pending'],
+      ['grade', 'pending'],
+    ]);
+
+    const mapping = buildBuildRibbonModel({
+      budget: applyEvents(createApiCallBudget(), [{ type: 'reset', runId: 'run-scion-map' }, ...MAP_EVENTS]),
+      generation: {
+        progressStep: 'generating',
+        isStreaming: true,
+        streamProgress: 50,
+        isScion: true,
+        scionRuntimeStatus: { phase: 'ready', progress: 1, message: 'Scion is ready.' },
+      },
+      deliverables: NO_DELIVERABLES,
+      packageQualityPass: { status: 'idle' },
+    });
+    expect(mapping.stage).toBe('map');
+    expect(mapping.progressPct).toBe(23);
+    expect(mapping.steps.slice(0, 2).map((step) => [step.id, step.status])).toEqual([
+      ['model', 'done'],
+      ['map', 'active'],
+    ]);
+
+    expect(
+      deriveRibbonProgress({
+        pipeline: { state: 'enriching', activity: { detail: 'Lessons 9, 10, 11, 12 — source-bound kernel' } },
+        generation: { lessonCount: 13 },
+      }),
+    ).toBe(48);
+    expect(
+      deriveRibbonProgress({
+        pipeline: { state: 'compiling' },
+        deliverables: { doneCount: 3, totalCount: 9 },
+      }),
+    ).toBe(58);
+    expect(deriveRibbonProgress({ pipeline: { state: 'verifying' } })).toBe(85);
+    expect(deriveRibbonProgress({ pipeline: { state: 'ready' } })).toBe(100);
   });
 
   it('generation umbrella (phase: generation) never marks later steps done — the 1:58 AM screenshot bug', () => {
@@ -461,6 +531,9 @@ describe('B1 — BuildRibbon render', () => {
     expect(html).toContain('$0.13');
     expect(html).not.toContain('ribbon-chip');
     expect(html).toContain('data-status="settled"');
+    expect(html).toContain('data-testid="build-progress-track"');
+    expect(html).toContain('role="progressbar"');
+    expect(html).toContain('data-testid="ribbon-progress-label"');
     expect(html).not.toContain('M5 13l4 4L19 7');
   });
 

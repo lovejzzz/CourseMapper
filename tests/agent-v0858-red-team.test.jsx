@@ -194,7 +194,7 @@ describe('v0.8.58 agent safety invariants', () => {
     expect(html).not.toContain('Package needs review');
   });
 
-  it('does not call a caveated downloadable package ready to export', () => {
+  it('presents downloadable review notes as neutral information', () => {
     const props = {
       courseMap: baseCourseMap(),
       activeTab: 'courseMap',
@@ -217,10 +217,10 @@ describe('v0.8.58 agent safety invariants', () => {
     const summary = buildAgentWorkingSetSummary(props);
     const html = renderToStaticMarkup(<AgentWorkingSetPanel {...props} />);
 
-    expect(summary.packageStatus.label).toBe('Notes');
-    expect(html).toContain('Ready with notes');
-    expect(html).toContain('Notes');
-    expect(html).toContain('amber');
-    expect(html).not.toContain('Ready to export');
+    expect(summary.packageStatus.label).toBe('Review notes');
+    expect(html).toContain('Ready to export');
+    expect(html).toContain('Review notes');
+    expect(html).toContain('sky');
+    expect(html).not.toContain('Ready with notes');
   });
 });

@@ -158,7 +158,7 @@ test.describe('Landing Page', () => {
     await expect(page.getByLabel('API')).toBeDisabled();
     await expect(page.getByLabel('API')).toHaveValue('No API key required');
     await expect(page.getByLabel('Model')).toHaveValue('scion-public');
-    await expect(page.getByLabel('Model').locator('option')).toHaveText('Scion V0.16.33');
+    await expect(page.getByLabel('Model').locator('option')).toHaveText('Scion V0.16.34');
   });
 
   test('Resume restores the saved project model instead of the landing-page model', async ({ page }) => {
@@ -232,6 +232,57 @@ test.describe('Landing Page', () => {
       modelId: 'gemini-2.5-pro',
       modelName: 'Gemini 2.5 Pro',
     });
+  });
+
+  test('restored Scion workspaces never expose the internal model id', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem(
+        'coursemapper-project',
+        JSON.stringify({
+          formatVersion: 2,
+          hasGenerated: true,
+          provider: 'public',
+          modelId: 'scion-public',
+          modelName: '',
+          courseMap: {
+            courseName: 'Scion Display Contract',
+            lessons: [
+              {
+                title: 'Lesson 1',
+                sections: [
+                  {
+                    learningGoals: 'Explain one design decision.',
+                    topicSection: 'Interface evidence',
+                    learningObjectives: 'Evaluate an interface choice.',
+                    weeklyAssessments: 'Design rationale',
+                  },
+                ],
+              },
+            ],
+          },
+          columns: [],
+          userEdits: [],
+          chatHistory: [],
+          fileNames: [],
+          versionHistory: [],
+          selectedFeatures: ['courseMap'],
+          lessonScope: { type: 'all' },
+          deliverableConfig: {},
+          promptText: 'Scion display contract',
+          activeTab: 'courseMap',
+          deliverables: {},
+        }),
+      );
+    });
+    await page.reload();
+
+    await page.getByRole('button', { name: 'Resume' }).click();
+    await expect(page.getByTestId('workspace-header')).toContainText('Scion V0.16.34', { timeout: 10000 });
+    await expect(page.getByTestId('workspace-model-config-trigger')).toHaveText('Scion V0.16.34');
+    await expect(page.getByTestId('workspace-shell')).not.toContainText('scion-public');
   });
 
   test('entering a new brief discards a detected saved project before setup begins', async ({ page }) => {

@@ -46,6 +46,23 @@ describe('Scion Public provider', () => {
     expect([1, 2, 3, 4, 5].map(publicScionRetryDelay)).toEqual([250, 500, 1000, 2000, 2000]);
   });
 
+  it('gives local chat and Agent turns a grounded prose contract instead of the course-map JSON contract', () => {
+    const chat = buildPublicScionMessages('Course: Interaction Design', 'How should I improve Lesson 2?', {
+      task: 'chat',
+    });
+    expect(chat[0].content).toContain('browser-local pedagogical assistant');
+    expect(chat[0].content).toContain('concise Markdown');
+    expect(chat[1].content).toBe('How should I improve Lesson 2?');
+    expect(chat[1].content).not.toContain('TEMPLATE TO FILL');
+
+    const agent = buildPublicScionMessages('Workspace: lesson plans are ready.', 'Audit the activities.', {
+      task: 'agent',
+    });
+    expect(agent[0].content).toContain('browser-local course workspace agent');
+    expect(agent[0].content).toContain('never claim that you changed the workspace');
+    expect(agent[1].content).toBe('Audit the activities.');
+  });
+
   it('retries incomplete public kernel envelopes instead of accepting cached empty output', () => {
     const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
     expect(publicScionKernelResponseNeedsRetry('{"lessons":[]}', prompt, 'blueprintEnrichment')).toBe(true);
@@ -80,6 +97,63 @@ describe('Scion Public provider', () => {
     );
     expect(buildPublicScionRetryFeedback(assessment)).toContain('cx must directly refute mi');
     expect(publicScionKernelResponseNeedsRetry('{"lessons":[]}', prompt, 'course-map')).toBe(false);
+  });
+
+  it('retries judged key-term leakage and cross-field paraphrase instead of compiling it', () => {
+    const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
+    const contaminatedTerms = completeTerms.map((term, index) => {
+      if (index === 0) return { ...term, cx: term.eg };
+      if (index === 1) return { ...term, df: `Definition: ${term.df} Example: ${term.eg}` };
+      return { ...term, cx: `${term.cx} [3, 4]` };
+    });
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [{ lessonId: 'lesson-9', keyTerms: contaminatedTerms }] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+
+    expect(assessment).toMatchObject({ needsRetry: true });
+    expect(assessment.issues).toEqual(
+      expect.arrayContaining([
+        'lesson-9:key-term-0:correction-repeats-example',
+        'lesson-9:key-term-1:embedded-field-label',
+        'lesson-9:key-term-2:claim-marker-residue',
+      ]),
+    );
+    const feedback = buildPublicScionRetryFeedback(assessment);
+    expect(feedback).toContain('Every df, eg, mi, and cx field must make a different instructional move');
+    expect(feedback).toContain('Never embed labels');
+    expect(feedback).toContain('Remove internal claim numbers');
+  });
+
+  it('retries a misconception that merely relabels the lesson own fact as false', () => {
+    const prompt = `Course: Music Theory\nLessons:\n[{"lessonId":"lesson-9","title":"Musical Form"}]\nReturn ONLY valid JSON.`;
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-9',
+          facts: [
+            'Musical form is the audible structure of a composition or performance across time.',
+            'Listeners recognize sections through repetition and contrast.',
+            'A return can remain recognizable even when details vary.',
+            'Section boundaries can be supported by several musical cues.',
+            'Analysis connects local events to the piece overall.',
+          ],
+          keyTerms: completeTerms.map((term, index) =>
+            index === 0
+              ? {
+                  ...term,
+                  mi: 'Believing musical form is the audible structure of a composition or performance across time.',
+                }
+              : term,
+          ),
+        },
+      ],
+    };
+    const assessment = assessPublicScionKernelResponse(JSON.stringify(response), prompt, 'blueprintEnrichment');
+
+    expect(assessment.issues).toContain('lesson-9:key-term-0:misconception-repeats-known-fact');
+    expect(buildPublicScionRetryFeedback(assessment)).toContain('genuinely false learner belief');
   });
 
   it('merges only earlier fields that strictly reduce cross-attempt contract defects', () => {
@@ -181,7 +255,8 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(messages[1].content).toContain('LESSONS TO AUTHOR');
     expect(messages[1].content).toContain('Lesson 4: Affinity Mapping');
     expect(messages[1].content).toContain('Write exactly 4 mc items');
-    expect(messages[1].content).toContain('cx directly refutes mi in different wording and never repeats df');
+    expect(messages[1].content).toContain('mi is a genuinely false learner belief');
+    expect(messages[1].content).toContain('Never embed field labels or internal claim numbers');
     expect(messages[1].content).toContain('one field-note evidence analysis');
     expect(messages[1].content).toContain('At least 3 mc stems include specific observed behavior or evidence');
     expect(messages[1].content).toContain('Never infer motive from one ambiguous behavior');

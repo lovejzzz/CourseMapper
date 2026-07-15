@@ -74,9 +74,11 @@ describe('Scion runtime status banner', () => {
 
     const banner = container.querySelector('[data-testid="scion-runtime-status"]');
     expect(banner).not.toBeNull();
-    expect(banner.textContent).toContain('Preparing Scion on this device');
+    expect(banner.textContent).toContain('Preparing Scion · step 1 of 6');
     expect(banner.textContent).toContain('3.35 GB');
-    expect(banner.textContent).toContain('50%');
+    expect(banner.textContent).toContain('Overall 8%');
+    expect(banner.textContent).toContain('Model 50%');
+    expect(banner.textContent).toContain('maps, enriches, compiles, verifies, and grades');
 
     await act(async () => {
       finishDownload();

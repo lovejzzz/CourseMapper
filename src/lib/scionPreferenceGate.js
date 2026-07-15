@@ -113,8 +113,8 @@ export function assessScionMcItem(item, { topicWords = [] } = {}) {
   };
 }
 
-export function assessScionKeyTerm(term = {}, { lessonTitle = '' } = {}) {
-  const result = assessScionKeyTermContract(term, { lessonTitle, definitionMin: 45 });
+export function assessScionKeyTerm(term = {}, { lessonTitle = '', knownFacts = [] } = {}) {
+  const result = assessScionKeyTermContract(term, { lessonTitle, knownFacts, definitionMin: 45 });
   return { eligible: result.eligible, issues: result.issues, score: result.score };
 }
 
@@ -128,7 +128,8 @@ export function assessScionKernelLesson(lesson = {}) {
   const keyTerms = Array.isArray(lesson?.keyTerms) ? lesson.keyTerms : [];
   if (keyTerms.length < 3 || keyTerms.length > 6) issues.push('key-terms-count');
   keyTerms.forEach((term, index) => {
-    for (const issue of assessScionKeyTerm(term).issues) issues.push(`key-term-${index}:${issue}`);
+    for (const issue of assessScionKeyTerm(term, { knownFacts: facts }).issues)
+      issues.push(`key-term-${index}:${issue}`);
   });
 
   const scenario = lesson?.scenario || {};

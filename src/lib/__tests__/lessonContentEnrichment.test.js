@@ -197,6 +197,15 @@ describe('lesson content enrichment contracts', () => {
         definition: `${GOOD_TERM.correction} It also has a second defining property.`,
       }),
     ).toContain('correction-repeats-definition');
+    expect(lintEnrichedKeyTerm({ ...GOOD_TERM, correction: GOOD_TERM.example })).toContain(
+      'correction-repeats-example',
+    );
+    expect(lintEnrichedKeyTerm({ ...GOOD_TERM, definition: `Definition: ${GOOD_TERM.definition}` })).toContain(
+      'embedded-field-label',
+    );
+    expect(lintEnrichedKeyTerm({ ...GOOD_TERM, correction: `${GOOD_TERM.correction} [2, 3]` })).toContain(
+      'claim-marker-residue',
+    );
   });
 });
 

@@ -91,7 +91,7 @@ describe('B2 — the two-number Seal', () => {
     expect(panel).toContain('quality-texture-row');
     expect(panel).toContain("['sameness', 'openers', 'tails']");
     expect(panel).toContain('style and repetition, counted lightly');
-    expect(panel).toContain('headerOwnsZipCta');
+    expect(panel).not.toContain('headerOwnsZipCta');
   });
 });
 

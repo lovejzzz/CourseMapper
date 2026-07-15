@@ -58,7 +58,7 @@ import { useUI } from './contexts/UIContext';
 import { useCourse } from './contexts/CourseContext';
 import { warn } from './lib/logger';
 import { applyQualityToFinalizerResult, runDeterministicPackageFinalizer } from './lib/packageFinalizer';
-import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
+import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
 import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
 // HelpDrawer removed — merged into ChatPanel
@@ -448,7 +448,12 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
 
 // Screens: 'landing' | 'features' | 'config' | 'workspace'
 
-export default function AppFlow({ startupAction = null, onStartupHandled, onReturnToLanding } = {}) {
+export default function AppFlow({
+  startupAction = null,
+  onStartupHandled,
+  onReturnToLanding,
+  scionRuntimeStatus,
+} = {}) {
   useEffect(() => {
     requestNotificationPermission();
   }, []);
@@ -561,7 +566,6 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
     modelCapabilities,
     generationPlan,
   } = useAIConfig();
-
   const restoreProjectAIConfig = useCallback(
     (snapshot, { providerFallback } = {}) => {
       const originalProvider = snapshot?.provider || '';
@@ -2791,7 +2795,15 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
   const ribbonFeatureIds = selectedFeatures.filter((id) => id !== 'courseMap');
   const buildRibbonModel = buildBuildRibbonModel({
     budget: apiCallBudget,
-    generation: { progressStep: gen.progressStep, isStreaming: gen.isStreaming, streamDetail: gen.streamDetail },
+    generation: {
+      progressStep: gen.progressStep,
+      isStreaming: gen.isStreaming,
+      streamDetail: gen.streamDetail,
+      streamProgress: gen.streamProgress,
+      lessonCount: Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : lessonCount,
+      isScion: provider === PUBLIC_SCION_PROVIDER_ID,
+      scionRuntimeStatus,
+    },
     deliverables: {
       isGenerating: deliv.isGenerating,
       doneCount: ribbonFeatureIds.filter((id) => deliv.deliverables?.[id]?.status === 'done').length,
@@ -2843,7 +2855,9 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
         : user
           ? 'text-emerald-600'
           : 'text-slate-500';
-  const workspaceModelLabel = gen.activeModelName || modelName || modelId || '';
+  const workspaceModelName =
+    provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_MODEL_NAME : gen.activeModelName || modelName;
+  const workspaceModelLabel = workspaceModelName || modelId || '';
   const workspaceSaveTitle = user
     ? 'Signed-in projects autosave locally and to My Projects.'
     : 'Anonymous projects autosave only in this browser. Export .coursemapper for a portable backup.';
@@ -2957,16 +2971,12 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                     {workspaceSaveText}
                   </span>
                 )}
-                {/* v0.14.7 WS-F1 (+.1 deep clean): ONE morphing verb —
-                    Building… → Review N → Download ZIP; renders nothing
-                    pre-generation. Project/file actions live in the workspace
-                    disclosure below; package/material/editing verbs stay with
-                    their owning panels. */}
+                {/* Active work and blocking review only. Download ZIP has one
+                    owner: the export panel. */}
                 <PrimaryCta
                   ribbonModel={buildRibbonModel}
                   reviewCount={outstandingReview.counts.headline}
                   canDownload={packageTrustStatus.canDownload}
-                  onDownload={() => window.dispatchEvent(new CustomEvent('coursemapper:request-zip-download'))}
                   onReview={() => handleReviewQueueOpenChange(true)}
                 />
                 <DarkModeToggle />
@@ -3614,7 +3624,7 @@ export default function AppFlow({ startupAction = null, onStartupHandled, onRetu
                 <ChatPanel
                   viewportRef={viewportRef}
                   currentStep={gen.progressStep}
-                  modelName={gen.activeModelName || modelName}
+                  modelName={workspaceModelName}
                   error={gen.error || null}
                   streamDetail={gen.streamDetail}
                   streamProgress={gen.streamProgress}

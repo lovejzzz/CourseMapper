@@ -46,7 +46,7 @@ export function getProgressPhaseLabel({
   if (isPackageQualityRunning) return 'Finishing package...';
   if (isDone && hasDelivErrors) return 'Finish failed sections';
   if (hasPackageQualityBlockers) return 'Finish package';
-  if (hasPackageQualityWarnings) return 'Ready with notes';
+  if (hasPackageQualityWarnings) return 'Ready · review notes';
   if (isDone && hasPendingSyncWork) return 'Sync needed';
   if (everythingDone) return 'Ready to download';
   if (isDone && isDelivGenerating) return `Deliverables ${delivDoneCount}/${delivRowCount}`;
@@ -159,11 +159,13 @@ export default function ProgressHeader({
       ? 'from-amber-400 to-orange-500'
       : hasDelivErrors || hasPackageQualityBlockers
         ? 'from-red-400 to-red-500'
-        : hasPackageQualityWarnings || hasPendingSyncWork
-          ? 'from-amber-400 to-orange-500'
-          : everythingDone
-            ? 'from-emerald-400 to-emerald-500'
-            : 'from-indigo-500 to-violet-500';
+        : hasPackageQualityWarnings
+          ? 'from-sky-400 to-blue-500'
+          : hasPendingSyncWork
+            ? 'from-amber-400 to-orange-500'
+            : everythingDone
+              ? 'from-emerald-400 to-emerald-500'
+              : 'from-indigo-500 to-violet-500';
 
   const textColor = error
     ? 'text-red-600'
@@ -173,11 +175,13 @@ export default function ProgressHeader({
         ? 'text-indigo-600'
         : hasDelivErrors || hasPackageQualityBlockers
           ? 'text-red-600'
-          : hasPackageQualityWarnings || hasPendingSyncWork
-            ? 'text-amber-600'
-            : everythingDone
-              ? 'text-emerald-700'
-              : 'text-indigo-600';
+          : hasPackageQualityWarnings
+            ? 'text-sky-700'
+            : hasPendingSyncWork
+              ? 'text-amber-600'
+              : everythingDone
+                ? 'text-emerald-700'
+                : 'text-indigo-600';
 
   // Don't render if generation hasn't started
   if (!currentStep && !error) return null;

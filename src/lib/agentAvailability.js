@@ -1,11 +1,14 @@
 export function isAgentProviderReady({ provider, apiKey = '', apiStatus = 'idle', modelId = '' } = {}) {
-  if (provider === 'webllm') return Boolean(modelId);
+  if (provider === 'webllm' || provider === 'public') return Boolean(modelId);
   const hasConfig = Boolean(String(apiKey || '').trim()) && Boolean(modelId);
   if (!hasConfig) return false;
   return apiStatus !== 'validating' && apiStatus !== 'error' && apiStatus !== 'no_funds';
 }
 
 export function getAgentUnavailableMessage({ provider, modelId, apiStatus } = {}) {
+  if (provider === 'public' && !modelId) {
+    return 'Scion is not selected. Return to model settings and select Scion to use the local Agent.';
+  }
   if (provider === 'webllm' && !modelId) {
     return 'To use the agent with Local AI, select a local model first.';
   }

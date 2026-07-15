@@ -114,7 +114,7 @@ describe('ProgressHeader progress helpers', () => {
     expect(label).toBe('Sync needed');
   });
 
-  it('routes caveated package completion to ready with notes', () => {
+  it('routes caveated package completion to a neutral review-notes label', () => {
     const label = getProgressPhaseLabel({
       isDone: true,
       hasPackageQualityWarnings: true,
@@ -123,6 +123,6 @@ describe('ProgressHeader progress helpers', () => {
       delivRowCount: 1,
     });
 
-    expect(label).toBe('Ready with notes');
+    expect(label).toBe('Ready · review notes');
   });
 });

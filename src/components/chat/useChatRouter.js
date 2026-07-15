@@ -463,7 +463,9 @@ export default function useChatRouter({
             ? 'To use the help chat, please configure your AI provider and API key first.'
             : isNoModel
               ? 'No AI model selected. Please select a model on the landing page first.'
-              : "Sorry, I couldn't process that. Please check your API key and try again.",
+              : provider === 'public'
+                ? "Scion couldn't answer locally. Check the Scion runtime message and try again."
+                : "Sorry, I couldn't process that. Please check your API key and try again.",
         };
         return updated;
       });

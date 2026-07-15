@@ -132,6 +132,54 @@ function buildPipelineChips(budget) {
   return chips;
 }
 
+function latestLessonNumber(event) {
+  const numbers = String(event?.detail || '')
+    .match(/\d+/g)
+    ?.map(Number)
+    .filter((value) => Number.isInteger(value) && value > 0);
+  return numbers?.length ? Math.max(...numbers) : 0;
+}
+
+/**
+ * A transparent build-completion meter. Percentages are derived only from
+ * observable work: streamed map completion, the current enrichment lesson,
+ * compiled deliverable counts, and terminal finish state. This is progress,
+ * not a quality score.
+ */
+export function deriveRibbonProgress({ pipeline, generation = {}, deliverables = {} } = {}) {
+  const scionRuntime = generation.scionRuntimeStatus || {};
+  const scionPreparing =
+    generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
+  if (scionPreparing) {
+    const modelProgress = Math.max(0, Math.min(1, Number(scionRuntime.progress) || 0));
+    return Math.round(modelProgress * 15);
+  }
+  const state = pipeline?.state || 'idle';
+  if (state === 'ready' || state === 'blocked' || state === 'syncing') return 100;
+  if (state === 'mapping') {
+    const streamed = Math.max(0, Math.min(100, Number(generation.streamProgress) || 0));
+    return Math.max(16, Math.round(15 + streamed * 0.15));
+  }
+  if (state === 'enriching') {
+    const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
+    const currentLesson = latestLessonNumber(pipeline.activity);
+    const fraction = lessonCount > 0 && currentLesson > 0 ? Math.min(1, currentLesson / lessonCount) : 0.25;
+    return Math.round(30 + fraction * 20);
+  }
+  if (state === 'compiling') {
+    const done = Math.max(0, Number(deliverables.doneCount) || 0);
+    const total = Math.max(0, Number(deliverables.totalCount) || 0);
+    const fraction = total > 0 ? Math.min(1, done / total) : 0.1;
+    return Math.round(50 + fraction * 25);
+  }
+  if (state === 'verifying') return 85;
+  if (state === 'lull') {
+    const completed = Object.values(pipeline?.done || {}).filter(Boolean).length;
+    return Math.min(95, 15 + completed * 17);
+  }
+  return 0;
+}
+
 export function buildBuildRibbonModel({
   budget = {},
   generation = {},
@@ -198,11 +246,26 @@ export function buildBuildRibbonModel({
   }
 
   const done = pipeline.done;
-  const steps = deriveStepStatuses(pipeline);
+  let steps = deriveStepStatuses(pipeline);
+  const scionRuntime = generation.scionRuntimeStatus || {};
+  const scionPreparing =
+    generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
+  if (generation.isScion) {
+    steps = [
+      { id: 'model', label: 'Model', status: scionPreparing ? 'active' : 'done' },
+      ...steps.map((step) => (scionPreparing ? { ...step, status: 'pending' } : step)),
+    ];
+  }
+  if (scionPreparing) {
+    stage = 'model';
+    running = true;
+    stageLabel = String(scionRuntime.message || '').trim() || 'Preparing Scion';
+  }
   const allPipelineChips = buildPipelineChips(budget);
 
   const costUsd = budget.tokenUsage?.costUsd || 0;
   const spendDisplay = costUsd > 0 ? formatUsd(costUsd) : '';
+  const progressPct = deriveRibbonProgress({ pipeline, generation, deliverables });
 
   let elapsedDisplay = '';
   if (stage === 'ready' && finishStatus === 'ready' && getApiCallBudgetTotal(budget) > 0) {
@@ -218,6 +281,7 @@ export function buildBuildRibbonModel({
     elapsedDisplay,
     steps,
     done,
+    progressPct,
     pipelineChips: stage === 'ready' ? allPipelineChips : allPipelineChips.filter((chip) => chip.warn),
   };
 }

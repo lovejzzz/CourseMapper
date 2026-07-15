@@ -359,24 +359,31 @@ function ReadinessPanel({
   const canNavigate = (issue) => typeof onIssueClick === 'function' && issue?.target;
   const tone = isBlocked
     ? {
-        wrap: 'border-red-100 bg-red-50/70 text-red-700',
-        icon: 'bg-red-100 text-red-600',
+        wrap: 'border-red-100 bg-red-50/70 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-200',
+        icon: 'bg-red-100 text-red-600 dark:bg-red-900/70 dark:text-red-200',
         title: 'Finish package',
         meta: `${criticalIssueCount} critical issue${criticalIssueCount === 1 ? '' : 's'}`,
       }
-    : hasWarnings
+    : hasPackageOnlyReview
       ? {
-          wrap: 'border-amber-100 bg-amber-50/70 text-amber-700',
-          icon: 'bg-amber-100 text-amber-600',
-          title: hasPackageOnlyReview ? 'Ready with notes' : 'Review recommended',
-          meta: 'Notes in Agent',
-        }
-      : {
-          wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700',
-          icon: 'bg-emerald-100 text-emerald-600',
+          wrap: 'border-sky-100 bg-sky-50/70 text-sky-800 dark:border-sky-800/50 dark:bg-sky-950/30 dark:text-sky-200',
+          icon: 'bg-sky-100 text-sky-700 dark:bg-sky-900/70 dark:text-sky-200',
           title: 'Ready to download',
-          meta: `${readiness.doneFeatureCount}/${readiness.featureCount} materials checked`,
-        };
+          meta: 'Review notes in Agent',
+        }
+      : hasWarnings
+        ? {
+            wrap: 'border-amber-100 bg-amber-50/70 text-amber-700 dark:border-amber-800/50 dark:bg-amber-950/30 dark:text-amber-200',
+            icon: 'bg-amber-100 text-amber-600 dark:bg-amber-900/70 dark:text-amber-200',
+            title: 'Review recommended',
+            meta: 'Notes in Agent',
+          }
+        : {
+            wrap: 'border-emerald-100 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-950/30 dark:text-emerald-200',
+            icon: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/70 dark:text-emerald-200',
+            title: 'Ready to download',
+            meta: `${readiness.doneFeatureCount}/${readiness.featureCount} materials checked`,
+          };
 
   return (
     <div data-testid="readiness-panel" className={`rounded-lg border px-3 py-2.5 ${tone.wrap}`}>
@@ -384,7 +391,7 @@ function ReadinessPanel({
         <span
           className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs ${tone.icon}`}
         >
-          {isBlocked ? '!' : hasWarnings ? '•' : '✓'}
+          {isBlocked ? '!' : hasPackageOnlyReview ? 'i' : hasWarnings ? '•' : '✓'}
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -1262,7 +1269,7 @@ export default function ExportSidePanel({
         : zipPendingReadiness
           ? 'Finish package'
           : 'Download ZIP';
-  // The ZIP button's guards, hoisted so the header CTA's request shares them.
+  // The export panel is the single ZIP owner.
   const zipDownloadDisabled =
     !!busy ||
     isPackageQualityRunning ||
@@ -1273,25 +1280,6 @@ export default function ExportSidePanel({
     allReadyCount === 0 ||
     !courseMap ||
     (selectedLessons !== null && selectedLessons.length === 0);
-  // Export ownership stays in the side panel. The header/overview can still
-  // request a ZIP through the event bridge, but they should not hide this
-  // canonical package action.
-  const headerOwnsZipCta = false;
-
-  // v0.14.7 WS-F1: the workspace header's Download ZIP routes HERE — one
-  // export executor. The ref keeps the listener bound once while reading the
-  // current guards + doExport closure on every request.
-  const requestZipDownloadRef = useRef(() => {});
-  requestZipDownloadRef.current = () => {
-    if (zipDownloadDisabled) return;
-    doExport('zip');
-  };
-  useEffect(() => {
-    const onRequestZipDownload = () => requestZipDownloadRef.current();
-    window.addEventListener('coursemapper:request-zip-download', onRequestZipDownload);
-    return () => window.removeEventListener('coursemapper:request-zip-download', onRequestZipDownload);
-  }, []);
-
   return (
     <div
       data-testid="export-side-panel"
@@ -1482,31 +1470,29 @@ export default function ExportSidePanel({
               </div>
             )}
 
-            {!headerOwnsZipCta && (
-              <div>
-                <p className="text-xs font-semibold text-slate-500 mb-1.5">Package ZIP</p>
-                <button
-                  data-testid="export-download-zip"
-                  onClick={() => doExport('zip')}
-                  disabled={zipDownloadDisabled}
-                  className="tactile flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
-                >
-                  {busy === 'zip' ? (
-                    <Spin />
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      />
-                    </svg>
-                  )}
-                  {zipButtonLabel}
-                </button>
-              </div>
-            )}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1.5">Package ZIP</p>
+              <button
+                data-testid="export-download-zip"
+                onClick={() => doExport('zip')}
+                disabled={zipDownloadDisabled}
+                className="tactile flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
+              >
+                {busy === 'zip' ? (
+                  <Spin />
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                )}
+                {zipButtonLabel}
+              </button>
+            </div>
 
             {/* v0.14.7.1: Save .coursemapper moved to the header's one More
                 menu — the panel keeps export verbs only. */}
