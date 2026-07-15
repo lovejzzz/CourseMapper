@@ -19,16 +19,19 @@
       "npm run audit:release-history"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The release will be pushed only after the focused provenance fixtures, full suite, build, bundle, evaluation, and release-history gates pass locally."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29423543217",
+      "note": "The exact merged release commit passed remote formatting, lint, release history, 4,452-test closed-loop coverage, proof smoke, canonical main evaluation, build, and bundle budgets in 22m23s. The main evaluation retained compiler-contract-only claim status."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "The real installed Apple MLX toolchain is audited locally because GitHub's Linux runner does not provide the pinned MLX training environment. Two same-commit local runs in separate external roots reproduced the exact 105,459,677-byte weight SHA-256 and validation metrics. CI exercises the dependency-free seed-wrapper contract and all byte-bound adversarial fixtures."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages deployment and cache-bypassed production verification remain pending until the exact release commit passes remote Fast verification."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29425249565",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.31-20260715T1450Z",
+      "note": "GitHub Pages deployed the exact Fast-verified merge commit. A cache-bypassed production probe resolved index-BSKUWcIX.js and releaseManifest-Ty-D0W6q.js and found v0.16.31, Seed Before You Graft, byte-identical 105.46 MB weights, No quality weights, and permanently non-promotable."
     },
     "liveProvider": {
       "status": "not-used",
