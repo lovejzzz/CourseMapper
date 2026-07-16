@@ -121,7 +121,14 @@ export function assessScionMcItem(item, { topicWords = [], semanticAdmission = t
     issues.push('meta-surface');
   }
   if (/\b(?:all|none) of the above\b/i.test(normalized.options.join(' '))) issues.push('all-none-of-above');
-  if (findScionExplanationKeyConflict(normalized)) issues.push('explanation-key-conflict');
+  if (
+    findScionExplanationKeyConflict(normalized, {
+      allowAffirmativeLead: semanticAdmission,
+      stripTerminalPunctuation: semanticAdmission,
+    })
+  ) {
+    issues.push('explanation-key-conflict');
+  }
   if (topicWords.length > 0) {
     const combined = [normalized.question, ...normalized.options, normalized.explanation].join(' ').toLowerCase();
     if (!topicWords.some((word) => combined.includes(clean(word).toLowerCase()))) issues.push('off-topic');

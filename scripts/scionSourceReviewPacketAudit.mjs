@@ -39,6 +39,7 @@ async function main() {
       receiptOutput,
       requireSourceContext: true,
       generatedAt: expected.generatedAt,
+      semanticAdmission: false,
     });
     const observedRaw = await fs.readFile(receiptOutput, 'utf8');
     if (observedRaw !== expectedRaw) throw new Error('Tracked source review packet receipt is stale');

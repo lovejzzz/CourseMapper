@@ -29,11 +29,9 @@ function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function stripOptionLabel(value) {
-  return clean(value)
-    .replace(/^(?:(?:option|choice|answer)\s*)?(?:[a-d]|[1-4])\s*[).:\-]\s*/i, '')
-    .replace(/[.!?;:,]+$/g, '')
-    .trim();
+function stripOptionLabel(value, { stripTerminalPunctuation = true } = {}) {
+  const unlabeled = clean(value).replace(/^(?:(?:option|choice|answer)\s*)?(?:[a-d]|[1-4])\s*[).:\-]\s*/i, '');
+  return (stripTerminalPunctuation ? unlabeled.replace(/[.!?;:,]+$/g, '') : unlabeled).trim();
 }
 
 /** Canonical identity for detecting answer choices that differ only cosmetically. */
@@ -68,9 +66,13 @@ function optionLabelIndex(value) {
  * a correctness construction, and stops before misconception/contrast prose.
  * A conflicting or multi-option cue blocks lexical repair instead of guessing.
  */
-function findExplicitExplanationAnswerCue(normalized) {
+function findExplicitExplanationAnswerCue(
+  normalized,
+  { allowAffirmativeLead = true, stripTerminalPunctuation = true } = {},
+) {
   const affirmative = clean(normalized.explanation).split(EXPLANATION_CONTRAST_RE)[0];
   if (!affirmative) return { status: 'none' };
+  const normalizeOption = (value) => stripOptionLabel(value, { stripTerminalPunctuation });
   const cues = [];
   const addCue = (supportedIndex, type, surface) => {
     if (Number.isInteger(supportedIndex) && supportedIndex >= 0 && supportedIndex < normalized.options.length) {
@@ -78,7 +80,7 @@ function findExplicitExplanationAnswerCue(normalized) {
     }
   };
   const addPhraseCue = (phrase, type, surface) => {
-    const normalizedPhrase = stripOptionLabel(phrase)
+    const normalizedPhrase = normalizeOption(phrase)
       .replace(/^(?:that\s+)?(?:the\s+)?/i, '')
       .trim();
     if (normalizedPhrase.length < 3) return;
@@ -87,7 +89,7 @@ function findExplicitExplanationAnswerCue(normalized) {
       .replace(/[^a-z0-9]+/g, ' ')
       .trim();
     const optionComparables = normalized.options.map((option) =>
-      stripOptionLabel(option)
+      normalizeOption(option)
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, ' ')
         .trim(),
@@ -107,7 +109,7 @@ function findExplicitExplanationAnswerCue(normalized) {
     }
     const phraseTokens = alignmentTokens(normalizedPhrase);
     const scores = normalized.options.map((option) => {
-      const optionTokens = alignmentTokens(stripOptionLabel(option));
+      const optionTokens = alignmentTokens(normalizeOption(option));
       return [...optionTokens].filter((token) => phraseTokens.has(token)).length;
     });
     const best = Math.max(...scores);
@@ -139,7 +141,7 @@ function findExplicitExplanationAnswerCue(normalized) {
   }
 
   normalized.options.forEach((rawOption, index) => {
-    const option = stripOptionLabel(rawOption);
+    const option = normalizeOption(rawOption);
     if (option.length < 3) return;
     const escaped = escapeRegExp(option);
     const patterns = [
@@ -166,6 +168,7 @@ function findExplicitExplanationAnswerCue(normalized) {
     // cue: it must start the affirmative lead, match one displayed option
     // exactly, and avoid negative/distractor predicates. We deliberately do
     // not infer support from a paraphrase here.
+    if (!allowAffirmativeLead) return;
     const affirmativeLead = new RegExp(
       `^\\s*(?:the\\s+)?${escaped}\\s+(?:is|are|means|refers\\s+to|describes|represents|provides|creates|returns|assigns|identifies|shows|serves)\\b(?!\\s+(?:(?:the|a|an)\\s+)?(?:incorrect|wrong|misconception|distractor|tempting|incomplete|not)\\b)`,
       'i',
@@ -252,7 +255,13 @@ export function buildScionExplanationTailRepair({ item, lessonId = '', itemIndex
 /** Find a conservative lexical contradiction between the declared key and explanation. */
 export function findScionExplanationKeyConflict(
   item = {},
-  { minimumBestScore = 3, minimumMargin = 3, allowExplicitCues = true } = {},
+  {
+    minimumBestScore = 3,
+    minimumMargin = 3,
+    allowExplicitCues = true,
+    allowAffirmativeLead = true,
+    stripTerminalPunctuation = true,
+  } = {},
 ) {
   const normalized = normalizeScionMcItem(item);
   if (
@@ -265,7 +274,10 @@ export function findScionExplanationKeyConflict(
     return null;
   }
   if (allowExplicitCues) {
-    const explicitCue = findExplicitExplanationAnswerCue(normalized);
+    const explicitCue = findExplicitExplanationAnswerCue(normalized, {
+      allowAffirmativeLead,
+      stripTerminalPunctuation,
+    });
     if (explicitCue.status === 'ambiguous') return null;
     if (explicitCue.status === 'supported') {
       if (explicitCue.supportedIndex === normalized.answerIndex) return null;

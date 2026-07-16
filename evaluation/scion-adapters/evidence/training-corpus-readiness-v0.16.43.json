@@ -136,10 +136,10 @@
     "sha256": "43b1791286befa78c7a24e929ca559a002e06b8a9eda9350f0cabfd615b78b45",
     "compilerReplay": {
       "path": "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.43.json",
-      "sha256": "01d03939a5c4eb44ae641b689debdb770630ca1dc97755b42b0b2d75c0757613",
+      "sha256": "f793a365defbac3401c583125b27fabc6631e42b340e75170ad0ef710f566dfb",
       "identity": {
         "algorithm": "sha256-canonical-source-compiler-replay-receipt-v1",
-        "sha256": "6e084c3a7d2fc649c456eddf1fb37a5886bd2449485f5b5a248dd79c6cf61262"
+        "sha256": "b3a139269370aa14d52b6fe790f6e2632ef061c921346af32fc343cb4f740aab"
       },
       "responseMutationCount": 0,
       "recoveredAtoms": 8,
@@ -226,6 +226,6 @@
   },
   "identity": {
     "algorithm": "sha256-canonical-corpus-readiness-v1",
-    "sha256": "8216377cf0be31bf1df6c8556d99901b0705a56cd39edefb3f689ddb4b5f9e51"
+    "sha256": "188aa6a2235a698e8bd621c9c7c62003acec746cd7bf7404505f353a589cf50d"
   }
 }

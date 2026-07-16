@@ -25,13 +25,13 @@
     "implementation": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 16897,
-        "sha256": "fb96667bd6aa3564e1cf0c8d60de851905714737e85545065ca1464d49a7fe9d"
+        "bytes": 17355,
+        "sha256": "875484ba47f8db515c96686659d5d32283d2d855f1d270ef677432fafddcc34f"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 15571,
-        "sha256": "4495ef5c82e72002f2b0270a3660b40be873c23ecda8d790fecb265cab6a4bb3"
+        "bytes": 15696,
+        "sha256": "42902cc44b080b7e224d2c305c519916fd19fada27b16b019c5985a786b4a72f"
       },
       {
         "path": "src/lib/blueprintEnrichmentPass.js",
@@ -239,6 +239,6 @@
   "claimBoundary": "This replay measures interception of defects already identified in stable paired-order judgments from one Codex model. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Thirty-seven stable losses remain unresolved.",
   "identity": {
     "algorithm": "sha256-canonical-scion-semantic-admission-replay-v1",
-    "sha256": "baed6a3ad16b484efb6d7c053fd4d60b9f90b044ff3462dbb71a9e0d87e7b770"
+    "sha256": "e900308929424661185c12661ab1e0a01be30a42b46c145f38e038088a22e520"
   }
 }
