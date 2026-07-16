@@ -1,0 +1,2827 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-python-program-architecture-studio-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "Python Program Architecture Studio, a six-session intermediate programming course in which students trace iteration, transform text, persist data, compare recursive and iterative solutions, and design small class-based programs.",
+  "fileNames": [
+    "source-packet-fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00.json"
+  ],
+  "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Python Program Architecture Studio\",\"sessions\":[{\"number\":1,\"title\":\"While loops\"},{\"number\":2,\"title\":\"For loops and range\"},{\"number\":3,\"title\":\"Strings and slicing\"},{\"number\":4,\"title\":\"File input and output\"},{\"number\":5,\"title\":\"Recursion\"},{\"number\":6,\"title\":\"Objects and classes\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"What is the fundamental mechanism of a while loop?\",\"op\":[\"A. The body executes exactly once.\",\"B. The condition is checked only before the first execution.\",\"C. The body repeats as long as the condition remains true.\",\"D. The loop terminates immediately upon the first check.\"],\"ai\":2,\"ex\":\"Option C is correct because a while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration. Option B is a misconception because the condition is re-checked after every pass through the body.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"When does a while loop stop executing?\",\"op\":[\"A. When the body completes its single execution.\",\"B. When the loop condition evaluates to false.\",\"C. When the loop reaches a predefined iteration count.\",\"D. When the loop expression is evaluated only once.\"],\"ai\":1,\"ex\":\"Option B is correct because if the loop expression is false, the loop terminates. Option A is a misconception because the body executes repeatedly until the condition fails.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Loop control structure\",\"df\":\"A programming construct that repeats a block of code based on a specified criterion.\",\"eg\":\"Using a while loop to process user input until a specific command is entered.\",\"mi\":\"Thinking a loop only runs once per condition check.\",\"cx\":\"The construct repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Loop termination\",\"df\":\"The event that causes a repeating sequence of code to cease execution.\",\"eg\":\"Setting a counter variable to a value that makes the loop condition false.\",\"mi\":\"Assuming the loop stops after the first time the condition is met.\",\"cx\":\"If the loop expression is false, the loop terminates.\",\"sourceFactIndexes\":[2]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Which action describes the fundamental operation of a for loop?\",\"op\":[\"Binding a loop variable to one element at a time.\",\"Retrieving objects of a container one at a time.\",\"Iterating over each element of a container.\",\"Producing a sequence of integers.\"],\"ai\":0,\"ex\":\"Binding a loop variable to one element at a time.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"What is the primary function of the range() function in relation to a for loop?\",\"op\":[\"To retrieve objects of a container one at a time.\",\"To produce a sequence of integers.\",\"To bind a loop variable to one element at a time.\",\"To repeat the body a fixed number of times.\"],\"ai\":1,\"ex\":\"To produce a sequence of integers.\",\"sourceFactIndexes\":[3],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-3\":{\"quizItems\":[{\"q\":\"If a string $s$ has a length of 5, what is the index of the right-most character?\",\"op\":[\"0 [1]\",\"4 [2]\",\"5 [3]\",\"len(s) [0]\"],\"ai\":1,\"ex\":\"Option 4 is incorrect because the right-most character is at index len(s) - 1, which is 4 for a string of length 5. Option 2 is correct because the right-most character is at index len(s) - 1, which is 4 for a string of length 5.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"What does the slice notation $s[a:b]$ return?\",\"op\":[\"Characters from index a (inclusive) up to index b (inclusive)\",\"Characters from index a (inclusive) up to index b (exclusive)\",\"Characters from index a (exclusive) up to index b (inclusive)\",\"A contiguous substring starting at index a\"],\"ai\":1,\"ex\":\"Option 1 is incorrect because the notation $s[a:b]$ returns characters up to index b (exclusive). Option 2 is correct because a slice $s[a:b]$ returns characters from index a (inclusive) up to index b (exclusive).\",\"sourceFactIndexes\":[0,3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"String indexing\",\"df\":\"The position of a character within a sequence, beginning at zero.\",\"eg\":\"In the string 'Python', the character 'P' is at index 0.\",\"mi\":\"Thinking the index starts counting from one.\",\"cx\":\"The index starts counting from zero.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"String slicing\",\"df\":\"Extracting a contiguous substring using the [a:b] notation.\",\"eg\":\"The slice 's[1:4]' extracts characters from index 1 up to (but not including) index 4.\",\"mi\":\"Thinking slicing includes the character at the end index.\",\"cx\":\"Slicing returns characters from index a (inclusive) up to index b (exclusive).\",\"sourceFactIndexes\":[0,3]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"Which function retrieves the next single line from a file?\",\"op\":[\"read()\",\"readline()\",\"readlines()\",\"open()\"],\"ai\":2,\"ex\":\"read() returns the entire contents of a file and returns a single string. The misconception is using read() when only one line is needed; readlines() returns a list of every line.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"What is the primary action performed by the open() function?\",\"op\":[\"reading data from a file\",\"writing information into files\",\"closing a file\",\"returning a file object\"],\"ai\":1,\"ex\":\"open() returns a file object that the program then reads from or writes to. The misconception is thinking open() immediately performs the read or write operation; it only establishes the connection.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"File object\",\"df\":\"The data structure returned by the open() function that allows interaction with the file.\",\"eg\":\"Using the file object to call read() to get a string from the file.\",\"mi\":\"Thinking the file object is the file itself, rather than the handle to the file.\",\"cx\":\"The file object is the program's interface for reading or writing file contents.\",\"sourceFactIndexes\":[1]},{\"tr\":\"readlines()\",\"df\":\"A function that returns a list containing every line present in a file.\",\"eg\":\"Calling readlines() on a text file to store all lines in a list.\",\"mi\":\"Confusing readlines() with read(), which only returns the next single line.\",\"cx\":\"readlines() is used when you need to process all lines of a file as a list.\",\"sourceFactIndexes\":[3]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"What is the fundamental mechanism by which a recursive function progresses toward a solution?\",\"op\":[\"A) Iteratively applying a transformation until a condition is met.\",\"b) Calling itself with a larger input until a stop condition is reached.\",\"C) Reducing the problem to a simpler version until a known solution is found.\",\"D) Storing the result in a loop variable for later use.\"],\"ai\":2,\"ex\":\"Option C is correct because recursion solves a problem by reducing it to a simpler version of the same problem until a base case is reached. Option B is a misconception because recursive functions call themselves on a *smaller* input, not a larger one.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"What prevents a recursive function from running indefinitely and causing a stack overflow?\",\"op\":[\"A) Using a `while` loop to manage the function calls.\",\"B) Ensuring the function always returns a value.\",\"C) Having a base case that stops the self-calls.\",\"D) Limiting the depth of the input data.\"],\"ai\":2,\"ex\":\"Option C is correct because without a base case that stops the self-calls, recursion never terminates and overflows the call stack. Option A is a misconception because recursion relies on self-calls, not explicit loops, to manage termination.\",\"sourceFactIndexes\":[3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Termination Condition\",\"df\":\"The specific state or input size that signals the end of the recursive process.\",\"eg\":\"In calculating the factorial of 0, the function immediately returns 1 because 0 is the base case.\",\"mi\":\"Thinking the termination condition is the final result of the calculation.\",\"cx\":\"The termination condition is the base case, which is the point where the solution is known or easily found.\",\"sourceFactIndexes\":[2]},{\"tr\":\"Self-Referential Call\",\"df\":\"The action where a function invokes its own definition to solve a sub-problem.\",\"eg\":\"A function designed to find the sum of a list calls itself on the list excluding the first element.\",\"mi\":\"Believing that a self-referential call is equivalent to a standard iterative loop.\",\"cx\":\"A recursive function calls itself on a smaller input.\",\"sourceFactIndexes\":[1]}]},\"lesson-6\":{\"quizItems\":[{\"q\":\"What is the primary role of a class in programming?\",\"op\":[\"A. To store data for a single object.\",\"B. To serve as a template for creating objects.\",\"C. To execute a specific sequence of instructions.\",\"D. To hold the shared behavior of all objects.\"],\"ai\":1,\"ex\":\"Option B is correct because a class acts as a blueprint for creating objects. Option A is incorrect because a class defines the structure, not the data of a single object. Option C is incorrect because execution is handled by methods within instances.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"When an individual entity is generated from a class definition, what is it termed?\",\"op\":[\"A. A blueprint.\",\"B. A method.\",\"C. An instance.\",\"D. An attribute.\"],\"ai\":2,\"ex\":\"Option C is correct because individual objects created from a class are called instances. Option A is incorrect because the class is the blueprint. Option B is incorrect because a method is a behavior defined by the class.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Blueprint\",\"df\":\"A structural plan used to construct objects in programming.\",\"eg\":\"A class definition serves as the blueprint for creating instances of a Car class.\",\"mi\":\"Thinking a blueprint is the actual object created from the class.\",\"cx\":\"A class is the blueprint; the object is the instance built from it.\",\"sourceFactIndexes\":[1]},{\"tr\":\"Instance\",\"df\":\"A specific entity created from a class definition.\",\"eg\":\"A specific Car object created from the Car class is an instance.\",\"mi\":\"Confusing the class definition with the actual object created from it.\",\"cx\":\"Individual objects created from a class are called instances.\",\"sourceFactIndexes\":[2]}]}}}}",
+  "savedAt": "2026-07-14T07:39:18.390Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+    "campaignManifestSha256": "7745ab25f0b006d1d84913f8df9b95acb09414b05cd611944abcd0da34f872da",
+    "promptSetSha256": "0355e7ee7588f6bcfaa114043b19cfb9afe03dbc8e9095aeeaa9b548b2d1835e",
+    "courseInputSha256": "9a6d83995010dfa65da999100de923b66244bd16cec2cb4c24161de8d1ca6751",
+    "courseGroupId": "python-program-architecture-studio",
+    "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/cs-intro.json",
+      "sourceArtifactSha256": "fbfb087cd78092d0a6869b28435a2eebb5bebc809a1cb38bfcfccfe971310acd",
+      "kernels": [
+        {
+          "id": "cs/while-loops",
+          "term": "While loops",
+          "definition": "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#5.1",
+            "loc": "5.1",
+            "quote": "A while loop is a code construct that runs a set of statements, known as the loop body, while a given condition, known as the loop expression, is true"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "After each pass through the body, the loop expression is evaluated again to decide whether to continue.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.1",
+                "loc": "5.1",
+                "quote": "At each iteration, once the loop statement is executed, the loop expression is evaluated again"
+              }
+            },
+            {
+              "index": 1,
+              "text": "If the loop expression is true, the body runs again; if it is false, the loop terminates.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.1",
+                "loc": "5.1",
+                "quote": "If true, the loop body will execute at least one more time. If false, the loop's execution will terminate"
+              }
+            },
+            {
+              "index": 2,
+              "text": "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.1",
+                "loc": "5.1",
+                "quote": "the loop body must make progress toward ending the condition"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §5.1 While loop"
+          ]
+        },
+        {
+          "id": "cs/for-loops",
+          "term": "For loops and range",
+          "definition": "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#5.2",
+            "loc": "5.2",
+            "quote": "A for loop iterates over all elements in a container"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A container can be a range of numbers, a string of characters, or a list of values.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.2",
+                "loc": "5.2",
+                "quote": "In Python, a container can be a range of numbers, a string of characters, or a list of values"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The loop retrieves the objects of a container one at a time.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.2",
+                "loc": "5.2",
+                "quote": "an iterative loop can be designed to retrieve objects one at a time"
+              }
+            },
+            {
+              "index": 2,
+              "text": "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.2",
+                "loc": "5.2",
+                "quote": "The range() function produces a sequence of integers"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §5.2 For loop"
+          ]
+        },
+        {
+          "id": "cs/strings",
+          "term": "Strings and slicing",
+          "definition": "A string is a sequence of characters indexed from left to right starting at 0; slicing extracts a contiguous substring with the [a:b] notation.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#8.2",
+            "loc": "8.2",
+            "quote": "A string is made up of a sequence of characters indexed from left to right, starting at 0"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "For a string s, the left-most character is index 0 and the right-most is index len(s) - 1.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#8.2",
+                "loc": "8.2",
+                "quote": "the left-most character is indexed 0 and the right-most character is indexed len(s) - 1"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Negative indexing refers to characters from right to left starting at -1.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#8.2",
+                "loc": "8.2",
+                "quote": "Negative indexing can also be used to refer to characters from right to left starting at -1"
+              }
+            },
+            {
+              "index": 2,
+              "text": "A slice s[a:b] returns characters from index a (inclusive) up to index b (exclusive).",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#8.2",
+                "loc": "8.2",
+                "quote": "starting from index a (inclusive) up to index b (exclusive) is returned"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §1.4 String basics; §8.2 String slicing"
+          ]
+        },
+        {
+          "id": "cs/file-io",
+          "term": "File input and output",
+          "definition": "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "open() returns a file object that the program then reads from or writes to.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#14.1",
+                "loc": "14.1",
+                "quote": "Python supports the opening of a file using the open() function"
+              }
+            },
+            {
+              "index": 1,
+              "text": "read() reads the entire contents of a file and returns a single string.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#14.1",
+                "loc": "14.1",
+                "quote": "The read() function reads the contents of a file and returns a string"
+              }
+            },
+            {
+              "index": 2,
+              "text": "readline() returns the next single line, while readlines() returns a list with every line of the file.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#14.1",
+                "loc": "14.1",
+                "quote": "The readlines() function reads the individual lines of a file and returns a string list containing all the lines of the file in order"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+          ]
+        },
+        {
+          "id": "cs/recursion",
+          "term": "Recursion",
+          "definition": "Recursion solves a problem by reducing it to a simpler version of the same problem; a recursive function calls itself on a smaller input until it reaches a base case.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#12.1",
+            "loc": "12.1",
+            "quote": "Recursion is a problem solving technique that uses the solution to a simpler version of the problem to solve the bigger problem"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A recursive function calls itself on a smaller input.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#12.1",
+                "loc": "12.1",
+                "quote": "A recursive function calls itself on a smaller input"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The process continues until the problem is small enough that the solution is known or easily found — the base case.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#12.1",
+                "loc": "12.1",
+                "quote": "The recursion process continues until the problem is small enough, at which point the solution is known or can easily be found"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Without a base case that stops the self-calls, recursion never terminates and overflows the call stack.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#12.1",
+                "loc": "12.1",
+                "quote": "without it the calls would never stop"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §12.1 Recursion basics"
+          ]
+        },
+        {
+          "id": "cs/classes",
+          "term": "Objects and classes",
+          "definition": "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#11.2",
+            "loc": "11.2",
+            "quote": "In a Python program, a class defines a type of object with attributes (fields) and methods (procedures)"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A class is a blueprint for creating objects.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#11.2",
+                "loc": "11.2",
+                "quote": "A class is a blueprint for creating objects"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Individual objects created from a class are called instances.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#11.2",
+                "loc": "11.2",
+                "quote": "Individual objects created of the class type are called instances"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#11.2",
+                "loc": "11.2",
+                "quote": "Each instance carries its own copy of the attributes"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-14T07:39:18.390Z",
+    "admittedPromptIds": [
+      "python-program-architecture-studio:cs/while-loops",
+      "python-program-architecture-studio:cs/for-loops",
+      "python-program-architecture-studio:cs/strings",
+      "python-program-architecture-studio:cs/file-io",
+      "python-program-architecture-studio:cs/recursion",
+      "python-program-architecture-studio:cs/classes"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "python-program-architecture-studio:cs/while-loops",
+          "kernelId": "cs/while-loops",
+          "promptSha256": "d938d8a1057ca0c27c47a9404b1c5fa9bb5fdf46abe2e7520f06772186cc3d6c",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the fundamental mechanism of a while loop?",
+                "op": [
+                  "A. The body executes exactly once.",
+                  "B. The condition is checked only before the first execution.",
+                  "C. The body repeats as long as the condition remains true.",
+                  "D. The loop terminates immediately upon the first check."
+                ],
+                "ai": 0,
+                "ex": "Option C is correct because a while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration. Option B is a misconception because the condition is re-checked after every pass through the body.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "When does a while loop stop executing?",
+                "op": [
+                  "A. When the body completes its single execution.",
+                  "B. When the loop condition evaluates to false.",
+                  "C. When the loop reaches a predefined iteration count.",
+                  "D. When the loop expression is evaluated only once."
+                ],
+                "ai": 2,
+                "ex": "Option B is correct because if the loop expression is false, the loop terminates. Option A is a misconception because the body executes repeatedly until the condition fails.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Loop control structure",
+                "df": "A programming construct that repeats a block of code based on a specified criterion.",
+                "eg": "Using a while loop to process user input until a specific command is entered.",
+                "mi": "Thinking a loop only runs once per condition check.",
+                "cx": "The construct repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Loop termination",
+                "df": "The event that causes a repeating sequence of code to cease execution.",
+                "eg": "Setting a counter variable to a value that makes the loop condition false.",
+                "mi": "Assuming the loop stops after the first time the condition is met.",
+                "cx": "If the loop expression is false, the loop terminates.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "443adf41d5414b3cea3806f9222cd350e7a6dc80fea5cf7a00fd45a89ed62ea3",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the fundamental mechanism of a while loop?",
+                "op": [
+                  "A. The body executes exactly once.",
+                  "B. The condition is checked only before the first execution.",
+                  "C. The body repeats as long as the condition remains true.",
+                  "D. The loop terminates immediately upon the first check."
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because a while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration. Option B is a misconception because the condition is re-checked after every pass through the body.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "When does a while loop stop executing?",
+                "op": [
+                  "A. When the body completes its single execution.",
+                  "B. When the loop condition evaluates to false.",
+                  "C. When the loop reaches a predefined iteration count.",
+                  "D. When the loop expression is evaluated only once."
+                ],
+                "ai": 1,
+                "ex": "Option B is correct because if the loop expression is false, the loop terminates. Option A is a misconception because the body executes repeatedly until the condition fails.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Loop control structure",
+                "df": "A programming construct that repeats a block of code based on a specified criterion.",
+                "eg": "Using a while loop to process user input until a specific command is entered.",
+                "mi": "Thinking a loop only runs once per condition check.",
+                "cx": "The construct repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Loop termination",
+                "df": "The event that causes a repeating sequence of code to cease execution.",
+                "eg": "Setting a counter variable to a value that makes the loop condition false.",
+                "mi": "Assuming the loop stops after the first time the condition is met.",
+                "cx": "If the loop expression is false, the loop terminates.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "dfd96901c01a268c8ef1b0d6b9d11c25bc7710db2bce94ebc3356471e175260d",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:13:44.471Z",
+          "durationMs": 1498871,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "python-program-architecture-studio:cs/while-loops",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What is the fundamental mechanism of a while loop?",
+                "options": [
+                  "A. The body executes exactly once.",
+                  "B. The condition is checked only before the first execution.",
+                  "C. The body repeats as long as the condition remains true.",
+                  "D. The loop terminates immediately upon the first check."
+                ],
+                "answerIndex": 0,
+                "explanation": "Option C is correct because a while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration. Option B is a misconception because the condition is re-checked after every pass through the body."
+              },
+              "chosen": {
+                "question": "What is the fundamental mechanism of a while loop?",
+                "options": [
+                  "A. The body executes exactly once.",
+                  "B. The condition is checked only before the first execution.",
+                  "C. The body repeats as long as the condition remains true.",
+                  "D. The loop terminates immediately upon the first check."
+                ],
+                "answerIndex": 2,
+                "explanation": "Option C is correct because a while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration. Option B is a misconception because the condition is re-checked after every pass through the body."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-option-label",
+                    "surface": "Option C is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "python-program-architecture-studio:cs/while-loops",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "When does a while loop stop executing?",
+                "options": [
+                  "A. When the body completes its single execution.",
+                  "B. When the loop condition evaluates to false.",
+                  "C. When the loop reaches a predefined iteration count.",
+                  "D. When the loop expression is evaluated only once."
+                ],
+                "answerIndex": 2,
+                "explanation": "Option B is correct because if the loop expression is false, the loop terminates. Option A is a misconception because the body executes repeatedly until the condition fails."
+              },
+              "chosen": {
+                "question": "When does a while loop stop executing?",
+                "options": [
+                  "A. When the body completes its single execution.",
+                  "B. When the loop condition evaluates to false.",
+                  "C. When the loop reaches a predefined iteration count.",
+                  "D. When the loop expression is evaluated only once."
+                ],
+                "answerIndex": 1,
+                "explanation": "Option B is correct because if the loop expression is false, the loop terminates. Option A is a misconception because the body executes repeatedly until the condition fails."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 2,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-option-label",
+                    "surface": "Option B is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 2,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 2
+          }
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/for-loops",
+          "kernelId": "cs/for-loops",
+          "promptSha256": "86396fdb7064fea3de4fd3b9ef1631e05ea03dfff44f6d052edf98540fe3375a",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which action describes the fundamental operation of a for loop?",
+                "op": [
+                  "Binding a loop variable to one element at a time.",
+                  "Retrieving objects of a container one at a time.",
+                  "Iterating over each element of a container.",
+                  "Producing a sequence of integers."
+                ],
+                "ai": 0,
+                "ex": "Binding a loop variable to one element at a time.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is the primary function of the range() function in relation to a for loop?",
+                "op": [
+                  "To retrieve objects of a container one at a time.",
+                  "To produce a sequence of integers.",
+                  "To bind a loop variable to one element at a time.",
+                  "To repeat the body a fixed number of times."
+                ],
+                "ai": 3,
+                "ex": "To produce a sequence of integers.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Container iteration",
+                "df": "The process of accessing each item within a collection sequentially.",
+                "eg": "Using a for loop to process every item in a list of names.",
+                "mi": "Thinking iteration means stopping after the first item is processed.",
+                "cx": "Accessing each item within a collection sequentially.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Range function",
+                "df": "A function that generates a sequence of integers.",
+                "eg": "Using range(5) to loop exactly five times.",
+                "mi": "Thinking range() is the loop itself.",
+                "cx": "A function that generates a sequence of integers.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "7098ac9a2cb01bd2a5fc6b24657af8d7e9ac540a945966794af6b21cc978ec8e",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which action describes the fundamental operation of a for loop?",
+                "op": [
+                  "Binding a loop variable to one element at a time.",
+                  "Retrieving objects of a container one at a time.",
+                  "Iterating over each element of a container.",
+                  "Producing a sequence of integers."
+                ],
+                "ai": 0,
+                "ex": "Binding a loop variable to one element at a time.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is the primary function of the range() function in relation to a for loop?",
+                "op": [
+                  "To retrieve objects of a container one at a time.",
+                  "To produce a sequence of integers.",
+                  "To bind a loop variable to one element at a time.",
+                  "To repeat the body a fixed number of times."
+                ],
+                "ai": 1,
+                "ex": "To produce a sequence of integers.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "9c935a15d7eb2fbbbba3a7943ea74209e14cd2f628a311bf8ef94de64a03bab1",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:38:43.344Z",
+          "durationMs": 5566,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "python-program-architecture-studio:cs/for-loops",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What is the primary function of the range() function in relation to a for loop?",
+                "options": [
+                  "To retrieve objects of a container one at a time.",
+                  "To produce a sequence of integers.",
+                  "To bind a loop variable to one element at a time.",
+                  "To repeat the body a fixed number of times."
+                ],
+                "answerIndex": 3,
+                "explanation": "To produce a sequence of integers."
+              },
+              "chosen": {
+                "question": "What is the primary function of the range() function in relation to a for loop?",
+                "options": [
+                  "To retrieve objects of a container one at a time.",
+                  "To produce a sequence of integers.",
+                  "To bind a loop variable to one element at a time.",
+                  "To repeat the body a fixed number of times."
+                ],
+                "answerIndex": 1,
+                "explanation": "To produce a sequence of integers."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  3,
+                  0,
+                  0
+                ],
+                "supportMethod": "lexical-margin",
+                "explicitCues": [],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/strings",
+          "kernelId": "cs/strings",
+          "promptSha256": "8ae7ea3c5d4312881f9c949c7685bf27539708ae1f27dd9c488a4f7a3d4e4c0d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If a string $s$ has a length of 5, what is the index of the right-most character?",
+                "op": [
+                  "0 [1]",
+                  "4 [2]",
+                  "5 [3]",
+                  "len(s) [0]"
+                ],
+                "ai": 1,
+                "ex": "Option 4 is incorrect because the right-most character is at index len(s) - 1, which is 4 for a string of length 5. Option 2 is correct because the right-most character is at index len(s) - 1, which is 4 for a string of length 5.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What does the slice notation $s[a:b]$ return?",
+                "op": [
+                  "Characters from index a (inclusive) up to index b (inclusive)",
+                  "Characters from index a (inclusive) up to index b (exclusive)",
+                  "Characters from index a (exclusive) up to index b (inclusive)",
+                  "A contiguous substring starting at index a"
+                ],
+                "ai": 3,
+                "ex": "Option 1 is incorrect because the notation $s[a:b]$ returns characters up to index b (exclusive). Option 2 is correct because a slice $s[a:b]$ returns characters from index a (inclusive) up to index b (exclusive).",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "String indexing",
+                "df": "The position of a character within a sequence, beginning at zero.",
+                "eg": "In the string 'Python', the character 'P' is at index 0.",
+                "mi": "Thinking the index starts counting from one.",
+                "cx": "The index starts counting from zero.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "String slicing",
+                "df": "Extracting a contiguous substring using the [a:b] notation.",
+                "eg": "The slice 's[1:4]' extracts characters from index 1 up to (but not including) index 4.",
+                "mi": "Thinking slicing includes the character at the end index.",
+                "cx": "Slicing returns characters from index a (inclusive) up to index b (exclusive).",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "9524489c4e31488b2e76a59b91b85c641ee598328674a1db6e483dc2bda7bc8d",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If a string $s$ has a length of 5, what is the index of the right-most character?",
+                "op": [
+                  "0 [1]",
+                  "4 [2]",
+                  "5 [3]",
+                  "len(s) [0]"
+                ],
+                "ai": 1,
+                "ex": "Option 4 is incorrect because the right-most character is at index len(s) - 1, which is 4 for a string of length 5. Option 2 is correct because the right-most character is at index len(s) - 1, which is 4 for a string of length 5.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What does the slice notation $s[a:b]$ return?",
+                "op": [
+                  "Characters from index a (inclusive) up to index b (inclusive)",
+                  "Characters from index a (inclusive) up to index b (exclusive)",
+                  "Characters from index a (exclusive) up to index b (inclusive)",
+                  "A contiguous substring starting at index a"
+                ],
+                "ai": 1,
+                "ex": "Option 1 is incorrect because the notation $s[a:b]$ returns characters up to index b (exclusive). Option 2 is correct because a slice $s[a:b]$ returns characters from index a (inclusive) up to index b (exclusive).",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "String indexing",
+                "df": "The position of a character within a sequence, beginning at zero.",
+                "eg": "In the string 'Python', the character 'P' is at index 0.",
+                "mi": "Thinking the index starts counting from one.",
+                "cx": "The index starts counting from zero.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "String slicing",
+                "df": "Extracting a contiguous substring using the [a:b] notation.",
+                "eg": "The slice 's[1:4]' extracts characters from index 1 up to (but not including) index 4.",
+                "mi": "Thinking slicing includes the character at the end index.",
+                "cx": "Slicing returns characters from index a (inclusive) up to index b (exclusive).",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "01bee60cea51ee9c0f2d46a2144d93d3f26b9ce81bd78c978247cb92ca7ebdae",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:38:48.916Z",
+          "durationMs": 8542,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "python-program-architecture-studio:cs/strings",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What does the slice notation $s[a:b]$ return?",
+                "options": [
+                  "Characters from index a (inclusive) up to index b (inclusive)",
+                  "Characters from index a (inclusive) up to index b (exclusive)",
+                  "Characters from index a (exclusive) up to index b (inclusive)",
+                  "A contiguous substring starting at index a"
+                ],
+                "answerIndex": 3,
+                "explanation": "Option 1 is incorrect because the notation $s[a:b]$ returns characters up to index b (exclusive). Option 2 is correct because a slice $s[a:b]$ returns characters from index a (inclusive) up to index b (exclusive)."
+              },
+              "chosen": {
+                "question": "What does the slice notation $s[a:b]$ return?",
+                "options": [
+                  "Characters from index a (inclusive) up to index b (inclusive)",
+                  "Characters from index a (inclusive) up to index b (exclusive)",
+                  "Characters from index a (exclusive) up to index b (inclusive)",
+                  "A contiguous substring starting at index a"
+                ],
+                "answerIndex": 1,
+                "explanation": "Option 1 is incorrect because the notation $s[a:b]$ returns characters up to index b (exclusive). Option 2 is correct because a slice $s[a:b]$ returns characters from index a (inclusive) up to index b (exclusive)."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-option-label",
+                    "surface": "Option 2 is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/file-io",
+          "kernelId": "cs/file-io",
+          "promptSha256": "c1e78b5a898e20ca12a97ea5e04c6154d2a0d4cf1c58fe7a36d93c39d690b12b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which function retrieves the next single line from a file?",
+                "op": [
+                  "read()",
+                  "readline()",
+                  "readlines()",
+                  "open()"
+                ],
+                "ai": 2,
+                "ex": "read() returns the entire contents of a file and returns a single string. The misconception is using read() when only one line is needed; readlines() returns a list of every line.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What is the primary action performed by the open() function?",
+                "op": [
+                  "reading data from a file",
+                  "writing information into files",
+                  "closing a file",
+                  "returning a file object"
+                ],
+                "ai": 1,
+                "ex": "open() returns a file object that the program then reads from or writes to. The misconception is thinking open() immediately performs the read or write operation; it only establishes the connection.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "File object",
+                "df": "The data structure returned by the open() function that allows interaction with the file.",
+                "eg": "Using the file object to call read() to get a string from the file.",
+                "mi": "Thinking the file object is the file itself, rather than the handle to the file.",
+                "cx": "The file object is the program's interface for reading or writing file contents.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "readlines()",
+                "df": "A function that returns a list containing every line present in a file.",
+                "eg": "Calling readlines() on a text file to store all lines in a list.",
+                "mi": "Confusing readlines() with read(), which only returns the next single line.",
+                "cx": "readlines() is used when you need to process all lines of a file as a list.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "ed0c926b438fc3fdab3a60f3057605068a1a49989715d9b0405fdd2f34f6539b",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which function retrieves the next single line from a file?",
+                "op": [
+                  "read()",
+                  "readline()",
+                  "readlines()",
+                  "open()"
+                ],
+                "ai": 2,
+                "ex": "read() returns the entire contents of a file and returns a single string. The misconception is using read() when only one line is needed; readlines() returns a list of every line.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What is the primary action performed by the open() function?",
+                "op": [
+                  "reading data from a file",
+                  "writing information into files",
+                  "closing a file",
+                  "returning a file object"
+                ],
+                "ai": 1,
+                "ex": "open() returns a file object that the program then reads from or writes to. The misconception is thinking open() immediately performs the read or write operation; it only establishes the connection.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "File object",
+                "df": "The data structure returned by the open() function that allows interaction with the file.",
+                "eg": "Using the file object to call read() to get a string from the file.",
+                "mi": "Thinking the file object is the file itself, rather than the handle to the file.",
+                "cx": "The file object is the program's interface for reading or writing file contents.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "readlines()",
+                "df": "A function that returns a list containing every line present in a file.",
+                "eg": "Calling readlines() on a text file to store all lines in a list.",
+                "mi": "Confusing readlines() with read(), which only returns the next single line.",
+                "cx": "readlines() is used when you need to process all lines of a file as a list.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "ed0c926b438fc3fdab3a60f3057605068a1a49989715d9b0405fdd2f34f6539b",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:38:57.459Z",
+          "durationMs": 6337,
+          "compilerRepairs": [],
+          "compilerRepairCounts": {
+            "total": 0,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 0
+          }
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/recursion",
+          "kernelId": "cs/recursion",
+          "promptSha256": "b22c5c9fd4b6288fa4a8e752435051cc4b70f1a661071b2cf2cc4fdb8abd3175",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the fundamental mechanism by which a recursive function progresses toward a solution?",
+                "op": [
+                  "A) Iteratively applying a transformation until a condition is met.",
+                  "b) Calling itself with a larger input until a stop condition is reached.",
+                  "C) Reducing the problem to a simpler version until a known solution is found.",
+                  "D) Storing the result in a loop variable for later use."
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because recursion solves a problem by reducing it to a simpler version of the same problem until a base case is reached. Option B is a misconception because recursive functions call themselves on a *smaller* input, not a larger one.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What prevents a recursive function from running indefinitely and causing a stack overflow?",
+                "op": [
+                  "A) Using a `while` loop to manage the function calls.",
+                  "B) Ensuring the function always returns a value.",
+                  "C) Having a base case that stops the self-calls.",
+                  "D) Limiting the depth of the input data."
+                ],
+                "ai": 3,
+                "ex": "Option C is correct because without a base case that stops the self-calls, recursion never terminates and overflows the call stack. Option A is a misconception because recursion relies on self-calls, not explicit loops, to manage termination.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Termination Condition",
+                "df": "The specific state or input size that signals the end of the recursive process.",
+                "eg": "In calculating the factorial of 0, the function immediately returns 1 because 0 is the base case.",
+                "mi": "Thinking the termination condition is the final result of the calculation.",
+                "cx": "The termination condition is the base case, which is the point where the solution is known or easily found.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Self-Referential Call",
+                "df": "The action where a function invokes its own definition to solve a sub-problem.",
+                "eg": "A function designed to find the sum of a list calls itself on the list excluding the first element.",
+                "mi": "Believing that a self-referential call is equivalent to a standard iterative loop.",
+                "cx": "A recursive function calls itself on a smaller input.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "93e2a330fdd08cdf0ea2c5841e54589fb76d646add345e2dcda6e2ff9eb6c1a7",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the fundamental mechanism by which a recursive function progresses toward a solution?",
+                "op": [
+                  "A) Iteratively applying a transformation until a condition is met.",
+                  "b) Calling itself with a larger input until a stop condition is reached.",
+                  "C) Reducing the problem to a simpler version until a known solution is found.",
+                  "D) Storing the result in a loop variable for later use."
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because recursion solves a problem by reducing it to a simpler version of the same problem until a base case is reached. Option B is a misconception because recursive functions call themselves on a *smaller* input, not a larger one.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What prevents a recursive function from running indefinitely and causing a stack overflow?",
+                "op": [
+                  "A) Using a `while` loop to manage the function calls.",
+                  "B) Ensuring the function always returns a value.",
+                  "C) Having a base case that stops the self-calls.",
+                  "D) Limiting the depth of the input data."
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because without a base case that stops the self-calls, recursion never terminates and overflows the call stack. Option A is a misconception because recursion relies on self-calls, not explicit loops, to manage termination.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Termination Condition",
+                "df": "The specific state or input size that signals the end of the recursive process.",
+                "eg": "In calculating the factorial of 0, the function immediately returns 1 because 0 is the base case.",
+                "mi": "Thinking the termination condition is the final result of the calculation.",
+                "cx": "The termination condition is the base case, which is the point where the solution is known or easily found.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Self-Referential Call",
+                "df": "The action where a function invokes its own definition to solve a sub-problem.",
+                "eg": "A function designed to find the sum of a list calls itself on the list excluding the first element.",
+                "mi": "Believing that a self-referential call is equivalent to a standard iterative loop.",
+                "cx": "A recursive function calls itself on a smaller input.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "0b0e23fa7fc888e0f1553a9883edd61036ec6fac6d207e3618f926c69df68796",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:39:03.797Z",
+          "durationMs": 7724,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "python-program-architecture-studio:cs/recursion",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What prevents a recursive function from running indefinitely and causing a stack overflow?",
+                "options": [
+                  "A) Using a `while` loop to manage the function calls.",
+                  "B) Ensuring the function always returns a value.",
+                  "C) Having a base case that stops the self-calls.",
+                  "D) Limiting the depth of the input data."
+                ],
+                "answerIndex": 3,
+                "explanation": "Option C is correct because without a base case that stops the self-calls, recursion never terminates and overflows the call stack. Option A is a misconception because recursion relies on self-calls, not explicit loops, to manage termination."
+              },
+              "chosen": {
+                "question": "What prevents a recursive function from running indefinitely and causing a stack overflow?",
+                "options": [
+                  "A) Using a `while` loop to manage the function calls.",
+                  "B) Ensuring the function always returns a value.",
+                  "C) Having a base case that stops the self-calls.",
+                  "D) Limiting the depth of the input data."
+                ],
+                "answerIndex": 2,
+                "explanation": "Option C is correct because without a base case that stops the self-calls, recursion never terminates and overflows the call stack. Option A is a misconception because recursion relies on self-calls, not explicit loops, to manage termination."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-option-label",
+                    "surface": "Option C is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "python-program-architecture-studio:cs/classes",
+          "kernelId": "cs/classes",
+          "promptSha256": "696240cfd35f19b90e6533eb8cbcf1916c3aafa8ca1139aa47d2bae822060064",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary role of a class in programming?",
+                "op": [
+                  "A. To store data for a single object.",
+                  "B. To serve as a template for creating objects.",
+                  "C. To execute a specific sequence of instructions.",
+                  "D. To hold the shared behavior of all objects."
+                ],
+                "ai": 1,
+                "ex": "Option B is correct because a class acts as a blueprint for creating objects. Option A is incorrect because a class defines the structure, not the data of a single object. Option C is incorrect because execution is handled by methods within instances. Option D is incorrect because methods are shared",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "When an individual entity is generated from a class definition, what is it termed?",
+                "op": [
+                  "A. A blueprint.",
+                  "B. A method.",
+                  "C. An instance.",
+                  "D. An attribute."
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because individual objects created from a class are called instances. Option A is incorrect because the class is the blueprint. Option B is incorrect because a method is a behavior defined by the class. Option D is incorrect because attributes are the data carried by the instance",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Blueprint",
+                "df": "A structural plan used to construct objects in programming.",
+                "eg": "A class definition serves as the blueprint for creating instances of a Car class.",
+                "mi": "Thinking a blueprint is the actual object created from the class.",
+                "cx": "A class is the blueprint; the object is the instance built from it.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Instance",
+                "df": "A specific entity created from a class definition.",
+                "eg": "A specific Car object created from the Car class is an instance.",
+                "mi": "Confusing the class definition with the actual object created from it.",
+                "cx": "Individual objects created from a class are called instances.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "f443902b43b1ee56caa33c10493af92a3a3c1641705f82765db331c5b2d5d9c0",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the primary role of a class in programming?",
+                "op": [
+                  "A. To store data for a single object.",
+                  "B. To serve as a template for creating objects.",
+                  "C. To execute a specific sequence of instructions.",
+                  "D. To hold the shared behavior of all objects."
+                ],
+                "ai": 1,
+                "ex": "Option B is correct because a class acts as a blueprint for creating objects. Option A is incorrect because a class defines the structure, not the data of a single object. Option C is incorrect because execution is handled by methods within instances.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "When an individual entity is generated from a class definition, what is it termed?",
+                "op": [
+                  "A. A blueprint.",
+                  "B. A method.",
+                  "C. An instance.",
+                  "D. An attribute."
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because individual objects created from a class are called instances. Option A is incorrect because the class is the blueprint. Option B is incorrect because a method is a behavior defined by the class.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Blueprint",
+                "df": "A structural plan used to construct objects in programming.",
+                "eg": "A class definition serves as the blueprint for creating instances of a Car class.",
+                "mi": "Thinking a blueprint is the actual object created from the class.",
+                "cx": "A class is the blueprint; the object is the instance built from it.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Instance",
+                "df": "A specific entity created from a class definition.",
+                "eg": "A specific Car object created from the Car class is an instance.",
+                "mi": "Confusing the class definition with the actual object created from it.",
+                "cx": "Individual objects created from a class are called instances.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "c0c096144cff37040ed70a54650f6aff1a6f9056477e9444eb9f3c453a57268c",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:39:11.521Z",
+          "durationMs": 6869,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "python-program-architecture-studio:cs/classes",
+              "item": 0,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "What is the primary role of a class in programming?",
+                "options": [
+                  "A. To store data for a single object.",
+                  "B. To serve as a template for creating objects.",
+                  "C. To execute a specific sequence of instructions.",
+                  "D. To hold the shared behavior of all objects."
+                ],
+                "answerIndex": 1,
+                "explanation": "Option B is correct because a class acts as a blueprint for creating objects. Option A is incorrect because a class defines the structure, not the data of a single object. Option C is incorrect because execution is handled by methods within instances. Option D is incorrect because methods are shared"
+              },
+              "chosen": {
+                "question": "What is the primary role of a class in programming?",
+                "options": [
+                  "A. To store data for a single object.",
+                  "B. To serve as a template for creating objects.",
+                  "C. To execute a specific sequence of instructions.",
+                  "D. To hold the shared behavior of all objects."
+                ],
+                "answerIndex": 1,
+                "explanation": "Option B is correct because a class acts as a blueprint for creating objects. Option A is incorrect because a class defines the structure, not the data of a single object. Option C is incorrect because execution is handled by methods within instances."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 251,
+                "removedCharacters": 48,
+                "removedTail": "Option D is incorrect because methods are shared"
+              },
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "python-program-architecture-studio:cs/classes",
+              "item": 1,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "When an individual entity is generated from a class definition, what is it termed?",
+                "options": [
+                  "A. A blueprint.",
+                  "B. A method.",
+                  "C. An instance.",
+                  "D. An attribute."
+                ],
+                "answerIndex": 2,
+                "explanation": "Option C is correct because individual objects created from a class are called instances. Option A is incorrect because the class is the blueprint. Option B is incorrect because a method is a behavior defined by the class. Option D is incorrect because attributes are the data carried by the instance"
+              },
+              "chosen": {
+                "question": "When an individual entity is generated from a class definition, what is it termed?",
+                "options": [
+                  "A. A blueprint.",
+                  "B. A method.",
+                  "C. An instance.",
+                  "D. An attribute."
+                ],
+                "answerIndex": 2,
+                "explanation": "Option C is correct because individual objects created from a class are called instances. Option A is incorrect because the class is the blueprint. Option B is incorrect because a method is a behavior defined by the class."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 222,
+                "removedCharacters": 77,
+                "removedTail": "Option D is incorrect because attributes are the data carried by the instance"
+              },
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 2,
+            "incompleteExplanationTail": 2,
+            "explanationKeyAlignment": 0
+          }
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "python-program-architecture-studio:cs/while-loops",
+        "kernelId": "cs/while-loops",
+        "promptSha256": "d938d8a1057ca0c27c47a9404b1c5fa9bb5fdf46abe2e7520f06772186cc3d6c",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the fundamental mechanism of a while loop?",
+              "op": [
+                "A. The body executes exactly once.",
+                "B. The condition is checked only before the first execution.",
+                "C. The body repeats as long as the condition remains true.",
+                "D. The loop terminates immediately upon the first check."
+              ],
+              "ai": 0,
+              "ex": "Option C is correct because a while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration. Option B is a misconception because the condition is re-checked after every pass through the body.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "When does a while loop stop executing?",
+              "op": [
+                "A. When the body completes its single execution.",
+                "B. When the loop condition evaluates to false.",
+                "C. When the loop reaches a predefined iteration count.",
+                "D. When the loop expression is evaluated only once."
+              ],
+              "ai": 2,
+              "ex": "Option B is correct because if the loop expression is false, the loop terminates. Option A is a misconception because the body executes repeatedly until the condition fails.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Loop control structure",
+              "df": "A programming construct that repeats a block of code based on a specified criterion.",
+              "eg": "Using a while loop to process user input until a specific command is entered.",
+              "mi": "Thinking a loop only runs once per condition check.",
+              "cx": "The construct repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Loop termination",
+              "df": "The event that causes a repeating sequence of code to cease execution.",
+              "eg": "Setting a counter variable to a value that makes the loop condition false.",
+              "mi": "Assuming the loop stops after the first time the condition is met.",
+              "cx": "If the loop expression is false, the loop terminates.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "443adf41d5414b3cea3806f9222cd350e7a6dc80fea5cf7a00fd45a89ed62ea3",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the fundamental mechanism of a while loop?",
+              "op": [
+                "A. The body executes exactly once.",
+                "B. The condition is checked only before the first execution.",
+                "C. The body repeats as long as the condition remains true.",
+                "D. The loop terminates immediately upon the first check."
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because a while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration. Option B is a misconception because the condition is re-checked after every pass through the body.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "When does a while loop stop executing?",
+              "op": [
+                "A. When the body completes its single execution.",
+                "B. When the loop condition evaluates to false.",
+                "C. When the loop reaches a predefined iteration count.",
+                "D. When the loop expression is evaluated only once."
+              ],
+              "ai": 1,
+              "ex": "Option B is correct because if the loop expression is false, the loop terminates. Option A is a misconception because the body executes repeatedly until the condition fails.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Loop control structure",
+              "df": "A programming construct that repeats a block of code based on a specified criterion.",
+              "eg": "Using a while loop to process user input until a specific command is entered.",
+              "mi": "Thinking a loop only runs once per condition check.",
+              "cx": "The construct repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Loop termination",
+              "df": "The event that causes a repeating sequence of code to cease execution.",
+              "eg": "Setting a counter variable to a value that makes the loop condition false.",
+              "mi": "Assuming the loop stops after the first time the condition is met.",
+              "cx": "If the loop expression is false, the loop terminates.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "dfd96901c01a268c8ef1b0d6b9d11c25bc7710db2bce94ebc3356471e175260d",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:13:44.471Z",
+        "durationMs": 1498871,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "python-program-architecture-studio:cs/while-loops",
+            "item": 0,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What is the fundamental mechanism of a while loop?",
+              "options": [
+                "A. The body executes exactly once.",
+                "B. The condition is checked only before the first execution.",
+                "C. The body repeats as long as the condition remains true.",
+                "D. The loop terminates immediately upon the first check."
+              ],
+              "answerIndex": 0,
+              "explanation": "Option C is correct because a while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration. Option B is a misconception because the condition is re-checked after every pass through the body."
+            },
+            "chosen": {
+              "question": "What is the fundamental mechanism of a while loop?",
+              "options": [
+                "A. The body executes exactly once.",
+                "B. The condition is checked only before the first execution.",
+                "C. The body repeats as long as the condition remains true.",
+                "D. The loop terminates immediately upon the first check."
+              ],
+              "answerIndex": 2,
+              "explanation": "Option C is correct because a while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration. Option B is a misconception because the condition is re-checked after every pass through the body."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 0,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-option-label",
+                  "surface": "Option C is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "python-program-architecture-studio:cs/while-loops",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "When does a while loop stop executing?",
+              "options": [
+                "A. When the body completes its single execution.",
+                "B. When the loop condition evaluates to false.",
+                "C. When the loop reaches a predefined iteration count.",
+                "D. When the loop expression is evaluated only once."
+              ],
+              "answerIndex": 2,
+              "explanation": "Option B is correct because if the loop expression is false, the loop terminates. Option A is a misconception because the body executes repeatedly until the condition fails."
+            },
+            "chosen": {
+              "question": "When does a while loop stop executing?",
+              "options": [
+                "A. When the body completes its single execution.",
+                "B. When the loop condition evaluates to false.",
+                "C. When the loop reaches a predefined iteration count.",
+                "D. When the loop expression is evaluated only once."
+              ],
+              "answerIndex": 1,
+              "explanation": "Option B is correct because if the loop expression is false, the loop terminates. Option A is a misconception because the body executes repeatedly until the condition fails."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 2,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-option-label",
+                  "surface": "Option B is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              2
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2
+        }
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/for-loops",
+        "kernelId": "cs/for-loops",
+        "promptSha256": "86396fdb7064fea3de4fd3b9ef1631e05ea03dfff44f6d052edf98540fe3375a",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which action describes the fundamental operation of a for loop?",
+              "op": [
+                "Binding a loop variable to one element at a time.",
+                "Retrieving objects of a container one at a time.",
+                "Iterating over each element of a container.",
+                "Producing a sequence of integers."
+              ],
+              "ai": 0,
+              "ex": "Binding a loop variable to one element at a time.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What is the primary function of the range() function in relation to a for loop?",
+              "op": [
+                "To retrieve objects of a container one at a time.",
+                "To produce a sequence of integers.",
+                "To bind a loop variable to one element at a time.",
+                "To repeat the body a fixed number of times."
+              ],
+              "ai": 3,
+              "ex": "To produce a sequence of integers.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Container iteration",
+              "df": "The process of accessing each item within a collection sequentially.",
+              "eg": "Using a for loop to process every item in a list of names.",
+              "mi": "Thinking iteration means stopping after the first item is processed.",
+              "cx": "Accessing each item within a collection sequentially.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Range function",
+              "df": "A function that generates a sequence of integers.",
+              "eg": "Using range(5) to loop exactly five times.",
+              "mi": "Thinking range() is the loop itself.",
+              "cx": "A function that generates a sequence of integers.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "7098ac9a2cb01bd2a5fc6b24657af8d7e9ac540a945966794af6b21cc978ec8e",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which action describes the fundamental operation of a for loop?",
+              "op": [
+                "Binding a loop variable to one element at a time.",
+                "Retrieving objects of a container one at a time.",
+                "Iterating over each element of a container.",
+                "Producing a sequence of integers."
+              ],
+              "ai": 0,
+              "ex": "Binding a loop variable to one element at a time.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What is the primary function of the range() function in relation to a for loop?",
+              "op": [
+                "To retrieve objects of a container one at a time.",
+                "To produce a sequence of integers.",
+                "To bind a loop variable to one element at a time.",
+                "To repeat the body a fixed number of times."
+              ],
+              "ai": 1,
+              "ex": "To produce a sequence of integers.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "9c935a15d7eb2fbbbba3a7943ea74209e14cd2f628a311bf8ef94de64a03bab1",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-0-correction-repeats-definition",
+            "key-term-1-correction-repeats-definition",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:38:43.344Z",
+        "durationMs": 5566,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "python-program-architecture-studio:cs/for-loops",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What is the primary function of the range() function in relation to a for loop?",
+              "options": [
+                "To retrieve objects of a container one at a time.",
+                "To produce a sequence of integers.",
+                "To bind a loop variable to one element at a time.",
+                "To repeat the body a fixed number of times."
+              ],
+              "answerIndex": 3,
+              "explanation": "To produce a sequence of integers."
+            },
+            "chosen": {
+              "question": "What is the primary function of the range() function in relation to a for loop?",
+              "options": [
+                "To retrieve objects of a container one at a time.",
+                "To produce a sequence of integers.",
+                "To bind a loop variable to one element at a time.",
+                "To repeat the body a fixed number of times."
+              ],
+              "answerIndex": 1,
+              "explanation": "To produce a sequence of integers."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                3,
+                0,
+                0
+              ],
+              "supportMethod": "lexical-margin",
+              "explicitCues": [],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              3
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/strings",
+        "kernelId": "cs/strings",
+        "promptSha256": "8ae7ea3c5d4312881f9c949c7685bf27539708ae1f27dd9c488a4f7a3d4e4c0d",
+        "response": {
+          "mcItems": [
+            {
+              "q": "If a string $s$ has a length of 5, what is the index of the right-most character?",
+              "op": [
+                "0 [1]",
+                "4 [2]",
+                "5 [3]",
+                "len(s) [0]"
+              ],
+              "ai": 1,
+              "ex": "Option 4 is incorrect because the right-most character is at index len(s) - 1, which is 4 for a string of length 5. Option 2 is correct because the right-most character is at index len(s) - 1, which is 4 for a string of length 5.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "What does the slice notation $s[a:b]$ return?",
+              "op": [
+                "Characters from index a (inclusive) up to index b (inclusive)",
+                "Characters from index a (inclusive) up to index b (exclusive)",
+                "Characters from index a (exclusive) up to index b (inclusive)",
+                "A contiguous substring starting at index a"
+              ],
+              "ai": 3,
+              "ex": "Option 1 is incorrect because the notation $s[a:b]$ returns characters up to index b (exclusive). Option 2 is correct because a slice $s[a:b]$ returns characters from index a (inclusive) up to index b (exclusive).",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "String indexing",
+              "df": "The position of a character within a sequence, beginning at zero.",
+              "eg": "In the string 'Python', the character 'P' is at index 0.",
+              "mi": "Thinking the index starts counting from one.",
+              "cx": "The index starts counting from zero.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "String slicing",
+              "df": "Extracting a contiguous substring using the [a:b] notation.",
+              "eg": "The slice 's[1:4]' extracts characters from index 1 up to (but not including) index 4.",
+              "mi": "Thinking slicing includes the character at the end index.",
+              "cx": "Slicing returns characters from index a (inclusive) up to index b (exclusive).",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "9524489c4e31488b2e76a59b91b85c641ee598328674a1db6e483dc2bda7bc8d",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "If a string $s$ has a length of 5, what is the index of the right-most character?",
+              "op": [
+                "0 [1]",
+                "4 [2]",
+                "5 [3]",
+                "len(s) [0]"
+              ],
+              "ai": 1,
+              "ex": "Option 4 is incorrect because the right-most character is at index len(s) - 1, which is 4 for a string of length 5. Option 2 is correct because the right-most character is at index len(s) - 1, which is 4 for a string of length 5.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "What does the slice notation $s[a:b]$ return?",
+              "op": [
+                "Characters from index a (inclusive) up to index b (inclusive)",
+                "Characters from index a (inclusive) up to index b (exclusive)",
+                "Characters from index a (exclusive) up to index b (inclusive)",
+                "A contiguous substring starting at index a"
+              ],
+              "ai": 1,
+              "ex": "Option 1 is incorrect because the notation $s[a:b]$ returns characters up to index b (exclusive). Option 2 is correct because a slice $s[a:b]$ returns characters from index a (inclusive) up to index b (exclusive).",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "String indexing",
+              "df": "The position of a character within a sequence, beginning at zero.",
+              "eg": "In the string 'Python', the character 'P' is at index 0.",
+              "mi": "Thinking the index starts counting from one.",
+              "cx": "The index starts counting from zero.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "String slicing",
+              "df": "Extracting a contiguous substring using the [a:b] notation.",
+              "eg": "The slice 's[1:4]' extracts characters from index 1 up to (but not including) index 4.",
+              "mi": "Thinking slicing includes the character at the end index.",
+              "cx": "Slicing returns characters from index a (inclusive) up to index b (exclusive).",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "01bee60cea51ee9c0f2d46a2144d93d3f26b9ce81bd78c978247cb92ca7ebdae",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:38:48.916Z",
+        "durationMs": 8542,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "python-program-architecture-studio:cs/strings",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What does the slice notation $s[a:b]$ return?",
+              "options": [
+                "Characters from index a (inclusive) up to index b (inclusive)",
+                "Characters from index a (inclusive) up to index b (exclusive)",
+                "Characters from index a (exclusive) up to index b (inclusive)",
+                "A contiguous substring starting at index a"
+              ],
+              "answerIndex": 3,
+              "explanation": "Option 1 is incorrect because the notation $s[a:b]$ returns characters up to index b (exclusive). Option 2 is correct because a slice $s[a:b]$ returns characters from index a (inclusive) up to index b (exclusive)."
+            },
+            "chosen": {
+              "question": "What does the slice notation $s[a:b]$ return?",
+              "options": [
+                "Characters from index a (inclusive) up to index b (inclusive)",
+                "Characters from index a (inclusive) up to index b (exclusive)",
+                "Characters from index a (exclusive) up to index b (inclusive)",
+                "A contiguous substring starting at index a"
+              ],
+              "answerIndex": 1,
+              "explanation": "Option 1 is incorrect because the notation $s[a:b]$ returns characters up to index b (exclusive). Option 2 is correct because a slice $s[a:b]$ returns characters from index a (inclusive) up to index b (exclusive)."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-option-label",
+                  "surface": "Option 2 is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0,
+              3
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/file-io",
+        "kernelId": "cs/file-io",
+        "promptSha256": "c1e78b5a898e20ca12a97ea5e04c6154d2a0d4cf1c58fe7a36d93c39d690b12b",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which function retrieves the next single line from a file?",
+              "op": [
+                "read()",
+                "readline()",
+                "readlines()",
+                "open()"
+              ],
+              "ai": 2,
+              "ex": "read() returns the entire contents of a file and returns a single string. The misconception is using read() when only one line is needed; readlines() returns a list of every line.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "What is the primary action performed by the open() function?",
+              "op": [
+                "reading data from a file",
+                "writing information into files",
+                "closing a file",
+                "returning a file object"
+              ],
+              "ai": 1,
+              "ex": "open() returns a file object that the program then reads from or writes to. The misconception is thinking open() immediately performs the read or write operation; it only establishes the connection.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "File object",
+              "df": "The data structure returned by the open() function that allows interaction with the file.",
+              "eg": "Using the file object to call read() to get a string from the file.",
+              "mi": "Thinking the file object is the file itself, rather than the handle to the file.",
+              "cx": "The file object is the program's interface for reading or writing file contents.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "readlines()",
+              "df": "A function that returns a list containing every line present in a file.",
+              "eg": "Calling readlines() on a text file to store all lines in a list.",
+              "mi": "Confusing readlines() with read(), which only returns the next single line.",
+              "cx": "readlines() is used when you need to process all lines of a file as a list.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "ed0c926b438fc3fdab3a60f3057605068a1a49989715d9b0405fdd2f34f6539b",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which function retrieves the next single line from a file?",
+              "op": [
+                "read()",
+                "readline()",
+                "readlines()",
+                "open()"
+              ],
+              "ai": 2,
+              "ex": "read() returns the entire contents of a file and returns a single string. The misconception is using read() when only one line is needed; readlines() returns a list of every line.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "What is the primary action performed by the open() function?",
+              "op": [
+                "reading data from a file",
+                "writing information into files",
+                "closing a file",
+                "returning a file object"
+              ],
+              "ai": 1,
+              "ex": "open() returns a file object that the program then reads from or writes to. The misconception is thinking open() immediately performs the read or write operation; it only establishes the connection.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "File object",
+              "df": "The data structure returned by the open() function that allows interaction with the file.",
+              "eg": "Using the file object to call read() to get a string from the file.",
+              "mi": "Thinking the file object is the file itself, rather than the handle to the file.",
+              "cx": "The file object is the program's interface for reading or writing file contents.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "readlines()",
+              "df": "A function that returns a list containing every line present in a file.",
+              "eg": "Calling readlines() on a text file to store all lines in a list.",
+              "mi": "Confusing readlines() with read(), which only returns the next single line.",
+              "cx": "readlines() is used when you need to process all lines of a file as a list.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "ed0c926b438fc3fdab3a60f3057605068a1a49989715d9b0405fdd2f34f6539b",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:38:57.459Z",
+        "durationMs": 6337,
+        "compilerRepairs": [],
+        "compilerRepairCounts": {
+          "total": 0,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 0
+        }
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/recursion",
+        "kernelId": "cs/recursion",
+        "promptSha256": "b22c5c9fd4b6288fa4a8e752435051cc4b70f1a661071b2cf2cc4fdb8abd3175",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the fundamental mechanism by which a recursive function progresses toward a solution?",
+              "op": [
+                "A) Iteratively applying a transformation until a condition is met.",
+                "b) Calling itself with a larger input until a stop condition is reached.",
+                "C) Reducing the problem to a simpler version until a known solution is found.",
+                "D) Storing the result in a loop variable for later use."
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because recursion solves a problem by reducing it to a simpler version of the same problem until a base case is reached. Option B is a misconception because recursive functions call themselves on a *smaller* input, not a larger one.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "What prevents a recursive function from running indefinitely and causing a stack overflow?",
+              "op": [
+                "A) Using a `while` loop to manage the function calls.",
+                "B) Ensuring the function always returns a value.",
+                "C) Having a base case that stops the self-calls.",
+                "D) Limiting the depth of the input data."
+              ],
+              "ai": 3,
+              "ex": "Option C is correct because without a base case that stops the self-calls, recursion never terminates and overflows the call stack. Option A is a misconception because recursion relies on self-calls, not explicit loops, to manage termination.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Termination Condition",
+              "df": "The specific state or input size that signals the end of the recursive process.",
+              "eg": "In calculating the factorial of 0, the function immediately returns 1 because 0 is the base case.",
+              "mi": "Thinking the termination condition is the final result of the calculation.",
+              "cx": "The termination condition is the base case, which is the point where the solution is known or easily found.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Self-Referential Call",
+              "df": "The action where a function invokes its own definition to solve a sub-problem.",
+              "eg": "A function designed to find the sum of a list calls itself on the list excluding the first element.",
+              "mi": "Believing that a self-referential call is equivalent to a standard iterative loop.",
+              "cx": "A recursive function calls itself on a smaller input.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "93e2a330fdd08cdf0ea2c5841e54589fb76d646add345e2dcda6e2ff9eb6c1a7",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the fundamental mechanism by which a recursive function progresses toward a solution?",
+              "op": [
+                "A) Iteratively applying a transformation until a condition is met.",
+                "b) Calling itself with a larger input until a stop condition is reached.",
+                "C) Reducing the problem to a simpler version until a known solution is found.",
+                "D) Storing the result in a loop variable for later use."
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because recursion solves a problem by reducing it to a simpler version of the same problem until a base case is reached. Option B is a misconception because recursive functions call themselves on a *smaller* input, not a larger one.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "What prevents a recursive function from running indefinitely and causing a stack overflow?",
+              "op": [
+                "A) Using a `while` loop to manage the function calls.",
+                "B) Ensuring the function always returns a value.",
+                "C) Having a base case that stops the self-calls.",
+                "D) Limiting the depth of the input data."
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because without a base case that stops the self-calls, recursion never terminates and overflows the call stack. Option A is a misconception because recursion relies on self-calls, not explicit loops, to manage termination.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Termination Condition",
+              "df": "The specific state or input size that signals the end of the recursive process.",
+              "eg": "In calculating the factorial of 0, the function immediately returns 1 because 0 is the base case.",
+              "mi": "Thinking the termination condition is the final result of the calculation.",
+              "cx": "The termination condition is the base case, which is the point where the solution is known or easily found.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Self-Referential Call",
+              "df": "The action where a function invokes its own definition to solve a sub-problem.",
+              "eg": "A function designed to find the sum of a list calls itself on the list excluding the first element.",
+              "mi": "Believing that a self-referential call is equivalent to a standard iterative loop.",
+              "cx": "A recursive function calls itself on a smaller input.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "0b0e23fa7fc888e0f1553a9883edd61036ec6fac6d207e3618f926c69df68796",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:39:03.797Z",
+        "durationMs": 7724,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "python-program-architecture-studio:cs/recursion",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What prevents a recursive function from running indefinitely and causing a stack overflow?",
+              "options": [
+                "A) Using a `while` loop to manage the function calls.",
+                "B) Ensuring the function always returns a value.",
+                "C) Having a base case that stops the self-calls.",
+                "D) Limiting the depth of the input data."
+              ],
+              "answerIndex": 3,
+              "explanation": "Option C is correct because without a base case that stops the self-calls, recursion never terminates and overflows the call stack. Option A is a misconception because recursion relies on self-calls, not explicit loops, to manage termination."
+            },
+            "chosen": {
+              "question": "What prevents a recursive function from running indefinitely and causing a stack overflow?",
+              "options": [
+                "A) Using a `while` loop to manage the function calls.",
+                "B) Ensuring the function always returns a value.",
+                "C) Having a base case that stops the self-calls.",
+                "D) Limiting the depth of the input data."
+              ],
+              "answerIndex": 2,
+              "explanation": "Option C is correct because without a base case that stops the self-calls, recursion never terminates and overflows the call stack. Option A is a misconception because recursion relies on self-calls, not explicit loops, to manage termination."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-option-label",
+                  "surface": "Option C is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              3
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/classes",
+        "kernelId": "cs/classes",
+        "promptSha256": "696240cfd35f19b90e6533eb8cbcf1916c3aafa8ca1139aa47d2bae822060064",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the primary role of a class in programming?",
+              "op": [
+                "A. To store data for a single object.",
+                "B. To serve as a template for creating objects.",
+                "C. To execute a specific sequence of instructions.",
+                "D. To hold the shared behavior of all objects."
+              ],
+              "ai": 1,
+              "ex": "Option B is correct because a class acts as a blueprint for creating objects. Option A is incorrect because a class defines the structure, not the data of a single object. Option C is incorrect because execution is handled by methods within instances. Option D is incorrect because methods are shared",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "When an individual entity is generated from a class definition, what is it termed?",
+              "op": [
+                "A. A blueprint.",
+                "B. A method.",
+                "C. An instance.",
+                "D. An attribute."
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because individual objects created from a class are called instances. Option A is incorrect because the class is the blueprint. Option B is incorrect because a method is a behavior defined by the class. Option D is incorrect because attributes are the data carried by the instance",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Blueprint",
+              "df": "A structural plan used to construct objects in programming.",
+              "eg": "A class definition serves as the blueprint for creating instances of a Car class.",
+              "mi": "Thinking a blueprint is the actual object created from the class.",
+              "cx": "A class is the blueprint; the object is the instance built from it.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Instance",
+              "df": "A specific entity created from a class definition.",
+              "eg": "A specific Car object created from the Car class is an instance.",
+              "mi": "Confusing the class definition with the actual object created from it.",
+              "cx": "Individual objects created from a class are called instances.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "f443902b43b1ee56caa33c10493af92a3a3c1641705f82765db331c5b2d5d9c0",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the primary role of a class in programming?",
+              "op": [
+                "A. To store data for a single object.",
+                "B. To serve as a template for creating objects.",
+                "C. To execute a specific sequence of instructions.",
+                "D. To hold the shared behavior of all objects."
+              ],
+              "ai": 1,
+              "ex": "Option B is correct because a class acts as a blueprint for creating objects. Option A is incorrect because a class defines the structure, not the data of a single object. Option C is incorrect because execution is handled by methods within instances.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "When an individual entity is generated from a class definition, what is it termed?",
+              "op": [
+                "A. A blueprint.",
+                "B. A method.",
+                "C. An instance.",
+                "D. An attribute."
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because individual objects created from a class are called instances. Option A is incorrect because the class is the blueprint. Option B is incorrect because a method is a behavior defined by the class.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Blueprint",
+              "df": "A structural plan used to construct objects in programming.",
+              "eg": "A class definition serves as the blueprint for creating instances of a Car class.",
+              "mi": "Thinking a blueprint is the actual object created from the class.",
+              "cx": "A class is the blueprint; the object is the instance built from it.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Instance",
+              "df": "A specific entity created from a class definition.",
+              "eg": "A specific Car object created from the Car class is an instance.",
+              "mi": "Confusing the class definition with the actual object created from it.",
+              "cx": "Individual objects created from a class are called instances.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "c0c096144cff37040ed70a54650f6aff1a6f9056477e9444eb9f3c453a57268c",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:39:11.521Z",
+        "durationMs": 6869,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "python-program-architecture-studio:cs/classes",
+            "item": 0,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "What is the primary role of a class in programming?",
+              "options": [
+                "A. To store data for a single object.",
+                "B. To serve as a template for creating objects.",
+                "C. To execute a specific sequence of instructions.",
+                "D. To hold the shared behavior of all objects."
+              ],
+              "answerIndex": 1,
+              "explanation": "Option B is correct because a class acts as a blueprint for creating objects. Option A is incorrect because a class defines the structure, not the data of a single object. Option C is incorrect because execution is handled by methods within instances. Option D is incorrect because methods are shared"
+            },
+            "chosen": {
+              "question": "What is the primary role of a class in programming?",
+              "options": [
+                "A. To store data for a single object.",
+                "B. To serve as a template for creating objects.",
+                "C. To execute a specific sequence of instructions.",
+                "D. To hold the shared behavior of all objects."
+              ],
+              "answerIndex": 1,
+              "explanation": "Option B is correct because a class acts as a blueprint for creating objects. Option A is incorrect because a class defines the structure, not the data of a single object. Option C is incorrect because execution is handled by methods within instances."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 251,
+              "removedCharacters": 48,
+              "removedTail": "Option D is incorrect because methods are shared"
+            },
+            "sourceFactIndexes": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "python-program-architecture-studio:cs/classes",
+            "item": 1,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "When an individual entity is generated from a class definition, what is it termed?",
+              "options": [
+                "A. A blueprint.",
+                "B. A method.",
+                "C. An instance.",
+                "D. An attribute."
+              ],
+              "answerIndex": 2,
+              "explanation": "Option C is correct because individual objects created from a class are called instances. Option A is incorrect because the class is the blueprint. Option B is incorrect because a method is a behavior defined by the class. Option D is incorrect because attributes are the data carried by the instance"
+            },
+            "chosen": {
+              "question": "When an individual entity is generated from a class definition, what is it termed?",
+              "options": [
+                "A. A blueprint.",
+                "B. A method.",
+                "C. An instance.",
+                "D. An attribute."
+              ],
+              "answerIndex": 2,
+              "explanation": "Option C is correct because individual objects created from a class are called instances. Option A is incorrect because the class is the blueprint. Option B is incorrect because a method is a behavior defined by the class."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 222,
+              "removedCharacters": 77,
+              "removedTail": "Option D is incorrect because attributes are the data carried by the instance"
+            },
+            "sourceFactIndexes": [
+              0,
+              2
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 0
+        }
+      }
+    ]
+  },
+  "scionCompilerReplay": {
+    "schemaVersion": 1,
+    "protocol": "scion-source-compiler-replay-v1",
+    "release": "v0.16.40",
+    "generatedAt": "2026-07-16T10:00:00.000Z",
+    "sourceProject": {
+      "path": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-local.json",
+      "bytes": 86823,
+      "sha256": "ea0a095bee5074043d7d7810041da78c6ab903fc886081b464f23bfe56b9fff5",
+      "projectId": "scion-source-capture-python-program-architecture-studio-local",
+      "captureProtocol": "scion-source-grounded-atom-capture-v1",
+      "captureCompletedAt": "2026-07-14T07:39:18.390Z"
+    },
+    "compilerSources": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 15236,
+        "sha256": "9bafad99aa4edd3dfe90982eb37d5988355051d34605aa8c290c9cb4e7979aef"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 14724,
+        "sha256": "78010301fc76388ff11a2a7f44d95442bc238777ac5b5e6fff60ecef9347c975"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 33225,
+        "sha256": "732bbfa7f20bc4767bf8b0783745cee7abf98d130796dab6635837d14ad99ed5"
+      },
+      {
+        "path": "scripts/scionSourceCompilerReplay.mjs",
+        "bytes": 15464,
+        "sha256": "f5c5652f87617ad9036934e68dfa9583cc7f15f0b859c01159e51437204f276c"
+      }
+    ],
+    "responseMutationCount": 0,
+    "repairRows": [
+      {
+        "promptId": "python-program-architecture-studio:cs/classes",
+        "responseSha256": "f443902b43b1ee56caa33c10493af92a3a3c1641705f82765db331c5b2d5d9c0",
+        "admittedResponseSha256": "c0c096144cff37040ed70a54650f6aff1a6f9056477e9444eb9f3c453a57268c",
+        "repairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 0
+        },
+        "repairsSha256": "169287cacd006add8487217d2972a99e7308638cfab928952c7e97db77e370e6"
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/for-loops",
+        "responseSha256": "7098ac9a2cb01bd2a5fc6b24657af8d7e9ac540a945966794af6b21cc978ec8e",
+        "admittedResponseSha256": "9c935a15d7eb2fbbbba3a7943ea74209e14cd2f628a311bf8ef94de64a03bab1",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "120d55609f8878b60681dc8d6bf67995b4fee39fc29de4de06bf4931ab840b94"
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/recursion",
+        "responseSha256": "93e2a330fdd08cdf0ea2c5841e54589fb76d646add345e2dcda6e2ff9eb6c1a7",
+        "admittedResponseSha256": "0b0e23fa7fc888e0f1553a9883edd61036ec6fac6d207e3618f926c69df68796",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "31a8de6c031ea5060875232c61b7605f3e5f2c20ad6ced92d2973fcb0e820107"
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/strings",
+        "responseSha256": "9524489c4e31488b2e76a59b91b85c641ee598328674a1db6e483dc2bda7bc8d",
+        "admittedResponseSha256": "01bee60cea51ee9c0f2d46a2144d93d3f26b9ce81bd78c978247cb92ca7ebdae",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "688fc022c5d9d70708d35327b8f48a4130ad33860cec0f61fdc36daf2490eebb"
+      },
+      {
+        "promptId": "python-program-architecture-studio:cs/while-loops",
+        "responseSha256": "443adf41d5414b3cea3806f9222cd350e7a6dc80fea5cf7a00fd45a89ed62ea3",
+        "admittedResponseSha256": "dfd96901c01a268c8ef1b0d6b9d11c25bc7710db2bce94ebc3356471e175260d",
+        "repairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2
+        },
+        "repairsSha256": "5b34b97aab3728672443cbc4ca03a75ddef4b4976661e035bedcaccc99022f46"
+      }
+    ],
+    "repairCounts": {
+      "total": 7,
+      "incompleteExplanationTail": 2,
+      "explanationKeyAlignment": 5
+    },
+    "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
+    "identity": {
+      "algorithm": "sha256-canonical-source-compiler-replay-v1",
+      "sha256": "444f467bad3c313246c38ba461c29517e30973a218a25a4d9168d33600991ba5"
+    }
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "version": "0.16.40",
+  "date": "July 16, 2026",
+  "title": "Repair, Then Judge: recover source-bound evidence without rewriting the model",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:source-compiler-replay",
+      "npm run audit:scion:review-candidates",
+      "npm run audit:scion:source-review-packet",
+      "npm run audit:scion:adapter:corpus-readiness",
+      "npm test -- --maxWorkers=4",
+      "npm run audit:evaluation:main",
+      "npm run format:check",
+      "npm run lint",
+      "npm run audit:release-history",
+      "npm run build",
+      "npm run bundle:check",
+      "npx playwright test tests/release-v01640.spec.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "The implementation is locally verified; exact-commit Fast verification will be recorded after the release branch is pushed and merged."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "This bounded evidence milestone replays immutable retained responses and does not invoke a live browser model or claim a new device result."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "The exact Pages deployment and served-asset hashes will be recorded after merge."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "No local or paid model call is needed to replay exact retained response bytes through the compiler or freeze the blind packet."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human or instructor judgment is claimed or required. The packet awaits two fresh Codex presentation orders as single-model-judge research evidence."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-contract-and-campaign-readiness-only",
+      "note": "Local proof passed 4,494 tests with 162 declared skips, all 34 canonical main-evaluation courses, formatting, lint, release history, deterministic replay, the 446/138 ledger, strict 100-case source-only packet, corpus readiness, exact historical adapter lineage, proof smoke, production build, bundle budgets, and a Chromium changelog test. These prove compiler-contract recovery, campaign integrity, and software delivery readiness; they do not prove factual quality, educational preference, an adapter win, held-out performance, or paid-reference parity."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01640-immutable-source-compiler-replay",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Twelve retained local Gemma projects replay exact historical response bytes through hash-bound compiler sources into derived projects with zero model-response mutation.",
+      "anchors": [
+        "scripts/scionSourceCompilerReplay.mjs",
+        "scripts/lib/scionSourceCapture.mjs",
+        "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.40.json",
+        "tests/scion-source-compiler-replay.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:source-compiler-replay",
+        "npm test -- --maxWorkers=4 tests/scion-source-compiler-replay.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit", "compiled-output"]
+    },
+    {
+      "id": "v01640-measured-contract-recovery",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Conservative repairs recover sixteen source atoms, raising admission from 133/192 to 149/192 and reducing burden from 59/192 to 43/192 without claiming educational quality.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.40.json",
+        "src/lib/scionAnswerKeyAlignment.js",
+        "src/lib/scionPreferenceGate.js",
+        "README.md"
+      ],
+      "proofCommands": ["npm run audit:scion:source-compiler-replay", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "compiled-output", "doc"]
+    },
+    {
+      "id": "v01640-reproducible-446-138-ledger",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The neutral ledger byte-rebuilds to 446 cases, 138 source-grounded, while the historical captured projects and sealed campaigns remain immutable.",
+      "anchors": [
+        "evaluation/scion-review-candidates.jsonl",
+        "evaluation/scion-contrast-matrix.json",
+        "scripts/scionMatchedReviewCandidates.mjs",
+        "tests/scion-source-capture.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:review-candidates",
+        "npm test -- --maxWorkers=4 tests/scion-source-capture.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01640-strict-source-only-packet",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "A fail-closed builder freezes exactly 100 source-grounded anonymous cases across four domains and twelve course groups without ungrounded filler or held-out overlap.",
+      "anchors": [
+        "scripts/scionBlindReviewPacket.mjs",
+        "scripts/scionSourceReviewPacketAudit.mjs",
+        "evaluation/scion-adapters/evidence/source-review-packet-v0.16.40.json",
+        "tests/scion-source-review-packet.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:source-review-packet",
+        "npm test -- --maxWorkers=4 tests/scion-source-review-packet.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01640-zero-judgment-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The corpus remains smoke-only at 76/418 usable rows and zero same-identity model-judge preferences; fresh isolated A/B and B/A passes remain mandatory before research training.",
+      "anchors": [
+        "scripts/scionAdapterCorpusReadinessAudit.mjs",
+        "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.40.json",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "README.md"
+      ],
+      "proofCommands": ["npm run audit:scion:adapter:corpus-readiness", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import {
   assessSourceAtomResponse,
   buildSourceCaptureProject,
   buildSourceRecoveryPrompt,
+  compileSourceAtomResponse,
   materializeSourceCaptureCampaign,
   sourceCaptureSha256,
   sourceTextIssues,
@@ -142,6 +143,33 @@ describe('Scion source-grounded atom capture', () => {
     });
     expect(assessment.admittedResponse.mcItems).toHaveLength(1);
     expect(assessment.admittedResponse.keyTerms).toHaveLength(1);
+  });
+
+  it('replays conservative compiler repairs without mutating retained response bytes', () => {
+    const response = validResponse();
+    response.mcItems[1].ai = 3;
+    response.mcItems[1].ex =
+      'Option A is correct because Python evaluates the right side first. Option B confuses assignment with equality.';
+    const retained = structuredClone(response);
+    const historical = assessSourceAtomResponse(response, { sourceClaimCount: 5 });
+    expect(historical).toMatchObject({ counts: { admittedMcItems: 1 } });
+
+    const replayed = compileSourceAtomResponse(response, {
+      sourceClaimCount: 5,
+      lessonId: 'source-replay-test',
+    });
+    expect(response).toEqual(retained);
+    expect(replayed).toMatchObject({
+      eligible: true,
+      counts: { admittedMcItems: 2, admittedKeyTerms: 2 },
+      repairCounts: { total: 1, explanationKeyAlignment: 1, incompleteExplanationTail: 0 },
+    });
+    expect(replayed.compiledResponse.mcItems[1]).toMatchObject({ ai: 0, sourceFactIndexes: [0, 2] });
+    expect(replayed.repairs[0]).toMatchObject({
+      pass: 'explanationKeyAlignment',
+      action: 'realigned',
+      sourceFactIndexes: [0, 2],
+    });
   });
 
   it('caps over-generation and measures missing or discarded atoms as compiler burden', () => {
@@ -486,9 +514,9 @@ describe('Scion source-grounded atom capture', () => {
       sha256: '59f313090292d03332e59b16b1cd91da64ebd2b02baf2f66b86c16c06391bc7b',
     });
     expect(fileSha256(candidateRaw)).not.toBe(receipt.sourceFiles[0].sha256);
-    expect(candidates).toHaveLength(400);
+    expect(candidates).toHaveLength(446);
     expect(new Set(candidates.map((row) => row.courseGroupSha256)).size).toBe(16);
-    expect(candidates.filter((row) => row.sourceContext)).toHaveLength(92);
+    expect(candidates.filter((row) => row.sourceContext)).toHaveLength(138);
     expect(receipt).toMatchObject({
       status: 'ready-for-model-judge-research',
       selectedCases: 160,

@@ -11,8 +11,10 @@ import {
   SCION_ADAPTER_DEFAULT_SOURCES,
 } from './scionAdapterDataset.mjs';
 
-const DEFAULT_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.39.json';
-const DEFAULT_RELEASE = 'v0.16.39';
+const DEFAULT_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.40.json';
+const DEFAULT_RELEASE = 'v0.16.40';
+const SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.40.json';
+const SOURCE_REVIEW_PACKET = 'evaluation/scion-adapters/evidence/source-review-packet-v0.16.40.json';
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -43,7 +45,7 @@ function parseArgs(argv) {
   return args;
 }
 
-function snapshot(manifest, generatedAt) {
+function snapshot(manifest, generatedAt, judgeCampaign) {
   const value = {
     schemaVersion: 1,
     protocol: 'scion-adapter-corpus-readiness-v1',
@@ -63,15 +65,17 @@ function snapshot(manifest, generatedAt) {
       holdoutBoundary: manifest.holdoutBoundary,
       gateProfiles: manifest.gate.profiles,
     },
+    judgeCampaign,
     conclusion: {
       strongestAllowedLane: manifest.status,
       usablePairs: manifest.counts.total,
       requiredResearchPairs: manifest.gate.profiles.research.minimumPairs,
       admissibleModelJudgePairs: manifest.counts.singleModelJudgePairs,
       requiredResearchModelJudgePairs: manifest.gate.profiles.research.minimumModelJudgePairs,
+      judgePacketReady: judgeCampaign.status === 'ready-for-fresh-dual-order-judgment',
       researchBlockers: manifest.gate.profiles.research.issues,
       nextEvidenceStep:
-        'Complete two same-identity, fresh-session A/B and B/A Codex passes over the current source-bound, holdout-disjoint packet before research training.',
+        'Complete one fresh-session A/B Codex pass and one distinct fresh-session B/A pass over the exact 100-case source-only packet, then ingest only stable above-floor same-identity preferences before research training.',
     },
     claimBoundary: {
       adapterTrained: false,
@@ -99,7 +103,53 @@ async function buildSnapshot(generatedAt) {
       allowSmoke: true,
       generatedAt,
     });
-    return snapshot(manifest, generatedAt);
+    const [replayRaw, packetRaw] = await Promise.all([
+      fs.readFile(SOURCE_REPLAY_EVIDENCE, 'utf8'),
+      fs.readFile(SOURCE_REVIEW_PACKET, 'utf8'),
+    ]);
+    const replay = JSON.parse(replayRaw);
+    const packet = JSON.parse(packetRaw);
+    const packetReady =
+      packet.status === 'ready-for-model-judge-research' &&
+      packet.requireSourceContext === true &&
+      packet.selectedCases === 100 &&
+      packet.selectedSourceContextCases === packet.selectedCases &&
+      packet.requiredModelJudgePasses === 200 &&
+      packet.courseGroupCount >= 12 &&
+      packet.domains?.length === 4 &&
+      Object.values(packet.domainCounts || {}).every((count) => count >= 25) &&
+      replay.summary?.responseMutationCount === 0 &&
+      replay.summary?.recoveredAtoms >= 8;
+    if (!packetReady) throw new Error('Source-only Codex judge campaign is not ready');
+    return snapshot(manifest, generatedAt, {
+      protocol: 'scion-source-only-codex-campaign-readiness-v1',
+      status: 'ready-for-fresh-dual-order-judgment',
+      compilerReplay: {
+        path: SOURCE_REPLAY_EVIDENCE,
+        sha256: sha256(replayRaw),
+        identity: replay.identity,
+        responseMutationCount: replay.summary.responseMutationCount,
+        recoveredAtoms: replay.summary.recoveredAtoms,
+        burdenAtomReduction: replay.summary.burdenAtomReduction,
+      },
+      sourcePacket: {
+        path: SOURCE_REVIEW_PACKET,
+        sha256: sha256(packetRaw),
+        packetId: packet.packetId,
+        packetDigest: packet.packetDigest,
+        selectedCases: packet.selectedCases,
+        selectedSourceContextCases: packet.selectedSourceContextCases,
+        availableSourceContextCandidates: packet.availableSourceContextCandidates,
+        domainCounts: packet.domainCounts,
+        courseGroupCount: packet.courseGroupCount,
+        requiredModelJudgePasses: packet.requiredModelJudgePasses,
+      },
+      completedOrders: 0,
+      requiredOrders: ['A/B', 'B/A'],
+      contextResetSessionsRequired: 2,
+      claimBoundary:
+        'The packet is ready, but it contains no judgment. It proves no preferred atom, research-ready corpus, trained adapter, adapter-versus-base win, or paid-reference parity.',
+    });
   } finally {
     await fs.rm(temporary, { recursive: true, force: true });
   }

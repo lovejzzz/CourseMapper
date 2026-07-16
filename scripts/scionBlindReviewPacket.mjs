@@ -529,6 +529,8 @@ export async function buildScionBlindReviewPacket({
   perDomainLimit = 0,
   heldOutBenchmark = DEFAULT_HELD_OUT_BENCHMARK,
   receiptOutput,
+  requireSourceContext = false,
+  generatedAt = new Date().toISOString(),
 } = {}) {
   const [loadedRows, benchmark] = await Promise.all([
     Promise.all(sources.map(readRows)).then((rows) => rows.flat()),
@@ -592,16 +594,26 @@ export async function buildScionBlindReviewPacket({
     });
   }
 
-  const candidateDomains = [...new Set(candidates.map((candidate) => candidate.domain))].sort();
+  const selectionCandidates = requireSourceContext
+    ? candidates.filter((candidate) => candidate.sourceContext)
+    : candidates;
+  const candidateDomains = [...new Set(selectionCandidates.map((candidate) => candidate.domain))].sort();
+  const requestedCases =
+    Number(perDomainLimit) > 0 ? candidateDomains.length * Number(perDomainLimit) : Number(limit) || 50;
   const selected =
     Number(perDomainLimit) > 0
       ? candidateDomains.flatMap((domain) =>
           sourceFirstRoundRobin(
-            candidates.filter((candidate) => candidate.domain === domain),
+            selectionCandidates.filter((candidate) => candidate.domain === domain),
             Number(perDomainLimit),
           ),
         )
-      : sourceFirstRoundRobin(candidates, Math.max(1, Number(limit) || 50));
+      : sourceFirstRoundRobin(selectionCandidates, Math.max(1, Number(limit) || 50));
+  if (requireSourceContext && selected.length !== requestedCases) {
+    throw new Error(
+      `Source-only review packet is incomplete: selected ${selected.length}/${requestedCases} admissible cases`,
+    );
+  }
   const cases = [];
   const keys = [];
   for (const candidate of selected) {
@@ -706,11 +718,16 @@ export async function buildScionBlindReviewPacket({
     packetId,
     packetDigest: reviewPacketDigest,
     organizerDigest: reviewOrganizerDigest,
-    generatedAt: new Date().toISOString(),
-    requestedCases: Number(perDomainLimit) > 0 ? candidateDomains.length * Number(perDomainLimit) : Number(limit) || 50,
+    generatedAt: generatedAt || new Date().toISOString(),
+    requestedCases,
     perDomainLimit: Number(perDomainLimit) > 0 ? Number(perDomainLimit) : null,
     selectedCases: cases.length,
     availableCandidates: candidates.length,
+    selectionEligibleCandidates: selectionCandidates.length,
+    requireSourceContext,
+    excludedMissingSourceContext: requireSourceContext
+      ? candidates.filter((candidate) => !candidate.sourceContext).length
+      : 0,
     availableSourceContextCandidates,
     selectedSourceContextCases,
     sourceContextDomainCounts,
@@ -836,8 +853,13 @@ export async function buildScionBlindReviewPacket({
       packetId,
       packetDigest: reviewPacketDigest,
       organizerDigest: reviewOrganizerDigest,
+      requestedCases: meta.requestedCases,
+      perDomainLimit: meta.perDomainLimit,
       selectedCases: cases.length,
       availableCandidates: candidates.length,
+      selectionEligibleCandidates: meta.selectionEligibleCandidates,
+      requireSourceContext: meta.requireSourceContext,
+      excludedMissingSourceContext: meta.excludedMissingSourceContext,
       availableSourceContextCandidates,
       selectedSourceContextCases,
       sourceContextDomainCounts,
@@ -1116,6 +1138,8 @@ function parseArgs(argv) {
     limit: 50,
     perDomainLimit: 0,
     heldOutBenchmark: DEFAULT_HELD_OUT_BENCHMARK,
+    requireSourceContext: false,
+    generatedAt: '',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -1126,6 +1150,8 @@ function parseArgs(argv) {
     else if (arg === '--review') args.reviewFiles.push(argv[++index]);
     else if (arg === '--limit') args.limit = Number(argv[++index]) || args.limit;
     else if (arg === '--per-domain') args.perDomainLimit = Number(argv[++index]) || 0;
+    else if (arg === '--source-only' || arg === '--require-source-context') args.requireSourceContext = true;
+    else if (arg === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
     else if (arg === '--held-out-benchmark') args.heldOutBenchmark = argv[++index] || args.heldOutBenchmark;
     else if (arg === '--receipt') args.receiptOutput = argv[++index];
   }

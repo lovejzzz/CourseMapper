@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.39
+**Current release:** v0.16.40
 
 ---
 
@@ -31,7 +31,15 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.39**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.40**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.40 converts a compiler opportunity into reproducible evidence before training. It verifies twelve immutable local Gemma projects from the two retained source-capture campaigns, preserves every historical response byte, and replays those responses through the current deterministic compiler. The derived projects record exact source and compiler hashes plus 67 bounded repair receipts: 20 incomplete-explanation-tail repairs and 47 answer-key alignments. No model-authored response is rewritten in place.
+
+On the 192 requested source atoms, this replay raises compiler admission from 133 (69.3%) to 149 (77.6%) and reduces compiler burden from 59 (30.7%) to 43 (22.4%). These numbers measure deterministic contract acceptance only. They do not establish factual correctness, teachability, preference, or a model-quality improvement.
+
+The neutral comparison ledger now rebuilds exactly to 446 cases, including 138 source-grounded cases across sixteen course groups. A new fail-closed source-only builder freezes a 100-case blind packet with complete source context: 25 cases in each of Computer Science, Geology, Music Theory, and UX Design; three course groups per domain; 52 multiple-choice items; and 48 key terms. The five frozen held-out benchmark domains remain excluded and disjoint. Unlike the older builder, a shortage cannot be filled silently with ungrounded cases.
+
+The packet is ready for research judgment, but this release performs none. The current task inspected organizer metadata while constructing the packet and is disqualified from judging it. A fresh Codex task must complete the A/B order, and a distinct fresh task must complete B/A. Only stable, score-qualified agreements may enter the corpus. The corpus therefore remains smoke-only at 76/418 usable rows with zero same-identity Codex preferences, no research-quality adapter exists, and hosted Scion remains the public base plus compiler.
 
 v0.16.39 closes an exact-lineage gap in the future adapter architecture. Earlier releases proved deterministic training and real browser activation, but on different smoke artifacts. This release takes the byte-identical v0.16.31 seeded MLX weights, verifies their training plan and result, converts that exact source through the pinned MLX-to-PEFT-to-GGUF pipeline, and produces a 52,704,096-byte browser delta whose source manifest, converter, 552 F16 tensors, and output hash are all retained as bounded receipts.
 
