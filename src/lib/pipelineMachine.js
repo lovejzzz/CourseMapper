@@ -16,7 +16,8 @@
  *   mapping    the course map is streaming
  *   enriching  deliverables generating, latest activity = kernel enrichment
  *   compiling  deliverables generating, compiler/chunk activity
- *   verifying  the finish pass runs (checks, repairs, export verify, grade)
+ *   verifying  the finish pass runs (checks, repairs, export verification)
+ *   grading    deterministic package quality grading runs
  *   ready      finish pass completed clean
  *   blocked    finish pass completed with blockers (reason carried)
  *   lull       between phases (e.g. map done, deliverables not started) —
@@ -52,7 +53,7 @@ function latestActivityEvent(budget) {
  * the ONE pipeline truth every surface renders.
  *
  * @returns {{
- *   state: 'idle'|'syncing'|'mapping'|'enriching'|'compiling'|'verifying'|'ready'|'blocked'|'lull',
+ *   state: 'idle'|'syncing'|'mapping'|'enriching'|'compiling'|'verifying'|'grading'|'ready'|'blocked'|'lull',
  *   running: boolean,
  *   nextStep: string|null,          // lull only: the first not-done step id
  *   done: { map, enrich, compile, verify, grade },
@@ -78,10 +79,11 @@ export function derivePipelineState({
 
   const doneCount = Number(deliverables.doneCount) || 0;
   const totalCount = Number(deliverables.totalCount) || 0;
+  const grading = finishRunning && packageQualityPass?.phase === 'grade';
   const done = {
     map: generation.progressStep === 'done' || delivRunning || finishRunning || finishComplete,
     compile: finishComplete || finishRunning || (totalCount > 0 && doneCount >= totalCount && !delivRunning),
-    verify: finishComplete,
+    verify: finishComplete || grading,
     grade: finishComplete && Boolean(packageQualityPass?.quality),
   };
   done.enrich = done.compile || Boolean(budget.enrichmentOutcome);
@@ -99,7 +101,7 @@ export function derivePipelineState({
     if (activity?.type === 'blueprintEnrichmentCall') return { ...base, state: 'enriching', activity };
     return { ...base, state: 'compiling', activity: activity || null };
   }
-  if (finishRunning) return { ...base, state: 'verifying' };
+  if (finishRunning) return { ...base, state: grading ? 'grading' : 'verifying' };
   if (finishComplete) {
     if (finishStatus === 'blocked') {
       const blockers = Number(packageQualityPass?.blockers) || 0;
@@ -131,6 +133,7 @@ export function deriveStepStatuses(pipeline) {
     enriching: 'enrich',
     compiling: 'compile',
     verifying: 'verify',
+    grading: 'grade',
     syncing: null,
     ready: null,
     blocked: null,

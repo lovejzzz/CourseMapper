@@ -53,7 +53,12 @@ import {
   saveCustomDeliverable,
 } from './lib/customDeliverableLibrary';
 import { useAuth } from './contexts/AuthContext';
-import { getSavedApiKeyForProvider, useAIConfig } from './contexts/AIConfigContext';
+import {
+  getSavedApiKeyForProvider,
+  normalizeProjectProvider,
+  restorePublicScionAIConfig,
+  useAIConfig,
+} from './contexts/AIConfigContext';
 import { useUI } from './contexts/UIContext';
 import { useCourse } from './contexts/CourseContext';
 import { warn } from './lib/logger';
@@ -353,11 +358,6 @@ function selectRetryActionsWithinCallBudget(
   return { selected, skipped, usedCalls };
 }
 
-function normalizeProjectProvider(provider) {
-  if (provider === 'free' || provider === 'webllm') return PUBLIC_SCION_PROVIDER_ID;
-  return provider;
-}
-
 // ── Add Deliverable dropdown — uses a portal so it escapes the overflow-x-auto tab bar ──
 function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDeliverable, onAdd, onCreateCustom }) {
   const btnRef = useRef(null);
@@ -570,6 +570,10 @@ export default function AppFlow({
     (snapshot, { providerFallback } = {}) => {
       const originalProvider = snapshot?.provider || '';
       const nextProvider = originalProvider ? normalizeProjectProvider(originalProvider) : providerFallback;
+      if (nextProvider === PUBLIC_SCION_PROVIDER_ID) {
+        restorePublicScionAIConfig(setProvider, setApiKey, setModelId, setModelName, setApiStatus);
+        return;
+      }
       const providerWasRemapped = Boolean(originalProvider && nextProvider !== originalProvider);
 
       try {
@@ -1539,6 +1543,8 @@ export default function AppFlow({
           retryPassLimitReached = retryPassCount >= retryPassLimit;
         }
 
+        setPackageQualityPass({ status: 'running', phase: 'finish' });
+
         let exportVerification = null;
         try {
           tracePackageFinish(finishRunId, 'export_verify_start', {
@@ -1718,6 +1724,8 @@ export default function AppFlow({
         // itself — deterministic deep-quality grade over the same in-memory
         // file map the ZIP download assembles. Lazy chunk, bounded timeout,
         // non-blocking: any failure becomes quality { status: 'not-graded' }.
+        setPackageQualityPass({ status: 'running', phase: 'grade' });
+
         let packageQuality = null;
         if ((exportVerification?.failed || 0) > 0) {
           packageQuality = { status: 'not-graded', reason: 'export verification failed' };

@@ -36,6 +36,8 @@ export default function App() {
   const [hasSavedSession, setHasSavedSession] = useState(false);
   const [developerMode, setDeveloperModeState] = useState(readDeveloperMode);
 
+  const showScionRuntimeBanner = scionEnabled && (!flowActive || screen !== 'workspace');
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -159,7 +161,7 @@ export default function App() {
             scionRuntimeStatus={scionRuntimeStatus}
           />
         </Suspense>
-        <ScionRuntimeStatusBanner enabled={scionEnabled} status={scionRuntimeStatus} />
+        <ScionRuntimeStatusBanner enabled={showScionRuntimeBanner} status={scionRuntimeStatus} />
       </>
     );
   }
@@ -204,7 +206,7 @@ export default function App() {
           />
         </Suspense>
       )}
-      <ScionRuntimeStatusBanner enabled={scionEnabled} status={scionRuntimeStatus} />
+      <ScionRuntimeStatusBanner enabled={showScionRuntimeBanner} status={scionRuntimeStatus} />
     </>
   );
 }

@@ -132,6 +132,71 @@ async function restoreGeneratedWorkspaceWithSavedKey(page) {
   await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
 }
 
+async function restoreGeneratedWorkspaceWithLegacyScion(page) {
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    localStorage.setItem(
+      'coursemapper-project',
+      JSON.stringify({
+        formatVersion: 1,
+        hasGenerated: true,
+        provider: 'free',
+        courseMap: {
+          courseName: 'Restored Scion Course',
+          semester: 'Spring 2026',
+          lessons: [
+            {
+              title: 'Lesson 1: Local agent readiness',
+              learningGoals: ['Explain browser-local agent routing.'],
+              topics: ['Scion Agent'],
+              learningObjectives: ['Use Scion after restoring an older project.'],
+              weeklyAssessments: ['Short reflection'],
+              asynchronousActivities: ['Review the local model boundary.'],
+              synchronousActivities: ['Discuss restored workspace behavior.'],
+            },
+          ],
+        },
+        columns: [],
+        userEdits: [],
+        chatHistory: [],
+        fileNames: [],
+        versionHistory: [],
+        selectedFeatures: ['courseMap', 'lessonPlans'],
+        deliverableConfig: { lessonPlans: {} },
+        lessonScope: { type: 'all' },
+        promptText: 'Restored Scion course',
+        activeTab: 'lessonPlans',
+        deliverables: {
+          lessonPlans: {
+            status: 'done',
+            data: {
+              lessonPlans: [
+                {
+                  lessonTitle: 'Lesson 1: Local agent readiness',
+                  overview: 'A restored plan that should keep Scion connected without an API key.',
+                  activities: ['Check the canonical browser-local model identity.'],
+                },
+              ],
+            },
+            error: null,
+            stale: false,
+          },
+        },
+        savedAt: Date.now(),
+      }),
+    );
+    localStorage.setItem('coursemapper-provider', 'free');
+    localStorage.setItem('coursemapper-modelid', 'legacy-free-draft');
+    localStorage.setItem('coursemapper-modelname', 'Legacy draft model');
+  });
+  await page.reload();
+  await expect(page.locator('button:has-text("Resume")')).toBeVisible({ timeout: 10000 });
+  await page.locator('button:has-text("Resume")').click();
+  await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
+}
+
 async function routeSuccessfulOpenAIConfig(page, { modelId = 'gpt-4o-mini' } = {}) {
   await page.route('https://api.openai.com/v1/models', async (route) => {
     await route.fulfill({
@@ -175,6 +240,33 @@ async function openWorkspaceModelConfigFromHeader(page) {
 }
 
 test.describe('Agent no-key behavior', () => {
+  test('restores legacy Scion projects with the current keyless model connected to Agent', async ({ page }) => {
+    await restoreGeneratedWorkspaceWithLegacyScion(page);
+
+    const agentPanel = page.getByTestId('workspace-agent-panel');
+    const composer = agentPanel.locator('textarea');
+    await expect(agentPanel).toBeVisible();
+    await expect(agentPanel.getByText('Provider/key required')).toHaveCount(0);
+    await expect(composer).toBeEnabled();
+    await expect(composer).not.toHaveAttribute('placeholder', 'Configure AI to chat with the agent…');
+    await expect(agentPanel.getByTestId('workspace-model-config-trigger')).toContainText('Scion V');
+
+    await expect(page.getByRole('button', { name: 'Download ZIP' })).toHaveCount(0);
+    await page.getByTestId('export-scope-all').click();
+    await expect(page.getByTestId('export-download-zip')).toHaveCount(1);
+
+    const restoredConfig = await page.evaluate(() => ({
+      provider: localStorage.getItem('coursemapper-provider'),
+      modelId: localStorage.getItem('coursemapper-modelid'),
+      modelName: localStorage.getItem('coursemapper-modelname'),
+    }));
+    expect(restoredConfig).toEqual({
+      provider: 'public',
+      modelId: 'scion-public',
+      modelName: expect.stringMatching(/^Scion V/),
+    });
+  });
+
   test('restores saved provider readiness when resuming before validation finishes', async ({ page }) => {
     await page.route('https://api.openai.com/v1/models', async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 2000));

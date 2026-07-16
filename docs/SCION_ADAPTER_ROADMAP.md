@@ -6,6 +6,18 @@
 
 **Release boundary:** no current public Scion request claims to use trained weights
 
+## v0.16.37 — One Progress Story
+
+**Goal:** make the browser-local Scion experience tell one transparent story from first-use model setup through a restored workspace, export verification, package grading, and the final download handoff.
+
+**Lane:** this is a product-orchestration and UX-integrity milestone. Model download remains the first 15% of an observable completion meter; Map, Enrich, and Compile use live work signals; Verify owns export checks at 85%; Grade becomes an explicit active phase at 95%; and only terminal readiness reaches 100%. The floating setup banner yields once the workspace ribbon owns progress. Downloadable review notes remain a calm blue information state, and the export panel remains the single ZIP owner.
+
+**Restored Scion Agent:** legacy `free`/Scion snapshots and public Scion snapshots with missing model metadata now canonicalize to provider `public`, model `scion-public`, the current Scion Vx display name, and connected keyless readiness. Advisory Agent turns continue through the pinned browser-local runtime. They return text without native tool calls and never claim to have edited the workspace.
+
+**Evidence:** focused progress, status, routing, and availability tests pass alongside a real Chromium restored-project test that verifies the canonical stored identity, enabled Agent composer, absent header ZIP action, and sole export-panel ZIP button. The full release gate and production proof are recorded in `release-contracts/v0.16.37.json`.
+
+**Release Boundary:** v0.16.37 changes workflow state, restoration, and presentation. It does not download or train new weights, activate an adapter, improve the measured Scion-versus-reference score, add a human judgment, or complete the pending fresh `gpt-5.5@xhigh` preference campaign. Hosted Scion remains the pinned public Gemma 4 base plus compiler.
+
 ## v0.16.36 — A Judge Must Have a Real Name
 
 **Goal:** replace an unverifiable invented judge revision with a Codex launch profile that a fresh task can actually select, attest, and reproduce before any Scion preference is created.

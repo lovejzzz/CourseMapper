@@ -19,16 +19,19 @@
       "npx playwright test tests/coursemapper.spec.js tests/local-ai-runtime.spec.js tests/export-smoke.spec.js"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Remote Fast verification will be recorded after the implementation commit is pushed."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29462285497",
+      "note": "Fast verification passed on exact main merge commit 86cf0cfad948059aaee52c55f35b03aca43b5745, including formatting, lint, release-history audit, unit and closed-loop tests, proof smoke, the main evaluation, production build, and bundle budgets."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "This milestone changes deterministic clean-room identity metadata and validation. It performs no model call, judgment, adapter training, device capture, or provider request."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "The production deployment and cache-bypassed browser probe will be recorded after merge."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29463302456",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.36-86cf0cfa-20260715T2138Z",
+      "note": "GitHub Pages built and deployed the exact Fast-verified merge commit. A cache-bypassed production probe returned HTTP 200 and cache MISS with a 2026-07-16T01:08:19Z last-modified timestamp. The served index-MmZtqlCT.js, releaseManifest-CImIx2Wo.js, and AppFlow-B2jbD-bJ.js assets returned HTTP 200 with SHA-256 6a57b9565e9bba96878fe64e6e21cc06086c82360ceda554dd8b53b30df888af, 76d18a1607e5540886fc1926cf41f1ea38a73642a7489697e2ab31e1bb0d30f7, and 03bc0ecc61e61aeb376622d350021448aab1f709c8665c06b38dac4245f009e9. The live entry and release manifest expose v0.16.36, and the manifest exposes the exact release title."
     },
     "liveProvider": {
       "status": "not-used",

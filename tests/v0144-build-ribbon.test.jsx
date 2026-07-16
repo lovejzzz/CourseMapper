@@ -235,7 +235,35 @@ describe('B1 — buildRibbonModel selector', () => {
       }),
     ).toBe(58);
     expect(deriveRibbonProgress({ pipeline: { state: 'verifying' } })).toBe(85);
+    expect(deriveRibbonProgress({ pipeline: { state: 'grading' } })).toBe(95);
     expect(deriveRibbonProgress({ pipeline: { state: 'ready' } })).toBe(100);
+  });
+
+  it('makes the final grading stage visible before the meter reaches ready', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-scion-grade' },
+      ...MAP_EVENTS,
+      ...GENOME_EVENTS,
+      ENRICH_CHUNK_EVENT,
+      ...COMPILE_EVENTS,
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: false, doneCount: 9, totalCount: 9 },
+      packageQualityPass: { status: 'running', phase: 'grade', message: 'Grading package quality...' },
+    });
+
+    expect(model.stage).toBe('grade');
+    expect(model.stageLabel).toBe('Grading package quality...');
+    expect(model.progressPct).toBe(95);
+    expect(model.steps.map((step) => [step.id, step.status])).toEqual([
+      ['map', 'settled'],
+      ['enrich', 'settled'],
+      ['compile', 'settled'],
+      ['verify', 'settled'],
+      ['grade', 'active'],
+    ]);
   });
 
   it('generation umbrella (phase: generation) never marks later steps done — the 1:58 AM screenshot bug', () => {

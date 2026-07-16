@@ -84,6 +84,19 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     expect(p.state).toBe('compiling');
   });
 
+  it('grading: verification is settled and Grade becomes the active final stage', () => {
+    const p = derivePipelineState({
+      budget: { enrichmentOutcome: { enrichedLessons: 9 } },
+      generation: GEN_DONE,
+      deliverables: DELIV_DONE,
+      packageQualityPass: { status: 'running', phase: 'grade' },
+    });
+    expect(p.state).toBe('grading');
+    expect(p.done.verify).toBe(true);
+    expect(p.done.grade).toBe(false);
+    expect(statuses(p)).toEqual(['settled', 'settled', 'settled', 'settled', 'active']);
+  });
+
   it('ready: finish complete, grade attached — all steps green', () => {
     const p = derivePipelineState({
       generation: GEN_DONE,
