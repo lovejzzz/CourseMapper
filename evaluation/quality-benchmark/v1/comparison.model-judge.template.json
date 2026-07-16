@@ -13,6 +13,7 @@
       "model": "openai/codex",
       "modelRevision": "RUNTIME_OR_SESSION_REVISION",
       "promptSha256": "JUDGE_PROMPT_SHA256",
+      "evidenceProtocol": "recomputable-two-order-v1",
       "requiredPassesPerTrial": 2,
       "requiredOrders": ["A/B", "B/A"]
     },
@@ -92,11 +93,60 @@
             "scorecardPath": "relative/path/to/candidate-scorecard.json",
             "evidenceClass": "model-judge",
             "validationTier": "model-provisional",
+            "aggregationBootstrapSamples": 5000,
             "sourceSha256": "SOURCE_PACKET_SHA256",
             "artifactSha256": "CANDIDATE_OUTPUT_SHA256",
             "model": "openai/codex",
             "modelRevision": "RUNTIME_OR_SESSION_REVISION",
-            "promptSha256": "JUDGE_PROMPT_SHA256"
+            "promptSha256": "JUDGE_PROMPT_SHA256",
+            "reviewBundlePath": "relative/path/to/candidate-review-bundle.json",
+            "reviewBundleSha256": "CANDIDATE_REVIEW_BUNDLE_SHA256",
+            "passScorecards": [
+              {
+                "order": "A/B",
+                "reviewerId": "CODEX_A_B_SESSION_ID",
+                "sessionId": "CODEX_A_B_SESSION_ID",
+                "reviewIndex": 0,
+                "scoredAt": "YYYY-MM-DDTHH:MM:SSZ",
+                "presentedLabel": "B",
+                "scorecardPath": "relative/path/to/candidate-a-b-scorecard.json",
+                "scorecardSha256": "CANDIDATE_A_B_SCORECARD_SHA256",
+                "reportedScore": 0,
+                "dimensionScores": {
+                  "instructional-alignment": 0,
+                  "accuracy-source-fidelity": 0,
+                  "assessment-feedback": 0,
+                  "teaching-learning-usability": 0,
+                  "student-clarity-support": 0,
+                  "inclusion-accessibility": 0,
+                  "integrity-safety-rights": 0,
+                  "professional-craft": 0,
+                  "cross-artifact-coherence": 0
+                }
+              },
+              {
+                "order": "B/A",
+                "reviewerId": "CODEX_B_A_SESSION_ID",
+                "sessionId": "CODEX_B_A_SESSION_ID",
+                "reviewIndex": 1,
+                "scoredAt": "YYYY-MM-DDTHH:MM:SSZ",
+                "presentedLabel": "A",
+                "scorecardPath": "relative/path/to/candidate-b-a-scorecard.json",
+                "scorecardSha256": "CANDIDATE_B_A_SCORECARD_SHA256",
+                "reportedScore": 0,
+                "dimensionScores": {
+                  "instructional-alignment": 0,
+                  "accuracy-source-fidelity": 0,
+                  "assessment-feedback": 0,
+                  "teaching-learning-usability": 0,
+                  "student-clarity-support": 0,
+                  "inclusion-accessibility": 0,
+                  "integrity-safety-rights": 0,
+                  "professional-craft": 0,
+                  "cross-artifact-coherence": 0
+                }
+              }
+            ]
           }
         },
         "control": {
@@ -122,11 +172,60 @@
             "scorecardPath": "relative/path/to/control-scorecard.json",
             "evidenceClass": "model-judge",
             "validationTier": "model-provisional",
+            "aggregationBootstrapSamples": 5000,
             "sourceSha256": "SOURCE_PACKET_SHA256",
             "artifactSha256": "CONTROL_OUTPUT_SHA256",
             "model": "openai/codex",
             "modelRevision": "RUNTIME_OR_SESSION_REVISION",
-            "promptSha256": "JUDGE_PROMPT_SHA256"
+            "promptSha256": "JUDGE_PROMPT_SHA256",
+            "reviewBundlePath": "relative/path/to/control-review-bundle.json",
+            "reviewBundleSha256": "CONTROL_REVIEW_BUNDLE_SHA256",
+            "passScorecards": [
+              {
+                "order": "A/B",
+                "reviewerId": "CODEX_A_B_SESSION_ID",
+                "sessionId": "CODEX_A_B_SESSION_ID",
+                "reviewIndex": 0,
+                "scoredAt": "YYYY-MM-DDTHH:MM:SSZ",
+                "presentedLabel": "A",
+                "scorecardPath": "relative/path/to/control-a-b-scorecard.json",
+                "scorecardSha256": "CONTROL_A_B_SCORECARD_SHA256",
+                "reportedScore": 0,
+                "dimensionScores": {
+                  "instructional-alignment": 0,
+                  "accuracy-source-fidelity": 0,
+                  "assessment-feedback": 0,
+                  "teaching-learning-usability": 0,
+                  "student-clarity-support": 0,
+                  "inclusion-accessibility": 0,
+                  "integrity-safety-rights": 0,
+                  "professional-craft": 0,
+                  "cross-artifact-coherence": 0
+                }
+              },
+              {
+                "order": "B/A",
+                "reviewerId": "CODEX_B_A_SESSION_ID",
+                "sessionId": "CODEX_B_A_SESSION_ID",
+                "reviewIndex": 1,
+                "scoredAt": "YYYY-MM-DDTHH:MM:SSZ",
+                "presentedLabel": "B",
+                "scorecardPath": "relative/path/to/control-b-a-scorecard.json",
+                "scorecardSha256": "CONTROL_B_A_SCORECARD_SHA256",
+                "reportedScore": 0,
+                "dimensionScores": {
+                  "instructional-alignment": 0,
+                  "accuracy-source-fidelity": 0,
+                  "assessment-feedback": 0,
+                  "teaching-learning-usability": 0,
+                  "student-clarity-support": 0,
+                  "inclusion-accessibility": 0,
+                  "integrity-safety-rights": 0,
+                  "professional-craft": 0,
+                  "cross-artifact-coherence": 0
+                }
+              }
+            ]
           }
         }
       },
@@ -137,6 +236,7 @@
           "model": "openai/codex",
           "modelRevision": "RUNTIME_OR_SESSION_REVISION",
           "promptSha256": "JUDGE_PROMPT_SHA256",
+          "sessionId": "CODEX_A_B_SESSION_ID",
           "blinded": true,
           "preference": "tie",
           "order": "A/B",
@@ -144,9 +244,27 @@
           "reviewedAt": "YYYY-MM-DDTHH:MM:SSZ",
           "candidateArtifactSha256": "CANDIDATE_OUTPUT_SHA256",
           "controlArtifactSha256": "CONTROL_OUTPUT_SHA256",
-          "candidateScorecardSha256": "CANDIDATE_SCORECARD_SHA256",
-          "controlScorecardSha256": "CONTROL_SCORECARD_SHA256",
-          "scoredBeforePreference": true
+          "candidateScorecardSha256": "CANDIDATE_A_B_SCORECARD_SHA256",
+          "controlScorecardSha256": "CONTROL_A_B_SCORECARD_SHA256",
+          "scoredBeforePreference": true,
+          "decisionEvidence": [
+            {
+              "kind": "defect",
+              "artifactLabel": "A",
+              "artifactSha256": "CONTROL_OUTPUT_SHA256",
+              "dimensionId": "accuracy-source-fidelity",
+              "location": "Artifact A > exact file and section",
+              "observation": "Concrete source-checked defect that determined this blinded decision."
+            },
+            {
+              "kind": "defect",
+              "artifactLabel": "B",
+              "artifactSha256": "CANDIDATE_OUTPUT_SHA256",
+              "dimensionId": "assessment-feedback",
+              "location": "Artifact B > exact file and item",
+              "observation": "Concrete assessment defect retained because a tie must evidence both artifacts."
+            }
+          ]
         },
         {
           "reviewerId": "CODEX_PASS_2_ID",
@@ -154,6 +272,7 @@
           "model": "openai/codex",
           "modelRevision": "RUNTIME_OR_SESSION_REVISION",
           "promptSha256": "JUDGE_PROMPT_SHA256",
+          "sessionId": "CODEX_B_A_SESSION_ID",
           "blinded": true,
           "preference": "tie",
           "order": "B/A",
@@ -161,9 +280,27 @@
           "reviewedAt": "YYYY-MM-DDTHH:MM:SSZ",
           "candidateArtifactSha256": "CANDIDATE_OUTPUT_SHA256",
           "controlArtifactSha256": "CONTROL_OUTPUT_SHA256",
-          "candidateScorecardSha256": "CANDIDATE_SCORECARD_SHA256",
-          "controlScorecardSha256": "CONTROL_SCORECARD_SHA256",
-          "scoredBeforePreference": true
+          "candidateScorecardSha256": "CANDIDATE_B_A_SCORECARD_SHA256",
+          "controlScorecardSha256": "CONTROL_B_A_SCORECARD_SHA256",
+          "scoredBeforePreference": true,
+          "decisionEvidence": [
+            {
+              "kind": "defect",
+              "artifactLabel": "B",
+              "artifactSha256": "CONTROL_OUTPUT_SHA256",
+              "dimensionId": "accuracy-source-fidelity",
+              "location": "Artifact B > exact file and section",
+              "observation": "Concrete source-checked defect that determined this reverse-order decision."
+            },
+            {
+              "kind": "defect",
+              "artifactLabel": "A",
+              "artifactSha256": "CANDIDATE_OUTPUT_SHA256",
+              "dimensionId": "assessment-feedback",
+              "location": "Artifact A > exact file and item",
+              "observation": "Concrete assessment defect retained because a tie must evidence both artifacts."
+            }
+          ]
         }
       ]
     }

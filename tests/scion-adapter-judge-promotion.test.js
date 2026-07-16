@@ -11,6 +11,7 @@ import {
   SCION_ADAPTER_JUDGE_PROMOTION_PROTOCOL,
 } from '../scripts/lib/scionAdapterJudgePromotion.mjs';
 import { computeScionAdapterPackageIdentity } from '../scripts/lib/scionBrowserDeviceMatrix.mjs';
+import { aggregateQualityReviews, flattenRubric } from '../scripts/lib/qualityBenchmark.mjs';
 
 const SOURCE_ROOT = process.cwd();
 const CANONICAL_PATHS = {
@@ -54,10 +55,11 @@ async function copyCanonical(root) {
   return hashes;
 }
 
-async function buildFixture() {
+async function buildFixture({ reuseJudgeSessionAcrossOrders = false } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-judge-promotion-'));
   const hashes = await copyCanonical(root);
   const heldOut = JSON.parse(await fs.readFile(path.join(root, CANONICAL_PATHS.heldOutCourseBenchmark), 'utf8'));
+  const rubric = JSON.parse(await fs.readFile(path.join(root, CANONICAL_PATHS.rubric), 'utf8'));
   const adapterManifest = {
     adapter: { id: 'scion-g4e2b-test-adapter', scale: 1 },
     base: { modelId: heldOut.base.modelId, revision: heldOut.base.revision },
@@ -67,6 +69,7 @@ async function buildFixture() {
     model: 'openai/codex',
     modelRevision: 'gpt-5.4-session-judge-revision',
     promptSha256: hashes.judgePrompt,
+    evidenceProtocol: 'recomputable-two-order-v1',
     requiredPassesPerTrial: 2,
     requiredOrders: ['A/B', 'B/A'],
   };
@@ -81,39 +84,126 @@ async function buildFixture() {
   const scorecardDir = path.join(root, 'comparisons', 'scorecards');
   await fs.mkdir(scorecardDir, { recursive: true });
 
-  const scoreEvidence = async ({ caseId, sourceSha256, artifactSha256, side, trialIndex, score }) => {
-    const relative = `scorecards/${caseId}-${trialIndex}-${side}.json`;
-    const scorecard = {
-      rubricVersion: '1.0.0',
-      caseId,
-      sourceSha256,
-      artifactSha256,
-      validation: {
-        selectedEvidenceClass: 'model-judge',
-        tier: 'model-provisional',
-        modelJudgeIdentity: {
-          model: judge.model,
-          modelRevision: judge.modelRevision,
-          promptSha256: judge.promptSha256,
-        },
-      },
-      scores: { reportedScore: score },
-      dimensions: DIMENSIONS.map((id) => ({ id, score })),
-      reviewValidationIssues: [],
-    };
-    const scorecardSha256 = await writeJson(path.join(root, 'comparisons', relative), scorecard);
-    return {
-      rubricVersion: '1.0.0',
-      rubricSha256: hashes.rubric,
-      scorecardSha256,
-      scorecardPath: relative,
+  const sessions = {
+    'A/B': 'codex-judge-a-b-session',
+    'B/A': reuseJudgeSessionAcrossOrders ? 'codex-judge-a-b-session' : 'codex-judge-b-a-session',
+  };
+  const makeReview = ({ caseId, sourceSha256, artifactSha256, ratingScore, order }) => ({
+    schemaVersion: 2,
+    rubricVersion: '1.0.0',
+    caseId,
+    artifactId: `anonymous-${artifactSha256.slice(0, 16)}`,
+    artifactType: 'package',
+    sourceSha256,
+    artifactSha256,
+    reviewedAt: order === 'A/B' ? '2026-07-13T12:00:00Z' : '2026-07-13T13:00:00Z',
+    evaluator: {
+      id: sessions[order],
       evidenceClass: 'model-judge',
-      validationTier: 'model-provisional',
+      qualified: false,
+      independent: false,
+      conflictOfInterest: false,
+      domainMatch: false,
+      currentTeachingRole: '',
       model: judge.model,
       modelRevision: judge.modelRevision,
       promptSha256: judge.promptSha256,
-      sourceSha256,
-      artifactSha256,
+    },
+    ratings: Object.fromEntries(
+      flattenRubric(rubric).map((criterion) => [
+        criterion.id,
+        {
+          state: 'scored',
+          score: ratingScore,
+          confidence: 'high',
+          evidence: [
+            {
+              artifact: 'Anonymous course package',
+              location: `${criterion.id} representative inspected section`,
+              observation: `The bound package provides concrete evidence for ${criterion.id} at rubric anchor ${ratingScore}.`,
+            },
+          ],
+          ...(![0, 2, 4].includes(ratingScore)
+            ? {
+                interpolationRationale: `The evidence is consistently between the adjacent anchors for ${criterion.id}.`,
+              }
+            : {}),
+        },
+      ]),
+    ),
+    criticalFailures: [],
+    overall: {
+      wouldUse: ratingScore >= 3,
+      editVerdict: ratingScore >= 4 ? 'minor-edits' : ratingScore >= 3 ? 'major-edits' : 'cannot-use',
+      estimatedEditMinutes: ratingScore >= 4 ? 15 : ratingScore >= 3 ? 60 : 180,
+      notes: 'Concrete bound review retained so every aggregate score can be recomputed from the frozen rubric.',
+    },
+  });
+
+  const scoreEvidence = async ({
+    caseId,
+    sourceSha256,
+    artifactSha256,
+    side,
+    trialIndex,
+    ratingScore,
+    initialLabel,
+  }) => {
+    const benchmarkCase = {
+      id: caseId,
+      split: 'heldout',
+      source: { sha256: sourceSha256, verified: true },
+      exportVerified: true,
+    };
+    const orders = ['A/B', 'B/A'];
+    const reviews = orders.map((order) => makeReview({ caseId, sourceSha256, artifactSha256, ratingScore, order }));
+    const stem = `${caseId}-${trialIndex}-${side}`;
+    const reviewBundlePath = `scorecards/${stem}-reviews.json`;
+    const reviewBundleSha256 = await writeJson(path.join(root, 'comparisons', reviewBundlePath), reviews);
+    const passScorecards = [];
+    for (const [reviewIndex, order] of orders.entries()) {
+      const scorecard = aggregateQualityReviews([reviews[reviewIndex]], rubric, {
+        benchmarkCase,
+        bootstrapSamples: 100,
+      });
+      const scorecardPath = `scorecards/${stem}-${order === 'A/B' ? 'a-b' : 'b-a'}.json`;
+      const scorecardSha256 = await writeJson(path.join(root, 'comparisons', scorecardPath), scorecard);
+      passScorecards.push({
+        order,
+        reviewerId: sessions[order],
+        sessionId: sessions[order],
+        reviewIndex,
+        scoredAt: reviews[reviewIndex].reviewedAt,
+        presentedLabel: order === 'B/A' ? (initialLabel === 'A' ? 'B' : 'A') : initialLabel,
+        scorecardPath,
+        scorecardSha256,
+        reportedScore: scorecard.scores.reportedScore,
+        dimensionScores: Object.fromEntries(scorecard.dimensions.map((dimension) => [dimension.id, dimension.score])),
+      });
+    }
+    const scorecard = aggregateQualityReviews(reviews, rubric, { benchmarkCase, bootstrapSamples: 100 });
+    const scorecardPath = `scorecards/${stem}-aggregate.json`;
+    const scorecardSha256 = await writeJson(path.join(root, 'comparisons', scorecardPath), scorecard);
+    return {
+      benchmarkScore: scorecard.scores.reportedScore,
+      dimensionScores: Object.fromEntries(scorecard.dimensions.map((dimension) => [dimension.id, dimension.score])),
+      scoreEvidence: {
+        rubricVersion: '1.0.0',
+        rubricSha256: hashes.rubric,
+        scorecardSha256,
+        scorecardPath,
+        evidenceClass: 'model-judge',
+        validationTier: 'model-provisional',
+        aggregationBootstrapSamples: 100,
+        model: judge.model,
+        modelRevision: judge.modelRevision,
+        promptSha256: judge.promptSha256,
+        sourceSha256,
+        artifactSha256,
+        reviewBundlePath,
+        reviewBundleSha256,
+        passScorecards,
+      },
     };
   };
 
@@ -122,6 +212,16 @@ async function buildFixture() {
     for (let trialIndex = 1; trialIndex <= 10; trialIndex += 1) {
       const key = `${course.courseId}\0${trialIndex}`;
       const outputSha256 = sha256(`candidate:${key}`);
+      const initialLabel = trialIndex % 2 ? 'A' : 'B';
+      const scored = await scoreEvidence({
+        caseId: course.courseId,
+        sourceSha256: course.sourcePacketSha256,
+        artifactSha256: outputSha256,
+        side: 'candidate',
+        trialIndex,
+        ratingScore: 4,
+        initialLabel,
+      });
       candidateOutputs.set(key, {
         modelId: adapterManifest.adapter.id,
         status: 'success',
@@ -130,17 +230,10 @@ async function buildFixture() {
         costUsd: 0,
         providerCalls: 40,
         retryCount: 0,
-        benchmarkScore: 79,
-        dimensionScores: Object.fromEntries(DIMENSIONS.map((id) => [id, 79])),
+        benchmarkScore: scored.benchmarkScore,
+        dimensionScores: scored.dimensionScores,
         compilerBurden: { scionCalls: 40, repairCalls: 1, rejectedAtoms: 1, recoveredAtoms: 1 },
-        scoreEvidence: await scoreEvidence({
-          caseId: course.courseId,
-          sourceSha256: course.sourcePacketSha256,
-          artifactSha256: outputSha256,
-          side: 'candidate',
-          trialIndex,
-          score: 79,
-        }),
+        scoreEvidence: scored.scoreEvidence,
       });
     }
   }
@@ -148,7 +241,7 @@ async function buildFixture() {
   const makeComparison = async (role) => {
     const isBase = role === 'adapter-vs-base';
     const controlId = isBase ? 'scion-base-only' : paidReference.id;
-    const controlScore = isBase ? 68 : 70;
+    const controlRatingScore = isBase ? 2 : 3;
     const models = [
       {
         id: adapterManifest.adapter.id,
@@ -196,16 +289,17 @@ async function buildFixture() {
         const key = `${course.courseId}\0${trialIndex}`;
         const candidate = structuredClone(candidateOutputs.get(key));
         const controlHash = sha256(`${role}:control:${key}`);
-        const controlEvidence = await scoreEvidence({
+        const candidateLabel = trialIndex % 2 ? 'A' : 'B';
+        const controlLabel = candidateLabel === 'A' ? 'B' : 'A';
+        const controlScored = await scoreEvidence({
           caseId: course.courseId,
           sourceSha256: course.sourcePacketSha256,
           artifactSha256: controlHash,
           side: isBase ? 'base' : 'paid',
           trialIndex,
-          score: controlScore,
+          ratingScore: controlRatingScore,
+          initialLabel: controlLabel,
         });
-        const candidateLabel = trialIndex % 2 ? 'A' : 'B';
-        const controlLabel = candidateLabel === 'A' ? 'B' : 'A';
         trials.push({
           caseId: course.courseId,
           split: 'heldout',
@@ -231,34 +325,53 @@ async function buildFixture() {
               costUsd: isBase ? 0 : 0.01,
               providerCalls: isBase ? 50 : 1,
               retryCount: 0,
-              benchmarkScore: controlScore,
-              dimensionScores: Object.fromEntries(DIMENSIONS.map((id) => [id, controlScore])),
+              benchmarkScore: controlScored.benchmarkScore,
+              dimensionScores: controlScored.dimensionScores,
               compilerBurden: {
                 scionCalls: isBase ? 50 : 45,
                 repairCalls: 2,
                 rejectedAtoms: 2,
                 recoveredAtoms: 1,
               },
-              scoreEvidence: controlEvidence,
+              scoreEvidence: controlScored.scoreEvidence,
             },
           },
-          preferences: ['A/B', 'B/A'].map((order, passIndex) => ({
-            reviewerId: `${role}-${course.courseId}-${trialIndex}-pass-${passIndex + 1}`,
-            evidenceClass: 'model-judge',
-            model: judge.model,
-            modelRevision: judge.modelRevision,
-            promptSha256: judge.promptSha256,
-            blinded: true,
-            preference: candidateLabel,
-            order,
-            rationale: 'The candidate has stronger bound scores across accuracy, alignment, usability, and coherence.',
-            reviewedAt: '2026-07-13T12:00:00Z',
-            candidateArtifactSha256: candidate.outputSha256,
-            controlArtifactSha256: controlHash,
-            candidateScorecardSha256: candidate.scoreEvidence.scorecardSha256,
-            controlScorecardSha256: controlEvidence.scorecardSha256,
-            scoredBeforePreference: true,
-          })),
+          preferences: ['A/B', 'B/A'].map((order) => {
+            const winnerLabel = order === 'B/A' ? (candidateLabel === 'A' ? 'B' : 'A') : candidateLabel;
+            const loserLabel = winnerLabel === 'A' ? 'B' : 'A';
+            const candidatePass = candidate.scoreEvidence.passScorecards.find((row) => row.order === order);
+            const controlPass = controlScored.scoreEvidence.passScorecards.find((row) => row.order === order);
+            return {
+              reviewerId: sessions[order],
+              sessionId: sessions[order],
+              evidenceClass: 'model-judge',
+              model: judge.model,
+              modelRevision: judge.modelRevision,
+              promptSha256: judge.promptSha256,
+              blinded: true,
+              preference: winnerLabel,
+              order,
+              rationale:
+                'The winning anonymous package has stronger bound rubric evidence while the other package needs substantial revision.',
+              reviewedAt: order === 'A/B' ? '2026-07-13T12:05:00Z' : '2026-07-13T13:05:00Z',
+              candidateArtifactSha256: candidate.outputSha256,
+              controlArtifactSha256: controlHash,
+              candidateScorecardSha256: candidatePass.scorecardSha256,
+              controlScorecardSha256: controlPass.scorecardSha256,
+              scoredBeforePreference: true,
+              decisionEvidence: [
+                {
+                  kind: 'defect',
+                  artifactLabel: loserLabel,
+                  artifactSha256: controlHash,
+                  dimensionId: 'accuracy-source-fidelity',
+                  location: 'Anonymous package > representative source-bearing lesson',
+                  observation:
+                    'The losing package provides materially weaker source fidelity and would require substantial instructor correction.',
+                },
+              ],
+            };
+          }),
         });
       }
     }
@@ -361,6 +474,99 @@ describe('Scion adapter single-model-judge promotion evidence', () => {
     expect(report.promotionEligible).toBe(true);
     expect(report.issues).toEqual([]);
     expect(report.comparisons).toHaveLength(2);
+    expect(report.comparisons.every((row) => row.report.scoreOrderEffect.trialCount === 50)).toBe(true);
+    expect(report.comparisons.every((row) => row.report.singleModelJudgePreference.judgeSessionCount === 2)).toBe(true);
+  });
+
+  it('rejects a hash-refreshed scorecard that cannot be recomputed from complete rubric reviews', async () => {
+    const fixture = await buildFixture();
+    roots.push(fixture.root);
+    const row = fixture.comparisons['adapter-vs-base'];
+    const output = row.comparison.trials[0].outputs.candidate;
+    const hollow = {
+      rubricVersion: '1.0.0',
+      caseId: row.comparison.trials[0].caseId,
+      sourceSha256: row.comparison.trials[0].sourceSha256,
+      artifactSha256: output.outputSha256,
+      validation: {
+        selectedEvidenceClass: 'model-judge',
+        tier: 'model-provisional',
+        modelJudgeIdentity: {
+          model: output.scoreEvidence.model,
+          modelRevision: output.scoreEvidence.modelRevision,
+          promptSha256: output.scoreEvidence.promptSha256,
+        },
+      },
+      scores: { reportedScore: output.benchmarkScore },
+      dimensions: DIMENSIONS.map((id) => ({ id, score: output.dimensionScores[id] })),
+      reviewValidationIssues: [],
+    };
+    const scorecardPath = path.join(path.dirname(row.filePath), output.scoreEvidence.scorecardPath);
+    output.scoreEvidence.scorecardSha256 = await writeJson(scorecardPath, hollow);
+    row.sha256 = await writeJson(row.filePath, row.comparison);
+    fixture.evidence.comparisons.find((entry) => entry.role === 'adapter-vs-base').sha256 = row.sha256;
+    const report = await audit(fixture);
+    expect(report.status).toBe('blocked');
+    expect(
+      report.issues.some((issue) => issue.includes('cannot be reproduced from both bound order-specific reviews')),
+    ).toBe(true);
+  });
+
+  it('rejects one judge session reused across both presentation orders', async () => {
+    const fixture = await buildFixture({ reuseJudgeSessionAcrossOrders: true });
+    roots.push(fixture.root);
+    const report = await audit(fixture);
+    expect(report.status).toBe('blocked');
+    expect(report.issues).toEqual(
+      expect.arrayContaining([
+        'adapter-vs-base:judge-order-sessions-must-be-two-distinct-isolated-runs',
+        'adapter-vs-paid-reference:judge-order-sessions-must-be-two-distinct-isolated-runs',
+      ]),
+    );
+  });
+
+  it('rejects a winner without structured artifact-bound decision evidence', async () => {
+    const fixture = await buildFixture();
+    roots.push(fixture.root);
+    const row = fixture.comparisons['adapter-vs-base'];
+    delete row.comparison.trials[0].preferences[0].decisionEvidence;
+    row.sha256 = await writeJson(row.filePath, row.comparison);
+    fixture.evidence.comparisons.find((entry) => entry.role === 'adapter-vs-base').sha256 = row.sha256;
+    const report = await audit(fixture);
+    expect(report.status).toBe('blocked');
+    expect(report.issues).toEqual(
+      expect.arrayContaining(['adapter-vs-base:mandarin:trial-1:A/B:decision-evidence-missing']),
+    );
+  });
+
+  it('unblinds the B/A label reversal instead of counting the same visible label as the same winner', async () => {
+    const fixture = await buildFixture();
+    roots.push(fixture.root);
+    const row = fixture.comparisons['adapter-vs-base'];
+    const trial = row.comparison.trials[0];
+    const reverse = trial.preferences.find((preference) => preference.order === 'B/A');
+    reverse.preference = trial.randomization.candidateLabel;
+    const reversedCandidateLabel = trial.randomization.candidateLabel === 'A' ? 'B' : 'A';
+    reverse.decisionEvidence = [
+      {
+        kind: 'defect',
+        artifactLabel: reversedCandidateLabel,
+        artifactSha256: trial.outputs.candidate.outputSha256,
+        dimensionId: 'accuracy-source-fidelity',
+        location: 'Anonymous package > representative source-bearing lesson',
+        observation: 'The reversed-order candidate package contains the concrete defect behind the changed decision.',
+      },
+    ];
+    row.sha256 = await writeJson(row.filePath, row.comparison);
+    fixture.evidence.comparisons.find((entry) => entry.role === 'adapter-vs-base').sha256 = row.sha256;
+    const report = await audit(fixture);
+    expect(report.status).toBe('blocked');
+    const baseReport = report.comparisons.find((comparison) => comparison.role === 'adapter-vs-base').report;
+    expect(baseReport.singleModelJudgePreference.positionSensitiveOrIncompleteTrials).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ caseId: 'mandarin', trialIndex: 1, reason: 'position-sensitive-outcome' }),
+      ]),
+    );
   });
 
   it('rejects a hashable status object that contains no semantic comparison evidence', async () => {

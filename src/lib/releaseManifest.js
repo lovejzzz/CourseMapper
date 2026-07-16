@@ -2,25 +2,25 @@ import { APP_VERSION } from './appVersion.js';
 
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
-  date: 'July 15, 2026',
-  title: 'One Progress Story: keep Scion transparent from restore to grade',
-  landingTitle: 'Scion Now Shows One Honest Path from Model Setup to a Ready Package',
+  date: 'July 16, 2026',
+  title: 'Score Twice, Prove Every Score: make adapter judgment recomputable',
+  landingTitle: 'Scion’s Quality Ruler Now Proves Every Score from the Complete Review',
   highlights: [
-    'The workspace now has one progress surface: Scion model setup begins the meter, and the floating download banner yields when the workspace ribbon takes ownership.',
-    'Verify and Grade became distinct live stages, with export verification named at 85%, package-quality grading active at 95%, and readiness alone completing the meter at 100%.',
-    'Legacy free/Scion project snapshots now restore to the canonical public provider, scion-public model, current Scion Vx label, and connected keyless Agent state.',
-    'Downloadable packages with review notes use a calm blue information state, while Download ZIP remains exclusively in the export panel instead of competing with the workspace header.',
-    'Focused unit/UI checks and a real Chromium restore test verify the flow without downloading model weights; this release changes orchestration and UX, not Gemma weights or measured model quality.',
+    'The adapter promotion verifier now reconstructs every model-judge scorecard from complete criterion-level quality reviews instead of trusting a hash-bound file containing claimed totals.',
+    'A/B and B/A use two isolated judge sessions, retain separate review bundles and pass scorecards, and record preferences only after both artifact scores are complete.',
+    'Reverse-order winner labels now use the reversed anonymous mapping, preventing the same visible A or B label from masquerading as the same underlying artifact across orders.',
+    'Every winner or tie carries structured artifact, location, dimension, and defect-or-advantage evidence, while the report measures candidate, control, and comparison score-order effects.',
+    'The release hardens honest-quality-benchmark-v1 before a candidate exists; it performs zero judgments, changes no weights, and claims no adapter quality gain.',
   ],
   landingHighlights: [
-    'One meter now follows Scion from model setup to a ready package.',
-    'Verify and Grade are visible instead of collapsing into the final jump.',
-    'Restored Scion projects reopen with the local Agent connected.',
-    'Review notes read as information, not a warning.',
-    'The export panel is the only place to download the package ZIP.',
+    'Typed totals are no longer accepted as quality evidence.',
+    'Every score is rebuilt from its complete frozen-rubric review.',
+    'A/B and B/A scoring happen in distinct isolated sessions.',
+    'Winner decisions identify the concrete defect or advantage.',
+    'Order effects remain visible instead of being averaged away.',
   ],
   proof: {
-    contract: 'release-contracts/v0.16.37.json',
+    contract: 'release-contracts/v0.16.38.json',
     roadmap: 'docs/SCION_ADAPTER_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
@@ -35,30 +35,42 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'One meter from model setup through grade',
+      label: 'A score must be reproducible evidence',
       icon: 'AI',
       color: 'emerald',
       items: [
-        'The browser-local model download remains the first 15% of one end-to-end meter. Once generation enters the workspace, the ribbon owns that status and the floating setup banner disappears instead of presenting a second progress bar.',
-        'Map, Enrich, and Compile continue from observable stream, lesson, and material counts. The finalizer now publishes an explicit export-verification phase and a separate grading phase rather than leaving Grade visually pending until a 100% jump.',
-        'The meter is completion progress, never a quality score: Verify is 85%, Grade is 95%, and only a terminal ready or review state reaches 100%.',
+        'The audit found that the previous promotion path could accept a small scorecard containing the expected total and dimensions without the complete criterion-level review that supposedly produced them.',
+        'Promotion protocol v2 binds two complete quality-review-v2 records per artifact. The verifier recomputes both order-specific scorecards and the two-review aggregate with the exact frozen rubric, then requires structural equality.',
+        'Review bundles and scorecards must be contained regular files whose SHA-256, source, artifact, model, prompt, score-completion time, critical failures, edit burden, total, and nine dimensions all agree.',
       ],
     },
     {
-      label: 'Restore trust in the Agent and export handoff',
+      label: 'Two honest readings, one order-aware result',
       icon: 'CHECK',
       color: 'blue',
       items: [
-        'Project restore now treats Scion as a canonical product identity. Older free-provider snapshots and Scion snapshots with missing or stale model metadata reopen as public plus scion-public, use the current Scion Vx name, require no API key, and mark the Agent connection ready.',
-        'The Agent keeps an honest boundary: browser-local Scion can answer advisory turns, but the response path reports no native tool calls and never pretends it changed the workspace.',
-        'The export handoff stays calm and singular. Non-blocking package review notes use a blue information treatment, and the header no longer renders a second Download ZIP action when the export panel already owns it.',
-        'The new Chromium restore regression verifies the enabled composer, canonical stored identity, absent header ZIP, and sole export-panel ZIP. Focused unit/UI tests cover the progress machine, info state, and Scion inference route.',
+        'One preregistered judge identity is split across two distinct isolated sessions: one scores every A/B pass and the other independently scores every B/A pass without the earlier outcome.',
+        'The preference timestamp must follow both artifact score completions and its hashes must point to that exact order and session. A winner needs a structured winner advantage or loser defect; a tie must evidence both artifacts.',
+        'B/A labels are reversed before unblinding. Preference consistency and score-order shifts are both retained, including per-domain candidate, control, and candidate-minus-control effects.',
+        'This release deliberately produces no model result. Public Scion remains base-only plus compiler until a real adapter crosses the strengthened ruler and every other promotion gate.',
       ],
     },
   ],
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.16.37',
+    date: 'July 15, 2026',
+    title: 'One Progress Story: keep Scion transparent from restore to grade',
+    highlights: [
+      'The workspace gained one progress surface: Scion model setup begins the meter, and the floating download banner yields when the workspace ribbon takes ownership.',
+      'Verify and Grade became distinct live stages, with export verification named at 85%, package-quality grading active at 95%, and readiness alone completing the meter at 100%.',
+      'Legacy free/Scion project snapshots began restoring to the canonical public provider, scion-public model, current Scion Vx label, and connected keyless Agent state.',
+      'Downloadable packages with review notes moved to a calm blue information state, while Download ZIP remained exclusively in the export panel.',
+      'Focused unit/UI checks and a real Chromium restore test verified the flow without claiming a model-weight or quality change.',
+    ],
+  },
   {
     version: '0.16.36',
     date: 'July 15, 2026',
