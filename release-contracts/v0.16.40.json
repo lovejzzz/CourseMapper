@@ -19,16 +19,19 @@
       "npx playwright test tests/release-v01640.spec.js"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The implementation is locally verified; exact-commit Fast verification will be recorded after the release branch is pushed and merged."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29492160108",
+      "note": "Fast verification passed in 23m23s on exact main merge commit 9deb484fde59ad885865bd05234a294a26be03b3, including formatting, lint, release history, cross-revision evidence, immutable source replay, the deterministic 446/138 review ledger, the strict 100-case source packet, corpus readiness, exact historical adapter lineage, 4,494 unit and closed-loop tests with 162 declared skips, proof smoke, all 34 canonical main-evaluation courses with compiler-contract-only claim status, production build, bundle budgets, and evaluation-report upload."
     },
     "ciDeep": {
       "status": "not-current",
       "note": "This bounded evidence milestone replays immutable retained responses and does not invoke a live browser model or claim a new device result."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "The exact Pages deployment and served-asset hashes will be recorded after merge."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29493576107",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.40-9deb484f-20260716T1114Z",
+      "note": "GitHub Pages built and deployed the exact Fast-verified merge commit. A unique production probe returned HTTP 200, cache MISS, and a 2026-07-16T11:13:44Z last-modified timestamp. The served index.html, index-N0WBl28m.js, releaseManifest-CqmDdwU4.js, Changelog-CSBblJ2R.js, AppFlow-B03rx2ID.js, and scionRuntime-0MHsYOvn.js were byte-for-byte identical to the verified local build with SHA-256 f2679c4a1b858f51f4f15b5214ce0f7d4314c09f43bf29afd0a5f3684bdb58c6, acc78bd9f02fb8c022fc249bcb893e284f9b71e48e526845e083bfa98176e85a, a62007d37057e241bfb24c51283c9cc608a05aeb41a1eb45077ffe4aaf4214b8, f51be3b6af6545882a8c2d74c860a6176ed2154253301f1e8a0c9842218411b6, e336c96fcefbab0f0228bd60d156e441018780f43cb7c74a3b31ec8136738520, and a10e12bc6db12ad14f8063c06d1496b32a9606409d09bd1cad6d6cbf383b7210. The live bundles expose v0.16.40, the exact release title, the 133-to-149 compiler recovery, the 446/138 ledger, the 100-case campaign, and the zero-judgment boundary."
     },
     "liveProvider": {
       "status": "not-used",
@@ -41,7 +44,7 @@
     "strictLayeredEvaluation": {
       "status": "success",
       "claimStatus": "compiler-contract-and-campaign-readiness-only",
-      "note": "Local proof passed 4,494 tests with 162 declared skips, all 34 canonical main-evaluation courses, formatting, lint, release history, deterministic replay, the 446/138 ledger, strict 100-case source-only packet, corpus readiness, exact historical adapter lineage, proof smoke, production build, bundle budgets, and a Chromium changelog test. These prove compiler-contract recovery, campaign integrity, and software delivery readiness; they do not prove factual quality, educational preference, an adapter win, held-out performance, or paid-reference parity."
+      "note": "Local proof passed 4,494 tests with 162 declared skips, all 34 canonical main-evaluation courses, formatting, lint, release history, deterministic replay, the 446/138 ledger, strict 100-case source-only packet, corpus readiness, exact historical adapter lineage, proof smoke, production build, bundle budgets, and a Chromium changelog test. Exact-main Fast verification, exact-commit Pages deployment, and byte-identical production assets also pass. These prove compiler-contract recovery, campaign integrity, software integrity, and delivery readiness; they do not prove factual quality, educational preference, an adapter win, held-out performance, or paid-reference parity."
     }
   },
   "claims": [
