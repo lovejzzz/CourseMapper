@@ -7,32 +7,40 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export const SCION_SEMANTIC_ADMISSION_PROTOCOL = 'scion-semantic-admission-replay-v1';
-export const SCION_SEMANTIC_ADMISSION_RELEASE = 'v0.16.44';
+export const SCION_SEMANTIC_ADMISSION_RELEASE = 'v0.16.45';
 export const SCION_SEMANTIC_ADMISSION_CORPUS =
   'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl';
 export const SCION_SEMANTIC_ADMISSION_CAMPAIGN = 'evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json';
 export const SCION_SEMANTIC_ADMISSION_BASELINE =
   'evaluation/scion-adapters/evidence/semantic-admission-baseline-v0.16.42.json';
 export const SCION_SEMANTIC_ADMISSION_RECEIPT =
-  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.44.json';
+  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.45.json';
+export const SCION_SEMANTIC_ADMISSION_SOURCE_WORKBOOK_RECEIPT =
+  'evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.41.json';
+export const SCION_SEMANTIC_ADMISSION_SOURCE_WORKBOOK_DIR =
+  'evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41';
 
 const IMPLEMENTATION_SOURCES = [
   'src/lib/scionAnswerKeyAlignment.js',
+  'src/lib/scionKeyTermContract.js',
   'src/lib/scionPreferenceGate.js',
   'src/lib/blueprintEnrichmentPass.js',
+  'scripts/lib/scionSourceCapture.mjs',
 ];
 
 const EXPECTED_CURRENT = {
   reviewedStableLosses: 46,
-  acceptedWithoutInterception: 34,
-  intercepted: 12,
+  acceptedWithoutInterception: 28,
+  intercepted: 18,
   repaired: 6,
-  rejectedForRegeneration: 6,
+  rejectedForRegeneration: 12,
   responseTextMutations: 0,
   repairFieldMutations: 6,
   issues: {
+    'claim-marker-residue': 4,
     'duplicate-options': 2,
     'explanation-repeats-answer': 4,
+    'misconception-repeats-known-fact': 3,
   },
 };
 
@@ -47,6 +55,52 @@ function canonical(value) {
 async function fileReceipt(root, relativePath) {
   const raw = await fs.readFile(path.join(root, relativePath));
   return { path: relativePath, bytes: raw.length, sha256: sha256(raw) };
+}
+
+async function loadSourceContexts(root) {
+  const receiptPath = path.join(root, SCION_SEMANTIC_ADMISSION_SOURCE_WORKBOOK_RECEIPT);
+  const receiptRaw = await fs.readFile(receiptPath, 'utf8');
+  const receipt = JSON.parse(receiptRaw);
+  const sourceContexts = new Map();
+  const files = [];
+  for (const chunk of receipt.chunks || []) {
+    const relativePath = path.join(SCION_SEMANTIC_ADMISSION_SOURCE_WORKBOOK_DIR, chunk.templateFile);
+    const raw = await fs.readFile(path.join(root, relativePath), 'utf8');
+    const expected = receipt.files?.[chunk.templateFile];
+    if (!expected || expected.bytes !== Buffer.byteLength(raw) || expected.sha256 !== sha256(raw)) {
+      throw new Error(`Semantic admission source workbook drifted: ${chunk.templateFile}.`);
+    }
+    const batch = JSON.parse(raw);
+    for (const review of batch.reviews || []) {
+      const sourceContextSha256 = sha256(JSON.stringify(review.sourceContext || null));
+      if (review.sourceContextSha256 !== sourceContextSha256) {
+        throw new Error(`Semantic admission source context hash drifted: ${review.pairId}.`);
+      }
+      const prior = sourceContexts.get(review.pairId);
+      if (prior && JSON.stringify(prior) !== JSON.stringify(review.sourceContext)) {
+        throw new Error(`Semantic admission source context is not unique: ${review.pairId}.`);
+      }
+      sourceContexts.set(review.pairId, review.sourceContext);
+    }
+    files.push({ path: relativePath, bytes: Buffer.byteLength(raw), sha256: sha256(raw) });
+  }
+  if (sourceContexts.size !== receipt.selectedCases) {
+    throw new Error(
+      `Semantic admission source workbook is incomplete: expected ${receipt.selectedCases}, received ${sourceContexts.size}.`,
+    );
+  }
+  return {
+    sourceContexts,
+    receipt: {
+      path: SCION_SEMANTIC_ADMISSION_SOURCE_WORKBOOK_RECEIPT,
+      bytes: Buffer.byteLength(receiptRaw),
+      sha256: sha256(receiptRaw),
+      release: receipt.release,
+      order: receipt.order,
+      selectedCases: receipt.selectedCases,
+    },
+    files,
+  };
 }
 
 function histogram(values) {
@@ -88,6 +142,14 @@ function judgeDefectsSupportInterception(row, issues, repairs) {
   ) {
     throw new Error(`${row.reviewPairId} thin-feedback rejection is not supported by the retained judge defects.`);
   }
+  if (
+    issues.includes('misconception-repeats-known-fact') &&
+    !/(?:not a misconception|correct definition|source-supported description|defines? .* as|self-contradictory|conflat\w* .* ratio)/i.test(
+      defects,
+    )
+  ) {
+    throw new Error(`${row.reviewPairId} misconception rejection is not supported by the retained judge defects.`);
+  }
 }
 
 export async function buildScionSemanticAdmissionReport({
@@ -104,9 +166,10 @@ export async function buildScionSemanticAdmissionReport({
     import(`${pathToFileURL(path.join(root, 'src/lib/scionAnswerKeyAlignment.js')).href}?release=${release}`),
     import(`${pathToFileURL(path.join(root, 'src/lib/scionPreferenceGate.js')).href}?release=${release}`),
   ]);
-  const [corpusRaw, campaignRaw] = await Promise.all([
+  const [corpusRaw, campaignRaw, sourceWorkbook] = await Promise.all([
     fs.readFile(path.join(root, SCION_SEMANTIC_ADMISSION_CORPUS), 'utf8'),
     fs.readFile(path.join(root, SCION_SEMANTIC_ADMISSION_CAMPAIGN), 'utf8'),
+    loadSourceContexts(root),
   ]);
   const campaign = JSON.parse(campaignRaw);
   const corpusSha256 = sha256(corpusRaw);
@@ -144,10 +207,17 @@ export async function buildScionSemanticAdmissionReport({
     if (sha256(row.chosen) !== evidence.chosenArtifactSha256) {
       throw new Error(`${row.reviewPairId} chosen artifact hash drifted.`);
     }
+    const sourceContext = sourceWorkbook.sourceContexts.get(row.reviewPairId);
+    if (!sourceContext || sha256(JSON.stringify(sourceContext)) !== evidence.sourceContextSha256) {
+      throw new Error(`${row.reviewPairId} source context no longer matches the paired-order evidence.`);
+    }
 
     const rejected = JSON.parse(row.rejected);
     const repair = row.kind === 'mc-item' ? repairScionMcItem(rejected) : { item: rejected, repairs: [] };
-    const admission = row.kind === 'mc-item' ? assessScionMcItem(repair.item) : assessScionKeyTerm(repair.item);
+    const admission =
+      row.kind === 'mc-item'
+        ? assessScionMcItem(repair.item)
+        : assessScionKeyTerm(repair.item, { knownFacts: sourceContext.claims || [] });
     const changedFields = differingTopLevelFields(rejected, repair.item);
     if (changedFields.length > 0) {
       repairFieldMutations += changedFields.length;
@@ -194,6 +264,15 @@ export async function buildScionSemanticAdmissionReport({
         evidenceSentence: entry.preferenceEvidence?.evidenceSentence,
       })),
       remainingIssues: issues,
+      evidenceSupport: {
+        retainedJudgeDefectAligned: issues.some((issue) => issue !== 'claim-marker-residue'),
+        deterministicVisibleClaimResidue: issues.includes('claim-marker-residue'),
+        judgeExplicitlyNamedClaimResidue:
+          issues.includes('claim-marker-residue') &&
+          /(?:claim\s*0|claim label|claim number|claim marker)/i.test(
+            (row.preferenceEvidence?.decisionDefects || []).join(' '),
+          ),
+      },
       judgeDefectCount: evidence.decisionDefects.length,
     });
   }
@@ -237,7 +316,7 @@ export async function buildScionSemanticAdmissionReport({
       release: parsedBaseline.release,
       acceptedWithoutInterception: parsedBaseline.summary.acceptedWithoutInterception,
     };
-    assertExact('v0.16.44 semantic admission summary', summary, {
+    assertExact('v0.16.45 semantic admission summary', summary, {
       ...EXPECTED_CURRENT,
       repairCues: {
         'explicit-affirmative-lead': 2,
@@ -246,9 +325,9 @@ export async function buildScionSemanticAdmissionReport({
       },
       byDomain: {
         'computer-science': 3,
-        geology: 1,
-        'music-theory': 7,
-        'user-experience-design': 1,
+        geology: 2,
+        'music-theory': 10,
+        'user-experience-design': 3,
       },
     });
   }
@@ -274,6 +353,11 @@ export async function buildScionSemanticAdmissionReport({
         packetId: campaign.packet?.packetId,
         completedOrders: campaign.completedOrders,
       },
+      sourceWorkbook: {
+        receipt: sourceWorkbook.receipt,
+        files: sourceWorkbook.files,
+        matchedPreferenceRows: rows.length,
+      },
       implementation: await Promise.all(IMPLEMENTATION_SOURCES.map((file) => fileReceipt(root, file))),
       baseline,
     },
@@ -284,12 +368,12 @@ export async function buildScionSemanticAdmissionReport({
       repairs:
         'Only the answer-index field changes when an exact affirmative cue or a unique first-sentence lexical margin supports another option.',
       rejections:
-        'Cosmetic duplicate options and answer-only feedback are rejected at shared admission and enter the existing regeneration path.',
+        'Cosmetic duplicate options, answer-only feedback, internal claim markers, and source facts mislabeled as misconceptions are rejected at shared admission and enter the existing regeneration path.',
       modelNeutralBenefit:
         'The shared admission rejections apply to Scion and paid-model outputs; the local Scion parser additionally records conservative answer-key repairs.',
     },
     claimBoundary:
-      'This replay measures interception of defects already identified in stable paired-order judgments from one Codex model. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Thirty-four stable losses remain unresolved.',
+      'This replay measures interception of defects in stable paired-order losses from one Codex model. Three misconception failures align with retained judge defects; four directly visible internal claim markers are deterministic process residue, and one was explicitly named by the judge. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Twenty-eight stable losses remain unresolved.',
   };
   report.identity = {
     algorithm: 'sha256-canonical-scion-semantic-admission-replay-v1',

@@ -1,0 +1,138 @@
+{
+  "version": "0.16.45",
+  "date": "July 16, 2026",
+  "title": "Stop Calling Truth a Misconception: bind semantic admission to the source",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:semantic-admission",
+      "npm run audit:scion:source-compiler-replay",
+      "npm run audit:scion:adapter:corpus-readiness",
+      "npm run audit:scion:adapter:corpus-readiness:v0.16.44",
+      "npm test -- --maxWorkers=4",
+      "npm run audit:evaluation:main",
+      "npm run format:check",
+      "npm run lint",
+      "npm run audit:release-history",
+      "npm run build",
+      "npm run bundle:check",
+      "npx playwright test tests/release-v01645.spec.js tests/export-smoke.spec.js --grep \"downloads representative|v0.16.45\""
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will confirm the hash-bound semantic replays, full test suite, build, and bundle gates after the coherent release branch is pushed."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "This bounded compiler-quality release does not claim a trained adapter, held-out full-course win, paid-reference parity, or new device result."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "The release will deploy from the merged main commit after required verification succeeds."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The replays use retained source-grounded artifacts and make no fresh provider or model call."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human or instructor judgment is claimed; retained preference evidence comes from one identified Codex judge in two presentation orders."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "single-model-judge-source-bound-semantic-compiler-replay-only",
+      "note": "The main layered evaluation passes all compiler-contract fixtures, the evidence-aware benchmark, and retained production canaries. The release claim remains limited to conservative interception of eighteen stable Scion losses with zero model-text mutation; it does not prove that remaining outputs are factually correct or that an adapter beats base Scion."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01645-stable-loss-interception-lift",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Across all 46 stable paired-order Scion losses, interception rises from twelve to eighteen while six answer-index repairs and zero model-authored text mutations remain unchanged.",
+      "anchors": [
+        "scripts/scionSemanticAdmissionAudit.mjs",
+        "evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.45.json",
+        "tests/scion-semantic-admission.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:semantic-admission",
+        "npm test -- --maxWorkers=4 tests/scion-semantic-admission.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01645-source-bound-misconception-admission",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Three source facts mislabeled as misconceptions enter retry only after exact source-context hash binding, three-token support, 75 percent containment, 35 percent whole-sentence overlap, and explicit-contrast refusal.",
+      "anchors": [
+        "src/lib/scionKeyTermContract.js",
+        "scripts/scionSemanticAdmissionAudit.mjs",
+        "scripts/lib/scionSourceCapture.mjs",
+        "src/lib/blueprintEnrichmentPass.js",
+        "tests/public-scion-provider.test.js",
+        "tests/scion-source-capture.test.js",
+        "src/lib/__tests__/kernelProjection.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- --maxWorkers=4 tests/public-scion-provider.test.js tests/scion-source-capture.test.js src/lib/__tests__/kernelProjection.test.js",
+        "npm run audit:scion:semantic-admission"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01645-claim-marker-residue-rejection",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Parenthesized learner-facing claim markers are rejected into bounded retry; four stable losses contain this visible residue and one overlaps the source-restatement set.",
+      "anchors": [
+        "src/lib/scionKeyTermContract.js",
+        "tests/public-scion-provider.test.js",
+        "evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.45.json"
+      ],
+      "proofCommands": [
+        "npm test -- --maxWorkers=4 tests/public-scion-provider.test.js tests/scion-semantic-admission.test.js",
+        "npm run audit:scion:semantic-admission"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01645-source-replay-cost-and-corpus",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "All 77 retained-source repairs remain while admission moves from 141 to 131 and retry burden from 51 to 61; corpus readiness remains 118 of 464 with 46 judged preferences.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json",
+        "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.45.json",
+        "tests/scion-source-compiler-replay.test.js",
+        "tests/scion-adapter-corpus-readiness.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:source-compiler-replay",
+        "npm run audit:scion:adapter:corpus-readiness",
+        "npm run audit:scion:adapter:corpus-readiness:v0.16.44",
+        "npm test -- --maxWorkers=4 tests/scion-source-compiler-replay.test.js tests/scion-adapter-corpus-readiness.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01645-honest-quality-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Twenty-eight stable losses remain unresolved, only 46 of 100 required judge preferences exist, Gemma weights remain unchanged, and no quality adapter is trained, active, or promoted.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.45.json",
+        "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.45.json",
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:semantic-admission",
+        "npm run audit:scion:adapter:corpus-readiness",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

@@ -16,9 +16,11 @@ import {
 } from './lib/scionSourceCapture.mjs';
 
 export const SCION_SOURCE_COMPILER_REPLAY_PROTOCOL = 'scion-source-compiler-replay-v1';
-export const SCION_SOURCE_COMPILER_REPLAY_RELEASE = 'v0.16.44';
-export const SCION_SOURCE_COMPILER_REPLAY_OUTPUT = 'evaluation/scion-source-compiler-replay-v0.16.44';
+export const SCION_SOURCE_COMPILER_REPLAY_RELEASE = 'v0.16.45';
+export const SCION_SOURCE_COMPILER_REPLAY_OUTPUT = 'evaluation/scion-source-compiler-replay-v0.16.45';
 export const SCION_SOURCE_COMPILER_REPLAY_RECEIPT =
+  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json';
+export const SCION_SOURCE_COMPILER_REPLAY_PREVIOUS_RECEIPT =
   'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.44.json';
 
 const DEFAULT_CAMPAIGNS = [
@@ -64,6 +66,7 @@ function compileCall(call, prompt) {
   if (!call?.response) return structuredClone(call);
   const compiled = compileSourceAtomResponse(call.response, {
     sourceClaimCount: prompt.sourceClaims.length,
+    sourceClaims: prompt.sourceClaims,
     lessonId: prompt.id,
   });
   return {
@@ -198,6 +201,7 @@ async function replayProject({ campaign, group, sourcePath, generatedAt, compile
     const prompt = promptById.get(call.promptId);
     const observed = compileSourceAtomResponse(call.response, {
       sourceClaimCount: prompt.sourceClaims.length,
+      sourceClaims: prompt.sourceClaims,
       lessonId: prompt.id,
     });
     if (sourceCaptureSha256(observed.admittedResponse) !== call.admittedResponseSha256) {
@@ -218,6 +222,16 @@ export async function buildScionSourceCompilerReplay({
 } = {}) {
   if (!generatedAt || !Number.isFinite(Date.parse(generatedAt))) {
     throw new Error('Source compiler replay requires a stable --generated-at timestamp');
+  }
+  const previousRaw = await fs.readFile(SCION_SOURCE_COMPILER_REPLAY_PREVIOUS_RECEIPT, 'utf8');
+  const previous = JSON.parse(previousRaw);
+  if (
+    previous.release !== 'v0.16.44' ||
+    previous.summary?.replayedCompiledBurden?.admittedAtoms !== 141 ||
+    previous.summary?.replayedCompiledBurden?.burdenAtoms !== 51 ||
+    previous.summary?.responseMutationCount !== 0
+  ) {
+    throw new Error('The v0.16.44 source compiler baseline drifted.');
   }
   const compilerSources = await Promise.all(COMPILER_SOURCES.map(fileReceipt));
   const absoluteOutput = path.resolve(outputDir);
@@ -272,12 +286,30 @@ export async function buildScionSourceCompilerReplay({
     }),
     { total: 0, incompleteExplanationTail: 0, explanationKeyAlignment: 0 },
   );
+  const previousBurden = previous.summary.replayedCompiledBurden;
+  const priorReleaseDelta = {
+    previousRelease: previous.release,
+    admittedAtoms: replayBurden.admittedAtoms - previousBurden.admittedAtoms,
+    burdenAtoms: replayBurden.burdenAtoms - previousBurden.burdenAtoms,
+    fullPassCalls: replayBurden.fullPassCalls - previousBurden.fullPassCalls,
+    partialCalls: replayBurden.partialCalls - previousBurden.partialCalls,
+    rejectedCalls: replayBurden.rejectedCalls - previousBurden.rejectedCalls,
+    admissionRate: Number((replayBurden.admissionRate - previousBurden.admissionRate).toFixed(6)),
+    newlyRejectedForRetry: Math.max(0, previousBurden.admittedAtoms - replayBurden.admittedAtoms),
+  };
   const receipt = {
     schemaVersion: 1,
     protocol: SCION_SOURCE_COMPILER_REPLAY_PROTOCOL,
     release: SCION_SOURCE_COMPILER_REPLAY_RELEASE,
     generatedAt,
     campaigns: DEFAULT_CAMPAIGNS,
+    previousRelease: {
+      path: SCION_SOURCE_COMPILER_REPLAY_PREVIOUS_RECEIPT,
+      bytes: Buffer.byteLength(previousRaw),
+      sha256: fileSha256(previousRaw),
+      release: previous.release,
+      replayedCompiledBurden: previousBurden,
+    },
     compilerSources,
     projects,
     summary: {
@@ -288,10 +320,11 @@ export async function buildScionSourceCompilerReplay({
       repairCounts,
       historicalCompiledBurden: historicalBurden,
       replayedCompiledBurden: replayBurden,
+      priorReleaseDelta,
       recoveredAtoms: replayBurden.admittedAtoms - historicalBurden.admittedAtoms,
       burdenAtomReduction: historicalBurden.burdenAtoms - replayBurden.burdenAtoms,
       claimBoundary:
-        'Recovered atoms are compiler-replayed candidates only. They remain anonymous and unlabeled until both required Codex presentation orders agree above the training floor.',
+        'The v0.16.45 source-aware gate admits ten fewer retained atoms than v0.16.44 and sends them to bounded retry; this is stricter compiler burden, not lost model output or a model-quality regression. Exact response bytes remain unchanged, and replayed candidates stay anonymous and unlabeled until both required Codex presentation orders agree above the training floor.',
     },
   };
   receipt.identity = {
@@ -369,7 +402,7 @@ async function main() {
         ).receipt
       : await verifyTracked({ outputDir: args.outputDir, receiptFile: args.receiptFile });
   console.log(
-    `Scion source compiler replay ${args.mode === 'write' ? 'built' : 'verified'}: ${receipt.summary.recoveredAtoms} recovered atoms, ${receipt.summary.burdenAtomReduction} burden atoms removed, ${receipt.summary.responseMutationCount} response mutations.`,
+    `Scion source compiler replay ${args.mode === 'write' ? 'built' : 'verified'}: ${receipt.summary.replayedCompiledBurden.admittedAtoms} admitted atoms, ${receipt.summary.replayedCompiledBurden.burdenAtoms} retry seats, ${receipt.summary.priorReleaseDelta.newlyRejectedForRetry} newly rejected versus v0.16.44, ${receipt.summary.responseMutationCount} response mutations.`,
   );
   console.log(`Evidence: ${args.receiptFile}`);
 }

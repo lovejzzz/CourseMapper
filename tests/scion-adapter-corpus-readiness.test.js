@@ -13,7 +13,7 @@ describe('Scion adapter corpus readiness', () => {
     });
 
     expect(receipt).toMatchObject({
-      release: 'v0.16.44',
+      release: 'v0.16.45',
       dataset: {
         status: 'smoke-only',
         promotable: false,
@@ -28,13 +28,34 @@ describe('Scion adapter corpus readiness', () => {
         stableTies: 30,
         orderSensitiveCases: 24,
         researchTrainingReady: false,
-        compilerReplay: { path: 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.44.json' },
+        compilerReplay: {
+          path: 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json',
+          priorReleaseDelta: { newlyRejectedForRetry: 10 },
+        },
       },
       conclusion: {
         pairedOrderCampaignComplete: true,
         admissibleModelJudgePairs: 46,
       },
       claimBoundary: { adapterTrained: false, adapterVersusBaseWin: false, paidReferenceParity: false },
+    });
+  });
+
+  it('keeps the historical v0.16.44 first-sentence readiness receipt reproducible', async () => {
+    const receipt = await buildScionAdapterCorpusReadinessSnapshot({
+      generatedAt: '2026-07-16T17:25:00.000Z',
+      profile: 'v0.16.44',
+    });
+
+    expect(receipt).toMatchObject({
+      release: 'v0.16.44',
+      dataset: {
+        counts: { loaded: 464, total: 118, singleModelJudgePairs: 46 },
+        evidenceCounts: { 'deterministic-contract-margin': 72, 'single-model-judge-preference': 46 },
+      },
+      judgeCampaign: {
+        compilerReplay: { path: 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.44.json' },
+      },
     });
   });
 

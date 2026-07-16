@@ -964,10 +964,10 @@ export function lintEnrichedQuizItem(item, { groundingText = '' } = {}) {
   return issues;
 }
 
-export function lintEnrichedKeyTerm(term, { lessonTitle = '' } = {}) {
+export function lintEnrichedKeyTerm(term, { lessonTitle = '', knownFacts = [] } = {}) {
   // `rm` remains optional and is sanitized at parse time. All substantive
   // fields share the same compact/full-key contract used by Scion admission.
-  const result = assessScionKeyTermContract(term, { lessonTitle, definitionMin: 40 });
+  const result = assessScionKeyTermContract(term, { lessonTitle, knownFacts, definitionMin: 40 });
   const labels = {
     'tr-length': 'term-missing',
     'df-length': 'definition-too-short',
@@ -1426,7 +1426,10 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
 
     const keyTerms = [];
     asArray(entry?.keyTerms).forEach((term, index) => {
-      const problems = lintEnrichedKeyTerm(term, { lessonTitle: promptLesson?.title || '' });
+      const problems = lintEnrichedKeyTerm(term, {
+        lessonTitle: promptLesson?.title || '',
+        knownFacts: facts,
+      });
       if (problems.length > 0) issues.push({ lessonId, surface: 'keyTerms', index, problems });
       else {
         const romanization = sanitizeRomanization(term.rm || term.romanization);

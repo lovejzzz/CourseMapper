@@ -215,7 +215,10 @@ async function capturePromptCall({
   let assessment;
   try {
     response = parseSourceAtomResponse(result.text);
-    assessment = assessSourceAtomResponse(response, { sourceClaimCount: basePrompt.sourceClaims.length });
+    assessment = assessSourceAtomResponse(response, {
+      sourceClaimCount: basePrompt.sourceClaims.length,
+      sourceClaims: basePrompt.sourceClaims,
+    });
   } catch (error) {
     return {
       promptId: basePrompt.id,
@@ -273,7 +276,10 @@ function campaignPrompt(campaign, promptId) {
 
 function reassessCapturedCall(call, prompt, rawCall = null) {
   if (!call?.response || !prompt) return rawCall ? { ...call, rawCallSha256: sourceCaptureSha256(rawCall) } : call;
-  const assessment = assessSourceAtomResponse(call.response, { sourceClaimCount: prompt.sourceClaims.length });
+  const assessment = assessSourceAtomResponse(call.response, {
+    sourceClaimCount: prompt.sourceClaims.length,
+    sourceClaims: prompt.sourceClaims,
+  });
   return {
     ...call,
     responseSha256: sourceCaptureSha256(call.response),
@@ -355,7 +361,10 @@ export async function generateSourceCapture({ campaign, arm, model, checkpointPa
       let assessment;
       try {
         response = parseSourceAtomResponse(result.text);
-        assessment = assessSourceAtomResponse(response, { sourceClaimCount: prompt.sourceClaims.length });
+        assessment = assessSourceAtomResponse(response, {
+          sourceClaimCount: prompt.sourceClaims.length,
+          sourceClaims: prompt.sourceClaims,
+        });
       } catch (error) {
         const call = {
           promptId: prompt.id,

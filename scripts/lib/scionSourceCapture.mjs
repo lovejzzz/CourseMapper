@@ -240,7 +240,7 @@ function validFactIndexes(indexes, sourceClaimCount) {
 
 export function assessSourceAtomResponse(
   value,
-  { sourceClaimCount, semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission },
+  { sourceClaimCount, sourceClaims = [], semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission },
 ) {
   const response = parseSourceAtomResponse(value);
   const mcItems = Array.isArray(response?.mcItems) ? response.mcItems : [];
@@ -258,7 +258,7 @@ export function assessSourceAtomResponse(
     return { eligible: itemIssues.length === 0, issues: itemIssues };
   });
   const keyTermAssessments = keyTermCandidates.map((term, index) => {
-    const assessment = assessScionKeyTerm(term);
+    const assessment = assessScionKeyTerm(term, { knownFacts: sourceClaims });
     const itemIssues = [...assessment.issues];
     if (!validFactIndexes(term?.sourceFactIndexes, sourceClaimCount)) itemIssues.push('source-fact-index');
     issues.push(...itemIssues.map((issue) => `key-term-${index}-${issue}`));
@@ -292,7 +292,13 @@ export function assessSourceAtomResponse(
  */
 export function compileSourceAtomResponse(
   value,
-  { sourceClaimCount, lessonId = '', semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission },
+  {
+    sourceClaimCount,
+    sourceClaims = [],
+    lessonId = '',
+    semanticAdmission = true,
+    allowFirstSentenceLexicalCue = semanticAdmission,
+  },
 ) {
   const response = parseSourceAtomResponse(value);
   const repairs = [];
@@ -310,6 +316,7 @@ export function compileSourceAtomResponse(
   };
   const assessment = assessSourceAtomResponse(compiledResponse, {
     sourceClaimCount,
+    sourceClaims,
     semanticAdmission,
     allowFirstSentenceLexicalCue,
   });
@@ -599,7 +606,10 @@ function verifyCapturedCall(call, prompt, generationPrompt = prompt, { admission
     }
     return { issues, eligible: Boolean(call.assessment?.eligible) };
   }
-  const assessment = assessSourceAtomResponse(call.response, { sourceClaimCount: prompt.sourceClaims.length });
+  const assessment = assessSourceAtomResponse(call.response, {
+    sourceClaimCount: prompt.sourceClaims.length,
+    sourceClaims: prompt.sourceClaims,
+  });
   if (Boolean(call.assessment?.eligible) !== assessment.eligible) {
     issues.push(`assessment-status-mismatch:${call.promptId}`);
   }

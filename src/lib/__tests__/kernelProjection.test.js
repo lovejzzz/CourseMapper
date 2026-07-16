@@ -589,6 +589,25 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(parsed.issues.some((issue) => issue.surface === 'mc')).toBe(true);
   });
 
+  it('drops a key-term misconception that affirmatively restates one of the same kernel facts', () => {
+    const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    const response = JSON.parse(shortKeyResponse);
+    response.lessons[0].keyTerms[0].mi =
+      'Believing atmospheric CO2 has risen from 280 ppm before industrialization to over 420 ppm today.';
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(response), { prompt });
+    expect(parsed.lessons['lesson-1']).toBeTruthy();
+    expect(parsed.issues).toContainEqual(
+      expect.objectContaining({
+        lessonId: 'lesson-1',
+        surface: 'keyTerms',
+        index: 0,
+        problems: expect.arrayContaining(['misconception-repeats-known-fact']),
+      }),
+    );
+    expect(parsed.lessons['lesson-1'].keyTerms).toHaveLength(2);
+  });
+
   it('compiled deliverables consume the projected payload exactly like the v0.9.1 contract', () => {
     const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
     const parsed = parseLessonKernelResponse(shortKeyResponse, { prompt });
