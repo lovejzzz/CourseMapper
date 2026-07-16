@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import { repairScionMcItem } from '../../src/lib/scionAnswerKeyAlignment.js';
 import { assessScionKeyTerm, assessScionMcItem } from '../../src/lib/scionPreferenceGate.js';
 import {
   canonicalScionCourseInput,
@@ -276,6 +277,37 @@ export function assessSourceAtomResponse(value, { sourceClaimCount }) {
       admittedMcItems: admittedResponse.mcItems.length,
       generatedKeyTerms: keyTerms.length,
       admittedKeyTerms: admittedResponse.keyTerms.length,
+    },
+  };
+}
+
+/**
+ * Recompile retained source-capture bytes through the current conservative MC
+ * repair passes without mutating the historical capture. The caller persists
+ * the returned repair receipts beside a derived project so every changed byte
+ * remains traceable to the exact raw atom and deterministic action.
+ */
+export function compileSourceAtomResponse(value, { sourceClaimCount, lessonId = '' }) {
+  const response = parseSourceAtomResponse(value);
+  const repairs = [];
+  const compiledResponse = {
+    ...response,
+    mcItems: (Array.isArray(response?.mcItems) ? response.mcItems : []).map((item, itemIndex) => {
+      const compiled = repairScionMcItem(item, { lessonId, itemIndex });
+      repairs.push(...compiled.repairs.map((repair) => ({ ...repair, sourceFactIndexes: item.sourceFactIndexes })));
+      return compiled.item;
+    }),
+  };
+  const assessment = assessSourceAtomResponse(compiledResponse, { sourceClaimCount });
+  return {
+    ...assessment,
+    rawResponse: response,
+    compiledResponse,
+    repairs,
+    repairCounts: {
+      total: repairs.length,
+      incompleteExplanationTail: repairs.filter((repair) => repair.pass === 'incompleteExplanationTail').length,
+      explanationKeyAlignment: repairs.filter((repair) => repair.pass === 'explanationKeyAlignment').length,
     },
   };
 }

@@ -1,0 +1,300 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-compiler-replay-v1",
+  "release": "v0.16.40",
+  "generatedAt": "2026-07-16T10:00:00.000Z",
+  "campaigns": [
+    {
+      "manifestPath": "evaluation/scion-source-capture-campaign.json",
+      "sourceDir": "evaluation/scion-source-capture-evidence"
+    },
+    {
+      "manifestPath": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+      "sourceDir": "evaluation/scion-source-capture-expansion-evidence"
+    }
+  ],
+  "compilerSources": [
+    {
+      "path": "src/lib/scionAnswerKeyAlignment.js",
+      "bytes": 15236,
+      "sha256": "9bafad99aa4edd3dfe90982eb37d5988355051d34605aa8c290c9cb4e7979aef"
+    },
+    {
+      "path": "src/lib/scionPreferenceGate.js",
+      "bytes": 14724,
+      "sha256": "78010301fc76388ff11a2a7f44d95442bc238777ac5b5e6fff60ecef9347c975"
+    },
+    {
+      "path": "scripts/lib/scionSourceCapture.mjs",
+      "bytes": 33225,
+      "sha256": "732bbfa7f20bc4767bf8b0783745cee7abf98d130796dab6635837d14ad99ed5"
+    },
+    {
+      "path": "scripts/scionSourceCompilerReplay.mjs",
+      "bytes": 15464,
+      "sha256": "f5c5652f87617ad9036934e68dfa9583cc7f15f0b859c01159e51437204f276c"
+    }
+  ],
+  "projects": [
+    {
+      "domain": "computer-science",
+      "courseGroupId": "python-control-flow-workshop",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/python-control-flow-workshop-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/python-control-flow-workshop-local.json",
+      "bytes": 76179,
+      "sha256": "fdad36d0011275d92daf85fefeb382eef8046f4105b69b71d69a8a1d66fcf64e",
+      "replayIdentitySha256": "46a73dd10aa99198a404232cefcef2af3e30599acc25f460c7f2cdd53cc6a35d",
+      "repairCounts": {
+        "total": 4,
+        "incompleteExplanationTail": 2,
+        "explanationKeyAlignment": 2
+      }
+    },
+    {
+      "domain": "computer-science",
+      "courseGroupId": "python-data-structures-lab",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/python-data-structures-lab-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/python-data-structures-lab-local.json",
+      "bytes": 79761,
+      "sha256": "428416a1f5f633ce373a2ccfdee802e93cc1b6d89ec5b02f2fb2dd5e1cf12a4d",
+      "replayIdentitySha256": "daf50e21910ccc6c00a9f6f617f2d6d871b8bafc950e71fcce7a066efd6a4422",
+      "repairCounts": {
+        "total": 5,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 5
+      }
+    },
+    {
+      "domain": "computer-science",
+      "courseGroupId": "python-program-architecture-studio",
+      "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/python-program-architecture-studio-local.json",
+      "bytes": 139584,
+      "sha256": "03aceae3e54a801714c7988b3d6abd998aee08d68403d3d1c7f5b2dd6b8a2ede",
+      "replayIdentitySha256": "444f467bad3c313246c38ba461c29517e30973a218a25a4d9168d33600991ba5",
+      "repairCounts": {
+        "total": 7,
+        "incompleteExplanationTail": 2,
+        "explanationKeyAlignment": 5
+      }
+    },
+    {
+      "domain": "geology",
+      "courseGroupId": "earth-materials-history-lab",
+      "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/earth-materials-history-lab-local.json",
+      "bytes": 130911,
+      "sha256": "fd03fb48d12fb009d4f3116bfbd4d6cd112a391bda948986f7a33ba2d080604d",
+      "replayIdentitySha256": "597d525a17b5b1519f4b19be99aebc19af76dca65bae4c444e19a0f2653601e8",
+      "repairCounts": {
+        "total": 6,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 6
+      }
+    },
+    {
+      "domain": "geology",
+      "courseGroupId": "igneous-volcanic-processes",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/igneous-volcanic-processes-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/igneous-volcanic-processes-local.json",
+      "bytes": 52274,
+      "sha256": "aa98f5b9e1321a31ff4b4e8da4937250025fec529de1f40292be61b94ae6efa1",
+      "replayIdentitySha256": "1f7b04b423ed4e9ec12ad0d23c53bfad39224cd0bdd750c119b6124ce5c643e1",
+      "repairCounts": {
+        "total": 2,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 2
+      }
+    },
+    {
+      "domain": "geology",
+      "courseGroupId": "tectonics-seismology-field-lab",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/tectonics-seismology-field-lab-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/tectonics-seismology-field-lab-local.json",
+      "bytes": 87106,
+      "sha256": "4f395ab9bfa5b0eeffb7a5920d1f557d0d0b681caf3382b6e946d4c2ba33c233",
+      "replayIdentitySha256": "f5d764ba5a7b65bde535451abd3f9facd55c112f797907a79f40f8412e554d40",
+      "repairCounts": {
+        "total": 7,
+        "incompleteExplanationTail": 2,
+        "explanationKeyAlignment": 5
+      }
+    },
+    {
+      "domain": "music-theory",
+      "courseGroupId": "harmony-form-analysis",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/harmony-form-analysis-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/harmony-form-analysis-local.json",
+      "bytes": 80082,
+      "sha256": "d81167af37ceae78b95349bdb887dcfb3484ae3cff2d8efcb5507d841faeff5a",
+      "replayIdentitySha256": "9b5d85ac67010cec887966782caa3a72cca31594b01f836b84650a4551b9782d",
+      "repairCounts": {
+        "total": 5,
+        "incompleteExplanationTail": 2,
+        "explanationKeyAlignment": 3
+      }
+    },
+    {
+      "domain": "music-theory",
+      "courseGroupId": "music-notation-ear-training",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/music-notation-ear-training-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/music-notation-ear-training-local.json",
+      "bytes": 72666,
+      "sha256": "7f29fdbc842051cf69d431459cda956d4500564e1486555f798b2a443b7f29e1",
+      "replayIdentitySha256": "d3bad0e0755cd1a12b960fec54bad3bd9fc898fc0df3906e0b46a4983f235410",
+      "repairCounts": {
+        "total": 4,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 4
+      }
+    },
+    {
+      "domain": "music-theory",
+      "courseGroupId": "tonal-analysis-integration-studio",
+      "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/tonal-analysis-integration-studio-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/tonal-analysis-integration-studio-local.json",
+      "bytes": 161870,
+      "sha256": "b85f379af7f926e343cd0a0e076d3dfe0a7d7e00ff2346d33b4262f48e5d1f3f",
+      "replayIdentitySha256": "ee03672d18c30771f461e4078053488be827bf1c5954c57dbcb9d434aa38dd82",
+      "repairCounts": {
+        "total": 12,
+        "incompleteExplanationTail": 4,
+        "explanationKeyAlignment": 8
+      }
+    },
+    {
+      "domain": "user-experience-design",
+      "courseGroupId": "ux-evidence-to-prototype-capstone",
+      "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/ux-evidence-to-prototype-capstone-local.json",
+      "bytes": 165118,
+      "sha256": "7e54e00bf1879a8cb1cccfb4aecb20b9ed1a2e057a7aeb9d4e47c9067aa08226",
+      "replayIdentitySha256": "cb4f28dc52933e43f8f60556170f12e29af91d11f1fb34e85eab8bdd177ed7d8",
+      "repairCounts": {
+        "total": 12,
+        "incompleteExplanationTail": 8,
+        "explanationKeyAlignment": 4
+      }
+    },
+    {
+      "domain": "user-experience-design",
+      "courseGroupId": "ux-prototyping-accessibility-lab",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/ux-prototyping-accessibility-lab-local.json",
+      "bytes": 60976,
+      "sha256": "a8f687572b867b68eec65001133239fe6278446a8f9af1dc9079bd20c6a81371",
+      "replayIdentitySha256": "d8061e35b9e52b7820180e3d12b8106f8721c9187924ed1024e46abd3d4ac76f",
+      "repairCounts": {
+        "total": 1,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 1
+      }
+    },
+    {
+      "domain": "user-experience-design",
+      "courseGroupId": "ux-research-synthesis-studio",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/ux-research-synthesis-studio-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.40/ux-research-synthesis-studio-local.json",
+      "bytes": 64623,
+      "sha256": "382d99f01af11036a04b3bdec55d135c82512bf931766d5dd4b76a4b447ce054",
+      "replayIdentitySha256": "a00798a0d8f7875f085590eb793d9d33f96114c68fd35dc888fec9e200721d27",
+      "repairCounts": {
+        "total": 2,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 2
+      }
+    }
+  ],
+  "summary": {
+    "projectCount": 12,
+    "domainCount": 4,
+    "courseGroupCount": 12,
+    "responseMutationCount": 0,
+    "repairCounts": {
+      "total": 67,
+      "incompleteExplanationTail": 20,
+      "explanationKeyAlignment": 47
+    },
+    "historicalCompiledBurden": {
+      "expectedCalls": 48,
+      "capturedCalls": 48,
+      "eligibleCalls": 48,
+      "fullPassCalls": 13,
+      "partialCalls": 35,
+      "rejectedCalls": 0,
+      "expectedAtoms": 192,
+      "generatedAtoms": 190,
+      "admittedAtoms": 133,
+      "discardedGeneratedAtoms": 57,
+      "missingExpectedAtoms": 2,
+      "burdenAtoms": 59,
+      "burdenRate": 0.307292,
+      "admissionRate": 0.692708,
+      "issueHistogram": {
+        "key-term-0-correction-repeats-definition": 6,
+        "key-term-1-correction-repeats-definition": 6,
+        "key-term-1-source-fact-index": 1,
+        "key-term-count": 1,
+        "mc-0-duplicate-options": 1,
+        "mc-0-explanation-key-conflict": 9,
+        "mc-0-longest-option-cue": 3,
+        "mc-0-truncated-explanation": 11,
+        "mc-1-explanation-key-conflict": 16,
+        "mc-1-longest-option-cue": 2,
+        "mc-1-truncated-explanation": 10,
+        "mc-count": 1,
+        "no-admitted-key-terms": 5,
+        "no-admitted-mc-items": 13
+      }
+    },
+    "replayedCompiledBurden": {
+      "expectedCalls": 48,
+      "capturedCalls": 48,
+      "eligibleCalls": 48,
+      "fullPassCalls": 24,
+      "partialCalls": 24,
+      "rejectedCalls": 0,
+      "expectedAtoms": 192,
+      "generatedAtoms": 190,
+      "admittedAtoms": 149,
+      "discardedGeneratedAtoms": 41,
+      "missingExpectedAtoms": 2,
+      "burdenAtoms": 43,
+      "burdenRate": 0.223958,
+      "admissionRate": 0.776042,
+      "issueHistogram": {
+        "key-term-0-claim-marker-residue": 1,
+        "key-term-0-correction-repeats-definition": 8,
+        "key-term-0-correction-repeats-example": 1,
+        "key-term-0-correction-repeats-misconception": 3,
+        "key-term-0-embedded-field-label": 5,
+        "key-term-0-misconception-repeats-definition": 1,
+        "key-term-1-claim-marker-residue": 1,
+        "key-term-1-correction-repeats-definition": 11,
+        "key-term-1-correction-repeats-example": 3,
+        "key-term-1-correction-repeats-misconception": 2,
+        "key-term-1-embedded-field-label": 5,
+        "key-term-1-example-repeats-definition": 1,
+        "key-term-1-misconception-repeats-definition": 2,
+        "key-term-1-source-fact-index": 1,
+        "key-term-count": 1,
+        "mc-0-duplicate-options": 1,
+        "mc-0-longest-option-cue": 4,
+        "mc-0-placeholder-options": 1,
+        "mc-0-truncated-explanation": 1,
+        "mc-1-longest-option-cue": 2,
+        "mc-1-placeholder-options": 1,
+        "mc-count": 1,
+        "no-admitted-key-terms": 13,
+        "no-admitted-mc-items": 2
+      }
+    },
+    "recoveredAtoms": 16,
+    "burdenAtomReduction": 16,
+    "claimBoundary": "Recovered atoms are compiler-replayed candidates only. They remain anonymous and unlabeled until both required Codex presentation orders agree above the training floor."
+  },
+  "identity": {
+    "algorithm": "sha256-canonical-source-compiler-replay-receipt-v1",
+    "sha256": "3cb51a901084d9769eb4389a7c7230858498b085275f995ff959754693a012b5"
+  }
+}

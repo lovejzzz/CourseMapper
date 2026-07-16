@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-blind-atom-packet-v4",
+  "status": "ready-for-model-judge-research",
+  "generatedAt": "2026-07-16T10:05:00.000Z",
+  "packetId": "scion-review-c0498e55e87825b3c822",
+  "packetDigest": "c0498e55e87825b3c8221977ba3ebed6ee90061a36f14896121d8487dfdc4676",
+  "organizerDigest": "adc07fc11717507b30fe8be8a2e9d2104d3b4638a34594a6a5e852172cb2248f",
+  "requestedCases": 100,
+  "perDomainLimit": 25,
+  "selectedCases": 100,
+  "availableCandidates": 446,
+  "selectionEligibleCandidates": 138,
+  "requireSourceContext": true,
+  "excludedMissingSourceContext": 308,
+  "availableSourceContextCandidates": 138,
+  "selectedSourceContextCases": 100,
+  "sourceContextDomainCounts": {
+    "computer-science": 25,
+    "geology": 25,
+    "music-theory": 25,
+    "user-experience-design": 25
+  },
+  "sourceContextKindCounts": {
+    "mc-item": 52,
+    "key-term": 48
+  },
+  "primaryPreferenceEvidence": "single-model-judge",
+  "requiredModelJudgePasses": 200,
+  "optionalQualifiedHumanReviews": 200,
+  "domains": [
+    "computer-science",
+    "geology",
+    "music-theory",
+    "user-experience-design"
+  ],
+  "domainCounts": {
+    "computer-science": 25,
+    "geology": 25,
+    "music-theory": 25,
+    "user-experience-design": 25
+  },
+  "courseGroupCount": 12,
+  "domainGroupCounts": {
+    "computer-science": 3,
+    "geology": 3,
+    "music-theory": 3,
+    "user-experience-design": 3
+  },
+  "targetCourseGroupsPerDomain": 3,
+  "groupCoverageStatus": "ready",
+  "researchCoverageStatus": "ready",
+  "coverageStatus": "needs-more-domains",
+  "kindCounts": {
+    "mc-item": 52,
+    "key-term": 48
+  },
+  "heldOutBenchmark": {
+    "path": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+    "sha256": "e3f07d2ccdf197315556e0205b97b30aee7a447399e14c440d6c1865e11b08a5",
+    "domains": [
+      "astronomy",
+      "nutrition",
+      "psychology",
+      "world-languages",
+      "world-literature"
+    ],
+    "excluded": {},
+    "excludedCount": 0
+  },
+  "excludedInvalidCourseGroups": [],
+  "sourceFiles": [
+    {
+      "source": "evaluation/scion-review-candidates.jsonl",
+      "sha256": "eb97cd0a0f804988b308ee377b90232fb0952d6e76b6c4b9c1e8e2b8f6a2cc0e"
+    }
+  ],
+  "claimBoundary": "This receipt proves a frozen, holdout-disjoint, hash-bound blind atom packet exists. It proves no Codex judgment, human judgment, approved training pair, adapter quality, or promotion result."
+}
