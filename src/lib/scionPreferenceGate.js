@@ -2,6 +2,7 @@ import { lintItemAdmission } from './itemAdmissionLint.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
 import {
   findScionExplanationKeyConflict,
+  findScionSourceAnswerConflict,
   normalizeScionMcItem,
   normalizeScionOptionIdentity,
 } from './scionAnswerKeyAlignment.js';
@@ -80,7 +81,13 @@ function containsGroundingToken(value, token) {
  */
 export function assessScionMcItem(
   item,
-  { topicWords = [], semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission } = {},
+  {
+    topicWords = [],
+    sourceClaims = [],
+    semanticAdmission = true,
+    allowFirstSentenceLexicalCue = semanticAdmission,
+    rejectNegativeEvidence = semanticAdmission,
+  } = {},
 ) {
   const normalized = normalizeScionMcItem(item);
   const issues = [];
@@ -124,11 +131,14 @@ export function assessScionMcItem(
     issues.push('meta-surface');
   }
   if (/\b(?:all|none) of the above\b/i.test(normalized.options.join(' '))) issues.push('all-none-of-above');
-  if (
+  if (semanticAdmission && findScionSourceAnswerConflict(normalized, { sourceClaims })) {
+    issues.push('source-answer-conflict');
+  } else if (
     findScionExplanationKeyConflict(normalized, {
       allowAffirmativeLead: semanticAdmission,
       stripTerminalPunctuation: semanticAdmission,
       allowFirstSentenceLexicalCue,
+      rejectNegativeEvidence,
     })
   ) {
     issues.push('explanation-key-conflict');

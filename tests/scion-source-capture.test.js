@@ -194,6 +194,47 @@ describe('Scion source-grounded atom capture', () => {
     });
   });
 
+  it('realigns a wrong key only from the exact source facts cited by the item', () => {
+    const response = validResponse();
+    response.mcItems[0] = {
+      q: 'What does absolute dating provide regarding mineral grains in a rock?',
+      op: [
+        'A numerical age in years',
+        'A relative order of events',
+        "The span of Earth's history",
+        'The sequence of deposition',
+      ],
+      ai: 1,
+      ex: 'The correct choice supplies a specific measured age for the mineral grains.',
+      sourceFactIndexes: [1],
+    };
+    const sourceClaims = [
+      'Relative dating orders events while absolute dating assigns numerical ages.',
+      'Absolute numerical dating assigns specific ages in years to mineral grains within a rock.',
+      'Superposition orders undisturbed layers from oldest to youngest.',
+    ];
+
+    const replayed = compileSourceAtomResponse(response, {
+      sourceClaimCount: sourceClaims.length,
+      sourceClaims,
+      lessonId: 'source-key-test',
+    });
+    expect(replayed.compiledResponse.mcItems[0]).toMatchObject({ ai: 0, sourceFactIndexes: [1] });
+    expect(replayed.repairCounts).toMatchObject({ total: 1, sourceAnswerAlignment: 1 });
+    expect(replayed.repairs[0]).toMatchObject({
+      pass: 'sourceAnswerAlignment',
+      sourceFactIndexes: [1],
+      preferenceEvidence: { supportedIndex: 0 },
+    });
+
+    const contextFree = compileSourceAtomResponse(response, {
+      sourceClaimCount: sourceClaims.length,
+      lessonId: 'source-key-test',
+    });
+    expect(contextFree.compiledResponse.mcItems[0].ai).toBe(1);
+    expect(contextFree.repairCounts.sourceAnswerAlignment).toBe(0);
+  });
+
   it('caps over-generation and measures missing or discarded atoms as compiler burden', () => {
     const response = validResponse();
     response.mcItems.push({

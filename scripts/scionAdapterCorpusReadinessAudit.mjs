@@ -12,9 +12,11 @@ import {
   SCION_ADAPTER_DEFAULT_SOURCES,
 } from './scionAdapterDataset.mjs';
 
-export const SCION_ADAPTER_CORPUS_READINESS_RELEASE = 'v0.16.45';
+export const SCION_ADAPTER_CORPUS_READINESS_RELEASE = 'v0.16.46';
 export const SCION_ADAPTER_CORPUS_READINESS_EVIDENCE =
-  'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.45.json';
+  'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.46.json';
+const SOURCE_AWARE_RELEASE = 'v0.16.45';
+const SOURCE_AWARE_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.45.json';
 const FIRST_SENTENCE_RELEASE = 'v0.16.44';
 const FIRST_SENTENCE_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.44.json';
 const SEMANTIC_RELEASE = 'v0.16.43';
@@ -29,7 +31,8 @@ const LEGACY_SOURCES = [
   'evaluation/scion-reviewed-preferences.jsonl',
   'evaluation/scion-codex-reviewed-preferences.jsonl',
 ];
-const CURRENT_SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json';
+const CURRENT_SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.46.json';
+const SOURCE_AWARE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json';
 const FIRST_SENTENCE_SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.44.json';
 const SEMANTIC_SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.43.json';
 const HISTORICAL_SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.40.json';
@@ -70,6 +73,7 @@ function parseArgs(argv) {
       PAIRED_RELEASE,
       SEMANTIC_RELEASE,
       FIRST_SENTENCE_RELEASE,
+      SOURCE_AWARE_RELEASE,
       SCION_ADAPTER_CORPUS_READINESS_RELEASE,
     ].includes(args.profile)
   ) {
@@ -85,7 +89,9 @@ function parseArgs(argv) {
             ? SEMANTIC_EVIDENCE
             : args.profile === FIRST_SENTENCE_RELEASE
               ? FIRST_SENTENCE_EVIDENCE
-              : SCION_ADAPTER_CORPUS_READINESS_EVIDENCE;
+              : args.profile === SOURCE_AWARE_RELEASE
+                ? SOURCE_AWARE_EVIDENCE
+                : SCION_ADAPTER_CORPUS_READINESS_EVIDENCE;
   }
   return args;
 }
@@ -148,9 +154,13 @@ function baseCampaignEvidence(replayRaw, packetRaw, replayPath, release) {
   const replayReady =
     replay.summary?.responseMutationCount === 0 &&
     (release === SCION_ADAPTER_CORPUS_READINESS_RELEASE
-      ? replay.summary?.priorReleaseDelta?.previousRelease === FIRST_SENTENCE_RELEASE &&
-        replay.summary?.priorReleaseDelta?.newlyRejectedForRetry === 10
-      : replay.summary?.recoveredAtoms >= 8);
+      ? replay.summary?.priorReleaseDelta?.previousRelease === SOURCE_AWARE_RELEASE &&
+        replay.summary?.priorReleaseDelta?.newlyRejectedForRetry === 1 &&
+        replay.summary?.repairEvolution?.sourceAnswerAlignment === 10
+      : release === SOURCE_AWARE_RELEASE
+        ? replay.summary?.priorReleaseDelta?.previousRelease === FIRST_SENTENCE_RELEASE &&
+          replay.summary?.priorReleaseDelta?.newlyRejectedForRetry === 10
+        : replay.summary?.recoveredAtoms >= 8);
   const packetReady =
     packet.status === 'ready-for-model-judge-research' &&
     packet.requireSourceContext === true &&
@@ -171,6 +181,12 @@ function baseCampaignEvidence(replayRaw, packetRaw, replayPath, release) {
       recoveredAtoms: replay.summary.recoveredAtoms,
       burdenAtomReduction: replay.summary.burdenAtomReduction,
       ...(replay.summary.priorReleaseDelta ? { priorReleaseDelta: replay.summary.priorReleaseDelta } : {}),
+      ...(release === SCION_ADAPTER_CORPUS_READINESS_RELEASE && replay.summary.repairCounts
+        ? { repairCounts: replay.summary.repairCounts }
+        : {}),
+      ...(release === SCION_ADAPTER_CORPUS_READINESS_RELEASE && replay.summary.repairEvolution
+        ? { repairEvolution: replay.summary.repairEvolution }
+        : {}),
     },
     sourcePacket: {
       path: SOURCE_REVIEW_PACKET,
@@ -271,19 +287,25 @@ export async function buildScionAdapterCorpusReadinessSnapshot({ generatedAt, pr
       allowResearch: true,
       allowSmoke: true,
       generatedAt,
-      semanticAdmission: [SEMANTIC_RELEASE, FIRST_SENTENCE_RELEASE, SCION_ADAPTER_CORPUS_READINESS_RELEASE].includes(
-        release,
-      ),
-      allowFirstSentenceLexicalCue: [FIRST_SENTENCE_RELEASE, SCION_ADAPTER_CORPUS_READINESS_RELEASE].includes(release),
+      semanticAdmission:
+        [SEMANTIC_RELEASE, FIRST_SENTENCE_RELEASE, SCION_ADAPTER_CORPUS_READINESS_RELEASE].includes(release) ||
+        release === SOURCE_AWARE_RELEASE,
+      allowFirstSentenceLexicalCue: [
+        FIRST_SENTENCE_RELEASE,
+        SOURCE_AWARE_RELEASE,
+        SCION_ADAPTER_CORPUS_READINESS_RELEASE,
+      ].includes(release),
     });
     const replayPath =
       release === SCION_ADAPTER_CORPUS_READINESS_RELEASE
         ? CURRENT_SOURCE_REPLAY_EVIDENCE
-        : release === FIRST_SENTENCE_RELEASE
-          ? FIRST_SENTENCE_SOURCE_REPLAY_EVIDENCE
-          : release === SEMANTIC_RELEASE
-            ? SEMANTIC_SOURCE_REPLAY_EVIDENCE
-            : HISTORICAL_SOURCE_REPLAY_EVIDENCE;
+        : release === SOURCE_AWARE_RELEASE
+          ? SOURCE_AWARE_REPLAY_EVIDENCE
+          : release === FIRST_SENTENCE_RELEASE
+            ? FIRST_SENTENCE_SOURCE_REPLAY_EVIDENCE
+            : release === SEMANTIC_RELEASE
+              ? SEMANTIC_SOURCE_REPLAY_EVIDENCE
+              : HISTORICAL_SOURCE_REPLAY_EVIDENCE;
     const [replayRaw, packetRaw, campaignRaw] = await Promise.all([
       fs.readFile(replayPath, 'utf8'),
       fs.readFile(SOURCE_REVIEW_PACKET, 'utf8'),

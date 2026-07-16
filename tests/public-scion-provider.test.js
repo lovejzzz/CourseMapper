@@ -280,6 +280,7 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(messages[1].content).toContain('LESSONS TO AUTHOR');
     expect(messages[1].content).toContain('Lesson 4: Affinity Mapping');
     expect(messages[1].content).toContain('Write exactly 4 mc items');
+    expect(messages[1].content).toContain('Every mc item includes fi with 1-2 distinct zero-based indexes');
     expect(messages[1].content).toContain('mi is a genuinely false learner belief');
     expect(messages[1].content).toContain('Never embed field labels or internal claim numbers');
     expect(messages[1].content).toContain('one field-note evidence analysis');
@@ -484,6 +485,60 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
         }),
       }),
     ]);
+  });
+
+  it('gives an MC item’s exact cited lesson facts precedence over a conflicting rationale', () => {
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-source-key',
+          facts: [
+            'Relative dating orders events while absolute dating assigns numerical ages.',
+            'Absolute numerical dating assigns specific ages in years to mineral grains within a rock.',
+            'Superposition orders undisturbed layers from oldest to youngest.',
+          ],
+          mc: [
+            {
+              q: 'What does absolute dating provide regarding mineral grains in a rock?',
+              op: [
+                'A numerical age in years',
+                'A relative order of events',
+                "The span of Earth's history",
+                'The sequence of deposition',
+              ],
+              ai: 1,
+              fi: [1],
+              ex: 'The correct choice gives a relative ordering for the sampled mineral grains.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const detailed = repairPublicScionJson(JSON.stringify(response));
+    expect(JSON.parse(detailed.text).lessons[0].mc[0].ai).toBe(0);
+    expect(detailed.repairs).toEqual([
+      expect.objectContaining({
+        pass: 'sourceAnswerAlignment',
+        lessonId: 'lesson-source-key',
+        item: 0,
+        trainingEligible: true,
+      }),
+    ]);
+
+    response.lessons[0].mc[0].fi = [9];
+    expect(JSON.parse(repairPublicScionJsonText(JSON.stringify(response))).lessons[0].mc[0].ai).toBe(1);
+
+    response.lessons[0].keyTerms = completeTerms;
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify(response),
+      `Course: Geology\nLessons:\n[{"lessonId":"lesson-source-key","title":"Dating Rocks"}]\nReturn ONLY valid JSON.`,
+      'blueprintEnrichment',
+    );
+    expect(assessment.issues).toContain('lesson-source-key:mc-0:source-fact-index');
+    expect(buildPublicScionRetryFeedback(assessment)).toContain(
+      'sourceFactIndexes is required and may cite only supplied zero-based claim indexes',
+    );
   });
 
   it('removes only an unfinished explanation tail before browser-local admission', () => {

@@ -16,12 +16,12 @@ import {
 } from './lib/scionSourceCapture.mjs';
 
 export const SCION_SOURCE_COMPILER_REPLAY_PROTOCOL = 'scion-source-compiler-replay-v1';
-export const SCION_SOURCE_COMPILER_REPLAY_RELEASE = 'v0.16.45';
-export const SCION_SOURCE_COMPILER_REPLAY_OUTPUT = 'evaluation/scion-source-compiler-replay-v0.16.45';
+export const SCION_SOURCE_COMPILER_REPLAY_RELEASE = 'v0.16.46';
+export const SCION_SOURCE_COMPILER_REPLAY_OUTPUT = 'evaluation/scion-source-compiler-replay-v0.16.46';
 export const SCION_SOURCE_COMPILER_REPLAY_RECEIPT =
-  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json';
+  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.46.json';
 export const SCION_SOURCE_COMPILER_REPLAY_PREVIOUS_RECEIPT =
-  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.44.json';
+  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json';
 
 const DEFAULT_CAMPAIGNS = [
   {
@@ -59,6 +59,7 @@ function repairSummary(repairs = []) {
     total: repairs.length,
     incompleteExplanationTail: repairs.filter((repair) => repair.pass === 'incompleteExplanationTail').length,
     explanationKeyAlignment: repairs.filter((repair) => repair.pass === 'explanationKeyAlignment').length,
+    sourceAnswerAlignment: repairs.filter((repair) => repair.pass === 'sourceAnswerAlignment').length,
   };
 }
 
@@ -98,6 +99,21 @@ function projectRepairRows(project) {
       repairsSha256: sourceCaptureSha256(call.compilerRepairs),
     }))
     .sort((left, right) => left.promptId.localeCompare(right.promptId));
+}
+
+function repairPassIndex(projects = []) {
+  const index = new Map();
+  for (const project of projects) {
+    const courseGroupId = project?.scionSourceCapture?.courseGroupId || project?.projectId || 'unknown-project';
+    for (const call of project?.scionSourceCapture?.calls || []) {
+      for (const repair of call?.compilerRepairs || []) {
+        const identity = `${courseGroupId}|${call.promptId}|${repair.item}`;
+        if (!index.has(identity)) index.set(identity, new Map());
+        index.get(identity).set(repair.pass, repair);
+      }
+    }
+  }
+  return index;
 }
 
 async function replayProject({ campaign, group, sourcePath, generatedAt, compilerSources }) {
@@ -172,8 +188,9 @@ async function replayProject({ campaign, group, sourcePath, generatedAt, compile
         total: counts.total + row.repairCounts.total,
         incompleteExplanationTail: counts.incompleteExplanationTail + row.repairCounts.incompleteExplanationTail,
         explanationKeyAlignment: counts.explanationKeyAlignment + row.repairCounts.explanationKeyAlignment,
+        sourceAnswerAlignment: counts.sourceAnswerAlignment + row.repairCounts.sourceAnswerAlignment,
       }),
-      { total: 0, incompleteExplanationTail: 0, explanationKeyAlignment: 0 },
+      { total: 0, incompleteExplanationTail: 0, explanationKeyAlignment: 0, sourceAnswerAlignment: 0 },
     ),
     claimBoundary:
       'This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.',
@@ -226,19 +243,32 @@ export async function buildScionSourceCompilerReplay({
   const previousRaw = await fs.readFile(SCION_SOURCE_COMPILER_REPLAY_PREVIOUS_RECEIPT, 'utf8');
   const previous = JSON.parse(previousRaw);
   if (
-    previous.release !== 'v0.16.44' ||
-    previous.summary?.replayedCompiledBurden?.admittedAtoms !== 141 ||
-    previous.summary?.replayedCompiledBurden?.burdenAtoms !== 51 ||
+    previous.release !== 'v0.16.45' ||
+    previous.summary?.replayedCompiledBurden?.admittedAtoms !== 131 ||
+    previous.summary?.replayedCompiledBurden?.burdenAtoms !== 61 ||
     previous.summary?.responseMutationCount !== 0
   ) {
-    throw new Error('The v0.16.44 source compiler baseline drifted.');
+    throw new Error('The v0.16.45 source compiler baseline drifted.');
   }
   const compilerSources = await Promise.all(COMPILER_SOURCES.map(fileReceipt));
+  const previousProjects = await Promise.all(
+    (previous.projects || []).map(async (entry) => {
+      const raw = await fs.readFile(entry.path);
+      if (raw.length !== entry.bytes || fileSha256(raw) !== entry.sha256) {
+        throw new Error(`The v0.16.45 source compiler project drifted: ${entry.path}`);
+      }
+      return JSON.parse(raw.toString('utf8'));
+    }),
+  );
+  if (previousProjects.length !== previous.summary?.projectCount) {
+    throw new Error('The v0.16.45 source compiler project inventory drifted.');
+  }
   const absoluteOutput = path.resolve(outputDir);
   await fs.rm(absoluteOutput, { recursive: true, force: true });
   await fs.mkdir(absoluteOutput, { recursive: true });
 
   const projects = [];
+  const compiledProjects = [];
   const historicalCalls = [];
   const replayCalls = [];
   let expectedAtoms = 0;
@@ -248,6 +278,7 @@ export async function buildScionSourceCompilerReplay({
     for (const group of campaign.groups) {
       const sourcePath = path.join(campaignInput.sourceDir, `${group.id}-local.json`);
       const result = await replayProject({ campaign, group, sourcePath, generatedAt, compilerSources });
+      compiledProjects.push(result.project);
       const outputPath = path.join(absoluteOutput, `${group.id}-local.json`);
       const bytes = jsonBytes(result.project);
       await fs.writeFile(outputPath, bytes);
@@ -283,10 +314,49 @@ export async function buildScionSourceCompilerReplay({
       total: counts.total + project.repairCounts.total,
       incompleteExplanationTail: counts.incompleteExplanationTail + project.repairCounts.incompleteExplanationTail,
       explanationKeyAlignment: counts.explanationKeyAlignment + project.repairCounts.explanationKeyAlignment,
+      sourceAnswerAlignment: counts.sourceAnswerAlignment + project.repairCounts.sourceAnswerAlignment,
     }),
-    { total: 0, incompleteExplanationTail: 0, explanationKeyAlignment: 0 },
+    { total: 0, incompleteExplanationTail: 0, explanationKeyAlignment: 0, sourceAnswerAlignment: 0 },
   );
   const previousBurden = previous.summary.replayedCompiledBurden;
+  const previousRepairIndex = repairPassIndex(previousProjects);
+  const currentRepairIndex = repairPassIndex(compiledProjects);
+  const sourceAligned = [...currentRepairIndex].filter(([, passes]) => passes.has('sourceAnswerAlignment'));
+  const replacedExplanationOnly = sourceAligned.filter(([identity]) =>
+    previousRepairIndex.get(identity)?.has('explanationKeyAlignment'),
+  );
+  const newSourceAligned = sourceAligned.filter(
+    ([identity]) => !previousRepairIndex.get(identity)?.has('explanationKeyAlignment'),
+  );
+  const removedExplanationOnly = [...previousRepairIndex].filter(
+    ([identity, passes]) =>
+      passes.has('explanationKeyAlignment') &&
+      !currentRepairIndex.get(identity)?.has('explanationKeyAlignment') &&
+      !currentRepairIndex.get(identity)?.has('sourceAnswerAlignment'),
+  );
+  const repairEvolution = {
+    sourceAnswerAlignment: sourceAligned.length,
+    replacedExplanationKeyAlignment: replacedExplanationOnly.length,
+    newSourceAnswerAlignment: newSourceAligned.length,
+    removedExplanationKeyAlignment: removedExplanationOnly.length,
+    removedExplanationRepairs: removedExplanationOnly.map(([identity, passes]) => {
+      const prior = passes.get('explanationKeyAlignment');
+      return {
+        identity,
+        priorDeclaredIndex: prior?.preferenceEvidence?.declaredIndex,
+        priorSupportedIndex: prior?.preferenceEvidence?.supportedIndex,
+        disposition: 'source-confirmed-declared-key-blocked-explanation-only-repair',
+      };
+    }),
+  };
+  if (
+    repairEvolution.sourceAnswerAlignment !== 10 ||
+    repairEvolution.replacedExplanationKeyAlignment !== 8 ||
+    repairEvolution.newSourceAnswerAlignment !== 2 ||
+    repairEvolution.removedExplanationKeyAlignment !== 1
+  ) {
+    throw new Error(`The v0.16.46 source repair evolution drifted: ${JSON.stringify(repairEvolution)}.`);
+  }
   const priorReleaseDelta = {
     previousRelease: previous.release,
     admittedAtoms: replayBurden.admittedAtoms - previousBurden.admittedAtoms,
@@ -318,13 +388,14 @@ export async function buildScionSourceCompilerReplay({
       courseGroupCount: new Set(projects.map((project) => project.courseGroupId)).size,
       responseMutationCount: 0,
       repairCounts,
+      repairEvolution,
       historicalCompiledBurden: historicalBurden,
       replayedCompiledBurden: replayBurden,
       priorReleaseDelta,
       recoveredAtoms: replayBurden.admittedAtoms - historicalBurden.admittedAtoms,
       burdenAtomReduction: historicalBurden.burdenAtoms - replayBurden.burdenAtoms,
       claimBoundary:
-        'The v0.16.45 source-aware gate admits ten fewer retained atoms than v0.16.44 and sends them to bounded retry; this is stricter compiler burden, not lost model output or a model-quality regression. Exact response bytes remain unchanged, and replayed candidates stay anonymous and unlabeled until both required Codex presentation orders agree above the training floor.',
+        'The v0.16.46 source-answer repair changes only an answer index when the question identifies a unique supplied claim and one different option has strong contained source support. Exact response text remains unchanged, and replayed candidates stay anonymous and unlabeled until both required Codex presentation orders agree above the training floor.',
     },
   };
   receipt.identity = {
@@ -402,7 +473,7 @@ async function main() {
         ).receipt
       : await verifyTracked({ outputDir: args.outputDir, receiptFile: args.receiptFile });
   console.log(
-    `Scion source compiler replay ${args.mode === 'write' ? 'built' : 'verified'}: ${receipt.summary.replayedCompiledBurden.admittedAtoms} admitted atoms, ${receipt.summary.replayedCompiledBurden.burdenAtoms} retry seats, ${receipt.summary.priorReleaseDelta.newlyRejectedForRetry} newly rejected versus v0.16.44, ${receipt.summary.responseMutationCount} response mutations.`,
+    `Scion source compiler replay ${args.mode === 'write' ? 'built' : 'verified'}: ${receipt.summary.replayedCompiledBurden.admittedAtoms} admitted atoms, ${receipt.summary.replayedCompiledBurden.burdenAtoms} retry seats, ${receipt.summary.repairCounts.sourceAnswerAlignment} source-grounded key repairs, ${receipt.summary.responseMutationCount} response mutations.`,
   );
   console.log(`Evidence: ${args.receiptFile}`);
 }

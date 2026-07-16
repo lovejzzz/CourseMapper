@@ -1,0 +1,1831 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-tectonics-seismology-field-lab-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "Plate Tectonics and Seismology, a six-session field-data laboratory in which students interpret Earth structure, plate-boundary motion, and seismic-wave evidence to explain observed geologic hazards.",
+  "fileNames": [
+    "source-packet-87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517.json"
+  ],
+  "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Plate Tectonics and Seismology\",\"sessions\":[{\"number\":1,\"title\":\"Earth's interior\"},{\"number\":2,\"title\":\"Plate tectonics and boundaries\"},{\"number\":3,\"title\":\"Earthquakes and seismic waves\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"Which layer of Earth is described as solid rock that flows slowly due to convection?\",\"op\":[\"The metallic core\",\"The outer crust\",\"The asthenosphere\",\"The rocky mantle\"],\"ai\":2,\"ex\":\"The asthenosphere is the correct choice because it is mechanically weak and flows by convection currents driven by the core's heat (Claim 3). The most plausible misconception is selecting the rocky mantle, which is described as thick and solid rock, not flowing.\",\"sourceFactIndexes\":[0,3],\"type\":\"multiple_choice\"},{\"q\":\"What material primarily composes the core layers?\",\"op\":[\"Silicates\",\"Iron and nickel\",\"Solid rock\",\"Outer crust\"],\"ai\":1,\"ex\":\"Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Which boundary type is characterized by plates sliding horizontally past one another?\",\"op\":[\"Divergent boundary\",\"Convergent boundary\",\"Transform boundary\",\"Subduction zone\"],\"ai\":2,\"ex\":\"The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"Where is new lithosphere generated as lithospheric plates move apart?\",\"op\":[\"Convergent boundary\",\"Transform boundary\",\"Divergent boundary\",\"Subduction zone\"],\"ai\":2,\"ex\":\"The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other. A plausible misconception is selecting a convergent boundary, which involves lithosphere destruction.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Lithosphere\",\"df\":\"The rigid outer layer of Earth's crust and upper mantle.\",\"eg\":\"The oceanic crust involved in a subduction zone.\",\"mi\":\"The entire Earth's interior.\",\"cx\":\"The rigid lithosphere is broken into plates that move over the ductile asthenosphere.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Asthenosphere\",\"df\":\"The ductile layer beneath the lithosphere that allows plate movement.\",\"eg\":\"The layer beneath the Pacific Plate where movement occurs.\",\"mi\":\"The solid, brittle outer crust.\",\"cx\":\"Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere.\",\"sourceFactIndexes\":[0]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"Which wave type is characterized by lateral motion and is restricted to traveling only through solids?\",\"op\":[\"A. P waves\",\"B. Compressional waves\",\"C. S waves\",\"D. Shear waves\"],\"ai\":2,\"ex\":\"Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids.\",\"sourceFactIndexes\":[0,3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Energy release mechanism\",\"df\":\"The process where stored elastic energy is released when rock slips along a fault.\",\"eg\":\"An earthquake occurs when stored elastic energy is released and the broken rock springs back toward its original position.\",\"mi\":\"Thinking an earthquake is caused by the continuous compression of rock.\",\"cx\":\"An earthquake is caused by the release of stored elastic energy when rock slips along a fault.\",\"sourceFactIndexes\":[1]}]}}}}",
+  "savedAt": "2026-07-13T14:17:07.244Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-campaign.json",
+    "campaignManifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+    "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d",
+    "courseInputSha256": "cefef88ba6d3a29b1449a240ec7a965ab62478b7bf7370415ac915180c544a26",
+    "courseGroupId": "tectonics-seismology-field-lab",
+    "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/geo-intro.json",
+      "sourceArtifactSha256": "d210fd2d2412af5d0f65c8e8f8a9614cd92f5886badc264694fe88e5cc020f14",
+      "kernels": [
+        {
+          "id": "geo/earths-interior",
+          "term": "Earth's interior",
+          "definition": "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core; the upper mantle's asthenosphere is solid rock that flows slowly by convection.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#2.1",
+            "loc": "2.1",
+            "quote": "The outermost chemical layer and the one we currently reside on is the crust"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The mantle sits below the crust and above the core.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.1",
+                "loc": "2.1",
+                "quote": "The mantle sits below the crust and above the core"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.1",
+                "loc": "2.1",
+                "quote": "The core of the Earth has both liquid and solid layers and consists mostly of iron, nickel, and possibly some oxygen"
+              }
+            },
+            {
+              "index": 2,
+              "text": "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.1",
+                "loc": "2.1",
+                "quote": "this layer moves and flows due to convection currents created by heat coming from the earth's core"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §2.1 Earth's interior"
+          ]
+        },
+        {
+          "id": "geo/plate-tectonics",
+          "term": "Plate tectonics and boundaries",
+          "definition": "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#2.4",
+            "loc": "2.4",
+            "quote": "Plate boundaries are where most of Earth's geologic action occurs"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.4",
+                "loc": "2.4",
+                "quote": "At divergent boundaries, sometimes called constructive boundaries, lithospheric plates move away from each other"
+              }
+            },
+            {
+              "index": 1,
+              "text": "At convergent boundaries, two or more plates move toward each other and lithosphere is destroyed.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.4",
+                "loc": "2.4",
+                "quote": "Convergent boundaries, also called destructive boundaries, are places where two or more plates move toward each other"
+              }
+            },
+            {
+              "index": 2,
+              "text": "At a transform boundary, plates slide horizontally past each other.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.4",
+                "loc": "2.4",
+                "quote": "A transform boundary is where the lithospheric plates slide past each other in the horizontal plane"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
+          ]
+        },
+        {
+          "id": "geo/earthquakes",
+          "term": "Earthquakes and seismic waves",
+          "definition": "An earthquake releases stored elastic energy when rock slips along a fault; the energy travels outward as seismic waves, including fast compressional P waves and slower shear S waves.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#9.1",
+            "loc": "9.1",
+            "quote": "Earthquakes are felt at the surface of the Earth when energy is released by blocks of rock sliding past each other, i.e. faulting has occurred"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Elastic rebound theory explains earthquakes: stored energy is released and the broken rock springs back toward its original position.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#9.1",
+                "loc": "9.1",
+                "quote": "The release of seismic energy is explained by the elastic rebound theory"
+              }
+            },
+            {
+              "index": 1,
+              "text": "P waves are the fastest body waves and move by compression, like sound through air, so they travel through solids, liquids, and gases.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#9.1",
+                "loc": "9.1",
+                "quote": "enabling them to travel through solids, liquids, plasma, and gases"
+              }
+            },
+            {
+              "index": 2,
+              "text": "S waves are slower shear waves restricted to lateral motion, so they travel only through solids, never liquids.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#9.1",
+                "loc": "9.1",
+                "quote": "S waves can only travel through solids but not liquids, plasma, or gases"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §9.1 Earthquakes and seismic waves"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-13T14:17:07.244Z",
+    "admittedPromptIds": [
+      "tectonics-seismology-field-lab:geo/earths-interior",
+      "tectonics-seismology-field-lab:geo/plate-tectonics",
+      "tectonics-seismology-field-lab:geo/earthquakes"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "tectonics-seismology-field-lab:geo/earths-interior",
+          "kernelId": "geo/earths-interior",
+          "promptSha256": "250710d6dc77f4be519ca7d4ad59634977fa89795d0644e676f6ab858b843d1a",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which layer of Earth is described as solid rock that flows slowly due to convection?",
+                "op": [
+                  "The metallic core",
+                  "The outer crust",
+                  "The asthenosphere",
+                  "The rocky mantle"
+                ],
+                "ai": 0,
+                "ex": "The asthenosphere is the correct choice because it is mechanically weak and flows by convection currents driven by the core's heat (Claim 3). The most plausible misconception is selecting the rocky mantle, which is described as thick and solid rock, not flowing.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "q": "What material primarily composes the core layers?",
+                "op": [
+                  "Silicates",
+                  "Iron and nickel",
+                  "Solid rock",
+                  "Outer crust"
+                ],
+                "ai": 2,
+                "ex": "Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Layer of Earth's interior",
+                "df": "A distinct division of the planet's structure.",
+                "eg": "The distinction between the crust, mantle, and core.",
+                "mi": "Confusing the asthenosphere with the solid rocky mantle.",
+                "cx": "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat (Claim 3).",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  3
+                ]
+              },
+              {
+                "tr": "Core composition",
+                "df": "The primary elements found in the planet's innermost region.",
+                "eg": "The presence of iron and nickel in the core.",
+                "mi": "Assuming the core is composed of the same material as the outer crust.",
+                "cx": "The core has both liquid and solid layers and is made mostly of iron and nickel (Claim 2).",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "21ff76fd4d7cce089246b638b36c5dff631b65f228d2094c27cb4547ac7cb694",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which layer of Earth is described as solid rock that flows slowly due to convection?",
+                "op": [
+                  "The metallic core",
+                  "The outer crust",
+                  "The asthenosphere",
+                  "The rocky mantle"
+                ],
+                "ai": 2,
+                "ex": "The asthenosphere is the correct choice because it is mechanically weak and flows by convection currents driven by the core's heat (Claim 3). The most plausible misconception is selecting the rocky mantle, which is described as thick and solid rock, not flowing.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "q": "What material primarily composes the core layers?",
+                "op": [
+                  "Silicates",
+                  "Iron and nickel",
+                  "Solid rock",
+                  "Outer crust"
+                ],
+                "ai": 1,
+                "ex": "Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "be877afbee6fcb6f399e4e9894e0bed361080242048eca97e4c28ab6ccea12a4",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-claim-marker-residue",
+              "key-term-1-claim-marker-residue",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-13T14:16:47.247Z",
+          "durationMs": 6659,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "tectonics-seismology-field-lab:geo/earths-interior",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "Which layer of Earth is described as solid rock that flows slowly due to convection?",
+                "options": [
+                  "The metallic core",
+                  "The outer crust",
+                  "The asthenosphere",
+                  "The rocky mantle"
+                ],
+                "answerIndex": 0,
+                "explanation": "The asthenosphere is the correct choice because it is mechanically weak and flows by convection currents driven by the core's heat (Claim 3). The most plausible misconception is selecting the rocky mantle, which is described as thick and solid rock, not flowing."
+              },
+              "chosen": {
+                "question": "Which layer of Earth is described as solid rock that flows slowly due to convection?",
+                "options": [
+                  "The metallic core",
+                  "The outer crust",
+                  "The asthenosphere",
+                  "The rocky mantle"
+                ],
+                "answerIndex": 2,
+                "explanation": "The asthenosphere is the correct choice because it is mechanically weak and flows by convection currents driven by the core's heat (Claim 3). The most plausible misconception is selecting the rocky mantle, which is described as thick and solid rock, not flowing."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-option-text",
+                    "surface": "The asthenosphere is the correct choice"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "tectonics-seismology-field-lab:geo/earths-interior",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What material primarily composes the core layers?",
+                "options": [
+                  "Silicates",
+                  "Iron and nickel",
+                  "Solid rock",
+                  "Outer crust"
+                ],
+                "answerIndex": 2,
+                "explanation": "Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core."
+              },
+              "chosen": {
+                "question": "What material primarily composes the core layers?",
+                "options": [
+                  "Silicates",
+                  "Iron and nickel",
+                  "Solid rock",
+                  "Outer crust"
+                ],
+                "answerIndex": 1,
+                "explanation": "Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 2,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-option-text",
+                    "surface": "Iron and nickel is the correct answer"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 2,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 2,
+            "sourceAnswerAlignment": 0
+          }
+        },
+        {
+          "promptId": "tectonics-seismology-field-lab:geo/plate-tectonics",
+          "kernelId": "geo/plate-tectonics",
+          "promptSha256": "5b475f4a8959bc5738bc9dee4d34dfdf6147b9b9c44ca5d7305d197595208bf0",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which boundary type is characterized by plates sliding horizontally past one another?",
+                "op": [
+                  "Divergent boundary",
+                  "Convergent boundary",
+                  "Transform boundary",
+                  "Subduction zone"
+                ],
+                "ai": 3,
+                "ex": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "Where is new lithosphere generated as lithospheric plates move apart?",
+                "op": [
+                  "Convergent boundary",
+                  "Transform boundary",
+                  "Divergent boundary",
+                  "Subduction zone"
+                ],
+                "ai": 1,
+                "ex": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other. A plausible misconception is selecting a convergent boundary, which involves lithosphere destruction.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Lithosphere",
+                "df": "The rigid outer layer of Earth's crust and upper mantle.",
+                "eg": "The oceanic crust involved in a subduction zone.",
+                "mi": "The entire Earth's interior.",
+                "cx": "The rigid lithosphere is broken into plates that move over the ductile asthenosphere.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Asthenosphere",
+                "df": "The ductile layer beneath the lithosphere that allows plate movement.",
+                "eg": "The layer beneath the Pacific Plate where movement occurs.",
+                "mi": "The solid, brittle outer crust.",
+                "cx": "Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "d53bfc4a9935ec4257d6daf86760e4ac9e341e0cee5311faedb6757d653fd275",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which boundary type is characterized by plates sliding horizontally past one another?",
+                "op": [
+                  "Divergent boundary",
+                  "Convergent boundary",
+                  "Transform boundary",
+                  "Subduction zone"
+                ],
+                "ai": 2,
+                "ex": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "Where is new lithosphere generated as lithospheric plates move apart?",
+                "op": [
+                  "Convergent boundary",
+                  "Transform boundary",
+                  "Divergent boundary",
+                  "Subduction zone"
+                ],
+                "ai": 2,
+                "ex": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other. A plausible misconception is selecting a convergent boundary, which involves lithosphere destruction.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Lithosphere",
+                "df": "The rigid outer layer of Earth's crust and upper mantle.",
+                "eg": "The oceanic crust involved in a subduction zone.",
+                "mi": "The entire Earth's interior.",
+                "cx": "The rigid lithosphere is broken into plates that move over the ductile asthenosphere.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Asthenosphere",
+                "df": "The ductile layer beneath the lithosphere that allows plate movement.",
+                "eg": "The layer beneath the Pacific Plate where movement occurs.",
+                "mi": "The solid, brittle outer crust.",
+                "cx": "Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "8d7bb7dbe8361ca92430b1c8fbfbc5476ec76b743b53cb64d6b868cd0b7eacc3",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-13T14:16:53.907Z",
+          "durationMs": 5974,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "tectonics-seismology-field-lab:geo/plate-tectonics",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "Which boundary type is characterized by plates sliding horizontally past one another?",
+                "options": [
+                  "Divergent boundary",
+                  "Convergent boundary",
+                  "Transform boundary",
+                  "Subduction zone"
+                ],
+                "answerIndex": 3,
+                "explanation": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other."
+              },
+              "chosen": {
+                "question": "Which boundary type is characterized by plates sliding horizontally past one another?",
+                "options": [
+                  "Divergent boundary",
+                  "Convergent boundary",
+                  "Transform boundary",
+                  "Subduction zone"
+                ],
+                "answerIndex": 2,
+                "explanation": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-named-answer",
+                    "surface": "The correct choice, Transform boundary, describes plates sliding horizontally past each other"
+                  },
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-option-text",
+                    "surface": "The correct choice, Transform boundary"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "tectonics-seismology-field-lab:geo/plate-tectonics",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "Where is new lithosphere generated as lithospheric plates move apart?",
+                "options": [
+                  "Convergent boundary",
+                  "Transform boundary",
+                  "Divergent boundary",
+                  "Subduction zone"
+                ],
+                "answerIndex": 1,
+                "explanation": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other. A plausible misconception is selecting a convergent boundary, which involves lithosphere destruction."
+              },
+              "chosen": {
+                "question": "Where is new lithosphere generated as lithospheric plates move apart?",
+                "options": [
+                  "Convergent boundary",
+                  "Transform boundary",
+                  "Divergent boundary",
+                  "Subduction zone"
+                ],
+                "answerIndex": 2,
+                "explanation": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other. A plausible misconception is selecting a convergent boundary, which involves lithosphere destruction."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 1,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-named-answer",
+                    "surface": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other"
+                  },
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-option-text",
+                    "surface": "The correct choice, Divergent boundary"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 2,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 2,
+            "sourceAnswerAlignment": 0
+          }
+        },
+        {
+          "promptId": "tectonics-seismology-field-lab:geo/earthquakes",
+          "kernelId": "geo/earthquakes",
+          "promptSha256": "88630962c0d7b144a0a5892779d569706635bff3a3252b81078c368e82a65f3d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What physical process causes an earthquake?",
+                "op": [
+                  "A. The compression of rock along a fault.",
+                  "B. The release of stored elastic energy when rock slips along a fault.",
+                  "C. The propagation of shear waves through solids.",
+                  "D. The movement of P waves through liquids."
+                ],
+                "ai": 1,
+                "ex": "Option B is correct because the elastic rebound theory states that stored energy is released when rock slips along a fault. Option A is incorrect because compression is not the primary cause; Option C is incorrect because shear waves are not the primary cause; Option D is incorrect because P waves, ",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+                "op": [
+                  "A. P waves",
+                  "B. Compressional waves",
+                  "C. S waves",
+                  "D. Shear waves"
+                ],
+                "ai": 3,
+                "ex": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids. Option A is incorrect because P waves move by compression; Option B is incorrect because compressional waves are P waves; Option D is incorrect because shear waves are a type of S-",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Energy release mechanism",
+                "df": "The process where stored elastic energy is released when rock slips along a fault.",
+                "eg": "An earthquake occurs when stored elastic energy is released and the broken rock springs back toward its original position.",
+                "mi": "Thinking an earthquake is caused by the continuous compression of rock.",
+                "cx": "An earthquake is caused by the release of stored elastic energy when rock slips along a fault.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Wave type characteristic",
+                "df": "A wave type defined by lateral motion and restricted to traveling only through solids.",
+                "eg": "S waves are slower shear waves restricted to lateral motion, so they travel only through solids.",
+                "mi": "Assuming P waves are the only waves that travel through solids.",
+                "cx": "S waves are slower shear waves restricted to lateral motion, so they travel only through solids.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "84610bfbbb06fce4ccc4dc41d6e5f034db31a9d3b3dac58658a8f86614ab350e",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+                "op": [
+                  "A. P waves",
+                  "B. Compressional waves",
+                  "C. S waves",
+                  "D. Shear waves"
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Energy release mechanism",
+                "df": "The process where stored elastic energy is released when rock slips along a fault.",
+                "eg": "An earthquake occurs when stored elastic energy is released and the broken rock springs back toward its original position.",
+                "mi": "Thinking an earthquake is caused by the continuous compression of rock.",
+                "cx": "An earthquake is caused by the release of stored elastic energy when rock slips along a fault.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "f5ff2ad16695f04adcc36042bbc30fecdd3e764cb732a943d5100503c761ea96",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-longest-option-cue",
+              "key-term-1-correction-repeats-example"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-13T14:16:59.882Z",
+          "durationMs": 7362,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "tectonics-seismology-field-lab:geo/earthquakes",
+              "item": 0,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "What physical process causes an earthquake?",
+                "options": [
+                  "A. The compression of rock along a fault.",
+                  "B. The release of stored elastic energy when rock slips along a fault.",
+                  "C. The propagation of shear waves through solids.",
+                  "D. The movement of P waves through liquids."
+                ],
+                "answerIndex": 1,
+                "explanation": "Option B is correct because the elastic rebound theory states that stored energy is released when rock slips along a fault. Option A is incorrect because compression is not the primary cause; Option C is incorrect because shear waves are not the primary cause; Option D is incorrect because P waves,"
+              },
+              "chosen": {
+                "question": "What physical process causes an earthquake?",
+                "options": [
+                  "A. The compression of rock along a fault.",
+                  "B. The release of stored elastic energy when rock slips along a fault.",
+                  "C. The propagation of shear waves through solids.",
+                  "D. The movement of P waves through liquids."
+                ],
+                "answerIndex": 1,
+                "explanation": "Option B is correct because the elastic rebound theory states that stored energy is released when rock slips along a fault."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 123,
+                "removedCharacters": 175,
+                "removedTail": "Option A is incorrect because compression is not the primary cause; Option C is incorrect because shear waves are not the primary cause; Option D is incorrect because P waves,"
+              },
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "tectonics-seismology-field-lab:geo/earthquakes",
+              "item": 1,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+                "options": [
+                  "A. P waves",
+                  "B. Compressional waves",
+                  "C. S waves",
+                  "D. Shear waves"
+                ],
+                "answerIndex": 3,
+                "explanation": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids. Option A is incorrect because P waves move by compression; Option B is incorrect because compressional waves are P waves; Option D is incorrect because shear waves are a type of S-"
+              },
+              "chosen": {
+                "question": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+                "options": [
+                  "A. P waves",
+                  "B. Compressional waves",
+                  "C. S waves",
+                  "D. Shear waves"
+                ],
+                "answerIndex": 3,
+                "explanation": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 119,
+                "removedCharacters": 180,
+                "removedTail": "Option A is incorrect because P waves move by compression; Option B is incorrect because compressional waves are P waves; Option D is incorrect because shear waves are a type of S-"
+              },
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "tectonics-seismology-field-lab:geo/earthquakes",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+                "options": [
+                  "A. P waves",
+                  "B. Compressional waves",
+                  "C. S waves",
+                  "D. Shear waves"
+                ],
+                "answerIndex": 3,
+                "explanation": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids."
+              },
+              "chosen": {
+                "question": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+                "options": [
+                  "A. P waves",
+                  "B. Compressional waves",
+                  "C. S waves",
+                  "D. Shear waves"
+                ],
+                "answerIndex": 2,
+                "explanation": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-option-label",
+                    "surface": "Option C is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 3,
+            "incompleteExplanationTail": 2,
+            "explanationKeyAlignment": 1,
+            "sourceAnswerAlignment": 0
+          }
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "tectonics-seismology-field-lab:geo/earths-interior",
+        "kernelId": "geo/earths-interior",
+        "promptSha256": "250710d6dc77f4be519ca7d4ad59634977fa89795d0644e676f6ab858b843d1a",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which layer of Earth is described as solid rock that flows slowly due to convection?",
+              "op": [
+                "The metallic core",
+                "The outer crust",
+                "The asthenosphere",
+                "The rocky mantle"
+              ],
+              "ai": 0,
+              "ex": "The asthenosphere is the correct choice because it is mechanically weak and flows by convection currents driven by the core's heat (Claim 3). The most plausible misconception is selecting the rocky mantle, which is described as thick and solid rock, not flowing.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "q": "What material primarily composes the core layers?",
+              "op": [
+                "Silicates",
+                "Iron and nickel",
+                "Solid rock",
+                "Outer crust"
+              ],
+              "ai": 2,
+              "ex": "Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Layer of Earth's interior",
+              "df": "A distinct division of the planet's structure.",
+              "eg": "The distinction between the crust, mantle, and core.",
+              "mi": "Confusing the asthenosphere with the solid rocky mantle.",
+              "cx": "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat (Claim 3).",
+              "sourceFactIndexes": [
+                0,
+                1,
+                3
+              ]
+            },
+            {
+              "tr": "Core composition",
+              "df": "The primary elements found in the planet's innermost region.",
+              "eg": "The presence of iron and nickel in the core.",
+              "mi": "Assuming the core is composed of the same material as the outer crust.",
+              "cx": "The core has both liquid and solid layers and is made mostly of iron and nickel (Claim 2).",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "21ff76fd4d7cce089246b638b36c5dff631b65f228d2094c27cb4547ac7cb694",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which layer of Earth is described as solid rock that flows slowly due to convection?",
+              "op": [
+                "The metallic core",
+                "The outer crust",
+                "The asthenosphere",
+                "The rocky mantle"
+              ],
+              "ai": 2,
+              "ex": "The asthenosphere is the correct choice because it is mechanically weak and flows by convection currents driven by the core's heat (Claim 3). The most plausible misconception is selecting the rocky mantle, which is described as thick and solid rock, not flowing.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "q": "What material primarily composes the core layers?",
+              "op": [
+                "Silicates",
+                "Iron and nickel",
+                "Solid rock",
+                "Outer crust"
+              ],
+              "ai": 1,
+              "ex": "Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "be877afbee6fcb6f399e4e9894e0bed361080242048eca97e4c28ab6ccea12a4",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-0-claim-marker-residue",
+            "key-term-1-claim-marker-residue",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-13T14:16:47.247Z",
+        "durationMs": 6659,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "tectonics-seismology-field-lab:geo/earths-interior",
+            "item": 0,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "Which layer of Earth is described as solid rock that flows slowly due to convection?",
+              "options": [
+                "The metallic core",
+                "The outer crust",
+                "The asthenosphere",
+                "The rocky mantle"
+              ],
+              "answerIndex": 0,
+              "explanation": "The asthenosphere is the correct choice because it is mechanically weak and flows by convection currents driven by the core's heat (Claim 3). The most plausible misconception is selecting the rocky mantle, which is described as thick and solid rock, not flowing."
+            },
+            "chosen": {
+              "question": "Which layer of Earth is described as solid rock that flows slowly due to convection?",
+              "options": [
+                "The metallic core",
+                "The outer crust",
+                "The asthenosphere",
+                "The rocky mantle"
+              ],
+              "answerIndex": 2,
+              "explanation": "The asthenosphere is the correct choice because it is mechanically weak and flows by convection currents driven by the core's heat (Claim 3). The most plausible misconception is selecting the rocky mantle, which is described as thick and solid rock, not flowing."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 0,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-option-text",
+                  "surface": "The asthenosphere is the correct choice"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0,
+              3
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "tectonics-seismology-field-lab:geo/earths-interior",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What material primarily composes the core layers?",
+              "options": [
+                "Silicates",
+                "Iron and nickel",
+                "Solid rock",
+                "Outer crust"
+              ],
+              "answerIndex": 2,
+              "explanation": "Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core."
+            },
+            "chosen": {
+              "question": "What material primarily composes the core layers?",
+              "options": [
+                "Silicates",
+                "Iron and nickel",
+                "Solid rock",
+                "Outer crust"
+              ],
+              "answerIndex": 1,
+              "explanation": "Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 2,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-option-text",
+                  "surface": "Iron and nickel is the correct answer"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              2
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2,
+          "sourceAnswerAlignment": 0
+        }
+      },
+      {
+        "promptId": "tectonics-seismology-field-lab:geo/plate-tectonics",
+        "kernelId": "geo/plate-tectonics",
+        "promptSha256": "5b475f4a8959bc5738bc9dee4d34dfdf6147b9b9c44ca5d7305d197595208bf0",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which boundary type is characterized by plates sliding horizontally past one another?",
+              "op": [
+                "Divergent boundary",
+                "Convergent boundary",
+                "Transform boundary",
+                "Subduction zone"
+              ],
+              "ai": 3,
+              "ex": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Where is new lithosphere generated as lithospheric plates move apart?",
+              "op": [
+                "Convergent boundary",
+                "Transform boundary",
+                "Divergent boundary",
+                "Subduction zone"
+              ],
+              "ai": 1,
+              "ex": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other. A plausible misconception is selecting a convergent boundary, which involves lithosphere destruction.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Lithosphere",
+              "df": "The rigid outer layer of Earth's crust and upper mantle.",
+              "eg": "The oceanic crust involved in a subduction zone.",
+              "mi": "The entire Earth's interior.",
+              "cx": "The rigid lithosphere is broken into plates that move over the ductile asthenosphere.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Asthenosphere",
+              "df": "The ductile layer beneath the lithosphere that allows plate movement.",
+              "eg": "The layer beneath the Pacific Plate where movement occurs.",
+              "mi": "The solid, brittle outer crust.",
+              "cx": "Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "d53bfc4a9935ec4257d6daf86760e4ac9e341e0cee5311faedb6757d653fd275",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which boundary type is characterized by plates sliding horizontally past one another?",
+              "op": [
+                "Divergent boundary",
+                "Convergent boundary",
+                "Transform boundary",
+                "Subduction zone"
+              ],
+              "ai": 2,
+              "ex": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Where is new lithosphere generated as lithospheric plates move apart?",
+              "op": [
+                "Convergent boundary",
+                "Transform boundary",
+                "Divergent boundary",
+                "Subduction zone"
+              ],
+              "ai": 2,
+              "ex": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other. A plausible misconception is selecting a convergent boundary, which involves lithosphere destruction.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Lithosphere",
+              "df": "The rigid outer layer of Earth's crust and upper mantle.",
+              "eg": "The oceanic crust involved in a subduction zone.",
+              "mi": "The entire Earth's interior.",
+              "cx": "The rigid lithosphere is broken into plates that move over the ductile asthenosphere.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Asthenosphere",
+              "df": "The ductile layer beneath the lithosphere that allows plate movement.",
+              "eg": "The layer beneath the Pacific Plate where movement occurs.",
+              "mi": "The solid, brittle outer crust.",
+              "cx": "Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "8d7bb7dbe8361ca92430b1c8fbfbc5476ec76b743b53cb64d6b868cd0b7eacc3",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-13T14:16:53.907Z",
+        "durationMs": 5974,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "tectonics-seismology-field-lab:geo/plate-tectonics",
+            "item": 0,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "Which boundary type is characterized by plates sliding horizontally past one another?",
+              "options": [
+                "Divergent boundary",
+                "Convergent boundary",
+                "Transform boundary",
+                "Subduction zone"
+              ],
+              "answerIndex": 3,
+              "explanation": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other."
+            },
+            "chosen": {
+              "question": "Which boundary type is characterized by plates sliding horizontally past one another?",
+              "options": [
+                "Divergent boundary",
+                "Convergent boundary",
+                "Transform boundary",
+                "Subduction zone"
+              ],
+              "answerIndex": 2,
+              "explanation": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-named-answer",
+                  "surface": "The correct choice, Transform boundary, describes plates sliding horizontally past each other"
+                },
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-option-text",
+                  "surface": "The correct choice, Transform boundary"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0,
+              1,
+              2
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "tectonics-seismology-field-lab:geo/plate-tectonics",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "Where is new lithosphere generated as lithospheric plates move apart?",
+              "options": [
+                "Convergent boundary",
+                "Transform boundary",
+                "Divergent boundary",
+                "Subduction zone"
+              ],
+              "answerIndex": 1,
+              "explanation": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other. A plausible misconception is selecting a convergent boundary, which involves lithosphere destruction."
+            },
+            "chosen": {
+              "question": "Where is new lithosphere generated as lithospheric plates move apart?",
+              "options": [
+                "Convergent boundary",
+                "Transform boundary",
+                "Divergent boundary",
+                "Subduction zone"
+              ],
+              "answerIndex": 2,
+              "explanation": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other. A plausible misconception is selecting a convergent boundary, which involves lithosphere destruction."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 1,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-named-answer",
+                  "surface": "The correct choice, Divergent boundary, is where new lithosphere is created as plates move away from each other"
+                },
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-option-text",
+                  "surface": "The correct choice, Divergent boundary"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0,
+              1,
+              2
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2,
+          "sourceAnswerAlignment": 0
+        }
+      },
+      {
+        "promptId": "tectonics-seismology-field-lab:geo/earthquakes",
+        "kernelId": "geo/earthquakes",
+        "promptSha256": "88630962c0d7b144a0a5892779d569706635bff3a3252b81078c368e82a65f3d",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What physical process causes an earthquake?",
+              "op": [
+                "A. The compression of rock along a fault.",
+                "B. The release of stored elastic energy when rock slips along a fault.",
+                "C. The propagation of shear waves through solids.",
+                "D. The movement of P waves through liquids."
+              ],
+              "ai": 1,
+              "ex": "Option B is correct because the elastic rebound theory states that stored energy is released when rock slips along a fault. Option A is incorrect because compression is not the primary cause; Option C is incorrect because shear waves are not the primary cause; Option D is incorrect because P waves, ",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+              "op": [
+                "A. P waves",
+                "B. Compressional waves",
+                "C. S waves",
+                "D. Shear waves"
+              ],
+              "ai": 3,
+              "ex": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids. Option A is incorrect because P waves move by compression; Option B is incorrect because compressional waves are P waves; Option D is incorrect because shear waves are a type of S-",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Energy release mechanism",
+              "df": "The process where stored elastic energy is released when rock slips along a fault.",
+              "eg": "An earthquake occurs when stored elastic energy is released and the broken rock springs back toward its original position.",
+              "mi": "Thinking an earthquake is caused by the continuous compression of rock.",
+              "cx": "An earthquake is caused by the release of stored elastic energy when rock slips along a fault.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Wave type characteristic",
+              "df": "A wave type defined by lateral motion and restricted to traveling only through solids.",
+              "eg": "S waves are slower shear waves restricted to lateral motion, so they travel only through solids.",
+              "mi": "Assuming P waves are the only waves that travel through solids.",
+              "cx": "S waves are slower shear waves restricted to lateral motion, so they travel only through solids.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "84610bfbbb06fce4ccc4dc41d6e5f034db31a9d3b3dac58658a8f86614ab350e",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+              "op": [
+                "A. P waves",
+                "B. Compressional waves",
+                "C. S waves",
+                "D. Shear waves"
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Energy release mechanism",
+              "df": "The process where stored elastic energy is released when rock slips along a fault.",
+              "eg": "An earthquake occurs when stored elastic energy is released and the broken rock springs back toward its original position.",
+              "mi": "Thinking an earthquake is caused by the continuous compression of rock.",
+              "cx": "An earthquake is caused by the release of stored elastic energy when rock slips along a fault.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "f5ff2ad16695f04adcc36042bbc30fecdd3e764cb732a943d5100503c761ea96",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-0-longest-option-cue",
+            "key-term-1-correction-repeats-example"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-13T14:16:59.882Z",
+        "durationMs": 7362,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "tectonics-seismology-field-lab:geo/earthquakes",
+            "item": 0,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "What physical process causes an earthquake?",
+              "options": [
+                "A. The compression of rock along a fault.",
+                "B. The release of stored elastic energy when rock slips along a fault.",
+                "C. The propagation of shear waves through solids.",
+                "D. The movement of P waves through liquids."
+              ],
+              "answerIndex": 1,
+              "explanation": "Option B is correct because the elastic rebound theory states that stored energy is released when rock slips along a fault. Option A is incorrect because compression is not the primary cause; Option C is incorrect because shear waves are not the primary cause; Option D is incorrect because P waves,"
+            },
+            "chosen": {
+              "question": "What physical process causes an earthquake?",
+              "options": [
+                "A. The compression of rock along a fault.",
+                "B. The release of stored elastic energy when rock slips along a fault.",
+                "C. The propagation of shear waves through solids.",
+                "D. The movement of P waves through liquids."
+              ],
+              "answerIndex": 1,
+              "explanation": "Option B is correct because the elastic rebound theory states that stored energy is released when rock slips along a fault."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 123,
+              "removedCharacters": 175,
+              "removedTail": "Option A is incorrect because compression is not the primary cause; Option C is incorrect because shear waves are not the primary cause; Option D is incorrect because P waves,"
+            },
+            "sourceFactIndexes": [
+              0,
+              1
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "tectonics-seismology-field-lab:geo/earthquakes",
+            "item": 1,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+              "options": [
+                "A. P waves",
+                "B. Compressional waves",
+                "C. S waves",
+                "D. Shear waves"
+              ],
+              "answerIndex": 3,
+              "explanation": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids. Option A is incorrect because P waves move by compression; Option B is incorrect because compressional waves are P waves; Option D is incorrect because shear waves are a type of S-"
+            },
+            "chosen": {
+              "question": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+              "options": [
+                "A. P waves",
+                "B. Compressional waves",
+                "C. S waves",
+                "D. Shear waves"
+              ],
+              "answerIndex": 3,
+              "explanation": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 119,
+              "removedCharacters": 180,
+              "removedTail": "Option A is incorrect because P waves move by compression; Option B is incorrect because compressional waves are P waves; Option D is incorrect because shear waves are a type of S-"
+            },
+            "sourceFactIndexes": [
+              0,
+              3
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "tectonics-seismology-field-lab:geo/earthquakes",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+              "options": [
+                "A. P waves",
+                "B. Compressional waves",
+                "C. S waves",
+                "D. Shear waves"
+              ],
+              "answerIndex": 3,
+              "explanation": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids."
+            },
+            "chosen": {
+              "question": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+              "options": [
+                "A. P waves",
+                "B. Compressional waves",
+                "C. S waves",
+                "D. Shear waves"
+              ],
+              "answerIndex": 2,
+              "explanation": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-option-label",
+                  "surface": "Option C is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0,
+              3
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 3,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 1,
+          "sourceAnswerAlignment": 0
+        }
+      }
+    ]
+  },
+  "scionCompilerReplay": {
+    "schemaVersion": 1,
+    "protocol": "scion-source-compiler-replay-v1",
+    "release": "v0.16.46",
+    "generatedAt": "2026-07-16T18:40:00.000Z",
+    "sourceProject": {
+      "path": "evaluation/scion-source-capture-evidence/tectonics-seismology-field-lab-local.json",
+      "bytes": 47930,
+      "sha256": "bd9550519f3f68019050d874b0cb0ba955e0fc4bbedd452a2b2deb433ddf38ef",
+      "projectId": "scion-source-capture-tectonics-seismology-field-lab-local",
+      "captureProtocol": "scion-source-grounded-atom-capture-v1",
+      "captureCompletedAt": "2026-07-13T14:17:07.244Z"
+    },
+    "compilerSources": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 27004,
+        "sha256": "51e3b00600df210f4acd1165c8615fa5221dd5f12afdf8102849bd037e5d944c"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 16298,
+        "sha256": "dc79300aa47944daaba8a1a9a431d2b27880e83967750a38a8bbea8af0ee3e8d"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 34370,
+        "sha256": "7fd55c718f2609c43d22cdf0cf9704796b61a9cdb8b76f8276a5c23f57e3711a"
+      },
+      {
+        "path": "scripts/scionSourceCompilerReplay.mjs",
+        "bytes": 20852,
+        "sha256": "c42e8dd39b9734240f0d7036f484082cfd0214ba74a8dede100f850200dd72dc"
+      }
+    ],
+    "responseMutationCount": 0,
+    "repairRows": [
+      {
+        "promptId": "tectonics-seismology-field-lab:geo/earthquakes",
+        "responseSha256": "84610bfbbb06fce4ccc4dc41d6e5f034db31a9d3b3dac58658a8f86614ab350e",
+        "admittedResponseSha256": "f5ff2ad16695f04adcc36042bbc30fecdd3e764cb732a943d5100503c761ea96",
+        "repairCounts": {
+          "total": 3,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 1,
+          "sourceAnswerAlignment": 0
+        },
+        "repairsSha256": "d899e34ca6663e8be6d933a478e954ea29ad0369a8f8c6d2483a494f0411a6ae"
+      },
+      {
+        "promptId": "tectonics-seismology-field-lab:geo/earths-interior",
+        "responseSha256": "21ff76fd4d7cce089246b638b36c5dff631b65f228d2094c27cb4547ac7cb694",
+        "admittedResponseSha256": "be877afbee6fcb6f399e4e9894e0bed361080242048eca97e4c28ab6ccea12a4",
+        "repairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2,
+          "sourceAnswerAlignment": 0
+        },
+        "repairsSha256": "f6c23d0976ef452f5cd012e484c7147323ee0db5b6920f837c25a0c5a2528d5c"
+      },
+      {
+        "promptId": "tectonics-seismology-field-lab:geo/plate-tectonics",
+        "responseSha256": "d53bfc4a9935ec4257d6daf86760e4ac9e341e0cee5311faedb6757d653fd275",
+        "admittedResponseSha256": "8d7bb7dbe8361ca92430b1c8fbfbc5476ec76b743b53cb64d6b868cd0b7eacc3",
+        "repairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2,
+          "sourceAnswerAlignment": 0
+        },
+        "repairsSha256": "5afe90c5c70a978b2a3f12ffd5c267550fdeb6448261c59faceb1ec762b690ee"
+      }
+    ],
+    "repairCounts": {
+      "total": 7,
+      "incompleteExplanationTail": 2,
+      "explanationKeyAlignment": 5,
+      "sourceAnswerAlignment": 0
+    },
+    "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
+    "identity": {
+      "algorithm": "sha256-canonical-source-compiler-replay-v1",
+      "sha256": "a327786ecef4f898f11b162b062bd5292b13174dcb033e1899740ce68e966cbf"
+    }
+  }
+}

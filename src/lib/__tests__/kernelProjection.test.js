@@ -552,6 +552,76 @@ describe('kernel parse → project → compile (end to end)', () => {
     });
   });
 
+  it('lets exact kernel fact citations repair a key before canonical projection', () => {
+    const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    const response = JSON.parse(shortKeyResponse);
+    response.lessons[0].facts = [
+      'Relative dating orders events while absolute dating assigns numerical ages.',
+      'Absolute numerical dating assigns specific ages in years to mineral grains within a rock.',
+      'Superposition orders undisturbed layers from oldest to youngest.',
+    ];
+    response.lessons[0].mc = [
+      {
+        q: 'What does absolute dating provide regarding mineral grains in a rock?',
+        op: [
+          'A numerical age in years',
+          'A relative order of events',
+          "The span of Earth's history",
+          'The sequence of deposition',
+        ],
+        ai: 1,
+        fi: [1],
+        ex: 'The correct choice gives a relative ordering for the sampled mineral grains.',
+      },
+    ];
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(response), { prompt });
+    expect(parsed.lessons['lesson-1'].quizItems[0].answerIndex).toBe(0);
+    expect(parsed.repairs).toEqual([
+      expect.objectContaining({
+        pass: 'sourceAnswerAlignment',
+        preferenceEvidence: expect.objectContaining({ supportedIndex: 0 }),
+      }),
+    ]);
+  });
+
+  it('never shifts a cited fact index after an earlier fact fails admission', () => {
+    const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    const response = JSON.parse(shortKeyResponse);
+    response.lessons[0].facts = [
+      'too short',
+      'Absolute numerical dating assigns specific ages in years to mineral grains within a rock.',
+      'Relative dating orders events from older to younger without assigning a numerical age.',
+    ];
+    response.lessons[0].mc = [
+      {
+        q: 'What does absolute dating provide regarding mineral grains in a rock?',
+        op: [
+          'A numerical age in years',
+          'A relative order of events',
+          "The span of Earth's history",
+          'The sequence of deposition',
+        ],
+        ai: 1,
+        fi: [1],
+        ex: 'The correct choice gives a relative ordering for the sampled mineral grains.',
+      },
+    ];
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(response), { prompt });
+    expect(parsed.lessons['lesson-1'].quizItems[0].answerIndex).toBe(0);
+    expect(parsed.repairs[0]).toMatchObject({ pass: 'sourceAnswerAlignment' });
+
+    response.lessons[0].mc[0].fi = [0];
+    const invalidCitation = parseLessonKernelResponse(JSON.stringify(response), { prompt });
+    expect(invalidCitation.lessons['lesson-1'].quizItems).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ question: response.lessons[0].mc[0].q })]),
+    );
+    expect(invalidCitation.issues).toContainEqual(
+      expect.objectContaining({ surface: 'mc', problems: expect.arrayContaining(['source-fact-index']) }),
+    );
+  });
+
   it('keeps every deterministic short-answer variant explicit about concept, evidence, and boundary', () => {
     const itemPlan = buildQuizItemPlan(6);
     for (let index = 0; index < 80; index += 1) {

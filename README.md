@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.45
+**Current release:** v0.16.46
 
 ---
 
@@ -31,7 +31,13 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.45**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.46**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.46 gives exact cited source evidence final authority over a model explanation when Scion selects a multiple-choice key. Live browser-local kernels now require every MC item to cite one or two lesson facts by index, and both the early local parser and canonical compiler pass only those cited claims into the repair. A repair is allowed only when the question identifies at most two top source claims, one different option has at least three supported content tokens and 60% containment, the declared option has at most one supported token, and no competing option clears the same support floor. Negative claims, tied or overlapping alternatives, broad questions, missing or invalid source indexes, and weak lexical matches all refuse repair.
+
+That rule catches two additional stable wrong-key cases—absolute dating and a UX journey map—raising semantic interception from 18/46 to 20/46. Eight keys are now repaired, twelve artifacts enter bounded retry, twenty-six stable losses remain unresolved, and model-authored response text mutations remain zero. Across the broader 192-atom retained-source replay, ten keys use source alignment: eight replace weaker explanation-only repairs and two are newly recovered. One old explanation-only repair is now blocked because the exact source confirms the originally declared key.
+
+The stronger source boundary also exposes one incoherent item that v0.16.45 admitted: source evidence supports one option while the explanation names another. Current admission therefore moves from 131/192 to 130/192 and retry burden from 61 to 62. This is an intentional refusal, not a hidden regression or rewritten answer. Corpus readiness remains 118/464 with the same 46/100 paired-order judge preferences, so Gemma weights remain unchanged and no quality adapter is trained, active, or promoted.
 
 v0.16.45 makes key-term admission source-aware. The compiler binds each replayed artifact to the exact source context retained in the anonymous A/B workbook, verifies every context and artifact hash, and rejects a purported misconception only when it affirmatively restates a supplied fact with at least three shared content tokens, 75% shorter-side containment, and 35% whole-sentence overlap. Explicit contrast words such as “must,” “only,” “not,” or “without” refuse this rule, so a legitimate false belief that shares the source's vocabulary is not mistaken for a true statement.
 

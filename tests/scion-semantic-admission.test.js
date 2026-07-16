@@ -10,16 +10,16 @@ describe('Scion semantic admission replay', () => {
 
     expect(report).toMatchObject({
       protocol: 'scion-semantic-admission-replay-v1',
-      release: 'v0.16.45',
+      release: 'v0.16.46',
       evidenceClass: 'single-model-judge-same-identity-paired-order-replay',
       summary: {
         reviewedStableLosses: 46,
-        acceptedWithoutInterception: 28,
-        intercepted: 18,
-        repaired: 6,
+        acceptedWithoutInterception: 26,
+        intercepted: 20,
+        repaired: 8,
         rejectedForRegeneration: 12,
         responseTextMutations: 0,
-        repairFieldMutations: 6,
+        repairFieldMutations: 8,
         issues: {
           'claim-marker-residue': 4,
           'duplicate-options': 2,
@@ -27,14 +27,19 @@ describe('Scion semantic admission replay', () => {
           'misconception-repeats-known-fact': 3,
         },
       },
-      unresolvedStableLosses: 28,
+      unresolvedStableLosses: 26,
     });
-    expect(report.intercepted.filter((entry) => entry.action === 'answer-index-repaired')).toHaveLength(6);
+    expect(report.intercepted.filter((entry) => entry.action === 'answer-index-repaired')).toHaveLength(8);
     expect(
       report.intercepted
         .flatMap((entry) => entry.repairs)
         .filter((repair) => repair.supportMethod === 'first-sentence-lexical-margin'),
     ).toHaveLength(3);
+    expect(
+      report.intercepted
+        .flatMap((entry) => entry.repairs)
+        .filter((repair) => repair.supportMethod === 'source-question-option-alignment'),
+    ).toHaveLength(2);
     expect(report.intercepted.every((entry) => entry.changedFields.length <= 1)).toBe(true);
     expect(report.intercepted.filter((entry) => entry.remainingIssues.includes('claim-marker-residue'))).toHaveLength(
       4,
@@ -48,6 +53,10 @@ describe('Scion semantic admission replay', () => {
     expect(report.inputs.baseline).toMatchObject({
       release: 'v0.16.42',
       acceptedWithoutInterception: 46,
+    });
+    expect(report.inputs.previousRelease).toMatchObject({
+      release: 'v0.16.45',
+      summary: { intercepted: 18, repaired: 6, rejectedForRegeneration: 12 },
     });
   });
 });

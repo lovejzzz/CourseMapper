@@ -73,6 +73,12 @@ evaluation/scion-source-compiler-replay-v0.16.45
 evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json
 evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.45.json
 evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.45.json
+# v0.16.46 gives exact source claims precedence over explanation-only answer
+# inference and retains byte-reproducible replay serialization.
+evaluation/scion-source-compiler-replay-v0.16.46
+evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.46.json
+evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.46.json
+evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.46.json
 .firebase
 .claude
 **/.venv*/
