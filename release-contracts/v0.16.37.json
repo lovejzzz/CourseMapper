@@ -17,16 +17,19 @@
       "npx playwright test"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Remote Fast verification will be recorded after the implementation commit is pushed."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29465536376",
+      "note": "Fast verification passed in 23m26s on exact main merge commit 2999bd445ecaebf4984758a5f142d754fd8850d4, including formatting, lint, release-history and cross-revision evidence audits, 4,482 unit tests, proof smoke, all 34 canonical courses in the main evaluation, production build, and bundle budgets."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "This milestone changes browser-local orchestration, project restore, progress presentation, and regression coverage. It does not train or compare a model."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "The production deployment and cache-bypassed browser probe will be recorded after merge."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29466503471",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.37-2999bd44-20260716T0226Z",
+      "note": "GitHub Pages built and deployed the exact Fast-verified merge commit. A cache-bypassed production probe returned HTTP 200 and cache MISS with a 2026-07-16T02:25:35Z last-modified timestamp. The served index-DxJgszp5.js, releaseManifest-CDiKN0T9.js, AppFlow-uWgVuHQm.js, and ExportSidePanel-CkFAQWID.js assets returned HTTP 200 with SHA-256 db64dec910301c76c3c5a6defa6167daf197387d6c004051451938bc0cdef282, 2951f5d98aaca2f73445ba831a7ad1ccb11e640a5ae6b58db9bed7642b9b3d50, dd4a6086c6ab5c42dbe9b20f3bed74d3327263c103535de53a6b577f065725fa, and ba82dff65d8f7811af513359a12ea6658406075b2e81e864e0105f7f8fc21afc. The live bundles expose v0.16.37, the exact release title, Grading package quality, Ready to download, Review notes in Agent, and Download ZIP."
     },
     "liveProvider": {
       "status": "not-used",
