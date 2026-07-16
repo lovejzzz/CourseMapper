@@ -149,7 +149,7 @@ function honestQualityComparison(candidate, control, caseIds) {
             modelRevision: 'gpt-5-session-test-revision',
             promptSha256: '8'.repeat(64),
             blinded: true,
-            preference: candidateLabel,
+            preference: order === 'B/A' ? (candidateLabel === 'A' ? 'B' : 'A') : candidateLabel,
             order,
             rationale: 'The candidate scores higher on accuracy, alignment, usability, and package coherence.',
             reviewedAt: '2026-07-13T12:00:00Z',

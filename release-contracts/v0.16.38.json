@@ -1,0 +1,122 @@
+{
+  "version": "0.16.38",
+  "date": "July 16, 2026",
+  "title": "Score Twice, Prove Every Score: make adapter judgment recomputable",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run test:quality-benchmark:unit",
+      "node scripts/scionAdapterJudgePromotionContractAudit.mjs",
+      "node scripts/qualityBenchmarkAudit.mjs --mode structure",
+      "node scripts/scionCodexJudgePolicyAudit.mjs",
+      "npm run format:check",
+      "npm run lint",
+      "npm test -- --maxWorkers=4",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:evaluation:main",
+      "npm run audit:release-history",
+      "npx playwright test tests/release-v01638.spec.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification is not claimed until the exact v0.16.38 merge commit passes GitHub Actions."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This milestone hardens deterministic benchmark evidence verification. It does not run a model, train an adapter, or make a quality comparison."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "The Pages deployment and production canary are not claimed until the exact Fast-verified merge commit is live."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "No provider or browser-local model is invoked. The tests construct synthetic full rubric reviews and prove that unsupported score and preference evidence fails closed."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "Codex is the declared sole judge. The protocol remains explicitly single-model evidence and this release performs no judgment."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-contract-only",
+      "note": "The focused 36-test benchmark lane, 4,486-test software suite, production build, bundle budgets, 34-course main evaluation, release-history audit, and real-Chromium release story pass locally. These prove benchmark, software, compiler, build, and release-truth integrity only; no model was run or compared."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01638-recomputable-score-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Model-judge totals and dimensions are accepted only when the verifier reconstructs both pass scorecards and the aggregate from two complete rubric-bound reviews.",
+      "anchors": [
+        "scripts/qualityModelComparison.mjs",
+        "evaluation/quality-benchmark/v1/comparison.schema.json",
+        "tests/scion-adapter-judge-promotion.test.js"
+      ],
+      "proofCommands": [
+        "npm run test:quality-benchmark:unit",
+        "node scripts/scionAdapterJudgePromotionContractAudit.mjs"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01638-isolated-order-sessions",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Strict promotion evidence requires one A/B session and a distinct B/A session, exact order-specific review and scorecard hashes, and scoring timestamps before preference.",
+      "anchors": [
+        "scripts/lib/qualityBenchmark.mjs",
+        "scripts/lib/scionAdapterJudgePromotion.mjs",
+        "evaluation/quality-benchmark/v1/single-model-judge-prompt-v1.md"
+      ],
+      "proofCommands": ["npm run test:quality-benchmark:unit"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01638-order-aware-unblinding",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "B/A outcomes reverse the anonymous label mapping before unblinding and expose per-artifact and candidate-minus-control score shifts instead of silently treating screen position as artifact identity.",
+      "anchors": [
+        "scripts/lib/qualityBenchmark.mjs",
+        "tests/scion-adapter-judge-promotion.test.js",
+        "scripts/__tests__/qualityBenchmark.test.js"
+      ],
+      "proofCommands": ["npm run test:quality-benchmark:unit"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01638-structured-decision-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Every winner names a concrete bound advantage or opposing defect, and every tie carries concrete evidence for both anonymous artifacts.",
+      "anchors": [
+        "evaluation/quality-benchmark/v1/comparison.schema.json",
+        "scripts/lib/scionAdapterJudgePromotion.mjs",
+        "evaluation/scion-adapters/codex-judge-policy-v1.json"
+      ],
+      "proofCommands": ["npm run test:quality-benchmark:unit", "node scripts/scionCodexJudgePolicyAudit.mjs"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01638-zero-model-result-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The milestone strengthens the ruler before candidate evaluation and records zero judgments, zero weight changes, and zero adapter-quality or speed claim.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "release-contracts/v0.16.38.json",
+        "tests/release-v01638.spec.js"
+      ],
+      "proofCommands": [
+        "node scripts/qualityBenchmarkAudit.mjs --mode structure",
+        "npm run audit:release-history",
+        "npx playwright test tests/release-v01638.spec.js"
+      ],
+      "proofScopes": ["doc", "static-audit", "browser-smoke"]
+    }
+  ]
+}

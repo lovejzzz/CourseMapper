@@ -84,11 +84,19 @@
     "modelJudgeContract": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["model", "modelRevision", "promptSha256", "requiredPassesPerTrial", "requiredOrders"],
+      "required": [
+        "model",
+        "modelRevision",
+        "promptSha256",
+        "evidenceProtocol",
+        "requiredPassesPerTrial",
+        "requiredOrders"
+      ],
       "properties": {
         "model": { "type": "string", "minLength": 3 },
         "modelRevision": { "type": "string", "minLength": 3 },
         "promptSha256": { "$ref": "#/$defs/sha256" },
+        "evidenceProtocol": { "const": "recomputable-two-order-v1" },
         "requiredPassesPerTrial": { "type": "integer", "minimum": 2 },
         "requiredOrders": {
           "type": "array",
@@ -189,9 +197,18 @@
         },
         "sourceSha256": { "$ref": "#/$defs/sha256" },
         "artifactSha256": { "$ref": "#/$defs/sha256" },
+        "aggregationBootstrapSamples": { "type": "integer", "minimum": 100 },
         "model": { "type": "string", "minLength": 3 },
         "modelRevision": { "type": "string", "minLength": 3 },
-        "promptSha256": { "$ref": "#/$defs/sha256" }
+        "promptSha256": { "$ref": "#/$defs/sha256" },
+        "reviewBundlePath": { "type": "string", "minLength": 3 },
+        "reviewBundleSha256": { "$ref": "#/$defs/sha256" },
+        "passScorecards": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/passScorecard" }
+        }
       },
       "allOf": [
         {
@@ -199,7 +216,17 @@
             "properties": { "evidenceClass": { "const": "model-judge" } },
             "required": ["evidenceClass"]
           },
-          "then": { "required": ["model", "modelRevision", "promptSha256"] }
+          "then": {
+            "required": [
+              "model",
+              "modelRevision",
+              "promptSha256",
+              "aggregationBootstrapSamples",
+              "reviewBundlePath",
+              "reviewBundleSha256",
+              "passScorecards"
+            ]
+          }
         }
       ]
     },
@@ -227,6 +254,7 @@
         "model": { "type": "string", "minLength": 3 },
         "modelRevision": { "type": "string", "minLength": 3 },
         "promptSha256": { "$ref": "#/$defs/sha256" },
+        "sessionId": { "type": "string", "minLength": 8 },
         "blinded": { "const": true },
         "preference": { "enum": ["A", "B", "tie"] },
         "order": { "enum": ["A/B", "B/A"] },
@@ -236,7 +264,12 @@
         "controlArtifactSha256": { "$ref": "#/$defs/sha256" },
         "candidateScorecardSha256": { "$ref": "#/$defs/sha256" },
         "controlScorecardSha256": { "$ref": "#/$defs/sha256" },
-        "scoredBeforePreference": { "const": true }
+        "scoredBeforePreference": { "const": true },
+        "decisionEvidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/decisionEvidence" }
+        }
       },
       "allOf": [
         {
@@ -249,14 +282,94 @@
               "model",
               "modelRevision",
               "promptSha256",
+              "sessionId",
               "order",
               "candidateScorecardSha256",
               "controlScorecardSha256",
-              "scoredBeforePreference"
+              "scoredBeforePreference",
+              "decisionEvidence"
             ]
           }
         }
       ]
+    },
+    "passScorecard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "order",
+        "reviewerId",
+        "sessionId",
+        "reviewIndex",
+        "scoredAt",
+        "presentedLabel",
+        "scorecardPath",
+        "scorecardSha256",
+        "reportedScore",
+        "dimensionScores"
+      ],
+      "properties": {
+        "order": { "enum": ["A/B", "B/A"] },
+        "reviewerId": { "type": "string", "minLength": 8 },
+        "sessionId": { "type": "string", "minLength": 8 },
+        "reviewIndex": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "scoredAt": { "type": "string", "format": "date-time" },
+        "presentedLabel": { "enum": ["A", "B"] },
+        "scorecardPath": { "type": "string", "minLength": 3 },
+        "scorecardSha256": { "$ref": "#/$defs/sha256" },
+        "reportedScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "dimensionScores": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "instructional-alignment",
+            "accuracy-source-fidelity",
+            "assessment-feedback",
+            "teaching-learning-usability",
+            "student-clarity-support",
+            "inclusion-accessibility",
+            "integrity-safety-rights",
+            "professional-craft",
+            "cross-artifact-coherence"
+          ],
+          "properties": {
+            "instructional-alignment": { "type": "number", "minimum": 0, "maximum": 100 },
+            "accuracy-source-fidelity": { "type": "number", "minimum": 0, "maximum": 100 },
+            "assessment-feedback": { "type": "number", "minimum": 0, "maximum": 100 },
+            "teaching-learning-usability": { "type": "number", "minimum": 0, "maximum": 100 },
+            "student-clarity-support": { "type": "number", "minimum": 0, "maximum": 100 },
+            "inclusion-accessibility": { "type": "number", "minimum": 0, "maximum": 100 },
+            "integrity-safety-rights": { "type": "number", "minimum": 0, "maximum": 100 },
+            "professional-craft": { "type": "number", "minimum": 0, "maximum": 100 },
+            "cross-artifact-coherence": { "type": "number", "minimum": 0, "maximum": 100 }
+          }
+        }
+      }
+    },
+    "decisionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "artifactLabel", "artifactSha256", "dimensionId", "location", "observation"],
+      "properties": {
+        "kind": { "enum": ["defect", "advantage"] },
+        "artifactLabel": { "enum": ["A", "B"] },
+        "artifactSha256": { "$ref": "#/$defs/sha256" },
+        "dimensionId": {
+          "enum": [
+            "instructional-alignment",
+            "accuracy-source-fidelity",
+            "assessment-feedback",
+            "teaching-learning-usability",
+            "student-clarity-support",
+            "inclusion-accessibility",
+            "integrity-safety-rights",
+            "professional-craft",
+            "cross-artifact-coherence"
+          ]
+        },
+        "location": { "type": "string", "minLength": 3 },
+        "observation": { "type": "string", "minLength": 20 }
+      }
     },
     "trial": {
       "type": "object",

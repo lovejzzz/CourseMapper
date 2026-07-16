@@ -6,9 +6,9 @@ import { computeScionAdapterPackageIdentity } from './scionBrowserDeviceMatrix.m
 import { verifyComparisonScorecards } from '../qualityModelComparison.mjs';
 import { sha256File } from '../scionAdapterPackage.mjs';
 
-export const SCION_ADAPTER_JUDGE_PROMOTION_PROTOCOL = 'scion-adapter-single-model-judge-promotion-v1';
+export const SCION_ADAPTER_JUDGE_PROMOTION_PROTOCOL = 'scion-adapter-single-model-judge-promotion-v2';
 export const SCION_ADAPTER_JUDGE_CLAIM_BOUNDARY =
-  'This is one provenance-bound model judge repeated in both presentation orders. It is not human, instructor, independent, classroom, or multi-judge evidence.';
+  'This is one provenance-bound model judge scored independently in two isolated presentation-order sessions. It is not human, instructor, independent, classroom, or multi-judge evidence.';
 
 const SHA256 = /^[a-f0-9]{64}$/;
 const QUALITY_MANIFEST_PATH = 'evaluation/quality-benchmark/v1/manifest.json';
@@ -44,6 +44,58 @@ function strictPositiveInterval(interval, threshold = 0) {
 
 function strictNegativeInterval(interval, threshold = 0) {
   return Array.isArray(interval) && Number.isFinite(interval[1]) && interval[1] < threshold;
+}
+
+function oppositeLabel(label) {
+  return label === 'A' ? 'B' : label === 'B' ? 'A' : null;
+}
+
+function artifactForPresentedLabel(trial, order, label) {
+  const candidateLabel =
+    order === 'B/A' ? oppositeLabel(trial?.randomization?.candidateLabel) : trial?.randomization?.candidateLabel;
+  const controlLabel =
+    order === 'B/A' ? oppositeLabel(trial?.randomization?.controlLabel) : trial?.randomization?.controlLabel;
+  if (label === candidateLabel) return trial?.outputs?.candidate?.outputSha256;
+  if (label === controlLabel) return trial?.outputs?.control?.outputSha256;
+  return null;
+}
+
+function decisionEvidenceIssues(trial, preference, prefix) {
+  const issues = [];
+  const rows = Array.isArray(preference?.decisionEvidence) ? preference.decisionEvidence : [];
+  if (!rows.length) return [`${prefix}:decision-evidence-missing`];
+  const seenLabels = new Set();
+  let decisive = false;
+  for (const [index, row] of rows.entries()) {
+    const rowPrefix = `${prefix}:decision-evidence-${index + 1}`;
+    const expectedArtifact = artifactForPresentedLabel(trial, preference.order, row?.artifactLabel);
+    if (!['defect', 'advantage'].includes(row?.kind)) issues.push(`${rowPrefix}:kind-invalid`);
+    if (!expectedArtifact || row?.artifactSha256 !== expectedArtifact)
+      issues.push(`${rowPrefix}:artifact-binding-mismatch`);
+    if (!REQUIRED_DIMENSIONS.includes(row?.dimensionId)) issues.push(`${rowPrefix}:dimension-invalid`);
+    if (clean(row?.location).length < 3) issues.push(`${rowPrefix}:location-missing`);
+    const observation = clean(row?.observation);
+    if (observation.length < 20 || /placeholder|replace me|\btbd\b/i.test(observation)) {
+      issues.push(`${rowPrefix}:observation-not-concrete`);
+    }
+    if (['A', 'B'].includes(row?.artifactLabel)) seenLabels.add(row.artifactLabel);
+    if (
+      (preference.preference === 'A' &&
+        ((row.kind === 'advantage' && row.artifactLabel === 'A') ||
+          (row.kind === 'defect' && row.artifactLabel === 'B'))) ||
+      (preference.preference === 'B' &&
+        ((row.kind === 'advantage' && row.artifactLabel === 'B') ||
+          (row.kind === 'defect' && row.artifactLabel === 'A')))
+    ) {
+      decisive = true;
+    }
+  }
+  if (preference.preference === 'tie') {
+    if (!seenLabels.has('A') || !seenLabels.has('B')) issues.push(`${prefix}:tie-must-evidence-both-artifacts`);
+  } else if (!decisive) {
+    issues.push(`${prefix}:winner-lacks-decisive-evidence`);
+  }
+  return issues;
 }
 
 function wilsonLowerBound(successes, total, z = 1.96) {
@@ -157,6 +209,10 @@ function comparisonBindingIssues({
   const expectedCourses = canonical.heldOutCourseBenchmark.courses || [];
   const expectedCaseIds = expectedCourses.map((course) => course.courseId);
   const courseById = new Map(expectedCourses.map((course) => [course.courseId, course]));
+  const sessionsByOrder = new Map([
+    ['A/B', new Set()],
+    ['B/A', new Set()],
+  ]);
   const candidateModel = modelById(comparison, comparison?.candidateId);
   const controlModel = modelById(comparison, comparison?.controlId);
   if (!adapterModelIdentityPass(candidateModel, evidence, adapterManifest, adapterPackageIdentitySha256)) {
@@ -177,6 +233,7 @@ function comparisonBindingIssues({
   }
   if (
     comparison?.preregistration?.modelJudge?.promptSha256 !== canonical.hashes.judgePrompt ||
+    comparison?.preregistration?.modelJudge?.evidenceProtocol !== 'recomputable-two-order-v1' ||
     comparison?.preregistration?.modelJudge?.requiredPassesPerTrial !== 2 ||
     !sameMembers(comparison?.preregistration?.modelJudge?.requiredOrders || [], ['A/B', 'B/A'])
   ) {
@@ -216,7 +273,36 @@ function comparisonBindingIssues({
       ) {
         issues.push(`${prefix}:requires-exact-reversed-order-pair`);
       }
+      for (const preference of preferences) {
+        const passPrefix = `${prefix}:${preference?.order || 'unknown-order'}`;
+        if (preference?.reviewerId !== preference?.sessionId || clean(preference?.sessionId).length < 8) {
+          issues.push(`${passPrefix}:judge-session-identity-invalid`);
+        }
+        if (sessionsByOrder.has(preference?.order)) sessionsByOrder.get(preference.order).add(preference.sessionId);
+        const candidatePass = trial?.outputs?.candidate?.scoreEvidence?.passScorecards?.find(
+          (row) => row?.order === preference?.order && row?.sessionId === preference?.sessionId,
+        );
+        const controlPass = trial?.outputs?.control?.scoreEvidence?.passScorecards?.find(
+          (row) => row?.order === preference?.order && row?.sessionId === preference?.sessionId,
+        );
+        if (
+          !candidatePass ||
+          !controlPass ||
+          preference?.candidateScorecardSha256 !== candidatePass.scorecardSha256 ||
+          preference?.controlScorecardSha256 !== controlPass.scorecardSha256 ||
+          !Number.isFinite(Date.parse(preference?.reviewedAt)) ||
+          Date.parse(preference.reviewedAt) <= Date.parse(candidatePass?.scoredAt) ||
+          Date.parse(preference.reviewedAt) <= Date.parse(controlPass?.scoredAt)
+        ) {
+          issues.push(`${passPrefix}:order-specific-scorecard-binding-mismatch`);
+        }
+        issues.push(...decisionEvidenceIssues(trial, preference, passPrefix));
+      }
     }
+  }
+  const allSessions = new Set([...sessionsByOrder.values()].flatMap((sessions) => [...sessions]));
+  if (sessionsByOrder.get('A/B').size !== 1 || sessionsByOrder.get('B/A').size !== 1 || allSessions.size !== 2) {
+    issues.push(`${role}:judge-order-sessions-must-be-two-distinct-isolated-runs`);
   }
   return issues;
 }
@@ -232,10 +318,14 @@ function reportThresholdIssues(report, role) {
     judge.completeCases !== 5 ||
     judge.consistencyRate !== 1 ||
     judge.judgeIdentityCount !== 1 ||
+    judge.judgeSessionCount !== 2 ||
+    judge.sessionsByOrder?.['A/B']?.length !== 1 ||
+    judge.sessionsByOrder?.['B/A']?.length !== 1 ||
     judge.positionSensitiveOrIncompleteTrials?.length
   ) {
     issues.push(`${role}:single-judge-completeness-failed`);
   }
+  if (report?.scoreOrderEffect?.trialCount !== 50) issues.push(`${role}:score-order-effect-incomplete`);
   if (!(Number(judge.wilson95?.[0]) > 0.5)) issues.push(`${role}:global-preference-wilson-lower-not-above-half`);
   for (const [caseId, row] of Object.entries(judge.byCase || {})) {
     const effectiveWins = Number(row.wins || 0) + Number(row.ties || 0) * 0.5;
@@ -285,6 +375,9 @@ function crossComparisonIssues(rows) {
     }
     if (baseCandidate?.scoreEvidence?.scorecardSha256 !== paidCandidate?.scoreEvidence?.scorecardSha256) {
       issues.push(`${key.replace('\0', ':')}:candidate-scorecard-not-reused`);
+    }
+    if (JSON.stringify(baseCandidate?.scoreEvidence) !== JSON.stringify(paidCandidate?.scoreEvidence)) {
+      issues.push(`${key.replace('\0', ':')}:candidate-score-evidence-not-reused`);
     }
     if (JSON.stringify(baseCandidate?.dimensionScores) !== JSON.stringify(paidCandidate?.dimensionScores)) {
       issues.push(`${key.replace('\0', ':')}:candidate-dimension-scores-not-reused`);
@@ -395,7 +488,11 @@ export async function auditScionAdapterSingleModelJudgeEvidence({
         continue;
       }
       const comparison = JSON.parse(await fs.readFile(absolute, 'utf8'));
-      const scorecards = await verifyComparisonScorecards(comparison, { baseDir: path.dirname(absolute) });
+      const scorecards = await verifyComparisonScorecards(comparison, {
+        baseDir: path.dirname(absolute),
+        rubric: canonical.rubric,
+        requireRecomputableModelJudgeEvidence: true,
+      });
       const report = analyzeModelComparison(comparison, {
         bootstrapSamples,
         verifiedScorecardSha256s: scorecards.verifiedScorecardSha256s,

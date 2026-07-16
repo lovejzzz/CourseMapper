@@ -8,7 +8,7 @@
     "model": "openai/codex",
     "revisionPolicy": "Every comparison must preregister the exact runtime or session revision exposed for that run. Missing, placeholder, or changed revision provenance makes the comparison invalid.",
     "promptPath": "evaluation/quality-benchmark/v1/single-model-judge-prompt-v1.md",
-    "promptSha256": "6f95f8806a094558ff4f266216e0140d7710e4f46eb155490868e54078bac266"
+    "promptSha256": "d0f916c11f076aebf41a6fb9ee0c0ceb8c8e14966cf97acccbaae6be1b325a15"
   },
   "heldout": {
     "manifestPath": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
@@ -20,6 +20,12 @@
     "minimumTrialsPerCase": 10,
     "requiredPassesPerTrial": 2,
     "requiredOrders": ["A/B", "B/A"],
+    "evidenceProtocol": "recomputable-two-order-v1",
+    "requiredIsolatedJudgeSessions": 2,
+    "requireCompleteReviewBundles": true,
+    "requireRecomputedOrderScorecards": true,
+    "requireStructuredDecisionEvidence": true,
+    "measureScoreOrderEffects": true,
     "minimumStableTrialOutcomes": 50,
     "minimumRecordedJudgePasses": 100,
     "scoreBeforePreference": true,

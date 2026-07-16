@@ -3,14 +3,15 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { isDeepStrictEqual } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
-import { analyzeModelComparison } from './lib/qualityBenchmark.mjs';
+import { aggregateQualityReviews, analyzeModelComparison } from './lib/qualityBenchmark.mjs';
 
 const ROOT = process.cwd();
 const DEFAULT_OUTPUT = path.join(ROOT, 'verification-output', 'quality-model-comparison');
 
-async function resolveBoundScorecard(baseDir, declaredPath) {
+async function resolveBoundFile(baseDir, declaredPath, label = 'bound file') {
   const normalized = String(declaredPath || '')
     .trim()
     .replaceAll('\\', '/');
@@ -19,23 +20,134 @@ async function resolveBoundScorecard(baseDir, declaredPath) {
     path.isAbsolute(normalized) ||
     normalized.split('/').some((part) => !part || part === '.' || part === '..')
   ) {
-    throw new Error('scorecardPath must be a safe relative path');
+    throw new Error(`${label} path must be a safe relative path`);
   }
   const [realBase, absolute] = await Promise.all([
     fs.realpath(path.resolve(baseDir)),
     Promise.resolve(path.resolve(baseDir, normalized)),
   ]);
   const stats = await fs.lstat(absolute);
-  if (!stats.isFile() || stats.isSymbolicLink()) throw new Error('scorecard must be a regular non-symlink file');
+  if (!stats.isFile() || stats.isSymbolicLink()) throw new Error(`${label} must be a regular non-symlink file`);
   const realScorecard = await fs.realpath(absolute);
   const relative = path.relative(realBase, realScorecard);
   if (!relative || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
-    throw new Error('scorecardPath escapes its comparison directory');
+    throw new Error(`${label} path escapes its comparison directory`);
   }
   return absolute;
 }
 
-export async function verifyComparisonScorecards(comparison, { baseDir = ROOT } = {}) {
+function expectedPresentedLabel(trial, side, order) {
+  const initial = side === 'candidate' ? trial?.randomization?.candidateLabel : trial?.randomization?.controlLabel;
+  if (!['A', 'B'].includes(initial)) return null;
+  return order === 'B/A' ? (initial === 'A' ? 'B' : 'A') : initial;
+}
+
+function scorecardDimensionMap(scorecard) {
+  return Object.fromEntries((scorecard?.dimensions || []).map((dimension) => [dimension.id, Number(dimension.score)]));
+}
+
+function benchmarkCaseForTrial(trial) {
+  return {
+    id: trial.caseId,
+    split: trial.split,
+    source: { sha256: trial.sourceSha256, verified: true },
+    exportVerified: true,
+  };
+}
+
+async function readBoundJson(baseDir, declaredPath, expectedSha256, label) {
+  const absolute = await resolveBoundFile(baseDir, declaredPath, label);
+  const bytes = await fs.readFile(absolute);
+  const observedSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+  if (observedSha256 !== expectedSha256) throw new Error(`${label} hash mismatch`);
+  return { absolute, observedSha256, value: JSON.parse(bytes.toString('utf8')) };
+}
+
+async function verifyRecomputableModelJudgeScore({
+  trial,
+  side,
+  output,
+  scorecard,
+  baseDir,
+  rubric,
+  verifiedScorecardSha256s,
+}) {
+  if (!rubric) throw new Error('canonical rubric is required for recomputable model-judge evidence');
+  const evidence = output.scoreEvidence;
+  const aggregationBootstrapSamples = Number(evidence.aggregationBootstrapSamples);
+  if (!Number.isInteger(aggregationBootstrapSamples) || aggregationBootstrapSamples < 100) {
+    throw new Error('aggregationBootstrapSamples must be an integer of at least 100');
+  }
+  const bundle = await readBoundJson(baseDir, evidence.reviewBundlePath, evidence.reviewBundleSha256, 'review bundle');
+  if (!Array.isArray(bundle.value) || bundle.value.length !== 2) {
+    throw new Error('review bundle must contain exactly two order-specific reviews');
+  }
+  const passes = Array.isArray(evidence.passScorecards) ? evidence.passScorecards : [];
+  if (passes.length !== 2 || new Set(passes.map((row) => row?.order)).size !== 2) {
+    throw new Error('passScorecards must contain exactly one A/B and one B/A scorecard');
+  }
+  const expectedOrders = new Set(['A/B', 'B/A']);
+  const usedReviewIndexes = new Set();
+  for (const pass of passes) {
+    if (!expectedOrders.has(pass?.order)) throw new Error('passScorecards order must be A/B or B/A');
+    if (!Number.isInteger(pass?.reviewIndex) || pass.reviewIndex < 0 || pass.reviewIndex >= bundle.value.length) {
+      throw new Error('passScorecards reviewIndex must select one bound review');
+    }
+    if (usedReviewIndexes.has(pass.reviewIndex)) throw new Error('passScorecards cannot reuse one review');
+    usedReviewIndexes.add(pass.reviewIndex);
+    const review = bundle.value[pass.reviewIndex];
+    const expectedLabel = expectedPresentedLabel(trial, side, pass.order);
+    if (
+      pass.presentedLabel !== expectedLabel ||
+      pass.sessionId !== pass.reviewerId ||
+      review?.evaluator?.id !== pass.sessionId ||
+      review?.reviewedAt !== pass.scoredAt ||
+      !Number.isFinite(Date.parse(pass.scoredAt)) ||
+      review?.evaluator?.model !== evidence.model ||
+      review?.evaluator?.modelRevision !== evidence.modelRevision ||
+      review?.evaluator?.promptSha256 !== evidence.promptSha256 ||
+      review?.caseId !== trial.caseId ||
+      review?.artifactType !== 'package' ||
+      review?.sourceSha256 !== trial.sourceSha256 ||
+      review?.artifactSha256 !== output.outputSha256
+    ) {
+      throw new Error(`${pass.order} review identity, side, source, artifact, or judge provenance mismatch`);
+    }
+    const boundPassScorecard = await readBoundJson(
+      baseDir,
+      pass.scorecardPath,
+      pass.scorecardSha256,
+      `${pass.order} scorecard`,
+    );
+    const recomputed = aggregateQualityReviews([review], rubric, {
+      benchmarkCase: benchmarkCaseForTrial(trial),
+      bootstrapSamples: aggregationBootstrapSamples,
+    });
+    if (!isDeepStrictEqual(boundPassScorecard.value, recomputed)) {
+      throw new Error(`${pass.order} scorecard cannot be reproduced from its bound review`);
+    }
+    const recomputedDimensions = scorecardDimensionMap(recomputed);
+    if (
+      Number(pass.reportedScore) !== Number(recomputed.scores?.reportedScore) ||
+      !isDeepStrictEqual(pass.dimensionScores, recomputedDimensions)
+    ) {
+      throw new Error(`${pass.order} declared score does not match its recomputed scorecard`);
+    }
+    verifiedScorecardSha256s.add(boundPassScorecard.observedSha256);
+  }
+  const recomputedAggregate = aggregateQualityReviews(bundle.value, rubric, {
+    benchmarkCase: benchmarkCaseForTrial(trial),
+    bootstrapSamples: aggregationBootstrapSamples,
+  });
+  if (!isDeepStrictEqual(scorecard, recomputedAggregate)) {
+    throw new Error('aggregate scorecard cannot be reproduced from both bound order-specific reviews');
+  }
+}
+
+export async function verifyComparisonScorecards(
+  comparison,
+  { baseDir = ROOT, rubric = null, requireRecomputableModelJudgeEvidence = false } = {},
+) {
   const verifiedScorecardSha256s = new Set();
   const issues = [];
   for (const trial of comparison?.trials || []) {
@@ -45,7 +157,7 @@ export async function verifyComparisonScorecards(comparison, { baseDir = ROOT } 
       const evidence = output?.scoreEvidence;
       const prefix = `${trial.caseId || '<case>'}/trial-${trial.trialIndex ?? '?'}/${side}`;
       try {
-        const absolute = await resolveBoundScorecard(baseDir, evidence?.scorecardPath);
+        const absolute = await resolveBoundFile(baseDir, evidence?.scorecardPath, 'scorecard');
         const bytes = await fs.readFile(absolute);
         const observedSha256 = crypto.createHash('sha256').update(bytes).digest('hex');
         if (observedSha256 !== evidence?.scorecardSha256) {
@@ -81,6 +193,17 @@ export async function verifyComparisonScorecards(comparison, { baseDir = ROOT } 
             `${prefix} scorecard content does not match the declared score, dimensions, artifact, or evidence tier`,
           );
           continue;
+        }
+        if (requireRecomputableModelJudgeEvidence && evidence.evidenceClass === 'model-judge') {
+          await verifyRecomputableModelJudgeScore({
+            trial,
+            side,
+            output,
+            scorecard,
+            baseDir,
+            rubric,
+            verifiedScorecardSha256s,
+          });
         }
         verifiedScorecardSha256s.add(observedSha256);
       } catch (error) {
@@ -133,9 +256,13 @@ function renderMarkdown(report) {
     `Effective win rate (tie = 0.5): ${modelPreference.effectiveWinRate ?? '—'}`,
     `Wilson 95% interval over stable trial outcomes: ${modelPreference.wilson95[0] ?? '—'} to ${modelPreference.wilson95[1] ?? '—'}`,
     `Judge: ${modelPreference.judgeIdentity ? `${modelPreference.judgeIdentity.model} @ ${modelPreference.judgeIdentity.modelRevision}; prompt ${modelPreference.judgeIdentity.promptSha256}` : 'not uniquely bound'}`,
+    `Isolated judge sessions: ${modelPreference.judgeSessionCount}; A/B ${modelPreference.sessionsByOrder?.['A/B']?.join(', ') || 'none'}; B/A ${modelPreference.sessionsByOrder?.['B/A']?.join(', ') || 'none'}`,
     `Passes: ${modelPreference.passCount}; required per trial: ${modelPreference.requiredPassesPerTrial}; required orders: ${modelPreference.requiredOrders.join(', ')}`,
     `Position-sensitive or incomplete trials: ${modelPreference.positionSensitiveOrIncompleteTrials.map((row) => `${row.caseId}/trial-${row.trialIndex} (${row.reason})`).join(', ') || 'none'}`,
     `Usable for declared single-model primary claim: ${modelPreference.usableForPrimaryClaim ? 'yes' : 'no'}`,
+    `Order-specific score coverage: ${report.scoreOrderEffect.trialCount}/${report.trialCount} trials`,
+    `Mean absolute score shift after reversal: candidate ${report.scoreOrderEffect.candidateMeanAbsoluteShift ?? '—'}; control ${report.scoreOrderEffect.controlMeanAbsoluteShift ?? '—'}`,
+    `Mean candidate−control delta shift after reversal: ${report.scoreOrderEffect.candidateMinusControlMeanDeltaShift ?? '—'}; maximum absolute shift ${report.scoreOrderEffect.maximumAbsoluteDeltaShift ?? '—'}`,
     '',
     '## Operations',
     '',
@@ -169,8 +296,14 @@ export async function runQualityModelComparison({
 } = {}) {
   if (!inputPath) throw new Error('--input is required');
   const comparison = JSON.parse(await fs.readFile(path.resolve(inputPath), 'utf8'));
+  const singleModelJudge = comparison?.preregistration?.primaryPreferenceEvidence === 'single-model-judge';
+  const rubric = singleModelJudge
+    ? JSON.parse(await fs.readFile(path.join(ROOT, 'evaluation', 'quality-benchmark', 'v1', 'rubric.json'), 'utf8'))
+    : null;
   const verification = await verifyComparisonScorecards(comparison, {
     baseDir: path.dirname(path.resolve(inputPath)),
+    rubric,
+    requireRecomputableModelJudgeEvidence: singleModelJudge,
   });
   const report = analyzeModelComparison(comparison, {
     bootstrapSamples,

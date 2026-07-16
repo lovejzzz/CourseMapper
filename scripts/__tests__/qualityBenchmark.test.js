@@ -372,7 +372,8 @@ function useSingleModelJudge(comparison) {
       evidenceClass: 'model-judge',
       ...judge,
       blinded: true,
-      preference: trial.randomization.candidateLabel,
+      preference:
+        order === 'B/A' ? (trial.randomization.candidateLabel === 'A' ? 'B' : 'A') : trial.randomization.candidateLabel,
       order,
       rationale: 'The candidate scores higher on the bound rubric with more specific artifact evidence.',
       reviewedAt: '2026-07-13T12:00:00Z',
@@ -438,7 +439,7 @@ describe('controlled model comparison', () => {
       candidateEvidence.scorecardPath = '../outside-scorecard.json';
       const escapedPath = await verifyComparisonScorecards(fixture, { baseDir: directory });
       expect(escapedPath.issues).toContain(
-        'case-a/trial-1/candidate scorecard cannot be verified: scorecardPath must be a safe relative path',
+        'case-a/trial-1/candidate scorecard cannot be verified: scorecard path must be a safe relative path',
       );
     } finally {
       await rm(directory, { recursive: true, force: true });
@@ -586,7 +587,7 @@ describe('controlled model comparison', () => {
     });
 
     const orderSensitive = useSingleModelJudge(comparisonFixture());
-    orderSensitive.trials[0].preferences[1].preference = orderSensitive.trials[0].randomization.controlLabel;
+    orderSensitive.trials[0].preferences[1].preference = orderSensitive.trials[0].randomization.candidateLabel;
     const inconsistent = analyzeModelComparison(orderSensitive, {
       bootstrapSamples: 100,
       verifiedScorecardSha256s: verifiedScorecards(orderSensitive),

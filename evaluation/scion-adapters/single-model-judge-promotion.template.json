@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "protocolVersion": "scion-adapter-single-model-judge-promotion-v1",
+  "protocolVersion": "scion-adapter-single-model-judge-promotion-v2",
   "benchmarkProtocol": "honest-quality-benchmark-v1",
-  "claimBoundary": "This is one provenance-bound model judge repeated in both presentation orders. It is not human, instructor, independent, classroom, or multi-judge evidence.",
+  "claimBoundary": "This is one provenance-bound model judge scored independently in two isolated presentation-order sessions. It is not human, instructor, independent, classroom, or multi-judge evidence.",
   "benchmark": {
     "qualityManifest": {
       "path": "evaluation/quality-benchmark/v1/manifest.json",
-      "sha256": "3373cb3259f6d9e99222cfbfc02c573b99b42a5f5367cccd971edd53505eb4f3"
+      "sha256": "ccb374c9e7974132fa9680e4c4bd22487fb456d02953322d7c4ed1e52a9a0984"
     },
     "rubric": {
       "path": "evaluation/quality-benchmark/v1/rubric.json",
@@ -14,7 +14,7 @@
     },
     "judgePrompt": {
       "path": "evaluation/quality-benchmark/v1/single-model-judge-prompt-v1.md",
-      "sha256": "6f95f8806a094558ff4f266216e0140d7710e4f46eb155490868e54078bac266"
+      "sha256": "d0f916c11f076aebf41a6fb9ee0c0ceb8c8e14966cf97acccbaae6be1b325a15"
     },
     "heldOutCourseBenchmark": {
       "path": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",

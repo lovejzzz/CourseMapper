@@ -768,9 +768,67 @@ function outputOperationalSummary(trials, side) {
 function preferenceOutcome(preference, randomization) {
   if (preference.preference === 'tie') return 'tie';
   if (!['A', 'B'].includes(preference.preference)) return null;
-  if (randomization?.candidateLabel === preference.preference) return 'candidate';
-  if (randomization?.controlLabel === preference.preference) return 'control';
+  const candidateLabel = reversedLabel(randomization?.candidateLabel, preference.order);
+  const controlLabel = reversedLabel(randomization?.controlLabel, preference.order);
+  if (candidateLabel === preference.preference) return 'candidate';
+  if (controlLabel === preference.preference) return 'control';
   return null;
+}
+
+function reversedLabel(label, order) {
+  if (!['A', 'B'].includes(label)) return null;
+  return order === 'B/A' ? (label === 'A' ? 'B' : 'A') : label;
+}
+
+function presentedArtifactSha256(trial, order, label) {
+  if (reversedLabel(trial?.randomization?.candidateLabel, order) === label) {
+    return trial?.outputs?.candidate?.outputSha256;
+  }
+  if (reversedLabel(trial?.randomization?.controlLabel, order) === label) {
+    return trial?.outputs?.control?.outputSha256;
+  }
+  return null;
+}
+
+function validDecisionEvidence(trial, preference) {
+  const rows = Array.isArray(preference?.decisionEvidence) ? preference.decisionEvidence : [];
+  if (!rows.length) return false;
+  const labels = new Set();
+  let decisive = false;
+  for (const row of rows) {
+    const expectedArtifact = presentedArtifactSha256(trial, preference.order, row?.artifactLabel);
+    if (
+      !['defect', 'advantage'].includes(row?.kind) ||
+      !expectedArtifact ||
+      row?.artifactSha256 !== expectedArtifact ||
+      !EXPECTED_DIMENSION_IDS.has(row?.dimensionId) ||
+      !concreteText(row?.location, 3) ||
+      !concreteText(row?.observation, 20)
+    ) {
+      return false;
+    }
+    labels.add(row.artifactLabel);
+    if (
+      (preference.preference === 'A' &&
+        ((row.kind === 'advantage' && row.artifactLabel === 'A') ||
+          (row.kind === 'defect' && row.artifactLabel === 'B'))) ||
+      (preference.preference === 'B' &&
+        ((row.kind === 'advantage' && row.artifactLabel === 'B') ||
+          (row.kind === 'defect' && row.artifactLabel === 'A')))
+    ) {
+      decisive = true;
+    }
+  }
+  return preference.preference === 'tie' ? labels.has('A') && labels.has('B') : decisive;
+}
+
+function boundPassScorecard(output, preference) {
+  return (output?.scoreEvidence?.passScorecards || []).find(
+    (row) =>
+      row?.order === preference?.order &&
+      row?.sessionId === preference?.sessionId &&
+      row?.reviewerId === preference?.reviewerId,
+  );
 }
 
 export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, verifiedScorecardSha256s = [] } = {}) {
@@ -797,6 +855,7 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
     issues.push('preregistration.primaryPreferenceEvidence must be qualified-human or single-model-judge');
   }
   const modelJudgeContract = comparison?.preregistration?.modelJudge || {};
+  const strictTwoOrderScoreEvidence = modelJudgeContract.evidenceProtocol === 'recomputable-two-order-v1';
   const requiredModelJudgePassesPerTrial = Number(modelJudgeContract.requiredPassesPerTrial);
   const requiredModelJudgeOrders = Array.isArray(modelJudgeContract.requiredOrders)
     ? modelJudgeContract.requiredOrders
@@ -886,6 +945,7 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
   const seenOutputPairs = new Set();
   const qualifiedReviewersByTrial = new Map();
   const scoreEvidenceTiers = new Set();
+  const orderScoreRows = [];
   for (const trial of trials) {
     const prefix = `${trial.caseId || '<case>'}/trial-${trial.trialIndex ?? '?'}`;
     if (!declaredCaseSet.has(trial.caseId)) issues.push(`${prefix} was not predeclared in preregistration.caseIds`);
@@ -1001,6 +1061,37 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
         } else {
           scoreEvidenceTiers.add(`${evidence.evidenceClass}:${evidence.validationTier}`);
         }
+        if (primaryPreferenceEvidence === 'single-model-judge' && strictTwoOrderScoreEvidence) {
+          const passScorecards = Array.isArray(evidence?.passScorecards) ? evidence.passScorecards : [];
+          const observedOrders = new Set(passScorecards.map((row) => row?.order));
+          const passEvidenceValid =
+            Number.isInteger(evidence?.aggregationBootstrapSamples) &&
+            evidence.aggregationBootstrapSamples >= 100 &&
+            passScorecards.length === 2 &&
+            observedOrders.size === 2 &&
+            observedOrders.has('A/B') &&
+            observedOrders.has('B/A') &&
+            passScorecards.every(
+              (row) =>
+                row?.reviewerId === row?.sessionId &&
+                concreteText(row?.sessionId, 8) &&
+                Number.isFinite(Date.parse(row?.scoredAt)) &&
+                ['A', 'B'].includes(row?.presentedLabel) &&
+                Number.isInteger(row?.reviewIndex) &&
+                Number.isFinite(Number(row?.reportedScore)) &&
+                Number(row.reportedScore) >= 0 &&
+                Number(row.reportedScore) <= 100 &&
+                SHA256.test(String(row?.scorecardSha256 || '')) &&
+                verifiedScorecards.has(row.scorecardSha256) &&
+                Object.keys(row?.dimensionScores || {}).length === EXPECTED_DIMENSION_IDS.size &&
+                [...EXPECTED_DIMENSION_IDS].every((id) => Number.isFinite(Number(row?.dimensionScores?.[id]))),
+            ) &&
+            SHA256.test(String(evidence?.reviewBundleSha256 || '')) &&
+            concreteText(evidence?.reviewBundlePath, 3);
+          if (!passEvidenceValid) {
+            issues.push(`${prefix} ${side} requires two byte-verified, recomputable order-specific scorecards`);
+          }
+        }
         for (const [dimensionId, value] of Object.entries(dimensions)) {
           if (
             !concreteText(dimensionId, 2) ||
@@ -1067,6 +1158,27 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
           dimensionDeltas.set(dimensionId, rows);
         }
       }
+      const candidateByOrder = new Map(
+        (candidate?.scoreEvidence?.passScorecards || []).map((row) => [row?.order, Number(row?.reportedScore)]),
+      );
+      const controlByOrder = new Map(
+        (control?.scoreEvidence?.passScorecards || []).map((row) => [row?.order, Number(row?.reportedScore)]),
+      );
+      if (
+        ['A/B', 'B/A'].every(
+          (order) => Number.isFinite(candidateByOrder.get(order)) && Number.isFinite(controlByOrder.get(order)),
+        )
+      ) {
+        const candidateShift = candidateByOrder.get('B/A') - candidateByOrder.get('A/B');
+        const controlShift = controlByOrder.get('B/A') - controlByOrder.get('A/B');
+        orderScoreRows.push({
+          caseId: trial.caseId,
+          trialIndex: trial.trialIndex,
+          candidateShift,
+          controlShift,
+          comparisonDeltaShift: candidateShift - controlShift,
+        });
+      }
     }
     if (candidate?.status === 'success' && control?.status === 'success') {
       pairedLatencyDeltas.push(Number(candidate.latencyMs) - Number(control.latencyMs));
@@ -1097,9 +1209,23 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
           SHA256.test(String(preference.promptSha256 || '')));
       const modelJudgeScorecardsBound =
         !modelJudgePreference ||
-        (preference.scoredBeforePreference === true &&
-          preference.candidateScorecardSha256 === candidate?.scoreEvidence?.scorecardSha256 &&
-          preference.controlScorecardSha256 === control?.scoreEvidence?.scorecardSha256);
+        (!strictTwoOrderScoreEvidence
+          ? preference.scoredBeforePreference === true &&
+            preference.candidateScorecardSha256 === candidate?.scoreEvidence?.scorecardSha256 &&
+            preference.controlScorecardSha256 === control?.scoreEvidence?.scorecardSha256
+          : (() => {
+              const candidatePass = boundPassScorecard(candidate, preference);
+              const controlPass = boundPassScorecard(control, preference);
+              return (
+                preference.scoredBeforePreference === true &&
+                preference.reviewerId === preference.sessionId &&
+                concreteText(preference.sessionId, 8) &&
+                preference.candidateScorecardSha256 === candidatePass?.scorecardSha256 &&
+                preference.controlScorecardSha256 === controlPass?.scorecardSha256 &&
+                Date.parse(preference.reviewedAt) > Date.parse(candidatePass?.scoredAt) &&
+                Date.parse(preference.reviewedAt) > Date.parse(controlPass?.scoredAt)
+              );
+            })());
       const modelJudgeOrderValid = !modelJudgePreference || ['A/B', 'B/A'].includes(preference.order);
       const modelJudgeMatchesPreregistration =
         !modelJudgePreference ||
@@ -1120,6 +1246,7 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
         !modelJudgeScorecardsBound ||
         !modelJudgeOrderValid ||
         !modelJudgeMatchesPreregistration ||
+        (modelJudgePreference && strictTwoOrderScoreEvidence && !validDecisionEvidence(trial, preference)) ||
         duplicatePreference
       ) {
         issues.push(`${prefix} has an invalid pairwise preference from ${preference.reviewerId || '<unknown>'}`);
@@ -1144,6 +1271,7 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
           trialIndex: trial.trialIndex,
           trialKey,
           reviewerId: preference.reviewerId,
+          sessionId: preference.sessionId,
           order: preference.order,
           model: preference.model,
           modelRevision: preference.modelRevision,
@@ -1173,6 +1301,10 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
   const rawModelCounts = { candidate: 0, control: 0, tie: 0 };
   for (const row of modelJudgeOutcomes) rawModelCounts[row.outcome] += 1;
   const modelJudgeIdentities = new Map();
+  const modelJudgeSessionsByOrder = new Map([
+    ['A/B', new Set()],
+    ['B/A', new Set()],
+  ]);
   const modelRowsByTrial = new Map();
   for (const row of modelJudgeOutcomes) {
     const identityKey = `${row.model}\u0000${row.modelRevision}\u0000${row.promptSha256}`;
@@ -1186,6 +1318,7 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
     const rows = modelRowsByTrial.get(row.trialKey) || [];
     rows.push(row);
     modelRowsByTrial.set(row.trialKey, rows);
+    if (modelJudgeSessionsByOrder.has(row.order)) modelJudgeSessionsByOrder.get(row.order).add(row.sessionId);
   }
   const effectiveRequiredModelPasses = Number.isInteger(requiredModelJudgePassesPerTrial)
     ? requiredModelJudgePassesPerTrial
@@ -1247,7 +1380,11 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
     trials.length > 0 &&
     stableModelTrials.length === trials.length &&
     completeModelJudgeCaseIds.length === declaredCaseSet.size &&
-    modelJudgeIdentities.size === 1;
+    modelJudgeIdentities.size === 1 &&
+    (!strictTwoOrderScoreEvidence ||
+      (modelJudgeSessionsByOrder.get('A/B').size === 1 &&
+        modelJudgeSessionsByOrder.get('B/A').size === 1 &&
+        new Set([...modelJudgeSessionsByOrder.values()].flatMap((rows) => [...rows])).size === 2));
   const status = issues.length
     ? 'invalid'
     : primaryPreferenceEvidence === 'single-model-judge'
@@ -1279,6 +1416,32 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
     minimumTrialsPerCase: Number.isInteger(minimumTrialsPerCase) ? minimumTrialsPerCase : null,
     splitCounts: trials.reduce((counts, trial) => ({ ...counts, [trial.split]: (counts[trial.split] || 0) + 1 }), {}),
     scoreEvidenceTiers: [...scoreEvidenceTiers].sort(),
+    scoreOrderEffect: {
+      trialCount: orderScoreRows.length,
+      candidateMeanSignedShift: round(mean(orderScoreRows.map((row) => row.candidateShift)), 3),
+      candidateMeanAbsoluteShift: round(mean(orderScoreRows.map((row) => Math.abs(row.candidateShift))), 3),
+      controlMeanSignedShift: round(mean(orderScoreRows.map((row) => row.controlShift)), 3),
+      controlMeanAbsoluteShift: round(mean(orderScoreRows.map((row) => Math.abs(row.controlShift))), 3),
+      candidateMinusControlMeanDeltaShift: round(mean(orderScoreRows.map((row) => row.comparisonDeltaShift)), 3),
+      maximumAbsoluteDeltaShift: round(
+        orderScoreRows.length ? Math.max(...orderScoreRows.map((row) => Math.abs(row.comparisonDeltaShift))) : null,
+        3,
+      ),
+      byCase: Object.fromEntries(
+        [...declaredCaseSet].map((caseId) => {
+          const rows = orderScoreRows.filter((row) => row.caseId === caseId);
+          return [
+            caseId,
+            {
+              trials: rows.length,
+              meanAbsoluteCandidateShift: round(mean(rows.map((row) => Math.abs(row.candidateShift))), 3),
+              meanAbsoluteControlShift: round(mean(rows.map((row) => Math.abs(row.controlShift))), 3),
+              meanComparisonDeltaShift: round(mean(rows.map((row) => row.comparisonDeltaShift)), 3),
+            },
+          ];
+        }),
+      ),
+    },
     absoluteScoreEffect: {
       pairedTrialCount: pairedDeltas.length,
       candidateMinusControlMean: bootstrapPaired(pairedDeltas, (rows) => mean(rows), {
@@ -1352,6 +1515,10 @@ export function analyzeModelComparison(comparison, { bootstrapSamples = 5000, ve
       consistencyRate: round(trials.length ? stableModelTrials.length / trials.length : null),
       judgeIdentityCount: modelJudgeIdentities.size,
       judgeIdentity: modelJudgeIdentities.size === 1 ? [...modelJudgeIdentities.values()][0] : null,
+      judgeSessionCount: new Set([...modelJudgeSessionsByOrder.values()].flatMap((rows) => [...rows])).size,
+      sessionsByOrder: Object.fromEntries(
+        [...modelJudgeSessionsByOrder.entries()].map(([order, rows]) => [order, [...rows].sort()]),
+      ),
       positionSensitiveOrIncompleteTrials: modelJudgeProtocolIssues,
       byCase: Object.fromEntries(
         [...declaredCaseSet].map((caseId) => {

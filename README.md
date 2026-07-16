@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.37
+**Current release:** v0.16.38
 
 ---
 
@@ -31,7 +31,13 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.37**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.38**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.38 fixes a promotion-evidence flaw before any quality adapter is scored. A hash-bound JSON scorecard could previously repeat the expected total and nine dimension values without retaining the complete criterion-level review that produced them. Both presentation-order preferences also reused one scorecard pair, and the old unblinder interpreted a B/A winner label using the A/B label mapping. That was not sufficient proof that both orders were independently scored, and it could misclassify a same-visible-label reversal as a stable winner.
+
+The v2 single-model promotion protocol now requires two distinct judge sessions, two complete quality-review-v2 records per artifact, two order-specific scorecards, and an aggregate scorecard. All three scorecards are reconstructed from the frozen `honest-quality-benchmark-v1` rubric and must match byte-bound source, artifact, judge, timestamps, critical failures, edit burden, total, and every dimension. Preferences occur after both scores, bind the correct pass scorecards, and retain structured artifact/location/dimension defect or advantage evidence. B/A labels are reversed before unblinding, while candidate, control, and comparison score shifts are reported as order effects.
+
+This is stronger evaluation infrastructure, not a stronger model result. v0.16.38 performs zero new judgments, approves zero training preferences, changes no Gemma weight, trains or activates no adapter, and makes no adapter-versus-base or paid-reference win claim. Hosted Scion remains the pinned public base plus the model-neutral compiler.
 
 v0.16.37 gives that local system one transparent workspace story. The single progress ribbon begins with the model download, continues through Map, Enrich, Compile, and Verify, then makes Grade visibly active at 95% before the package reaches 100%. The floating download banner stays on setup screens but yields to the ribbon in the workspace, so users never see two competing progress bars. Downloadable review notes use a calm blue information state, and **Download ZIP** has one owner in the export panel.
 
@@ -268,7 +274,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.37)
+## Current Pipeline (v0.16.38)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

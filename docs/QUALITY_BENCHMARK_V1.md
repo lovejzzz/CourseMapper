@@ -15,11 +15,13 @@ Measure how strongly an exact, inspected CourseMapper output supports an instruc
 
 ## Lane
 
-This release-sized lane establishes the versioned rubric/corpus, evidence caps, qualified-review aggregation, controlled comparison, byte-verified scorecards, and the Scion promotion bridge. It prepares the exact external evidence contract; it does not generate instructor judgments, adapter wins, or hardware results.
+This release-sized lane establishes the versioned rubric/corpus, evidence caps, qualified-review aggregation, controlled comparison, recomputable score evidence, and the Scion promotion bridge. It prepares the exact external evidence contract; it does not generate instructor judgments, adapter wins, or hardware results.
 
 ## Release Boundary
 
 V0.16.13 may claim that the v1 protocol and corpus pass structural audit and that Scion promotion now fails closed through this ruler. It may not claim independently validated outputs, classroom effectiveness, a better adapter, or improved speed until the held-out human, model, compiler-burden, export, and device evidence exists.
+
+V0.16.38 hardens the declared single-model lane before any adapter promotion result exists. A model-provisional number is no longer admitted because a small JSON file repeats the expected total. Each artifact must retain two complete quality-review-v2 records from distinct A/B and B/A sessions, two independently recomputed pass scorecards, and one aggregate scorecard recomputed from both reviews. The preference timestamp must follow both score completions and every decision must carry structured, artifact-bound defect or advantage evidence. Score shifts under reversal are reported as order effects. This strengthens evidence integrity; it does not score a candidate or establish a model win.
 
 ## What v1 changes
 
@@ -157,7 +159,7 @@ Use for hashes, file presence, XML/Office structure, exact cross-artifact values
 
 ### Model judge
 
-Record provider, exact model/revision, complete prompt hash, parameters, source/artifact hashes, order, cost, latency, and raw judgment. Model scores remain provisional and capped. In the explicit `single-model-judge` comparison lane, they may support a bounded model-judged ranking only when the judge is preregistered, both artifacts are scored first, both scorecards are byte-bound, and A/B plus B/A produce the same unblinded trial outcome. This never creates human, instructor, independent, classroom, or multi-judge validation. Outside that explicit lane, model preferences remain advisory.
+Record provider, exact model/revision, complete prompt hash, parameters, source/artifact hashes, order, session, score-completion time, cost, latency, and raw judgment. Model scores remain provisional and capped. In the explicit `single-model-judge` comparison lane, they may support a bounded model-judged ranking only when the judge is preregistered; complete rubric reviews reproduce every declared score; A/B and B/A run in distinct isolated sessions; both artifacts are scored before preference in each order; and both orders produce the same unblinded trial outcome. Every decision retains structured artifact, location, dimension, and defect/advantage evidence. This never creates human, instructor, independent, classroom, or multi-judge validation. Outside that explicit lane, model preferences remain advisory.
 
 ### Qualified human
 
@@ -273,13 +275,13 @@ Use the exact same source/input and non-model settings. Do not silently retry on
 
 At least three trials per case are the initial policy. More are needed when decoding is variable or effects are small.
 
-The analyzer rejects undeclared cases, duplicated case/trial rows, reused generation or blinding seeds, duplicated output pairs, swapped candidate/control model identities, changed within-case inputs/settings, and missing failure telemetry. A numeric benchmark score is admitted only when its scorecard file is read, SHA-256 verified, and semantically matched to the exact source, output, rubric, evidence class, validation tier, profile score, and dimension scores. A path or a hash by itself is not a score.
+The analyzer rejects undeclared cases, duplicated case/trial rows, reused generation or blinding seeds, duplicated output pairs, swapped candidate/control model identities, changed within-case inputs/settings, and missing failure telemetry. A numeric single-model benchmark score is admitted only when the review bundle and all three scorecards are regular, contained, SHA-256-bound files; each pass scorecard reproduces exactly from its complete review; the aggregate reproduces from both order-specific reviews; and source, output, rubric, judge, validation tier, profile score, and every dimension agree. The evidence also declares the integer bootstrap sample count used for all three aggregations, with a minimum of 100, so stronger 1,000- or 5,000-sample runs remain exactly reproducible. A path, hash, or typed total by itself is not a score.
 
 ### Blind review
 
 Create neutral A/B packets. Randomize labels per case/trial using a recorded seed. Keep the mapping outside reviewer packets. Normalize pairwise results back to candidate/control only after review. Require a concrete rationale and permit ties.
 
-The preregistration chooses one primary mode. `qualified-human` requires distinct qualified reviewers and preserves the existing reviewer-role and domain-match rules. `single-model-judge` requires one exact model, revision, and prompt identity on the preregistration, both scorecards, and every pass. Both anonymous artifacts must be scored before preference, and each pass binds both output and scorecard hashes. The same frozen pair is read in A/B and B/A order. Repeated passes by one judge count as one stable trial only when both orders agree after unblinding; missing or position-sensitive passes remain visible and block the primary model-judged claim.
+The preregistration chooses one primary mode. `qualified-human` requires distinct qualified reviewers and preserves the existing reviewer-role and domain-match rules. `single-model-judge` requires one exact model, revision, prompt identity, and `recomputable-two-order-v1` evidence protocol. One isolated session owns every A/B pass and a different isolated session owns every B/A pass. Each session completes both anonymous artifact reviews and scorecards before recording its preference. The same frozen pair is then unblinded with the order-aware label mapping: visible A in B/A is not assumed to be the same artifact as visible A in A/B. Repeated passes by one model count as one stable trial only when both orders agree after correct unblinding; missing or position-sensitive passes remain visible and block the primary model-judged claim.
 
 ### Report
 
@@ -292,7 +294,8 @@ The analysis emits:
 - unique reviewer count;
 - success/failure rates, all-attempt and success-conditioned latency, total/mean cost, mean provider calls, and retained retry counts;
 - candidate-minus-control compiler calls, repair calls, rejected atoms, and recovered atoms with paired intervals;
-- provenance-bound single-model passes, stable trial outcomes, per-case outcomes, consistency, Wilson interval, and position-sensitive/incomplete trials;
+- provenance-bound single-model passes, isolated session identities, stable trial outcomes, per-case outcomes, consistency, Wilson interval, and position-sensitive/incomplete trials;
+- candidate and control score shifts under reversal plus the candidate-minus-control delta shift, globally and by case;
 - advisory model-judge outcomes when qualified-human remains the primary mode;
 - exact scope and claim boundary.
 
