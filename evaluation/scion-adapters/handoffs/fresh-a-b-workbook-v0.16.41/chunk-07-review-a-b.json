@@ -1,0 +1,1077 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-c0498e55e87825b3c822",
+    "packetDigest": "c0498e55e87825b3c8221977ba3ebed6ee90061a36f14896121d8487dfdc4676",
+    "organizerDigest": "adc07fc11717507b30fe8be8a2e9d2104d3b4638a34594a6a5e852172cb2248f"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-26ebf0e39737f8da271c",
+      "caseDigest": "8f826027b92a78f9db8da531f3f2063a4a38d5f498d6f958e658ee575d8f0bc8",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "71111315f4747364eab13bb21de8e02b558a45b0c33dc38a25b9d69dffbe5a7d",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/while-loops",
+        "term": "While loops",
+        "claims": [
+          "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+          "After each pass through the body, the loop expression is evaluated again to decide whether to continue.",
+          "If the loop expression is true, the body runs again; if it is false, the loop terminates.",
+          "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §5.1 While loop"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "023b2e66b0497f02f187ab3ba31376b4e0aca771417d207755f2ea5f0dc27d37",
+          "artifact": {
+            "tr": "loop condition",
+            "df": "The test a while loop checks before each pass to decide whether to continue.",
+            "eg": "In a password prompt, the condition can check whether the entry is still invalid.",
+            "mi": "It is the code inside the loop body.",
+            "cx": "The body does the work; the condition is the check that controls whether another iteration happens."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1d55e21e98a7d035961ba27561a9198bc8d3ba97731a447862383399146af0f4",
+          "artifact": {
+            "tr": "Loop termination",
+            "df": "The event that causes a repeating sequence of code to cease execution.",
+            "eg": "Setting a counter variable to a value that makes the loop condition false.",
+            "mi": "Assuming the loop stops after the first time the condition is met.",
+            "cx": "If the loop expression is false, the loop terminates."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "023b2e66b0497f02f187ab3ba31376b4e0aca771417d207755f2ea5f0dc27d37",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1d55e21e98a7d035961ba27561a9198bc8d3ba97731a447862383399146af0f4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-96b55673adf1f7b43b0e",
+      "caseDigest": "1499923ae74f72cd91a9f62fdab4550de1d06ad4f6c8fb2be6396a78fcf303a3",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "b5d0b3780788f9095eb878e4ad18f8c405453dcfecba548d3104c19e078ef7f6",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/expressions-and-types",
+        "term": "Expressions and data types",
+        "claims": [
+          "Every Python value has a data type (such as int, float, or str); expressions combine values, and conversion functions move a value from one type to another.",
+          "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.",
+          "int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.",
+          "True division (/) converts numbers to floats before dividing and always returns a float.",
+          "Floor division (//) computes the whole-number quotient, discarding the remainder."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §2.2 Type conversion; §2.5 Dividing integers"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "8d17404b8a181eada24b7e92f5bca753d86e3bd2adbab468a44b1d3c901b2d51",
+          "artifact": {
+            "tr": "type conversion",
+            "df": "A change that turns a value from one data type into another.",
+            "eg": "A trace of `int(3.9)` shows a float becoming an integer before the program keeps going.",
+            "mi": "It only happens when the programmer writes an explicit conversion function.",
+            "cx": "Python can also promote types automatically inside a mixed expression, and `int()` is one explicit way to convert."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0687147482b1e0c3f399e0f7b4d4d4480c7875612453983f96497a2dc544426e",
+          "artifact": {
+            "tr": "Type conversion",
+            "df": "The process of changing a value from one data type to another.",
+            "eg": "Using int(3.9) results in 3.",
+            "mi": "Believing that all operations automatically maintain the original data type.",
+            "cx": "Explicitly using conversion functions like int() to change types."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "8d17404b8a181eada24b7e92f5bca753d86e3bd2adbab468a44b1d3c901b2d51",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0687147482b1e0c3f399e0f7b4d4d4480c7875612453983f96497a2dc544426e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-45568f839316ded95605",
+      "caseDigest": "4218ea710b5f0a7c28d43773d8fd791eec994006f12ffce80b6aadc79573c8b9",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "c5407e5008d9e7da1f10b9c8f7ac3fcb45289d8b7413829a323c4fd655a44fcc",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/plate-tectonics",
+        "term": "Plate tectonics and boundaries",
+        "claims": [
+          "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+          "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+          "At convergent boundaries, two or more plates move toward each other and lithosphere is destroyed.",
+          "At a transform boundary, plates slide horizontally past each other."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "8c333c4e644356426556ae1fa92c8fecddd7b64434e353418d12286497431879",
+          "artifact": {
+            "q": "Which boundary type is characterized by plates sliding horizontally past one another?",
+            "op": [
+              "Divergent boundary",
+              "Convergent boundary",
+              "Transform boundary",
+              "Subduction zone"
+            ],
+            "ai": 2,
+            "ex": "The correct choice, Transform boundary, describes plates sliding horizontally past each other. A common misconception is confusing this with a divergent boundary, which involves plates moving away from each other."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "282ce7e3bed30646dc580820438826ce809a5fd5dc642f3bde74d305d686c513",
+          "artifact": {
+            "q": "A field map shows two oceanic plates separating and a broad band of fresh rock forming between them. Which boundary best matches this pattern?",
+            "op": [
+              "Divergent boundary",
+              "Convergent boundary",
+              "Transform boundary",
+              "Stable interior"
+            ],
+            "ai": 0,
+            "ex": "Divergent boundaries fit because plates move away from each other and new lithosphere is created. A common misconception is to call any plate edge convergent, but convergence involves plates moving toward each other and destroying lithosphere instead."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "8c333c4e644356426556ae1fa92c8fecddd7b64434e353418d12286497431879",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "282ce7e3bed30646dc580820438826ce809a5fd5dc642f3bde74d305d686c513",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-0fb4b02ecba9932edf4b",
+      "caseDigest": "34b86564777ef88253b669d937f778184355cbc9eb6295c3d99b75da317acb8d",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "b85643eddf0a2cf47888cff6fc00ddbeac6b431baef2dff0416a8b877ef67a54",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/minerals",
+        "term": "Minerals and identification",
+        "claims": [
+          "A mineral is a naturally occurring, inorganic solid with a definite chemical composition and an ordered crystal structure; minerals are identified by physical properties such as hardness, streak, luster, and cleavage.",
+          "Hardness is measured on the Mohs scale; diamond is a 10 and is about four times harder than corundum, a 9.",
+          "Streak is the color of a mineral's powder, and is more reliable than the color of the whole specimen.",
+          "Cleavage is the tendency of a mineral to break along flat planes of weak bonding; minerals without such planes fracture irregularly.",
+          "Luster describes how a mineral's surface reflects light — metallic, glassy, or dull."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §3.1 What is a mineral; §3.5 Identifying minerals"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "94111e02ba2d3b68c96c83ef1115aeeaf7a679389bc9949821ffa3e70374be64",
+          "artifact": {
+            "q": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+            "op": [
+              "Luster",
+              "Streak",
+              "Cleavage",
+              "Hardness"
+            ],
+            "ai": 2,
+            "ex": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "eb3559d3b935584be799240893123fea1618060ca03c017f79ce4ac75cd18ce4",
+          "artifact": {
+            "q": "A mineral sample breaks into thin, flat sheets along repeated smooth surfaces. Which description best matches that behavior?",
+            "op": [
+              "cleavage",
+              "streak",
+              "hardness",
+              "luster"
+            ],
+            "ai": 0,
+            "ex": "Cleavage is the tendency to break along flat planes of weak bonding. The most plausible misconception is to call any breakage a fracture, but fracture is irregular breakage when no such planes are present."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "94111e02ba2d3b68c96c83ef1115aeeaf7a679389bc9949821ffa3e70374be64",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "eb3559d3b935584be799240893123fea1618060ca03c017f79ce4ac75cd18ce4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a6a1560c921e744ffe00",
+      "caseDigest": "e4276d2bf9b9306e301c7e66cfefe09d6088814f0364021bc25c0351422dcdc1",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "e65891980c582b81bff8b6ab9144cd455c4725c47a32a8d1d11963d897c2039d",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/earthquakes",
+        "term": "Earthquakes and seismic waves",
+        "claims": [
+          "An earthquake releases stored elastic energy when rock slips along a fault; the energy travels outward as seismic waves, including fast compressional P waves and slower shear S waves.",
+          "Elastic rebound theory explains earthquakes: stored energy is released and the broken rock springs back toward its original position.",
+          "P waves are the fastest body waves and move by compression, like sound through air, so they travel through solids, liquids, and gases.",
+          "S waves are slower shear waves restricted to lateral motion, so they travel only through solids, never liquids."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §9.1 Earthquakes and seismic waves"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2d79e870eac4b81e4148b51e74019d45212b7bec8f51e80109ab822c55e804f7",
+          "artifact": {
+            "tr": "Elastic rebound",
+            "df": "A faulted rock mass releases stored strain and then springs back toward its earlier shape.",
+            "eg": "In a lab model, a bent block suddenly slips and then recoils after the stress drops.",
+            "mi": "The idea that earthquakes only happen when rock is permanently crushed.",
+            "cx": "The correction is that elastic strain can be stored and then released when rock slips along a fault."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cc62acaff0dde6b3e024db5f32897dced7e295f29ae04853fe71a543035fe52d",
+          "artifact": {
+            "tr": "Energy release mechanism",
+            "df": "The process where stored elastic energy is released when rock slips along a fault.",
+            "eg": "An earthquake occurs when stored elastic energy is released and the broken rock springs back toward its original position.",
+            "mi": "Thinking an earthquake is caused by the continuous compression of rock.",
+            "cx": "An earthquake is caused by the release of stored elastic energy when rock slips along a fault."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2d79e870eac4b81e4148b51e74019d45212b7bec8f51e80109ab822c55e804f7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cc62acaff0dde6b3e024db5f32897dced7e295f29ae04853fe71a543035fe52d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4c0488e65268737643ff",
+      "caseDigest": "f24062757222e142051bc9d04823c478c3ee84f3e1a8ada9ae766c9aad6469ea",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "c6fe147c38df89ed15d5ad51d2055ebd28853a9b83f182cc0b82fe9427ed85b4",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/scales-and-key-signatures",
+        "term": "Scales and key signatures",
+        "claims": [
+          "In music theory, a scale is \"any consecutive series of notes that form a progression between one note and its octave\", typically by order of pitch or fundamental frequency.",
+          "A measure of the width of each scale step provides a method to classify scales.",
+          "Scales can be abstracted from performance or composition.",
+          "Therefore, any scale is distinguishable by its \"step-pattern\", or how its intervals interact with each other.",
+          "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic).",
+          "The expression scale degree refers to these numerical labels."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b7a6b2cd893ebb5f6998562e2565d0a374a9f466b6641c875fc9ba1e81e39f70",
+          "artifact": {
+            "tr": "Step-pattern",
+            "df": "The way the intervals between consecutive notes in a scale interact.",
+            "eg": "The pattern of whole and half steps in a mode.",
+            "mi": "The characteristic interval pattern and the first degree.",
+            "cx": "The specific scale that is defined by its characteristic interval pattern."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ffaf74af91b4b99413a34d7cb8e463d54cbe87f8363e4289e5bcf63f0a4b5b30",
+          "artifact": {
+            "tr": "Scale degree",
+            "df": "A numerical label used for notes within a scale.",
+            "eg": "In a major-scale discussion, the tonic can be labeled as the first degree.",
+            "mi": "It means the number of bars in the passage.",
+            "cx": "It labels positions in the scale, not the length of the excerpt."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b7a6b2cd893ebb5f6998562e2565d0a374a9f466b6641c875fc9ba1e81e39f70",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ffaf74af91b4b99413a34d7cb8e463d54cbe87f8363e4289e5bcf63f0a4b5b30",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-5a1f138a3922cf6fb6ad",
+      "caseDigest": "98d2cf66b51860b31563be9e29f5c4caa75ad6a0050661f9e4bd579dc63d475c",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "d030a70381092bc840e4694619f453f159cf9f4d071c1003beb23781e657e606",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/triads-and-seventh-chords",
+        "term": "Triads and seventh chords",
+        "claims": [
+          "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+          "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+          "There are four different inversions of a seventh chord."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c7c101ab1aaa83570975d5d5c16764e9a6b742c77ba7ffefc90d95d49680754a",
+          "artifact": {
+            "q": "Which description best fits a triad in basic harmony?",
+            "op": [
+              "Three notes stacked vertically in thirds",
+              "A triad plus a note a seventh above the root",
+              "Four notes arranged in any order",
+              "A chord with seven notes total"
+            ],
+            "ai": 0,
+            "ex": "Three notes stacked in thirds matches the definition of a triad. A common misconception is to treat the extra seventh as part of a triad, but that would describe a seventh chord instead."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "66a5369569adf0891fb580f8b4594a32825bf42bc32215884ba14a5709ffe172",
+          "artifact": {
+            "q": "What is the fundamental structure of a triad in music?",
+            "op": [
+              "A) A set of four notes stacked vertically in fourths.",
+              "b) A set of three notes stacked vertically in thirds.",
+              "c) A set of five notes stacked vertically in thirds.",
+              "d) A set of two notes stacked vertically in thirds."
+            ],
+            "ai": 1,
+            "ex": "Option B is correct because a triad is defined as a set of three notes stacked vertically in thirds (Claim 0). Option A is incorrect because it describes a fourth, and Option C is incorrect because it describes a five-note structure."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c7c101ab1aaa83570975d5d5c16764e9a6b742c77ba7ffefc90d95d49680754a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "66a5369569adf0891fb580f8b4594a32825bf42bc32215884ba14a5709ffe172",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-122df8f70578a9251403",
+      "caseDigest": "2d4b9ac1bbcf7e575aba8b1a8c8f10b45e06bd81d60927eb93bb275b037bfe86",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+      "sourceContextSha256": "10db9eb332b2ea14802cd738f5ecaef9f7b1818d0964163ee8f2b052ccd4aa73",
+      "sourceContext": {
+        "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+        "kernelId": "ux/evidence-based-personas",
+        "term": "Personas",
+        "claims": [
+          "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "Personas are one way to present research findings so other people can understand and share them.",
+          "User needs are generally higher-level and more stable over time than individual interface requests.",
+          "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+          "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3b93c2aa266378d7a3da0ab0f8c38c2df29b404a6d5212f94376d49d0ea643a4",
+          "artifact": {
+            "q": "A team has identified a stable user need and wants to plan features for it. Which practice best supports later evaluation of whether the need is being met?",
+            "op": [
+              "Write user stories without tracing them back",
+              "Link each user story to its source need",
+              "Replace needs with individual interface requests",
+              "Keep the need only in a private note"
+            ],
+            "ai": 1,
+            "ex": "Linking each user story to its source need makes it possible to evaluate whether the need is being met. A common misconception is that a story alone is enough, but without the link, the team loses the evidence trail."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "70d8a3337ee3e4f7b40d67ba9eb411f783d58b538cef0a04ecaf411079f092fe",
+          "artifact": {
+            "q": "What is the primary function of a research-based persona?",
+            "op": [
+              "To document individual interface requests.",
+              "To present research findings for sharing.",
+              "To describe features intended to meet needs.",
+              "To keep design choices connected to evidence."
+            ],
+            "ai": 3,
+            "ex": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3b93c2aa266378d7a3da0ab0f8c38c2df29b404a6d5212f94376d49d0ea643a4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "70d8a3337ee3e4f7b40d67ba9eb411f783d58b538cef0a04ecaf411079f092fe",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-20be303b142b0d38aa09",
+      "caseDigest": "adae788506183b7b3731fa1889cb55772e30cc4de8a0dfbfe8c04bf11d5dee11",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+      "sourceContextSha256": "1318755b36aa33d35f51b7c59a5b931302c658a85acd5f336a1f4a9bffe9533c",
+      "sourceContext": {
+        "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+        "kernelId": "ux/task-flow-analysis",
+        "term": "Task flow analysis",
+        "claims": [
+          "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "The diagram may include multiple possible paths, task sequences, and decision points."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "89f0d0740a616f5ff455684ef540c2fef1f3860d0305a3e5637b4e3756150fc5",
+          "artifact": {
+            "q": "Why would a team create a task flow analysis before or during design work?",
+            "op": [
+              "To validate understanding of user goals, common scenarios, and tasks",
+              "To replace usability testing with a static checklist",
+              "To document every pixel decision in the interface",
+              "To guarantee that users will never encounter obstacles"
+            ],
+            "ai": 0,
+            "ex": "Correct: the analysis helps validate the team's understanding of user goals, common scenarios, and tasks. A plausible misconception is that it guarantees success or removes all obstacles; the diagram can surface obstacles, but it cannot ensure none will occur."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "67329da8216e56ad434250b0b49696fc490413cadfd3d275f8c5a4dd914bcd01",
+          "artifact": {
+            "q": "What is the primary function of a task flow analysis?",
+            "op": [
+              "To build testable interactions.",
+              "To surface obstacles between users and goals.",
+              "To diagram steps and decision points for reaching a goal.",
+              "To combine conformance checks with observed user performance."
+            ],
+            "ai": 2,
+            "ex": "The correct choice shows how a user progresses through tasks to accomplish a goal. The misconception is choosing the function of building testable interactions, which is a separate activity in the laboratory."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "89f0d0740a616f5ff455684ef540c2fef1f3860d0305a3e5637b4e3756150fc5",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "67329da8216e56ad434250b0b49696fc490413cadfd3d275f8c5a4dd914bcd01",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-51ec0fe803fab42a35b6",
+      "caseDigest": "be67fb27a51d2d698d6af8a9aa94830ce1e76c43a8716de6ad8a3338143f87ba",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "ab10b15269aa5d7e3e8b051f33db9774e4921e4969bd1a9591587a2099e8c480",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "term": "Accessibility and usability evaluation",
+        "claims": [
+          "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "A single disabled participant's experience should not be generalized to all people with disabilities."
+        ],
+        "attribution": [
+          "W3C Web Accessibility Initiative",
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "W3C Document License and U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "d9daf1a81d00311aab7cdbd1edca01d07aa5a0aefa86eb5519199f069fc5b590",
+          "artifact": {
+            "q": "Which activity is central to accessibility and usability evaluation?",
+            "op": [
+              "Checking standards-based conformance alone.",
+              "Observing users completing realistic tasks.",
+              "Generalizing one disabled participant's experience.",
+              "Thinking aloud while using a product."
+            ],
+            "ai": 0,
+            "ex": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "927365c4b589ad9dab2d83b2faed4f0eb663aa770f209072a8f0a0021ac37495",
+          "artifact": {
+            "q": "A team is reviewing a prototype before release and wants evidence from both accessibility standards and actual use. Which evaluation plan best matches that goal?",
+            "op": [
+              "Run a conformance check and observe representative users doing realistic tasks",
+              "Interview designers about intended workflows and record feature requests",
+              "Count page views and compare them with marketing targets",
+              "Ask one expert to inspect the interface and write a summary"
+            ],
+            "ai": 0,
+            "ex": "Correct: the plan combines standards-based conformance checks with observation of representative users completing realistic tasks. The other choices are plausible but incomplete or indirect: they rely on opinion, traffic metrics, or a single expert rather than both conformance and user observation."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "d9daf1a81d00311aab7cdbd1edca01d07aa5a0aefa86eb5519199f069fc5b590",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "927365c4b589ad9dab2d83b2faed4f0eb663aa770f209072a8f0a0021ac37495",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

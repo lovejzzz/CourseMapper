@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.40
+**Current release:** v0.16.41
 
 ---
 
@@ -31,7 +31,13 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.40**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.41**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.41 completes the first real reading of the new quality campaign without exposing its result. The A/B workbook reconstructs from the exact v0.16.40 source packet, binds 100 anonymous source-grounded cases into ten interleaved chunks, and pins one selectable judge profile before scoring: GPT-5.6-Luna with max reasoning on Codex CLI 0.144.2. The fresh ephemeral judge received only the immutable workbook and writable blank decisions—no organizer mapping, reverse-order payload, prior result, repository rules, or user configuration.
+
+The outer completion gate initially rejected the pass because all 200 fully scored cards used the unsupported status label `complete`. The schema was not relaxed. A tested deterministic repair first proved that every card already contained five integer scores from 1–5, then changed only those 200 labels to `scored`. Its tracked receipt records that score values, preferences, evidence, and defects were untouched.
+
+After strict validation, the ten chunks reconstructed one canonical 100-case pass in memory and wrote only an AES-256-GCM envelope plus an untracked 0600 key; no combined completed-review plaintext was written. Two local 0600 key copies passed authenticated in-memory round trips. The tracked campaign receipt contains no key or outcome. This is one single-model Codex order, so stable preferences, approved research rows, a trained quality adapter, held-out wins, and paid-reference parity remain unproven. A distinct fresh B/A session must score the reversed presentation without access to the A/B key or outcome before any preference can be admitted.
 
 v0.16.40 converts a compiler opportunity into reproducible evidence before training. It verifies twelve immutable local Gemma projects from the two retained source-capture campaigns, preserves every historical response byte, and replays those responses through the current deterministic compiler. The derived projects record exact source and compiler hashes plus 67 bounded repair receipts: 20 incomplete-explanation-tail repairs and 47 answer-key alignments. No model-authored response is rewritten in place.
 

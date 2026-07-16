@@ -273,8 +273,13 @@ function firstOrderTaskInstructions({ chunks, release, requiredJudgeIdentity }) 
   const receiptFile = `evaluation/scion-adapters/evidence/fresh-a-b-workbook-${release}.json`;
   const identity = requiredJudgeIdentity.identity;
   const launchProfile = requiredJudgeIdentity.launchProfile;
+  const launchSurface = launchProfile?.runtime?.startsWith('codex-cli')
+    ? `Start one new ephemeral Codex CLI task with model \`${launchProfile.modelId}\` and reasoning effort \`${launchProfile.reasoningEffort}\` selected explicitly.`
+    : launchProfile
+      ? `Start a newly created Codex Desktop task with model \`${launchProfile.modelId}\` and reasoning effort \`${launchProfile.reasoningEffort}\` selected explicitly.`
+      : '';
   const launchPreflight = launchProfile
-    ? `Start a newly created Codex Desktop task with model \`${launchProfile.modelId}\` and reasoning effort \`${launchProfile.reasoningEffort}\` selected explicitly. The decision files must record revision \`${launchProfile.identityRevision}\` and runtime \`${launchProfile.runtime}\` exactly. \`${launchProfile.identityRevision}\` is an auditable launch-profile token, not a claim about an unexposed provider build revision. Codex Desktop does not expose that internal build revision to this task, and this workbook records that limitation instead of inventing one.`
+    ? `${launchSurface} The decision files must record revision \`${launchProfile.identityRevision}\` and runtime \`${launchProfile.runtime}\` exactly. \`${launchProfile.identityRevision}\` is an auditable launch-profile token, not a claim about an unexposed provider build revision. The declared runtime does not expose that internal provider build revision to this task, and this workbook records that limitation instead of inventing one.`
     : release === 'v0.16.35'
       ? ''
       : `Before scoring any case, verify the declared judge identity exactly. This legacy first-order workbook does not record a separately verifiable Codex launch profile.`;
@@ -882,13 +887,14 @@ export async function completeAndSealScionCodexFreshJudgeWorkbook({
   };
 }
 
-async function auditTrackedWorkbook(receiptFile, handoffDir = DEFAULT_OUTPUT) {
+export async function auditTrackedWorkbook(receiptFile, handoffDir = DEFAULT_OUTPUT, packetDir = '') {
   const expectedReceipt = JSON.parse(await fs.readFile(receiptFile, 'utf8'));
   const tracked = await verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedReceipt });
   if (!tracked.valid) return tracked;
   const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-fresh-workbook-audit-'));
   try {
     const result = await buildScionCodexFreshJudgeWorkbook({
+      packetDir: packetDir || undefined,
       outputDir: path.join(temporaryRoot, 'workbook'),
       generatedAt: expectedReceipt.generatedAt,
       chunkSize: expectedReceipt.schedule.chunkSize,
@@ -969,7 +975,7 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.mode === 'audit') {
-    const verification = await auditTrackedWorkbook(args.receiptFile, args.handoffDir);
+    const verification = await auditTrackedWorkbook(args.receiptFile, args.handoffDir, args.packetDir);
     console.log(JSON.stringify({ valid: verification.valid, issues: verification.issues }, null, 2));
     if (!verification.valid) process.exitCode = 1;
     return;
@@ -1002,7 +1008,7 @@ async function main() {
   let expectedReceipt = null;
   if (!args.receiptOutput && args.receiptFile) {
     expectedReceipt = JSON.parse(await fs.readFile(args.receiptFile, 'utf8'));
-    const reconstruction = await auditTrackedWorkbook(args.receiptFile, args.handoffDir);
+    const reconstruction = await auditTrackedWorkbook(args.receiptFile, args.handoffDir, args.packetDir);
     if (!reconstruction.valid) {
       throw new Error(`Tracked fresh workbook no longer reconstructs: ${reconstruction.issues.join(', ')}`);
     }

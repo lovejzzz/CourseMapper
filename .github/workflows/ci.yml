@@ -46,6 +46,8 @@ jobs:
           npm run audit:scion:source-compiler-replay
           npm run audit:scion:review-candidates
           npm run audit:scion:source-review-packet
+          npm run audit:scion:codex-first-order
+          npm run audit:scion:codex-first-order-evidence
           npm run audit:scion:adapter:corpus-readiness
           npm run audit:scion:adapter:exact-lineage
 

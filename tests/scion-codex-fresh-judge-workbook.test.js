@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { buildScionBlindReviewPacket } from '../scripts/scionBlindReviewPacket.mjs';
 import { buildScionCodexFreshJudgeHandoff } from '../scripts/scionCodexFreshJudgeHandoff.mjs';
 import {
+  auditTrackedWorkbook,
   buildScionCodexFreshJudgeWorkbook,
   completeAndSealScionCodexFreshJudgeWorkbook,
   verifyScionCodexFreshJudgeWorkbook,
@@ -320,6 +321,46 @@ describe('Scion fresh Codex judge workbook', () => {
         keyOutput: path.join(root, 'drifted-first-order-secret', 'a-b.key'),
       }),
     ).rejects.toThrow('does not match the declared first-order identity');
+  });
+
+  it('audits an exact packet-backed CLI workbook and emits runtime-accurate clean-room instructions', async () => {
+    const packetDir = await buildPacket(5);
+    const handoffDir = path.join(root, 'cli-first-order-workbook');
+    const receiptOutput = path.join(root, 'cli-first-order-receipt.json');
+    const declaredJudgeIdentity = {
+      model: 'openai/codex',
+      revision: 'gpt-5.6-luna@max',
+      runtime: 'codex-cli-0.144.2',
+      promptPath: 'evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md',
+      promptSha256: '0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7',
+    };
+    await buildScionCodexFreshJudgeWorkbook({
+      packetDir,
+      outputDir: handoffDir,
+      receiptOutput,
+      generatedAt: '2026-07-16T12:00:00.000Z',
+      chunkSize: 2,
+      order: 'A/B',
+      release: 'v0.16.41',
+      declaredJudgeIdentity,
+      declaredJudgeLaunchProfile: {
+        modelId: 'gpt-5.6-luna',
+        reasoningEffort: 'max',
+        runtime: 'codex-cli-0.144.2',
+        identityRevision: 'gpt-5.6-luna@max',
+        selectionMode: 'explicit-codex-thread-launch',
+        internalBuildRevisionAvailable: false,
+      },
+    });
+
+    await expect(auditTrackedWorkbook(receiptOutput, handoffDir, packetDir)).resolves.toMatchObject({
+      valid: true,
+      issues: [],
+    });
+    const instructions = await fs.readFile(path.join(handoffDir, 'FRESH_TASK_INSTRUCTIONS.md'), 'utf8');
+    expect(instructions).toContain('Start one new ephemeral Codex CLI task');
+    expect(instructions).toContain('runtime `codex-cli-0.144.2` exactly');
+    expect(instructions).not.toContain('Start a newly created Codex Desktop task');
   });
 
   it('refuses to build a first-order workbook without a predeclared judge identity', async () => {
