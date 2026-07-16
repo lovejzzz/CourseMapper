@@ -24,6 +24,23 @@ function normalizeStoredProvider(provider) {
   return provider || PUBLIC_SCION_PROVIDER_ID;
 }
 
+export function normalizeProjectProvider(provider) {
+  return provider === 'free' || provider === 'webllm' ? PUBLIC_SCION_PROVIDER_ID : provider;
+}
+
+export function restorePublicScionAIConfig(setProvider, setApiKey, setModelId, setModelName, setApiStatus) {
+  try {
+    localStorage.setItem('coursemapper-provider', PUBLIC_SCION_PROVIDER_ID);
+    localStorage.setItem('coursemapper-modelid', PUBLIC_SCION_MODEL_ID);
+    localStorage.setItem('coursemapper-modelname', PUBLIC_SCION_MODEL_NAME);
+  } catch {}
+  setProvider(PUBLIC_SCION_PROVIDER_ID);
+  setApiKey('');
+  setModelId(PUBLIC_SCION_MODEL_ID);
+  setModelName(PUBLIC_SCION_MODEL_NAME);
+  setApiStatus('connected');
+}
+
 export function getProviderApiKeyStorageKey(provider) {
   return `${PROVIDER_API_KEY_STORAGE_PREFIX}${provider || 'unknown'}`;
 }

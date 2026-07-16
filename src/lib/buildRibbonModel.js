@@ -173,6 +173,7 @@ export function deriveRibbonProgress({ pipeline, generation = {}, deliverables =
     return Math.round(50 + fraction * 25);
   }
   if (state === 'verifying') return 85;
+  if (state === 'grading') return 95;
   if (state === 'lull') {
     const completed = Object.values(pipeline?.done || {}).filter(Boolean).length;
     return Math.min(95, 15 + completed * 17);
@@ -220,6 +221,10 @@ export function buildBuildRibbonModel({
     case 'verifying':
       stage = 'verify';
       stageLabel = String(packageQualityPass?.message || '').trim() || 'Verifying and grading the package';
+      break;
+    case 'grading':
+      stage = 'grade';
+      stageLabel = String(packageQualityPass?.message || '').trim() || 'Grading package quality';
       break;
     case 'syncing':
       // v0.14.7 WS-G3: an approved sync plan executing post-ready.

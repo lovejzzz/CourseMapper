@@ -1,0 +1,115 @@
+{
+  "version": "0.16.37",
+  "date": "July 15, 2026",
+  "title": "One Progress Story: keep Scion transparent from restore to grade",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run tests/v0147-pipeline-machine.test.js tests/v0144-build-ribbon.test.jsx src/components/__tests__/ExportSidePanel.readiness.test.jsx src/components/chat/__tests__/useStreamProcessor.test.js src/lib/__tests__/agentAvailability.test.js tests/scion-runtime-status-banner.test.jsx",
+      "npx playwright test tests/agent-no-key.spec.js --grep 'restores legacy Scion'",
+      "npm run format:check",
+      "npm run lint",
+      "npm test",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:evaluation:main",
+      "npm run audit:release-history",
+      "npx playwright test"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Remote Fast verification will be recorded after the implementation commit is pushed."
+    },
+    "ciDeep": {
+      "status": "local-only",
+      "note": "This milestone changes browser-local orchestration, project restore, progress presentation, and regression coverage. It does not train or compare a model."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "The production deployment and cache-bypassed browser probe will be recorded after merge."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "The Scion inference boundary is tested with a local runtime mock and the restored workspace is tested in real Chromium. No paid provider or full 3.35 GB model download is required for this regression release."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "The requested UX states are deterministic product behaviors and are covered by automated UI and browser evidence; no human score or classroom outcome is claimed."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-contract-only",
+      "note": "All 34 canonical gold courses, 4,482 unit tests, the production build and bundle budgets, and 132 real-Chromium workspace, responsive, routing, Agent, and export tests passed locally. The restored-Scion browser case proves canonical Scion V identity, an enabled keyless Agent composer, and one export-panel ZIP action. These gates establish software, compiler, and UX regression safety only; no Gemma weights changed and no measured model-quality gain is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01637-single-progress-owner",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The setup banner yields in the workspace while the ribbon continues Scion model progress as the first portion of the end-to-end meter.",
+      "anchors": ["src/App.jsx", "src/AppFlow.jsx", "src/components/BuildRibbon.jsx", "src/lib/buildRibbonModel.js"],
+      "proofCommands": ["npx vitest run tests/v0144-build-ribbon.test.jsx tests/scion-runtime-status-banner.test.jsx"],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01637-visible-verify-grade",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Export verification and package grading publish distinct running phases, making Grade active at 95 percent before terminal readiness.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/lib/pipelineMachine.js",
+        "src/lib/buildRibbonModel.js",
+        "tests/v0147-pipeline-machine.test.js",
+        "tests/v0144-build-ribbon.test.jsx"
+      ],
+      "proofCommands": ["npx vitest run tests/v0147-pipeline-machine.test.js tests/v0144-build-ribbon.test.jsx"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01637-restored-scion-agent",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Legacy Scion snapshots restore to the canonical public provider and model with the keyless Agent enabled.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/contexts/AIConfigContext.jsx",
+        "src/lib/agentAvailability.js",
+        "src/components/chat/useStreamProcessor.js",
+        "tests/agent-no-key.spec.js"
+      ],
+      "proofCommands": [
+        "npx playwright test tests/agent-no-key.spec.js --grep 'restores legacy Scion'",
+        "npx vitest run src/components/chat/__tests__/useStreamProcessor.test.js src/lib/__tests__/agentAvailability.test.js"
+      ],
+      "proofScopes": ["browser-smoke", "unit"]
+    },
+    {
+      "id": "v01637-calm-single-export",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Downloadable review notes use an informational state and the export panel remains the sole ZIP owner.",
+      "anchors": [
+        "src/components/ExportSidePanel.jsx",
+        "src/components/PrimaryCta.jsx",
+        "tests/v0147-one-verb.test.jsx",
+        "src/components/__tests__/ExportSidePanel.readiness.test.jsx"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/v0147-one-verb.test.jsx src/components/__tests__/ExportSidePanel.readiness.test.jsx",
+        "npx playwright test tests/agent-no-key.spec.js --grep 'restores legacy Scion'"
+      ],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01637-no-model-quality-claim",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The release verifies orchestration and UX without changing Gemma weights or claiming a measured Scion model-quality improvement.",
+      "anchors": ["README.md", "release-contracts/v0.16.37.json"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

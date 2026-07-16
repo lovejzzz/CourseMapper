@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.36
+**Current release:** v0.16.37
 
 ---
 
@@ -31,7 +31,11 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.36**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.37**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.37 gives that local system one transparent workspace story. The single progress ribbon begins with the model download, continues through Map, Enrich, Compile, and Verify, then makes Grade visibly active at 95% before the package reaches 100%. The floating download banner stays on setup screens but yields to the ribbon in the workspace, so users never see two competing progress bars. Downloadable review notes use a calm blue information state, and **Download ZIP** has one owner in the export panel.
+
+The embedded Agent uses the same browser-local Scion runtime for concise advisory answers. It does not yet claim native tool execution or silently edit the workspace. v0.16.37 also repairs restored projects: legacy `free`/Scion snapshots are canonicalized to `public + scion-public`, marked connected without an API key, and reopen with the Agent composer enabled.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -264,7 +268,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.36)
+## Current Pipeline (v0.16.37)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 
