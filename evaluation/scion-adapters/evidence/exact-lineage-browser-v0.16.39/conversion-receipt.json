@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "conversion": "mlx-lora-to-peft-to-gguf-v1",
+  "source": {
+    "adapterId": "scion-g4e2b-smoke-c4fe1ad1228ceb80",
+    "adapterFormat": "mlx-lora-safetensors",
+    "adapterManifestSha256": "6d8838ed802e281175e3cb493086730fae214b06eb048d3cdae7ecbdf3e2783a",
+    "datasetManifestSha256": "120ce92c2d0dce803ef2acaeac5c6eb726f3dade05284a09a7a81acd7c1e5ce2",
+    "promotionStatus": "smoke"
+  },
+  "base": {
+    "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "architecture": "gemma4",
+    "role": "instruction",
+    "exactRevisionRequired": true
+  },
+  "bridge": {
+    "id": "scion-mlx-lora-to-peft",
+    "receipt": {
+      "path": "mlx-to-peft-receipt.json",
+      "bytes": 1800,
+      "sha256": "886eda81c15ef931fd4a454532fc6d48ab90a09d564d252341fdaa63d6b5e175"
+    },
+    "output": {
+      "files": [
+        {
+          "bytes": 1011,
+          "path": "adapter_config.json",
+          "sha256": "838db096ff1bd9da42f5511a98ec64c375dcd84dbefbc6d93d7d7814424d90fd"
+        },
+        {
+          "bytes": 105406784,
+          "path": "adapter_model.safetensors",
+          "sha256": "909fad3a2f316f0481903f66c9f3bccbc5912712985d412648cdb17ba62e5686"
+        }
+      ],
+      "format": "peft-safetensors"
+    },
+    "lora": {
+      "alpha": 16,
+      "dtype": "float32",
+      "pairCount": 276,
+      "rank": 16,
+      "scale": 1,
+      "targetModules": [
+        "down_proj",
+        "gate_proj",
+        "k_proj",
+        "o_proj",
+        "per_layer_input_gate",
+        "per_layer_model_projection",
+        "per_layer_projection",
+        "q_proj",
+        "up_proj",
+        "v_proj"
+      ],
+      "tensorCount": 552,
+      "transpose": "mlx-input-rank-to-peft-rank-input"
+    },
+    "mappingSha256": "c07b78d7ec688d4c6bbfbab6d317636bfcef6fa302633159903d643167c07806"
+  },
+  "converter": {
+    "id": "ggml-org/llama.cpp/convert_lora_to_gguf.py",
+    "revision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682",
+    "sha256": "7e82b74442df2faab81c30e7d83614d10905294cec92092ec2a1749700d1a378",
+    "outputType": "f16"
+  },
+  "output": {
+    "format": "gguf-lora",
+    "file": {
+      "path": "scion-g4e2b-smoke-c4fe1ad1228ceb80-browser-v01639.gguf",
+      "bytes": 52704096,
+      "sha256": "1a920884bdf74456c5c0f090649b6d4d5eab02e5cb70308f9d30497c80c59fd6"
+    },
+    "audit": {
+      "status": "pass",
+      "metadata": {
+        "version": 3,
+        "architecture": "gemma4",
+        "type": "adapter",
+        "adapterType": "lora",
+        "alpha": 16
+      },
+      "tensorCount": 552,
+      "pairCount": 276,
+      "tensorType": "F16",
+      "tensorNameSetSha256": "ad2546e3ffa2734486e23c06579905155297548c9c0179bf7a805bfe1b7469b9"
+    }
+  },
+  "promotion": {
+    "inherited": false,
+    "status": "smoke",
+    "reason": "converted-browser-artifact-requires-independent-qualification"
+  },
+  "inference": {
+    "scale": 16
+  }
+}

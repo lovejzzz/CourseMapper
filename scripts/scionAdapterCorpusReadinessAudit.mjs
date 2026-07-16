@@ -11,7 +11,8 @@ import {
   SCION_ADAPTER_DEFAULT_SOURCES,
 } from './scionAdapterDataset.mjs';
 
-const DEFAULT_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.33.json';
+const DEFAULT_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.39.json';
+const DEFAULT_RELEASE = 'v0.16.39';
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -46,7 +47,7 @@ function snapshot(manifest, generatedAt) {
   const value = {
     schemaVersion: 1,
     protocol: 'scion-adapter-corpus-readiness-v1',
-    release: 'v0.16.33',
+    release: DEFAULT_RELEASE,
     generatedAt,
     sources: manifest.sourceReceipts,
     dataset: {
@@ -70,7 +71,7 @@ function snapshot(manifest, generatedAt) {
       requiredResearchModelJudgePairs: manifest.gate.profiles.research.minimumModelJudgePairs,
       researchBlockers: manifest.gate.profiles.research.issues,
       nextEvidenceStep:
-        'Complete two identity-matched, fresh-session A/B and B/A Codex passes over source-bound, holdout-disjoint candidates before research training.',
+        'Complete two same-identity, fresh-session A/B and B/A Codex passes over the current source-bound, holdout-disjoint packet before research training.',
     },
     claimBoundary: {
       adapterTrained: false,

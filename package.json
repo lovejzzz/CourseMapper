@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.38",
+  "version": "0.16.39",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -61,7 +61,7 @@
     "audit:scion:source-capture:expansion:reference": "npm run audit:scion:source-capture:expansion -- --arm reference",
     "audit:scion:source-capture:expansion:recover": "npm run audit:scion:source-capture:expansion -- --arm local --recover",
     "audit:scion:source-capture:expansion:verify": "npm run audit:scion:source-capture:expansion -- --verify",
-    "audit:scion:review-candidates": "node scripts/scionMatchedReviewCandidates.mjs",
+    "audit:scion:review-candidates": "node scripts/scionMatchedReviewCandidates.mjs --verify",
     "audit:scion:review-packet": "node scripts/scionSourceCapture.mjs --verify && npm run audit:scion:source-capture:expansion:verify && node scripts/scionMatchedReviewCandidates.mjs && node scripts/scionBlindReviewPacket.mjs --per-domain 40 --receipt verification-output/scion-blind-review/campaign-receipt.json",
     "audit:scion:reviewer-browser": "node scripts/scionReviewerBrowserSmoke.mjs",
     "audit:scion:reviews": "node scripts/scionBlindReviewPacket.mjs --ingest",
@@ -116,6 +116,7 @@
     "audit:scion:browser-device-matrix": "node scripts/scionBrowserDeviceMatrixAudit.mjs",
     "capture:scion:browser-device": "node scripts/scionBrowserDeviceCapture.mjs",
     "audit:scion:browser-device-evidence": "node scripts/scionBrowserDeviceEvidenceAudit.mjs",
+    "audit:scion:adapter:exact-lineage": "node scripts/scionAdapterExactLineageAudit.mjs",
     "train:scion:adapter": "zsh trellis/tendril/distill/run_orpo_g4.sh",
     "audit:deep-quality": "node scripts/deepProofQualityGate.mjs",
     "audit:self": "node scripts/internalSelfImprovementAudit.mjs",

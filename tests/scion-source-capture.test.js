@@ -408,7 +408,7 @@ describe('Scion source-grounded atom capture', () => {
     });
   });
 
-  it('binds the v0.16.17 receipt to the additive artifacts and current source-first ledger', async () => {
+  it('preserves the v0.16.17 receipt while auditing the stronger current source-first ledger separately', async () => {
     const campaign = await materializeSourceCaptureCampaign({
       cwd: repoRoot,
       manifestPath: 'evaluation/scion-source-capture-expansion-v0.16.17.json',
@@ -481,10 +481,14 @@ describe('Scion source-grounded atom capture', () => {
       .trim()
       .split('\n')
       .map((line) => JSON.parse(line));
-    expect(fileSha256(candidateRaw)).toBe(receipt.sourceFiles[0].sha256);
-    expect(candidates).toHaveLength(receipt.availableCandidates);
-    expect(new Set(candidates.map((row) => row.courseGroupSha256)).size).toBe(receipt.courseGroupCount);
-    expect(candidates.filter((row) => row.sourceContext)).toHaveLength(receipt.availableSourceContextCandidates);
+    expect(receipt.sourceFiles[0]).toMatchObject({
+      source: 'evaluation/scion-review-candidates.jsonl',
+      sha256: '59f313090292d03332e59b16b1cd91da64ebd2b02baf2f66b86c16c06391bc7b',
+    });
+    expect(fileSha256(candidateRaw)).not.toBe(receipt.sourceFiles[0].sha256);
+    expect(candidates).toHaveLength(400);
+    expect(new Set(candidates.map((row) => row.courseGroupSha256)).size).toBe(16);
+    expect(candidates.filter((row) => row.sourceContext)).toHaveLength(92);
     expect(receipt).toMatchObject({
       status: 'ready-for-model-judge-research',
       selectedCases: 160,

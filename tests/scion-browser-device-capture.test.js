@@ -20,9 +20,11 @@ import {
   artifactReceipt,
   buildAppleSiliconDeviceRun,
   buildPartialDeviceEvidence,
+  buildScionAppleDeviceRunId,
   chromeVersionFromUserAgent,
   sanitizeAppleHardwareProbe,
   sanitizeScionDeviceTraceArchive,
+  scionReleaseIdentityFromManifest,
 } from '../scripts/lib/scionBrowserDeviceCapture.mjs';
 import { auditScionBrowserDeviceMatrix } from '../scripts/lib/scionBrowserDeviceMatrix.mjs';
 
@@ -165,6 +167,21 @@ describe('Scion real browser device capture', () => {
       hardware: { systemMemoryGiB: 48, gpuClass: 'apple-silicon', gpuModel: 'Apple M4 Max' },
     });
     expect(JSON.stringify(probe)).not.toContain('secret');
+  });
+
+  it('derives release and run identities from the exact adapter manifest version', () => {
+    const manifest = browserManifest();
+    manifest.adapter.scionVersion = '0.16.39';
+    expect(scionReleaseIdentityFromManifest(manifest)).toEqual({
+      version: '0.16.39',
+      release: 'v0.16.39',
+      runSlug: 'v01639',
+    });
+    expect(buildScionAppleDeviceRunId({ manifest, observedAt: '2026-07-16T07:30:45.000Z' })).toBe(
+      'apple-silicon-v01639-20260716073045',
+    );
+    manifest.adapter.scionVersion = 'not-a-version';
+    expect(() => scionReleaseIdentityFromManifest(manifest)).toThrow('Scion version is invalid');
   });
 
   it('scrubs local workspace, profile, and home paths from Playwright trace text', async () => {

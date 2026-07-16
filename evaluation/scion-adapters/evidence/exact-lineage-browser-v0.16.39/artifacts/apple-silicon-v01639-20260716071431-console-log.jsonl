@@ -1,0 +1,22 @@
+{"observedAt":"2026-07-16T07:14:31.834Z","level":"debug","text":"[vite] connecting..."}
+{"observedAt":"2026-07-16T07:14:31.838Z","level":"debug","text":"[vite] connected."}
+{"observedAt":"2026-07-16T07:14:31.903Z","level":"debug","text":"Downloading model files: [https://huggingface.co/google/gemma-4-E2B-it-qat-q…4240401ba38223d805f6a709/gemma-4-E2B_q4_0-it.gguf]"}
+{"observedAt":"2026-07-16T07:14:32.412Z","level":"debug","text":"Downloading model files: [https://huggingface.co/google/gemma-4-E2B-it-qat-q…4240401ba38223d805f6a709/gemma-4-E2B_q4_0-it.gguf]"}
+{"observedAt":"2026-07-16T07:15:06.512Z","level":"warning","text":"Missing paths to multi-thread build, falling back to single-thread"}
+{"observedAt":"2026-07-16T07:15:06.512Z","level":"warning","text":"Disabling multi-threading when using WebGPU backend"}
+{"observedAt":"2026-07-16T07:15:06.533Z","level":"log","text":"[OPFS] opfsAlloc: logicalName=\"model-0.gguf\" \n    opfsCacheFileName=\"961b6b6e807f49f8cf05cf0735abec2ec4548b4a_gemma-4-E2B_q4_0-it.gguf\""}
+{"observedAt":"2026-07-16T07:15:06.565Z","level":"log","text":"[OPFS] opfsAlloc: created MEMFS placeholder at /models/model-0.gguf with usedBytes=3349514112"}
+{"observedAt":"2026-07-16T07:15:07.600Z","level":"debug","text":"{loadedCtxInfo: Object}"}
+{"observedAt":"2026-07-16T07:15:22.043Z","level":"warning","text":"Missing paths to multi-thread build, falling back to single-thread"}
+{"observedAt":"2026-07-16T07:15:22.043Z","level":"warning","text":"Disabling multi-threading when using WebGPU backend"}
+{"observedAt":"2026-07-16T07:15:22.086Z","level":"log","text":"[OPFS] opfsAlloc: logicalName=\"model-0.gguf\" \n    opfsCacheFileName=\"961b6b6e807f49f8cf05cf0735abec2ec4548b4a_gemma-4-E2B_q4_0-it.gguf\""}
+{"observedAt":"2026-07-16T07:15:22.086Z","level":"log","text":"[OPFS] opfsAlloc: created MEMFS placeholder at /models/model-0.gguf with usedBytes=3349514112"}
+{"observedAt":"2026-07-16T07:15:23.079Z","level":"debug","text":"{loadedCtxInfo: Object}"}
+{"observedAt":"2026-07-16T07:15:26.104Z","level":"error","text":"RuntimeError: unreachable\n    at http://localhost:49468/scion/runtime/v1/jspi-single-thread/wllama.wasm:wasm-function[1676]:0x1785a4\n    at wrapper (blob:http://localhost:49468/555b0b7a-680a-49e1-845c-e5c4def3f2f2:3:105356)\n    at abort (blob:http://localhost:49468/555b0b7a-680a-49e1-845c-e5c4def3f2f2:3:3813)\n    at __abort_js (blob:http://localhost:49468/555b0b7a-680a-49e1-845c-e5c4def3f2f2:3:57324)\n    at http://localhost:49468/scion/runtime/v1/jspi-single-thread/wllama.wasm:wasm-function[400]:0x3563e\n    at http://localhost:49468/scion/runtime/v1/jspi-single-thread/wllama.wasm:wasm-function[56]:0x3072\n    at http://localhost:49468/scion/runtime/v1/jspi-single-thread/wllama.wasm:wasm-function[846]:0x8986c\n    at http://localhost:49468/scion/runtime/v1/jspi-single-thread/wllama.wasm:wasm-function[2093]:0x200961\n    at http://localhost:49468/scion/runtime/v1/jspi-single-thread/wllama.wasm:wasm-function[1019]:0xb68ce\n    at http://localhost:49468/scion/runtime/v1/jspi-single-thread/wllama.wasm:wasm-function[1020]:0xb7bb0"}
+{"observedAt":"2026-07-16T07:15:26.104Z","level":"error","text":"Cannot find waiting task with callbackId = 10"}
+{"observedAt":"2026-07-16T07:15:26.104Z","level":"pageerror","text":"A valid external Instance reference no longer exists."}
+{"observedAt":"2026-07-16T07:15:26.143Z","level":"warning","text":"Missing paths to multi-thread build, falling back to single-thread"}
+{"observedAt":"2026-07-16T07:15:26.143Z","level":"warning","text":"Disabling multi-threading when using WebGPU backend"}
+{"observedAt":"2026-07-16T07:15:26.175Z","level":"log","text":"[OPFS] opfsAlloc: logicalName=\"model-0.gguf\" \n    opfsCacheFileName=\"961b6b6e807f49f8cf05cf0735abec2ec4548b4a_gemma-4-E2B_q4_0-it.gguf\""}
+{"observedAt":"2026-07-16T07:15:26.202Z","level":"log","text":"[OPFS] opfsAlloc: created MEMFS placeholder at /models/model-0.gguf with usedBytes=3349514112"}
+{"observedAt":"2026-07-16T07:15:27.247Z","level":"debug","text":"{loadedCtxInfo: Object}"}

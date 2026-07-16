@@ -18,6 +18,7 @@ const TRACE_TEXT_ENTRY =
   /(?:^|\/)(?:trace\.trace|trace\.network|trace\.stacks|stacks|[^/]+\.(?:css|html|js|json|map|mjs|txt))$/i;
 const LOCAL_ABSOLUTE_PATH = /(?:\/Users\/|\/home\/|[A-Za-z]:\\Users\\)/i;
 const SENSITIVE_HEADER_NAMES = new Set(['authorization', 'cookie', 'proxy-authorization', 'x-api-key']);
+const SCION_VERSION_RE = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 
 function clean(value) {
   return String(value ?? '').trim();
@@ -25,6 +26,24 @@ function clean(value) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+export function scionReleaseIdentityFromManifest(manifest) {
+  const version = clean(manifest?.adapter?.scionVersion);
+  assert(SCION_VERSION_RE.test(version), 'Adapter manifest Scion version is invalid');
+  const runSlug = `v${version.replace(/[^0-9A-Za-z]+/g, '')}`;
+  assert(/^v[0-9A-Za-z]+$/.test(runSlug), 'Adapter manifest Scion version cannot form a run identity');
+  return { version, release: `v${version}`, runSlug };
+}
+
+export function buildScionAppleDeviceRunId({ manifest, observedAt } = {}) {
+  const { runSlug } = scionReleaseIdentityFromManifest(manifest);
+  const timestamp = new Date(observedAt);
+  assert(!Number.isNaN(timestamp.getTime()), 'Device run timestamp is invalid');
+  return `apple-silicon-${runSlug}-${timestamp
+    .toISOString()
+    .replaceAll(/[-:.TZ]/g, '')
+    .slice(0, 14)}`;
 }
 
 export async function sha256File(filePath) {
