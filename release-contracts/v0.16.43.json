@@ -2,7 +2,7 @@
   "version": "0.16.43",
   "date": "July 16, 2026",
   "title": "Reject the False Pass: turn judged failures into semantic gates",
-  "status": "verified-current",
+  "status": "historical",
   "proofSummary": {
     "local": [
       "npm run audit:scion:semantic-admission",

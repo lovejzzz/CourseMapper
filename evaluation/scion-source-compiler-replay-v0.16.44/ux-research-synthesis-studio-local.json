@@ -1,0 +1,1281 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-ux-research-synthesis-studio-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "UX Research and Synthesis Studio, a six-session project course in which students plan ethical studies, distinguish evidence from assumptions, and synthesize observations into personas and journey maps that inform decisions.",
+  "fileNames": [
+    "source-packet-cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e.json"
+  ],
+  "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"UX Research and Synthesis Studio\",\"sessions\":[{\"number\":1,\"title\":\"Research planning\"},{\"number\":2,\"title\":\"Personas\"},{\"number\":3,\"title\":\"Journey mapping\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"What is the primary function of a UX research plan?\",\"op\":[\"To select study details before defining learning objectives.\",\"To turn a decision need into actionable learning objectives, participants, tasks, and setup.\",\"To rehearse test tasks with participants on the day of the session.\",\"To ensure the prototype is usable and accessible in the venue.\"],\"ai\":1,\"ex\":\"Selecting study details before defining objectives is incorrect because the team must agree on what it wants to learn first. The correct choice focuses on turning a need into actionable objectives and setup.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"Before a research session, what should the team do to expose procedure problems?\",\"op\":[\"Run through test tasks with participants on the day of the research session.\",\"Agree on the research goals before selecting the study details.\",\"Conduct a practice session with a team member.\",\"Ensure the prototype works end-to-end and is accessible.\"],\"ai\":0,\"ex\":\"Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems.\",\"sourceFactIndexes\":[3,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Actionable learning objectives\",\"df\":\"Specific goals derived from a decision need that guide the research.\",\"eg\":\"Defining the objective as 'Understand user flow for checkout' instead of 'Study the checkout process'.\",\"mi\":\"Believing objectives are simply broad topics to cover.\",\"cx\":\"Objectives must be actionable, turning a need into specific learning goals.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Rehearsal setup\",\"df\":\"The preparation of the study environment and tasks prior to participant arrival.\",\"eg\":\"Running through test tasks on the day of the research session.\",\"mi\":\"Assuming rehearsal is only necessary for the participants.\",\"cx\":\"Researchers should run through test tasks on the day before the research session.\",\"sourceFactIndexes\":[3]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"What is the primary function of a research-based persona?\",\"op\":[\"To document individual interface requests.\",\"To present research findings for sharing.\",\"To describe features intended to meet needs.\",\"To keep design choices connected to evidence.\"],\"ai\":3,\"ex\":\"The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"User profile summary\",\"df\":\"A shareable profile of a user group with similar behavior and needs.\",\"eg\":\"A persona detailing the needs of 'Busy Professionals' for a new scheduling app.\",\"mi\":\"This is just a list of user requests.\",\"cx\":\"This is a research-based persona, which links design choices to evidence.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Need articulation\",\"df\":\"Turning user needs into user stories that describe features and content intended to meet those needs.\",\"eg\":\"Writing a user story like 'As a user, I want X so that Y'.\",\"mi\":\"This is simply stating a desired feature.\",\"cx\":\"This is need articulation, which translates high-level needs into actionable user stories.\",\"sourceFactIndexes\":[3]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"What is the primary function of a journey map in a UX context?\",\"op\":[\"To document individual user thoughts during a session.\",\"To show connected steps, boundaries, breakdowns, and opportunities.\",\"To list all possible features a service offers.\",\"To predict future user behavior based on assumptions.\"],\"ai\":1,\"ex\":\"The correct choice shows the map's purpose is to visualize the entire user experience flow, contrasting with the misconception that it is merely a collection of individual user thoughts.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"When creating an experience map, what should be made visible?\",\"op\":[\"Only the successful paths users take.\",\"Struggle points and candidate improvement areas.\",\"The exact technical specifications of the service.\",\"The final, desired outcome only.\"],\"ai\":2,\"ex\":\"The correct choice highlights the need to identify areas for enhancement, unlike the misconception that the map only focuses on successful paths.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[]}}}}",
+  "savedAt": "2026-07-13T14:18:08.713Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-campaign.json",
+    "campaignManifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+    "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d",
+    "courseInputSha256": "728d4020e0b7003db54e33bcfbcc26df6f41e4aad8230edce7c63b97472b02ea",
+    "courseGroupId": "ux-research-synthesis-studio",
+    "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/ux-intro.json",
+      "sourceArtifactSha256": "97184a577a92ba3e8103dacfb100bbabbf25c8d90905da95b1b0dec1e0664e54",
+      "kernels": [
+        {
+          "id": "ux/research-planning",
+          "term": "Research planning",
+          "definition": "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "definitionAnchor": {
+            "src": "govuk:plan-user-research",
+            "loc": "Set your research objectives",
+            "quote": "Each round of user research should have clear objectives. Keep your objectives actionable and to the point."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The team should agree what it wants to learn from the research round before selecting study details.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Set your research objectives",
+                "quote": "Work with your team to agree what you want to learn from a round of research."
+              }
+            },
+            {
+              "index": 1,
+              "text": "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Prepare the prototype",
+                "quote": "Your prototype or beta service needs to work from end-to-end and be usable and accessible from the research venue."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Researchers should run through test tasks on the day before the research session.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Prepare the prototype",
+                "quote": "Run through the test tasks on the day before the research."
+              }
+            },
+            {
+              "index": 3,
+              "text": "A practice session with a team member can expose procedure problems before participants arrive.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Run a practice session",
+                "quote": "To make sure your research goes smoothly, consider running through the session with a team member."
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/evidence-based-personas",
+          "term": "Personas",
+          "definition": "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "definitionAnchor": {
+            "src": "govuk:user-needs",
+            "loc": "Share your user needs",
+            "quote": "user profiles or personas that describe groups of users with similar behaviour and needs"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Personas are one way to present research findings so other people can understand and share them.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Share your user needs",
+                "quote": "Present what you've learned in a way that's easy for others to understand and share."
+              }
+            },
+            {
+              "index": 1,
+              "text": "User needs are generally higher-level and more stable over time than individual interface requests.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "User needs tend to be high-level, broad in scope and stable over time."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "These describe the specific features and content you need to create for your service to meet your users' needs."
+              }
+            },
+            {
+              "index": 3,
+              "text": "Keeping each user story linked to its source need enables evaluation of whether the need is being met.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "This traceability allows you to track related activities and determine how well you're meeting a particular user need."
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/journey-mapping",
+          "term": "Journey mapping",
+          "definition": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "definitionAnchor": {
+            "src": "govuk:whole-journey",
+            "loc": "Whole problem",
+            "quote": "It's important for teams to make sure the thing they're building forms a coherent part of a user's wider journey."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "User point of view",
+                "quote": "Start by talking to your users to learn more about the steps they have to take and the transactions involved."
+              }
+            },
+            {
+              "index": 1,
+              "text": "An experience map should make struggle points and candidate improvement areas visible.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "User point of view",
+                "quote": "The map should show which bits of the journey users are struggling with and the areas you might want to focus on improving."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "What to change",
+                "quote": "dead ends in the user journey"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Journey analysis should include gaps between online and offline parts of a service.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "What to change",
+                "quote": "online and offline elements of the transaction not joining up in an intuitive way"
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-13T14:18:08.713Z",
+    "admittedPromptIds": [
+      "ux-research-synthesis-studio:ux/research-planning",
+      "ux-research-synthesis-studio:ux/evidence-based-personas",
+      "ux-research-synthesis-studio:ux/journey-mapping"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "ux-research-synthesis-studio:ux/research-planning",
+          "kernelId": "ux/research-planning",
+          "promptSha256": "972b81ca55113081c42c8afe1f1f5a9cc2b4d829638521de32867eeb6c55a1a0",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a UX research plan?",
+                "op": [
+                  "To select study details before defining learning objectives.",
+                  "To turn a decision need into actionable learning objectives, participants, tasks, and setup.",
+                  "To rehearse test tasks with participants on the day of the session.",
+                  "To ensure the prototype is usable and accessible in the venue."
+                ],
+                "ai": 1,
+                "ex": "Selecting study details before defining objectives is incorrect because the team must agree on what it wants to learn first. The correct choice focuses on turning a need into actionable objectives and setup.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Before a research session, what should the team do to expose procedure problems?",
+                "op": [
+                  "Run through test tasks with participants on the day of the research session.",
+                  "Agree on the research goals before selecting the study details.",
+                  "Conduct a practice session with a team member.",
+                  "Ensure the prototype works end-to-end and is accessible."
+                ],
+                "ai": 3,
+                "ex": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Actionable learning objectives",
+                "df": "Specific goals derived from a decision need that guide the research.",
+                "eg": "Defining the objective as 'Understand user flow for checkout' instead of 'Study the checkout process'.",
+                "mi": "Believing objectives are simply broad topics to cover.",
+                "cx": "Objectives must be actionable, turning a need into specific learning goals.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Rehearsal setup",
+                "df": "The preparation of the study environment and tasks prior to participant arrival.",
+                "eg": "Running through test tasks on the day of the research session.",
+                "mi": "Assuming rehearsal is only necessary for the participants.",
+                "cx": "Researchers should run through test tasks on the day before the research session.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "1e7b7f714741e5d08c46ecbca791691cda7e201b5fd381aa744ad13d74f2c76a",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a UX research plan?",
+                "op": [
+                  "To select study details before defining learning objectives.",
+                  "To turn a decision need into actionable learning objectives, participants, tasks, and setup.",
+                  "To rehearse test tasks with participants on the day of the session.",
+                  "To ensure the prototype is usable and accessible in the venue."
+                ],
+                "ai": 1,
+                "ex": "Selecting study details before defining objectives is incorrect because the team must agree on what it wants to learn first. The correct choice focuses on turning a need into actionable objectives and setup.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Before a research session, what should the team do to expose procedure problems?",
+                "op": [
+                  "Run through test tasks with participants on the day of the research session.",
+                  "Agree on the research goals before selecting the study details.",
+                  "Conduct a practice session with a team member.",
+                  "Ensure the prototype works end-to-end and is accessible."
+                ],
+                "ai": 0,
+                "ex": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Actionable learning objectives",
+                "df": "Specific goals derived from a decision need that guide the research.",
+                "eg": "Defining the objective as 'Understand user flow for checkout' instead of 'Study the checkout process'.",
+                "mi": "Believing objectives are simply broad topics to cover.",
+                "cx": "Objectives must be actionable, turning a need into specific learning goals.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Rehearsal setup",
+                "df": "The preparation of the study environment and tasks prior to participant arrival.",
+                "eg": "Running through test tasks on the day of the research session.",
+                "mi": "Assuming rehearsal is only necessary for the participants.",
+                "cx": "Researchers should run through test tasks on the day before the research session.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "3e59d76b349b93311405159a1404f725dbe05fa094e76269ce5778dee5be0064",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-13T14:17:48.802Z",
+          "durationMs": 6882,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "ux-research-synthesis-studio:ux/research-planning",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "Before a research session, what should the team do to expose procedure problems?",
+                "options": [
+                  "Run through test tasks with participants on the day of the research session.",
+                  "Agree on the research goals before selecting the study details.",
+                  "Conduct a practice session with a team member.",
+                  "Ensure the prototype works end-to-end and is accessible."
+                ],
+                "answerIndex": 3,
+                "explanation": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems."
+              },
+              "chosen": {
+                "question": "Before a research session, what should the team do to expose procedure problems?",
+                "options": [
+                  "Run through test tasks with participants on the day of the research session.",
+                  "Agree on the research goals before selecting the study details.",
+                  "Conduct a practice session with a team member.",
+                  "Ensure the prototype works end-to-end and is accessible."
+                ],
+                "answerIndex": 0,
+                "explanation": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 0,
+                "scores": [
+                  5,
+                  1,
+                  2,
+                  0
+                ],
+                "supportMethod": "lexical-margin",
+                "explicitCues": [],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "ux-research-synthesis-studio:ux/evidence-based-personas",
+          "kernelId": "ux/evidence-based-personas",
+          "promptSha256": "670b3489ab64c7a913ee07cdef80532522322c779d55e29131be67cd1c06d9b2",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a research-based persona?",
+                "op": [
+                  "To document individual interface requests.",
+                  "To present research findings for sharing.",
+                  "To describe features intended to meet needs.",
+                  "To keep design choices connected to evidence."
+                ],
+                "ai": 0,
+                "ex": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "How are user needs typically structured in relation to interface requests?",
+                "op": [
+                  "As individual interface requests.",
+                  "As features and content descriptions.",
+                  "As higher-level and more stable than individual interface requests.",
+                  "As user stories describing features."
+                ],
+                "ai": 2,
+                "ex": "The correct choice is 'As higher-level and more stable than individual interface requests' because user needs are generally higher-level and more stable over time. The misconception is that user needs are equivalent to individual interface requests, which are more specific and transient.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "User profile summary",
+                "df": "A shareable profile of a user group with similar behavior and needs.",
+                "eg": "A persona detailing the needs of 'Busy Professionals' for a new scheduling app.",
+                "mi": "This is just a list of user requests.",
+                "cx": "This is a research-based persona, which links design choices to evidence.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Need articulation",
+                "df": "Turning user needs into user stories that describe features and content intended to meet those needs.",
+                "eg": "Writing a user story like 'As a user, I want X so that Y'.",
+                "mi": "This is simply stating a desired feature.",
+                "cx": "This is need articulation, which translates high-level needs into actionable user stories.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "e0f604d5d5343c4d0ff1607c75d126c8dbb3e311a81ce4fa4321b0af2dcf296e",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a research-based persona?",
+                "op": [
+                  "To document individual interface requests.",
+                  "To present research findings for sharing.",
+                  "To describe features intended to meet needs.",
+                  "To keep design choices connected to evidence."
+                ],
+                "ai": 3,
+                "ex": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "User profile summary",
+                "df": "A shareable profile of a user group with similar behavior and needs.",
+                "eg": "A persona detailing the needs of 'Busy Professionals' for a new scheduling app.",
+                "mi": "This is just a list of user requests.",
+                "cx": "This is a research-based persona, which links design choices to evidence.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Need articulation",
+                "df": "Turning user needs into user stories that describe features and content intended to meet those needs.",
+                "eg": "Writing a user story like 'As a user, I want X so that Y'.",
+                "mi": "This is simply stating a desired feature.",
+                "cx": "This is need articulation, which translates high-level needs into actionable user stories.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "1d2e3a2e920a91bf2d73f4d09612124cbc0056c54e756642651943a7663d6e1e",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-longest-option-cue"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-13T14:17:55.685Z",
+          "durationMs": 6949,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "ux-research-synthesis-studio:ux/evidence-based-personas",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What is the primary function of a research-based persona?",
+                "options": [
+                  "To document individual interface requests.",
+                  "To present research findings for sharing.",
+                  "To describe features intended to meet needs.",
+                  "To keep design choices connected to evidence."
+                ],
+                "answerIndex": 0,
+                "explanation": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function."
+              },
+              "chosen": {
+                "question": "What is the primary function of a research-based persona?",
+                "options": [
+                  "To document individual interface requests.",
+                  "To present research findings for sharing.",
+                  "To describe features intended to meet needs.",
+                  "To keep design choices connected to evidence."
+                ],
+                "answerIndex": 3,
+                "explanation": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 3,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 3,
+                    "type": "explicit-named-answer",
+                    "surface": "The correct choice is 'To keep design choices connected to evidence'"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "ux-research-synthesis-studio:ux/journey-mapping",
+          "kernelId": "ux/journey-mapping",
+          "promptSha256": "cc28986d2b7aa8e3f28a2f382e23883da8df8b5665384de6df39472568ac2074",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a journey map in a UX context?",
+                "op": [
+                  "To document individual user thoughts during a session.",
+                  "To show connected steps, boundaries, breakdowns, and opportunities.",
+                  "To list all possible features a service offers.",
+                  "To predict future user behavior based on assumptions."
+                ],
+                "ai": 1,
+                "ex": "The correct choice shows the map's purpose is to visualize the entire user experience flow, contrasting with the misconception that it is merely a collection of individual user thoughts.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "When creating an experience map, what should be made visible?",
+                "op": [
+                  "Only the successful paths users take.",
+                  "Struggle points and candidate improvement areas.",
+                  "The exact technical specifications of the service.",
+                  "The final, desired outcome only."
+                ],
+                "ai": 2,
+                "ex": "The correct choice highlights the need to identify areas for enhancement, unlike the misconception that the map only focuses on successful paths.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "End-to-end experience visualization",
+                "df": "A visual representation covering the entire user path.",
+                "eg": "Mapping the steps from initial search to final purchase.",
+                "mi": "Thinking a map is just a list of features.",
+                "cx": "A visual representation covering the entire user path.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Service flow analysis",
+                "df": "Examining the sequence of user actions and transactions.",
+                "eg": "Analyzing the steps users take to complete a banking task.",
+                "mi": "Confusing flow analysis with simple feature listing.",
+                "cx": "Examining the sequence of user actions and transactions.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "ba7ed7e8951acc7786719e6bdecb6db8cc21c9ab236624b5098ef9067d2f7266",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a journey map in a UX context?",
+                "op": [
+                  "To document individual user thoughts during a session.",
+                  "To show connected steps, boundaries, breakdowns, and opportunities.",
+                  "To list all possible features a service offers.",
+                  "To predict future user behavior based on assumptions."
+                ],
+                "ai": 1,
+                "ex": "The correct choice shows the map's purpose is to visualize the entire user experience flow, contrasting with the misconception that it is merely a collection of individual user thoughts.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "When creating an experience map, what should be made visible?",
+                "op": [
+                  "Only the successful paths users take.",
+                  "Struggle points and candidate improvement areas.",
+                  "The exact technical specifications of the service.",
+                  "The final, desired outcome only."
+                ],
+                "ai": 2,
+                "ex": "The correct choice highlights the need to identify areas for enhancement, unlike the misconception that the map only focuses on successful paths.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "15c7a1e890c089435be065d78573fa3b651bb062b24e500d76cdefa1d673a701",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-13T14:18:02.634Z",
+          "durationMs": 6079,
+          "compilerRepairs": [],
+          "compilerRepairCounts": {
+            "total": 0,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 0
+          }
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "ux-research-synthesis-studio:ux/research-planning",
+        "kernelId": "ux/research-planning",
+        "promptSha256": "972b81ca55113081c42c8afe1f1f5a9cc2b4d829638521de32867eeb6c55a1a0",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a UX research plan?",
+              "op": [
+                "To select study details before defining learning objectives.",
+                "To turn a decision need into actionable learning objectives, participants, tasks, and setup.",
+                "To rehearse test tasks with participants on the day of the session.",
+                "To ensure the prototype is usable and accessible in the venue."
+              ],
+              "ai": 1,
+              "ex": "Selecting study details before defining objectives is incorrect because the team must agree on what it wants to learn first. The correct choice focuses on turning a need into actionable objectives and setup.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Before a research session, what should the team do to expose procedure problems?",
+              "op": [
+                "Run through test tasks with participants on the day of the research session.",
+                "Agree on the research goals before selecting the study details.",
+                "Conduct a practice session with a team member.",
+                "Ensure the prototype works end-to-end and is accessible."
+              ],
+              "ai": 3,
+              "ex": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Actionable learning objectives",
+              "df": "Specific goals derived from a decision need that guide the research.",
+              "eg": "Defining the objective as 'Understand user flow for checkout' instead of 'Study the checkout process'.",
+              "mi": "Believing objectives are simply broad topics to cover.",
+              "cx": "Objectives must be actionable, turning a need into specific learning goals.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Rehearsal setup",
+              "df": "The preparation of the study environment and tasks prior to participant arrival.",
+              "eg": "Running through test tasks on the day of the research session.",
+              "mi": "Assuming rehearsal is only necessary for the participants.",
+              "cx": "Researchers should run through test tasks on the day before the research session.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "1e7b7f714741e5d08c46ecbca791691cda7e201b5fd381aa744ad13d74f2c76a",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a UX research plan?",
+              "op": [
+                "To select study details before defining learning objectives.",
+                "To turn a decision need into actionable learning objectives, participants, tasks, and setup.",
+                "To rehearse test tasks with participants on the day of the session.",
+                "To ensure the prototype is usable and accessible in the venue."
+              ],
+              "ai": 1,
+              "ex": "Selecting study details before defining objectives is incorrect because the team must agree on what it wants to learn first. The correct choice focuses on turning a need into actionable objectives and setup.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Before a research session, what should the team do to expose procedure problems?",
+              "op": [
+                "Run through test tasks with participants on the day of the research session.",
+                "Agree on the research goals before selecting the study details.",
+                "Conduct a practice session with a team member.",
+                "Ensure the prototype works end-to-end and is accessible."
+              ],
+              "ai": 0,
+              "ex": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Actionable learning objectives",
+              "df": "Specific goals derived from a decision need that guide the research.",
+              "eg": "Defining the objective as 'Understand user flow for checkout' instead of 'Study the checkout process'.",
+              "mi": "Believing objectives are simply broad topics to cover.",
+              "cx": "Objectives must be actionable, turning a need into specific learning goals.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Rehearsal setup",
+              "df": "The preparation of the study environment and tasks prior to participant arrival.",
+              "eg": "Running through test tasks on the day of the research session.",
+              "mi": "Assuming rehearsal is only necessary for the participants.",
+              "cx": "Researchers should run through test tasks on the day before the research session.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "3e59d76b349b93311405159a1404f725dbe05fa094e76269ce5778dee5be0064",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-13T14:17:48.802Z",
+        "durationMs": 6882,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "ux-research-synthesis-studio:ux/research-planning",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "Before a research session, what should the team do to expose procedure problems?",
+              "options": [
+                "Run through test tasks with participants on the day of the research session.",
+                "Agree on the research goals before selecting the study details.",
+                "Conduct a practice session with a team member.",
+                "Ensure the prototype works end-to-end and is accessible."
+              ],
+              "answerIndex": 3,
+              "explanation": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems."
+            },
+            "chosen": {
+              "question": "Before a research session, what should the team do to expose procedure problems?",
+              "options": [
+                "Run through test tasks with participants on the day of the research session.",
+                "Agree on the research goals before selecting the study details.",
+                "Conduct a practice session with a team member.",
+                "Ensure the prototype works end-to-end and is accessible."
+              ],
+              "answerIndex": 0,
+              "explanation": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 0,
+              "scores": [
+                5,
+                1,
+                2,
+                0
+              ],
+              "supportMethod": "lexical-margin",
+              "explicitCues": [],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              3,
+              4
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "ux-research-synthesis-studio:ux/evidence-based-personas",
+        "kernelId": "ux/evidence-based-personas",
+        "promptSha256": "670b3489ab64c7a913ee07cdef80532522322c779d55e29131be67cd1c06d9b2",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a research-based persona?",
+              "op": [
+                "To document individual interface requests.",
+                "To present research findings for sharing.",
+                "To describe features intended to meet needs.",
+                "To keep design choices connected to evidence."
+              ],
+              "ai": 0,
+              "ex": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "How are user needs typically structured in relation to interface requests?",
+              "op": [
+                "As individual interface requests.",
+                "As features and content descriptions.",
+                "As higher-level and more stable than individual interface requests.",
+                "As user stories describing features."
+              ],
+              "ai": 2,
+              "ex": "The correct choice is 'As higher-level and more stable than individual interface requests' because user needs are generally higher-level and more stable over time. The misconception is that user needs are equivalent to individual interface requests, which are more specific and transient.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "User profile summary",
+              "df": "A shareable profile of a user group with similar behavior and needs.",
+              "eg": "A persona detailing the needs of 'Busy Professionals' for a new scheduling app.",
+              "mi": "This is just a list of user requests.",
+              "cx": "This is a research-based persona, which links design choices to evidence.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Need articulation",
+              "df": "Turning user needs into user stories that describe features and content intended to meet those needs.",
+              "eg": "Writing a user story like 'As a user, I want X so that Y'.",
+              "mi": "This is simply stating a desired feature.",
+              "cx": "This is need articulation, which translates high-level needs into actionable user stories.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "e0f604d5d5343c4d0ff1607c75d126c8dbb3e311a81ce4fa4321b0af2dcf296e",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a research-based persona?",
+              "op": [
+                "To document individual interface requests.",
+                "To present research findings for sharing.",
+                "To describe features intended to meet needs.",
+                "To keep design choices connected to evidence."
+              ],
+              "ai": 3,
+              "ex": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "User profile summary",
+              "df": "A shareable profile of a user group with similar behavior and needs.",
+              "eg": "A persona detailing the needs of 'Busy Professionals' for a new scheduling app.",
+              "mi": "This is just a list of user requests.",
+              "cx": "This is a research-based persona, which links design choices to evidence.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Need articulation",
+              "df": "Turning user needs into user stories that describe features and content intended to meet those needs.",
+              "eg": "Writing a user story like 'As a user, I want X so that Y'.",
+              "mi": "This is simply stating a desired feature.",
+              "cx": "This is need articulation, which translates high-level needs into actionable user stories.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "1d2e3a2e920a91bf2d73f4d09612124cbc0056c54e756642651943a7663d6e1e",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-1-longest-option-cue"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-13T14:17:55.685Z",
+        "durationMs": 6949,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "ux-research-synthesis-studio:ux/evidence-based-personas",
+            "item": 0,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What is the primary function of a research-based persona?",
+              "options": [
+                "To document individual interface requests.",
+                "To present research findings for sharing.",
+                "To describe features intended to meet needs.",
+                "To keep design choices connected to evidence."
+              ],
+              "answerIndex": 0,
+              "explanation": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function."
+            },
+            "chosen": {
+              "question": "What is the primary function of a research-based persona?",
+              "options": [
+                "To document individual interface requests.",
+                "To present research findings for sharing.",
+                "To describe features intended to meet needs.",
+                "To keep design choices connected to evidence."
+              ],
+              "answerIndex": 3,
+              "explanation": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 0,
+              "supportedIndex": 3,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 3,
+                  "type": "explicit-named-answer",
+                  "surface": "The correct choice is 'To keep design choices connected to evidence'"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "ux-research-synthesis-studio:ux/journey-mapping",
+        "kernelId": "ux/journey-mapping",
+        "promptSha256": "cc28986d2b7aa8e3f28a2f382e23883da8df8b5665384de6df39472568ac2074",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a journey map in a UX context?",
+              "op": [
+                "To document individual user thoughts during a session.",
+                "To show connected steps, boundaries, breakdowns, and opportunities.",
+                "To list all possible features a service offers.",
+                "To predict future user behavior based on assumptions."
+              ],
+              "ai": 1,
+              "ex": "The correct choice shows the map's purpose is to visualize the entire user experience flow, contrasting with the misconception that it is merely a collection of individual user thoughts.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "When creating an experience map, what should be made visible?",
+              "op": [
+                "Only the successful paths users take.",
+                "Struggle points and candidate improvement areas.",
+                "The exact technical specifications of the service.",
+                "The final, desired outcome only."
+              ],
+              "ai": 2,
+              "ex": "The correct choice highlights the need to identify areas for enhancement, unlike the misconception that the map only focuses on successful paths.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "End-to-end experience visualization",
+              "df": "A visual representation covering the entire user path.",
+              "eg": "Mapping the steps from initial search to final purchase.",
+              "mi": "Thinking a map is just a list of features.",
+              "cx": "A visual representation covering the entire user path.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Service flow analysis",
+              "df": "Examining the sequence of user actions and transactions.",
+              "eg": "Analyzing the steps users take to complete a banking task.",
+              "mi": "Confusing flow analysis with simple feature listing.",
+              "cx": "Examining the sequence of user actions and transactions.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "ba7ed7e8951acc7786719e6bdecb6db8cc21c9ab236624b5098ef9067d2f7266",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a journey map in a UX context?",
+              "op": [
+                "To document individual user thoughts during a session.",
+                "To show connected steps, boundaries, breakdowns, and opportunities.",
+                "To list all possible features a service offers.",
+                "To predict future user behavior based on assumptions."
+              ],
+              "ai": 1,
+              "ex": "The correct choice shows the map's purpose is to visualize the entire user experience flow, contrasting with the misconception that it is merely a collection of individual user thoughts.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "When creating an experience map, what should be made visible?",
+              "op": [
+                "Only the successful paths users take.",
+                "Struggle points and candidate improvement areas.",
+                "The exact technical specifications of the service.",
+                "The final, desired outcome only."
+              ],
+              "ai": 2,
+              "ex": "The correct choice highlights the need to identify areas for enhancement, unlike the misconception that the map only focuses on successful paths.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "15c7a1e890c089435be065d78573fa3b651bb062b24e500d76cdefa1d673a701",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-0-correction-repeats-definition",
+            "key-term-1-correction-repeats-definition",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-13T14:18:02.634Z",
+        "durationMs": 6079,
+        "compilerRepairs": [],
+        "compilerRepairCounts": {
+          "total": 0,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 0
+        }
+      }
+    ]
+  },
+  "scionCompilerReplay": {
+    "schemaVersion": 1,
+    "protocol": "scion-source-compiler-replay-v1",
+    "release": "v0.16.44",
+    "generatedAt": "2026-07-16T17:15:00.000Z",
+    "sourceProject": {
+      "path": "evaluation/scion-source-capture-evidence/ux-research-synthesis-studio-local.json",
+      "bytes": 45625,
+      "sha256": "bb41aa56d1382e69302e731828fd0a6fdb01960b2c57ba8eb3b9b5572e39ba46",
+      "projectId": "scion-source-capture-ux-research-synthesis-studio-local",
+      "captureProtocol": "scion-source-grounded-atom-capture-v1",
+      "captureCompletedAt": "2026-07-13T14:18:08.713Z"
+    },
+    "compilerSources": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 20113,
+        "sha256": "51ee1f91f892e6ee31a3127d8c605d6c965078352304f9c692e834817f45cef7"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 16009,
+        "sha256": "1fcc37353f26f5c1e0da1bebf57ea256495afc45f96eb1abb0d903f0170050ca"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 33593,
+        "sha256": "a5c1e76eff7ad40d349b8fe02910ebe744d37a09baa511fc33760cd8793df2bc"
+      },
+      {
+        "path": "scripts/scionSourceCompilerReplay.mjs",
+        "bytes": 15464,
+        "sha256": "1ec9dac97de4cf20028d60ee76d785086a161ae5a9870cccf502618d24446dd4"
+      }
+    ],
+    "responseMutationCount": 0,
+    "repairRows": [
+      {
+        "promptId": "ux-research-synthesis-studio:ux/evidence-based-personas",
+        "responseSha256": "e0f604d5d5343c4d0ff1607c75d126c8dbb3e311a81ce4fa4321b0af2dcf296e",
+        "admittedResponseSha256": "1d2e3a2e920a91bf2d73f4d09612124cbc0056c54e756642651943a7663d6e1e",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "9cc358e90f73b9583ade97311f1d2fa90c1bc2bbe9b3262966c2562c0dfa06e2"
+      },
+      {
+        "promptId": "ux-research-synthesis-studio:ux/research-planning",
+        "responseSha256": "1e7b7f714741e5d08c46ecbca791691cda7e201b5fd381aa744ad13d74f2c76a",
+        "admittedResponseSha256": "3e59d76b349b93311405159a1404f725dbe05fa094e76269ce5778dee5be0064",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "12971d2cd53f8cd308a23e8018bdd5804e92d458acf182eb8bd4767160c208ef"
+      }
+    ],
+    "repairCounts": {
+      "total": 2,
+      "incompleteExplanationTail": 0,
+      "explanationKeyAlignment": 2
+    },
+    "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
+    "identity": {
+      "algorithm": "sha256-canonical-source-compiler-replay-v1",
+      "sha256": "b4e63fa6fb8fa491eb4e400bba81dfdf5fe330731fed91851ef8d5a098367846"
+    }
+  }
+}

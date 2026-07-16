@@ -7,14 +7,14 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export const SCION_SEMANTIC_ADMISSION_PROTOCOL = 'scion-semantic-admission-replay-v1';
-export const SCION_SEMANTIC_ADMISSION_RELEASE = 'v0.16.43';
+export const SCION_SEMANTIC_ADMISSION_RELEASE = 'v0.16.44';
 export const SCION_SEMANTIC_ADMISSION_CORPUS =
   'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl';
 export const SCION_SEMANTIC_ADMISSION_CAMPAIGN = 'evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json';
 export const SCION_SEMANTIC_ADMISSION_BASELINE =
   'evaluation/scion-adapters/evidence/semantic-admission-baseline-v0.16.42.json';
 export const SCION_SEMANTIC_ADMISSION_RECEIPT =
-  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.43.json';
+  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.44.json';
 
 const IMPLEMENTATION_SOURCES = [
   'src/lib/scionAnswerKeyAlignment.js',
@@ -24,12 +24,12 @@ const IMPLEMENTATION_SOURCES = [
 
 const EXPECTED_CURRENT = {
   reviewedStableLosses: 46,
-  acceptedWithoutInterception: 37,
-  intercepted: 9,
-  repaired: 3,
+  acceptedWithoutInterception: 34,
+  intercepted: 12,
+  repaired: 6,
   rejectedForRegeneration: 6,
   responseTextMutations: 0,
-  repairFieldMutations: 3,
+  repairFieldMutations: 6,
   issues: {
     'duplicate-options': 2,
     'explanation-repeats-answer': 4,
@@ -166,7 +166,12 @@ export async function buildScionSemanticAdmissionReport({
 
     const issues = admission.issues || [];
     judgeDefectsSupportInterception(row, issues, repair.repairs);
-    repairKinds.push(...repair.repairs.map((entry) => entry.preferenceEvidence?.explicitCues?.[0]?.type || entry.pass));
+    repairKinds.push(
+      ...repair.repairs.map(
+        (entry) =>
+          entry.preferenceEvidence?.explicitCues?.[0]?.type || entry.preferenceEvidence?.supportMethod || entry.pass,
+      ),
+    );
     rejectionIssues.push(...issues);
     intercepted.push({
       reviewPairId: row.reviewPairId,
@@ -183,6 +188,10 @@ export async function buildScionSemanticAdmissionReport({
         explicitCueTypes: (entry.preferenceEvidence?.explicitCues || []).map((cue) => cue.type),
         declaredIndex: entry.preferenceEvidence?.declaredIndex,
         supportedIndex: entry.preferenceEvidence?.supportedIndex,
+        scores: entry.preferenceEvidence?.scores,
+        minimumBestScore: entry.preferenceEvidence?.minimumBestScore,
+        minimumMargin: entry.preferenceEvidence?.minimumMargin,
+        evidenceSentence: entry.preferenceEvidence?.evidenceSentence,
       })),
       remainingIssues: issues,
       judgeDefectCount: evidence.decisionDefects.length,
@@ -228,14 +237,16 @@ export async function buildScionSemanticAdmissionReport({
       release: parsedBaseline.release,
       acceptedWithoutInterception: parsedBaseline.summary.acceptedWithoutInterception,
     };
-    assertExact('v0.16.43 semantic admission summary', summary, {
+    assertExact('v0.16.44 semantic admission summary', summary, {
       ...EXPECTED_CURRENT,
       repairCues: {
         'explicit-affirmative-lead': 2,
         'explicit-option-text': 1,
+        'first-sentence-lexical-margin': 3,
       },
       byDomain: {
-        'computer-science': 1,
+        'computer-science': 3,
+        geology: 1,
         'music-theory': 7,
         'user-experience-design': 1,
       },
@@ -271,14 +282,14 @@ export async function buildScionSemanticAdmissionReport({
     unresolvedStableLosses: rows.length - intercepted.length,
     productBehavior: {
       repairs:
-        'Only the answer-index field changes when one exact affirmative explanation cue uniquely supports another option.',
+        'Only the answer-index field changes when an exact affirmative cue or a unique first-sentence lexical margin supports another option.',
       rejections:
         'Cosmetic duplicate options and answer-only feedback are rejected at shared admission and enter the existing regeneration path.',
       modelNeutralBenefit:
         'The shared admission rejections apply to Scion and paid-model outputs; the local Scion parser additionally records conservative answer-key repairs.',
     },
     claimBoundary:
-      'This replay measures interception of defects already identified in stable paired-order judgments from one Codex model. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Thirty-seven stable losses remain unresolved.',
+      'This replay measures interception of defects already identified in stable paired-order judgments from one Codex model. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Thirty-four stable losses remain unresolved.',
   };
   report.identity = {
     algorithm: 'sha256-canonical-scion-semantic-admission-replay-v1',

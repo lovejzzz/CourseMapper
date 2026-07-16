@@ -234,7 +234,10 @@ export function toScionOrpoTrainingRow(entry) {
   };
 }
 
-function withDerivedContractEvidence(row, { semanticAdmission = true } = {}) {
+function withDerivedContractEvidence(
+  row,
+  { semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission } = {},
+) {
   if (
     row?.preferenceEvidence?.kind === 'single-model-judge-preference' &&
     validateScionCodexTrainingPreferenceEvidence(row.preferenceEvidence).valid
@@ -245,7 +248,10 @@ function withDerivedContractEvidence(row, { semanticAdmission = true } = {}) {
   if (!kind) return row;
   const chosen = kind === 'lesson' ? lessonValue(row.chosen) : parsed(row.chosen);
   const rejected = kind === 'lesson' ? lessonValue(row.rejected) : parsed(row.rejected);
-  const evidence = deriveDeterministicContractEvidence({ kind, chosen, rejected }, { semanticAdmission });
+  const evidence = deriveDeterministicContractEvidence(
+    { kind, chosen, rejected },
+    { semanticAdmission, allowFirstSentenceLexicalCue },
+  );
   if (!evidence) return row;
   return {
     ...row,
@@ -331,6 +337,7 @@ export async function buildScionAdapterDataset({
   heldoutBenchmarkPath = DEFAULT_HELDOUT_BENCHMARK,
   generatedAt = new Date().toISOString(),
   semanticAdmission = true,
+  allowFirstSentenceLexicalCue = semanticAdmission,
 } = {}) {
   const sourceReceipts = await Promise.all(sources.map(inspectDatasetSource));
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
@@ -340,8 +347,9 @@ export async function buildScionAdapterDataset({
   const quarantine = [];
   const seen = new Set();
   for (const entry of loaded) {
-    const auditedRow = withDerivedContractEvidence(entry.row, { semanticAdmission });
-    const assessment = assessCorpusRow(auditedRow, entry.source, { semanticAdmission });
+    const admissionOptions = { semanticAdmission, allowFirstSentenceLexicalCue };
+    const auditedRow = withDerivedContractEvidence(entry.row, admissionOptions);
+    const assessment = assessCorpusRow(auditedRow, entry.source, admissionOptions);
     if (!assessment.eligible) {
       quarantine.push({ source: entry.source, line: entry.line, issues: assessment.issues });
       continue;

@@ -238,7 +238,10 @@ function validFactIndexes(indexes, sourceClaimCount) {
   );
 }
 
-export function assessSourceAtomResponse(value, { sourceClaimCount }) {
+export function assessSourceAtomResponse(
+  value,
+  { sourceClaimCount, semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission },
+) {
   const response = parseSourceAtomResponse(value);
   const mcItems = Array.isArray(response?.mcItems) ? response.mcItems : [];
   const keyTerms = Array.isArray(response?.keyTerms) ? response.keyTerms : [];
@@ -248,7 +251,7 @@ export function assessSourceAtomResponse(value, { sourceClaimCount }) {
   if (mcItems.length !== 2) issues.push('mc-count');
   if (keyTerms.length !== 2) issues.push('key-term-count');
   const mcAssessments = mcCandidates.map((item, index) => {
-    const assessment = assessScionMcItem(item);
+    const assessment = assessScionMcItem(item, { semanticAdmission, allowFirstSentenceLexicalCue });
     const itemIssues = [...assessment.issues];
     if (!validFactIndexes(item?.sourceFactIndexes, sourceClaimCount)) itemIssues.push('source-fact-index');
     issues.push(...itemIssues.map((issue) => `mc-${index}-${issue}`));
@@ -287,18 +290,29 @@ export function assessSourceAtomResponse(value, { sourceClaimCount }) {
  * the returned repair receipts beside a derived project so every changed byte
  * remains traceable to the exact raw atom and deterministic action.
  */
-export function compileSourceAtomResponse(value, { sourceClaimCount, lessonId = '' }) {
+export function compileSourceAtomResponse(
+  value,
+  { sourceClaimCount, lessonId = '', semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission },
+) {
   const response = parseSourceAtomResponse(value);
   const repairs = [];
   const compiledResponse = {
     ...response,
     mcItems: (Array.isArray(response?.mcItems) ? response.mcItems : []).map((item, itemIndex) => {
-      const compiled = repairScionMcItem(item, { lessonId, itemIndex });
+      const compiled = repairScionMcItem(item, {
+        lessonId,
+        itemIndex,
+        keyConflictOptions: { allowFirstSentenceLexicalCue },
+      });
       repairs.push(...compiled.repairs.map((repair) => ({ ...repair, sourceFactIndexes: item.sourceFactIndexes })));
       return compiled.item;
     }),
   };
-  const assessment = assessSourceAtomResponse(compiledResponse, { sourceClaimCount });
+  const assessment = assessSourceAtomResponse(compiledResponse, {
+    sourceClaimCount,
+    semanticAdmission,
+    allowFirstSentenceLexicalCue,
+  });
   return {
     ...assessment,
     rawResponse: response,

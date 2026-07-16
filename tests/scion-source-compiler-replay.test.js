@@ -19,12 +19,12 @@ describe('Scion source compiler replay', () => {
       outputDir: path.join(root, 'projects'),
       receiptOutput: path.join(root, 'receipt.json'),
       generatedAt: '2026-07-16T10:00:00.000Z',
-      publishedOutputDir: 'evaluation/scion-source-compiler-replay-v0.16.43',
+      publishedOutputDir: 'evaluation/scion-source-compiler-replay-v0.16.44',
     });
 
     expect(result.receipt).toMatchObject({
       protocol: 'scion-source-compiler-replay-v1',
-      release: 'v0.16.43',
+      release: 'v0.16.44',
       summary: {
         projectCount: 12,
         domainCount: 4,
@@ -37,9 +37,9 @@ describe('Scion source compiler replay', () => {
       },
     });
     expect(result.receipt.summary.repairCounts).toEqual({
-      total: 72,
+      total: 77,
       incompleteExplanationTail: 20,
-      explanationKeyAlignment: 52,
+      explanationKeyAlignment: 57,
     });
     expect(fs.readdirSync(result.outputDir)).toHaveLength(12);
     for (const project of result.receipt.projects) {

@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.43
+**Current release:** v0.16.44
 
 ---
 
@@ -31,7 +31,13 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.43**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.44**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.44 repairs three more measured answer-key contradictions without inventing content. After the exact-label and exact-option checks, the compiler may inspect only the first affirmative explanation sentence, normalize a narrow set of plural and verb endings, and move the key only when one option has at least two supported content tokens and uniquely beats the declared key. Every receipt retains the evidence sentence, all four scores, both thresholds, and the before/after index. Literal labels, generic “correct choice” prose, negative or misconception language, tied support, weak one-token paraphrases, and the known ambiguous UX task-flow case all refuse this fallback.
+
+Across the same 46 stable paired-order Scion losses, intercepted defects rise from 9 to 12 and safe answer-index repairs rise from 3 to 6; the six existing regeneration rejects remain. Only `ai` or `answerIndex` changes, and model-authored text mutations remain zero. Across the broader 192 retained source atoms, answer-key repairs rise from 52 to 57 while compiler admission stays 141 and burden stays 51. The stricter corpus audit quarantines five deterministic-only margins that no longer clear semantic admission, so usable rows move from 123/464 to 118/464; all 46 judged preferences remain unchanged and the historical v0.16.43 profile still rebuilds exactly.
+
+This is compiler-quality progress, not learned-model progress. Thirty-four stable losses remain unresolved, the evidence gate remains 46/100 same-identity judge preferences, and no quality adapter has been trained, activated, or promoted. Hosted Scion still uses the public Gemma base plus the model-neutral compiler.
 
 v0.16.43 turns the measured gap into compiler behavior. An exact replay runs all 46 stable paired-order Scion losses through the frozen v0.16.42 implementation and the current compiler. The old gate intercepted none. The current gate intercepts nine: three contradicted answer keys are realigned from unique exact affirmative explanation cues, two cosmetically duplicated answer sets are rejected, and four explanations that only repeat the keyed answer are rejected. Every repair changes only one answer-index field; question, options, explanation, and all other model-authored text remain unchanged.
 

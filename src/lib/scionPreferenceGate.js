@@ -78,7 +78,10 @@ function containsGroundingToken(value, token) {
  * Scion quiz items. Passing means the item is safe enough to consider after a
  * separate answer-key verification; it is not a claim of semantic correctness.
  */
-export function assessScionMcItem(item, { topicWords = [], semanticAdmission = true } = {}) {
+export function assessScionMcItem(
+  item,
+  { topicWords = [], semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission } = {},
+) {
   const normalized = normalizeScionMcItem(item);
   const issues = [];
   if (!stringInBand(normalized.question, 25, 300)) issues.push('stem-length');
@@ -125,6 +128,7 @@ export function assessScionMcItem(item, { topicWords = [], semanticAdmission = t
     findScionExplanationKeyConflict(normalized, {
       allowAffirmativeLead: semanticAdmission,
       stripTerminalPunctuation: semanticAdmission,
+      allowFirstSentenceLexicalCue,
     })
   ) {
     issues.push('explanation-key-conflict');
@@ -205,13 +209,13 @@ function sameIssues(left = [], right = []) {
 
 export function deriveDeterministicContractEvidence(
   { kind, chosen, rejected } = {},
-  { semanticAdmission = true } = {},
+  { semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission } = {},
 ) {
   let chosenResult;
   let rejectedResult;
   if (kind === 'mc-item') {
-    chosenResult = assessScionMcItem(chosen, { semanticAdmission });
-    rejectedResult = assessScionMcItem(rejected, { semanticAdmission });
+    chosenResult = assessScionMcItem(chosen, { semanticAdmission, allowFirstSentenceLexicalCue });
+    rejectedResult = assessScionMcItem(rejected, { semanticAdmission, allowFirstSentenceLexicalCue });
   } else if (kind === 'key-term') {
     chosenResult = assessScionKeyTerm(chosen);
     rejectedResult = assessScionKeyTerm(rejected);
@@ -247,13 +251,13 @@ export function deriveDeterministicContractEvidence(
  */
 export function assessScionPreferencePair(
   { kind, chosen, rejected, preferenceEvidence } = {},
-  { semanticAdmission = true } = {},
+  { semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission } = {},
 ) {
   let chosenResult;
   let rejectedResult;
   if (kind === 'mc-item') {
-    chosenResult = assessScionMcItem(chosen, { semanticAdmission });
-    rejectedResult = assessScionMcItem(rejected, { semanticAdmission });
+    chosenResult = assessScionMcItem(chosen, { semanticAdmission, allowFirstSentenceLexicalCue });
+    rejectedResult = assessScionMcItem(rejected, { semanticAdmission, allowFirstSentenceLexicalCue });
   } else if (kind === 'key-term') {
     chosenResult = assessScionKeyTerm(chosen);
     rejectedResult = assessScionKeyTerm(rejected);

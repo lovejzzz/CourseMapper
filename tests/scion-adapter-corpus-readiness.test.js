@@ -8,17 +8,17 @@ import {
 describe('Scion adapter corpus readiness', () => {
   it('binds the current semantic-admission corpus without opening the research gate', async () => {
     const receipt = await buildScionAdapterCorpusReadinessSnapshot({
-      generatedAt: '2026-07-16T16:10:00.000Z',
+      generatedAt: '2026-07-16T17:25:00.000Z',
       profile: SCION_ADAPTER_CORPUS_READINESS_RELEASE,
     });
 
     expect(receipt).toMatchObject({
-      release: 'v0.16.43',
+      release: 'v0.16.44',
       dataset: {
         status: 'smoke-only',
         promotable: false,
-        counts: { loaded: 464, total: 123, singleModelJudgePairs: 46, singleModelJudgeDomains: 4 },
-        evidenceCounts: { 'deterministic-contract-margin': 77, 'single-model-judge-preference': 46 },
+        counts: { loaded: 464, total: 118, singleModelJudgePairs: 46, singleModelJudgeDomains: 4 },
+        evidenceCounts: { 'deterministic-contract-margin': 72, 'single-model-judge-preference': 46 },
       },
       judgeCampaign: {
         status: 'paired-orders-evidence-shortfall',
@@ -28,13 +28,31 @@ describe('Scion adapter corpus readiness', () => {
         stableTies: 30,
         orderSensitiveCases: 24,
         researchTrainingReady: false,
-        compilerReplay: { path: 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.43.json' },
+        compilerReplay: { path: 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.44.json' },
       },
       conclusion: {
         pairedOrderCampaignComplete: true,
         admissibleModelJudgePairs: 46,
       },
       claimBoundary: { adapterTrained: false, adapterVersusBaseWin: false, paidReferenceParity: false },
+    });
+  });
+
+  it('keeps the historical v0.16.43 semantic-admission readiness receipt reproducible', async () => {
+    const receipt = await buildScionAdapterCorpusReadinessSnapshot({
+      generatedAt: '2026-07-16T16:10:00.000Z',
+      profile: 'v0.16.43',
+    });
+
+    expect(receipt).toMatchObject({
+      release: 'v0.16.43',
+      dataset: {
+        counts: { loaded: 464, total: 123, singleModelJudgePairs: 46 },
+        evidenceCounts: { 'deterministic-contract-margin': 77, 'single-model-judge-preference': 46 },
+      },
+      judgeCampaign: {
+        compilerReplay: { path: 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.43.json' },
+      },
     });
   });
 
