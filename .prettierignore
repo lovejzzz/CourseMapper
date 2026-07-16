@@ -44,6 +44,16 @@ evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.36.json
 evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41
 evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.41.json
 evaluation/scion-adapters/evidence/judge-campaign-v0.16.41.json
+# v0.16.42 binds the reversed workbook, sealed second order, structural-only
+# status receipt, paired campaign analysis, and immutable approved-row corpus.
+# Their semantic auditors own exact serialization and outcome lineage.
+evaluation/scion-adapters/handoffs/fresh-b-a-workbook-v0.16.42
+evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.42.json
+evaluation/scion-adapters/evidence/codex-decision-status-repair-v0.16.42.json
+evaluation/scion-adapters/evidence/codex-review-v0.16.42-b-a.sealed.json
+evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl
+evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json
+evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.42.json
 .firebase
 .claude
 **/.venv*/

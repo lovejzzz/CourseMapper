@@ -607,6 +607,9 @@ function validateReview(review, key, order, judge) {
   let winnerSide = null;
   let winnerScores = null;
   let margin = null;
+  let decisionDefects = Array.isArray(preference.decisionDefects)
+    ? preference.decisionDefects.map(clean).filter(Boolean)
+    : [];
   const scorecardsAreScored =
     scorecards.length === 2 && scorecards.every((card) => card?.evaluationStatus === 'scored');
   if (preference.decision === 'winner') {
@@ -636,9 +639,7 @@ function validateReview(review, key, order, judge) {
       if (!Array.isArray(loserCard?.defects) || loserCard.defects.length === 0) {
         qualificationIssues.push('loser-defects-empty');
       }
-      if (!Array.isArray(preference.decisionDefects) || preference.decisionDefects.length === 0) {
-        qualificationIssues.push('winner-decision-defects-empty');
-      }
+      decisionDefects = [...new Set([...decisionDefects, ...(loserCard?.defects || []).map(clean).filter(Boolean)])];
     }
   }
   const scorecardHashes = scorecards.map((card) => hash(JSON.stringify(card)));
@@ -657,6 +658,7 @@ function validateReview(review, key, order, judge) {
     winnerSide,
     winnerScores,
     margin,
+    decisionDefects,
     scorecardHashes,
     passHash,
   };
@@ -1057,6 +1059,7 @@ async function ingestScionCodexTrainingReviewBatches({
   keyPacket,
   batches,
   approvedOutput,
+  reportOutput,
   sealedInputs = null,
 }) {
   if (!Array.isArray(batches) || batches.length !== 2) {
@@ -1218,7 +1221,7 @@ async function ingestScionCodexTrainingReviewBatches({
     const chosen = key.sourceRow[winnerRole];
     const rejected = key.sourceRow[loserRole];
     const decisionDefects = passes.flatMap((pass) =>
-      pass.review.preference.decisionDefects.map((value) => `${pass.order}: ${clean(value)}`).filter(Boolean),
+      pass.decisionDefects.map((value) => `${pass.order}: ${clean(value)}`).filter(Boolean),
     );
     const row = {
       kind: key.sourceRow.kind,
@@ -1344,8 +1347,13 @@ async function ingestScionCodexTrainingReviewBatches({
       ? 'Approved rows are stable single-model Codex training preferences, not human, instructor, independent, classroom, or multi-judge evidence.'
       : 'The two orders used different Codex revision/runtime identities. Results are analysis-only, order and revision are confounded, and no training preference is approved.',
   };
-  const reportPath = path.join(path.resolve(packetDir), 'organizer', 'codex-ingestion-report.json');
-  await fs.writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`);
+  const reportPath = path.resolve(
+    reportOutput || path.join(path.resolve(packetDir), 'organizer', 'codex-ingestion-report.json'),
+  );
+  await fs.mkdir(path.dirname(reportPath), { recursive: true });
+  const temporaryReport = `${reportPath}.tmp-${process.pid}`;
+  await fs.writeFile(temporaryReport, `${JSON.stringify(report, null, 2)}\n`);
+  await fs.rename(temporaryReport, reportPath);
   return { ...report, reportPath };
 }
 
@@ -1353,12 +1361,13 @@ export async function ingestScionCodexTrainingReviews({
   packetDir = DEFAULT_PACKET_DIR,
   reviewFiles = [],
   approvedOutput = DEFAULT_APPROVED,
+  reportOutput = '',
 } = {}) {
   if (reviewFiles.length !== 2) throw new Error('Provide exactly two Codex review batches: A/B and B/A.');
   await assertJudgePromptIntegrity();
   const { keyPacket } = await readOrganizerPacket(packetDir);
   const batches = await Promise.all(reviewFiles.map(async (file) => JSON.parse(await fs.readFile(file, 'utf8'))));
-  return ingestScionCodexTrainingReviewBatches({ packetDir, keyPacket, batches, approvedOutput });
+  return ingestScionCodexTrainingReviewBatches({ packetDir, keyPacket, batches, approvedOutput, reportOutput });
 }
 
 export async function ingestScionCodexSealedTrainingReviews({
@@ -1366,6 +1375,7 @@ export async function ingestScionCodexSealedTrainingReviews({
   sealedFiles = [],
   keyFiles = [],
   approvedOutput = DEFAULT_APPROVED,
+  reportOutput = '',
 } = {}) {
   if (sealedFiles.length !== 2 || keyFiles.length !== 2) {
     throw new Error('Sealed ingestion requires exactly two envelopes and two keys: A/B and B/A.');
@@ -1416,6 +1426,7 @@ export async function ingestScionCodexSealedTrainingReviews({
       keyPacket,
       batches: decrypted.map((entry) => entry.batch),
       approvedOutput,
+      reportOutput,
       sealedInputs,
     });
   } finally {
@@ -1434,6 +1445,7 @@ function parseArgs(argv) {
     packetDir: DEFAULT_PACKET_DIR,
     outputDir: DEFAULT_TEMPLATE_DIR,
     approvedOutput: DEFAULT_APPROVED,
+    reportOutput: '',
     reviewFiles: [],
     reviewFile: '',
     sealedOutput: '',
@@ -1464,6 +1476,7 @@ function parseArgs(argv) {
       args.outputDir = output || args.outputDir;
       args.outputFile = output || args.outputFile;
     } else if (arg === '--approved-output') args.approvedOutput = argv[++index] || args.approvedOutput;
+    else if (arg === '--report-output') args.reportOutput = argv[++index] || args.reportOutput;
     else if (arg === '--review') {
       const review = argv[++index];
       if (review) {

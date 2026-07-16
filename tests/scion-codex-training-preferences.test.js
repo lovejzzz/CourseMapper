@@ -291,6 +291,53 @@ describe('Scion Codex training preferences', () => {
     });
   });
 
+  it('uses the losing scorecards as concrete decision-defect evidence when the preference array is empty', async () => {
+    const { packetDir, templateDir } = await buildPacket();
+    const batches = await writeCompletedBatches(templateDir);
+    for (const batch of [batches.ab, batches.ba]) batch.reviews[0].preference.decisionDefects = [];
+    await fs.writeFile(batches.abPath, JSON.stringify(batches.ab));
+    await fs.writeFile(batches.baPath, JSON.stringify(batches.ba));
+    const approvedOutput = path.join(root, 'scorecard-defect-fallback.jsonl');
+
+    const report = await ingestScionCodexTrainingReviews({
+      packetDir,
+      reviewFiles: [batches.abPath, batches.baPath],
+      approvedOutput,
+    });
+
+    expect(report).toMatchObject({ approved: 1, quarantined: 0, analysis: { stableWinners: 1 } });
+    const row = JSON.parse((await fs.readFile(approvedOutput, 'utf8')).trim());
+    expect(row.preferenceEvidence.decisionDefects).toEqual([
+      expect.stringMatching(/^A\/B: /),
+      expect.stringMatching(/^B\/A: /),
+    ]);
+    expect(validateScionCodexTrainingPreferenceEvidence(row.preferenceEvidence)).toMatchObject({
+      valid: true,
+      issues: [],
+    });
+  });
+
+  it('still quarantines a winner when neither the preference nor losing scorecard records a defect', async () => {
+    const { packetDir, templateDir } = await buildPacket();
+    const batches = await writeCompletedBatches(templateDir);
+    for (const batch of [batches.ab, batches.ba]) {
+      const review = batch.reviews[0];
+      review.preference.decisionDefects = [];
+      review.scorecards[review.preference.winnerPosition === 1 ? 1 : 0].defects = [];
+    }
+    await fs.writeFile(batches.abPath, JSON.stringify(batches.ab));
+    await fs.writeFile(batches.baPath, JSON.stringify(batches.ba));
+
+    const report = await ingestScionCodexTrainingReviews({
+      packetDir,
+      reviewFiles: [batches.abPath, batches.baPath],
+      approvedOutput: path.join(root, 'missing-defects.jsonl'),
+    });
+
+    expect(report).toMatchObject({ approved: 0, quarantined: 1 });
+    expect(report.quarantine[0].issues).toEqual(['A/B:loser-defects-empty', 'B/A:loser-defects-empty']);
+  });
+
   it('analyzes but never approves cross-order results when judge revision and runtime drift together', async () => {
     const { packetDir, templateDir } = await buildPacket();
     const { abPath, baPath } = await writeCompletedBatches(templateDir);
@@ -328,12 +375,15 @@ describe('Scion Codex training preferences', () => {
     const { packetDir, templateDir } = await buildPacket();
     const sealed = await sealCompletedBatches(packetDir, templateDir);
     const approvedOutput = path.join(root, 'sealed-approved.jsonl');
+    const reportOutput = path.join(root, 'tracked-evidence', 'sealed-ingestion.json');
     const report = await ingestScionCodexSealedTrainingReviews({
       packetDir,
       sealedFiles: [sealed.baSealed, sealed.abSealed],
       keyFiles: [sealed.baKey, sealed.abKey],
       approvedOutput,
+      reportOutput,
     });
+    expect(report.reportPath).toBe(reportOutput);
     expect(report).toMatchObject({
       reviewedCases: 1,
       approved: 1,

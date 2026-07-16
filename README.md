@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.41
+**Current release:** v0.16.42
 
 ---
 
@@ -31,7 +31,15 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.41**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.42**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.42 completes the missing reversed reading of the current quality campaign. A second ephemeral GPT-5.6-Luna/max session received only the 100-case B/A workbook and blank decisions; it did not receive the A/B workbook, envelope, key, plaintext, outcome, organizer mapping, repository rules, or user configuration. The workbook reconstructs only when supplied the exact sealed v0.16.41 envelope, whose public identity pins the same model, reasoning level, runtime, and prompt while requiring a different session ID.
+
+Both 100-case orders were sealed independently without writing combined judgment plaintext. Only then did dual-envelope ingestion decrypt them in memory, reverse B/A labels before unblinding, compare the two readings, and zero the plaintext buffers. The result agrees on 76/100 cases: 46 score-qualified stable winners and 30 stable ties. Twenty-three winner/tie disagreements and one opposite-winner reversal remain quarantined as order-sensitive evidence.
+
+All 46 stable winners favor the captured GPT-5.4-mini artifacts over the captured Scion-base pipeline: 10 in Computer Science, 6 in Geology, 19 in Music Theory, and 11 in User Experience Design. Scion base records zero stable wins in this source-bound atom packet. This is single-model Codex evidence—not human, instructor, independent, classroom, or multi-judge validation—and it evaluates training atoms rather than complete exported courses.
+
+The first ingestion attempt also found a redundant gate: 54 A/B winner records contained concrete defects in the losing scorecard but left the separate preference-level defect array empty. The tested correction uses those existing losing-scorecard defects as decision evidence; it does not change or re-judge any score, preference, winner, rationale, evidence statement, or defect. Forty-six immutable rows now record what Scion must learn. The current corpus rebuild admits 122/464 structurally usable pairs—76 deterministic contract pairs plus these 46 single-model-judge preferences—but remains `smoke-only` because the research gate is still closed at 46/100 judge preferences. No quality adapter has been trained or activated, and hosted Scion remains the public base plus compiler until at least 54 more stable, score-qualified preferences exist.
 
 v0.16.41 completes the first real reading of the new quality campaign without exposing its result. The A/B workbook reconstructs from the exact v0.16.40 source packet, binds 100 anonymous source-grounded cases into ten interleaved chunks, and pins one selectable judge profile before scoring: GPT-5.6-Luna with max reasoning on Codex CLI 0.144.2. The fresh ephemeral judge received only the immutable workbook and writable blank decisions—no organizer mapping, reverse-order payload, prior result, repository rules, or user configuration.
 
