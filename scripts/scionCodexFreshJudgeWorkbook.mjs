@@ -35,7 +35,6 @@ const DEFAULT_OUTPUT = 'evaluation/scion-adapters/handoffs/fresh-b-a-workbook-v0
 const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.30.json';
 const DEFAULT_CANONICAL_HANDOFF = 'evaluation/scion-adapters/handoffs/fresh-b-a-canonical-v0.16.19';
 const DEFAULT_CANONICAL_HANDOFF_RECEIPT = 'evaluation/scion-adapters/evidence/fresh-b-a-handoff-v0.16.19.json';
-const DEFAULT_WORKING_DECISIONS = 'verification-output/scion-codex-fresh-b-a-working';
 const PROMPT_FILE = 'single-model-training-atom-judge-prompt-v2.md';
 const INSTRUCTIONS_FILE = 'FRESH_TASK_INSTRUCTIONS.md';
 const MANIFEST_FILE = 'workbook-manifest.json';
@@ -125,6 +124,23 @@ function launchProfileIssues(profile, identity, prefix = 'judge-launch-profile')
   return issues;
 }
 
+function launchProfileFromPublicIdentity(identity) {
+  const match = /^(gpt-\d+(?:\.\d+)+(?:-[a-z0-9-]+)?)@(low|medium|high|xhigh|max|ultra)$/.exec(
+    identity?.revision || '',
+  );
+  if (!match || identity?.model !== SCION_CODEX_JUDGE_MODEL || !validIdentity(identity?.runtime)) return null;
+  const [, modelId, reasoningEffort] = match;
+  const profile = {
+    modelId,
+    reasoningEffort,
+    runtime: identity.runtime,
+    identityRevision: identity.revision,
+    selectionMode: CODEX_LAUNCH_SELECTION_MODE,
+    internalBuildRevisionAvailable: false,
+  };
+  return launchProfileIssues(profile, identity).length === 0 ? profile : null;
+}
+
 function valueCounts(values) {
   const counts = new Map();
   for (const value of values) counts.set(value, (counts.get(value) || 0) + 1);
@@ -201,22 +217,24 @@ function metadataWithoutReviews(template) {
   return metadata;
 }
 
-function freshTaskInstructions(chunks, requiredJudgeIdentity = null, release = SCION_CODEX_FRESH_WORKBOOK_RELEASE) {
+function reverseOrderTaskInstructions({ chunks, requiredJudgeIdentity, release }) {
   const chunkList = chunks
     .map((chunk) => `- \`${chunk.templateFile}\` + \`${chunk.decisionsFile}\` — ${chunk.caseCount} anonymous cases`)
     .join('\n');
-  const identityInstruction = requiredJudgeIdentity
-    ? 'This workbook pins the outcome-independent judge identity from the sealed first order. Before scoring any case, verify that this task can honestly use model "' +
-      requiredJudgeIdentity.identity.model +
-      '", revision "' +
-      requiredJudgeIdentity.identity.revision +
-      '", runtime "' +
-      requiredJudgeIdentity.identity.runtime +
-      '", and prompt SHA-256 "' +
-      requiredJudgeIdentity.identity.promptSha256 +
-      '". The fresh session ID must differ from "' +
-      requiredJudgeIdentity.priorSessionId +
-      '". If any identity is unavailable or different, stop before judgment; do not substitute a newer runtime and do not relabel it as the pinned identity.'
+  const workingDecisions = `verification-output/scion-codex-fresh-b-a-working-${release}`;
+  const sealedOutput = `verification-output/scion-codex-sealed-passes/${release}-b-a.sealed.json`;
+  const keyOutput = `~/.codex/scion-secrets/CourseMapper/${release}-b-a.key`;
+  const outputDir = `evaluation/scion-adapters/handoffs/fresh-b-a-workbook-${release}`;
+  const receiptFile = `evaluation/scion-adapters/evidence/fresh-b-a-workbook-${release}.json`;
+  const identity = requiredJudgeIdentity?.identity;
+  const launchProfile = requiredJudgeIdentity?.launchProfile;
+  const launchSurface = launchProfile?.runtime?.startsWith('codex-cli')
+    ? `Start one new ephemeral Codex CLI task with model \`${launchProfile.modelId}\` and reasoning effort \`${launchProfile.reasoningEffort}\` selected explicitly.`
+    : launchProfile
+      ? `Start a newly created Codex Desktop task with model \`${launchProfile.modelId}\` and reasoning effort \`${launchProfile.reasoningEffort}\` selected explicitly.`
+      : '';
+  const identityInstruction = identity
+    ? `${launchSurface ? `${launchSurface} ` : ''}This workbook pins the outcome-independent public judge identity from the sealed first order. Before scoring any case, verify that this task can honestly use model "${identity.model}", revision "${identity.revision}", runtime "${identity.runtime}", and prompt SHA-256 "${identity.promptSha256}". The fresh session ID must differ from "${requiredJudgeIdentity.priorSessionId}". If any identity is unavailable or different, stop before judgment; do not substitute another model, reasoning effort, runtime, or label. The revision is an auditable launch-profile token, not a claim about an unexposed provider build revision.`
     : release === 'v0.16.30'
       ? ''
       : 'This legacy workbook does not pin a first-order judge identity. A future campaign must supply the first sealed envelope so revision drift is detected before judgment.';
@@ -228,15 +246,15 @@ If any prohibited input is available in this task context, stop. Do not set the 
 
 ## Review schedule
 
-Read and follow \`${PROMPT_FILE}\`. The 128-case pass is divided into small immutable chunks so work can be checked and resumed without editing one giant file. Cases are deterministically interleaved from the canonical packet to distribute domains across the schedule.
+Read and follow \`${PROMPT_FILE}\`. The ${chunks.reduce((sum, chunk) => sum + chunk.caseCount, 0)}-case B/A pass is divided into immutable chunks. Cases are deterministically interleaved from the canonical packet to distribute domains across the schedule.
 
 ${chunkList}
 
 Create a working directory and copy only the blank decisions skeletons:
 
 \`\`\`bash
-mkdir -p ${DEFAULT_WORKING_DECISIONS}
-cp ${DEFAULT_OUTPUT}/chunk-*-decisions-b-a.json ${DEFAULT_WORKING_DECISIONS}/
+mkdir -p ${workingDecisions}
+cp ${outputDir}/chunk-*-decisions-b-a.json ${workingDecisions}/
 \`\`\`
 
 Process chunks in numeric order. For each case, score both artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`. Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
@@ -249,14 +267,14 @@ From the repository root, run:
 
 \`\`\`bash
 npm run complete:scion:codex-fresh-pass -- \\
-  --handoff ${DEFAULT_OUTPUT} \\
-  --receipt ${DEFAULT_RECEIPT} \\
-  --decisions-dir ${DEFAULT_WORKING_DECISIONS} \\
-  --sealed-output verification-output/scion-codex-sealed-passes/v0.16.30-b-a.sealed.json \\
-  --key-output ~/.codex/scion-secrets/CourseMapper/v0.16.30-b-a.key
+  --handoff ${outputDir} \\
+  --receipt ${receiptFile} \\
+  --decisions-dir ${workingDecisions} \\
+  --sealed-output ${sealedOutput} \\
+  --key-output ${keyOutput}
 \`\`\`
 
-The command re-verifies every immutable chunk and the tracked receipt, rejects missing or extra working files, validates each completed chunk, requires one identical fresh judge session across all chunks, reconstructs canonical case order in memory, and creates only one AES-256-GCM envelope plus one 0600 key. It never writes the combined completed 128-case pass.
+The command re-verifies every immutable chunk and the tracked receipt, rejects missing or extra working files, validates each completed chunk, requires one identical fresh judge session across all chunks, reconstructs canonical case order in memory, and creates only one AES-256-GCM envelope plus one 0600 key. It never writes the combined completed pass.
 
 Return only the sealed envelope path, a separately transferred key path, and the outcome-sealed validation summary. Do not unseal or ingest either order inside the fresh judge task.
 `;
@@ -479,6 +497,12 @@ export async function verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedR
     } else {
       if (!validIdentity(required?.priorSessionId)) issues.push('manifest-prior-session-id');
       if (!/^[a-f0-9]{64}$/.test(required?.envelopeSha256 || '')) issues.push('manifest-prior-envelope-sha256');
+      if (manifest.release !== 'v0.16.30' && required?.launchProfile === undefined) {
+        issues.push('manifest-reverse-judge-launch-profile-missing');
+      }
+      if (required?.launchProfile !== undefined) {
+        issues.push(...launchProfileIssues(required.launchProfile, identity, 'manifest-reverse-judge-launch-profile'));
+      }
     }
   } else if (manifest.order === 'A/B') {
     issues.push('manifest-first-order-judge-identity');
@@ -649,11 +673,17 @@ export async function buildScionCodexFreshJudgeWorkbook({
       if (JSON.stringify(priorEnvelope.sourcePacket) !== JSON.stringify(canonicalTemplate.sourcePacket)) {
         throw new Error('Prior sealed judge pass does not match the workbook source packet');
       }
+      const identity = publicJudgeIdentity(priorEnvelope.judge);
+      const launchProfile = launchProfileFromPublicIdentity(identity);
+      if (release !== 'v0.16.30' && !launchProfile) {
+        throw new Error('Reverse-order workbook cannot derive a selectable launch profile from the sealed first order');
+      }
       requiredJudgeIdentity = {
         source: 'sealed-first-order-envelope-metadata',
         order: priorEnvelope.order,
         envelopeSha256: hashBytes(priorRaw),
-        identity: publicJudgeIdentity(priorEnvelope.judge),
+        identity,
+        ...(launchProfile ? { launchProfile } : {}),
         priorSessionId: priorEnvelope.judge.sessionId,
       };
     }
@@ -687,7 +717,7 @@ export async function buildScionCodexFreshJudgeWorkbook({
             release,
             requiredJudgeIdentity,
           })
-        : freshTaskInstructions(descriptors, requiredJudgeIdentity, release);
+        : reverseOrderTaskInstructions({ chunks: descriptors, requiredJudgeIdentity, release });
     await fs.writeFile(path.join(absoluteOutput, INSTRUCTIONS_FILE), instructionBytes);
     const files = Object.fromEntries(
       await Promise.all(
@@ -887,10 +917,26 @@ export async function completeAndSealScionCodexFreshJudgeWorkbook({
   };
 }
 
-export async function auditTrackedWorkbook(receiptFile, handoffDir = DEFAULT_OUTPUT, packetDir = '') {
+export async function auditTrackedWorkbook(
+  receiptFile,
+  handoffDir = DEFAULT_OUTPUT,
+  packetDir = '',
+  priorSealedEnvelope = '',
+) {
   const expectedReceipt = JSON.parse(await fs.readFile(receiptFile, 'utf8'));
   const tracked = await verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedReceipt });
   if (!tracked.valid) return tracked;
+  if (
+    expectedReceipt.order === 'B/A' &&
+    expectedReceipt.requiredJudgeIdentity?.source === 'sealed-first-order-envelope-metadata' &&
+    !priorSealedEnvelope
+  ) {
+    return {
+      ...tracked,
+      valid: false,
+      issues: ['reconstruction:prior-sealed-envelope-required'],
+    };
+  }
   const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-fresh-workbook-audit-'));
   try {
     const result = await buildScionCodexFreshJudgeWorkbook({
@@ -900,6 +946,7 @@ export async function auditTrackedWorkbook(receiptFile, handoffDir = DEFAULT_OUT
       chunkSize: expectedReceipt.schedule.chunkSize,
       order: expectedReceipt.order,
       release: expectedReceipt.release,
+      priorSealedEnvelope,
       declaredJudgeIdentity:
         expectedReceipt.requiredJudgeIdentity?.source === 'declared-first-order-judge-identity'
           ? expectedReceipt.requiredJudgeIdentity.identity
@@ -975,7 +1022,12 @@ function parseArgs(argv) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.mode === 'audit') {
-    const verification = await auditTrackedWorkbook(args.receiptFile, args.handoffDir, args.packetDir);
+    const verification = await auditTrackedWorkbook(
+      args.receiptFile,
+      args.handoffDir,
+      args.packetDir,
+      args.priorSealedEnvelope,
+    );
     console.log(JSON.stringify({ valid: verification.valid, issues: verification.issues }, null, 2));
     if (!verification.valid) process.exitCode = 1;
     return;
@@ -1008,7 +1060,12 @@ async function main() {
   let expectedReceipt = null;
   if (!args.receiptOutput && args.receiptFile) {
     expectedReceipt = JSON.parse(await fs.readFile(args.receiptFile, 'utf8'));
-    const reconstruction = await auditTrackedWorkbook(args.receiptFile, args.handoffDir, args.packetDir);
+    const reconstruction = await auditTrackedWorkbook(
+      args.receiptFile,
+      args.handoffDir,
+      args.packetDir,
+      args.priorSealedEnvelope,
+    );
     if (!reconstruction.valid) {
       throw new Error(`Tracked fresh workbook no longer reconstructs: ${reconstruction.issues.join(', ')}`);
     }

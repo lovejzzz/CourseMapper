@@ -3,24 +3,25 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 16, 2026',
-  title: 'One Order Under Seal: judge 100 cases without learning the answer',
-  landingTitle: 'Scion Completes Its First Clean 100-Case Quality Reading—With Every Outcome Still Sealed',
+  title: 'Both Orders Agree: measure the gap before training Scion',
+  landingTitle:
+    'Scion Completes Its First Same-Identity Paired Reading—and Measures a 46–0 Paid-Reference Lead on 100 Source-Grounded Atoms',
   highlights: [
-    'A packet-backed, byte-reconstructible A/B workbook binds all 100 source-grounded cases into ten anonymous chunks and pins the selectable GPT-5.6-Luna model at max reasoning on Codex CLI 0.144.2 before judgment.',
-    'One new ephemeral clean-room session completed all 100 A/B cases with no organizer mapping, reverse-order payload, prior outcome, repository context, or user configuration available.',
-    'The fail-closed completion gate caught an unsupported `complete` scorecard label; a tested bounded repair changed exactly 200 status labels to `scored` only after proving all five numeric scores already existed, changing no score or preference.',
-    'The canonical pass was reconstructed and encrypted directly into one AES-256-GCM envelope without writing combined judgment plaintext; two untracked 0600 key copies passed authenticated in-memory round trips.',
-    'The outcome remains sealed and B/A remains missing, so stable preferences, approved training rows, quality-adapter weights, held-out wins, and paid-reference parity all remain unclaimed.',
+    'A second ephemeral GPT-5.6-Luna/max clean room scored the same 100 source-grounded artifacts in reversed B/A order with the exact first-order model, runtime, prompt, and a distinct session identity.',
+    'The two independently sealed orders agree on 76/100 cases: 46 score-qualified winners and 30 stable ties; 23 winner/tie disagreements and one opposite-winner reversal remain quarantined.',
+    'All 46 stable winners favor GPT-5.4-mini over the captured Scion-base pipeline—10 in Computer Science, 6 in Geology, 19 in Music Theory, and 11 in User Experience Design.',
+    'The evidence gate now accepts concrete losing-scorecard defects when the preference-level defect array is empty, retaining the judge’s original scores and decisions while admitting 46 immutable training rows.',
+    'Scion has not trained or activated a quality adapter: 54 additional stable, score-qualified preferences are still required before the research-training gate opens.',
   ],
   landingHighlights: [
-    '100 anonymous A/B cases were scored in one pinned fresh judge session.',
-    'Ten chunks reconstruct one exact, source-bound canonical pass.',
-    'A fail-closed gate caught and disclosed a 200-label schema repair.',
-    'The complete outcome is encrypted; no combined plaintext was written.',
-    'B/A must still agree before any preference or model win exists.',
+    'Two isolated presentation orders now cover all 100 anonymous cases.',
+    'Cross-order agreement is 76%: 46 winners and 30 stable ties.',
+    'Every stable winner favors GPT-5.4-mini over Scion base.',
+    'Forty-six verified rows now describe the gap Scion must learn from.',
+    'No quality adapter is trained or active; 54 more rows are required.',
   ],
   proof: {
-    contract: 'release-contracts/v0.16.41.json',
+    contract: 'release-contracts/v0.16.42.json',
     roadmap: 'docs/SCION_ADAPTER_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
@@ -35,30 +36,43 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'Run the first order for real',
+      label: 'Complete the second reading without peeking',
       icon: 'AI',
       color: 'blue',
       items: [
-        'v0.16.41 reconstructs its A/B workbook from the exact v0.16.40 source packet instead of a mutable historical default. The receipt binds all 100 cases, ten interleaved chunks, source packet and organizer digests, prompt hash, selectable launch profile, and every workbook byte.',
-        'One ephemeral Codex CLI 0.144.2 task ran GPT-5.6-Luna with max reasoning against only the immutable workbook and writable blank decisions. It had no repository rules, user configuration, organizer mapping, B/A material, prior outcome, or model identity for either anonymous side.',
-        'All ten chunks use one exact judge revision, runtime, session ID, completion time, no-prior-outcome statement, context-reset attestation, and judgment attestation. The release records this honestly as one single-model-judge reading—not independent, human, instructor, or multi-judge evidence.',
+        'v0.16.42 derives its reversed workbook from the exact v0.16.40 packet and only the public identity and hash of the sealed v0.16.41 envelope. Reconstruction now refuses to run without that exact envelope, preventing the judge profile or campaign lineage from silently drifting.',
+        'One distinct ephemeral Codex CLI 0.144.2 task ran GPT-5.6-Luna with max reasoning against only the B/A workbook and blank working decisions. It had no A/B workbook, key, plaintext, outcome, organizer mapping, repository rules, or user configuration.',
+        'All 100 B/A decisions and 200 scorecards passed identity and completeness checks. A bounded receipt changed only the same unsupported `complete` status label to `scored`; every score, preference, rationale, evidence statement, and defect remained judge-authored.',
+        'The second canonical pass was encrypted directly to a separate AES-256-GCM envelope and 0600 key. No combined judgment plaintext was written, and four local key copies across both orders passed authenticated in-memory round trips.',
       ],
     },
     {
-      label: 'Fail closed, then seal',
+      label: 'Measure the real gap and keep it useful',
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'Atomic completion initially rejected every scorecard because the judge wrote the understandable but unsupported label `complete`. The release did not relax the schema. A bounded, tested repair required five integer scores from 1–5 and changed exactly 200 status labels to `scored`; its receipt proves score values, preferences, evidence, and defects were untouched.',
-        'After strict validation, the ten chunks reconstructed one canonical 100-case pass in memory and wrote only an AES-256-GCM envelope plus a 0600 key. No combined completed-review plaintext was written. A second local 0600 key copy was created outside Git, and both keys authenticated and reproduced the exact plaintext hash in memory.',
-        'The tracked campaign receipt binds workbook, repair, prompt, source packet, judge identity, clean-room claims, envelope hash, validation status, and key-custody boundary without carrying a key, ciphertext, score, decision, rationale, or outcome.',
-        'One presentation order cannot establish a stable preference. A distinct fresh B/A session must now score the reversed sides without access to the A/B key or outcome; only agreement that also passes the score floor may enter training. Hosted Scion remains the pinned public Gemma base plus compiler.',
+        'Dual-envelope ingestion decrypts both batches only in memory, reverses B/A labels before unblinding, requires identical public judge profiles and distinct sessions, zeroes plaintext buffers, and writes only aggregate evidence plus admitted training rows.',
+        'The first admission attempt correctly exposed a redundant evidence gate: 54 A/B winners had concrete defects in the losing scorecard but an empty preference-level defect array. The tested fix uses those existing scorecard defects instead of changing, repairing, or re-judging any score or outcome.',
+        'The final same-identity result is 46 stable score-qualified GPT-5.4-mini winners, 30 stable ties, 23 winner/tie disagreements, and one opposite-winner disagreement. Agreement is 76%; Scion base records zero stable wins in this source-bound atom packet.',
+        'The 46 admitted rows are legitimate single-model-judge training evidence, not proof of a trained adapter. The research gate remains closed at 46/100, hosted Scion remains the pinned public Gemma base plus compiler, and the next campaign must add at least 54 qualifying preferences before training.',
       ],
     },
   ],
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.16.41',
+    date: 'July 16, 2026',
+    title: 'One Order Under Seal: judge 100 cases without learning the answer',
+    highlights: [
+      'A packet-backed, byte-reconstructible A/B workbook bound 100 source-grounded cases into ten anonymous chunks and pinned GPT-5.6-Luna at max reasoning on Codex CLI 0.144.2 before judgment.',
+      'One new ephemeral clean-room session completed all 100 A/B cases without organizer mapping, reverse-order payload, prior outcome, repository context, or user configuration.',
+      'A tested bounded repair changed exactly 200 unsupported `complete` status labels to `scored` after proving all five numeric scores existed, changing no score or preference.',
+      'The canonical pass was encrypted directly into one AES-256-GCM envelope without writing combined judgment plaintext; two untracked 0600 key copies passed authenticated in-memory round trips.',
+      'The outcome remained sealed until the distinct v0.16.42 B/A reading, so v0.16.41 claimed no stable preference, training row, adapter improvement, or paid-reference result.',
+    ],
+  },
   {
     version: '0.16.40',
     date: 'July 16, 2026',

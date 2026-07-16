@@ -1,0 +1,135 @@
+{
+  "version": "0.16.42",
+  "date": "July 16, 2026",
+  "title": "Both Orders Agree: measure the gap before training Scion",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:codex-reverse-order",
+      "npm run audit:scion:codex-paired-order-evidence",
+      "npm run audit:scion:codex-paired-order-evidence:local",
+      "npm run audit:scion:adapter:corpus-readiness",
+      "npm test -- --maxWorkers=4",
+      "npm run audit:evaluation:main",
+      "npm run format:check",
+      "npm run lint",
+      "npm run audit:release-history",
+      "npm run build",
+      "npm run bundle:check",
+      "npx playwright test tests/release-v01642.spec.js"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "One Fast verification run will validate the release branch and one main run will validate the merged tree. This release intentionally avoids a second proof-only PR."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "This atom-level paired-order milestone does not claim a trained adapter, new browser inference, held-out full-course promotion, or device-matrix result."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "The same release commit will deploy after merge; production status belongs in the release report rather than a second proof-only commit."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "Two fresh GPT-5.6-Luna/max Codex CLI sessions completed the anonymous A/B and B/A readings. This is single-model judge evidence, not a public Scion model run."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human or instructor judgment is claimed or required."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "same-identity-single-model-paired-order-evidence-only",
+      "note": "Local proof reconstructs the exact reversed workbook, verifies both sealed envelopes and four local key round trips, reproduces 46 admitted rows without review plaintext, and checks the complete software release. It proves a paid-reference advantage in this source-bound atom packet, not a trained-adapter, held-out-course, human, device, or production win."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01642-exact-outcome-blind-reversal",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The 100-case B/A workbook reconstructs only from the exact packet and sealed first-order public identity, then requires GPT-5.6-Luna/max on Codex CLI 0.144.2 in a distinct session.",
+      "anchors": [
+        "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "evaluation/scion-adapters/evidence/fresh-b-a-workbook-v0.16.42.json",
+        "evaluation/scion-adapters/handoffs/fresh-b-a-workbook-v0.16.42/workbook-manifest.json",
+        "tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-reverse-order",
+        "npm test -- --maxWorkers=4 tests/scion-codex-fresh-judge-workbook.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01642-paired-order-agreement",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Two independently sealed same-identity readings agree on 76 of 100 cases: 46 stable winners and 30 stable ties, with 24 order-sensitive cases quarantined.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/codex-review-v0.16.41-a-b.sealed.json",
+        "evaluation/scion-adapters/evidence/codex-review-v0.16.42-b-a.sealed.json",
+        "evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json",
+        "scripts/scionCodexPairedOrderCampaign.mjs"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-paired-order-evidence",
+        "npm run audit:scion:codex-paired-order-evidence:local"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01642-reference-gap-measured",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "All 46 stable score-qualified winners favor GPT-5.4-mini over captured Scion base, distributed 10/6/19/11 across the four training domains.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json",
+        "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl",
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-paired-order-evidence",
+        "npm run audit:scion:codex-paired-order-evidence:local"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01642-existing-scorecard-defect-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Winner admission can use concrete defects already recorded on the losing scorecard when the duplicate preference-level defect array is empty, without changing judgment content.",
+      "anchors": [
+        "scripts/scionCodexTrainingPreferences.mjs",
+        "tests/scion-codex-training-preferences.test.js",
+        "evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json"
+      ],
+      "proofCommands": [
+        "npm test -- --maxWorkers=4 tests/scion-codex-training-preferences.test.js",
+        "npm run audit:scion:codex-paired-order-evidence:local"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01642-no-adapter-win-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The research corpus contains 46 of 100 required same-identity rows; no quality adapter is trained, active, held-out tested, or promoted.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json",
+        "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.42.json",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "README.md",
+        "src/lib/releaseManifest.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:codex-paired-order-evidence",
+        "npm run audit:scion:adapter:corpus-readiness",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

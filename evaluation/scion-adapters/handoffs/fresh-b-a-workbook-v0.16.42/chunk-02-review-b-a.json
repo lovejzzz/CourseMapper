@@ -1,0 +1,1079 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-c0498e55e87825b3c822",
+    "packetDigest": "c0498e55e87825b3c8221977ba3ebed6ee90061a36f14896121d8487dfdc4676",
+    "organizerDigest": "adc07fc11717507b30fe8be8a2e9d2104d3b4638a34594a6a5e852172cb2248f"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-0e2604a3fa9bf27e071e",
+      "caseDigest": "6c30d44b94d56bfbe595abdcbe812f859eaa11e696da3cdfb407bb2cac4e99d8",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "4085d08bdb0b443dbd2af7d263e9f9a90b20c2cf8c41ed543473e0c9ba58cede",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/file-io",
+        "term": "File input and output",
+        "claims": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "d841aacf7ff532c6b914abd42604dbd1574900723282b9381c5636704fa714b6",
+          "artifact": {
+            "q": "After a script finishes copying data from a file, what should it do to finish the file-use cycle properly?",
+            "op": [
+              "close the file object",
+              "call readline()",
+              "call read() again",
+              "reopen the file object"
+            ],
+            "ai": 0,
+            "ex": "Closing the file object completes the open-work-close cycle described for file input and output. The plausible misconception is to call another read method, but those methods are for getting content, not finishing the access step."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "61caaef966a493388732cb82a3ab111183b2356340866eb23b7329574aa056e4",
+          "artifact": {
+            "q": "What is the primary action performed by the open() function?",
+            "op": [
+              "reading data from a file",
+              "writing information into files",
+              "closing a file",
+              "returning a file object"
+            ],
+            "ai": 1,
+            "ex": "open() returns a file object that the program then reads from or writes to. The misconception is thinking open() immediately performs the read or write operation; it only establishes the connection."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "d841aacf7ff532c6b914abd42604dbd1574900723282b9381c5636704fa714b6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "61caaef966a493388732cb82a3ab111183b2356340866eb23b7329574aa056e4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-db24773258c6f37b8a44",
+      "caseDigest": "55307bac434cb0bcc8474b91a88ad2991b1966e7c63a568fd2449f586ba553e3",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "b5d0b3780788f9095eb878e4ad18f8c405453dcfecba548d3104c19e078ef7f6",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/expressions-and-types",
+        "term": "Expressions and data types",
+        "claims": [
+          "Every Python value has a data type (such as int, float, or str); expressions combine values, and conversion functions move a value from one type to another.",
+          "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.",
+          "int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.",
+          "True division (/) converts numbers to floats before dividing and always returns a float.",
+          "Floor division (//) computes the whole-number quotient, discarding the remainder."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §2.2 Type conversion; §2.5 Dividing integers"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "914a1acf239c79e12e21ce4043976226103c6b4f1f1343eec4f292ca734e0880",
+          "artifact": {
+            "q": "When performing the operation 3.9 / 2 in Python, what is the resulting data type?",
+            "op": [
+              "A: int",
+              "B: float",
+              "C: str",
+              "D: bool"
+            ],
+            "ai": 1,
+            "ex": "The correct choice is B because True division (/) converts numbers to floats before dividing and always returns a float. Option A is incorrect because int() converts a value to an integer and removes any fractional part, so int(3.9) is 3."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7df25f081434f65c90c3da4a0729a396dff976dabc287e294aec3f695d953495",
+          "artifact": {
+            "q": "A program evaluates `7 / 2` and `7 // 2`. Which pair of results matches Python’s rules?",
+            "op": [
+              "3 and 3.5",
+              "3.5 and 3",
+              "3 and 4",
+              "3.5 and 4.0"
+            ],
+            "ai": 1,
+            "ex": "`/` performs true division and returns a float, so `7 / 2` is 3.5. `//` performs floor division and gives the whole-number quotient, so `7 // 2` is 3. A likely misconception is to swap these operations or treat `//` as ordinary decimal division."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "914a1acf239c79e12e21ce4043976226103c6b4f1f1343eec4f292ca734e0880",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7df25f081434f65c90c3da4a0729a396dff976dabc287e294aec3f695d953495",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-b4248349e597e5ca9ef4",
+      "caseDigest": "0bf805f90c854ed24b0f5714f8c6fc2c4ac5ece6adde4cb5b41228ea78b21e3d",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "d043bd7677de3faae4ebcbb710aa5fec58cbe00ec70c7a873291a7b4b7f3b6c1",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/conditionals",
+        "term": "Conditionals and boolean logic",
+        "claims": [
+          "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+          "An else clause holds statements that run when the if condition is false.",
+          "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "163d6c9dce3fee510c74498774c86bda26af62a02c7e98391bc86902c6ff5c47",
+          "artifact": {
+            "tr": "Conditional execution",
+            "df": "A mechanism that dictates which set of instructions to follow based on a logical test result.",
+            "eg": "Using an if statement to display a 'Pass' message if a score is 70 or higher.",
+            "mi": "Thinking the program executes the code inside the if block unconditionally.",
+            "cx": "An if statement runs its body only when the condition is true, and skips it when the condition is false."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "f479929ca131736529e8f171d6294e88086ac9826b2882d9e3733601769480b2",
+          "artifact": {
+            "tr": "boolean operator",
+            "df": "A logic word used to combine or modify conditions.",
+            "eg": "Use and to require two tests, or to accept either one, and not to flip a test.",
+            "mi": "These operators are only for comparing numbers.",
+            "cx": "They build compound conditions: and is true only when both parts are true, or is true when either part is true, and not reverses one condition."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "163d6c9dce3fee510c74498774c86bda26af62a02c7e98391bc86902c6ff5c47",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "f479929ca131736529e8f171d6294e88086ac9826b2882d9e3733601769480b2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-1f633209365dc86199f1",
+      "caseDigest": "efa9cafd96db2d95bebdb4c3eda44f1b8eebb4efa7853942229158ccc30580ab",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "c5407e5008d9e7da1f10b9c8f7ac3fcb45289d8b7413829a323c4fd655a44fcc",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/plate-tectonics",
+        "term": "Plate tectonics and boundaries",
+        "claims": [
+          "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+          "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+          "At convergent boundaries, two or more plates move toward each other and lithosphere is destroyed.",
+          "At a transform boundary, plates slide horizontally past each other."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e35801425c98c3d1c4e5a0b8b65cde52e5f702f3232e83dfa4563be5e5a50306",
+          "artifact": {
+            "tr": "Lithosphere",
+            "df": "The rigid outer layer broken into moving plates.",
+            "eg": "A tectonic plate in a lab map represents part of the lithosphere.",
+            "mi": "It is a single continuous shell with no breaks.",
+            "cx": "It is divided into plates that shift over the ductile asthenosphere."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "4828e78447d63f28821ffaf7e0c8c138f1144e5aee51cf0b9ca5b45b64a5b882",
+          "artifact": {
+            "tr": "Lithosphere",
+            "df": "The rigid outer layer of Earth's crust and upper mantle.",
+            "eg": "The oceanic crust involved in a subduction zone.",
+            "mi": "The entire Earth's interior.",
+            "cx": "The rigid lithosphere is broken into plates that move over the ductile asthenosphere."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e35801425c98c3d1c4e5a0b8b65cde52e5f702f3232e83dfa4563be5e5a50306",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "4828e78447d63f28821ffaf7e0c8c138f1144e5aee51cf0b9ca5b45b64a5b882",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2289dbc46a344af48a02",
+      "caseDigest": "8d3282953ddeba7cdb55e22ba2149b25cb86c9832c885e9fde70d2cb1eded18c",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "23c589d4cdb33d2ac5c0d82cc414095c49290bb0a3175dcf22947e3ef0d9bad1",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/geologic-time",
+        "term": "Geologic time and relative dating",
+        "claims": [
+          "Geologic time spans the roughly 4.5-billion-year history of Earth; relative dating orders events by which is older or younger, while absolute dating assigns numerical ages in years.",
+          "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock.",
+          "By the principle of superposition, in an undisturbed sequence the bottom layers are oldest and the upper layers younger.",
+          "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+          "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ce8d05fa4ba863435150150b0bc1ce2ee6841a8f9606e240e26f675ac1689331",
+          "artifact": {
+            "q": "In a road cut, the sedimentary beds are clearly tilted. What is the best interpretation of that tilt?",
+            "op": [
+              "They were laid down already tilted",
+              "They were disturbed after deposition",
+              "They are the youngest beds exposed",
+              "They are older than Earth itself"
+            ],
+            "ai": 1,
+            "ex": "The tilt indicates the beds were originally deposited horizontally and were disturbed afterward. A common misconception is that tilted layers must have been deposited that way, but original horizontality says otherwise."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "48318f3f399a5a082657d660497584422b13eb9bf58737be2217f282ecf38d7c",
+          "artifact": {
+            "q": "What does absolute dating provide regarding mineral grains in a rock?",
+            "op": [
+              "A numerical age in years",
+              "A relative order of events",
+              "The span of Earth's history",
+              "The sequence of deposition"
+            ],
+            "ai": 1,
+            "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ce8d05fa4ba863435150150b0bc1ce2ee6841a8f9606e240e26f675ac1689331",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "48318f3f399a5a082657d660497584422b13eb9bf58737be2217f282ecf38d7c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-32d15f4253796caa9ccb",
+      "caseDigest": "1bdaba265a1c3cad1d16b6bfcd4ff27413cd4ab002a2ce1ea169c1bd2da83315",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "c6fe147c38df89ed15d5ad51d2055ebd28853a9b83f182cc0b82fe9427ed85b4",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/scales-and-key-signatures",
+        "term": "Scales and key signatures",
+        "claims": [
+          "In music theory, a scale is \"any consecutive series of notes that form a progression between one note and its octave\", typically by order of pitch or fundamental frequency.",
+          "A measure of the width of each scale step provides a method to classify scales.",
+          "Scales can be abstracted from performance or composition.",
+          "Therefore, any scale is distinguishable by its \"step-pattern\", or how its intervals interact with each other.",
+          "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic).",
+          "The expression scale degree refers to these numerical labels."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "d7974a81d26f45f75a962f6fbaef2f7e7029a799742bba79413af1c677617715",
+          "artifact": {
+            "q": "According to the definition, what most specifically identifies a scale in theory?",
+            "op": [
+              "Its characteristic interval pattern and tonic",
+              "Its characteristic rhythm pattern and tempo",
+              "Its general pitch range and dynamics",
+              "Its note names and instrument color"
+            ],
+            "ai": 0,
+            "ex": "Correct: a scale is identified by its characteristic interval pattern and its first degree, or tonic. Misconception: choosing rhythm, dynamics, or instrument color treats a scale like a performance feature, but the claim defines it by pitch organization and tonic."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "f2ac859d40afd883c59f27c6c9d93e32e78864466e9bf2d2abf7c717a325240e",
+          "artifact": {
+            "q": "What distinguishes one scale from another?",
+            "op": [
+              "The specific note used as the first degree.",
+              "The measure of the width of each scale step.",
+              "The characteristic interval pattern and the first degree.",
+              "The numerical labels of the scale degrees."
+            ],
+            "ai": 2,
+            "ex": "The characteristic interval pattern and the first degree."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "d7974a81d26f45f75a962f6fbaef2f7e7029a799742bba79413af1c677617715",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "f2ac859d40afd883c59f27c6c9d93e32e78864466e9bf2d2abf7c717a325240e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4438ce97a41d03d3c5a9",
+      "caseDigest": "ec499f9661d6e4f09cca70c22db436b59fd2d423b36bc7e852713c7130d49b4a",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "ef93480f90ed75647a62b70f383d83e59b888f6538dd5e921616370a702004e5",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/musical-form",
+        "term": "Musical form",
+        "claims": [
+          "In music, form refers to the structure of a musical composition or performance.",
+          "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+          "Musical form unfolds over time through the expansion and development of these ideas.",
+          "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+          "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+          "The next level concerns the entire structure of any single self-contained musical piece or movement."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "0da7c6c16e2d42c0c248889a4572691d878497d668809911f1363c5800a30503",
+          "artifact": {
+            "q": "What describes the structure of a musical composition or performance?",
+            "op": [
+              "A) Harmonic motion",
+              "B) Musical form",
+              "C) Chord construction",
+              "D) Rhythmic subdivision"
+            ],
+            "ai": 1,
+            "ex": "B is correct because form refers to the structure of a musical composition or performance. C is a plausible misconception because chord construction is a component of music, not the overall structure. A is incorrect because harmonic motion describes how music unfolds over time, not the structure."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "cd22872235ada05afd933aa7c892b523babbf1a3495d478f2928e59e382bd568",
+          "artifact": {
+            "q": "A student hears a short piece that has two sections of about equal length. Which label best fits that description?",
+            "op": [
+              "binary form",
+              "through-composed form",
+              "strophic form",
+              "theme and variations"
+            ],
+            "ai": 0,
+            "ex": "Binary form fits because it is used for a musical piece with two sections that are about equal in length. A common misconception is to choose a form name just because a piece has more than one section; the key evidence here is the two-section, roughly equal-length structure."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "0da7c6c16e2d42c0c248889a4572691d878497d668809911f1363c5800a30503",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "cd22872235ada05afd933aa7c892b523babbf1a3495d478f2928e59e382bd568",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-75bc8bc5d43d3c775825",
+      "caseDigest": "40b0ef0a712d76a244ad2683a003a667d201b56c135216535ef98c66d888b7f6",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "fb48e198d508eff299f348aef676c2c349adaf06e2688fc9d364dffb79bf38ac",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/harmony-and-progressions",
+        "term": "Harmony and chord progressions",
+        "claims": [
+          "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+          "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+          "A first chord forms a 'progression' with a second chord, and a second with a third.",
+          "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+          "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "de42378621642630a423914f8259ca1642ff1b55631427c00dbc0bc2e93a9fff",
+          "artifact": {
+            "q": "What element serves as the primary structural basis upon which melody and rhythm are built in certain genres?",
+            "op": [
+              "A. Chord progressions",
+              "B. Musical motion",
+              "C. Sectional evidence",
+              "D. Harmonic motion"
+            ],
+            "ai": 1,
+            "ex": "Chord progressions are the defining feature on which melody and rhythm are built. (Misconception: Musical motion is the defining feature on which melody and rhythm are built.)"
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "44baf8938a0ab315aa7f64a20d57d43f1ea05d6f5de75962357c818cd4e1811b",
+          "artifact": {
+            "q": "Which example shows a chord progression in A minor?",
+            "op": [
+              "A minor, D minor, E minor",
+              "C major, F major, G major",
+              "A minor, C major, E major",
+              "E minor, A minor, D minor"
+            ],
+            "ai": 0,
+            "ex": "Correct: in A minor, the i, iv, and v chords are A minor, D minor, and E minor. A common misconception is to choose a familiar major-key pattern, but the source gives the minor-key set explicitly."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "de42378621642630a423914f8259ca1642ff1b55631427c00dbc0bc2e93a9fff",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "44baf8938a0ab315aa7f64a20d57d43f1ea05d6f5de75962357c818cd4e1811b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-485b5173ac70b1eca901",
+      "caseDigest": "99514cdd6914d7b57320fb077f89df3e5c266a450b07a25a489d05cf2a1f4416",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+      "sourceContextSha256": "bed17b815a9bff08178677b9e68315fcd8228583e69b7c6a23756bfb10308e62",
+      "sourceContext": {
+        "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+        "kernelId": "ux/research-planning",
+        "term": "Research planning",
+        "claims": [
+          "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "The team should agree what it wants to learn from the research round before selecting study details.",
+          "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+          "Researchers should run through test tasks on the day before the research session.",
+          "A practice session with a team member can expose procedure problems before participants arrive."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7c95f0a89fd171445b0f904956b273e6c8b029ed32bfe43740141c984c6b6dfa",
+          "artifact": {
+            "tr": "Actionable learning objectives",
+            "df": "Specific goals derived from a decision need that guide the research.",
+            "eg": "Defining the objective as 'Understand user flow for checkout' instead of 'Study the checkout process'.",
+            "mi": "Believing objectives are simply broad topics to cover.",
+            "cx": "Objectives must be actionable, turning a need into specific learning goals."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a21e3bc2a5c136b2eea968194b9977c5fbdbc61bf763cb17e9a162e372bd1eb9",
+          "artifact": {
+            "tr": "Actionable learning objectives",
+            "df": "Specific things the team wants the study to clarify so the findings can support a decision.",
+            "eg": "A team wants to learn whether shoppers can compare shipping options before choosing a plan.",
+            "mi": "The team should start by writing every possible research question.",
+            "cx": "Begin with the decision need, then turn it into focused objectives."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7c95f0a89fd171445b0f904956b273e6c8b029ed32bfe43740141c984c6b6dfa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a21e3bc2a5c136b2eea968194b9977c5fbdbc61bf763cb17e9a162e372bd1eb9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a3985f12cbf179b52d32",
+      "caseDigest": "d1beb04ad1ffe17adb0c55fe35adef0616880ef3b438f1dd00e934c85601e1e0",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+      "sourceContextSha256": "1318755b36aa33d35f51b7c59a5b931302c658a85acd5f336a1f4a9bffe9533c",
+      "sourceContext": {
+        "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+        "kernelId": "ux/task-flow-analysis",
+        "term": "Task flow analysis",
+        "claims": [
+          "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "The diagram may include multiple possible paths, task sequences, and decision points."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "abc802687797d6284ffac50d372a967afec6241edf6e5e9ae732bf4c6d996cb6",
+          "artifact": {
+            "tr": "Task flow analysis",
+            "df": "A diagram-based method for mapping how a user moves through steps and decisions toward a goal.",
+            "eg": "A checkout flow that shows choosing items, reviewing the cart, entering shipping details, and confirming payment.",
+            "mi": "It is only a screen inventory or wireframe set.",
+            "cx": "It focuses on user actions, sequences, and decision points, not just pages or visuals."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "f58fb4288e67e2dd8fe1d031adfb3ded3bbe875d4748b7645c60f1f3844a3a4c",
+          "artifact": {
+            "tr": "Diagramming user interaction progression",
+            "df": "A visual representation showing the sequence of steps and choices a user makes to achieve an objective.",
+            "eg": "Mapping the steps a user takes to complete a checkout process.",
+            "mi": "Thinking the diagram must only show the successful path to the goal.",
+            "cx": "The diagram must show how a user progresses through tasks to accomplish a goal."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "abc802687797d6284ffac50d372a967afec6241edf6e5e9ae732bf4c6d996cb6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "f58fb4288e67e2dd8fe1d031adfb3ded3bbe875d4748b7645c60f1f3844a3a4c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

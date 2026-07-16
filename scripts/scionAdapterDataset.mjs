@@ -15,7 +15,7 @@ export const SCION_ADAPTER_DEFAULT_SOURCES = [
   'trellis/tendril/distill/data-g4-orpo/train.jsonl',
   'trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl',
   'evaluation/scion-reviewed-preferences.jsonl',
-  'evaluation/scion-codex-reviewed-preferences.jsonl',
+  'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl',
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';

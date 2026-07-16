@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 
 import {
   buildScionAdapterDataset,
@@ -11,10 +12,21 @@ import {
   SCION_ADAPTER_DEFAULT_SOURCES,
 } from './scionAdapterDataset.mjs';
 
-const DEFAULT_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.40.json';
-const DEFAULT_RELEASE = 'v0.16.40';
+export const SCION_ADAPTER_CORPUS_READINESS_RELEASE = 'v0.16.42';
+export const SCION_ADAPTER_CORPUS_READINESS_EVIDENCE =
+  'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.42.json';
+const LEGACY_RELEASE = 'v0.16.40';
+const LEGACY_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.40.json';
+const LEGACY_SOURCES = [
+  'trellis/tendril/distill/data-g4-orpo/train.jsonl',
+  'trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl',
+  'evaluation/scion-reviewed-preferences.jsonl',
+  'evaluation/scion-codex-reviewed-preferences.jsonl',
+];
 const SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.40.json';
 const SOURCE_REVIEW_PACKET = 'evaluation/scion-adapters/evidence/source-review-packet-v0.16.40.json';
+const PAIRED_CAMPAIGN_EVIDENCE = 'evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json';
+const APPROVED_CORPUS = 'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl';
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -35,21 +47,31 @@ function sha256(value) {
 }
 
 function parseArgs(argv) {
-  const args = { evidence: DEFAULT_EVIDENCE, write: false, generatedAt: '' };
+  const args = { profile: SCION_ADAPTER_CORPUS_READINESS_RELEASE, evidence: '', write: false, generatedAt: '' };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--evidence') args.evidence = argv[++index];
+    else if (argv[index] === '--profile') args.profile = argv[++index];
     else if (argv[index] === '--write') args.write = true;
     else if (argv[index] === '--generated-at') args.generatedAt = argv[++index];
     else throw new Error(`Unknown corpus-readiness option: ${argv[index]}`);
   }
+  if (![LEGACY_RELEASE, SCION_ADAPTER_CORPUS_READINESS_RELEASE].includes(args.profile)) {
+    throw new Error(`Unsupported corpus-readiness profile: ${args.profile}`);
+  }
+  if (!args.evidence) {
+    args.evidence = args.profile === LEGACY_RELEASE ? LEGACY_EVIDENCE : SCION_ADAPTER_CORPUS_READINESS_EVIDENCE;
+  }
   return args;
 }
 
-function snapshot(manifest, generatedAt, judgeCampaign) {
+function snapshot(manifest, generatedAt, release, judgeCampaign) {
+  const pairedOrderCampaignComplete =
+    judgeCampaign.status === 'paired-orders-evidence-shortfall' ||
+    judgeCampaign.status === 'paired-orders-research-ready';
   const value = {
     schemaVersion: 1,
     protocol: 'scion-adapter-corpus-readiness-v1',
-    release: DEFAULT_RELEASE,
+    release,
     generatedAt,
     sources: manifest.sourceReceipts,
     dataset: {
@@ -72,10 +94,12 @@ function snapshot(manifest, generatedAt, judgeCampaign) {
       requiredResearchPairs: manifest.gate.profiles.research.minimumPairs,
       admissibleModelJudgePairs: manifest.counts.singleModelJudgePairs,
       requiredResearchModelJudgePairs: manifest.gate.profiles.research.minimumModelJudgePairs,
-      judgePacketReady: judgeCampaign.status === 'ready-for-fresh-dual-order-judgment',
+      judgePacketReady: judgeCampaign.status === 'ready-for-fresh-dual-order-judgment' || pairedOrderCampaignComplete,
+      ...(pairedOrderCampaignComplete ? { pairedOrderCampaignComplete: true } : {}),
       researchBlockers: manifest.gate.profiles.research.issues,
-      nextEvidenceStep:
-        'Complete one fresh-session A/B Codex pass and one distinct fresh-session B/A pass over the exact 100-case source-only packet, then ingest only stable above-floor same-identity preferences before research training.',
+      nextEvidenceStep: pairedOrderCampaignComplete
+        ? judgeCampaign.nextEvidenceStep
+        : 'Complete one fresh-session A/B Codex pass and one distinct fresh-session B/A pass over the exact 100-case source-only packet, then ingest only stable above-floor same-identity preferences before research training.',
     },
     claimBoundary: {
       adapterTrained: false,
@@ -92,64 +116,141 @@ function snapshot(manifest, generatedAt, judgeCampaign) {
   return value;
 }
 
-async function buildSnapshot(generatedAt) {
+function baseCampaignEvidence(replayRaw, packetRaw) {
+  const replay = JSON.parse(replayRaw);
+  const packet = JSON.parse(packetRaw);
+  const packetReady =
+    packet.status === 'ready-for-model-judge-research' &&
+    packet.requireSourceContext === true &&
+    packet.selectedCases === 100 &&
+    packet.selectedSourceContextCases === packet.selectedCases &&
+    packet.requiredModelJudgePasses === 200 &&
+    packet.courseGroupCount >= 12 &&
+    packet.domains?.length === 4 &&
+    Object.values(packet.domainCounts || {}).every((count) => count >= 25) &&
+    replay.summary?.responseMutationCount === 0 &&
+    replay.summary?.recoveredAtoms >= 8;
+  if (!packetReady) throw new Error('Source-only Codex judge campaign is not ready');
+  return {
+    compilerReplay: {
+      path: SOURCE_REPLAY_EVIDENCE,
+      sha256: sha256(replayRaw),
+      identity: replay.identity,
+      responseMutationCount: replay.summary.responseMutationCount,
+      recoveredAtoms: replay.summary.recoveredAtoms,
+      burdenAtomReduction: replay.summary.burdenAtomReduction,
+    },
+    sourcePacket: {
+      path: SOURCE_REVIEW_PACKET,
+      sha256: sha256(packetRaw),
+      packetId: packet.packetId,
+      packetDigest: packet.packetDigest,
+      selectedCases: packet.selectedCases,
+      selectedSourceContextCases: packet.selectedSourceContextCases,
+      availableSourceContextCandidates: packet.availableSourceContextCandidates,
+      domainCounts: packet.domainCounts,
+      courseGroupCount: packet.courseGroupCount,
+      requiredModelJudgePasses: packet.requiredModelJudgePasses,
+    },
+  };
+}
+
+function legacyJudgeCampaign(baseEvidence) {
+  return {
+    protocol: 'scion-source-only-codex-campaign-readiness-v1',
+    status: 'ready-for-fresh-dual-order-judgment',
+    ...baseEvidence,
+    completedOrders: 0,
+    requiredOrders: ['A/B', 'B/A'],
+    contextResetSessionsRequired: 2,
+    claimBoundary:
+      'The packet is ready, but it contains no judgment. It proves no preferred atom, research-ready corpus, trained adapter, adapter-versus-base win, or paid-reference parity.',
+  };
+}
+
+function pairedJudgeCampaign(manifest, baseEvidence, campaignRaw) {
+  const campaign = JSON.parse(campaignRaw);
+  const corpusReceipt = manifest.sourceReceipts.find((source) => source.path === APPROVED_CORPUS);
+  const classified =
+    (campaign.analysis?.stableWinners || 0) +
+    (campaign.analysis?.stableTies || 0) +
+    (campaign.analysis?.winnerTieDisagreements || 0) +
+    (campaign.analysis?.oppositeWinnerDisagreements || 0) +
+    (campaign.analysis?.insufficientOrInvalid || 0);
+  const valid =
+    campaign.protocol === 'scion-codex-paired-order-campaign-v1' &&
+    campaign.release === SCION_ADAPTER_CORPUS_READINESS_RELEASE &&
+    campaign.benchmarkProtocol === 'honest-quality-benchmark-v1' &&
+    campaign.evidenceClass === 'single-model-judge-same-identity-paired-order' &&
+    campaign.humanEvidence === false &&
+    campaign.independentEvidence === false &&
+    JSON.stringify(campaign.completedOrders) === JSON.stringify(['A/B', 'B/A']) &&
+    campaign.completedPerCasePasses === 200 &&
+    campaign.remainingPerCasePasses === 0 &&
+    campaign.packet?.packetId === baseEvidence.sourcePacket.packetId &&
+    campaign.packet?.packetDigest === baseEvidence.sourcePacket.packetDigest &&
+    campaign.packet?.sourceBackedCases === baseEvidence.sourcePacket.selectedCases &&
+    campaign.qualifyingTrainingRows === manifest.counts.singleModelJudgePairs &&
+    campaign.approvedTrainingPairs === manifest.counts.singleModelJudgePairs &&
+    JSON.stringify(campaign.analysis?.byDomain || {}) !== '{}' &&
+    JSON.stringify(campaign.approvedCorpus?.path) === JSON.stringify(APPROVED_CORPUS) &&
+    campaign.approvedCorpus?.rows === manifest.counts.singleModelJudgePairs &&
+    campaign.approvedCorpus?.bytes === corpusReceipt?.bytes &&
+    campaign.approvedCorpus?.sha256 === corpusReceipt?.sha256 &&
+    JSON.stringify(campaign.analysis?.stableWinnerByModel) === JSON.stringify({ 'GPT-5.4-mini': 46 }) &&
+    classified === campaign.packet?.sourceBackedCases &&
+    campaign.researchTrainingReady === false &&
+    campaign.minimumResearchPreferences === 100 &&
+    campaign.qualifyingTrainingRows === 46;
+  if (!valid) throw new Error('Paired-order campaign does not match the current adapter corpus');
+  return {
+    protocol: 'scion-paired-order-corpus-readiness-v1',
+    status: campaign.status,
+    path: PAIRED_CAMPAIGN_EVIDENCE,
+    sha256: sha256(campaignRaw),
+    ...baseEvidence,
+    evidenceClass: campaign.evidenceClass,
+    completedOrders: campaign.completedOrders,
+    completedPerCasePasses: campaign.completedPerCasePasses,
+    stablePreferences: campaign.stablePreferences,
+    stableTies: campaign.analysis.stableTies,
+    orderSensitiveCases: campaign.analysis.winnerTieDisagreements + campaign.analysis.oppositeWinnerDisagreements,
+    approvedTrainingPairs: campaign.approvedTrainingPairs,
+    qualifyingTrainingRows: campaign.qualifyingTrainingRows,
+    minimumResearchPreferences: campaign.minimumResearchPreferences,
+    researchTrainingReady: campaign.researchTrainingReady,
+    modelJudgeDomainCounts: manifest.modelJudgeDomainCounts,
+    approvedCorpus: campaign.approvedCorpus,
+    judge: campaign.judge,
+    nextEvidenceStep: campaign.nextGate,
+    claimBoundary: campaign.claimBoundary,
+  };
+}
+
+export async function buildScionAdapterCorpusReadinessSnapshot({ generatedAt, profile }) {
+  const release = profile || SCION_ADAPTER_CORPUS_READINESS_RELEASE;
+  const sources = release === LEGACY_RELEASE ? LEGACY_SOURCES : SCION_ADAPTER_DEFAULT_SOURCES;
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-corpus-readiness-'));
   try {
     const { manifest } = await buildScionAdapterDataset({
-      sources: SCION_ADAPTER_DEFAULT_SOURCES,
+      sources,
       outputDir: temporary,
       heldoutBenchmarkPath: SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK,
       allowResearch: true,
       allowSmoke: true,
       generatedAt,
     });
-    const [replayRaw, packetRaw] = await Promise.all([
+    const [replayRaw, packetRaw, campaignRaw] = await Promise.all([
       fs.readFile(SOURCE_REPLAY_EVIDENCE, 'utf8'),
       fs.readFile(SOURCE_REVIEW_PACKET, 'utf8'),
+      release === LEGACY_RELEASE ? Promise.resolve('') : fs.readFile(PAIRED_CAMPAIGN_EVIDENCE, 'utf8'),
     ]);
-    const replay = JSON.parse(replayRaw);
-    const packet = JSON.parse(packetRaw);
-    const packetReady =
-      packet.status === 'ready-for-model-judge-research' &&
-      packet.requireSourceContext === true &&
-      packet.selectedCases === 100 &&
-      packet.selectedSourceContextCases === packet.selectedCases &&
-      packet.requiredModelJudgePasses === 200 &&
-      packet.courseGroupCount >= 12 &&
-      packet.domains?.length === 4 &&
-      Object.values(packet.domainCounts || {}).every((count) => count >= 25) &&
-      replay.summary?.responseMutationCount === 0 &&
-      replay.summary?.recoveredAtoms >= 8;
-    if (!packetReady) throw new Error('Source-only Codex judge campaign is not ready');
-    return snapshot(manifest, generatedAt, {
-      protocol: 'scion-source-only-codex-campaign-readiness-v1',
-      status: 'ready-for-fresh-dual-order-judgment',
-      compilerReplay: {
-        path: SOURCE_REPLAY_EVIDENCE,
-        sha256: sha256(replayRaw),
-        identity: replay.identity,
-        responseMutationCount: replay.summary.responseMutationCount,
-        recoveredAtoms: replay.summary.recoveredAtoms,
-        burdenAtomReduction: replay.summary.burdenAtomReduction,
-      },
-      sourcePacket: {
-        path: SOURCE_REVIEW_PACKET,
-        sha256: sha256(packetRaw),
-        packetId: packet.packetId,
-        packetDigest: packet.packetDigest,
-        selectedCases: packet.selectedCases,
-        selectedSourceContextCases: packet.selectedSourceContextCases,
-        availableSourceContextCandidates: packet.availableSourceContextCandidates,
-        domainCounts: packet.domainCounts,
-        courseGroupCount: packet.courseGroupCount,
-        requiredModelJudgePasses: packet.requiredModelJudgePasses,
-      },
-      completedOrders: 0,
-      requiredOrders: ['A/B', 'B/A'],
-      contextResetSessionsRequired: 2,
-      claimBoundary:
-        'The packet is ready, but it contains no judgment. It proves no preferred atom, research-ready corpus, trained adapter, adapter-versus-base win, or paid-reference parity.',
-    });
+    const baseEvidence = baseCampaignEvidence(replayRaw, packetRaw);
+    const judgeCampaign =
+      release === LEGACY_RELEASE
+        ? legacyJudgeCampaign(baseEvidence)
+        : pairedJudgeCampaign(manifest, baseEvidence, campaignRaw);
+    return snapshot(manifest, generatedAt, release, judgeCampaign);
   } finally {
     await fs.rm(temporary, { recursive: true, force: true });
   }
@@ -160,7 +261,7 @@ async function main() {
   let expected = null;
   if (!args.write) expected = JSON.parse(await fs.readFile(args.evidence, 'utf8'));
   const generatedAt = args.generatedAt || expected?.generatedAt || new Date().toISOString();
-  const observed = await buildSnapshot(generatedAt);
+  const observed = await buildScionAdapterCorpusReadinessSnapshot({ generatedAt, profile: args.profile });
   if (args.write) {
     await fs.mkdir(path.dirname(args.evidence), { recursive: true });
     await fs.writeFile(args.evidence, `${JSON.stringify(observed, null, 2)}\n`);
@@ -173,7 +274,10 @@ async function main() {
   console.log(`Evidence: ${args.evidence}`);
 }
 
-main().catch((error) => {
-  console.error(error?.stack || error);
-  process.exitCode = 1;
-});
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href;
+if (isMain) {
+  main().catch((error) => {
+    console.error(error?.stack || error);
+    process.exitCode = 1;
+  });
+}

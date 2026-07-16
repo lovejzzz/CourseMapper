@@ -87,14 +87,14 @@ async function buildWorkbook(count = 5, chunkSize = 2) {
   return { packetDir, handoffDir, receiptOutput, built };
 }
 
-async function buildPriorSealedAb(packetDir) {
+async function buildPriorSealedAb(packetDir, identity = {}) {
   const templateDir = path.join(root, 'prior-templates');
   await buildScionCodexTrainingReviewTemplates({ packetDir, outputDir: templateDir });
   const completedPath = path.join(root, 'prior-completed-a-b.json');
   const batch = JSON.parse(await fs.readFile(path.join(templateDir, 'codex-review-a-b.json'), 'utf8'));
-  batch.judge.revision = 'codex-fresh-workbook-test-2026-07-14';
-  batch.judge.runtime = 'vitest-fresh-workbook';
-  batch.judge.sessionId = 'prior-a-b-session';
+  batch.judge.revision = identity.revision || 'codex-fresh-workbook-test-2026-07-14';
+  batch.judge.runtime = identity.runtime || 'vitest-fresh-workbook';
+  batch.judge.sessionId = identity.sessionId || 'prior-a-b-session';
   batch.previousOutcomeAvailable = false;
   batch.contextResetAttestation = true;
   batch.attestation = true;
@@ -608,6 +608,81 @@ describe('Scion fresh Codex judge workbook', () => {
         keyOutput: path.join(root, 'drifted-secret', 'b-a.key'),
       }),
     ).rejects.toThrow('does not match the sealed first-order identity');
+  });
+
+  it('derives a selectable v0.16.42 B/A launch profile and reconstructs only with the exact sealed first order', async () => {
+    const packetDir = await buildPacket(5);
+    const priorSealedEnvelope = await buildPriorSealedAb(packetDir, {
+      revision: 'gpt-5.6-luna@max',
+      runtime: 'codex-cli-0.144.2',
+      sessionId: 'sealed-first-order-session',
+    });
+    const handoffDir = path.join(root, 'v0.16.42-reverse-workbook');
+    const receiptOutput = path.join(root, 'v0.16.42-reverse-receipt.json');
+    const built = await buildScionCodexFreshJudgeWorkbook({
+      packetDir,
+      priorSealedEnvelope,
+      outputDir: handoffDir,
+      receiptOutput,
+      chunkSize: 2,
+      generatedAt: '2026-07-16T15:00:00.000Z',
+      order: 'B/A',
+      release: 'v0.16.42',
+    });
+
+    expect(built.manifest).toMatchObject({
+      release: 'v0.16.42',
+      order: 'B/A',
+      selectedCases: 5,
+      requiredJudgeIdentity: {
+        source: 'sealed-first-order-envelope-metadata',
+        order: 'A/B',
+        priorSessionId: 'sealed-first-order-session',
+        identity: {
+          model: 'openai/codex',
+          revision: 'gpt-5.6-luna@max',
+          runtime: 'codex-cli-0.144.2',
+        },
+        launchProfile: {
+          modelId: 'gpt-5.6-luna',
+          reasoningEffort: 'max',
+          runtime: 'codex-cli-0.144.2',
+          identityRevision: 'gpt-5.6-luna@max',
+          selectionMode: 'explicit-codex-thread-launch',
+          internalBuildRevisionAvailable: false,
+        },
+      },
+    });
+    const instructions = await fs.readFile(path.join(handoffDir, 'FRESH_TASK_INSTRUCTIONS.md'), 'utf8');
+    expect(instructions).toContain('The 5-case B/A pass');
+    expect(instructions).toContain('Start one new ephemeral Codex CLI task');
+    expect(instructions).toContain('fresh-b-a-working-v0.16.42');
+    expect(instructions).toContain('fresh-b-a-workbook-v0.16.42');
+    expect(instructions).toContain('v0.16.42-b-a.sealed.json');
+    expect(instructions).not.toContain('128-case');
+    expect(instructions).not.toContain('v0.16.30-b-a');
+
+    await expect(auditTrackedWorkbook(receiptOutput, handoffDir, packetDir)).resolves.toMatchObject({
+      valid: false,
+      issues: ['reconstruction:prior-sealed-envelope-required'],
+    });
+    await expect(
+      auditTrackedWorkbook(receiptOutput, handoffDir, packetDir, priorSealedEnvelope),
+    ).resolves.toMatchObject({ valid: true, issues: [] });
+  });
+
+  it('refuses a new B/A campaign when the sealed identity cannot be relaunched honestly', async () => {
+    const packetDir = await buildPacket(2);
+    const priorSealedEnvelope = await buildPriorSealedAb(packetDir);
+    await expect(
+      buildScionCodexFreshJudgeWorkbook({
+        packetDir,
+        priorSealedEnvelope,
+        outputDir: path.join(root, 'unselectable-reverse-workbook'),
+        order: 'B/A',
+        release: 'v0.16.42',
+      }),
+    ).rejects.toThrow('cannot derive a selectable launch profile');
   });
 
   it('fails before outputs on partial work, extra files, or cross-chunk session drift', async () => {
