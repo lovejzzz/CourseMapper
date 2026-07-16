@@ -1,0 +1,1692 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-423315b77cf6219c9a46",
+    "packetDigest": "423315b77cf6219c9a46de559f53490cee107745c006bb8d16daf358534e8f69",
+    "organizerDigest": "0ddd7990e2cafa094c5828c82f411d1bad8b7e69a42d718639688f064213089b"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-0e2604a3fa9bf27e071e",
+      "caseDigest": "6c30d44b94d56bfbe595abdcbe812f859eaa11e696da3cdfb407bb2cac4e99d8",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "4085d08bdb0b443dbd2af7d263e9f9a90b20c2cf8c41ed543473e0c9ba58cede",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/file-io",
+        "term": "File input and output",
+        "claims": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "61caaef966a493388732cb82a3ab111183b2356340866eb23b7329574aa056e4",
+          "artifact": {
+            "q": "What is the primary action performed by the open() function?",
+            "op": [
+              "reading data from a file",
+              "writing information into files",
+              "closing a file",
+              "returning a file object"
+            ],
+            "ai": 1,
+            "ex": "open() returns a file object that the program then reads from or writes to. The misconception is thinking open() immediately performs the read or write operation; it only establishes the connection."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d841aacf7ff532c6b914abd42604dbd1574900723282b9381c5636704fa714b6",
+          "artifact": {
+            "q": "After a script finishes copying data from a file, what should it do to finish the file-use cycle properly?",
+            "op": [
+              "close the file object",
+              "call readline()",
+              "call read() again",
+              "reopen the file object"
+            ],
+            "ai": 0,
+            "ex": "Closing the file object completes the open-work-close cycle described for file input and output. The plausible misconception is to call another read method, but those methods are for getting content, not finishing the access step."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "61caaef966a493388732cb82a3ab111183b2356340866eb23b7329574aa056e4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d841aacf7ff532c6b914abd42604dbd1574900723282b9381c5636704fa714b6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-74a64943262ed1bb9163",
+      "caseDigest": "994730cad13bad33a05aa8177099a6a6141b66b2b0698b7165e1e2b7d3e85af4",
+      "domain": "computer-science",
+      "courseGroupSha256": "a221877bef9b05f6d79d1385030773dfb135b99f93ad11a5141bdee946750954",
+      "sourceContextSha256": "23dab0a9add28285e651a8bbf017b313ad7fb9cab5175d5841b1e96a220a38b4",
+      "sourceContext": {
+        "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+        "kernelId": "cs/lists",
+        "term": "Lists",
+        "claims": [
+          "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+          "A list is written with square brackets [] holding comma-separated values.",
+          "Individual elements are accessed directly using an index.",
+          "Indexes begin at 0 and end at one less than the length of the sequence.",
+          "A for loop can iterate through a list, visiting each element in order."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §3.4 List basics; §9.1 Modifying and iterating lists"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2c8caaad50c160ac6c9a8bfa6479b54ef5626dceef2affea170cd6b53736a6b6",
+          "artifact": {
+            "q": "Which characteristic describes how elements within a list are accessed?",
+            "op": [
+              "Elements are accessed via a key.",
+              "Elements are accessed by their position.",
+              "Elements are accessed by a label.",
+              "Elements are accessed by a name."
+            ],
+            "ai": 2,
+            "ex": "Accessing an element directly using its position in the sequence."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c548df6c94a0b1194dbc5f504038a1a1f8a7a9d8620cd87667bb22a08667bbf2",
+          "artifact": {
+            "q": "A student stores quiz scores as 12, 15, and 18 in one Python sequence. Which notation matches a list of those scores?",
+            "op": [
+              "[12, 15, 18]",
+              "(12, 15, 18)",
+              "{12, 15, 18}",
+              "12, 15, 18"
+            ],
+            "ai": 0,
+            "ex": "[12, 15, 18] is correct because a list is written with square brackets holding comma-separated values. The parenthesized choice is a tuple-shaped misconception, while braces suggest a different container."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2c8caaad50c160ac6c9a8bfa6479b54ef5626dceef2affea170cd6b53736a6b6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c548df6c94a0b1194dbc5f504038a1a1f8a7a9d8620cd87667bb22a08667bbf2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7d0f788f423dda2aa2b3",
+      "caseDigest": "3653e0f859181cde58999b3295f6b61f7e9d7acb612070a09ed5a58286483a94",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "b90861d3634ef018651b86b99dabe29b80ddc54ab07b46fb38080b7c07b58089",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/variables",
+        "term": "Variables and assignment",
+        "claims": [
+          "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+          "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+          "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+          "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+          "Variable names are case-sensitive, so total and Total are two different variables."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.3 Variables"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "56f132452037e34e9d9caadd12717e38ca9dbd4d5e96aaf8cab585bc96db2f90",
+          "artifact": {
+            "q": "When using the assignment operator in Python, what is the primary effect on the variable on the left side of the operator?",
+            "op": [
+              "A: It asserts that the value on the left is mathematically equal to the value on the right.",
+              "B: It copies the value from the right side into the variable on the left.",
+              "C: It binds the name on the left to the value produced on the right.",
+              "D: It creates a new, independent copy of the value on the right."
+            ],
+            "ai": 2,
+            "ex": "Option C is correct because the assignment operator binds the name on the left to the value produced on the right. Option B is a misconception because assignment is not mathematical equality; it copies a value rather than asserting two sides are equal."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "84f5f6a1d5d301031e8fef09b51895325a75f03a94d015064eb8613be0ceea07",
+          "artifact": {
+            "q": "In the line count = count + 1, what does the assignment operator do?",
+            "op": [
+              "Checks whether both sides are equal",
+              "Binds count to the value produced on the right",
+              "Creates two variables with the same name",
+              "Deletes the old value stored in count"
+            ],
+            "ai": 1,
+            "ex": "B is correct because assignment places the result of the right-hand expression into the name on the left. A is the common misconception: = in Python assignment is not a test for equality."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "56f132452037e34e9d9caadd12717e38ca9dbd4d5e96aaf8cab585bc96db2f90",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "84f5f6a1d5d301031e8fef09b51895325a75f03a94d015064eb8613be0ceea07",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-f7d9953fdfdb881fb648",
+      "caseDigest": "06a26c9835bdbcc7a9ecd2d55dc7ed3127ac90a09b06c086258e541723b2f368",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "d043bd7677de3faae4ebcbb710aa5fec58cbe00ec70c7a873291a7b4b7f3b6c1",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/conditionals",
+        "term": "Conditionals and boolean logic",
+        "claims": [
+          "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+          "An else clause holds statements that run when the if condition is false.",
+          "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9d59b0de1241b3be8334a78be1299ca3d7d7bb198146e9ed94ae21bf802dbc88",
+          "artifact": {
+            "tr": "conditional statement",
+            "df": "A control structure that selects a code path according to whether a condition evaluates to true or false.",
+            "eg": "If a temperature is below freezing, print a warning; otherwise, continue normally.",
+            "mi": "It always runs both branches.",
+            "cx": "Only one branch runs, and an if-else chooses exactly one branch based on the condition."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c7694bcd20c7170e76002b6270f7a9ce5411b41bc3fba0ed031398e719f07a49",
+          "artifact": {
+            "tr": "Compound condition operator",
+            "df": "Operators like 'and', 'or', and 'not' combine multiple simple tests into one complex test.",
+            "eg": "Using 'and' to check if a variable is greater than five AND less than ten.",
+            "mi": "Believing 'and' always requires both parts to be true for the whole statement to be true.",
+            "cx": "The 'and' operator returns True only if both conditions are true."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9d59b0de1241b3be8334a78be1299ca3d7d7bb198146e9ed94ae21bf802dbc88",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c7694bcd20c7170e76002b6270f7a9ce5411b41bc3fba0ed031398e719f07a49",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2d813f44733230f898e7",
+      "caseDigest": "1dca35ee84ab0745983e53db8af18ef8aadc8355c42916021b2a77c6b127f49a",
+      "domain": "geology",
+      "courseGroupSha256": "19100d3e734a3486006f9dd67ed9f35322cc9cc7d549b3cabb3114748621df27",
+      "sourceContextSha256": "142209dde0dfaa36cac40a5d2a2f903ae29f3d074404194ba19b2c5b88fb8118",
+      "sourceContext": {
+        "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9",
+        "kernelId": "geo/silicate-structures",
+        "term": "Silicate structures",
+        "claims": [
+          "Silicate minerals, built from the silicon-oxygen tetrahedron, are the most abundant rock-forming minerals; the way tetrahedra link together defines the major silicate structures.",
+          "The silicon-oxygen tetrahedron (SiO4) is one silicon atom at the center bonded to four oxygen atoms at the corners.",
+          "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+          "How much oxygen is shared between tetrahedra controls the silicate group — isolated tetrahedra, single chains, sheets, or frameworks like quartz."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §3.1 Silicate minerals"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5a8564c77afef974545fe707c4e7dcb352f528016faaca379f9b1beed4fd2442",
+          "artifact": {
+            "tr": "Silicon-oxygen tetrahedron",
+            "df": "A basic silicate unit with one silicon atom in the center and four oxygen atoms at the corners.",
+            "eg": "A single SiO4 unit in a silicate mineral structure.",
+            "mi": "It is a flat ring of atoms.",
+            "cx": "The atom arrangement is three-dimensional, with one central silicon bonded to four oxygens."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3a0b33c3dfcad4d7bb3ed22e820874ba31bfb596a394447acebb859d43fb2d96",
+          "artifact": {
+            "tr": "Tetrahedral linkage",
+            "df": "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+            "eg": "Quartz exhibits a framework structure.",
+            "mi": "Tetrahedral linkage is the process where silicon-oxygen tetrahedra connect.",
+            "cx": "Tetrahedral linkage is the process of linking silicon-oxygen tetrahedra by sharing corner oxygen atoms."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5a8564c77afef974545fe707c4e7dcb352f528016faaca379f9b1beed4fd2442",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3a0b33c3dfcad4d7bb3ed22e820874ba31bfb596a394447acebb859d43fb2d96",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-1154bb256dbc0db2ea99",
+      "caseDigest": "41172ada1613338e004b984f1756fc2994955898efb47cbcb2acdbf273542cf7",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "b85643eddf0a2cf47888cff6fc00ddbeac6b431baef2dff0416a8b877ef67a54",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/minerals",
+        "term": "Minerals and identification",
+        "claims": [
+          "A mineral is a naturally occurring, inorganic solid with a definite chemical composition and an ordered crystal structure; minerals are identified by physical properties such as hardness, streak, luster, and cleavage.",
+          "Hardness is measured on the Mohs scale; diamond is a 10 and is about four times harder than corundum, a 9.",
+          "Streak is the color of a mineral's powder, and is more reliable than the color of the whole specimen.",
+          "Cleavage is the tendency of a mineral to break along flat planes of weak bonding; minerals without such planes fracture irregularly.",
+          "Luster describes how a mineral's surface reflects light — metallic, glassy, or dull."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §3.1 What is a mineral; §3.5 Identifying minerals"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "91436dd61126d42c9ca7588994a5d30b72cb0f3ba77eff9219cefe68d47ac3fc",
+          "artifact": {
+            "tr": "cleavage",
+            "df": "A break pattern formed when a mineral splits along flat surfaces of weak bonding.",
+            "eg": "A mineral that splits into smooth, flat sheets shows cleavage.",
+            "mi": "Thinking every mineral that breaks has cleavage.",
+            "cx": "Minerals without aligned weak planes break irregularly by fracture instead of cleavage."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "313f50e1cd19d15793d37ebd57c3ca050cfb05a155b9d012ea9f253d84a60f18",
+          "artifact": {
+            "tr": "How a mineral's surface reflects light",
+            "df": "Luster: Describes how a mineral's surface reflects light—metallic, glassy, or dull. Example: The metallic luster of pyrite. Misconception: Luster is the tendency to break along flat planes of weak bonding. Correction: Luster describes how a mineral's surface reflects light.",
+            "eg": "Pyrite (iron sulfide)",
+            "mi": "The tendency to break along flat planes of weak bonding",
+            "cx": "Luster describes how a mineral's surface reflects light."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "91436dd61126d42c9ca7588994a5d30b72cb0f3ba77eff9219cefe68d47ac3fc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "313f50e1cd19d15793d37ebd57c3ca050cfb05a155b9d012ea9f253d84a60f18",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-67090ef23fa92b617543",
+      "caseDigest": "2bb929ced54127413bd4d52c917d4c6f631e65a3bbd3451306cedeb2960fbf12",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "db5f7451d3eb09475068011f492bae2ca79ef6b0ffa00afe78d5d4e963952bf2",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/earths-interior",
+        "term": "Earth's interior",
+        "claims": [
+          "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core; the upper mantle's asthenosphere is solid rock that flows slowly by convection.",
+          "The mantle sits below the crust and above the core.",
+          "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+          "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.1 Earth's interior"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b51820f6b1c07abe0ac92ea1dd5328715a5e000ec73d1a631a1c1e668c6b1266",
+          "artifact": {
+            "tr": "Core composition",
+            "df": "The primary elements found in the planet's innermost region.",
+            "eg": "The presence of iron and nickel in the core.",
+            "mi": "Assuming the core is composed of the same material as the outer crust.",
+            "cx": "The core has both liquid and solid layers and is made mostly of iron and nickel (Claim 2)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a9a7c22a920c01d6f734744cc6aa8818e2f1d45070757bb306422571daa96592",
+          "artifact": {
+            "tr": "core",
+            "df": "The planet’s central metallic region, made mostly of iron and nickel and divided into liquid and solid layers.",
+            "eg": "Seismic evidence shows distinct liquid and solid parts within the deep center of Earth.",
+            "mi": "It is a single uniform solid sphere.",
+            "cx": "It has both liquid and solid layers, and it is mostly iron and nickel."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b51820f6b1c07abe0ac92ea1dd5328715a5e000ec73d1a631a1c1e668c6b1266",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a9a7c22a920c01d6f734744cc6aa8818e2f1d45070757bb306422571daa96592",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a6a1560c921e744ffe00",
+      "caseDigest": "e4276d2bf9b9306e301c7e66cfefe09d6088814f0364021bc25c0351422dcdc1",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "e65891980c582b81bff8b6ab9144cd455c4725c47a32a8d1d11963d897c2039d",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/earthquakes",
+        "term": "Earthquakes and seismic waves",
+        "claims": [
+          "An earthquake releases stored elastic energy when rock slips along a fault; the energy travels outward as seismic waves, including fast compressional P waves and slower shear S waves.",
+          "Elastic rebound theory explains earthquakes: stored energy is released and the broken rock springs back toward its original position.",
+          "P waves are the fastest body waves and move by compression, like sound through air, so they travel through solids, liquids, and gases.",
+          "S waves are slower shear waves restricted to lateral motion, so they travel only through solids, never liquids."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §9.1 Earthquakes and seismic waves"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2d79e870eac4b81e4148b51e74019d45212b7bec8f51e80109ab822c55e804f7",
+          "artifact": {
+            "tr": "Elastic rebound",
+            "df": "A faulted rock mass releases stored strain and then springs back toward its earlier shape.",
+            "eg": "In a lab model, a bent block suddenly slips and then recoils after the stress drops.",
+            "mi": "The idea that earthquakes only happen when rock is permanently crushed.",
+            "cx": "The correction is that elastic strain can be stored and then released when rock slips along a fault."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cc62acaff0dde6b3e024db5f32897dced7e295f29ae04853fe71a543035fe52d",
+          "artifact": {
+            "tr": "Energy release mechanism",
+            "df": "The process where stored elastic energy is released when rock slips along a fault.",
+            "eg": "An earthquake occurs when stored elastic energy is released and the broken rock springs back toward its original position.",
+            "mi": "Thinking an earthquake is caused by the continuous compression of rock.",
+            "cx": "An earthquake is caused by the release of stored elastic energy when rock slips along a fault."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2d79e870eac4b81e4148b51e74019d45212b7bec8f51e80109ab822c55e804f7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cc62acaff0dde6b3e024db5f32897dced7e295f29ae04853fe71a543035fe52d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e997ffaf825e0e42d909",
+      "caseDigest": "a79ef9aa3ee5531d2fa1c2f2f5e5757447f0ca20dd4384e4f3a02aa86c070ab8",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "b85643eddf0a2cf47888cff6fc00ddbeac6b431baef2dff0416a8b877ef67a54",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/minerals",
+        "term": "Minerals and identification",
+        "claims": [
+          "A mineral is a naturally occurring, inorganic solid with a definite chemical composition and an ordered crystal structure; minerals are identified by physical properties such as hardness, streak, luster, and cleavage.",
+          "Hardness is measured on the Mohs scale; diamond is a 10 and is about four times harder than corundum, a 9.",
+          "Streak is the color of a mineral's powder, and is more reliable than the color of the whole specimen.",
+          "Cleavage is the tendency of a mineral to break along flat planes of weak bonding; minerals without such planes fracture irregularly.",
+          "Luster describes how a mineral's surface reflects light — metallic, glassy, or dull."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §3.1 What is a mineral; §3.5 Identifying minerals"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "31d7c91697f286a92ec07b97186517f8d5d6c7cc9f31a7344e0657b2bb7a851a",
+          "artifact": {
+            "q": "A student scratches a dark, shiny specimen and sees a white powdery mark. Which property is most useful for identifying the mineral from that result?",
+            "op": [
+              "streak",
+              "luster",
+              "hardness",
+              "cleavage"
+            ],
+            "ai": 0,
+            "ex": "Streak is the color of a mineral’s powder, so it can be more reliable than the color of the whole specimen. A common misconception is to treat surface shine or specimen color as the main clue, but those describe luster and appearance rather than the powder color used for this test."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c587f6e6387b2d17a7b4afd9668301e370445b19355e15dfec110794eb3eaf28",
+          "artifact": {
+            "q": "Which physical property is used to measure a mineral's resistance to scratching, and what is the scale used for this measurement?",
+            "op": [
+              "Luster, measured on the Mohs scale",
+              "Hardness, measured on the Mohs scale",
+              "Streak, measured on the Mohs scale",
+              "Cleavage, measured on the Mohs scale"
+            ],
+            "ai": 1,
+            "ex": "Hardness is measured on the Mohs scale. Misconception: Streak is measured on the Mohs scale. Correct: Hardness is the property measured on the Mohs scale."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "31d7c91697f286a92ec07b97186517f8d5d6c7cc9f31a7344e0657b2bb7a851a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c587f6e6387b2d17a7b4afd9668301e370445b19355e15dfec110794eb3eaf28",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-26789c491494aac1b3d7",
+      "caseDigest": "196fbd32fd60f98004eb58b298aa366f4ecf258adb6fd268ffa7a2e6e46d5b92",
+      "domain": "music-theory",
+      "courseGroupSha256": "abd9179b4ea6b87d8a66c2873abc3d80d2536ff2e260ceea34f67f4728b84d82",
+      "sourceContextSha256": "859f6c70025f32349e3850964fa67f26a6b9aab420b6fb6be868cb1d5c51c502",
+      "sourceContext": {
+        "sourcePacketSha256": "4f8665de42ed5888872183fe359968e2ed762767005c9b442852fad349e4fd12",
+        "kernelId": "music/scales-and-key-signatures",
+        "term": "Scales and key signatures",
+        "claims": [
+          "In music theory, a scale is \"any consecutive series of notes that form a progression between one note and its octave\", typically by order of pitch or fundamental frequency.",
+          "A measure of the width of each scale step provides a method to classify scales.",
+          "Scales can be abstracted from performance or composition.",
+          "Therefore, any scale is distinguishable by its \"step-pattern\", or how its intervals interact with each other.",
+          "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic).",
+          "The expression scale degree refers to these numerical labels."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "751b0868ad20a5301b85c5a78d05a3ab48055f660e1336240e5d0faa6a5a7184",
+          "artifact": {
+            "q": "How can scales be analyzed in relation to their structure?",
+            "op": [
+              "By the numerical labels assigned to the notes.",
+              "By the measure of the width of each scale step.",
+              "By abstracting them from performance or composition.",
+              "By the way their intervals interact with each other."
+            ],
+            "ai": 3,
+            "ex": "By the way their intervals interact with each other."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "69a012a46fd2198df22510f458129797f782735dca281111b8fe35435cdd7417",
+          "artifact": {
+            "q": "A student sorts note collections while studying scales. Which choice best matches the theory definition?",
+            "op": [
+              "A consecutive series of notes that progresses between one note and its octave.",
+              "Any unordered set of pitches used in a melody.",
+              "A chord built from three stacked notes.",
+              "A repeated rhythm pattern across a measure."
+            ],
+            "ai": 0,
+            "ex": "Correct: a scale is a consecutive series of notes spanning an octave. Misconception: any collection of pitches qualifies; order and octave span are part of the definition."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "751b0868ad20a5301b85c5a78d05a3ab48055f660e1336240e5d0faa6a5a7184",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "69a012a46fd2198df22510f458129797f782735dca281111b8fe35435cdd7417",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-17c6d6e29a5430b85192",
+      "caseDigest": "079241ef26c66bd9b6cbc60854d0b561c671a996ac0ee6e619fb9ec8e9edbae7",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "fb48e198d508eff299f348aef676c2c349adaf06e2688fc9d364dffb79bf38ac",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/harmony-and-progressions",
+        "term": "Harmony and chord progressions",
+        "claims": [
+          "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+          "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+          "A first chord forms a 'progression' with a second chord, and a second with a third.",
+          "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+          "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b5aaa99d5ab4cef9ee9dda40576960ba8df05cc3a29bfbc386856367d17828b7",
+          "artifact": {
+            "q": "What is the fundamental concept of combining different sounds to generate novel musical ideas?",
+            "op": [
+              "A. Musical form",
+              "B. Chord construction",
+              "C. Harmony",
+              "D. Rhythmic structure"
+            ],
+            "ai": 0,
+            "ex": "Harmony is the concept of combining different sounds in order to create new, distinct musical ideas. (Misconception: Chord construction is the concept of combining sounds.)"
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1e90987469be58671a11a0a739317dbcceb3996ce1c8d944e29fdd6f13e0b03c",
+          "artifact": {
+            "q": "In a Western tonal context, what best describes harmony?",
+            "op": [
+              "Different sounds combined to create distinct musical ideas",
+              "A single melody supported only by rhythm",
+              "A sequence of silent pauses in a phrase",
+              "The written names of individual notes"
+            ],
+            "ai": 0,
+            "ex": "Correct: harmony is the combination of different sounds to create new musical ideas. The likely misconception is to treat harmony as either melody alone or as a list of note names, but the source defines it as sound combination rather than notation or a single line."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b5aaa99d5ab4cef9ee9dda40576960ba8df05cc3a29bfbc386856367d17828b7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1e90987469be58671a11a0a739317dbcceb3996ce1c8d944e29fdd6f13e0b03c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-dfad59fcef3370a37e7b",
+      "caseDigest": "1954b463055b45a030c397bf4b0a8e12787bdba9945fa95ccb6283a8c54763f7",
+      "domain": "music-theory",
+      "courseGroupSha256": "abd9179b4ea6b87d8a66c2873abc3d80d2536ff2e260ceea34f67f4728b84d82",
+      "sourceContextSha256": "ac739bca3e893f461ceaa3c95cdf29a7411ce2aea85d4224fa84ca1d350e32ea",
+      "sourceContext": {
+        "sourcePacketSha256": "4f8665de42ed5888872183fe359968e2ed762767005c9b442852fad349e4fd12",
+        "kernelId": "music/intervals",
+        "term": "Interval (music)",
+        "claims": [
+          "In music theory, an interval is a difference in pitch between two sounds.",
+          "In physical terms, an interval is the ratio between two sonic frequencies.",
+          "Intervals between successive notes of a scale are also known as scale steps."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "84b46df46664a65b3e40d057e62f0c0e1cbdfb29d09ded5a87bb788d8841be19",
+          "artifact": {
+            "tr": "Scale step",
+            "df": "An interval formed between one note of a scale and the next note.",
+            "eg": "In a major scale, moving from one written note to the next written note is hearing a scale step.",
+            "mi": "It means any note in a scale, or the entire scale pattern itself.",
+            "cx": "The idea is the distance between adjacent notes, not a single note or the whole collection."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "496356b221a38d8db0fcb4d5b944266f65980cccb5d33c2dc4a2b2bf1e600994",
+          "artifact": {
+            "tr": "Scale step",
+            "df": "The distance between adjacent notes within a scale.",
+            "eg": "The distance from the first note to the second note in a major scale.",
+            "mi": "Thinking scale steps are the same as the overall interval between two distant notes.",
+            "cx": "Intervals between successive notes of a scale are also known as scale steps (Claim 2)."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "84b46df46664a65b3e40d057e62f0c0e1cbdfb29d09ded5a87bb788d8841be19",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "496356b221a38d8db0fcb4d5b944266f65980cccb5d33c2dc4a2b2bf1e600994",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-c1bc4a89331396b196d5",
+      "caseDigest": "5b98ab9a41079a9250cd4184233929f892b228524dbc81e25438346aba26e625",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "2ea0a82c55c2fb5b937f262e1f58db93de4805417c315713417de3388ea7494d",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/musical-form",
+        "term": "Musical form",
+        "claims": [
+          "In music, form refers to the structure of a musical composition or performance.",
+          "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+          "Musical form unfolds over time through the expansion and development of these ideas.",
+          "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+          "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+          "The next level concerns the entire structure of any single self-contained musical piece or movement."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5846a3d453e6364f48ed8dd3f25e17603f34fe6efd896be6763f529b8596575e",
+          "artifact": {
+            "tr": "Structure of a musical work",
+            "df": "The overall arrangement of a musical composition or performance.",
+            "eg": "Analyzing the entire structure of a single movement.",
+            "mi": "A specific melodic line or chord progression.",
+            "cx": "The overall structure of any single self-contained musical piece or movement."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1492d02a7ebfad867d2ad7349cf94e8f84ca24e68b2aebe730eaedd9b8b181e8",
+          "artifact": {
+            "tr": "Musical form",
+            "df": "The organized structure of a composition or performance.",
+            "eg": "A self-contained movement can be examined as its sections unfold over time.",
+            "mi": "It means only the melody line.",
+            "cx": "It also involves the interaction of sound, harmony, melody, and rhythm."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5846a3d453e6364f48ed8dd3f25e17603f34fe6efd896be6763f529b8596575e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1492d02a7ebfad867d2ad7349cf94e8f84ca24e68b2aebe730eaedd9b8b181e8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-6f470e75a25f24cb349b",
+      "caseDigest": "a5c6ba9f96c01b08702183debd57f9e5833afa8d8d083d7f51a4cae3cd126afa",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "7d93de170a838d6299cd66fa8adb8a9dc269c6d5189e4eb968c3b5d9b5c0981e",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5bd6efdae1d09da5293cdceb3b0e0f6acf1d0a960fc820426b3453018b20ac35",
+          "artifact": {
+            "q": "How can prototypes be effectively utilized to validate a design concept?",
+            "op": [
+              "By requiring every production detail for testing.",
+              "By combining them with usability testing or a cognitive walkthrough.",
+              "By only showing fully functional interactions.",
+              "By ensuring every interaction is perfectly functional."
+            ],
+            "ai": 1,
+            "ex": "The correct choice is that prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works (Claim 1). The misconception is that prototypes must only show fully functional interactions (Claim 2)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e4b7ebc5cbaafaf9c331c3c27d54b491a8e9b0cb8806007fc66c5a17e903b11e",
+          "artifact": {
+            "q": "What is the main role of a prototype in a UX project before full development?",
+            "op": [
+              "Create a testable model of the planned experience without every production detail.",
+              "Freeze the final interface so no changes are needed later.",
+              "Document the business model for the planned service.",
+              "Replace usability evidence with designer preference."
+            ],
+            "ai": 0,
+            "ex": "The correct choice emphasizes a testable representation that can be learned from before full production. A common misconception is that a prototype is the finished product or a fixed specification, but prototypes are meant to support learning rather than lock the design in place."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5bd6efdae1d09da5293cdceb3b0e0f6acf1d0a960fc820426b3453018b20ac35",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e4b7ebc5cbaafaf9c331c3c27d54b491a8e9b0cb8806007fc66c5a17e903b11e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9d14861aba006251221f",
+      "caseDigest": "e2c37454e1e503ded33ef5edc6bd24b46165fbc2d3e7f8aed5f3ece0dc05fc9c",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+      "sourceContextSha256": "b59a0a3af27d5407abaabdaed013df6def46a07a62be13819801403c66b840bc",
+      "sourceContext": {
+        "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "term": "Accessibility and usability evaluation",
+        "claims": [
+          "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "A single disabled participant's experience should not be generalized to all people with disabilities."
+        ],
+        "attribution": [
+          "W3C Web Accessibility Initiative",
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "W3C Document License and U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6a088635f1e6fcb52bec4d464f71c3164db52819ba9e56ac39d186d757c92410",
+          "artifact": {
+            "q": "What is a key finding when evaluating a product with disabled and older users?",
+            "op": [
+              "A) Conformance evaluation alone reveals all barriers.",
+              "B) A single disabled participant's experience can be generalized.",
+              "C) Evaluation can uncover barriers missed by conformance evaluation.",
+              "D) Observation during a usability test is unnecessary."
+            ],
+            "ai": 2,
+            "ex": "Option C is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal. Option B is a misconception because a single disabled participant's experience should not be generalized to all people with disabilities."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cb95b5b6b9777704e2d014e17cf7efafed05044569696a0a8dce66ef63f84181",
+          "artifact": {
+            "q": "A student is evaluating a checkout flow by combining standards checks with watching representative users complete realistic tasks. Which activity best matches that approach?",
+            "op": [
+              "Run a WCAG review and a task-based usability test",
+              "Survey users about color preferences",
+              "Map the page hierarchy for a redesign",
+              "Compare two visual layouts without users"
+            ],
+            "ai": 0,
+            "ex": "Correct: a WCAG review plus a task-based usability test combines conformance checks with observation of users doing realistic tasks. Misconception: a survey or layout comparison can help, but it does not directly pair standards-based checking with observed task performance."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6a088635f1e6fcb52bec4d464f71c3164db52819ba9e56ac39d186d757c92410",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cb95b5b6b9777704e2d014e17cf7efafed05044569696a0a8dce66ef63f84181",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a92159953e856f881b61",
+      "caseDigest": "970d0e210cc470f8d488ffd20418cbbf4cc20c7ef0cff828eca831dfbb938b8f",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+      "sourceContextSha256": "1318755b36aa33d35f51b7c59a5b931302c658a85acd5f336a1f4a9bffe9533c",
+      "sourceContext": {
+        "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+        "kernelId": "ux/task-flow-analysis",
+        "term": "Task flow analysis",
+        "claims": [
+          "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "The diagram may include multiple possible paths, task sequences, and decision points."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6ee8eb23dc5746332e5d03d69a59afceff7bb42cf93be3f9d8fd19bf621a5b30",
+          "artifact": {
+            "tr": "Decision point",
+            "df": "A moment in the flow where the user's next path depends on a choice or condition.",
+            "eg": "After entering a password, the flow branches to success, error, or reset steps.",
+            "mi": "It is the same as any screen in the process.",
+            "cx": "A decision point creates branching paths; a screen may contain one, but not every screen is a decision point."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "fccad480bb678ffbd95261853a3dae82fd0b7efe85bb3dbd893db459c3b1ae9a",
+          "artifact": {
+            "tr": "Validating user understanding",
+            "df": "The process of confirming the team's grasp of user objectives, common scenarios, and required tasks.",
+            "eg": "Reviewing a flow to ensure it accurately reflects how users typically complete a specific task.",
+            "mi": "Assuming the analysis automatically proves the team understands the user's ultimate goal.",
+            "cx": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6ee8eb23dc5746332e5d03d69a59afceff7bb42cf93be3f9d8fd19bf621a5b30",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "fccad480bb678ffbd95261853a3dae82fd0b7efe85bb3dbd893db459c3b1ae9a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

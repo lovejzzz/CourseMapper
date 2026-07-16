@@ -158,7 +158,7 @@ test.describe('Landing Page', () => {
     await expect(page.getByLabel('API')).toBeDisabled();
     await expect(page.getByLabel('API')).toHaveValue('No API key required');
     await expect(page.getByLabel('Model')).toHaveValue('scion-public');
-    await expect(page.getByLabel('Model').locator('option')).toHaveText('Scion V0.16.35');
+    await expect(page.getByLabel('Model').locator('option')).toHaveText('Scion V0.16.36');
   });
 
   test('Resume restores the saved project model instead of the landing-page model', async ({ page }) => {
@@ -280,8 +280,8 @@ test.describe('Landing Page', () => {
     await page.reload();
 
     await page.getByRole('button', { name: 'Resume' }).click();
-    await expect(page.getByTestId('workspace-header')).toContainText('Scion V0.16.35', { timeout: 10000 });
-    await expect(page.getByTestId('workspace-model-config-trigger')).toHaveText('Scion V0.16.35');
+    await expect(page.getByTestId('workspace-header')).toContainText('Scion V0.16.36', { timeout: 10000 });
+    await expect(page.getByTestId('workspace-model-config-trigger')).toHaveText('Scion V0.16.36');
     await expect(page.getByTestId('workspace-shell')).not.toContainText('scion-public');
   });
 
