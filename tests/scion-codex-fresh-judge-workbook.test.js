@@ -137,8 +137,9 @@ async function writeCompletedWorkingDecisions(handoffDir, manifest, { sessionByC
   for (const chunk of manifest.chunks) {
     const template = JSON.parse(await fs.readFile(path.join(handoffDir, chunk.templateFile), 'utf8'));
     const decisions = JSON.parse(await fs.readFile(path.join(handoffDir, chunk.decisionsFile), 'utf8'));
-    decisions.judge.revision = 'codex-fresh-workbook-test-2026-07-14';
-    decisions.judge.runtime = 'vitest-fresh-workbook';
+    decisions.judge.revision =
+      manifest.requiredJudgeIdentity?.identity?.revision || 'codex-fresh-workbook-test-2026-07-14';
+    decisions.judge.runtime = manifest.requiredJudgeIdentity?.identity?.runtime || 'vitest-fresh-workbook';
     decisions.judge.sessionId = sessionByChunk[chunk.id] || 'one-fresh-b-a-session';
     decisions.previousOutcomeAvailable = false;
     decisions.contextResetAttestation = true;
@@ -227,16 +228,24 @@ describe('Scion fresh Codex judge workbook', () => {
     expect(allRaw.join('\n')).toContain('same exact judge revision, runtime, fresh session ID');
   });
 
-  it('builds an A/B-only first-order workbook with the judge identity declared before scoring', async () => {
+  it('builds an A/B-only first-order workbook with an explicit selectable Codex launch profile', async () => {
     const packetDir = await buildPacket(5);
     const handoffDir = path.join(root, 'first-order-workbook');
     const receiptOutput = path.join(root, 'first-order-receipt.json');
     const declaredJudgeIdentity = {
       model: 'openai/codex',
-      revision: 'codex-fresh-workbook-test-2026-07-14',
-      runtime: 'vitest-fresh-workbook',
+      revision: 'gpt-5.5@xhigh',
+      runtime: 'codex-desktop',
       promptPath: 'evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md',
       promptSha256: '0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7',
+    };
+    const declaredJudgeLaunchProfile = {
+      modelId: 'gpt-5.5',
+      reasoningEffort: 'xhigh',
+      runtime: 'codex-desktop',
+      identityRevision: 'gpt-5.5@xhigh',
+      selectionMode: 'explicit-codex-thread-launch',
+      internalBuildRevisionAvailable: false,
     };
     const built = await buildScionCodexFreshJudgeWorkbook({
       packetDir,
@@ -245,17 +254,19 @@ describe('Scion fresh Codex judge workbook', () => {
       generatedAt: '2026-07-15T22:00:00.000Z',
       chunkSize: 2,
       order: 'A/B',
-      release: 'v0.16.35',
+      release: 'v0.16.36',
       declaredJudgeIdentity,
+      declaredJudgeLaunchProfile,
     });
     expect(built.manifest).toMatchObject({
-      release: 'v0.16.35',
+      release: 'v0.16.36',
       order: 'A/B',
       selectedCases: 5,
       requiredJudgeIdentity: {
         source: 'declared-first-order-judge-identity',
         order: 'A/B',
         identity: declaredJudgeIdentity,
+        launchProfile: declaredJudgeLaunchProfile,
       },
       isolation: {
         organizerMappingIncluded: false,
@@ -279,6 +290,8 @@ describe('Scion fresh Codex judge workbook', () => {
     expect(allNames.some((name) => name.includes('review-b-a') || name.includes('decisions-b-a'))).toBe(false);
     const instructions = await fs.readFile(path.join(handoffDir, 'FRESH_TASK_INSTRUCTIONS.md'), 'utf8');
     expect(instructions).toContain('If any identity is unavailable or different, stop before judgment');
+    expect(instructions).toContain('model `gpt-5.5` and reasoning effort `xhigh` selected explicitly');
+    expect(instructions).toContain('not a claim about an unexposed provider build revision');
     expect(instructions).toContain('Do not unseal, ingest, or begin the B/A order');
 
     const decisionsDir = await writeCompletedWorkingDecisions(handoffDir, built.manifest);
@@ -319,6 +332,65 @@ describe('Scion fresh Codex judge workbook', () => {
         release: 'v0.16.35',
       }),
     ).rejects.toThrow('requires a declared judge identity before scoring');
+  });
+
+  it('refuses a new first-order campaign without a verifiable launch profile or with a relabeled profile', async () => {
+    const packetDir = await buildPacket(2);
+    const declaredJudgeIdentity = {
+      model: 'openai/codex',
+      revision: 'gpt-5.5@xhigh',
+      runtime: 'codex-desktop',
+      promptPath: 'evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md',
+      promptSha256: '0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7',
+    };
+    await expect(
+      buildScionCodexFreshJudgeWorkbook({
+        packetDir,
+        outputDir: path.join(root, 'profile-missing-first-order-workbook'),
+        order: 'A/B',
+        release: 'v0.16.36',
+        declaredJudgeIdentity,
+      }),
+    ).rejects.toThrow('requires an explicit Codex launch profile before scoring');
+
+    await expect(
+      buildScionCodexFreshJudgeWorkbook({
+        packetDir,
+        outputDir: path.join(root, 'profile-mismatch-first-order-workbook'),
+        order: 'A/B',
+        release: 'v0.16.36',
+        declaredJudgeIdentity,
+        declaredJudgeLaunchProfile: {
+          modelId: 'gpt-5.6-luna',
+          reasoningEffort: 'xhigh',
+          runtime: 'codex-desktop',
+          identityRevision: 'gpt-5.6-luna@xhigh',
+          selectionMode: 'explicit-codex-thread-launch',
+          internalBuildRevisionAvailable: false,
+        },
+      }),
+    ).rejects.toThrow('judge-launch-profile-identity-mismatch');
+
+    await expect(
+      buildScionCodexFreshJudgeWorkbook({
+        packetDir,
+        outputDir: path.join(root, 'profile-unsupported-reasoning-workbook'),
+        order: 'A/B',
+        release: 'v0.16.36',
+        declaredJudgeIdentity: {
+          ...declaredJudgeIdentity,
+          revision: 'gpt-5.5@ultra',
+        },
+        declaredJudgeLaunchProfile: {
+          modelId: 'gpt-5.5',
+          reasoningEffort: 'ultra',
+          runtime: 'codex-desktop',
+          identityRevision: 'gpt-5.5@ultra',
+          selectionMode: 'explicit-codex-thread-launch',
+          internalBuildRevisionAvailable: false,
+        },
+      }),
+    ).rejects.toThrow('judge-launch-profile-reasoning-effort');
   });
 
   it('rebuilds from the frozen canonical handoff and reports the exact receipt field that drifted', async () => {

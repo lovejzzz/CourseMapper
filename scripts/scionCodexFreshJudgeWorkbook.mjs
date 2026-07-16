@@ -40,6 +40,17 @@ const PROMPT_FILE = 'single-model-training-atom-judge-prompt-v2.md';
 const INSTRUCTIONS_FILE = 'FRESH_TASK_INSTRUCTIONS.md';
 const MANIFEST_FILE = 'workbook-manifest.json';
 const CHUNK_ID_RE = /^chunk-(\d{2})$/;
+const CODEX_MODEL_ID_RE = /^gpt-\d+(?:\.\d+)+(?:-[a-z0-9-]+)?$/;
+const CODEX_MODEL_REASONING_EFFORTS = new Map([
+  ['gpt-5.5', new Set(['low', 'medium', 'high', 'xhigh'])],
+  ['gpt-5.6-sol', new Set(['low', 'medium', 'high', 'xhigh', 'max', 'ultra'])],
+  ['gpt-5.6-terra', new Set(['low', 'medium', 'high', 'xhigh', 'max', 'ultra'])],
+  ['gpt-5.6-luna', new Set(['low', 'medium', 'high', 'xhigh', 'max'])],
+  ['gpt-5.4', new Set(['low', 'medium', 'high', 'xhigh'])],
+  ['gpt-5.4-mini', new Set(['low', 'medium', 'high', 'xhigh'])],
+  ['gpt-5.3-codex-spark', new Set(['low', 'medium', 'high', 'xhigh'])],
+]);
+const CODEX_LAUNCH_SELECTION_MODE = 'explicit-codex-thread-launch';
 const FORBIDDEN_FIELD_NAMES = new Set([
   'ciphertextBase64',
   'keySha256',
@@ -80,6 +91,38 @@ function publicJudgeIdentity(judge = {}) {
     promptPath: judge.promptPath,
     promptSha256: judge.promptSha256,
   };
+}
+
+function launchProfileIssues(profile, identity, prefix = 'judge-launch-profile') {
+  const issues = [];
+  const expectedKeys = [
+    'identityRevision',
+    'internalBuildRevisionAvailable',
+    'modelId',
+    'reasoningEffort',
+    'runtime',
+    'selectionMode',
+  ];
+  if (!profile || Object.keys(profile).sort().join(',') !== expectedKeys.sort().join(',')) {
+    return [`${prefix}-shape`];
+  }
+  if (!CODEX_MODEL_ID_RE.test(profile.modelId || '')) issues.push(`${prefix}-model-id`);
+  if (!CODEX_MODEL_REASONING_EFFORTS.get(profile.modelId)?.has(profile.reasoningEffort)) {
+    issues.push(`${prefix}-reasoning-effort`);
+  }
+  if (!validIdentity(profile.runtime)) issues.push(`${prefix}-runtime`);
+  if (profile.selectionMode !== CODEX_LAUNCH_SELECTION_MODE) issues.push(`${prefix}-selection-mode`);
+  if (profile.internalBuildRevisionAvailable !== false) issues.push(`${prefix}-internal-build-claim`);
+  const expectedRevision = `${profile.modelId}@${profile.reasoningEffort}`;
+  if (profile.identityRevision !== expectedRevision) issues.push(`${prefix}-identity-revision`);
+  if (
+    identity?.model !== SCION_CODEX_JUDGE_MODEL ||
+    identity?.revision !== profile.identityRevision ||
+    identity?.runtime !== profile.runtime
+  ) {
+    issues.push(`${prefix}-identity-mismatch`);
+  }
+  return issues;
 }
 
 function valueCounts(values) {
@@ -229,6 +272,16 @@ function firstOrderTaskInstructions({ chunks, release, requiredJudgeIdentity }) 
   const outputDir = `evaluation/scion-adapters/handoffs/fresh-a-b-workbook-${release}`;
   const receiptFile = `evaluation/scion-adapters/evidence/fresh-a-b-workbook-${release}.json`;
   const identity = requiredJudgeIdentity.identity;
+  const launchProfile = requiredJudgeIdentity.launchProfile;
+  const launchPreflight = launchProfile
+    ? `Start a newly created Codex Desktop task with model \`${launchProfile.modelId}\` and reasoning effort \`${launchProfile.reasoningEffort}\` selected explicitly. The decision files must record revision \`${launchProfile.identityRevision}\` and runtime \`${launchProfile.runtime}\` exactly. \`${launchProfile.identityRevision}\` is an auditable launch-profile token, not a claim about an unexposed provider build revision. Codex Desktop does not expose that internal build revision to this task, and this workbook records that limitation instead of inventing one.`
+    : release === 'v0.16.35'
+      ? ''
+      : `Before scoring any case, verify the declared judge identity exactly. This legacy first-order workbook does not record a separately verifiable Codex launch profile.`;
+  const identitySubstitutionInstruction =
+    release === 'v0.16.35'
+      ? 'Do not substitute a newer runtime or relabel it as the pinned identity.'
+      : 'Do not substitute a different model, reasoning effort, runtime, or label.';
   return `# Scion A/B fresh-task workbook
 
 This directory is the complete allowed input set for the first-order judgment. Use it only in one fresh Codex task that has not read or received any outcome, completed decision, organizer mapping, unblinded model identity, or reverse-order payload for this campaign.
@@ -237,7 +290,7 @@ If any prohibited input is available in the task context, stop. Do not set the c
 
 ## Identity preflight
 
-Before scoring any case, verify that this task can honestly use model "${identity.model}", revision "${identity.revision}", runtime "${identity.runtime}", and prompt SHA-256 "${identity.promptSha256}". If any identity is unavailable or different, stop before judgment. Do not substitute a newer runtime or relabel it as the pinned identity.
+${launchPreflight ? `${launchPreflight}\n\n` : ''}Before scoring any case, verify that this task can honestly use model "${identity.model}", revision "${identity.revision}", runtime "${identity.runtime}", and prompt SHA-256 "${identity.promptSha256}". If any identity is unavailable or different, stop before judgment. ${identitySubstitutionInstruction}
 
 ## Review schedule
 
@@ -411,6 +464,13 @@ export async function verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedR
       if (required?.priorSessionId !== undefined || required?.envelopeSha256 !== undefined) {
         issues.push('manifest-first-order-prior-identity');
       }
+      const launchProfileRequired = manifest.release !== 'v0.16.35';
+      if (launchProfileRequired && required?.launchProfile === undefined) {
+        issues.push('manifest-judge-launch-profile-missing');
+      }
+      if (required?.launchProfile !== undefined) {
+        issues.push(...launchProfileIssues(required.launchProfile, identity, 'manifest-judge-launch-profile'));
+      }
     } else {
       if (!validIdentity(required?.priorSessionId)) issues.push('manifest-prior-session-id');
       if (!/^[a-f0-9]{64}$/.test(required?.envelopeSha256 || '')) issues.push('manifest-prior-envelope-sha256');
@@ -511,6 +571,7 @@ export async function buildScionCodexFreshJudgeWorkbook({
   order = SCION_CODEX_FRESH_WORKBOOK_ORDER,
   release = SCION_CODEX_FRESH_WORKBOOK_RELEASE,
   declaredJudgeIdentity = null,
+  declaredJudgeLaunchProfile = null,
 } = {}) {
   if (!['A/B', 'B/A'].includes(order)) throw new Error(`Unsupported Codex workbook order: ${order}`);
   if (order === 'A/B' && !declaredJudgeIdentity) {
@@ -519,8 +580,14 @@ export async function buildScionCodexFreshJudgeWorkbook({
   if (order === 'A/B' && priorSealedEnvelope) {
     throw new Error('First-order workbook cannot receive a prior sealed outcome');
   }
+  if (order === 'A/B' && release !== 'v0.16.35' && !declaredJudgeLaunchProfile) {
+    throw new Error('First-order workbook requires an explicit Codex launch profile before scoring');
+  }
   if (order === 'B/A' && declaredJudgeIdentity) {
     throw new Error('Reverse-order identity must come from the sealed first-order envelope');
+  }
+  if (order === 'B/A' && declaredJudgeLaunchProfile) {
+    throw new Error('Reverse-order launch profile must come from the sealed first-order identity');
   }
   const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-fresh-judge-workbook-'));
   try {
@@ -555,10 +622,16 @@ export async function buildScionCodexFreshJudgeWorkbook({
       if (identity.promptSha256 !== SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256) {
         throw new Error('Declared judge identity does not match the pinned prompt');
       }
+      const launchProfile = declaredJudgeLaunchProfile ? structuredClone(declaredJudgeLaunchProfile) : null;
+      const profileIssues = launchProfile ? launchProfileIssues(launchProfile, identity) : [];
+      if (profileIssues.length > 0) {
+        throw new Error(`Declared Codex launch profile is invalid: ${profileIssues.join(', ')}`);
+      }
       requiredJudgeIdentity = {
         source: 'declared-first-order-judge-identity',
         order: 'A/B',
         identity,
+        ...(launchProfile ? { launchProfile } : {}),
       };
     } else if (priorSealedEnvelope) {
       const priorRaw = await fs.readFile(priorSealedEnvelope);
@@ -825,6 +898,10 @@ async function auditTrackedWorkbook(receiptFile, handoffDir = DEFAULT_OUTPUT) {
         expectedReceipt.requiredJudgeIdentity?.source === 'declared-first-order-judge-identity'
           ? expectedReceipt.requiredJudgeIdentity.identity
           : null,
+      declaredJudgeLaunchProfile:
+        expectedReceipt.requiredJudgeIdentity?.source === 'declared-first-order-judge-identity'
+          ? expectedReceipt.requiredJudgeIdentity.launchProfile || null
+          : null,
     });
     const reconstruction = await verifyScionCodexFreshJudgeWorkbook({
       handoffDir: result.outputDir,
@@ -858,6 +935,8 @@ function parseArgs(argv) {
     release: SCION_CODEX_FRESH_WORKBOOK_RELEASE,
     judgeRevision: '',
     judgeRuntime: '',
+    judgeModelId: '',
+    judgeReasoningEffort: '',
     generatedAt: '',
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -879,7 +958,10 @@ function parseArgs(argv) {
     else if (arg === '--release') args.release = argv[++index] || args.release;
     else if (arg === '--judge-revision') args.judgeRevision = argv[++index] || args.judgeRevision;
     else if (arg === '--judge-runtime') args.judgeRuntime = argv[++index] || args.judgeRuntime;
-    else if (arg === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
+    else if (arg === '--judge-model-id') args.judgeModelId = argv[++index] || args.judgeModelId;
+    else if (arg === '--judge-reasoning-effort') {
+      args.judgeReasoningEffort = argv[++index] || args.judgeReasoningEffort;
+    } else if (arg === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
   }
   return args;
 }
@@ -944,6 +1026,19 @@ async function main() {
               runtime: args.judgeRuntime,
               promptPath: SCION_CODEX_TRAINING_JUDGE_PROMPT_PATH,
               promptSha256: SCION_CODEX_TRAINING_JUDGE_PROMPT_SHA256,
+            }
+          : null,
+    declaredJudgeLaunchProfile:
+      expectedReceipt?.requiredJudgeIdentity?.source === 'declared-first-order-judge-identity'
+        ? expectedReceipt.requiredJudgeIdentity.launchProfile || null
+        : args.order === 'A/B' && args.judgeModelId && args.judgeReasoningEffort
+          ? {
+              modelId: args.judgeModelId,
+              reasoningEffort: args.judgeReasoningEffort,
+              runtime: args.judgeRuntime,
+              identityRevision: args.judgeRevision,
+              selectionMode: CODEX_LAUNCH_SELECTION_MODE,
+              internalBuildRevisionAvailable: false,
             }
           : null,
   });

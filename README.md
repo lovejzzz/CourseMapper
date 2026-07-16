@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.35
+**Current release:** v0.16.36
 
 ---
 
@@ -31,7 +31,7 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.35**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.36**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 No API key or model backend is required and Course Mapper prices the route at $0. First use downloads the approximately 3.35 GB public base directly from Hugging Face and caches it in browser storage; later runs reuse that local copy. Prompts and generated text stay in the browser. Current support requires WebGPU and WebAssembly JSPI, and AI output can still be wrong, so review every generated course before using it with students.
 
@@ -98,6 +98,12 @@ v0.16.35 gives the missing first order the same clean-room discipline as the rev
 The workbook pins `openai/codex`, revision `codex-gpt-5-2026-07-15`, runtime `codex-desktop`, the canonical judge prompt path, and prompt SHA-256 before scoring. A first-order build without that identity is refused; a completed chunk with a different identity cannot be sealed. When all chunks are honestly judged in one fresh session, the completion command reconstructs the canonical pass only in memory and emits one AES-256-GCM envelope plus a separately held 0600 key. It never writes the combined completed plaintext pass.
 
 This release does **not** perform that judgment. It creates zero decisions, zero stable preferences, zero training rows, and zero adapter weights. The next step is a fresh A/B Codex judging task using only this workbook; only after it is sealed may a distinct B/A task be built from the first envelope's public identity. The research adapter remains blocked until at least 100 stable, score-qualified, same-identity reverse-order preferences exist.
+
+v0.16.36 corrects an identity flaw found before that judgment began. The v0.16.35 workbook named `codex-gpt-5-2026-07-15`, but Codex Desktop does not expose an internal provider build revision that this repository can verify. That label was therefore not an honest launch identity and the v0.16.35 workbook is retained only as superseded historical evidence. No case was scored under it.
+
+The replacement `evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.36/` pins a launch profile that a fresh Codex task can actually select and report: model `gpt-5.5`, reasoning effort `xhigh`, runtime `codex-desktop`, and the auditable identity token `gpt-5.5@xhigh`. The receipt explicitly records `internalBuildRevisionAvailable: false`; the token identifies the selected public launch profile and does not pretend to be a hidden provider build hash. `gpt-5.5` was selected because this benchmark requires broad cross-domain factual and instructional judgment, while `xhigh` gives the sole judge its strongest available reasoning setting.
+
+Construction now rejects a missing launch profile, a model/reasoning mismatch, or an attempt to relabel a different selectable model as the pinned identity. Both the historical v0.16.35 workbook and the new v0.16.36 workbook reconstruct byte-for-byte, but only v0.16.36 is eligible for the next task. It remains a blank 128-case clean room with **zero judgments, zero preferences, and zero quality delta**. This release improves evaluation validity, not Gemma weights, adapter quality, or Scion output quality.
 
 v0.16.34 turns the safest part of the two sealed readings into a stricter teaching-content boundary. Key-term fields must now be distinct, learner-facing, and semantically coherent: embedded labels, internal claim markers, copied definitions/examples/misconceptions, and a lesson fact mislabeled as a misconception fail admission and trigger Scion's bounded local retry. The keyless receipt `evaluation/scion-adapters/evidence/key-term-quality-gate-v0.16.34.json` replays 82 source-bound key-term cases per model in both sealed orders. The strengthened gate rejects 19 local Scion-base cases—14 more than v0.16.33—and all 19 have judge defects in both readings. It rejects 0 GPT-5.4-mini artifacts in this frozen subset. Fifty-nine local cases with an any-order defect remain outside the deliberately high-confidence rules.
 
@@ -258,7 +264,7 @@ npm run audit:scion:model-bakeoff
 
 ---
 
-## Current Pipeline (v0.16.35)
+## Current Pipeline (v0.16.36)
 
 The product ribbon and the code share one pipeline vocabulary: **Map -> Enrich -> Compile -> Verify -> Grade**. `src/lib/pipelineMachine.js` is the phase authority; UI surfaces should render from that machine instead of re-deriving state from raw generation/finalizer flags.
 

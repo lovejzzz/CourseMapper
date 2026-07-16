@@ -1,0 +1,1646 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-423315b77cf6219c9a46",
+    "packetDigest": "423315b77cf6219c9a46de559f53490cee107745c006bb8d16daf358534e8f69",
+    "organizerDigest": "0ddd7990e2cafa094c5828c82f411d1bad8b7e69a42d718639688f064213089b"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-307ef736583a946b9bb8",
+      "caseDigest": "5249f31513ef98f0e466a4bc72fbddf6fcf8f4644a4ffb2820a7ef746ffc7095",
+      "domain": "computer-science",
+      "courseGroupSha256": "a221877bef9b05f6d79d1385030773dfb135b99f93ad11a5141bdee946750954",
+      "sourceContextSha256": "932c96bb2d48e632aa82605f1c7dd1d6c3c156541fb5165beecaa0954159e64c",
+      "sourceContext": {
+        "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+        "kernelId": "cs/dictionaries",
+        "term": "Dictionaries",
+        "claims": [
+          "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+          "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §10.1 Dictionary basics"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c2566f559f95ab39b97894aea525a0874a0cd900e315e2a2222b5101fd3ba325",
+          "artifact": {
+            "tr": "Key-value mapping",
+            "df": "The process of associating a unique identifier with a piece of data.",
+            "eg": "Storing student scores where the student ID is the key and the score is the value.",
+            "mi": "Thinking that the data must be stored in a strictly sequential, ordered manner.",
+            "cx": "Data is stored based on a label (key) rather than a numerical position."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1bec877702a1e7d3d7e068a2c4965cd2b50c479e9fc32a8fe74684c03e773c42",
+          "artifact": {
+            "tr": "Dictionary",
+            "df": "A mapping structure that stores values under labels instead of positions.",
+            "eg": "A class roster can pair each student name with a score or room number.",
+            "mi": "It is just an ordered list with fancy punctuation.",
+            "cx": "It uses keys to find values, so the data is labeled rather than ordered."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c2566f559f95ab39b97894aea525a0874a0cd900e315e2a2222b5101fd3ba325",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1bec877702a1e7d3d7e068a2c4965cd2b50c479e9fc32a8fe74684c03e773c42",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7ba8432f6b0c098cb28e",
+      "caseDigest": "3b65e711b1eacb84058db8981e074b1b89f9139df8979f3d9220eaca28e3020f",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "b90861d3634ef018651b86b99dabe29b80ddc54ab07b46fb38080b7c07b58089",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/variables",
+        "term": "Variables and assignment",
+        "claims": [
+          "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+          "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+          "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+          "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+          "Variable names are case-sensitive, so total and Total are two different variables."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.3 Variables"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "efd89def36d9156aa0e949b27475937194a4d3e7bed4df4b21ced0700531cc53",
+          "artifact": {
+            "tr": "Case-sensitive variable names",
+            "df": "Names that are treated as different when their letters use different capitalization.",
+            "eg": "total and Total can refer to two different variables in a trace of a program.",
+            "mi": "Changing only capitalization leaves the name unchanged.",
+            "cx": "Python distinguishes total from Total, so the capitalization matters."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3b935f0b34c6e0b0eb0ad6ec8f0a6047a65bbdaac7ded81ac29769cdd041ff4c",
+          "artifact": {
+            "tr": "Operator for value transfer",
+            "df": "The symbol used to set a variable to a value using the assignment operator.",
+            "eg": "The statement 'x = 10' uses the assignment operator to set the variable 'x' to the value 10.",
+            "mi": "Thinking the operator checks for mathematical equality between the two sides.",
+            "cx": "The assignment operator sets a variable to a value, and assignment is not mathematical equality; it copies a value rather than asserting two sides are equal."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "efd89def36d9156aa0e949b27475937194a4d3e7bed4df4b21ced0700531cc53",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3b935f0b34c6e0b0eb0ad6ec8f0a6047a65bbdaac7ded81ac29769cdd041ff4c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-42709d4c8fc2b37ea829",
+      "caseDigest": "c3745f150d5429c93e872f85f56daa3e96b5455111910a63e50c74967f69903b",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "7d6e604b7ee6db3e0be91d9564d34598a9733454c22b6464b355e905067c2fc3",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/strings",
+        "term": "Strings and slicing",
+        "claims": [
+          "A string is a sequence of characters indexed from left to right starting at 0; slicing extracts a contiguous substring with the [a:b] notation.",
+          "For a string s, the left-most character is index 0 and the right-most is index len(s) - 1.",
+          "Negative indexing refers to characters from right to left starting at -1.",
+          "A slice s[a:b] returns characters from index a (inclusive) up to index b (exclusive)."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.4 String basics; §8.2 String slicing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "96e9afb03a2342624c9cb655e7e8e91bb0632066616b3fb8f2a102d22732369b",
+          "artifact": {
+            "tr": "String indexing",
+            "df": "The position of a character within a sequence, beginning at zero.",
+            "eg": "In the string 'Python', the character 'P' is at index 0.",
+            "mi": "Thinking the index starts counting from one.",
+            "cx": "The index starts counting from zero."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9b3c34763331a4ca13a1caa12d3aba137e20ac977d21b35fcfffa53329bc8b6f",
+          "artifact": {
+            "tr": "String index",
+            "df": "A position label used to access a character in order from left to right.",
+            "eg": "In \"studio\", index 0 is \"s\" and index 5 is \"o\".",
+            "mi": "Indexing starts at 1 because the first character feels like \"one.\"",
+            "cx": "Python strings start at 0, so the left-most character is index 0 and the right-most is len(s) - 1."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "96e9afb03a2342624c9cb655e7e8e91bb0632066616b3fb8f2a102d22732369b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9b3c34763331a4ca13a1caa12d3aba137e20ac977d21b35fcfffa53329bc8b6f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9ef43553b501a6b2ddfc",
+      "caseDigest": "310de6ea4de73924ecfaa1163b3b59852ba993628657b1094c97c87ac9675939",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "7d6e604b7ee6db3e0be91d9564d34598a9733454c22b6464b355e905067c2fc3",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/strings",
+        "term": "Strings and slicing",
+        "claims": [
+          "A string is a sequence of characters indexed from left to right starting at 0; slicing extracts a contiguous substring with the [a:b] notation.",
+          "For a string s, the left-most character is index 0 and the right-most is index len(s) - 1.",
+          "Negative indexing refers to characters from right to left starting at -1.",
+          "A slice s[a:b] returns characters from index a (inclusive) up to index b (exclusive)."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.4 String basics; §8.2 String slicing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c80266954844605f905afb408e03165ded66232b96ccbe38a27271b06625cac7",
+          "artifact": {
+            "tr": "String slicing",
+            "df": "Extracting a contiguous substring using the [a:b] notation.",
+            "eg": "The slice 's[1:4]' extracts characters from index 1 up to (but not including) index 4.",
+            "mi": "Thinking slicing includes the character at the end index.",
+            "cx": "Slicing returns characters from index a (inclusive) up to index b (exclusive)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "11fe3f2023f2148bdbe781481cef0bbca476471bdb54bf2283de49deeccb2a7d",
+          "artifact": {
+            "tr": "Slice",
+            "df": "A way to extract a contiguous part of a string using start and stop positions.",
+            "eg": "In \"studio\", s[1:4] gives \"tud\".",
+            "mi": "The stop number is included in the result.",
+            "cx": "A slice s[a:b] includes index a but excludes index b."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c80266954844605f905afb408e03165ded66232b96ccbe38a27271b06625cac7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "11fe3f2023f2148bdbe781481cef0bbca476471bdb54bf2283de49deeccb2a7d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-093d17875ab7debff12b",
+      "caseDigest": "1e70f50f05ca50c34228818c0c9adea55b74d9b20a5192a8b1996c219b42dd5c",
+      "domain": "geology",
+      "courseGroupSha256": "19100d3e734a3486006f9dd67ed9f35322cc9cc7d549b3cabb3114748621df27",
+      "sourceContextSha256": "b449c20e6ca2c7fec7f05a01d82e9f160786e0c6c71f9d69b907973108bcb081",
+      "sourceContext": {
+        "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9",
+        "kernelId": "geo/igneous-rocks",
+        "term": "Igneous rocks and magma",
+        "claims": [
+          "Igneous rock forms when molten magma or lava cools and crystallizes; how fast it cools controls crystal size, distinguishing coarse intrusive rocks from fine-grained extrusive rocks.",
+          "Lava cooling quickly at the surface forms tiny crystals, while magma cooling slowly at depth forms large crystals.",
+          "Magma that cools slowly deep within the crust forms intrusive (plutonic) rock with a coarse-grained texture.",
+          "Lava cooling at or near the surface forms extrusive (volcanic) rock with a fine-grained texture."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4.1 Magma generation and igneous textures"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "de2f50a8ff9e35af99de76d0302d4efd26352b7405ad4d8c335db31d022a9f5a",
+          "artifact": {
+            "q": "A lava flow cools rapidly after reaching the surface. Which rock texture is most likely to form?",
+            "op": [
+              "Fine-grained extrusive rock",
+              "Coarse-grained intrusive rock",
+              "Glass-rich sedimentary rock",
+              "Metamorphic foliation"
+            ],
+            "ai": 0,
+            "ex": "Correct: fine-grained extrusive rock, because rapid cooling at or near the surface limits crystal growth. The common misconception is to expect large crystals from all molten material, but slow cooling at depth is what produces coarse crystals."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9e739062002fa0335e9f5a032deffc11302796ad059bb2003eefefb2b8dc5e8c",
+          "artifact": {
+            "q": "Which process dictates the crystal size in igneous rock formation?",
+            "op": [
+              "The rate of cooling determines crystal size.",
+              "The depth of the magma dictates crystal size.",
+              "The magma composition dictates crystal size.",
+              "The surface area dictates crystal size."
+            ],
+            "ai": 0,
+            "ex": "The rate of cooling determines crystal size. (Correct) This contrasts with the misconception that magma composition is the primary factor, as cooling speed is the controlling variable."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "de2f50a8ff9e35af99de76d0302d4efd26352b7405ad4d8c335db31d022a9f5a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9e739062002fa0335e9f5a032deffc11302796ad059bb2003eefefb2b8dc5e8c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2289dbc46a344af48a02",
+      "caseDigest": "8d3282953ddeba7cdb55e22ba2149b25cb86c9832c885e9fde70d2cb1eded18c",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "23c589d4cdb33d2ac5c0d82cc414095c49290bb0a3175dcf22947e3ef0d9bad1",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/geologic-time",
+        "term": "Geologic time and relative dating",
+        "claims": [
+          "Geologic time spans the roughly 4.5-billion-year history of Earth; relative dating orders events by which is older or younger, while absolute dating assigns numerical ages in years.",
+          "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock.",
+          "By the principle of superposition, in an undisturbed sequence the bottom layers are oldest and the upper layers younger.",
+          "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+          "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "48318f3f399a5a082657d660497584422b13eb9bf58737be2217f282ecf38d7c",
+          "artifact": {
+            "q": "What does absolute dating provide regarding mineral grains in a rock?",
+            "op": [
+              "A numerical age in years",
+              "A relative order of events",
+              "The span of Earth's history",
+              "The sequence of deposition"
+            ],
+            "ai": 1,
+            "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ce8d05fa4ba863435150150b0bc1ce2ee6841a8f9606e240e26f675ac1689331",
+          "artifact": {
+            "q": "In a road cut, the sedimentary beds are clearly tilted. What is the best interpretation of that tilt?",
+            "op": [
+              "They were laid down already tilted",
+              "They were disturbed after deposition",
+              "They are the youngest beds exposed",
+              "They are older than Earth itself"
+            ],
+            "ai": 1,
+            "ex": "The tilt indicates the beds were originally deposited horizontally and were disturbed afterward. A common misconception is that tilted layers must have been deposited that way, but original horizontality says otherwise."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "48318f3f399a5a082657d660497584422b13eb9bf58737be2217f282ecf38d7c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ce8d05fa4ba863435150150b0bc1ce2ee6841a8f9606e240e26f675ac1689331",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-f61b60f8e942ddef501f",
+      "caseDigest": "6b2df633c195706b1a01d586902fd76cda3a0aac0d097389f974873c6ded3a68",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "db5f7451d3eb09475068011f492bae2ca79ef6b0ffa00afe78d5d4e963952bf2",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/earths-interior",
+        "term": "Earth's interior",
+        "claims": [
+          "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core; the upper mantle's asthenosphere is solid rock that flows slowly by convection.",
+          "The mantle sits below the crust and above the core.",
+          "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+          "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.1 Earth's interior"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3ee3786fbf66d7930a9b43810a6cbe222f214d094df52a446db92a6626b61823",
+          "artifact": {
+            "q": "A student describes a region of the upper mantle as solid rock that flows slowly because of convection. Which layer is being described?",
+            "op": [
+              "asthenosphere",
+              "lithosphere",
+              "continental crust",
+              "inner core"
+            ],
+            "ai": 0,
+            "ex": "The asthenosphere is correct because it is mechanically weak solid rock that moves slowly by convection currents driven by heat from the core. A plausible misconception is the lithosphere, but that layer is not the one identified here as the flowing upper mantle region."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "2fa2319a9b0f8349076ee979db77b98a8ac025f16a10d8d090676f447fe4e924",
+          "artifact": {
+            "q": "What material primarily composes the core layers?",
+            "op": [
+              "Silicates",
+              "Iron and nickel",
+              "Solid rock",
+              "Outer crust"
+            ],
+            "ai": 2,
+            "ex": "Iron and nickel is the correct answer because the core is made mostly of these materials (Claim 2). The most plausible misconception is selecting silicates, which are characteristic of the crust and mantle, not the core."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3ee3786fbf66d7930a9b43810a6cbe222f214d094df52a446db92a6626b61823",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "2fa2319a9b0f8349076ee979db77b98a8ac025f16a10d8d090676f447fe4e924",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-6baf59a0509c1b3f7b6a",
+      "caseDigest": "d812cd066fb952a5aab36d8f58faf15c78a31b14f6e76d47bc8169f01c8fe55e",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "23c589d4cdb33d2ac5c0d82cc414095c49290bb0a3175dcf22947e3ef0d9bad1",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/geologic-time",
+        "term": "Geologic time and relative dating",
+        "claims": [
+          "Geologic time spans the roughly 4.5-billion-year history of Earth; relative dating orders events by which is older or younger, while absolute dating assigns numerical ages in years.",
+          "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock.",
+          "By the principle of superposition, in an undisturbed sequence the bottom layers are oldest and the upper layers younger.",
+          "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+          "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ee8f93f37a1fe956c1773888dcb5d2cde409ac91737ba9738399fed908cdd102",
+          "artifact": {
+            "tr": "principle of superposition",
+            "df": "A rule stating that, in an undisturbed stack of layers, lower beds formed before higher ones.",
+            "eg": "In a flat, undisturbed sedimentary sequence, the bottom bed is the oldest.",
+            "mi": "The top layer is always the oldest because it is easiest to see.",
+            "cx": "That is reversed for undisturbed layers; younger layers are on top."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "76d4f34c87d9d375baef271632b1e3e8ddcd94ad03580f6ec93a5a9a03ac36a1",
+          "artifact": {
+            "tr": "Layering principle",
+            "df": "Sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+            "eg": "Observing tilted sedimentary layers to infer that the deposition was disturbed after the layers were laid down.",
+            "mi": "Assuming that all rock layers must be perfectly horizontal because they were deposited that way.",
+            "cx": "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ee8f93f37a1fe956c1773888dcb5d2cde409ac91737ba9738399fed908cdd102",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "76d4f34c87d9d375baef271632b1e3e8ddcd94ad03580f6ec93a5a9a03ac36a1",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a7a6509b52104f6cac4b",
+      "caseDigest": "29600819e075135e5c220920dda0129620299c297fc683dd7f1ab832b6e3dc9a",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "bb1aec1482bb90844701b35166ea23c2908ce6ffa73c8ccc12fdd1dab384a51b",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/sedimentary-rocks",
+        "term": "Sedimentary rocks and environments",
+        "claims": [
+          "Sedimentary rock forms when sediment is deposited, compacted under burial, and cemented into stone — a process called lithification — and its features record the depositional environment.",
+          "Compaction occurs as more material accumulates on top, squeezing the grains together.",
+          "Cementation glues the grains together with minerals; compaction and cementation together are lithification.",
+          "Clastic (detrital) sedimentary rocks are made of pieces of preexisting weathered rock.",
+          "The features of a sedimentary rock are read to reconstruct its original depositional environment."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §5.3 Sedimentary rocks"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4fe8bdaca15be163c6909fa63bc2d33d28155155840fe0d1b2f7a3e27013458f",
+          "artifact": {
+            "tr": "lithification",
+            "df": "The burial process that turns loose sediment into solid rock by compaction and cementation.",
+            "eg": "Mud settles in a basin, is buried by more sediment, and becomes shale-like rock after grains are squeezed together and glued by minerals.",
+            "mi": "It means only chemical cement is added.",
+            "cx": "Compaction and cementation together make lithification, so pressure and mineral glue both matter."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "149c10db0fc97801dcd9b4af98203461ff8cbe0110563baaf6e389240d7e7282",
+          "artifact": {
+            "tr": "Lithification",
+            "df": "The process where sediment is turned into stone through compaction and cementation.",
+            "eg": "Sandstone formation.",
+            "mi": "Thinking only about compaction without cementation.",
+            "cx": "Lithification requires both compaction and cementation to occur."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4fe8bdaca15be163c6909fa63bc2d33d28155155840fe0d1b2f7a3e27013458f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "149c10db0fc97801dcd9b4af98203461ff8cbe0110563baaf6e389240d7e7282",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-0140a8319657a43cb582",
+      "caseDigest": "ccd6ac5a6fd7f02bf62474ba57e7336181d7ef1963f50b28a51b6d29612c3e9c",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "d030a70381092bc840e4694619f453f159cf9f4d071c1003beb23781e657e606",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/triads-and-seventh-chords",
+        "term": "Triads and seventh chords",
+        "claims": [
+          "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+          "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+          "There are four different inversions of a seventh chord."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7bbb7c7b9e3d016f184f650e0808c7910d6b98ffa264a9e80023ccb9fb33eb47",
+          "artifact": {
+            "tr": "Seventh chord",
+            "df": "A chord built from a triad with one additional note a seventh above the root.",
+            "eg": "A chord like C-E-G-B is an example of this type.",
+            "mi": "It must contain seven notes.",
+            "cx": "The name refers to the added seventh interval, not to the number of notes in the chord."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9685dc0734cba0f1f545ebe5f06b3cccd5495a41b8d0ccb1f03f30247f5159cc",
+          "artifact": {
+            "tr": "Harmonic motion",
+            "df": "The movement or progression of sounds within a piece of music.",
+            "eg": "The movement emphasized by a seventh chord.",
+            "mi": "The static arrangement of notes in a chord.",
+            "cx": "The direction in which a seventh chord emphasizes movement."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7bbb7c7b9e3d016f184f650e0808c7910d6b98ffa264a9e80023ccb9fb33eb47",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9685dc0734cba0f1f545ebe5f06b3cccd5495a41b8d0ccb1f03f30247f5159cc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-76427cda72bbb078c794",
+      "caseDigest": "d76b9e0b4e563625fde34dc43be4604c7c27ccf273ece3f81d5bc1f1174af54f",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "c6fe147c38df89ed15d5ad51d2055ebd28853a9b83f182cc0b82fe9427ed85b4",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/scales-and-key-signatures",
+        "term": "Scales and key signatures",
+        "claims": [
+          "In music theory, a scale is \"any consecutive series of notes that form a progression between one note and its octave\", typically by order of pitch or fundamental frequency.",
+          "A measure of the width of each scale step provides a method to classify scales.",
+          "Scales can be abstracted from performance or composition.",
+          "Therefore, any scale is distinguishable by its \"step-pattern\", or how its intervals interact with each other.",
+          "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic).",
+          "The expression scale degree refers to these numerical labels."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "064f745b6e64f6f8e475f8a1430bb76c27e7304342ff50d525a1acff5aa70ffa",
+          "artifact": {
+            "tr": "Scale degree",
+            "df": "The numerical labels assigned to the notes within a scale.",
+            "eg": "In C major, the first degree is C.",
+            "mi": "The scale itself.",
+            "cx": "The specific note that defines the scale's structure."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d498bc5d475f7c7e385fbbda65a5f5b2eac5bb67fa48145cd1f922a2a44c892f",
+          "artifact": {
+            "tr": "Scale",
+            "df": "A consecutive series of notes that moves from one pitch to its octave.",
+            "eg": "An ascending C-to-C collection in a course analysis can be treated as a scale.",
+            "mi": "Any set of notes counts as a scale.",
+            "cx": "It must be a consecutive series with a step-pattern, not just a random note collection."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "064f745b6e64f6f8e475f8a1430bb76c27e7304342ff50d525a1acff5aa70ffa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d498bc5d475f7c7e385fbbda65a5f5b2eac5bb67fa48145cd1f922a2a44c892f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-deb7e26cbefa69e1597b",
+      "caseDigest": "ab34071881d0fa81301a724aac808b2b5e593e9a3308a3451f215aa401426b5c",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "d030a70381092bc840e4694619f453f159cf9f4d071c1003beb23781e657e606",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/triads-and-seventh-chords",
+        "term": "Triads and seventh chords",
+        "claims": [
+          "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+          "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+          "There are four different inversions of a seventh chord."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7fd77b8bc61fe81b439cf16e3fb812d34cae0ed5d7170919bafb8ad6bcc0aa2b",
+          "artifact": {
+            "tr": "Chord construction",
+            "df": "The process of determining the specific notes that form a harmonic unit.",
+            "eg": "Constructing a chord by stacking three notes in thirds.",
+            "mi": "Simply naming the notes present in a chord.",
+            "cx": "The specific arrangement of notes that defines a chord."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3ae7b73f4f45f11c60f94a08c2b6af2d08855c190c0dc260ce0a1948fa77e00f",
+          "artifact": {
+            "tr": "Triad",
+            "df": "A group of three pitch classes arranged by stacking in thirds.",
+            "eg": "In a simple C-E-G sonority, the notes form a triad.",
+            "mi": "It is the same thing as a seventh chord.",
+            "cx": "A seventh chord adds a note forming a seventh above the root, so it is not just a triad."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7fd77b8bc61fe81b439cf16e3fb812d34cae0ed5d7170919bafb8ad6bcc0aa2b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3ae7b73f4f45f11c60f94a08c2b6af2d08855c190c0dc260ce0a1948fa77e00f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-ce8fa02357790ea5bbeb",
+      "caseDigest": "981f54565d9ed06960fe022331bcccf55ab203bae607ca05a316707cce2eabf3",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "174163792d6897d305829f820e67fa9924397308ac8147eb797b172a0fa80a9a",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/intervals",
+        "term": "Interval (music)",
+        "claims": [
+          "In music theory, an interval is a difference in pitch between two sounds.",
+          "In physical terms, an interval is the ratio between two sonic frequencies.",
+          "Intervals between successive notes of a scale are also known as scale steps."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "942f1964053e939d0c6bc43b7d9e2c88d85f5fb7010176494283ff90c9d7957c",
+          "artifact": {
+            "tr": "Scale step",
+            "df": "The interval formed by moving from one note of a scale to the next note.",
+            "eg": "The distance from one scale tone to the next in a major scale is a scale step.",
+            "mi": "It refers only to the overall size of a scale.",
+            "cx": "Correct it by tying the term to adjacent notes, not to the whole scale as a collection."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "80ff70b05e1928834fec4c3df83dc96a2ea0b5a494881fadf1bfca6ac4db026f",
+          "artifact": {
+            "tr": "Scale step",
+            "df": "The interval formed by two adjacent notes within a specific scale.",
+            "eg": "The interval between D and E in the C major scale is a scale step.",
+            "mi": "A difference in pitch between two sounds.",
+            "cx": "A difference in pitch between two sounds (Claim 0)."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "942f1964053e939d0c6bc43b7d9e2c88d85f5fb7010176494283ff90c9d7957c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "80ff70b05e1928834fec4c3df83dc96a2ea0b5a494881fadf1bfca6ac4db026f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-05457331083e31d7db92",
+      "caseDigest": "bad2f23c46b0290b8bc25b3ffec41d78877227c68cfb5ab9f7294a0d5edabde2",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+      "sourceContextSha256": "eae886b2eb2486d3a7ef1c8e1962b766242f767255a2d950e9b59bd9f6387afa",
+      "sourceContext": {
+        "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "87ec09c2fc1c1ca5629565200d87380409ebb32721f5ba7976d037c06a614e6f",
+          "artifact": {
+            "tr": "Fast iteration",
+            "df": "The ability to quickly change and refine a design based on feedback.",
+            "eg": "Rapidly modifying a screen layout after receiving usability test results.",
+            "mi": "Fast iteration means the prototype must be expensive and detailed.",
+            "cx": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d2f2bf11b17539444c47349f133eadcceadc638e0586871a7e643d455fd55979",
+          "artifact": {
+            "tr": "Functional prototype",
+            "df": "A working model that lets a team see how users behave when they use the product.",
+            "eg": "Students run a walkthrough with a tappable checkout flow to watch where users hesitate.",
+            "mi": "It must include every possible interaction.",
+            "cx": "It can show the major interactions even when some interactions are not functional yet."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "87ec09c2fc1c1ca5629565200d87380409ebb32721f5ba7976d037c06a614e6f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d2f2bf11b17539444c47349f133eadcceadc638e0586871a7e643d455fd55979",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4c1009fe8f45ce9bf817",
+      "caseDigest": "d3e74ee5ddaca4dc214e9e4977ec9698b7c6623a2131000eef15252fae86d83f",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+      "sourceContextSha256": "10db9eb332b2ea14802cd738f5ecaef9f7b1818d0964163ee8f2b052ccd4aa73",
+      "sourceContext": {
+        "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+        "kernelId": "ux/evidence-based-personas",
+        "term": "Personas",
+        "claims": [
+          "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "Personas are one way to present research findings so other people can understand and share them.",
+          "User needs are generally higher-level and more stable over time than individual interface requests.",
+          "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+          "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "553b13348fa49c8b737a05543626592013b49a0fc188767ffb78eed39f28f618",
+          "artifact": {
+            "tr": "Persona",
+            "df": "A shareable profile built from research to represent a user group with similar behavior and needs.",
+            "eg": "After interviews and observation, a studio team creates a persona for commuter students who need quick mobile checkout.",
+            "mi": "It is just a fictional character invented to sound realistic.",
+            "cx": "A persona should be grounded in evidence so design choices stay connected to what research shows about the group."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9c43fb9d322a5897ec1ada9cc171545a9054be5ed2dc0c336935bbd1b56f27c9",
+          "artifact": {
+            "tr": "User profile summary",
+            "df": "A shareable profile of a user group with similar behavior and needs.",
+            "eg": "A persona detailing the needs of 'Busy Professionals' for a new scheduling app.",
+            "mi": "This is just a list of user requests.",
+            "cx": "This is a research-based persona, which links design choices to evidence."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "553b13348fa49c8b737a05543626592013b49a0fc188767ffb78eed39f28f618",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9c43fb9d322a5897ec1ada9cc171545a9054be5ed2dc0c336935bbd1b56f27c9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-572f84cc7bc1db6f2e80",
+      "caseDigest": "8a3740f4e91b2a8ccc6b90adf9c7c30671f3cc1087083b7e71a1ecf6a6482472",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "9e63834d6d05656f879aa25eb35eb0aa921c6279a7d5bbc555f6ba4ab57d9df2",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/journey-mapping",
+        "term": "Journey mapping",
+        "claims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "eefe8120625ce33b6622cb1c082f93f023a36d38135441b9047a66c416512563",
+          "artifact": {
+            "tr": "Struggle point identification",
+            "df": "Identifying areas where the user encounters difficulty.",
+            "eg": "Highlighting where a user gets stuck between online booking and in-person check-in.",
+            "mi": "Assuming all problems are technical errors.",
+            "cx": "An experience map should make struggle points and candidate improvement areas visible."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c5b92acb874099742a483c2572bd6b966027ec5a2b9719d62c610b2ba1fcb4e3",
+          "artifact": {
+            "tr": "Experience map",
+            "df": "A visual summary that highlights where people struggle and where improvement ideas may fit.",
+            "eg": "A team might mark the points in a prototype test where users hesitate, backtrack, or fail to finish a task.",
+            "mi": "It only records successful moments and ignores problems.",
+            "cx": "The correction is that it should make struggle points and candidate improvement areas visible."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "eefe8120625ce33b6622cb1c082f93f023a36d38135441b9047a66c416512563",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c5b92acb874099742a483c2572bd6b966027ec5a2b9719d62c610b2ba1fcb4e3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}
