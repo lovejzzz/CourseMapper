@@ -18,8 +18,10 @@ import {
   artifactReceipt,
   buildAppleSiliconDeviceRun,
   buildPartialDeviceEvidence,
+  buildScionAppleDeviceRunId,
   sanitizeAppleHardwareProbe,
   sanitizeScionDeviceTraceArchive,
+  scionReleaseIdentityFromManifest,
   sha256File,
 } from './lib/scionBrowserDeviceCapture.mjs';
 
@@ -37,6 +39,13 @@ const EXPECTED_PARTIAL_ISSUES = [
   'missing-device-profile:integrated-16gb',
   'missing-device-profile:integrated-8gb',
 ];
+const PROVENANCE_FILE_NAMES = new Set([
+  'conversion-receipt.json',
+  'source-adapter-manifest.json',
+  'training-plan.json',
+  'training-result.json',
+]);
+const PROVENANCE_FILE_MAX_BYTES = 1024 * 1024;
 
 function parseArgs(argv) {
   const args = {
@@ -70,6 +79,7 @@ function observedAtFromRunId(runId) {
 
 async function finalizeExistingCapture({ manifestPath, outputDir, profileDir }) {
   const manifest = await readJson(manifestPath);
+  const releaseIdentity = scionReleaseIdentityFromManifest(manifest);
   const protocol = await readJson(PROTOCOL_PATH);
   const protocolSha256 = await sha256File(PROTOCOL_PATH);
   const expectedManifestSha256 = await sha256File(manifestPath);
@@ -134,7 +144,7 @@ async function finalizeExistingCapture({ manifestPath, outputDir, profileDir }) 
   }
   const receipt = {
     schemaVersion: 1,
-    release: 'v0.16.25',
+    release: releaseIdentity.release,
     status: 'pass-one-profile-matrix-incomplete',
     promotionEligible: false,
     finalizedFromCompletedCapture: true,
@@ -149,6 +159,29 @@ async function finalizeExistingCapture({ manifestPath, outputDir, profileDir }) 
   };
   await writeJson(path.join(outputDir, 'capture-receipt.json'), receipt);
   return receipt;
+}
+
+async function copyAdapterProvenanceFiles({ adapterDir, manifest, outputDir }) {
+  const copied = [];
+  for (const file of manifest?.files || []) {
+    const fileName = String(file?.path || '').trim();
+    if (!PROVENANCE_FILE_NAMES.has(fileName)) continue;
+    if (!Number.isSafeInteger(file.bytes) || file.bytes <= 0 || file.bytes > PROVENANCE_FILE_MAX_BYTES) {
+      throw new Error(`Adapter provenance file exceeds its bounded receipt contract: ${fileName}`);
+    }
+    const source = path.resolve(adapterDir, fileName);
+    if (path.dirname(source) !== path.resolve(adapterDir)) {
+      throw new Error(`Adapter provenance file escaped its package directory: ${fileName}`);
+    }
+    const stats = await fsp.stat(source);
+    if (!stats.isFile() || stats.size !== file.bytes || (await sha256File(source)) !== file.sha256) {
+      throw new Error(`Adapter provenance file failed verification before capture: ${fileName}`);
+    }
+    const target = path.join(outputDir, fileName);
+    await fsp.copyFile(source, target);
+    copied.push({ path: fileName, bytes: file.bytes, sha256: file.sha256 });
+  }
+  return copied.sort((left, right) => left.path.localeCompare(right.path));
 }
 
 async function readJson(filePath) {
@@ -411,6 +444,7 @@ export async function runScionBrowserDeviceCapture(options = {}) {
   if (options.finalizeExisting) return finalizeExistingCapture({ manifestPath, outputDir, profileDir });
   const adapterDir = path.dirname(manifestPath);
   const manifest = await readJson(manifestPath);
+  const releaseIdentity = scionReleaseIdentityFromManifest(manifest);
   const expectedManifestSha256 = await sha256File(manifestPath);
   const protocol = await readJson(PROTOCOL_PATH);
   const protocolSha256 = await sha256File(PROTOCOL_PATH);
@@ -420,15 +454,13 @@ export async function runScionBrowserDeviceCapture(options = {}) {
   const artifactsDir = path.join(outputDir, 'artifacts');
   await fsp.mkdir(artifactsDir, { recursive: true });
   await fsp.copyFile(manifestPath, path.join(outputDir, 'adapter-manifest.json'));
+  const retainedAdapterProvenance = await copyAdapterProvenanceFiles({ adapterDir, manifest, outputDir });
 
   const server = await createCaptureServer({ adapterDir, port: Number(options.port || 0) });
   let context = null;
   const consoleEntries = [];
   const startedAt = new Date();
-  const runId = `apple-silicon-v01625-${startedAt
-    .toISOString()
-    .replaceAll(/[-:.TZ]/g, '')
-    .slice(0, 14)}`;
+  const runId = buildScionAppleDeviceRunId({ manifest, observedAt: startedAt });
   let memorySampler = null;
   let traceStarted = false;
   try {
@@ -614,13 +646,14 @@ export async function runScionBrowserDeviceCapture(options = {}) {
     }
     const receipt = {
       schemaVersion: 1,
-      release: 'v0.16.25',
+      release: releaseIdentity.release,
       status: 'pass-one-profile-matrix-incomplete',
       promotionEligible: false,
       runId,
       evidencePath: path.relative(root, evidencePath),
       adapterManifestSha256: expectedManifestSha256,
       protocolSha256,
+      retainedAdapterProvenance,
       passingDeviceProfiles: audit.passingDeviceProfiles,
       missingDeviceProfiles: ['integrated-8gb', 'integrated-16gb', 'discrete-8gb'],
       audit,

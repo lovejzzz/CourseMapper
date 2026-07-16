@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-adapter-training-run-v1",
+  "status": "planned",
+  "lane": "smoke",
+  "scionVersion": "0.16.31",
+  "startedAt": "2026-07-15T13:57:37.237Z",
+  "repository": {
+    "commit": "07fe816b1a3a4837373d5a77174d1c1d0bdc44b7",
+    "tree": "fe90a68c7bbc29ae20f9a967fd44223e70a95acf",
+    "dirty": false
+  },
+  "base": {
+    "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "architecture": "gemma4",
+    "role": "instruction",
+    "exactRevisionRequired": true,
+    "contractSha256": "ecb6bbc3b1a23f90ec27c4a6d35b5ee04b28574179595a6bad3cde8f6e9c4286",
+    "snapshotRevision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce"
+  },
+  "dataset": {
+    "manifestSha256": "120ce92c2d0dce803ef2acaeac5c6eb726f3dade05284a09a7a81acd7c1e5ce2",
+    "identitySha256": "03328f1b7d8daff4b40352b562f09aaf557fe2a2987967dadddac2b30468f7a2",
+    "status": "smoke-only",
+    "primaryPreferenceEvidence": "single-model-judge",
+    "counts": {
+      "total": 76,
+      "domains": 4,
+      "groups": 5,
+      "train": 11,
+      "valid": 22,
+      "test": 43
+    },
+    "files": {
+      "train": {
+        "path": "train.jsonl",
+        "bytes": 91140,
+        "sha256": "1d70f52be74f8ce3aea230e20c55c559e74fc31402cc7a0eaebb7e0a1a25ea00",
+        "rows": 11
+      },
+      "valid": {
+        "path": "valid.jsonl",
+        "bytes": 91466,
+        "sha256": "4d479ab5ac7cf55c88365f35ee7b397688ceeb2afd102bbf7870579499b1ce8d",
+        "rows": 22
+      },
+      "test": {
+        "path": "test.jsonl",
+        "bytes": 242975,
+        "sha256": "bb1546b8a10e18f09968a1526f58b36e7edde7df944df9bfdff496193fe1edb4",
+        "rows": 43
+      }
+    }
+  },
+  "toolchain": {
+    "policySha256": "4d1e2f55376491ec54eb2c760e1f37f75e8b7d77f121f0b70c5f1202c9513db4",
+    "receipt": {
+      "modules": {
+        "mlx_vlm.lora": {
+          "sha256": "31a15803dcdefe95f996b87ed35fae6695ed08792f6236208499c26224095a3a"
+        },
+        "mlx_vlm.models.gemma4.processing_gemma4": {
+          "sha256": "c657ef75f2451b6e5d6e2caf43c7027532398cef0e37c4bde617f51467630fed"
+        },
+        "mlx_vlm.prompt_utils": {
+          "sha256": "05c81178fdc01ffec62a117ded1bd72a470d8c9bfe84e46997ec9e417fc56712"
+        },
+        "mlx_vlm.trainer.datasets": {
+          "sha256": "133c93398f2f8a6aacdd224fb5c988f11dff6b1e23ef6108affc1c29c3285bbc"
+        },
+        "mlx_vlm.trainer.lora": {
+          "sha256": "ffb1977d5f43d23f5679fa18864d86db72cca34f6f23491271f0135bd88e62c8"
+        },
+        "mlx_vlm.trainer.orpo_trainer": {
+          "sha256": "77235aa4676e90618d5ed5f7a32649eded34578f4fe8b87832622b32f00ef4af"
+        }
+      },
+      "packages": {
+        "datasets": "5.0.0",
+        "huggingface-hub": "1.22.0",
+        "mlx": "0.31.2",
+        "mlx-vlm": "0.6.3",
+        "numpy": "2.5.1",
+        "pyarrow": "25.0.0",
+        "safetensors": "0.8.0",
+        "tokenizers": "0.22.2",
+        "transformers": "5.13.0"
+      },
+      "platform": {
+        "machine": "arm64",
+        "python": "3.13.3",
+        "system": "Darwin"
+      },
+      "protocol": "scion-mlx-orpo-toolchain-receipt-v1",
+      "schemaVersion": 1
+    }
+  },
+  "trainer": {
+    "entrypoint": "trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py",
+    "seed": 16031,
+    "hyperparameters": {
+      "trainingMode": "orpo",
+      "split": "train",
+      "validationSplit": "validation",
+      "iterations": 10,
+      "batchSize": 1,
+      "learningRate": 0.00002,
+      "stepsPerReport": 20,
+      "stepsPerEval": 200,
+      "stepsPerSave": 100,
+      "validationBatches": 4,
+      "maxSequenceLength": 2048,
+      "gradientCheckpointing": true,
+      "gradientAccumulationSteps": 2,
+      "loraRank": 16,
+      "loraAlpha": 16,
+      "loraDropout": 0,
+      "beta": 0.1,
+      "epsilon": 1e-8
+    },
+    "command": [
+      "{PYTHON}",
+      "trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py",
+      "--scion-seed",
+      "16031",
+      "--scion-validation-split",
+      "validation",
+      "--",
+      "--model-path",
+      "{BASE_SNAPSHOT}",
+      "--dataset",
+      "{DATASET_DIR}",
+      "--split",
+      "train",
+      "--train-mode",
+      "orpo",
+      "--iters",
+      "10",
+      "--batch-size",
+      "1",
+      "--learning-rate",
+      "0.00002",
+      "--steps-per-report",
+      "20",
+      "--steps-per-eval",
+      "200",
+      "--steps-per-save",
+      "100",
+      "--val-batches",
+      "4",
+      "--max-seq-length",
+      "2048",
+      "--grad-checkpoint",
+      "--gradient-accumulation-steps",
+      "2",
+      "--lora-rank",
+      "16",
+      "--lora-alpha",
+      "16",
+      "--lora-dropout",
+      "0",
+      "--beta",
+      "0.1",
+      "--eps",
+      "1e-8",
+      "--output-path",
+      "{OUTPUT_DIR}"
+    ],
+    "codeFiles": [
+      {
+        "path": "scripts/scionAdapterDataset.mjs",
+        "bytes": 23361,
+        "sha256": "10fea586365613ac3fcf5a6fe3b6900204092edd0046a5831c7eb47c09d97be6"
+      },
+      {
+        "path": "scripts/scionAdapterPackage.mjs",
+        "bytes": 16063,
+        "sha256": "38b93662c68e9c7d64195682ad53ae58f3b43dd3610d11fb64149b0369716f6c"
+      },
+      {
+        "path": "scripts/scionAdapterTrainingRun.mjs",
+        "bytes": 33159,
+        "sha256": "7149e5dda04c80f201c2c3e12e6800377d644821ffb5991cd100fe14a84accbc"
+      },
+      {
+        "path": "trellis/tendril/distill/prepare_adapter_base.py",
+        "bytes": 1290,
+        "sha256": "f6d363d4dbd5613bcbe409c24ceca9aae5cd198429d61c8c94d25e801194c40a"
+      },
+      {
+        "path": "trellis/tendril/distill/run_orpo_g4.sh",
+        "bytes": 6515,
+        "sha256": "a080f81c7f23f84b655d7e73ee62490e1494d1ca335c7281b65c826513289615"
+      },
+      {
+        "path": "trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py",
+        "bytes": 5957,
+        "sha256": "f14a48ab9db617210bafb6314457c9e6feec981d91a665b8d7f9c7e2be98011d"
+      }
+    ]
+  },
+  "identity": {
+    "algorithm": "sha256-canonical-training-plan-v1",
+    "sha256": "c4fe1ad1228ceb802128334df22ff002a0874170a0b1f9468a5ac54071bf2c09"
+  },
+  "adapter": {
+    "id": "scion-g4e2b-smoke-c4fe1ad1228ceb80",
+    "promotionStatus": "smoke"
+  }
+}

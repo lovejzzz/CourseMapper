@@ -43,6 +43,8 @@ jobs:
         run: |
           npm run audit:release-history
           npm run audit:scion:codex-cross-revision-evidence
+          npm run audit:scion:review-candidates
+          npm run audit:scion:adapter:exact-lineage
 
       - name: Unit and closed-loop tests
         run: npm test

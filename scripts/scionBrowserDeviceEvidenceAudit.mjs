@@ -5,7 +5,11 @@ import process from 'node:process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { auditScionBrowserDeviceMatrix } from './lib/scionBrowserDeviceMatrix.mjs';
-import { auditScionDeviceTraceArchivePrivacy, sha256File } from './lib/scionBrowserDeviceCapture.mjs';
+import {
+  auditScionDeviceTraceArchivePrivacy,
+  scionReleaseIdentityFromManifest,
+  sha256File,
+} from './lib/scionBrowserDeviceCapture.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_EVIDENCE_DIR = 'evaluation/scion-adapters/evidence/browser-device-apple-silicon-v0.16.25';
@@ -18,6 +22,45 @@ const EXPECTED_ISSUES = [
 
 async function readJson(filePath) {
   return JSON.parse(await fs.readFile(filePath, 'utf8'));
+}
+
+const EXPECTED_GPU_RESTART_ERRORS = [
+  { level: 'error', pattern: /^RuntimeError: unreachable(?:\n|$)/ },
+  { level: 'error', pattern: /^Cannot find waiting task with callbackId = \d+$/ },
+  { level: 'pageerror', pattern: /^A valid external Instance reference no longer exists\.$/ },
+];
+
+export function auditScionDeviceConsoleEntries(entries, deviceLoss) {
+  const errorEntries = entries.filter((entry) => entry?.level === 'error' || entry?.level === 'pageerror');
+  const expectedGpuRestart =
+    deviceLoss?.method === 'browser-gpu-process-restart' &&
+    deviceLoss?.observedCompletionFailure === true &&
+    deviceLoss?.completed === true &&
+    deviceLoss?.baseUsableAfterRecovery === true;
+  const unexpected = errorEntries.filter(
+    (entry) =>
+      !expectedGpuRestart ||
+      !EXPECTED_GPU_RESTART_ERRORS.some(
+        ({ level, pattern }) => entry.level === level && pattern.test(String(entry.text || '')),
+      ),
+  );
+  const expectedSignatures = expectedGpuRestart
+    ? EXPECTED_GPU_RESTART_ERRORS.filter(({ level, pattern }) =>
+        errorEntries.some((entry) => entry.level === level && pattern.test(String(entry.text || ''))),
+      ).length
+    : 0;
+  const issues = [];
+  if (unexpected.length > 0) issues.push('unexpected-console-error');
+  if (expectedGpuRestart && expectedSignatures !== EXPECTED_GPU_RESTART_ERRORS.length) {
+    issues.push('missing-device-loss-console-signature');
+  }
+  return {
+    status: issues.length === 0 ? 'pass' : 'blocked',
+    errorEntryCount: errorEntries.length,
+    expectedFaultInjectionErrorCount: errorEntries.length - unexpected.length,
+    unexpectedErrorCount: unexpected.length,
+    issues,
+  };
 }
 
 export async function auditScionAppleSiliconDeviceEvidence({
@@ -45,7 +88,8 @@ export async function auditScionAppleSiliconDeviceEvidence({
     adapterManifest: manifest,
   });
   const issues = [];
-  if (receipt?.schemaVersion !== 1 || receipt?.release !== 'v0.16.25') issues.push('receipt-release');
+  const expectedRelease = scionReleaseIdentityFromManifest(manifest).release;
+  if (receipt?.schemaVersion !== 1 || receipt?.release !== expectedRelease) issues.push('receipt-release');
   if (receipt?.status !== 'pass-one-profile-matrix-incomplete' || receipt?.promotionEligible !== false) {
     issues.push('receipt-status');
   }
@@ -77,6 +121,23 @@ export async function auditScionAppleSiliconDeviceEvidence({
     });
     issues.push(...tracePrivacy.issues.map((issue) => `trace-privacy:${issue}`));
   }
+  const consoleArtifact = run?.artifacts?.find((artifact) => artifact?.type === 'console-log');
+  let consoleAudit = {
+    status: 'blocked',
+    errorEntryCount: 0,
+    expectedFaultInjectionErrorCount: 0,
+    unexpectedErrorCount: 0,
+    issues: ['missing-console-log'],
+  };
+  if (consoleArtifact?.path) {
+    const consoleText = await fs.readFile(path.join(absoluteEvidenceDir, consoleArtifact.path), 'utf8');
+    const consoleEntries = consoleText
+      .split(/\r?\n/)
+      .filter(Boolean)
+      .map((line) => JSON.parse(line));
+    consoleAudit = auditScionDeviceConsoleEntries(consoleEntries, run?.checks?.recovery?.deviceLoss);
+  }
+  issues.push(...consoleAudit.issues.map((issue) => `console:${issue}`));
   return {
     schemaVersion: 1,
     audit: 'scion-apple-silicon-device-evidence',
@@ -85,6 +146,7 @@ export async function auditScionAppleSiliconDeviceEvidence({
     passingDeviceProfiles: audit.passingDeviceProfiles,
     missingDeviceProfiles: ['integrated-8gb', 'integrated-16gb', 'discrete-8gb'],
     issues,
+    consoleAudit,
     matrixAudit: audit,
   };
 }

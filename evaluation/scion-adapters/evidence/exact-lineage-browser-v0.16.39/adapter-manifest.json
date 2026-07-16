@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 3,
+  "adapter": {
+    "id": "scion-g4e2b-smoke-c4fe1ad1228ceb80-browser-v01639",
+    "scionVersion": "0.16.39",
+    "format": "gguf-lora",
+    "scale": 16
+  },
+  "base": {
+    "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+    "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+    "architecture": "gemma4",
+    "role": "instruction",
+    "exactRevisionRequired": true
+  },
+  "training": {
+    "method": "orpo-lora",
+    "datasetManifestSha256": "120ce92c2d0dce803ef2acaeac5c6eb726f3dade05284a09a7a81acd7c1e5ce2",
+    "datasetIdentitySha256": "03328f1b7d8daff4b40352b562f09aaf557fe2a2987967dadddac2b30468f7a2",
+    "datasetStatus": "smoke-only",
+    "primaryPreferenceEvidence": "single-model-judge",
+    "pairCount": 76,
+    "domainCount": 4,
+    "groupCount": 5,
+    "instructorPairCount": 0,
+    "instructorDomainCount": 0,
+    "modelJudgePairCount": 0,
+    "modelJudgeDomainCount": 0,
+    "domainGroupCounts": {
+      "computer-science": 1,
+      "geology": 1,
+      "music-theory": 2,
+      "user-experience-design": 1
+    },
+    "instructorDomainCounts": {
+      "computer-science": 0,
+      "geology": 0,
+      "music-theory": 0,
+      "user-experience-design": 0
+    },
+    "modelJudgeDomainCounts": {
+      "computer-science": 0,
+      "geology": 0,
+      "music-theory": 0,
+      "user-experience-design": 0
+    },
+    "splitCounts": {
+      "train": 11,
+      "valid": 22,
+      "test": 43
+    },
+    "splitDomainCounts": {
+      "train": 3,
+      "valid": 1,
+      "test": 1
+    },
+    "run": {
+      "protocol": "scion-adapter-training-run-v1",
+      "lane": "smoke",
+      "seed": 16031,
+      "planPath": "training-plan.json",
+      "planSha256": "9c15b3dfa031bc24ca6916d0ba8d6faec62e1890c14ca3b30608bf5e450be47f",
+      "planIdentitySha256": "c4fe1ad1228ceb802128334df22ff002a0874170a0b1f9468a5ac54071bf2c09",
+      "resultPath": "training-result.json",
+      "resultSha256": "c7e88596f4fe716e168c501b2615a00d11dd334e93a54266a025fcf2f4f1765e",
+      "resultIdentitySha256": "e0aac4630a1cebddb2ffc0b9bbd199601a71c897e2d2eeb5a60c0b3167297252",
+      "datasetIdentitySha256": "03328f1b7d8daff4b40352b562f09aaf557fe2a2987967dadddac2b30468f7a2",
+      "toolchainPolicySha256": "4d1e2f55376491ec54eb2c760e1f37f75e8b7d77f121f0b70c5f1202c9513db4",
+      "repositoryCommit": "07fe816b1a3a4837373d5a77174d1c1d0bdc44b7",
+      "repositoryTree": "fe90a68c7bbc29ae20f9a967fd44223e70a95acf",
+      "repositoryDirty": false,
+      "sourceAdapterId": "scion-g4e2b-smoke-c4fe1ad1228ceb80",
+      "sourceManifestPath": "source-adapter-manifest.json",
+      "sourceManifestSha256": "6d8838ed802e281175e3cb493086730fae214b06eb048d3cdae7ecbdf3e2783a"
+    }
+  },
+  "files": [
+    {
+      "path": "scion-g4e2b-smoke-c4fe1ad1228ceb80-browser-v01639.gguf",
+      "bytes": 52704096,
+      "sha256": "1a920884bdf74456c5c0f090649b6d4d5eab02e5cb70308f9d30497c80c59fd6"
+    },
+    {
+      "path": "conversion-receipt.json",
+      "bytes": 2932,
+      "sha256": "3c96fcae6ab33a432e0e8ee32fd66ef7dfc161b83747fc1aa403d0987495fb6e"
+    },
+    {
+      "path": "training-plan.json",
+      "bytes": 6166,
+      "sha256": "9c15b3dfa031bc24ca6916d0ba8d6faec62e1890c14ca3b30608bf5e450be47f"
+    },
+    {
+      "path": "training-result.json",
+      "bytes": 1092,
+      "sha256": "c7e88596f4fe716e168c501b2615a00d11dd334e93a54266a025fcf2f4f1765e"
+    },
+    {
+      "path": "source-adapter-manifest.json",
+      "bytes": 3287,
+      "sha256": "6d8838ed802e281175e3cb493086730fae214b06eb048d3cdae7ecbdf3e2783a"
+    }
+  ],
+  "runtime": {
+    "supported": [
+      "scion-wllama-webgpu-jspi-v1"
+    ]
+  },
+  "promotion": {
+    "status": "smoke",
+    "promotable": false,
+    "evidence": [
+      {
+        "type": "conversion-receipt",
+        "status": "pass",
+        "sha256": "3c96fcae6ab33a432e0e8ee32fd66ef7dfc161b83747fc1aa403d0987495fb6e"
+      }
+    ]
+  },
+  "generatedAt": "2026-07-16T07:11:02.461Z",
+  "conversion": {
+    "pipeline": "mlx-lora-to-peft-to-gguf-v1",
+    "sourceAdapterId": "scion-g4e2b-smoke-c4fe1ad1228ceb80",
+    "sourceManifestSha256": "6d8838ed802e281175e3cb493086730fae214b06eb048d3cdae7ecbdf3e2783a",
+    "receiptPath": "conversion-receipt.json",
+    "converter": {
+      "id": "ggml-org/llama.cpp/convert_lora_to_gguf.py",
+      "revision": "5ec717d1256e34558a44dc09adf1e6e16f2e2682",
+      "sha256": "7e82b74442df2faab81c30e7d83614d10905294cec92092ec2a1749700d1a378",
+      "outputType": "f16"
+    }
+  }
+}

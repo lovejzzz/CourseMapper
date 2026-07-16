@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
@@ -403,6 +404,10 @@ export function buildMatchedReviewCandidates(pairs = []) {
   const domainGroupCounts = Object.fromEntries(
     domains.map((domain) => [domain, courseGroups.filter((group) => group.domain === domain).length]),
   );
+  const sourceContextCandidates = rows.filter((row) => row.sourceContext).length;
+  const sourceContextDomainCounts = Object.fromEntries(
+    domains.map((domain) => [domain, rows.filter((row) => row.domain === domain && row.sourceContext).length]),
+  );
   return {
     rows,
     summary: {
@@ -410,11 +415,13 @@ export function buildMatchedReviewCandidates(pairs = []) {
       eligiblePairs: pairReports.filter((pair) => pair.status === 'included').length,
       excludedPairs: pairReports.filter((pair) => pair.status === 'excluded').length,
       candidates: rows.length,
+      sourceContextCandidates,
       domains,
       domainCount: domains.length,
       courseGroups,
       courseGroupCount: courseGroups.length,
       domainGroupCounts,
+      sourceContextDomainCounts,
       courseGroupIdCollisions,
       groupIntegrityStatus: courseGroupIdCollisions.length === 0 ? 'pass' : 'blocked-course-group-id-collision',
       targetCourseGroupsPerDomain: 3,
@@ -459,19 +466,43 @@ async function run({ manifestPath = DEFAULT_MANIFEST, output = DEFAULT_OUTPUT, r
 }
 
 function parseArgs(argv) {
-  const args = { manifestPath: DEFAULT_MANIFEST, output: DEFAULT_OUTPUT, reportDir: DEFAULT_REPORT };
+  const args = { manifestPath: DEFAULT_MANIFEST, output: DEFAULT_OUTPUT, reportDir: DEFAULT_REPORT, verify: false };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--manifest') args.manifestPath = argv[++index] || args.manifestPath;
     else if (argv[index] === '--output') args.output = argv[++index] || args.output;
     else if (argv[index] === '--report') args.reportDir = argv[++index] || args.reportDir;
+    else if (argv[index] === '--verify') args.verify = true;
+    else throw new Error(`Unknown argument: ${argv[index]}`);
   }
   return args;
 }
 
 async function main() {
-  const result = await run(parseArgs(process.argv.slice(2)));
+  const args = parseArgs(process.argv.slice(2));
+  let result;
+  if (args.verify) {
+    const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-review-candidates-'));
+    try {
+      const generatedOutput = path.join(temporaryRoot, 'scion-review-candidates.jsonl');
+      result = await run({
+        manifestPath: args.manifestPath,
+        output: generatedOutput,
+        reportDir: path.join(temporaryRoot, 'report'),
+      });
+      const [expected, generated] = await Promise.all([fs.readFile(args.output), fs.readFile(generatedOutput)]);
+      if (!expected.equals(generated)) {
+        throw new Error(
+          `Tracked Scion review candidates are stale: ${args.output} does not match a fresh deterministic build`,
+        );
+      }
+    } finally {
+      await fs.rm(temporaryRoot, { recursive: true, force: true });
+    }
+  } else {
+    result = await run(args);
+  }
   console.log(
-    `Scion matched review candidates: ${result.summary.candidates} across ${result.summary.domainCount} domains / ${result.summary.courseGroupCount} course groups`,
+    `Scion matched review candidates${args.verify ? ' verified' : ''}: ${result.summary.candidates} total / ${result.summary.sourceContextCandidates} source-grounded across ${result.summary.domainCount} domains / ${result.summary.courseGroupCount} course groups`,
   );
   for (const pair of result.summary.pairReports) {
     console.log(`${pair.domain}: ${pair.matchedLessons} matched lessons / ${pair.candidates} candidates`);
