@@ -182,11 +182,11 @@ function compactKeyTerm(term = {}) {
   };
 }
 
-function cleanMcItems(content = {}) {
+function cleanMcItems(content = {}, { semanticAdmission = true } = {}) {
   return (Array.isArray(content.quizItems) ? content.quizItems : [])
     .filter((item) => item?.type === 'multiple_choice' || Array.isArray(item?.op) || Array.isArray(item?.options))
     .map(compactMc)
-    .filter((item) => assessScionMcItem(item).eligible);
+    .filter((item) => assessScionMcItem(item, { semanticAdmission }).eligible);
 }
 
 function cleanKeyTerms(content = {}) {
@@ -261,7 +261,7 @@ function addPairs(rows, seen, { pair, match, kind, leftItems, rightItems }) {
   }
 }
 
-export function buildMatchedReviewCandidates(pairs = []) {
+export function buildMatchedReviewCandidates(pairs = [], { semanticAdmission = true } = {}) {
   const rows = [];
   const seen = new Set();
   const pairReports = [];
@@ -366,8 +366,8 @@ export function buildMatchedReviewCandidates(pairs = []) {
         pair: qualifiedPair,
         match,
         kind: 'mc-item',
-        leftItems: cleanMcItems(match.left.content),
-        rightItems: cleanMcItems(match.right.content),
+        leftItems: cleanMcItems(match.left.content, { semanticAdmission }),
+        rightItems: cleanMcItems(match.right.content, { semanticAdmission }),
       });
       addPairs(rows, seen, {
         pair: qualifiedPair,
@@ -439,7 +439,12 @@ export function buildMatchedReviewCandidates(pairs = []) {
   };
 }
 
-async function run({ manifestPath = DEFAULT_MANIFEST, output = DEFAULT_OUTPUT, reportDir = DEFAULT_REPORT } = {}) {
+async function run({
+  manifestPath = DEFAULT_MANIFEST,
+  output = DEFAULT_OUTPUT,
+  reportDir = DEFAULT_REPORT,
+  semanticAdmission = true,
+} = {}) {
   const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
   const pairs = await Promise.all(
     (manifest.pairs || []).map(async (pair) => {
@@ -456,7 +461,7 @@ async function run({ manifestPath = DEFAULT_MANIFEST, output = DEFAULT_OUTPUT, r
       };
     }),
   );
-  const result = buildMatchedReviewCandidates(pairs);
+  const result = buildMatchedReviewCandidates(pairs, { semanticAdmission });
   await Promise.all([fs.mkdir(path.dirname(output), { recursive: true }), fs.mkdir(reportDir, { recursive: true })]);
   await Promise.all([
     fs.writeFile(output, result.rows.map((row) => JSON.stringify(row)).join('\n') + (result.rows.length ? '\n' : '')),
@@ -466,12 +471,19 @@ async function run({ manifestPath = DEFAULT_MANIFEST, output = DEFAULT_OUTPUT, r
 }
 
 function parseArgs(argv) {
-  const args = { manifestPath: DEFAULT_MANIFEST, output: DEFAULT_OUTPUT, reportDir: DEFAULT_REPORT, verify: false };
+  const args = {
+    manifestPath: DEFAULT_MANIFEST,
+    output: DEFAULT_OUTPUT,
+    reportDir: DEFAULT_REPORT,
+    verify: false,
+    semanticAdmission: true,
+  };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--manifest') args.manifestPath = argv[++index] || args.manifestPath;
     else if (argv[index] === '--output') args.output = argv[++index] || args.output;
     else if (argv[index] === '--report') args.reportDir = argv[++index] || args.reportDir;
     else if (argv[index] === '--verify') args.verify = true;
+    else if (argv[index] === '--legacy-semantic-admission') args.semanticAdmission = false;
     else throw new Error(`Unknown argument: ${argv[index]}`);
   }
   return args;
@@ -488,6 +500,7 @@ async function main() {
         manifestPath: args.manifestPath,
         output: generatedOutput,
         reportDir: path.join(temporaryRoot, 'report'),
+        semanticAdmission: args.semanticAdmission,
       });
       const [expected, generated] = await Promise.all([fs.readFile(args.output), fs.readFile(generatedOutput)]);
       if (!expected.equals(generated)) {

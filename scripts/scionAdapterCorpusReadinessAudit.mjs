@@ -12,9 +12,11 @@ import {
   SCION_ADAPTER_DEFAULT_SOURCES,
 } from './scionAdapterDataset.mjs';
 
-export const SCION_ADAPTER_CORPUS_READINESS_RELEASE = 'v0.16.42';
+export const SCION_ADAPTER_CORPUS_READINESS_RELEASE = 'v0.16.43';
 export const SCION_ADAPTER_CORPUS_READINESS_EVIDENCE =
-  'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.42.json';
+  'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.43.json';
+const PAIRED_RELEASE = 'v0.16.42';
+const PAIRED_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.42.json';
 const LEGACY_RELEASE = 'v0.16.40';
 const LEGACY_EVIDENCE = 'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.40.json';
 const LEGACY_SOURCES = [
@@ -23,7 +25,8 @@ const LEGACY_SOURCES = [
   'evaluation/scion-reviewed-preferences.jsonl',
   'evaluation/scion-codex-reviewed-preferences.jsonl',
 ];
-const SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.40.json';
+const CURRENT_SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.43.json';
+const HISTORICAL_SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.40.json';
 const SOURCE_REVIEW_PACKET = 'evaluation/scion-adapters/evidence/source-review-packet-v0.16.40.json';
 const PAIRED_CAMPAIGN_EVIDENCE = 'evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json';
 const APPROVED_CORPUS = 'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl';
@@ -55,11 +58,16 @@ function parseArgs(argv) {
     else if (argv[index] === '--generated-at') args.generatedAt = argv[++index];
     else throw new Error(`Unknown corpus-readiness option: ${argv[index]}`);
   }
-  if (![LEGACY_RELEASE, SCION_ADAPTER_CORPUS_READINESS_RELEASE].includes(args.profile)) {
+  if (![LEGACY_RELEASE, PAIRED_RELEASE, SCION_ADAPTER_CORPUS_READINESS_RELEASE].includes(args.profile)) {
     throw new Error(`Unsupported corpus-readiness profile: ${args.profile}`);
   }
   if (!args.evidence) {
-    args.evidence = args.profile === LEGACY_RELEASE ? LEGACY_EVIDENCE : SCION_ADAPTER_CORPUS_READINESS_EVIDENCE;
+    args.evidence =
+      args.profile === LEGACY_RELEASE
+        ? LEGACY_EVIDENCE
+        : args.profile === PAIRED_RELEASE
+          ? PAIRED_EVIDENCE
+          : SCION_ADAPTER_CORPUS_READINESS_EVIDENCE;
   }
   return args;
 }
@@ -116,7 +124,7 @@ function snapshot(manifest, generatedAt, release, judgeCampaign) {
   return value;
 }
 
-function baseCampaignEvidence(replayRaw, packetRaw) {
+function baseCampaignEvidence(replayRaw, packetRaw, replayPath) {
   const replay = JSON.parse(replayRaw);
   const packet = JSON.parse(packetRaw);
   const packetReady =
@@ -133,7 +141,7 @@ function baseCampaignEvidence(replayRaw, packetRaw) {
   if (!packetReady) throw new Error('Source-only Codex judge campaign is not ready');
   return {
     compilerReplay: {
-      path: SOURCE_REPLAY_EVIDENCE,
+      path: replayPath,
       sha256: sha256(replayRaw),
       identity: replay.identity,
       responseMutationCount: replay.summary.responseMutationCount,
@@ -179,7 +187,7 @@ function pairedJudgeCampaign(manifest, baseEvidence, campaignRaw) {
     (campaign.analysis?.insufficientOrInvalid || 0);
   const valid =
     campaign.protocol === 'scion-codex-paired-order-campaign-v1' &&
-    campaign.release === SCION_ADAPTER_CORPUS_READINESS_RELEASE &&
+    campaign.release === PAIRED_RELEASE &&
     campaign.benchmarkProtocol === 'honest-quality-benchmark-v1' &&
     campaign.evidenceClass === 'single-model-judge-same-identity-paired-order' &&
     campaign.humanEvidence === false &&
@@ -239,13 +247,18 @@ export async function buildScionAdapterCorpusReadinessSnapshot({ generatedAt, pr
       allowResearch: true,
       allowSmoke: true,
       generatedAt,
+      semanticAdmission: release === SCION_ADAPTER_CORPUS_READINESS_RELEASE,
     });
+    const replayPath =
+      release === SCION_ADAPTER_CORPUS_READINESS_RELEASE
+        ? CURRENT_SOURCE_REPLAY_EVIDENCE
+        : HISTORICAL_SOURCE_REPLAY_EVIDENCE;
     const [replayRaw, packetRaw, campaignRaw] = await Promise.all([
-      fs.readFile(SOURCE_REPLAY_EVIDENCE, 'utf8'),
+      fs.readFile(replayPath, 'utf8'),
       fs.readFile(SOURCE_REVIEW_PACKET, 'utf8'),
       release === LEGACY_RELEASE ? Promise.resolve('') : fs.readFile(PAIRED_CAMPAIGN_EVIDENCE, 'utf8'),
     ]);
-    const baseEvidence = baseCampaignEvidence(replayRaw, packetRaw);
+    const baseEvidence = baseCampaignEvidence(replayRaw, packetRaw, replayPath);
     const judgeCampaign =
       release === LEGACY_RELEASE
         ? legacyJudgeCampaign(baseEvidence)

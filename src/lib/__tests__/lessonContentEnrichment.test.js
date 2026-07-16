@@ -84,6 +84,27 @@ describe('lesson content enrichment contracts', () => {
     expect(lintEnrichedQuizItem(ungrounded, { groundingText: 'no urls here' })).toContain('ungrounded-url');
   });
 
+  it('shares semantic option and feedback admission with non-Scion provider output', () => {
+    const duplicate = {
+      ...GOOD_ITEM,
+      options: [
+        'A. A difference in pitch between two sounds.',
+        'B. A ratio between two frequencies.',
+        'C. The difference in pitch between two sounds.',
+        'D. A repeating rhythmic pattern.',
+      ],
+      answerIndex: 0,
+      explanation: 'Pitch difference is the music-theory definition, while frequency ratio is a physical measure.',
+    };
+    expect(lintEnrichedQuizItem(duplicate, { groundingText: '' })).toContain('duplicate-options');
+
+    const answerOnly = {
+      ...GOOD_ITEM,
+      explanation: `${GOOD_ITEM.options[GOOD_ITEM.answerIndex]}.`,
+    };
+    expect(lintEnrichedQuizItem(answerOnly, { groundingText: '' })).toContain('explanation-repeats-answer');
+  });
+
   it('lint rejects circular and meta key terms', () => {
     expect(lintEnrichedKeyTerm(GOOD_TERM, { lessonTitle: COURSE_MAP.lessons[0].title })).toHaveLength(0);
     const circular = {

@@ -1,0 +1,2862 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-earth-materials-history-lab-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "Earth Materials and History Lab, a six-session undergraduate geology course in which students identify minerals, distinguish weathering from erosion, interpret sedimentary and metamorphic evidence, connect rock-cycle transformations, and order events in geologic time.",
+  "fileNames": [
+    "source-packet-f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a.json"
+  ],
+  "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Earth Materials and History Lab\",\"sessions\":[{\"number\":1,\"title\":\"Minerals and identification\"},{\"number\":2,\"title\":\"Weathering and erosion\"},{\"number\":3,\"title\":\"Sedimentary rocks and environments\"},{\"number\":4,\"title\":\"Metamorphic rocks and protoliths\"},{\"number\":5,\"title\":\"The rock cycle\"},{\"number\":6,\"title\":\"Geologic time and relative dating\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"Which physical property is used to measure a mineral's resistance to scratching, and what is the scale used for this measurement?\",\"op\":[\"Luster, measured on the Mohs scale\",\"Hardness, measured on the Mohs scale\",\"Streak, measured on the Mohs scale\",\"Cleavage, measured on the Mohs scale\"],\"ai\":1,\"ex\":\"Hardness is measured on the Mohs scale. Misconception: Streak is measured on the Mohs scale. Correct: Hardness is the property measured on the Mohs scale.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?\",\"op\":[\"Luster\",\"Streak\",\"Cleavage\",\"Hardness\"],\"ai\":2,\"ex\":\"Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding.\",\"sourceFactIndexes\":[3],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Which process describes the physical breakdown of bedrock into smaller pieces without altering its chemical composition?\",\"op\":[\"Chemical weathering\",\"Erosion\",\"Mechanical weathering\",\"Sediment transport\"],\"ai\":2,\"ex\":\"Mechanical weathering physically breaks bedrock into smaller pieces without changing its chemistry. The misconception is confusing physical breakdown with the movement of material away from the source.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"If water carries broken rock fragments downstream, which geological process is occurring?\",\"op\":[\"Mechanical weathering\",\"Chemical weathering\",\"Erosion\",\"Sediment deposition\"],\"ai\":2,\"ex\":\"Erosion is the transport of that sediment away by water, wind, gravity, or ice. The misconception is confusing the breaking of rock (weathering) with the movement of the resulting material.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Process of material removal by natural agents\",\"df\":\"The movement of sediment away from its original location by agents like wind or water.\",\"eg\":\"A river carrying sand downstream.\",\"mi\":\"Confusing the breaking down of rock with the actual transport of the resulting debris.\",\"cx\":\"This process is erosion, which is a mechanical process driven by water, wind, gravity, or ice that transports sediment.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Alteration of minerals through chemical change\",\"df\":\"The dissolution or transformation of minerals into new substances, often occurring in warm, humid settings.\",\"eg\":\"Limestone dissolving in acidic rainwater.\",\"mi\":\"Assuming all breakdown of rock is purely physical, ignoring chemical alteration.\",\"cx\":\"Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments.\",\"sourceFactIndexes\":[3]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?\",\"op\":[\"Erosion\",\"Lithification\",\"Metamorphism\",\"Weathering\"],\"ai\":1,\"ex\":\"Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"How are clastic sedimentary rocks fundamentally composed?\",\"op\":[\"Preexisting weathered rock\",\"Metamorphic minerals\",\"Deposited organic matter\",\"Magmatic intrusions\"],\"ai\":0,\"ex\":\"Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones.\",\"sourceFactIndexes\":[3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Lithification\",\"df\":\"The process where sediment is turned into stone through compaction and cementation.\",\"eg\":\"Sandstone formation.\",\"mi\":\"Thinking only about compaction without cementation.\",\"cx\":\"Lithification requires both compaction and cementation to occur.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Clastic rocks\",\"df\":\"Sedimentary rocks made from pieces of pre-existing weathered rock.\",\"eg\":\"Shale or sandstone.\",\"mi\":\"Assuming all sedimentary rocks are clastic.\",\"cx\":\"Clastic rocks specifically consist of fragments of older rock.\",\"sourceFactIndexes\":[3]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"What feature results from directed stress aligning mineral crystals?\",\"op\":[\"Crystalline structure\",\"Foliation\",\"Melting\",\"Erosion\"],\"ai\":1,\"ex\":\"Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress.\",\"sourceFactIndexes\":[3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Protolith\",\"df\":\"The initial rock subjected to metamorphic change.\",\"eg\":\"Shale undergoing metamorphism.\",\"mi\":\"The final metamorphic rock.\",\"cx\":\"The starting rock that undergoes metamorphism.\",\"sourceFactIndexes\":[2]},{\"tr\":\"Metamorphism\",\"df\":\"A change in a solid rock's composition and texture without melting.\",\"eg\":\"A limestone turning into marble.\",\"mi\":\"Melting of the rock.\",\"cx\":\"Changing a solid rock's composition and texture without the mineral crystals melting.\",\"sourceFactIndexes\":[1]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"Which process is central to the rock cycle as described in the source material?\",\"op\":[\"A) Weathering and erosion\",\"B) Formation of igneous rock\",\"C) Transformation between rock families\",\"D) Ordering events in geologic time\"],\"ai\":2,\"ex\":\"Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"When liquid rock cools and solidifies, what type of rock is produced according to the cycle?\",\"op\":[\"A) Metamorphic rock\",\"B) Sedimentary rock\",\"C) Igneous rock\",\"D) Pre-existing rock\"],\"ai\":2,\"ex\":\"Option C is correct because igneous rock forms when liquid rock freezes solid. Option A is incorrect as metamorphic rock forms from pre-existing rock under different conditions, and Option B is incorrect as sedimentary rock forms from lithified sediment.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Rock cycle\",\"df\":\"The continuous transformation of Earth's three rock families.\",\"eg\":\"A limestone layer being subjected to intense heat and pressure to become marble.\",\"mi\":\"Believing the rock cycle only involves the formation of igneous rocks.\",\"cx\":\"The cycle involves igneous, sedimentary, and metamorphic rocks continually transforming into one another.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Igneous rock\",\"df\":\"Rock created when liquid rock freezes solid into a solid state.\",\"eg\":\"Basalt formed from cooling lava.\",\"mi\":\"Thinking all rocks must be sedimentary.\",\"cx\":\"Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.\",\"sourceFactIndexes\":[2]}]},\"lesson-6\":{\"quizItems\":[{\"q\":\"Which principle dictates that in an undisturbed sequence, the lowest layers of rock are the oldest?\",\"op\":[\"Original horizontality\",\"Principle of superposition\",\"Absolute dating\",\"Relative dating\"],\"ai\":2,\"ex\":\"The principle of superposition states that in an undisturbed sequence, the bottom layers are oldest. Misconception: Original horizontality suggests that all rock layers must be laid down horizontally, which is not the primary concept for determining relative age order.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"},{\"q\":\"What does absolute dating provide regarding mineral grains in a rock?\",\"op\":[\"A numerical age in years\",\"A relative order of events\",\"The span of Earth's history\",\"The sequence of deposition\"],\"ai\":1,\"ex\":\"Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Numerical age assignment\",\"df\":\"Assigning specific ages in years to mineral grains within a rock.\",\"eg\":\"Determining the exact age of a specific quartz grain in a sandstone sample.\",\"mi\":\"Assuming that relative dating methods can provide precise numerical ages.\",\"cx\":\"Absolute dating assigns specific ages in years to mineral grains within a rock.\",\"sourceFactIndexes\":[1]}]}}}}",
+  "savedAt": "2026-07-14T07:39:57.327Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+    "campaignManifestSha256": "7745ab25f0b006d1d84913f8df9b95acb09414b05cd611944abcd0da34f872da",
+    "promptSetSha256": "0355e7ee7588f6bcfaa114043b19cfb9afe03dbc8e9095aeeaa9b548b2d1835e",
+    "courseInputSha256": "083c96fe9be627d188effd1185e9086d1763a1229540753adce21be7ca661bec",
+    "courseGroupId": "earth-materials-history-lab",
+    "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/geo-intro.json",
+      "sourceArtifactSha256": "d210fd2d2412af5d0f65c8e8f8a9614cd92f5886badc264694fe88e5cc020f14",
+      "kernels": [
+        {
+          "id": "geo/minerals",
+          "term": "Minerals and identification",
+          "definition": "A mineral is a naturally occurring, inorganic solid with a definite chemical composition and an ordered crystal structure; minerals are identified by physical properties such as hardness, streak, luster, and cleavage.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#3.1",
+            "loc": "3.1",
+            "quote": "naturally occurring, inorganic, solid at room temperature, regular crystal structure, and defined chemical composition"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Hardness is measured on the Mohs scale; diamond is a 10 and is about four times harder than corundum, a 9.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#3.5",
+                "loc": "3.5",
+                "quote": "Diamond defines a hardness of 10 and is actually about four times harder than corundum, which is 9"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Streak is the color of a mineral's powder, and is more reliable than the color of the whole specimen.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#3.5",
+                "loc": "3.5",
+                "quote": "Streak examines the color of a powdered mineral"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding; minerals without such planes fracture irregularly.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#3.5",
+                "loc": "3.5",
+                "quote": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Luster describes how a mineral's surface reflects light — metallic, glassy, or dull.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#3.5",
+                "loc": "3.5",
+                "quote": "Luster describes how the mineral looks"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §3.1 What is a mineral; §3.5 Identifying minerals"
+          ]
+        },
+        {
+          "id": "geo/weathering-erosion",
+          "term": "Weathering and erosion",
+          "definition": "Weathering breaks bedrock into sediment in place, while erosion is the transport of that sediment away by water, wind, gravity, or ice.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#5.1",
+            "loc": "5.1",
+            "quote": "Weathering is a process that turns bedrock into smaller particles, called sediment"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Erosion is a mechanical process, driven by water, wind, gravity, or ice, that transports sediment.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#5.1",
+                "loc": "5.1",
+                "quote": "Erosion is a mechanical process, usually driven by water, wind, gravity, or ice, which transports sediment"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Mechanical weathering physically breaks bedrock into smaller pieces without changing its chemistry.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#5.1",
+                "loc": "5.1",
+                "quote": "Mechanical weathering physically breaks bedrock into smaller pieces"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#5.1",
+                "loc": "5.1",
+                "quote": "Chemical weathering is the dominate weathering process in warm, humid environments"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §5.1 Weathering and erosion"
+          ]
+        },
+        {
+          "id": "geo/sedimentary-rocks",
+          "term": "Sedimentary rocks and environments",
+          "definition": "Sedimentary rock forms when sediment is deposited, compacted under burial, and cemented into stone — a process called lithification — and its features record the depositional environment.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#5.3",
+            "loc": "5.3",
+            "quote": "Deposition happens when friction and gravity overcome the forces driving sediment transport"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Compaction occurs as more material accumulates on top, squeezing the grains together.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#5.3",
+                "loc": "5.3",
+                "quote": "Compaction occurs when material continues to accumulate on top of the sediment layer"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Cementation glues the grains together with minerals; compaction and cementation together are lithification.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#5.3",
+                "loc": "5.3",
+                "quote": "Cementation is the process of cementing minerals coating the sediment grains and gluing them together"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Clastic (detrital) sedimentary rocks are made of pieces of preexisting weathered rock.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#5.3",
+                "loc": "5.3",
+                "quote": "Detrital or clastic sedimentary rocks consist of preexisting sediment pieces that comes from weathered bedrock"
+              }
+            },
+            {
+              "index": 3,
+              "text": "The features of a sedimentary rock are read to reconstruct its original depositional environment.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#5.3",
+                "loc": "5.3",
+                "quote": "to understand the original depositional environment"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §5.3 Sedimentary rocks"
+          ]
+        },
+        {
+          "id": "geo/metamorphic-rocks",
+          "term": "Metamorphic rocks and protoliths",
+          "definition": "Metamorphic rock forms when heat, pressure, and fluids change a preexisting parent rock (the protolith) in the solid state, without melting it.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#6.1",
+            "loc": "6.1",
+            "quote": "Metamorphic rocks are created when heat, pressure, and/or fluids change preexisting rocks"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Metamorphism changes a solid rock's composition and texture without the mineral crystals melting.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#6.1",
+                "loc": "6.1",
+                "quote": "Metamorphism occurs when solid rock changes composition and/or texture without mineral crystals melting"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The starting rock that undergoes metamorphism is called the parent rock, or protolith.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#6.1",
+                "loc": "6.1",
+                "quote": "are called the parent rock, or protolith"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Directed stress aligns mineral crystals into planes, producing foliation.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#6.1",
+                "loc": "6.1",
+                "quote": "Foliation is a term used that describes minerals lined up in planes"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §6.1 Metamorphism and metamorphic rocks"
+          ]
+        },
+        {
+          "id": "geo/rock-cycle",
+          "term": "The rock cycle",
+          "definition": "The rock cycle describes how Earth's three rock families — igneous, sedimentary, and metamorphic — form and continually transform into one another through geologic processes.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#4.0",
+            "loc": "4.0",
+            "quote": "the process of changing rocks on Earth into different forms, namely igneous, sedimentary, and metamorphic"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The rock cycle describes the major Earth materials, the processes that form them, and how they relate to each other.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.0",
+                "loc": "4.0",
+                "quote": "describes the major materials that comprise the Earth, the processes that form them, and how they relate to each other"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.0",
+                "loc": "4.0",
+                "quote": "Igneous rock is formed when liquid rock freezes into a solid rock"
+              }
+            },
+            {
+              "index": 2,
+              "text": "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.0",
+                "loc": "4.0",
+                "quote": "the rock cycle begins anew with the creation of new rocks"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §4 The rock cycle"
+          ]
+        },
+        {
+          "id": "geo/geologic-time",
+          "term": "Geologic time and relative dating",
+          "definition": "Geologic time spans the roughly 4.5-billion-year history of Earth; relative dating orders events by which is older or younger, while absolute dating assigns numerical ages in years.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#7.1",
+            "loc": "7.1",
+            "quote": "Relative dating is the process of determining if one rock or geologic event is older or younger than another, without knowing their specific ages"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#7.1",
+                "loc": "7.1",
+                "quote": "Absolute dating assigns specific time units, in this case years, to mineral grains within a rock"
+              }
+            },
+            {
+              "index": 1,
+              "text": "By the principle of superposition, in an undisturbed sequence the bottom layers are oldest and the upper layers younger.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#7.1",
+                "loc": "7.1",
+                "quote": "the layers on the bottom are the oldest, and the layers above them are younger"
+              }
+            },
+            {
+              "index": 2,
+              "text": "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#7.1",
+                "loc": "7.1",
+                "quote": "are originally laid down horizontally"
+              }
+            },
+            {
+              "index": 3,
+              "text": "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#7.1",
+                "loc": "7.1",
+                "quote": "The current estimate for the age of the Earth is 4.54 billion years"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-14T07:39:57.327Z",
+    "admittedPromptIds": [
+      "earth-materials-history-lab:geo/minerals",
+      "earth-materials-history-lab:geo/weathering-erosion",
+      "earth-materials-history-lab:geo/sedimentary-rocks",
+      "earth-materials-history-lab:geo/metamorphic-rocks",
+      "earth-materials-history-lab:geo/rock-cycle",
+      "earth-materials-history-lab:geo/geologic-time"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "earth-materials-history-lab:geo/minerals",
+          "kernelId": "geo/minerals",
+          "promptSha256": "eac0104b31b2bfc6a928151d4e1ddb1ca697e5057cb4d1d06845aecc07803d53",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which physical property is used to measure a mineral's resistance to scratching, and what is the scale used for this measurement?",
+                "op": [
+                  "Luster, measured on the Mohs scale",
+                  "Hardness, measured on the Mohs scale",
+                  "Streak, measured on the Mohs scale",
+                  "Cleavage, measured on the Mohs scale"
+                ],
+                "ai": 1,
+                "ex": "Hardness is measured on the Mohs scale. Misconception: Streak is measured on the Mohs scale. Correct: Hardness is the property measured on the Mohs scale.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+                "op": [
+                  "Luster",
+                  "Streak",
+                  "Cleavage",
+                  "Hardness"
+                ],
+                "ai": 3,
+                "ex": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Color of a mineral's powder",
+                "df": "Streak: The color of a mineral's powder. Example: The reddish-brown streak of hematite. Misconception: Streak is the color of the whole specimen. Correction: Streak is more reliable than the color of the whole specimen.",
+                "eg": "Hematite (iron oxide)",
+                "mi": "The color of the whole specimen",
+                "cx": "Streak is more reliable than the color of the whole specimen.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "How a mineral's surface reflects light",
+                "df": "Luster: Describes how a mineral's surface reflects light—metallic, glassy, or dull. Example: The metallic luster of pyrite. Misconception: Luster is the tendency to break along flat planes of weak bonding. Correction: Luster describes how a mineral's surface reflects light.",
+                "eg": "Pyrite (iron sulfide)",
+                "mi": "The tendency to break along flat planes of weak bonding",
+                "cx": "Luster describes how a mineral's surface reflects light.",
+                "sourceFactIndexes": [
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "23b586edc97897aed0f6ab0478ccc850042772e1db110574165ac8a5a0469b0d",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which physical property is used to measure a mineral's resistance to scratching, and what is the scale used for this measurement?",
+                "op": [
+                  "Luster, measured on the Mohs scale",
+                  "Hardness, measured on the Mohs scale",
+                  "Streak, measured on the Mohs scale",
+                  "Cleavage, measured on the Mohs scale"
+                ],
+                "ai": 1,
+                "ex": "Hardness is measured on the Mohs scale. Misconception: Streak is measured on the Mohs scale. Correct: Hardness is the property measured on the Mohs scale.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+                "op": [
+                  "Luster",
+                  "Streak",
+                  "Cleavage",
+                  "Hardness"
+                ],
+                "ai": 2,
+                "ex": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "e7e492bf44b017127953158b6a199e3769bdceb2d4528455e2b06fe2b3face96",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-embedded-field-label",
+              "key-term-0-misconception-repeats-definition",
+              "key-term-0-correction-repeats-definition",
+              "key-term-0-correction-repeats-misconception",
+              "key-term-1-embedded-field-label",
+              "key-term-1-misconception-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:39:18.391Z",
+          "durationMs": 7616,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "earth-materials-history-lab:geo/minerals",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+                "options": [
+                  "Luster",
+                  "Streak",
+                  "Cleavage",
+                  "Hardness"
+                ],
+                "answerIndex": 3,
+                "explanation": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding."
+              },
+              "chosen": {
+                "question": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+                "options": [
+                  "Luster",
+                  "Streak",
+                  "Cleavage",
+                  "Hardness"
+                ],
+                "answerIndex": 2,
+                "explanation": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-correction-label",
+                    "surface": "Correct: Cleavage describes the tendency to break along flat planes of weak bonding"
+                  },
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-affirmative-lead",
+                    "surface": "Cleavage is"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "earth-materials-history-lab:geo/weathering-erosion",
+          "kernelId": "geo/weathering-erosion",
+          "promptSha256": "dfadfd4e91c18d60812bf029c542894064b124828a1c10d67638549ee99711f2",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which process describes the physical breakdown of bedrock into smaller pieces without altering its chemical composition?",
+                "op": [
+                  "Chemical weathering",
+                  "Erosion",
+                  "Mechanical weathering",
+                  "Sediment transport"
+                ],
+                "ai": 2,
+                "ex": "Mechanical weathering physically breaks bedrock into smaller pieces without changing its chemistry. The misconception is confusing physical breakdown with the movement of material away from the source.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "If water carries broken rock fragments downstream, which geological process is occurring?",
+                "op": [
+                  "Mechanical weathering",
+                  "Chemical weathering",
+                  "Erosion",
+                  "Sediment deposition"
+                ],
+                "ai": 0,
+                "ex": "Erosion is the transport of that sediment away by water, wind, gravity, or ice. The misconception is confusing the breaking of rock (weathering) with the movement of the resulting material.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Process of material removal by natural agents",
+                "df": "The movement of sediment away from its original location by agents like wind or water.",
+                "eg": "A river carrying sand downstream.",
+                "mi": "Confusing the breaking down of rock with the actual transport of the resulting debris.",
+                "cx": "This process is erosion, which is a mechanical process driven by water, wind, gravity, or ice that transports sediment.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Alteration of minerals through chemical change",
+                "df": "The dissolution or transformation of minerals into new substances, often occurring in warm, humid settings.",
+                "eg": "Limestone dissolving in acidic rainwater.",
+                "mi": "Assuming all breakdown of rock is purely physical, ignoring chemical alteration.",
+                "cx": "Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "0e77c7d4eb127d02721e5d95c63f135eec823c788a8d29a6bb850046a0d464b0",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which process describes the physical breakdown of bedrock into smaller pieces without altering its chemical composition?",
+                "op": [
+                  "Chemical weathering",
+                  "Erosion",
+                  "Mechanical weathering",
+                  "Sediment transport"
+                ],
+                "ai": 2,
+                "ex": "Mechanical weathering physically breaks bedrock into smaller pieces without changing its chemistry. The misconception is confusing physical breakdown with the movement of material away from the source.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "If water carries broken rock fragments downstream, which geological process is occurring?",
+                "op": [
+                  "Mechanical weathering",
+                  "Chemical weathering",
+                  "Erosion",
+                  "Sediment deposition"
+                ],
+                "ai": 2,
+                "ex": "Erosion is the transport of that sediment away by water, wind, gravity, or ice. The misconception is confusing the breaking of rock (weathering) with the movement of the resulting material.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Process of material removal by natural agents",
+                "df": "The movement of sediment away from its original location by agents like wind or water.",
+                "eg": "A river carrying sand downstream.",
+                "mi": "Confusing the breaking down of rock with the actual transport of the resulting debris.",
+                "cx": "This process is erosion, which is a mechanical process driven by water, wind, gravity, or ice that transports sediment.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Alteration of minerals through chemical change",
+                "df": "The dissolution or transformation of minerals into new substances, often occurring in warm, humid settings.",
+                "eg": "Limestone dissolving in acidic rainwater.",
+                "mi": "Assuming all breakdown of rock is purely physical, ignoring chemical alteration.",
+                "cx": "Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "6e8f45b80e3a8b4477915dd2b7a36f7721441fc40643d88a93d91bf1163a49cd",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:39:26.007Z",
+          "durationMs": 6424,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "earth-materials-history-lab:geo/weathering-erosion",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "If water carries broken rock fragments downstream, which geological process is occurring?",
+                "options": [
+                  "Mechanical weathering",
+                  "Chemical weathering",
+                  "Erosion",
+                  "Sediment deposition"
+                ],
+                "answerIndex": 0,
+                "explanation": "Erosion is the transport of that sediment away by water, wind, gravity, or ice. The misconception is confusing the breaking of rock (weathering) with the movement of the resulting material."
+              },
+              "chosen": {
+                "question": "If water carries broken rock fragments downstream, which geological process is occurring?",
+                "options": [
+                  "Mechanical weathering",
+                  "Chemical weathering",
+                  "Erosion",
+                  "Sediment deposition"
+                ],
+                "answerIndex": 2,
+                "explanation": "Erosion is the transport of that sediment away by water, wind, gravity, or ice. The misconception is confusing the breaking of rock (weathering) with the movement of the resulting material."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-affirmative-lead",
+                    "surface": "Erosion is"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "earth-materials-history-lab:geo/sedimentary-rocks",
+          "kernelId": "geo/sedimentary-rocks",
+          "promptSha256": "e4a2d604fe1d24cd4f7e4c4a4064a2e4db124adf9e21b079ba722a9236bee946",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+                "op": [
+                  "Erosion",
+                  "Lithification",
+                  "Metamorphism",
+                  "Weathering"
+                ],
+                "ai": 2,
+                "ex": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "How are clastic sedimentary rocks fundamentally composed?",
+                "op": [
+                  "Preexisting weathered rock",
+                  "Metamorphic minerals",
+                  "Deposited organic matter",
+                  "Magmatic intrusions"
+                ],
+                "ai": 3,
+                "ex": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Lithification",
+                "df": "The process where sediment is turned into stone through compaction and cementation.",
+                "eg": "Sandstone formation.",
+                "mi": "Thinking only about compaction without cementation.",
+                "cx": "Lithification requires both compaction and cementation to occur.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Clastic rocks",
+                "df": "Sedimentary rocks made from pieces of pre-existing weathered rock.",
+                "eg": "Shale or sandstone.",
+                "mi": "Assuming all sedimentary rocks are clastic.",
+                "cx": "Clastic rocks specifically consist of fragments of older rock.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "074340b54ff3188f79f3286900a017836e3ad6f9310ed2886fd3e799e502d7dc",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+                "op": [
+                  "Erosion",
+                  "Lithification",
+                  "Metamorphism",
+                  "Weathering"
+                ],
+                "ai": 1,
+                "ex": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "How are clastic sedimentary rocks fundamentally composed?",
+                "op": [
+                  "Preexisting weathered rock",
+                  "Metamorphic minerals",
+                  "Deposited organic matter",
+                  "Magmatic intrusions"
+                ],
+                "ai": 0,
+                "ex": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Lithification",
+                "df": "The process where sediment is turned into stone through compaction and cementation.",
+                "eg": "Sandstone formation.",
+                "mi": "Thinking only about compaction without cementation.",
+                "cx": "Lithification requires both compaction and cementation to occur.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Clastic rocks",
+                "df": "Sedimentary rocks made from pieces of pre-existing weathered rock.",
+                "eg": "Shale or sandstone.",
+                "mi": "Assuming all sedimentary rocks are clastic.",
+                "cx": "Clastic rocks specifically consist of fragments of older rock.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "9e755ee37962e1e39e1a6f9e0edd80296937ff435d31f9981fb9c50a95ae9adb",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:39:32.432Z",
+          "durationMs": 5891,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "earth-materials-history-lab:geo/sedimentary-rocks",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+                "options": [
+                  "Erosion",
+                  "Lithification",
+                  "Metamorphism",
+                  "Weathering"
+                ],
+                "answerIndex": 2,
+                "explanation": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment."
+              },
+              "chosen": {
+                "question": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+                "options": [
+                  "Erosion",
+                  "Lithification",
+                  "Metamorphism",
+                  "Weathering"
+                ],
+                "answerIndex": 1,
+                "explanation": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 2,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-option-text",
+                    "surface": "Lithification is the correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "earth-materials-history-lab:geo/sedimentary-rocks",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "How are clastic sedimentary rocks fundamentally composed?",
+                "options": [
+                  "Preexisting weathered rock",
+                  "Metamorphic minerals",
+                  "Deposited organic matter",
+                  "Magmatic intrusions"
+                ],
+                "answerIndex": 3,
+                "explanation": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones."
+              },
+              "chosen": {
+                "question": "How are clastic sedimentary rocks fundamentally composed?",
+                "options": [
+                  "Preexisting weathered rock",
+                  "Metamorphic minerals",
+                  "Deposited organic matter",
+                  "Magmatic intrusions"
+                ],
+                "answerIndex": 0,
+                "explanation": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 0,
+                "scores": [
+                  3,
+                  2,
+                  0,
+                  0
+                ],
+                "supportMethod": "lexical-margin",
+                "explicitCues": [],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 2,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 2
+          }
+        },
+        {
+          "promptId": "earth-materials-history-lab:geo/metamorphic-rocks",
+          "kernelId": "geo/metamorphic-rocks",
+          "promptSha256": "7f38e93e07f16406801cf14837b793bb18abfc47dbb152c08083d9a8c9ee1e02",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What process forms a metamorphic rock?",
+                "op": [
+                  "Melting of the parent rock",
+                  "Heat, pressure, and fluids changing the parent rock",
+                  "Erosion of the parent rock",
+                  "Weathering of the parent rock"
+                ],
+                "ai": 0,
+                "ex": "The correct choice involves heat, pressure, and fluids changing the parent rock in the solid state. The misconception is melting the rock, which is incorrect as metamorphism occurs without melting.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What feature results from directed stress aligning mineral crystals?",
+                "op": [
+                  "Crystalline structure",
+                  "Foliation",
+                  "Melting",
+                  "Erosion"
+                ],
+                "ai": 3,
+                "ex": "Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Protolith",
+                "df": "The initial rock subjected to metamorphic change.",
+                "eg": "Shale undergoing metamorphism.",
+                "mi": "The final metamorphic rock.",
+                "cx": "The starting rock that undergoes metamorphism.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Metamorphism",
+                "df": "A change in a solid rock's composition and texture without melting.",
+                "eg": "A limestone turning into marble.",
+                "mi": "Melting of the rock.",
+                "cx": "Changing a solid rock's composition and texture without the mineral crystals melting.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "2db86566b3c30770cb220798d25b1220ce54b74f3c4e4dd8069f3d553f900046",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What feature results from directed stress aligning mineral crystals?",
+                "op": [
+                  "Crystalline structure",
+                  "Foliation",
+                  "Melting",
+                  "Erosion"
+                ],
+                "ai": 1,
+                "ex": "Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Protolith",
+                "df": "The initial rock subjected to metamorphic change.",
+                "eg": "Shale undergoing metamorphism.",
+                "mi": "The final metamorphic rock.",
+                "cx": "The starting rock that undergoes metamorphism.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Metamorphism",
+                "df": "A change in a solid rock's composition and texture without melting.",
+                "eg": "A limestone turning into marble.",
+                "mi": "Melting of the rock.",
+                "cx": "Changing a solid rock's composition and texture without the mineral crystals melting.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "a6de2b46f785efe05afa69191c047e08e067a997cfdfc1342269d14da0aa1f00",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-longest-option-cue"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:39:38.324Z",
+          "durationMs": 5582,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "earth-materials-history-lab:geo/metamorphic-rocks",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What process forms a metamorphic rock?",
+                "options": [
+                  "Melting of the parent rock",
+                  "Heat, pressure, and fluids changing the parent rock",
+                  "Erosion of the parent rock",
+                  "Weathering of the parent rock"
+                ],
+                "answerIndex": 0,
+                "explanation": "The correct choice involves heat, pressure, and fluids changing the parent rock in the solid state. The misconception is melting the rock, which is incorrect as metamorphism occurs without melting."
+              },
+              "chosen": {
+                "question": "What process forms a metamorphic rock?",
+                "options": [
+                  "Melting of the parent rock",
+                  "Heat, pressure, and fluids changing the parent rock",
+                  "Erosion of the parent rock",
+                  "Weathering of the parent rock"
+                ],
+                "answerIndex": 1,
+                "explanation": "The correct choice involves heat, pressure, and fluids changing the parent rock in the solid state. The misconception is melting the rock, which is incorrect as metamorphism occurs without melting."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 1,
+                "scores": [
+                  2,
+                  6,
+                  2,
+                  2
+                ],
+                "supportMethod": "lexical-margin",
+                "explicitCues": [],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "earth-materials-history-lab:geo/metamorphic-rocks",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What feature results from directed stress aligning mineral crystals?",
+                "options": [
+                  "Crystalline structure",
+                  "Foliation",
+                  "Melting",
+                  "Erosion"
+                ],
+                "answerIndex": 3,
+                "explanation": "Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress."
+              },
+              "chosen": {
+                "question": "What feature results from directed stress aligning mineral crystals?",
+                "options": [
+                  "Crystalline structure",
+                  "Foliation",
+                  "Melting",
+                  "Erosion"
+                ],
+                "answerIndex": 1,
+                "explanation": "Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-option-text",
+                    "surface": "Foliation is the correct result"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 2,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 2
+          }
+        },
+        {
+          "promptId": "earth-materials-history-lab:geo/rock-cycle",
+          "kernelId": "geo/rock-cycle",
+          "promptSha256": "4b887b1200e655f2bff7099cafddc441c2e7004e1d00770b1a733c827f8815ce",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which process is central to the rock cycle as described in the source material?",
+                "op": [
+                  "A) Weathering and erosion",
+                  "B) Formation of igneous rock",
+                  "C) Transformation between rock families",
+                  "D) Ordering events in geologic time"
+                ],
+                "ai": 0,
+                "ex": "Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "When liquid rock cools and solidifies, what type of rock is produced according to the cycle?",
+                "op": [
+                  "A) Metamorphic rock",
+                  "B) Sedimentary rock",
+                  "C) Igneous rock",
+                  "D) Pre-existing rock"
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because igneous rock forms when liquid rock freezes solid. Option A is incorrect as metamorphic rock forms from pre-existing rock under different conditions, and Option B is incorrect as sedimentary rock forms from lithified sediment.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Rock cycle",
+                "df": "The continuous transformation of Earth's three rock families.",
+                "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
+                "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
+                "cx": "The cycle involves igneous, sedimentary, and metamorphic rocks continually transforming into one another.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Igneous rock",
+                "df": "Rock created when liquid rock freezes solid into a solid state.",
+                "eg": "Basalt formed from cooling lava.",
+                "mi": "Thinking all rocks must be sedimentary.",
+                "cx": "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "df653c5398bae745373fb2e020e1c87ce965a61b39a82a8d2fe5e341c558afe1",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which process is central to the rock cycle as described in the source material?",
+                "op": [
+                  "A) Weathering and erosion",
+                  "B) Formation of igneous rock",
+                  "C) Transformation between rock families",
+                  "D) Ordering events in geologic time"
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "When liquid rock cools and solidifies, what type of rock is produced according to the cycle?",
+                "op": [
+                  "A) Metamorphic rock",
+                  "B) Sedimentary rock",
+                  "C) Igneous rock",
+                  "D) Pre-existing rock"
+                ],
+                "ai": 2,
+                "ex": "Option C is correct because igneous rock forms when liquid rock freezes solid. Option A is incorrect as metamorphic rock forms from pre-existing rock under different conditions, and Option B is incorrect as sedimentary rock forms from lithified sediment.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Rock cycle",
+                "df": "The continuous transformation of Earth's three rock families.",
+                "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
+                "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
+                "cx": "The cycle involves igneous, sedimentary, and metamorphic rocks continually transforming into one another.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Igneous rock",
+                "df": "Rock created when liquid rock freezes solid into a solid state.",
+                "eg": "Basalt formed from cooling lava.",
+                "mi": "Thinking all rocks must be sedimentary.",
+                "cx": "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "d7b7400006e30e1668b69c47809a6f313f66d93c0698646f7f7b2de49137a49b",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:39:43.907Z",
+          "durationMs": 6823,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "earth-materials-history-lab:geo/rock-cycle",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "Which process is central to the rock cycle as described in the source material?",
+                "options": [
+                  "A) Weathering and erosion",
+                  "B) Formation of igneous rock",
+                  "C) Transformation between rock families",
+                  "D) Ordering events in geologic time"
+                ],
+                "answerIndex": 0,
+                "explanation": "Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle."
+              },
+              "chosen": {
+                "question": "Which process is central to the rock cycle as described in the source material?",
+                "options": [
+                  "A) Weathering and erosion",
+                  "B) Formation of igneous rock",
+                  "C) Transformation between rock families",
+                  "D) Ordering events in geologic time"
+                ],
+                "answerIndex": 2,
+                "explanation": "Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-option-label",
+                    "surface": "Option C is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "earth-materials-history-lab:geo/geologic-time",
+          "kernelId": "geo/geologic-time",
+          "promptSha256": "1186cd10eaabebadfd863cbd2b193e909690a12c0dafe7235256c3d9a2834eb6",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which principle dictates that in an undisturbed sequence, the lowest layers of rock are the oldest?",
+                "op": [
+                  "Original horizontality",
+                  "Principle of superposition",
+                  "Absolute dating",
+                  "Relative dating"
+                ],
+                "ai": 2,
+                "ex": "The principle of superposition states that in an undisturbed sequence, the bottom layers are oldest. Misconception: Original horizontality suggests that all rock layers must be laid down horizontally, which is not the primary concept for determining relative age order.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "q": "What does absolute dating provide regarding mineral grains in a rock?",
+                "op": [
+                  "A numerical age in years",
+                  "A relative order of events",
+                  "The span of Earth's history",
+                  "The sequence of deposition"
+                ],
+                "ai": 1,
+                "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Numerical age assignment",
+                "df": "Assigning specific ages in years to mineral grains within a rock.",
+                "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
+                "mi": "Assuming that relative dating methods can provide precise numerical ages.",
+                "cx": "Absolute dating assigns specific ages in years to mineral grains within a rock.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Layering principle",
+                "df": "Sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+                "eg": "Observing tilted sedimentary layers to infer that the deposition was disturbed after the layers were laid down.",
+                "mi": "Assuming that all rock layers must be perfectly horizontal because they were deposited that way.",
+                "cx": "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "dcc610602d75f0f862a5e77d046302220d15f535cd22a714030ae61c7f932d2e",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which principle dictates that in an undisturbed sequence, the lowest layers of rock are the oldest?",
+                "op": [
+                  "Original horizontality",
+                  "Principle of superposition",
+                  "Absolute dating",
+                  "Relative dating"
+                ],
+                "ai": 2,
+                "ex": "The principle of superposition states that in an undisturbed sequence, the bottom layers are oldest. Misconception: Original horizontality suggests that all rock layers must be laid down horizontally, which is not the primary concept for determining relative age order.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "q": "What does absolute dating provide regarding mineral grains in a rock?",
+                "op": [
+                  "A numerical age in years",
+                  "A relative order of events",
+                  "The span of Earth's history",
+                  "The sequence of deposition"
+                ],
+                "ai": 1,
+                "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Numerical age assignment",
+                "df": "Assigning specific ages in years to mineral grains within a rock.",
+                "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
+                "mi": "Assuming that relative dating methods can provide precise numerical ages.",
+                "cx": "Absolute dating assigns specific ages in years to mineral grains within a rock.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "efbf85a81190183ad076975a8c7454c39b6a8cb886dd690e3adfdb20c555fa44",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-1-correction-repeats-definition"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:39:50.731Z",
+          "durationMs": 6596,
+          "compilerRepairs": [],
+          "compilerRepairCounts": {
+            "total": 0,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 0
+          }
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "earth-materials-history-lab:geo/minerals",
+        "kernelId": "geo/minerals",
+        "promptSha256": "eac0104b31b2bfc6a928151d4e1ddb1ca697e5057cb4d1d06845aecc07803d53",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which physical property is used to measure a mineral's resistance to scratching, and what is the scale used for this measurement?",
+              "op": [
+                "Luster, measured on the Mohs scale",
+                "Hardness, measured on the Mohs scale",
+                "Streak, measured on the Mohs scale",
+                "Cleavage, measured on the Mohs scale"
+              ],
+              "ai": 1,
+              "ex": "Hardness is measured on the Mohs scale. Misconception: Streak is measured on the Mohs scale. Correct: Hardness is the property measured on the Mohs scale.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+              "op": [
+                "Luster",
+                "Streak",
+                "Cleavage",
+                "Hardness"
+              ],
+              "ai": 3,
+              "ex": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Color of a mineral's powder",
+              "df": "Streak: The color of a mineral's powder. Example: The reddish-brown streak of hematite. Misconception: Streak is the color of the whole specimen. Correction: Streak is more reliable than the color of the whole specimen.",
+              "eg": "Hematite (iron oxide)",
+              "mi": "The color of the whole specimen",
+              "cx": "Streak is more reliable than the color of the whole specimen.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "How a mineral's surface reflects light",
+              "df": "Luster: Describes how a mineral's surface reflects light—metallic, glassy, or dull. Example: The metallic luster of pyrite. Misconception: Luster is the tendency to break along flat planes of weak bonding. Correction: Luster describes how a mineral's surface reflects light.",
+              "eg": "Pyrite (iron sulfide)",
+              "mi": "The tendency to break along flat planes of weak bonding",
+              "cx": "Luster describes how a mineral's surface reflects light.",
+              "sourceFactIndexes": [
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "23b586edc97897aed0f6ab0478ccc850042772e1db110574165ac8a5a0469b0d",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which physical property is used to measure a mineral's resistance to scratching, and what is the scale used for this measurement?",
+              "op": [
+                "Luster, measured on the Mohs scale",
+                "Hardness, measured on the Mohs scale",
+                "Streak, measured on the Mohs scale",
+                "Cleavage, measured on the Mohs scale"
+              ],
+              "ai": 1,
+              "ex": "Hardness is measured on the Mohs scale. Misconception: Streak is measured on the Mohs scale. Correct: Hardness is the property measured on the Mohs scale.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+              "op": [
+                "Luster",
+                "Streak",
+                "Cleavage",
+                "Hardness"
+              ],
+              "ai": 2,
+              "ex": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "e7e492bf44b017127953158b6a199e3769bdceb2d4528455e2b06fe2b3face96",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-0-embedded-field-label",
+            "key-term-0-misconception-repeats-definition",
+            "key-term-0-correction-repeats-definition",
+            "key-term-0-correction-repeats-misconception",
+            "key-term-1-embedded-field-label",
+            "key-term-1-misconception-repeats-definition",
+            "key-term-1-correction-repeats-definition",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:39:18.391Z",
+        "durationMs": 7616,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "earth-materials-history-lab:geo/minerals",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+              "options": [
+                "Luster",
+                "Streak",
+                "Cleavage",
+                "Hardness"
+              ],
+              "answerIndex": 3,
+              "explanation": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding."
+            },
+            "chosen": {
+              "question": "If a mineral exhibits a tendency to break along flat planes of weak bonding, which property is being described?",
+              "options": [
+                "Luster",
+                "Streak",
+                "Cleavage",
+                "Hardness"
+              ],
+              "answerIndex": 2,
+              "explanation": "Cleavage is the tendency of a mineral to break along flat planes of weak bonding. Misconception: Luster describes how a mineral's surface reflects light. Correct: Cleavage describes the tendency to break along flat planes of weak bonding."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-correction-label",
+                  "surface": "Correct: Cleavage describes the tendency to break along flat planes of weak bonding"
+                },
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-affirmative-lead",
+                  "surface": "Cleavage is"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              3
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "earth-materials-history-lab:geo/weathering-erosion",
+        "kernelId": "geo/weathering-erosion",
+        "promptSha256": "dfadfd4e91c18d60812bf029c542894064b124828a1c10d67638549ee99711f2",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which process describes the physical breakdown of bedrock into smaller pieces without altering its chemical composition?",
+              "op": [
+                "Chemical weathering",
+                "Erosion",
+                "Mechanical weathering",
+                "Sediment transport"
+              ],
+              "ai": 2,
+              "ex": "Mechanical weathering physically breaks bedrock into smaller pieces without changing its chemistry. The misconception is confusing physical breakdown with the movement of material away from the source.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "If water carries broken rock fragments downstream, which geological process is occurring?",
+              "op": [
+                "Mechanical weathering",
+                "Chemical weathering",
+                "Erosion",
+                "Sediment deposition"
+              ],
+              "ai": 0,
+              "ex": "Erosion is the transport of that sediment away by water, wind, gravity, or ice. The misconception is confusing the breaking of rock (weathering) with the movement of the resulting material.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Process of material removal by natural agents",
+              "df": "The movement of sediment away from its original location by agents like wind or water.",
+              "eg": "A river carrying sand downstream.",
+              "mi": "Confusing the breaking down of rock with the actual transport of the resulting debris.",
+              "cx": "This process is erosion, which is a mechanical process driven by water, wind, gravity, or ice that transports sediment.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Alteration of minerals through chemical change",
+              "df": "The dissolution or transformation of minerals into new substances, often occurring in warm, humid settings.",
+              "eg": "Limestone dissolving in acidic rainwater.",
+              "mi": "Assuming all breakdown of rock is purely physical, ignoring chemical alteration.",
+              "cx": "Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "0e77c7d4eb127d02721e5d95c63f135eec823c788a8d29a6bb850046a0d464b0",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which process describes the physical breakdown of bedrock into smaller pieces without altering its chemical composition?",
+              "op": [
+                "Chemical weathering",
+                "Erosion",
+                "Mechanical weathering",
+                "Sediment transport"
+              ],
+              "ai": 2,
+              "ex": "Mechanical weathering physically breaks bedrock into smaller pieces without changing its chemistry. The misconception is confusing physical breakdown with the movement of material away from the source.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "If water carries broken rock fragments downstream, which geological process is occurring?",
+              "op": [
+                "Mechanical weathering",
+                "Chemical weathering",
+                "Erosion",
+                "Sediment deposition"
+              ],
+              "ai": 2,
+              "ex": "Erosion is the transport of that sediment away by water, wind, gravity, or ice. The misconception is confusing the breaking of rock (weathering) with the movement of the resulting material.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Process of material removal by natural agents",
+              "df": "The movement of sediment away from its original location by agents like wind or water.",
+              "eg": "A river carrying sand downstream.",
+              "mi": "Confusing the breaking down of rock with the actual transport of the resulting debris.",
+              "cx": "This process is erosion, which is a mechanical process driven by water, wind, gravity, or ice that transports sediment.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Alteration of minerals through chemical change",
+              "df": "The dissolution or transformation of minerals into new substances, often occurring in warm, humid settings.",
+              "eg": "Limestone dissolving in acidic rainwater.",
+              "mi": "Assuming all breakdown of rock is purely physical, ignoring chemical alteration.",
+              "cx": "Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "6e8f45b80e3a8b4477915dd2b7a36f7721441fc40643d88a93d91bf1163a49cd",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:39:26.007Z",
+        "durationMs": 6424,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "earth-materials-history-lab:geo/weathering-erosion",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "If water carries broken rock fragments downstream, which geological process is occurring?",
+              "options": [
+                "Mechanical weathering",
+                "Chemical weathering",
+                "Erosion",
+                "Sediment deposition"
+              ],
+              "answerIndex": 0,
+              "explanation": "Erosion is the transport of that sediment away by water, wind, gravity, or ice. The misconception is confusing the breaking of rock (weathering) with the movement of the resulting material."
+            },
+            "chosen": {
+              "question": "If water carries broken rock fragments downstream, which geological process is occurring?",
+              "options": [
+                "Mechanical weathering",
+                "Chemical weathering",
+                "Erosion",
+                "Sediment deposition"
+              ],
+              "answerIndex": 2,
+              "explanation": "Erosion is the transport of that sediment away by water, wind, gravity, or ice. The misconception is confusing the breaking of rock (weathering) with the movement of the resulting material."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 0,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-affirmative-lead",
+                  "surface": "Erosion is"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0,
+              1
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "earth-materials-history-lab:geo/sedimentary-rocks",
+        "kernelId": "geo/sedimentary-rocks",
+        "promptSha256": "e4a2d604fe1d24cd4f7e4c4a4064a2e4db124adf9e21b079ba722a9236bee946",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+              "op": [
+                "Erosion",
+                "Lithification",
+                "Metamorphism",
+                "Weathering"
+              ],
+              "ai": 2,
+              "ex": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "How are clastic sedimentary rocks fundamentally composed?",
+              "op": [
+                "Preexisting weathered rock",
+                "Metamorphic minerals",
+                "Deposited organic matter",
+                "Magmatic intrusions"
+              ],
+              "ai": 3,
+              "ex": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Lithification",
+              "df": "The process where sediment is turned into stone through compaction and cementation.",
+              "eg": "Sandstone formation.",
+              "mi": "Thinking only about compaction without cementation.",
+              "cx": "Lithification requires both compaction and cementation to occur.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Clastic rocks",
+              "df": "Sedimentary rocks made from pieces of pre-existing weathered rock.",
+              "eg": "Shale or sandstone.",
+              "mi": "Assuming all sedimentary rocks are clastic.",
+              "cx": "Clastic rocks specifically consist of fragments of older rock.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "074340b54ff3188f79f3286900a017836e3ad6f9310ed2886fd3e799e502d7dc",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+              "op": [
+                "Erosion",
+                "Lithification",
+                "Metamorphism",
+                "Weathering"
+              ],
+              "ai": 1,
+              "ex": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "How are clastic sedimentary rocks fundamentally composed?",
+              "op": [
+                "Preexisting weathered rock",
+                "Metamorphic minerals",
+                "Deposited organic matter",
+                "Magmatic intrusions"
+              ],
+              "ai": 0,
+              "ex": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Lithification",
+              "df": "The process where sediment is turned into stone through compaction and cementation.",
+              "eg": "Sandstone formation.",
+              "mi": "Thinking only about compaction without cementation.",
+              "cx": "Lithification requires both compaction and cementation to occur.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Clastic rocks",
+              "df": "Sedimentary rocks made from pieces of pre-existing weathered rock.",
+              "eg": "Shale or sandstone.",
+              "mi": "Assuming all sedimentary rocks are clastic.",
+              "cx": "Clastic rocks specifically consist of fragments of older rock.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "9e755ee37962e1e39e1a6f9e0edd80296937ff435d31f9981fb9c50a95ae9adb",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:39:32.432Z",
+        "durationMs": 5891,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "earth-materials-history-lab:geo/sedimentary-rocks",
+            "item": 0,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+              "options": [
+                "Erosion",
+                "Lithification",
+                "Metamorphism",
+                "Weathering"
+              ],
+              "answerIndex": 2,
+              "explanation": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment."
+            },
+            "chosen": {
+              "question": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+              "options": [
+                "Erosion",
+                "Lithification",
+                "Metamorphism",
+                "Weathering"
+              ],
+              "answerIndex": 1,
+              "explanation": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 2,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-option-text",
+                  "surface": "Lithification is the correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0,
+              2
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "earth-materials-history-lab:geo/sedimentary-rocks",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "How are clastic sedimentary rocks fundamentally composed?",
+              "options": [
+                "Preexisting weathered rock",
+                "Metamorphic minerals",
+                "Deposited organic matter",
+                "Magmatic intrusions"
+              ],
+              "answerIndex": 3,
+              "explanation": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones."
+            },
+            "chosen": {
+              "question": "How are clastic sedimentary rocks fundamentally composed?",
+              "options": [
+                "Preexisting weathered rock",
+                "Metamorphic minerals",
+                "Deposited organic matter",
+                "Magmatic intrusions"
+              ],
+              "answerIndex": 0,
+              "explanation": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 0,
+              "scores": [
+                3,
+                2,
+                0,
+                0
+              ],
+              "supportMethod": "lexical-margin",
+              "explicitCues": [],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              3
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2
+        }
+      },
+      {
+        "promptId": "earth-materials-history-lab:geo/metamorphic-rocks",
+        "kernelId": "geo/metamorphic-rocks",
+        "promptSha256": "7f38e93e07f16406801cf14837b793bb18abfc47dbb152c08083d9a8c9ee1e02",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What process forms a metamorphic rock?",
+              "op": [
+                "Melting of the parent rock",
+                "Heat, pressure, and fluids changing the parent rock",
+                "Erosion of the parent rock",
+                "Weathering of the parent rock"
+              ],
+              "ai": 0,
+              "ex": "The correct choice involves heat, pressure, and fluids changing the parent rock in the solid state. The misconception is melting the rock, which is incorrect as metamorphism occurs without melting.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What feature results from directed stress aligning mineral crystals?",
+              "op": [
+                "Crystalline structure",
+                "Foliation",
+                "Melting",
+                "Erosion"
+              ],
+              "ai": 3,
+              "ex": "Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Protolith",
+              "df": "The initial rock subjected to metamorphic change.",
+              "eg": "Shale undergoing metamorphism.",
+              "mi": "The final metamorphic rock.",
+              "cx": "The starting rock that undergoes metamorphism.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Metamorphism",
+              "df": "A change in a solid rock's composition and texture without melting.",
+              "eg": "A limestone turning into marble.",
+              "mi": "Melting of the rock.",
+              "cx": "Changing a solid rock's composition and texture without the mineral crystals melting.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "2db86566b3c30770cb220798d25b1220ce54b74f3c4e4dd8069f3d553f900046",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What feature results from directed stress aligning mineral crystals?",
+              "op": [
+                "Crystalline structure",
+                "Foliation",
+                "Melting",
+                "Erosion"
+              ],
+              "ai": 1,
+              "ex": "Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Protolith",
+              "df": "The initial rock subjected to metamorphic change.",
+              "eg": "Shale undergoing metamorphism.",
+              "mi": "The final metamorphic rock.",
+              "cx": "The starting rock that undergoes metamorphism.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Metamorphism",
+              "df": "A change in a solid rock's composition and texture without melting.",
+              "eg": "A limestone turning into marble.",
+              "mi": "Melting of the rock.",
+              "cx": "Changing a solid rock's composition and texture without the mineral crystals melting.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "a6de2b46f785efe05afa69191c047e08e067a997cfdfc1342269d14da0aa1f00",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-0-longest-option-cue"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:39:38.324Z",
+        "durationMs": 5582,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "earth-materials-history-lab:geo/metamorphic-rocks",
+            "item": 0,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What process forms a metamorphic rock?",
+              "options": [
+                "Melting of the parent rock",
+                "Heat, pressure, and fluids changing the parent rock",
+                "Erosion of the parent rock",
+                "Weathering of the parent rock"
+              ],
+              "answerIndex": 0,
+              "explanation": "The correct choice involves heat, pressure, and fluids changing the parent rock in the solid state. The misconception is melting the rock, which is incorrect as metamorphism occurs without melting."
+            },
+            "chosen": {
+              "question": "What process forms a metamorphic rock?",
+              "options": [
+                "Melting of the parent rock",
+                "Heat, pressure, and fluids changing the parent rock",
+                "Erosion of the parent rock",
+                "Weathering of the parent rock"
+              ],
+              "answerIndex": 1,
+              "explanation": "The correct choice involves heat, pressure, and fluids changing the parent rock in the solid state. The misconception is melting the rock, which is incorrect as metamorphism occurs without melting."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 0,
+              "supportedIndex": 1,
+              "scores": [
+                2,
+                6,
+                2,
+                2
+              ],
+              "supportMethod": "lexical-margin",
+              "explicitCues": [],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "earth-materials-history-lab:geo/metamorphic-rocks",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What feature results from directed stress aligning mineral crystals?",
+              "options": [
+                "Crystalline structure",
+                "Foliation",
+                "Melting",
+                "Erosion"
+              ],
+              "answerIndex": 3,
+              "explanation": "Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress."
+            },
+            "chosen": {
+              "question": "What feature results from directed stress aligning mineral crystals?",
+              "options": [
+                "Crystalline structure",
+                "Foliation",
+                "Melting",
+                "Erosion"
+              ],
+              "answerIndex": 1,
+              "explanation": "Foliation is the correct result of directed stress aligning mineral crystals. The misconception is crystalline structure, which is too general and does not specify the effect of directed stress."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-option-text",
+                  "surface": "Foliation is the correct result"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              3
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2
+        }
+      },
+      {
+        "promptId": "earth-materials-history-lab:geo/rock-cycle",
+        "kernelId": "geo/rock-cycle",
+        "promptSha256": "4b887b1200e655f2bff7099cafddc441c2e7004e1d00770b1a733c827f8815ce",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which process is central to the rock cycle as described in the source material?",
+              "op": [
+                "A) Weathering and erosion",
+                "B) Formation of igneous rock",
+                "C) Transformation between rock families",
+                "D) Ordering events in geologic time"
+              ],
+              "ai": 0,
+              "ex": "Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "When liquid rock cools and solidifies, what type of rock is produced according to the cycle?",
+              "op": [
+                "A) Metamorphic rock",
+                "B) Sedimentary rock",
+                "C) Igneous rock",
+                "D) Pre-existing rock"
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because igneous rock forms when liquid rock freezes solid. Option A is incorrect as metamorphic rock forms from pre-existing rock under different conditions, and Option B is incorrect as sedimentary rock forms from lithified sediment.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Rock cycle",
+              "df": "The continuous transformation of Earth's three rock families.",
+              "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
+              "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
+              "cx": "The cycle involves igneous, sedimentary, and metamorphic rocks continually transforming into one another.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Igneous rock",
+              "df": "Rock created when liquid rock freezes solid into a solid state.",
+              "eg": "Basalt formed from cooling lava.",
+              "mi": "Thinking all rocks must be sedimentary.",
+              "cx": "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "df653c5398bae745373fb2e020e1c87ce965a61b39a82a8d2fe5e341c558afe1",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which process is central to the rock cycle as described in the source material?",
+              "op": [
+                "A) Weathering and erosion",
+                "B) Formation of igneous rock",
+                "C) Transformation between rock families",
+                "D) Ordering events in geologic time"
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "When liquid rock cools and solidifies, what type of rock is produced according to the cycle?",
+              "op": [
+                "A) Metamorphic rock",
+                "B) Sedimentary rock",
+                "C) Igneous rock",
+                "D) Pre-existing rock"
+              ],
+              "ai": 2,
+              "ex": "Option C is correct because igneous rock forms when liquid rock freezes solid. Option A is incorrect as metamorphic rock forms from pre-existing rock under different conditions, and Option B is incorrect as sedimentary rock forms from lithified sediment.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Rock cycle",
+              "df": "The continuous transformation of Earth's three rock families.",
+              "eg": "A limestone layer being subjected to intense heat and pressure to become marble.",
+              "mi": "Believing the rock cycle only involves the formation of igneous rocks.",
+              "cx": "The cycle involves igneous, sedimentary, and metamorphic rocks continually transforming into one another.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Igneous rock",
+              "df": "Rock created when liquid rock freezes solid into a solid state.",
+              "eg": "Basalt formed from cooling lava.",
+              "mi": "Thinking all rocks must be sedimentary.",
+              "cx": "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "d7b7400006e30e1668b69c47809a6f313f66d93c0698646f7f7b2de49137a49b",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:39:43.907Z",
+        "durationMs": 6823,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "earth-materials-history-lab:geo/rock-cycle",
+            "item": 0,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "Which process is central to the rock cycle as described in the source material?",
+              "options": [
+                "A) Weathering and erosion",
+                "B) Formation of igneous rock",
+                "C) Transformation between rock families",
+                "D) Ordering events in geologic time"
+              ],
+              "answerIndex": 0,
+              "explanation": "Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle."
+            },
+            "chosen": {
+              "question": "Which process is central to the rock cycle as described in the source material?",
+              "options": [
+                "A) Weathering and erosion",
+                "B) Formation of igneous rock",
+                "C) Transformation between rock families",
+                "D) Ordering events in geologic time"
+              ],
+              "answerIndex": 2,
+              "explanation": "Option C is correct because the rock cycle describes how the three rock families form and transform into one another. Option A is a separate process related to surface change, and Option B is only one step in the cycle."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 0,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-option-label",
+                  "surface": "Option C is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "earth-materials-history-lab:geo/geologic-time",
+        "kernelId": "geo/geologic-time",
+        "promptSha256": "1186cd10eaabebadfd863cbd2b193e909690a12c0dafe7235256c3d9a2834eb6",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which principle dictates that in an undisturbed sequence, the lowest layers of rock are the oldest?",
+              "op": [
+                "Original horizontality",
+                "Principle of superposition",
+                "Absolute dating",
+                "Relative dating"
+              ],
+              "ai": 2,
+              "ex": "The principle of superposition states that in an undisturbed sequence, the bottom layers are oldest. Misconception: Original horizontality suggests that all rock layers must be laid down horizontally, which is not the primary concept for determining relative age order.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "What does absolute dating provide regarding mineral grains in a rock?",
+              "op": [
+                "A numerical age in years",
+                "A relative order of events",
+                "The span of Earth's history",
+                "The sequence of deposition"
+              ],
+              "ai": 1,
+              "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Numerical age assignment",
+              "df": "Assigning specific ages in years to mineral grains within a rock.",
+              "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
+              "mi": "Assuming that relative dating methods can provide precise numerical ages.",
+              "cx": "Absolute dating assigns specific ages in years to mineral grains within a rock.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Layering principle",
+              "df": "Sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+              "eg": "Observing tilted sedimentary layers to infer that the deposition was disturbed after the layers were laid down.",
+              "mi": "Assuming that all rock layers must be perfectly horizontal because they were deposited that way.",
+              "cx": "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "dcc610602d75f0f862a5e77d046302220d15f535cd22a714030ae61c7f932d2e",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which principle dictates that in an undisturbed sequence, the lowest layers of rock are the oldest?",
+              "op": [
+                "Original horizontality",
+                "Principle of superposition",
+                "Absolute dating",
+                "Relative dating"
+              ],
+              "ai": 2,
+              "ex": "The principle of superposition states that in an undisturbed sequence, the bottom layers are oldest. Misconception: Original horizontality suggests that all rock layers must be laid down horizontally, which is not the primary concept for determining relative age order.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "What does absolute dating provide regarding mineral grains in a rock?",
+              "op": [
+                "A numerical age in years",
+                "A relative order of events",
+                "The span of Earth's history",
+                "The sequence of deposition"
+              ],
+              "ai": 1,
+              "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Numerical age assignment",
+              "df": "Assigning specific ages in years to mineral grains within a rock.",
+              "eg": "Determining the exact age of a specific quartz grain in a sandstone sample.",
+              "mi": "Assuming that relative dating methods can provide precise numerical ages.",
+              "cx": "Absolute dating assigns specific ages in years to mineral grains within a rock.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "efbf85a81190183ad076975a8c7454c39b6a8cb886dd690e3adfdb20c555fa44",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-1-correction-repeats-definition"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:39:50.731Z",
+        "durationMs": 6596,
+        "compilerRepairs": [],
+        "compilerRepairCounts": {
+          "total": 0,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 0
+        }
+      }
+    ]
+  },
+  "scionCompilerReplay": {
+    "schemaVersion": 1,
+    "protocol": "scion-source-compiler-replay-v1",
+    "release": "v0.16.43",
+    "generatedAt": "2026-07-16T16:00:00.000Z",
+    "sourceProject": {
+      "path": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-local.json",
+      "bytes": 91900,
+      "sha256": "5bd7f866e860907faa719e8e3d5abd0b59a19e576856e8c32488b9211b0d0ed5",
+      "projectId": "scion-source-capture-earth-materials-history-lab-local",
+      "captureProtocol": "scion-source-grounded-atom-capture-v1",
+      "captureCompletedAt": "2026-07-14T07:39:57.327Z"
+    },
+    "compilerSources": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 17355,
+        "sha256": "875484ba47f8db515c96686659d5d32283d2d855f1d270ef677432fafddcc34f"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 15696,
+        "sha256": "42902cc44b080b7e224d2c305c519916fd19fada27b16b019c5985a786b4a72f"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 33225,
+        "sha256": "732bbfa7f20bc4767bf8b0783745cee7abf98d130796dab6635837d14ad99ed5"
+      },
+      {
+        "path": "scripts/scionSourceCompilerReplay.mjs",
+        "bytes": 15464,
+        "sha256": "71d098b292ee16764f153bf5663044d0be06f8069b665ec9ca8a25cd91c6dbd7"
+      }
+    ],
+    "responseMutationCount": 0,
+    "repairRows": [
+      {
+        "promptId": "earth-materials-history-lab:geo/metamorphic-rocks",
+        "responseSha256": "2db86566b3c30770cb220798d25b1220ce54b74f3c4e4dd8069f3d553f900046",
+        "admittedResponseSha256": "a6de2b46f785efe05afa69191c047e08e067a997cfdfc1342269d14da0aa1f00",
+        "repairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2
+        },
+        "repairsSha256": "b7942127ac69cbef319fe4222e5687bb222a4f1dee15cfc98dce11133337d23f"
+      },
+      {
+        "promptId": "earth-materials-history-lab:geo/minerals",
+        "responseSha256": "23b586edc97897aed0f6ab0478ccc850042772e1db110574165ac8a5a0469b0d",
+        "admittedResponseSha256": "e7e492bf44b017127953158b6a199e3769bdceb2d4528455e2b06fe2b3face96",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "0ff73092115bde8cadbf9b47e05f2ce00c459be86f2ddce6559509729e547dae"
+      },
+      {
+        "promptId": "earth-materials-history-lab:geo/rock-cycle",
+        "responseSha256": "df653c5398bae745373fb2e020e1c87ce965a61b39a82a8d2fe5e341c558afe1",
+        "admittedResponseSha256": "d7b7400006e30e1668b69c47809a6f313f66d93c0698646f7f7b2de49137a49b",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "a2cbb21722ee91fc6c9440258dc84452cc0acb735283f57ef602a7306c474bc1"
+      },
+      {
+        "promptId": "earth-materials-history-lab:geo/sedimentary-rocks",
+        "responseSha256": "074340b54ff3188f79f3286900a017836e3ad6f9310ed2886fd3e799e502d7dc",
+        "admittedResponseSha256": "9e755ee37962e1e39e1a6f9e0edd80296937ff435d31f9981fb9c50a95ae9adb",
+        "repairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 2
+        },
+        "repairsSha256": "8594e31a07930bfd4b4f01452ff5347dd46707b08b4bd6a4eafdc821785d3669"
+      },
+      {
+        "promptId": "earth-materials-history-lab:geo/weathering-erosion",
+        "responseSha256": "0e77c7d4eb127d02721e5d95c63f135eec823c788a8d29a6bb850046a0d464b0",
+        "admittedResponseSha256": "6e8f45b80e3a8b4477915dd2b7a36f7721441fc40643d88a93d91bf1163a49cd",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "86921a6fa63e15c6736eea21b1f28228dc6254eeda5aa1cda6ce675d01e38f83"
+      }
+    ],
+    "repairCounts": {
+      "total": 7,
+      "incompleteExplanationTail": 0,
+      "explanationKeyAlignment": 7
+    },
+    "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
+    "identity": {
+      "algorithm": "sha256-canonical-source-compiler-replay-v1",
+      "sha256": "d9b1026ecbaab9500246388bbc2e59d0facce683c184935212b16a6ff72977f8"
+    }
+  }
+}

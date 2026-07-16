@@ -81,6 +81,94 @@ describe('Scion preference admission gate', () => {
     ).toMatchObject({ eligible: false });
   });
 
+  it('rejects answer choices that differ only by labels, articles, or punctuation', () => {
+    const result = assessScionMcItem(
+      goodMc({
+        op: [
+          'A. The ratio between two sonic frequencies.',
+          'B. A difference in pitch between two sounds.',
+          'C. The ratio between notes in a scale.',
+          'D. The difference in pitch between two sounds.',
+        ],
+        ai: 1,
+        ex: 'Pitch difference is the music-theory definition, while a frequency ratio is a physical description.',
+      }),
+    );
+    expect(result).toMatchObject({ eligible: false });
+    expect(result.issues).toContain('duplicate-options');
+  });
+
+  it('can reconstruct the frozen pre-semantic review-candidate ledger without weakening current admission', () => {
+    const semanticDuplicate = goodMc({
+      op: [
+        'A. The ratio between two sonic frequencies.',
+        'B. A difference in pitch between two sounds.',
+        'C. The ratio between notes in a scale.',
+        'D. The difference in pitch between two sounds.',
+      ],
+      ai: 1,
+      ex: 'Pitch difference is the music-theory definition, while a frequency ratio is a physical description.',
+    });
+    const content = { quizItems: [{ ...semanticDuplicate, type: 'multiple_choice' }], keyTerms: [] };
+    const project = (question) => ({
+      promptText: 'A frozen historical course input.',
+      fileNames: [],
+      courseGraphJson: JSON.stringify({
+        sessions: [{ number: 1, title: 'Lesson 1: Musical Intervals' }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              ...content,
+              quizItems: [{ ...semanticDuplicate, q: question, type: 'multiple_choice' }],
+            },
+          },
+        },
+      }),
+    });
+    const pair = {
+      id: 'historical-semantic-profile',
+      domain: 'music-theory',
+      candidateRoute: 'scion-test',
+      candidateModel: 'Scion',
+      referenceModel: 'Reference',
+      candidateProject: project('Which description best defines a musical interval?'),
+      referenceProject: project('Which statement best defines a musical interval?'),
+    };
+
+    expect(buildMatchedReviewCandidates([pair]).summary.candidates).toBe(0);
+    expect(buildMatchedReviewCandidates([pair], { semanticAdmission: false }).summary.candidates).toBe(1);
+  });
+
+  it('preserves structural delimiters when code options contain the same values', () => {
+    const result = assessScionMcItem(
+      goodMc({
+        q: 'Which notation constructs a Python list containing three quiz scores?',
+        op: ['[12, 15, 18]', '(12, 15, 18)', '{12, 15, 18}', '12, 15, 18'],
+        ai: 0,
+        ex: 'Square brackets construct the list; parentheses and braces represent different container forms.',
+      }),
+    );
+    expect(result.issues).not.toContain('duplicate-options');
+    expect(result.eligible).toBe(true);
+  });
+
+  it('rejects feedback that only repeats the keyed answer', () => {
+    const result = assessScionMcItem(
+      goodMc({
+        op: [
+          'The first scale degree alone.',
+          'The width of one scale step.',
+          'The characteristic interval pattern and the first degree.',
+          'The numerical scale-degree labels.',
+        ],
+        ai: 2,
+        ex: 'The characteristic interval pattern and the first degree.',
+      }),
+    );
+    expect(result).toMatchObject({ eligible: false });
+    expect(result.issues).toContain('explanation-repeats-answer');
+  });
+
   it('detects a declared key that contradicts the option supported by its explanation', () => {
     const conflicted = goodMc({
       ai: 0,

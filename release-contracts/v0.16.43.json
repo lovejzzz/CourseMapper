@@ -1,0 +1,133 @@
+{
+  "version": "0.16.43",
+  "date": "July 16, 2026",
+  "title": "Reject the False Pass: turn judged failures into semantic gates",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:semantic-admission",
+      "npm run audit:scion:source-compiler-replay",
+      "npm run audit:scion:compiler-lift",
+      "npm test -- --maxWorkers=4",
+      "npm run audit:evaluation:main",
+      "npm run format:check",
+      "npm run lint",
+      "npm run audit:release-history",
+      "npm run build",
+      "npm run bundle:check",
+      "npx playwright test tests/release-v01643.spec.js tests/export-smoke.spec.js --grep \"downloads representative|v0.16.43\""
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will confirm the same semantic replay, full test suite, build, and bundle gates after the release branch is pushed."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "This bounded compiler-quality milestone does not claim a trained adapter, held-out full-course win, paid-reference parity, or new device result."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "The release will deploy from the merged main commit after required verification succeeds."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The semantic replay uses retained source-grounded artifacts and the browser/compiler code path; it makes no fresh provider or model call."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human or instructor judgment is claimed or required."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "single-model-judge-semantic-compiler-replay-only",
+      "note": "The main layered evaluation passes the 40-fixture compiler contract, 13-case evidence-aware benchmark, and retained production canaries. The current release claim remains limited to conservative interception of nine previously judged Scion losses with zero model-text mutation; independent instructor evidence is still unverified, and this does not prove that the remaining outputs are factually correct or that an adapter beats base Scion."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01643-stable-loss-regression-replay",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "All 46 stable paired-order Scion losses replay through both the frozen v0.16.42 compiler and the current compiler; interception rises from zero to nine.",
+      "anchors": [
+        "scripts/scionSemanticAdmissionAudit.mjs",
+        "evaluation/scion-adapters/evidence/semantic-admission-baseline-v0.16.42.json",
+        "evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.43.json",
+        "tests/scion-semantic-admission.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:semantic-admission",
+        "npm test -- --maxWorkers=4 tests/scion-semantic-admission.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01643-explicit-cue-key-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Three stable wrong keys are realigned from unique exact affirmative explanation cues; only one answer-index field changes per artifact and no model-authored text changes.",
+      "anchors": [
+        "src/lib/scionAnswerKeyAlignment.js",
+        "tests/scion-answer-key-alignment.test.js",
+        "evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.43.json"
+      ],
+      "proofCommands": [
+        "npm test -- --maxWorkers=4 tests/scion-answer-key-alignment.test.js",
+        "npm run audit:scion:semantic-admission"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01643-semantic-admission-rejections",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Shared admission rejects two cosmetically duplicated option sets and four answer-only explanations into targeted regeneration.",
+      "anchors": [
+        "src/lib/scionPreferenceGate.js",
+        "src/lib/blueprintEnrichmentPass.js",
+        "src/lib/scionPasses.js",
+        "tests/scion-preference-gate.test.js"
+      ],
+      "proofCommands": [
+        "npm test -- --maxWorkers=4 tests/scion-preference-gate.test.js",
+        "npm run audit:scion:semantic-admission"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01643-honest-admission-cost",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The stricter retained-source replay admits 141/192 atoms instead of the prior 149/192, raising burden from 43 to 51 while preserving all retained model-response text.",
+      "anchors": [
+        "scripts/scionSourceCompilerReplay.mjs",
+        "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.43.json",
+        "evaluation/scion-source-compiler-replay-v0.16.43",
+        "tests/scion-source-compiler-replay.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:source-compiler-replay",
+        "npm test -- --maxWorkers=4 tests/scion-source-compiler-replay.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01643-unresolved-gap-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Thirty-seven stable losses remain unresolved; the corpus stays at 46/100 model-judge preferences and no quality adapter is trained, active, or promoted.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.43.json",
+        "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.43.json",
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:semantic-admission",
+        "npm run audit:scion:adapter:corpus-readiness",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

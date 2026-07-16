@@ -62,8 +62,8 @@ function resolveCandidateCourseGroup(row, domain) {
   };
 }
 
-function payloadAssessment(kind, value) {
-  if (kind === 'mc-item') return assessScionMcItem(value);
+function payloadAssessment(kind, value, { semanticAdmission = true } = {}) {
+  if (kind === 'mc-item') return assessScionMcItem(value, { semanticAdmission });
   if (kind === 'key-term') return assessScionKeyTerm(value);
   return { eligible: false, issues: ['unsupported-review-kind'] };
 }
@@ -531,6 +531,7 @@ export async function buildScionBlindReviewPacket({
   receiptOutput,
   requireSourceContext = false,
   generatedAt = new Date().toISOString(),
+  semanticAdmission = true,
 } = {}) {
   const [loadedRows, benchmark] = await Promise.all([
     Promise.all(sources.map(readRows)).then((rows) => rows.flat()),
@@ -556,8 +557,8 @@ export async function buildScionBlindReviewPacket({
     const first = parseJson(row[firstRole]);
     const second = parseJson(row[secondRole]);
     if (!String(row.prompt || '').trim() || !first || !second) continue;
-    if (!payloadAssessment(row.kind, first).eligible) continue;
-    if (neutral && !payloadAssessment(row.kind, second).eligible) continue;
+    if (!payloadAssessment(row.kind, first, { semanticAdmission }).eligible) continue;
+    if (neutral && !payloadAssessment(row.kind, second, { semanticAdmission }).eligible) continue;
     const courseGroup = resolveCandidateCourseGroup(row, domain);
     if (!courseGroup.valid) {
       excludedInvalidCourseGroups.push({
@@ -1140,6 +1141,7 @@ function parseArgs(argv) {
     heldOutBenchmark: DEFAULT_HELD_OUT_BENCHMARK,
     requireSourceContext: false,
     generatedAt: '',
+    semanticAdmission: true,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -1152,6 +1154,7 @@ function parseArgs(argv) {
     else if (arg === '--per-domain') args.perDomainLimit = Number(argv[++index]) || 0;
     else if (arg === '--source-only' || arg === '--require-source-context') args.requireSourceContext = true;
     else if (arg === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
+    else if (arg === '--legacy-semantic-admission') args.semanticAdmission = false;
     else if (arg === '--held-out-benchmark') args.heldOutBenchmark = argv[++index] || args.heldOutBenchmark;
     else if (arg === '--receipt') args.receiptOutput = argv[++index];
   }

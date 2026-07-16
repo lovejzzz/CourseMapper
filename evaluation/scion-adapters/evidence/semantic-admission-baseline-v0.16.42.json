@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-semantic-admission-replay-v1",
+  "release": "v0.16.42",
+  "generatedAt": "2026-07-16T15:45:27.000Z",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "evidenceClass": "single-model-judge-same-identity-paired-order-replay",
+  "inputs": {
+    "corpus": {
+      "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl",
+      "bytes": 202989,
+      "sha256": "61e2bc936c3f067f2675e73d85e43830a08fb04bdf14ecb72781199a9f1b3a4c",
+      "rows": 46
+    },
+    "campaign": {
+      "path": "evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json",
+      "bytes": 7226,
+      "sha256": "43b1791286befa78c7a24e929ca559a002e06b8a9eda9350f0cabfd615b78b45",
+      "packetId": "scion-review-c0498e55e87825b3c822",
+      "completedOrders": [
+        "A/B",
+        "B/A"
+      ]
+    },
+    "implementation": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 15236,
+        "sha256": "9bafad99aa4edd3dfe90982eb37d5988355051d34605aa8c290c9cb4e7979aef"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 14724,
+        "sha256": "78010301fc76388ff11a2a7f44d95442bc238777ac5b5e6fff60ecef9347c975"
+      },
+      {
+        "path": "src/lib/blueprintEnrichmentPass.js",
+        "bytes": 70253,
+        "sha256": "97dd6d570a97ba8c9da946bfcd6005eedad251c86d9e536ac8e938c254d7bd22"
+      }
+    ],
+    "baseline": null
+  },
+  "summary": {
+    "reviewedStableLosses": 46,
+    "acceptedWithoutInterception": 46,
+    "intercepted": 0,
+    "repaired": 0,
+    "rejectedForRegeneration": 0,
+    "responseTextMutations": 0,
+    "repairFieldMutations": 0,
+    "issues": {},
+    "repairCues": {},
+    "byDomain": {}
+  },
+  "intercepted": [],
+  "unresolvedStableLosses": 46,
+  "productBehavior": {
+    "repairs": "Only the answer-index field changes when one exact affirmative explanation cue uniquely supports another option.",
+    "rejections": "Cosmetic duplicate options and answer-only feedback are rejected at shared admission and enter the existing regeneration path.",
+    "modelNeutralBenefit": "The shared admission rejections apply to Scion and paid-model outputs; the local Scion parser additionally records conservative answer-key repairs."
+  },
+  "claimBoundary": "This replay measures interception of defects already identified in stable paired-order judgments from one Codex model. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Thirty-seven stable losses remain unresolved.",
+  "identity": {
+    "algorithm": "sha256-canonical-scion-semantic-admission-replay-v1",
+    "sha256": "3b629ae5982e8e301a799c7a17426d0385476ffd55be65e575c8b6b9e6b00cff"
+  }
+}

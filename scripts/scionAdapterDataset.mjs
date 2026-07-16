@@ -234,7 +234,7 @@ export function toScionOrpoTrainingRow(entry) {
   };
 }
 
-function withDerivedContractEvidence(row) {
+function withDerivedContractEvidence(row, { semanticAdmission = true } = {}) {
   if (
     row?.preferenceEvidence?.kind === 'single-model-judge-preference' &&
     validateScionCodexTrainingPreferenceEvidence(row.preferenceEvidence).valid
@@ -245,7 +245,7 @@ function withDerivedContractEvidence(row) {
   if (!kind) return row;
   const chosen = kind === 'lesson' ? lessonValue(row.chosen) : parsed(row.chosen);
   const rejected = kind === 'lesson' ? lessonValue(row.rejected) : parsed(row.rejected);
-  const evidence = deriveDeterministicContractEvidence({ kind, chosen, rejected });
+  const evidence = deriveDeterministicContractEvidence({ kind, chosen, rejected }, { semanticAdmission });
   if (!evidence) return row;
   return {
     ...row,
@@ -330,6 +330,7 @@ export async function buildScionAdapterDataset({
   domainMapPath = DEFAULT_DOMAIN_MAP,
   heldoutBenchmarkPath = DEFAULT_HELDOUT_BENCHMARK,
   generatedAt = new Date().toISOString(),
+  semanticAdmission = true,
 } = {}) {
   const sourceReceipts = await Promise.all(sources.map(inspectDatasetSource));
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
@@ -339,8 +340,8 @@ export async function buildScionAdapterDataset({
   const quarantine = [];
   const seen = new Set();
   for (const entry of loaded) {
-    const auditedRow = withDerivedContractEvidence(entry.row);
-    const assessment = assessCorpusRow(auditedRow, entry.source);
+    const auditedRow = withDerivedContractEvidence(entry.row, { semanticAdmission });
+    const assessment = assessCorpusRow(auditedRow, entry.source, { semanticAdmission });
     if (!assessment.eligible) {
       quarantine.push({ source: entry.source, line: entry.line, issues: assessment.issues });
       continue;

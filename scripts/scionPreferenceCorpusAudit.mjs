@@ -61,7 +61,7 @@ function pairKind(row) {
   return '';
 }
 
-export function assessCorpusRow(row, source = '') {
+export function assessCorpusRow(row, source = '', { semanticAdmission = true } = {}) {
   const kind = pairKind(row);
   const issues = [];
   const chosenRaw = parseJson(row?.chosen);
@@ -75,12 +75,15 @@ export function assessCorpusRow(row, source = '') {
 
   const chosen = kind === 'lesson' ? (chosenRaw?.lessons?.[0] ?? chosenRaw) : chosenRaw;
   const rejected = kind === 'lesson' ? (rejectedRaw?.lessons?.[0] ?? rejectedRaw) : rejectedRaw;
-  const result = assessScionPreferencePair({
-    kind,
-    chosen,
-    rejected,
-    preferenceEvidence: row.preferenceEvidence,
-  });
+  const result = assessScionPreferencePair(
+    {
+      kind,
+      chosen,
+      rejected,
+      preferenceEvidence: row.preferenceEvidence,
+    },
+    { semanticAdmission },
+  );
   return { ...result, kind, source };
 }
 

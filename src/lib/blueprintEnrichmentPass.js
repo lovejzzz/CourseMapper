@@ -3,7 +3,7 @@ import { expandKeys } from './keyMaps';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
 import { lintDecisionScenario } from './scenarioContract';
-import { repairScionMcItem } from './scionAnswerKeyAlignment';
+import { normalizeScionOptionIdentity, repairScionMcItem } from './scionAnswerKeyAlignment';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
 
 const DEFAULT_MAX_LESSONS = 12;
@@ -940,8 +940,15 @@ export function lintEnrichedQuizItem(item, { groundingText = '' } = {}) {
     }
     const lengths = options.map((option) => option.length);
     if (lengths.length === 4 && Math.max(...lengths) > Math.min(...lengths) * 3 + 20) issues.push('option-homogeneity');
-    if (new Set(options.map((option) => option.toLowerCase())).size !== options.length)
-      issues.push('duplicate-options');
+    if (new Set(options.map(normalizeScionOptionIdentity)).size !== options.length) issues.push('duplicate-options');
+    if (
+      Number.isInteger(answerIndex) &&
+      answerIndex >= 0 &&
+      answerIndex < options.length &&
+      normalizeScionOptionIdentity(item?.explanation) === normalizeScionOptionIdentity(options[answerIndex])
+    ) {
+      issues.push('explanation-repeats-answer');
+    }
     // CurriculumOS V1 Phase A: test-wiseness battery shared with the foundry
     // admission gate — cues that reveal the key without knowing the content.
     issues.push(...lintItemAdmission({ ...item, options }));

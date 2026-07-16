@@ -54,6 +54,13 @@ evaluation/scion-adapters/evidence/codex-review-v0.16.42-b-a.sealed.json
 evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl
 evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json
 evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.42.json
+# v0.16.43 replays exact judged artifacts and retained model responses. The
+# dedicated semantic/source auditors rebuild these files byte-for-byte.
+evaluation/scion-source-compiler-replay-v0.16.43
+evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.43.json
+evaluation/scion-adapters/evidence/semantic-admission-baseline-v0.16.42.json
+evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.43.json
+evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.43.json
 .firebase
 .claude
 **/.venv*/
