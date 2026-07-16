@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.40",
+  "version": "0.16.41",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -77,8 +77,12 @@
     "build:scion:codex-fresh-handoff": "node scripts/scionCodexFreshJudgeWorkbook.mjs --build",
     "audit:scion:codex-fresh-handoff": "node scripts/scionCodexFreshJudgeWorkbook.mjs --audit",
     "complete:scion:codex-fresh-pass": "node scripts/scionCodexFreshJudgeWorkbook.mjs --complete-and-seal",
-    "build:scion:codex-first-order": "node scripts/scionCodexFreshJudgeWorkbook.mjs --build --order A/B --release v0.16.36 --judge-model-id gpt-5.5 --judge-reasoning-effort xhigh --judge-revision gpt-5.5@xhigh --judge-runtime codex-desktop --generated-at 2026-07-15T23:58:00.000Z --output evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.36 --receipt-output evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.36.json --chunk-size 16",
-    "audit:scion:codex-first-order": "node scripts/scionCodexFreshJudgeWorkbook.mjs --audit --handoff evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.36 --receipt evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.36.json",
+    "build:scion:codex-first-order": "npm run build:scion:source-review-packet && node scripts/scionCodexFreshJudgeWorkbook.mjs --build --packet verification-output/scion-source-review-v0.16.40 --order A/B --release v0.16.41 --judge-model-id gpt-5.6-luna --judge-reasoning-effort max --judge-revision gpt-5.6-luna@max --judge-runtime codex-cli-0.144.2 --generated-at 2026-07-16T12:00:00.000Z --output evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41 --receipt-output evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.41.json --chunk-size 10",
+    "audit:scion:codex-first-order": "npm run build:scion:source-review-packet && node scripts/scionCodexFreshJudgeWorkbook.mjs --audit --packet verification-output/scion-source-review-v0.16.40 --handoff evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41 --receipt evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.41.json",
+    "audit:scion:codex-first-order:v0.16.36": "node scripts/scionCodexFreshJudgeWorkbook.mjs --audit --handoff evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.36 --receipt evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.36.json",
+    "build:scion:codex-first-order-evidence": "node scripts/scionCodexFirstOrderCampaign.mjs --write",
+    "audit:scion:codex-first-order-evidence": "node scripts/scionCodexFirstOrderCampaign.mjs",
+    "audit:scion:codex-first-order-evidence:local": "node scripts/scionCodexFirstOrderCampaign.mjs --verify-local-keys",
     "audit:scion:codex-first-order:v0.16.35": "node scripts/scionCodexFreshJudgeWorkbook.mjs --audit --handoff evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.35 --receipt evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.35.json",
     "build:scion:codex-fresh-handoff:legacy": "node scripts/scionCodexFreshJudgeHandoff.mjs --build",
     "audit:scion:codex-fresh-handoff:legacy": "node scripts/scionCodexFreshJudgeHandoff.mjs --audit",

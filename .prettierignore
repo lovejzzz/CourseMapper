@@ -38,6 +38,12 @@ evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.35
 evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.35.json
 evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.36
 evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.36.json
+# v0.16.41 binds its exact packet-backed workbook, tracked receipt, and
+# outcome-blind campaign receipt. Their dedicated auditors reconstruct and
+# validate the bytes; generic formatting would break the sealed lineage.
+evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41
+evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.41.json
+evaluation/scion-adapters/evidence/judge-campaign-v0.16.41.json
 .firebase
 .claude
 **/.venv*/

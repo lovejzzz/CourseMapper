@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-codex-decision-status-repair-v1",
+  "generatedAt": "2026-07-16T12:38:45.000Z",
+  "files": [
+    {
+      "file": "chunk-01-decisions-a-b.json",
+      "beforeSha256": "30021822a15a5c82437b4db6e4278e1a1107412c373891d4a5e7ef2400bffe41",
+      "afterSha256": "1e2a611f6dcb5c83cdfd7df1f82f7c269b55f47f8f66cbaeb49912de0071a3e8",
+      "scorecards": 20,
+      "repairsApplied": 20
+    },
+    {
+      "file": "chunk-02-decisions-a-b.json",
+      "beforeSha256": "46873a88f27445989280fca25d21b86ef32965afdea6b1e02077782203529feb",
+      "afterSha256": "c37ac5b0a7a9ce69058a1b41f900699afab64b8b00294e0460154c0b47556cf1",
+      "scorecards": 20,
+      "repairsApplied": 20
+    },
+    {
+      "file": "chunk-03-decisions-a-b.json",
+      "beforeSha256": "051d8a6d5385c67b0b7822226c4056189238d0313be416cfa2cadd7e5c093167",
+      "afterSha256": "98a894b32a69f3f6c1a4d2df1747e86fa3f97239068ca8e9a3872cdd7c5cef48",
+      "scorecards": 20,
+      "repairsApplied": 20
+    },
+    {
+      "file": "chunk-04-decisions-a-b.json",
+      "beforeSha256": "31cb2f6790d39c3ca2ae786bbbdf73a6c0013a322c7416820e119722080efa43",
+      "afterSha256": "6008acb569afb5dc411cc5d482af1d353267b24e6a7ddfbac4e19de2ee898533",
+      "scorecards": 20,
+      "repairsApplied": 20
+    },
+    {
+      "file": "chunk-05-decisions-a-b.json",
+      "beforeSha256": "6dae38ca6e7c3530506af2ec9ace472b01d71de7bcefc69f31f407206c152684",
+      "afterSha256": "e460bf1717225984e7691b8589808e5f501a17503d7d8c06d8668b1041bd0834",
+      "scorecards": 20,
+      "repairsApplied": 20
+    },
+    {
+      "file": "chunk-06-decisions-a-b.json",
+      "beforeSha256": "4d46f7f9d2768de780c5886c878b4e123cf19bcc3c03cd3abde23cd64e463241",
+      "afterSha256": "e20b6b9fc794b20c0324987f45afcf3252609577c52ae7455965aacc23925088",
+      "scorecards": 20,
+      "repairsApplied": 20
+    },
+    {
+      "file": "chunk-07-decisions-a-b.json",
+      "beforeSha256": "63479d27856e8b9e353897f0c6330edf6334089988eddf535d2a283193ea84a7",
+      "afterSha256": "37c2a55d3ca4888eeb364f02fdbc10cd1067e748ebbeac9655be984debb2433b",
+      "scorecards": 20,
+      "repairsApplied": 20
+    },
+    {
+      "file": "chunk-08-decisions-a-b.json",
+      "beforeSha256": "4a2644d7af2afc2c81cac172dde0256d32903708d4034311dc758eae5d42a857",
+      "afterSha256": "491da26f8f0d6bc11e613b011a2a7165cd0fe1493c62955a70ea72d2218d0d5f",
+      "scorecards": 20,
+      "repairsApplied": 20
+    },
+    {
+      "file": "chunk-09-decisions-a-b.json",
+      "beforeSha256": "fccb7694f69627cd23276375b80f37a1a3ae1d5c64313ad8da63b16d2d9f3432",
+      "afterSha256": "316d983dc4344e6573220d194fadeeb3d428e1bb02cfb463dec74a205eec530c",
+      "scorecards": 20,
+      "repairsApplied": 20
+    },
+    {
+      "file": "chunk-10-decisions-a-b.json",
+      "beforeSha256": "bae38bc13b7f848584711930754b7b861aca789adfd3f0759bfd8e9dce8f8954",
+      "afterSha256": "307861f1a5f00545b275c9ee14be339a1180205726b171bebfd764ecbca6430c",
+      "scorecards": 20,
+      "repairsApplied": 20
+    }
+  ],
+  "scorecardsVisited": 200,
+  "repairsApplied": 200,
+  "repair": {
+    "field": "scorecards[].evaluationStatus",
+    "from": "complete",
+    "to": "scored",
+    "precondition": "exactly five integer scores in the inclusive range 1..5",
+    "scoreValuesChanged": false,
+    "preferencesChanged": false,
+    "evidenceChanged": false,
+    "defectsChanged": false
+  },
+  "claimBoundary": "This deterministic repair changes only an unsupported completion-status label after complete numeric scoring. It does not alter or disclose a score, preference, winner, rationale, evidence statement, or defect."
+}

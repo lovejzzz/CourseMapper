@@ -1,0 +1,1062 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-c0498e55e87825b3c822",
+    "packetDigest": "c0498e55e87825b3c8221977ba3ebed6ee90061a36f14896121d8487dfdc4676",
+    "organizerDigest": "adc07fc11717507b30fe8be8a2e9d2104d3b4638a34594a6a5e852172cb2248f"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-7d0f788f423dda2aa2b3",
+      "caseDigest": "3653e0f859181cde58999b3295f6b61f7e9d7acb612070a09ed5a58286483a94",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "b90861d3634ef018651b86b99dabe29b80ddc54ab07b46fb38080b7c07b58089",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/variables",
+        "term": "Variables and assignment",
+        "claims": [
+          "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+          "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+          "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+          "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+          "Variable names are case-sensitive, so total and Total are two different variables."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.3 Variables"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "56f132452037e34e9d9caadd12717e38ca9dbd4d5e96aaf8cab585bc96db2f90",
+          "artifact": {
+            "q": "When using the assignment operator in Python, what is the primary effect on the variable on the left side of the operator?",
+            "op": [
+              "A: It asserts that the value on the left is mathematically equal to the value on the right.",
+              "B: It copies the value from the right side into the variable on the left.",
+              "C: It binds the name on the left to the value produced on the right.",
+              "D: It creates a new, independent copy of the value on the right."
+            ],
+            "ai": 2,
+            "ex": "Option C is correct because the assignment operator binds the name on the left to the value produced on the right. Option B is a misconception because assignment is not mathematical equality; it copies a value rather than asserting two sides are equal."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "84f5f6a1d5d301031e8fef09b51895325a75f03a94d015064eb8613be0ceea07",
+          "artifact": {
+            "q": "In the line count = count + 1, what does the assignment operator do?",
+            "op": [
+              "Checks whether both sides are equal",
+              "Binds count to the value produced on the right",
+              "Creates two variables with the same name",
+              "Deletes the old value stored in count"
+            ],
+            "ai": 1,
+            "ex": "B is correct because assignment places the result of the right-hand expression into the name on the left. A is the common misconception: = in Python assignment is not a test for equality."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "56f132452037e34e9d9caadd12717e38ca9dbd4d5e96aaf8cab585bc96db2f90",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "84f5f6a1d5d301031e8fef09b51895325a75f03a94d015064eb8613be0ceea07",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7f8e74e3b21a1a60505b",
+      "caseDigest": "39069188c5356ad74e37fccbe3acbc4ccb16f8bc1fe3d6be35e5815f4e064cb4",
+      "domain": "computer-science",
+      "courseGroupSha256": "a221877bef9b05f6d79d1385030773dfb135b99f93ad11a5141bdee946750954",
+      "sourceContextSha256": "932c96bb2d48e632aa82605f1c7dd1d6c3c156541fb5165beecaa0954159e64c",
+      "sourceContext": {
+        "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+        "kernelId": "cs/dictionaries",
+        "term": "Dictionaries",
+        "claims": [
+          "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+          "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §10.1 Dictionary basics"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b71d40a0d8ba5079293d524b36653a1854b644dfff9eb5a26a00b81f6e7f332c",
+          "artifact": {
+            "q": "A program uses a dictionary to track unique course codes and their rooms. What happens if the same course code is added again as a new key?",
+            "op": [
+              "The later room replaces the earlier one",
+              "Both rooms stay under the same code",
+              "The code becomes a numeric index",
+              "The dictionary turns into a list"
+            ],
+            "ai": 0,
+            "ex": "The later room replaces the earlier one because a dictionary cannot hold duplicate keys. The tempting misconception is that duplicate labels can be stored side by side, but key-based lookup does not allow that."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e00443d5283e86fcc7e86d517b70f4376cc57567606dadb992443211b92fc84a",
+          "artifact": {
+            "q": "If a data structure cannot hold duplicate keys, which structure is it?",
+            "op": [
+              "List, because it allows multiple identical elements.",
+              "Array, because it stores elements sequentially.",
+              "Dictionary, because it looks up values by unique keys.",
+              "Set, because it only stores unique values."
+            ],
+            "ai": 2,
+            "ex": "The correct choice is Dictionary because because a dictionary looks up values using keys, it cannot hold duplicate keys. A common misconception is choosing a List because it allows multiple identical elements, which is incorrect as lists can contain duplicate values."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b71d40a0d8ba5079293d524b36653a1854b644dfff9eb5a26a00b81f6e7f332c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e00443d5283e86fcc7e86d517b70f4376cc57567606dadb992443211b92fc84a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-0de88e17714e75348c7d",
+      "caseDigest": "356215f5855379fff30c511228b659b57e77d3b5cdfb6286138d021d7e6a5c3d",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "c5407e5008d9e7da1f10b9c8f7ac3fcb45289d8b7413829a323c4fd655a44fcc",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/plate-tectonics",
+        "term": "Plate tectonics and boundaries",
+        "claims": [
+          "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+          "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+          "At convergent boundaries, two or more plates move toward each other and lithosphere is destroyed.",
+          "At a transform boundary, plates slide horizontally past each other."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "48b008889816cdf138121c0d76cecae16b5d866d1e7f1308349842e19cc52dc8",
+          "artifact": {
+            "tr": "Transform boundary",
+            "df": "A plate boundary where adjacent plates move sideways past one another.",
+            "eg": "A fault zone where two blocks slide horizontally with little opening or closing.",
+            "mi": "It means plates are colliding or pulling apart.",
+            "cx": "Sideways motion defines transform motion; collision and separation describe convergent and divergent boundaries."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "b96f56bf7882f494ca9f8b456e2f11252cff30ef94b22a4da6733f415290b760",
+          "artifact": {
+            "tr": "Asthenosphere",
+            "df": "The ductile layer beneath the lithosphere that allows plate movement.",
+            "eg": "The layer beneath the Pacific Plate where movement occurs.",
+            "mi": "The solid, brittle outer crust.",
+            "cx": "Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "48b008889816cdf138121c0d76cecae16b5d866d1e7f1308349842e19cc52dc8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "b96f56bf7882f494ca9f8b456e2f11252cff30ef94b22a4da6733f415290b760",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-1c20653bd2b4e5e0efdf",
+      "caseDigest": "2aec977fa00753ae48356902939ceab0aeb7ea70e8918509dd534eceb02f2a92",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "a95651e0bfce941c3d674d3c73b51fd9bfb42e78eba86dee94e3c690cd03452e",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/weathering-erosion",
+        "term": "Weathering and erosion",
+        "claims": [
+          "Weathering breaks bedrock into sediment in place, while erosion is the transport of that sediment away by water, wind, gravity, or ice.",
+          "Erosion is a mechanical process, driven by water, wind, gravity, or ice, that transports sediment.",
+          "Mechanical weathering physically breaks bedrock into smaller pieces without changing its chemistry.",
+          "Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §5.1 Weathering and erosion"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "89b7ea69e522a63023454942aa493894281d7c87a8d88d3f29d01f7618e61cfa",
+          "artifact": {
+            "tr": "Alteration of minerals through chemical change",
+            "df": "The dissolution or transformation of minerals into new substances, often occurring in warm, humid settings.",
+            "eg": "Limestone dissolving in acidic rainwater.",
+            "mi": "Assuming all breakdown of rock is purely physical, ignoring chemical alteration.",
+            "cx": "Chemical weathering dissolves or alters minerals into new substances and dominates in warm, humid environments."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f87aef24ffb8c756642dc0a92a10ace1948dd3f27f973d2a36c307b16c893131",
+          "artifact": {
+            "tr": "Erosion",
+            "df": "The transport of sediment away by water, wind, gravity, or ice.",
+            "eg": "Rainwater moving soil and sand from a slope into a stream channel.",
+            "mi": "It is the same as breaking rock into smaller pieces.",
+            "cx": "Breaking rock in place is weathering; erosion begins when the sediment is moved."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "89b7ea69e522a63023454942aa493894281d7c87a8d88d3f29d01f7618e61cfa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f87aef24ffb8c756642dc0a92a10ace1948dd3f27f973d2a36c307b16c893131",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-283e76a26df770dcefde",
+      "caseDigest": "90b1b60fad70af2541d3dd17a59af98a708bb0497a0bad8a450db0be23eff6d3",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "bb1aec1482bb90844701b35166ea23c2908ce6ffa73c8ccc12fdd1dab384a51b",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/sedimentary-rocks",
+        "term": "Sedimentary rocks and environments",
+        "claims": [
+          "Sedimentary rock forms when sediment is deposited, compacted under burial, and cemented into stone — a process called lithification — and its features record the depositional environment.",
+          "Compaction occurs as more material accumulates on top, squeezing the grains together.",
+          "Cementation glues the grains together with minerals; compaction and cementation together are lithification.",
+          "Clastic (detrital) sedimentary rocks are made of pieces of preexisting weathered rock.",
+          "The features of a sedimentary rock are read to reconstruct its original depositional environment."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §5.3 Sedimentary rocks"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "1694539bf0a0dbddfca2214444f41b413e3168030f588d05e798ab205af2e2e3",
+          "artifact": {
+            "q": "How are clastic sedimentary rocks fundamentally composed?",
+            "op": [
+              "Preexisting weathered rock",
+              "Metamorphic minerals",
+              "Deposited organic matter",
+              "Magmatic intrusions"
+            ],
+            "ai": 0,
+            "ex": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "183fda18927cc2f042a1731ad3bc2c33fb419db724e024310e23d00b90e7c54e",
+          "artifact": {
+            "q": "A field team uses ripple marks and grain features in a sandstone bed to infer where it formed. What are they using those features for?",
+            "op": [
+              "Reconstructing the original depositional environment",
+              "Measuring the amount of compaction after burial",
+              "Identifying the rock as clastic from weathered pieces",
+              "Proving the rock formed by cementation alone"
+            ],
+            "ai": 0,
+            "ex": "Those features are read to reconstruct the depositional environment; the misconception is that such features mainly reveal burial compaction rather than the setting of deposition."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "1694539bf0a0dbddfca2214444f41b413e3168030f588d05e798ab205af2e2e3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "183fda18927cc2f042a1731ad3bc2c33fb419db724e024310e23d00b90e7c54e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-17c6d6e29a5430b85192",
+      "caseDigest": "079241ef26c66bd9b6cbc60854d0b561c671a996ac0ee6e619fb9ec8e9edbae7",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "fb48e198d508eff299f348aef676c2c349adaf06e2688fc9d364dffb79bf38ac",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/harmony-and-progressions",
+        "term": "Harmony and chord progressions",
+        "claims": [
+          "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+          "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+          "A first chord forms a 'progression' with a second chord, and a second with a third.",
+          "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+          "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b5aaa99d5ab4cef9ee9dda40576960ba8df05cc3a29bfbc386856367d17828b7",
+          "artifact": {
+            "q": "What is the fundamental concept of combining different sounds to generate novel musical ideas?",
+            "op": [
+              "A. Musical form",
+              "B. Chord construction",
+              "C. Harmony",
+              "D. Rhythmic structure"
+            ],
+            "ai": 0,
+            "ex": "Harmony is the concept of combining different sounds in order to create new, distinct musical ideas. (Misconception: Chord construction is the concept of combining sounds.)"
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1e90987469be58671a11a0a739317dbcceb3996ce1c8d944e29fdd6f13e0b03c",
+          "artifact": {
+            "q": "In a Western tonal context, what best describes harmony?",
+            "op": [
+              "Different sounds combined to create distinct musical ideas",
+              "A single melody supported only by rhythm",
+              "A sequence of silent pauses in a phrase",
+              "The written names of individual notes"
+            ],
+            "ai": 0,
+            "ex": "Correct: harmony is the combination of different sounds to create new musical ideas. The likely misconception is to treat harmony as either melody alone or as a list of note names, but the source defines it as sound combination rather than notation or a single line."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "b5aaa99d5ab4cef9ee9dda40576960ba8df05cc3a29bfbc386856367d17828b7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1e90987469be58671a11a0a739317dbcceb3996ce1c8d944e29fdd6f13e0b03c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-b89b0ce7a8de473d139c",
+      "caseDigest": "dc3bc3e060ad597e73e52b5aa9274fa9f80e60c2a1958739584f9aaf0f49da33",
+      "domain": "music-theory",
+      "courseGroupSha256": "ba52e417a04964f314052535759ad5625cf55f7d8e6a3c029c4fc7aa1c511d07",
+      "sourceContextSha256": "ef93480f90ed75647a62b70f383d83e59b888f6538dd5e921616370a702004e5",
+      "sourceContext": {
+        "sourcePacketSha256": "ce93fbd07eb207b94f11a0d732a5f849a22378d45b58fc59c771e3b21adf53a6",
+        "kernelId": "music/musical-form",
+        "term": "Musical form",
+        "claims": [
+          "In music, form refers to the structure of a musical composition or performance.",
+          "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+          "Musical form unfolds over time through the expansion and development of these ideas.",
+          "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+          "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+          "The next level concerns the entire structure of any single self-contained musical piece or movement."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f5776284688d6ff50e372aad152172db4d6cd105b17889bca76c8133eb8d769c",
+          "artifact": {
+            "tr": "Binary form",
+            "df": "A musical piece consisting of two sections of equal length.",
+            "eg": "An A-B form where section A and section B are the same length.",
+            "mi": "Binary form is the same as sectional evidence.",
+            "cx": "The term 'binary form' is used to describe a musical piece with two sections that are about equal in length."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6708e0c51e5ef0bf3bdb51b4f4ce53c406e86c4ab2d4c9efbd489e842b7909cf",
+          "artifact": {
+            "tr": "Binary form",
+            "df": "A pattern built from two sections that are about equal in length.",
+            "eg": "A dance movement with an A section and a matching B section.",
+            "mi": "It means any piece with exactly two notes or two measures.",
+            "cx": "The label refers to two balanced sections, not to the number of notes or measures."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f5776284688d6ff50e372aad152172db4d6cd105b17889bca76c8133eb8d769c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6708e0c51e5ef0bf3bdb51b4f4ce53c406e86c4ab2d4c9efbd489e842b7909cf",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-3e6e729671600e07dc7c",
+      "caseDigest": "fc1f023dab2c0f02689ef7a5eaeb5530327f5753dd148bb3bdd5eef7235aae9c",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+      "sourceContextSha256": "10db9eb332b2ea14802cd738f5ecaef9f7b1818d0964163ee8f2b052ccd4aa73",
+      "sourceContext": {
+        "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+        "kernelId": "ux/evidence-based-personas",
+        "term": "Personas",
+        "claims": [
+          "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "Personas are one way to present research findings so other people can understand and share them.",
+          "User needs are generally higher-level and more stable over time than individual interface requests.",
+          "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+          "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ac89affa9a4c93c5b26279f0e5f44f070aa164739cffd55a03388e42814efde9",
+          "artifact": {
+            "tr": "Need articulation",
+            "df": "Turning user needs into user stories that describe features and content intended to meet those needs.",
+            "eg": "Writing a user story like 'As a user, I want X so that Y'.",
+            "mi": "This is simply stating a desired feature.",
+            "cx": "This is need articulation, which translates high-level needs into actionable user stories."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "982fdae5550ab31e309a3149ed8c4b2fff7588afb5d3004ea0e9d6ffae35f981",
+          "artifact": {
+            "tr": "User story",
+            "df": "A short feature-focused statement that expresses how a product should meet a user need.",
+            "eg": "A team turns the need for fast access into a story about saving a draft from any device.",
+            "mi": "It is the same thing as a raw user need.",
+            "cx": "A need is higher-level and more stable, while the story describes features or content meant to address it."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ac89affa9a4c93c5b26279f0e5f44f070aa164739cffd55a03388e42814efde9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "982fdae5550ab31e309a3149ed8c4b2fff7588afb5d3004ea0e9d6ffae35f981",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-45f7974b712e10c0d9ec",
+      "caseDigest": "d6b8af82e8c01ed4eadba60c0c696b8804f8c091b034dca97e2a1941f9029949",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+      "sourceContextSha256": "eae886b2eb2486d3a7ef1c8e1962b766242f767255a2d950e9b59bd9f6387afa",
+      "sourceContext": {
+        "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ab749492f2bd0bba51b63aae5474f2d9d4551e4974f9be141297a9f43e8924c3",
+          "artifact": {
+            "tr": "Interactive prototyping",
+            "df": "Building a testable representation of an intended experience that shows how it looks and works before every production detail exists.",
+            "eg": "A team creates a clickable app mockup to check the main screen changes and button behavior before full development.",
+            "mi": "It is the same as a finished product.",
+            "cx": "A prototype is for learning and testing, and it may leave some details unfinished."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c283545066ba22b3d8779acef304be04dc64ca6d4d62657d386e4f9b4db6d1a6",
+          "artifact": {
+            "tr": "Testable representation",
+            "df": "A preliminary model of an experience that can be used to verify design concepts.",
+            "eg": "A low-fidelity wireframe used to test the flow of a new navigation menu.",
+            "mi": "A testable representation must include every production detail.",
+            "cx": "A testable representation builds a testable representation of how a planned experience looks and works without requiring every production detail."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ab749492f2bd0bba51b63aae5474f2d9d4551e4974f9be141297a9f43e8924c3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c283545066ba22b3d8779acef304be04dc64ca6d4d62657d386e4f9b4db6d1a6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-88bcdf6deb0f0395f370",
+      "caseDigest": "bc815530ee27c1624473d9357e63bc8f760a2ffeaca5b47c20439e1e2c552d2a",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "ab10b15269aa5d7e3e8b051f33db9774e4921e4969bd1a9591587a2099e8c480",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "term": "Accessibility and usability evaluation",
+        "claims": [
+          "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "A single disabled participant's experience should not be generalized to all people with disabilities."
+        ],
+        "attribution": [
+          "W3C Web Accessibility Initiative",
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "W3C Document License and U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "e477df3450d2a830e6dfc88f39eddb5d681043213d77d9cd40889780ac4ec005",
+          "artifact": {
+            "tr": "Usability test",
+            "df": "A method for watching people try to complete tasks on a product or service, often with verbal commentary.",
+            "eg": "Students ask participants to complete a checkout flow and speak their thoughts aloud while the team notes breakdowns.",
+            "mi": "It is just a survey about how much users like the interface.",
+            "cx": "The method depends on observed task attempts, not only post-session opinions."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "250fc747e497280d3bb2eee9790b6f12c3260a02a3e8f7d14ed737828c2cc6ec",
+          "artifact": {
+            "tr": "Conformance evaluation",
+            "df": "Checking adherence to established accessibility standards.",
+            "eg": "Verifying if a website meets WCAG criteria for color contrast.",
+            "mi": "Conformance evaluation is the only way to ensure a product is usable.",
+            "cx": "Conformance evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0)."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "e477df3450d2a830e6dfc88f39eddb5d681043213d77d9cd40889780ac4ec005",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "250fc747e497280d3bb2eee9790b6f12c3260a02a3e8f7d14ed737828c2cc6ec",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

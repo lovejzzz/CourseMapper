@@ -1,0 +1,1074 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-c0498e55e87825b3c822",
+    "packetDigest": "c0498e55e87825b3c8221977ba3ebed6ee90061a36f14896121d8487dfdc4676",
+    "organizerDigest": "adc07fc11717507b30fe8be8a2e9d2104d3b4638a34594a6a5e852172cb2248f"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-73f3a5021e100fb0b1b5",
+      "caseDigest": "e5aa1c6857fc455bcc2d5a7268a9d9d6882c57009c205a47f960621fdf9b47b7",
+      "domain": "computer-science",
+      "courseGroupSha256": "a221877bef9b05f6d79d1385030773dfb135b99f93ad11a5141bdee946750954",
+      "sourceContextSha256": "23dab0a9add28285e651a8bbf017b313ad7fb9cab5175d5841b1e96a220a38b4",
+      "sourceContext": {
+        "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+        "kernelId": "cs/lists",
+        "term": "Lists",
+        "claims": [
+          "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+          "A list is written with square brackets [] holding comma-separated values.",
+          "Individual elements are accessed directly using an index.",
+          "Indexes begin at 0 and end at one less than the length of the sequence.",
+          "A for loop can iterate through a list, visiting each element in order."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §3.4 List basics; §9.1 Modifying and iterating lists"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "275787210c475248133aacc726bd41a8c3bc021ea358c458aa37b2f4ab726e4f",
+          "artifact": {
+            "tr": "Square bracket notation",
+            "df": "The specific syntax used to define a list in Python.",
+            "eg": "Defining a list as [10, 20, 30].",
+            "mi": "Using parentheses () to define a collection of items.",
+            "cx": "Using square brackets [] to define a list."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "87a763c26a19d1596a15d6c9afeabd179135a7530c1fbe0dfb441bb9fabba2e3",
+          "artifact": {
+            "tr": "List",
+            "df": "An ordered collection written with square brackets, where each element has an index.",
+            "eg": "[3, 5, 8] is a list of three values, and 5 is at index 1.",
+            "mi": "A common mistake is thinking the first position is index 1.",
+            "cx": "Indexes begin at 0, so the first element is at index 0."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "275787210c475248133aacc726bd41a8c3bc021ea358c458aa37b2f4ab726e4f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "87a763c26a19d1596a15d6c9afeabd179135a7530c1fbe0dfb441bb9fabba2e3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-42709d4c8fc2b37ea829",
+      "caseDigest": "c3745f150d5429c93e872f85f56daa3e96b5455111910a63e50c74967f69903b",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "7d6e604b7ee6db3e0be91d9564d34598a9733454c22b6464b355e905067c2fc3",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/strings",
+        "term": "Strings and slicing",
+        "claims": [
+          "A string is a sequence of characters indexed from left to right starting at 0; slicing extracts a contiguous substring with the [a:b] notation.",
+          "For a string s, the left-most character is index 0 and the right-most is index len(s) - 1.",
+          "Negative indexing refers to characters from right to left starting at -1.",
+          "A slice s[a:b] returns characters from index a (inclusive) up to index b (exclusive)."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.4 String basics; §8.2 String slicing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "96e9afb03a2342624c9cb655e7e8e91bb0632066616b3fb8f2a102d22732369b",
+          "artifact": {
+            "tr": "String indexing",
+            "df": "The position of a character within a sequence, beginning at zero.",
+            "eg": "In the string 'Python', the character 'P' is at index 0.",
+            "mi": "Thinking the index starts counting from one.",
+            "cx": "The index starts counting from zero."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9b3c34763331a4ca13a1caa12d3aba137e20ac977d21b35fcfffa53329bc8b6f",
+          "artifact": {
+            "tr": "String index",
+            "df": "A position label used to access a character in order from left to right.",
+            "eg": "In \"studio\", index 0 is \"s\" and index 5 is \"o\".",
+            "mi": "Indexing starts at 1 because the first character feels like \"one.\"",
+            "cx": "Python strings start at 0, so the left-most character is index 0 and the right-most is len(s) - 1."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "96e9afb03a2342624c9cb655e7e8e91bb0632066616b3fb8f2a102d22732369b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9b3c34763331a4ca13a1caa12d3aba137e20ac977d21b35fcfffa53329bc8b6f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-093d17875ab7debff12b",
+      "caseDigest": "1e70f50f05ca50c34228818c0c9adea55b74d9b20a5192a8b1996c219b42dd5c",
+      "domain": "geology",
+      "courseGroupSha256": "19100d3e734a3486006f9dd67ed9f35322cc9cc7d549b3cabb3114748621df27",
+      "sourceContextSha256": "b449c20e6ca2c7fec7f05a01d82e9f160786e0c6c71f9d69b907973108bcb081",
+      "sourceContext": {
+        "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9",
+        "kernelId": "geo/igneous-rocks",
+        "term": "Igneous rocks and magma",
+        "claims": [
+          "Igneous rock forms when molten magma or lava cools and crystallizes; how fast it cools controls crystal size, distinguishing coarse intrusive rocks from fine-grained extrusive rocks.",
+          "Lava cooling quickly at the surface forms tiny crystals, while magma cooling slowly at depth forms large crystals.",
+          "Magma that cools slowly deep within the crust forms intrusive (plutonic) rock with a coarse-grained texture.",
+          "Lava cooling at or near the surface forms extrusive (volcanic) rock with a fine-grained texture."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4.1 Magma generation and igneous textures"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "de2f50a8ff9e35af99de76d0302d4efd26352b7405ad4d8c335db31d022a9f5a",
+          "artifact": {
+            "q": "A lava flow cools rapidly after reaching the surface. Which rock texture is most likely to form?",
+            "op": [
+              "Fine-grained extrusive rock",
+              "Coarse-grained intrusive rock",
+              "Glass-rich sedimentary rock",
+              "Metamorphic foliation"
+            ],
+            "ai": 0,
+            "ex": "Correct: fine-grained extrusive rock, because rapid cooling at or near the surface limits crystal growth. The common misconception is to expect large crystals from all molten material, but slow cooling at depth is what produces coarse crystals."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9e739062002fa0335e9f5a032deffc11302796ad059bb2003eefefb2b8dc5e8c",
+          "artifact": {
+            "q": "Which process dictates the crystal size in igneous rock formation?",
+            "op": [
+              "The rate of cooling determines crystal size.",
+              "The depth of the magma dictates crystal size.",
+              "The magma composition dictates crystal size.",
+              "The surface area dictates crystal size."
+            ],
+            "ai": 0,
+            "ex": "The rate of cooling determines crystal size. (Correct) This contrasts with the misconception that magma composition is the primary factor, as cooling speed is the controlling variable."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "de2f50a8ff9e35af99de76d0302d4efd26352b7405ad4d8c335db31d022a9f5a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "9e739062002fa0335e9f5a032deffc11302796ad059bb2003eefefb2b8dc5e8c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7239ebbaf3deef118834",
+      "caseDigest": "49bf0bafac51a3dfcb34ef43627e38753ad2321a6854e7b7d6b6bcd02161175a",
+      "domain": "geology",
+      "courseGroupSha256": "0f4605e6d5395517b43b554ec76d1681373ddb12dc5ae6de0991e05b396ecb82",
+      "sourceContextSha256": "e65891980c582b81bff8b6ab9144cd455c4725c47a32a8d1d11963d897c2039d",
+      "sourceContext": {
+        "sourcePacketSha256": "87fa03f4246d4f1f3fd1811fa2b50fd83ba19dfda45b8e605b86c542e6242517",
+        "kernelId": "geo/earthquakes",
+        "term": "Earthquakes and seismic waves",
+        "claims": [
+          "An earthquake releases stored elastic energy when rock slips along a fault; the energy travels outward as seismic waves, including fast compressional P waves and slower shear S waves.",
+          "Elastic rebound theory explains earthquakes: stored energy is released and the broken rock springs back toward its original position.",
+          "P waves are the fastest body waves and move by compression, like sound through air, so they travel through solids, liquids, and gases.",
+          "S waves are slower shear waves restricted to lateral motion, so they travel only through solids, never liquids."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §9.1 Earthquakes and seismic waves"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "907ba0739212f18efddc461a911f7f2f10863252309eb4099888814ab19a18fc",
+          "artifact": {
+            "q": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+            "op": [
+              "A. P waves",
+              "B. Compressional waves",
+              "C. S waves",
+              "D. Shear waves"
+            ],
+            "ai": 2,
+            "ex": "Option C is correct because S waves are slower shear waves restricted to lateral motion, traveling only through solids."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "5bd9544bb5c5a0f57997430ecd334f4af4f7c53d5e6173b92e14da07ac17ee0d",
+          "artifact": {
+            "q": "A field station records seismic arrivals from a distant earthquake. Which interpretation best fits the first body wave to arrive at the station?",
+            "op": [
+              "It is a P wave, because compressional waves travel fastest through solids, liquids, and gases.",
+              "It is an S wave, because shear waves arrive first after moving through any material.",
+              "It is a surface wave, because surface waves always outrun body waves.",
+              "It is a P wave, because compressional waves travel only through solids."
+            ],
+            "ai": 0,
+            "ex": "The first arrival is best explained as a P wave: it is the fastest body wave and can travel through solids, liquids, and gases. A common misconception is that all seismic waves behave like S waves, but S waves are slower and cannot move through liquids."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "907ba0739212f18efddc461a911f7f2f10863252309eb4099888814ab19a18fc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "5bd9544bb5c5a0f57997430ecd334f4af4f7c53d5e6173b92e14da07ac17ee0d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-884d656249c1d4b9b136",
+      "caseDigest": "3b0c3c08eef350a1a489211d93465269ee82187c4a7b86213135514a0985804e",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "29f38881f5140b6f3b7a2e46dcb223d3573cb3fbb3c1464c584b5900b200ef7b",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/metamorphic-rocks",
+        "term": "Metamorphic rocks and protoliths",
+        "claims": [
+          "Metamorphic rock forms when heat, pressure, and fluids change a preexisting parent rock (the protolith) in the solid state, without melting it.",
+          "Metamorphism changes a solid rock's composition and texture without the mineral crystals melting.",
+          "The starting rock that undergoes metamorphism is called the parent rock, or protolith.",
+          "Directed stress aligns mineral crystals into planes, producing foliation."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §6.1 Metamorphism and metamorphic rocks"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "e52338b569165645e23db91e48ab659dad8bec3d858f9d1a61b1af6ff7086c9e",
+          "artifact": {
+            "tr": "Metamorphism",
+            "df": "A change in a solid rock's composition and texture without melting.",
+            "eg": "A limestone turning into marble.",
+            "mi": "Melting of the rock.",
+            "cx": "Changing a solid rock's composition and texture without the mineral crystals melting."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "4dbdd46d93da2f2692d28e99268a5645a937c50c4f45abe14cdc2e43d0502aaf",
+          "artifact": {
+            "tr": "protolith",
+            "df": "The original parent rock that later undergoes metamorphic change.",
+            "eg": "A limestone that serves as the starting rock before metamorphism alters it.",
+            "mi": "It is the mineral pattern created after metamorphism.",
+            "cx": "The correction is that it names the starting rock, not the transformed one."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "e52338b569165645e23db91e48ab659dad8bec3d858f9d1a61b1af6ff7086c9e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "4dbdd46d93da2f2692d28e99268a5645a937c50c4f45abe14cdc2e43d0502aaf",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e9e6a9fa486bb0466d72",
+      "caseDigest": "9f6afb47181da803ece03a974a76840c9a7fe8bca22bc9ea76dd37313980be72",
+      "domain": "music-theory",
+      "courseGroupSha256": "abd9179b4ea6b87d8a66c2873abc3d80d2536ff2e260ceea34f67f4728b84d82",
+      "sourceContextSha256": "ac739bca3e893f461ceaa3c95cdf29a7411ce2aea85d4224fa84ca1d350e32ea",
+      "sourceContext": {
+        "sourcePacketSha256": "4f8665de42ed5888872183fe359968e2ed762767005c9b442852fad349e4fd12",
+        "kernelId": "music/intervals",
+        "term": "Interval (music)",
+        "claims": [
+          "In music theory, an interval is a difference in pitch between two sounds.",
+          "In physical terms, an interval is the ratio between two sonic frequencies.",
+          "Intervals between successive notes of a scale are also known as scale steps."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "1a9fd3dcb04170548fbbb4f4435846275f61bb29a0692b3a9c881a9abe22f191",
+          "artifact": {
+            "tr": "Pitch difference measure",
+            "df": "A quantitative comparison of two sounds' frequencies.",
+            "eg": "Comparing the frequency of a C to the frequency of an E.",
+            "mi": "Confusing the interval with the ratio between two sonic frequencies.",
+            "cx": "The interval is the difference in pitch between two sounds (Claim 0)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "8af16380e22bae19ce50ffcac5b9241461135950f0c290bf2468d645660109cf",
+          "artifact": {
+            "tr": "Interval",
+            "df": "A difference in pitch between two sounds; in physical terms, it can be described as a ratio between two sonic frequencies.",
+            "eg": "From C to E in a melody, a listener identifies the spacing between the two pitches as an interval.",
+            "mi": "It is only a notation symbol or only a loudness change.",
+            "cx": "The term refers to pitch spacing, not to dynamics or a marking on the page."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "1a9fd3dcb04170548fbbb4f4435846275f61bb29a0692b3a9c881a9abe22f191",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "8af16380e22bae19ce50ffcac5b9241461135950f0c290bf2468d645660109cf",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7697c38db3cbdce9d85f",
+      "caseDigest": "90f169ef30463ce4963626aba76839b7128f149eeb1b6e61237249f2d8fb23b1",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "2ea0a82c55c2fb5b937f262e1f58db93de4805417c315713417de3388ea7494d",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/musical-form",
+        "term": "Musical form",
+        "claims": [
+          "In music, form refers to the structure of a musical composition or performance.",
+          "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+          "Musical form unfolds over time through the expansion and development of these ideas.",
+          "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+          "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+          "The next level concerns the entire structure of any single self-contained musical piece or movement."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7b98a37fc3d7779841aa32e26ded6363be0da2b031f31b2d9787556c01662363",
+          "artifact": {
+            "q": "Which description best fits a piece identified as binary form?",
+            "op": [
+              "the structure of a musical composition",
+              "the interaction of sound, harmony, melody, and rhythm",
+              "a pair of sections about equal length",
+              "lowercase labels for subdivisions"
+            ],
+            "ai": 2,
+            "ex": "The correct choice matches binary form as two sections about equal length. The most plausible misconception is to think any structural description of a piece or movement counts as binary form, when the defining feature is the two-section balance."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0782d519b608dc5767b923932b1ffa93358efa1bbc982dc79347fb95516310dc",
+          "artifact": {
+            "q": "What describes a musical piece composed of two sections of equal length?",
+            "op": [
+              "A) Sonata form",
+              "b) Binary form",
+              "C) Ternary form",
+              "D) Rondo form"
+            ],
+            "ai": 1,
+            "ex": "The correct choice, binary form, describes a piece with two equal sections. Ternary form is incorrect because it implies three sections, and sonata form is a different structural concept."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7b98a37fc3d7779841aa32e26ded6363be0da2b031f31b2d9787556c01662363",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0782d519b608dc5767b923932b1ffa93358efa1bbc982dc79347fb95516310dc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-0d792d7a70ec25e19b84",
+      "caseDigest": "d1329cc74e02340911a311c902ce90045a625b8dba65d41832ef6a78b965ad9f",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "7d93de170a838d6299cd66fa8adb8a9dc269c6d5189e4eb968c3b5d9b5c0981e",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "669c4add0463dbc0cf4d39efc486f2168bcd00a72b88d4683d97dd68f6d7a38c",
+          "artifact": {
+            "q": "Which characteristic is essential for a prototype when aiming to support rapid iteration?",
+            "op": [
+              "It must require every production detail.",
+              "It should be inexpensive enough to discard after learning from them.",
+              "It must show every interaction perfectly.",
+              "It should only focus on functional interactions."
+            ],
+            "ai": 1,
+            "ex": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e4b7ebc5cbaafaf9c331c3c27d54b491a8e9b0cb8806007fc66c5a17e903b11e",
+          "artifact": {
+            "q": "What is the main role of a prototype in a UX project before full development?",
+            "op": [
+              "Create a testable model of the planned experience without every production detail.",
+              "Freeze the final interface so no changes are needed later.",
+              "Document the business model for the planned service.",
+              "Replace usability evidence with designer preference."
+            ],
+            "ai": 0,
+            "ex": "The correct choice emphasizes a testable representation that can be learned from before full production. A common misconception is that a prototype is the finished product or a fixed specification, but prototypes are meant to support learning rather than lock the design in place."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "669c4add0463dbc0cf4d39efc486f2168bcd00a72b88d4683d97dd68f6d7a38c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e4b7ebc5cbaafaf9c331c3c27d54b491a8e9b0cb8806007fc66c5a17e903b11e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7340802109c1b9677f41",
+      "caseDigest": "33612143333a85650d7f6be60426e56bd0b0383f08d90bbd6fd728091e474401",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "7093e37c7771bcfaaa6285a1ef8a7e1aaebe95de6fdac1d0cf2b63b32f92b991",
+      "sourceContextSha256": "5a16715b444d616660d7a8ebaf6ae66efed71f094d8fb9fe866c48122381b16b",
+      "sourceContext": {
+        "sourcePacketSha256": "cda5e9bcfc60af07ebc0bd55362dbf387d41865ca2f6bb1560885d3bf5c7334e",
+        "kernelId": "ux/journey-mapping",
+        "term": "Journey mapping",
+        "claims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "02b5cedd90f32877f9fb6d82c25787732cf85fe2b54c41853743b7978dfe3d42",
+          "artifact": {
+            "q": "A team is building a journey map for students using a campus advising service. Which choice best matches the source guidance for what the map should be based on first?",
+            "op": [
+              "Observed steps users actually take and the transactions involved",
+              "The advisor's preferred workflow and policy checklist",
+              "A list of frustrations the team expects students to have",
+              "A summary of the service's online tools only"
+            ],
+            "ai": 0,
+            "ex": "Correct: the map should start from research on what users actually do and the transactions involved. The common misconception is to begin with internal process steps or assumptions about frustration before grounding the map in observed behavior."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d69b6f9d8e1a13343ae424c4e59f834e5ab753ad7b1dcb37287fccaf959ead4e",
+          "artifact": {
+            "q": "What is the primary function of a journey map in a UX context?",
+            "op": [
+              "To document individual user thoughts during a session.",
+              "To show connected steps, boundaries, breakdowns, and opportunities.",
+              "To list all possible features a service offers.",
+              "To predict future user behavior based on assumptions."
+            ],
+            "ai": 1,
+            "ex": "The correct choice shows the map's purpose is to visualize the entire user experience flow, contrasting with the misconception that it is merely a collection of individual user thoughts."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "02b5cedd90f32877f9fb6d82c25787732cf85fe2b54c41853743b7978dfe3d42",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d69b6f9d8e1a13343ae424c4e59f834e5ab753ad7b1dcb37287fccaf959ead4e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a918850940d0230d9e0e",
+      "caseDigest": "914c1eeb93379394c58b8e023900e69c3a5622fee2c4e1529821fae1ec8ce6d9",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "d242d34c9ac3695d6f21dc2cbcffd80b627c4e82acdb50c33dea47dc915100e9",
+      "sourceContextSha256": "eae886b2eb2486d3a7ef1c8e1962b766242f767255a2d950e9b59bd9f6387afa",
+      "sourceContext": {
+        "sourcePacketSha256": "6d37bd7b710f0124b04ef75c18396934fd37b73a1a4c990c2863349df926d88a",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9f5677a38cae79a13c34e0086af9997f9df6b94a09f1b81aadd849464a8531fa",
+          "artifact": {
+            "q": "How can functional prototypes assist a team in understanding user engagement?",
+            "op": [
+              "By showing only the major interactions.",
+              "By combining them with a cognitive walkthrough.",
+              "By allowing the team to observe how users interact with the product.",
+              "By requiring every interaction to be fully functional."
+            ],
+            "ai": 2,
+            "ex": "The correct choice is functional prototypes allowing observation of user interaction. The misconception is that prototypes must only show major interactions, which is insufficient for observing interaction."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e238a33728c506e639f820ce7116825983808a74c759ac890c50263f5819b2d6",
+          "artifact": {
+            "q": "What is the main purpose of an interactive prototype in a UX lab when the final product is not yet built?",
+            "op": [
+              "A testable model of how the experience looks and works without every production detail",
+              "A fully finished product that is ready for launch",
+              "A visual style guide that only shows colors and typography",
+              "A legal document that approves the design team"
+            ],
+            "ai": 0,
+            "ex": "The correct choice captures a testable representation that shows how the experience looks and works without requiring every production detail. The common misconception is that a prototype must be fully finished; in fact, it is meant to be learned from before production details are complete."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9f5677a38cae79a13c34e0086af9997f9df6b94a09f1b81aadd849464a8531fa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e238a33728c506e639f820ce7116825983808a74c759ac890c50263f5819b2d6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}
