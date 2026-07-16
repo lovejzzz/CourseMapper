@@ -18,16 +18,19 @@
       "npx playwright test tests/release-v01641.spec.js"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "Fast verification must pass on the exact merged main commit before remote proof is complete."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29501575701",
+      "note": "Fast verification passed in 21m59s on exact main merge commit f7b5b7d358fce232d8589c61858054586caaa17e. It included formatting, lint, release history, exact source-packet reconstruction, the 100-case first-order workbook audit, outcome-blind sealed-campaign verification, source replay, review ledger, corpus readiness, exact historical adapter lineage, 4,499 unit and closed-loop tests with 162 declared skips, proof smoke, all 34 canonical main-evaluation courses at compiler-contract-only claim status, production build, bundle budgets, and evaluation-report upload."
     },
     "ciDeep": {
       "status": "not-current",
       "note": "This bounded milestone completes one atom-level A/B judge order. It does not run a new browser model, adapter, held-out full-course promotion, or device matrix."
     },
     "deploy": {
-      "status": "pending-push",
-      "note": "GitHub Pages and byte-identical production assets must be verified after the exact main merge deploys."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29503131966",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.41-f7b5b7d3-20260716T1341Z",
+      "note": "GitHub Pages built and deployed exact Fast-verified main commit f7b5b7d358fce232d8589c61858054586caaa17e. A unique production probe returned HTTP 200, age 0, and last-modified 2026-07-16T13:40:47Z. Served index.html, releaseManifest-BjYperRl.js, Changelog-C2NPef9X.js, AppFlow-DET1o3iK.js, and scionRuntime-0MHsYOvn.js were byte-identical to the locally verified build with SHA-256 6c2c26c1b86be59170abdcdb283e461192e2f267fa5eaca64c370890084bf71c, 93ec472d9153f01676a7e1ef10e62eb795fafaf0a4e4c6fd438be9f518d26a75, c48d27e3f0a08590c18a6ad7abe50ebfcbdfe8dfd4c4d01bf503d2a84be8fa34, c91565504bcd7b86039eecd922e1dceef2415f7ece3d6b3fd183823ff47e22f6, and a10e12bc6db12ad14f8063c06d1496b32a9606409d09bd1cad6d6cbf383b7210. The live release bundle exposes v0.16.41, the exact release title, and the one-order-cannot-establish-a-stable-preference boundary."
     },
     "liveProvider": {
       "status": "local-only",
@@ -40,7 +43,7 @@
     "strictLayeredEvaluation": {
       "status": "success",
       "claimStatus": "first-order-single-model-judge-evidence-only",
-      "note": "Local proof passed the exact workbook reconstruction, sealed campaign and local key-custody audits, 4,499 tests with 162 declared skips, all 34 canonical main-evaluation courses at compiler-contract-only claim status, formatting, lint, release history, production build, bundle budgets, and the Chromium changelog test. These prove campaign integrity and software delivery only; one sealed A/B order proves no stable preference, adapter improvement, held-out-domain win, or paid-reference parity."
+      "note": "Local proof passed the exact workbook reconstruction, sealed campaign and local key-custody audits, 4,499 tests with 162 declared skips, all 34 canonical main-evaluation courses at compiler-contract-only claim status, formatting, lint, release history, production build, bundle budgets, and the Chromium changelog test. Exact-main Fast verification, exact-commit Pages deployment, byte-identical production assets, and live release-boundary text also pass. These prove campaign integrity and software delivery only; one sealed A/B order proves no stable preference, adapter improvement, held-out-domain win, or paid-reference parity."
     }
   },
   "claims": [
