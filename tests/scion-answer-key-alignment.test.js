@@ -191,6 +191,109 @@ describe('Scion MC contract recovery', () => {
     expect(repaired.repairs[0].preferenceEvidence.supportMethod).toBe('explicit-explanation-cue');
   });
 
+  it.each([
+    {
+      name: 'morphological support for a returned file object',
+      item: {
+        q: 'What is the primary action performed by the open() function?',
+        op: ['reading data from a file', 'writing information into files', 'closing a file', 'returning a file object'],
+        ai: 1,
+        ex: 'open() returns a file object that the program then reads from or writes to. The misconception is thinking open() immediately performs the read or write operation.',
+      },
+      supportedIndex: 3,
+      scores: [2, 1, 1, 3],
+    },
+    {
+      name: 'a short first-sentence position cue',
+      item: {
+        q: 'Which characteristic describes how elements within a list are accessed?',
+        op: [
+          'Elements are accessed via a key.',
+          'Elements are accessed by their position.',
+          'Elements are accessed by a label.',
+          'Elements are accessed by a name.',
+        ],
+        ai: 2,
+        ex: 'Accessing an element directly using its position in the sequence.',
+      },
+      supportedIndex: 1,
+      scores: [2, 3, 2, 2],
+    },
+    {
+      name: 'a unique two-token hazard cue',
+      item: {
+        q: 'What hazard is most characteristic of explosive high-silica volcanoes?',
+        op: ['Lava flow', 'Pyroclastic flow', 'Gentle effusion', 'Syrup-like flow'],
+        ai: 3,
+        ex: 'The most dangerous volcanic hazard is the pyroclastic flow, a fast cloud of hot ash and gas typical of explosive high-silica volcanoes. (Misconception: Lava flow is the most dangerous hazard.)',
+      },
+      supportedIndex: 1,
+      scores: [1, 2, 0, 1],
+    },
+  ])('realigns from $name without reading later distractor prose', ({ item, supportedIndex, scores }) => {
+    const repaired = repairScionMcItem(item);
+    expect(repaired.item.ai).toBe(supportedIndex);
+    expect(repaired.repairs[0].preferenceEvidence).toMatchObject({
+      supportMethod: 'first-sentence-lexical-margin',
+      declaredIndex: item.ai,
+      supportedIndex,
+      scores,
+      minimumBestScore: 2,
+      minimumMargin: 1,
+      evidenceSentence: expect.any(String),
+    });
+  });
+
+  it('can replay the pre-first-sentence contract without rewriting historical receipts', () => {
+    const item = {
+      q: 'What is the primary action performed by the open() function?',
+      op: ['reading data from a file', 'writing information into files', 'closing a file', 'returning a file object'],
+      ai: 1,
+      ex: 'open() returns a file object that the program then reads from or writes to.',
+    };
+    expect(repairScionMcItem(item, { keyConflictOptions: { allowFirstSentenceLexicalCue: false } })).toEqual({
+      item,
+      repairs: [],
+    });
+  });
+
+  it.each([
+    {
+      name: 'generic correct-choice prose that does not identify an option',
+      item: {
+        q: 'When creating an experience map, what should be made visible?',
+        op: [
+          'Only the successful paths users take.',
+          'Struggle points and candidate improvement areas.',
+          'The exact technical specifications of the service.',
+          'The final, desired outcome only.',
+        ],
+        ai: 2,
+        ex: 'The correct choice highlights the need to identify areas for enhancement, unlike the misconception that the map only focuses on successful paths.',
+      },
+    },
+    {
+      name: 'an explicit label that must outrank lexical overlap',
+      item: {
+        q: 'Which signal arrives first at a seismic station?',
+        op: ['Surface waves', 'Shear waves', 'Primary waves', 'Tsunami waves'],
+        ai: 2,
+        ex: 'Option C is correct. Shear waves arrive after the primary waves.',
+      },
+    },
+    {
+      name: 'a negative first sentence about a distractor',
+      item: {
+        q: 'Which process transports sediment away from its source?',
+        op: ['Mechanical weathering', 'Chemical weathering', 'Erosion', 'Deposition'],
+        ai: 2,
+        ex: 'Chemical weathering is not the transport process. Erosion moves sediment away from its source.',
+      },
+    },
+  ])('refuses $name', ({ item }) => {
+    expect(repairScionMcItem(item)).toEqual({ item, repairs: [] });
+  });
+
   it('does not repair from an explicit cue that already supports the declared key', () => {
     const item = {
       q: 'Which layer lies below the crust and above the core?',

@@ -61,6 +61,12 @@ evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.43.json
 evaluation/scion-adapters/evidence/semantic-admission-baseline-v0.16.42.json
 evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.43.json
 evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.43.json
+# v0.16.44 adds conservative first-sentence key evidence while preserving
+# exact retained response text and machine-generated replay formatting.
+evaluation/scion-source-compiler-replay-v0.16.44
+evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.44.json
+evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.44.json
+evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.44.json
 .firebase
 .claude
 **/.venv*/

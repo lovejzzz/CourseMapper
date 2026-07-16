@@ -1,4 +1,19 @@
 const ALIGNMENT_STOP_WORDS = new Set(['and', 'are', 'because', 'for', 'from', 'that', 'the', 'this', 'with', 'while']);
+const FIRST_SENTENCE_ALIGNMENT_STOP_WORDS = new Set([
+  ...ALIGNMENT_STOP_WORDS,
+  'also',
+  'into',
+  'its',
+  'not',
+  'only',
+  'than',
+  'their',
+  'then',
+  'through',
+  'using',
+  'was',
+  'were',
+]);
 const TERMINAL_PUNCT_RE = /[.!?][\])}"']?$/;
 const SENTENCE_BOUNDARY_RE = /[.!?][\])}"']?(?=\s+[A-Z0-9"'“‘]|$)/g;
 const ABBREVIATION_BOUNDARY_RE = /(?:\b(?:e\.g|i\.e|u\.s|vs|dr|mr|mrs|ms|prof|fig|no)|\b[A-Z])\.$/i;
@@ -23,6 +38,64 @@ function alignmentTokens(value) {
       })
       .filter((token) => token.length >= 3 && !ALIGNMENT_STOP_WORDS.has(token)),
   );
+}
+
+function morphologicalAlignmentTokens(value) {
+  return new Set(
+    clean(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .split(/\s+/)
+      .map((token) => {
+        let next = token;
+        if (next.length > 6 && next.endsWith('ing')) next = next.slice(0, -3);
+        else if (next.length > 5 && next.endsWith('ed')) next = next.slice(0, -2);
+        if (next.length > 4 && next.endsWith('s') && !next.endsWith('ss')) next = next.slice(0, -1);
+        return next;
+      })
+      .filter((token) => token.length >= 3 && !FIRST_SENTENCE_ALIGNMENT_STOP_WORDS.has(token)),
+  );
+}
+
+function findFirstSentenceLexicalCue(normalized) {
+  const firstSentence =
+    clean(normalized.explanation)
+      .match(/^.*?[.!?](?=\s|$)/)?.[0]
+      ?.trim() || clean(normalized.explanation);
+  if (!firstSentence) return null;
+  // A literal option label outranks lexical overlap, while a generic
+  // "correct choice" supplies no option identity. Negative/distractor prose
+  // is likewise not affirmative evidence and must never move the key.
+  if (
+    /\b(?:(?:option|choice|answer)\s*[A-D1-4]|(?:correct|best)\s+(?:choice|answer|option))\b/i.test(firstSentence) ||
+    /\b(?:incorrect|wrong|misconception|distractor|premature|not)\b/i.test(firstSentence)
+  ) {
+    return null;
+  }
+  const explanationTokens = morphologicalAlignmentTokens(firstSentence);
+  const scores = normalized.options.map((option) => {
+    const optionTokens = morphologicalAlignmentTokens(option);
+    return [...optionTokens].filter((token) => explanationTokens.has(token)).length;
+  });
+  const bestScore = Math.max(...scores);
+  const bestIndices = scores.map((score, index) => (score === bestScore ? index : -1)).filter((index) => index >= 0);
+  const currentScore = scores[normalized.answerIndex] || 0;
+  if (
+    bestScore >= 2 &&
+    bestIndices.length === 1 &&
+    bestIndices[0] !== normalized.answerIndex &&
+    bestScore >= currentScore + 1
+  ) {
+    return {
+      declaredIndex: normalized.answerIndex,
+      supportedIndex: bestIndices[0],
+      scores,
+      supportMethod: 'first-sentence-lexical-margin',
+      explicitCues: [],
+      evidenceSentence: firstSentence,
+    };
+  }
+  return null;
 }
 
 function escapeRegExp(value) {
@@ -261,6 +334,7 @@ export function findScionExplanationKeyConflict(
     allowExplicitCues = true,
     allowAffirmativeLead = true,
     stripTerminalPunctuation = true,
+    allowFirstSentenceLexicalCue = true,
   } = {},
 ) {
   const normalized = normalizeScionMcItem(item);
@@ -316,6 +390,7 @@ export function findScionExplanationKeyConflict(
       explicitCues: [],
     };
   }
+  if (allowFirstSentenceLexicalCue) return findFirstSentenceLexicalCue(normalized);
   return null;
 }
 
@@ -342,8 +417,9 @@ export function buildScionAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, 
       scores: detected.scores,
       supportMethod: detected.supportMethod || 'lexical-margin',
       explicitCues: detected.explicitCues || [],
-      minimumBestScore: 3,
-      minimumMargin: 3,
+      ...(detected.evidenceSentence ? { evidenceSentence: detected.evidenceSentence } : {}),
+      minimumBestScore: detected.supportMethod === 'first-sentence-lexical-margin' ? 2 : 3,
+      minimumMargin: detected.supportMethod === 'first-sentence-lexical-margin' ? 1 : 3,
     },
   };
 }
