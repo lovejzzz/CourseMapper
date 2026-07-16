@@ -1418,10 +1418,15 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
 
     const facts = [];
-    asArray(entry?.facts).forEach((fact, index) => {
+    const sourceFactsByIndex = asArray(entry?.facts).map((fact, index) => {
       const problems = lintKernelFact(fact);
-      if (problems.length > 0) issues.push({ lessonId, surface: 'facts', index, problems });
-      else facts.push(cleanText(fact));
+      if (problems.length > 0) {
+        issues.push({ lessonId, surface: 'facts', index, problems });
+        return null;
+      }
+      const admittedFact = cleanText(fact);
+      facts.push(admittedFact);
+      return admittedFact;
     });
 
     const keyTerms = [];
@@ -1499,9 +1504,26 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
       // complete sentence prefix before an unfinished tail, then realign only
       // a decisive, unique explanation/key contradiction. Both operations are
       // recorded at this canonical admission boundary before projection.
-      const repaired = repairScionMcItem(item, { lessonId, itemIndex: index });
+      const rawSourceFactIndexes = item?.sourceFactIndexes;
+      const sourceFactIndexes = Array.isArray(rawSourceFactIndexes) ? [...new Set(rawSourceFactIndexes)] : [];
+      const sourceFactIndexesValid =
+        sourceFactIndexes.length > 0 &&
+        sourceFactIndexes.length <= 2 &&
+        sourceFactIndexes.length === rawSourceFactIndexes?.length &&
+        sourceFactIndexes.every(
+          (factIndex) =>
+            Number.isInteger(factIndex) &&
+            factIndex >= 0 &&
+            factIndex < sourceFactsByIndex.length &&
+            Boolean(sourceFactsByIndex[factIndex]),
+        );
+      const citedSourceClaims = sourceFactIndexesValid
+        ? sourceFactIndexes.map((factIndex) => sourceFactsByIndex[factIndex])
+        : [];
+      const repaired = repairScionMcItem(item, { lessonId, itemIndex: index, sourceClaims: citedSourceClaims });
       const admittedItem = repaired.item;
       const problems = lintEnrichedQuizItem({ ...admittedItem, type: 'multiple_choice' }, { groundingText });
+      if (rawSourceFactIndexes !== undefined && !sourceFactIndexesValid) problems.push('source-fact-index');
       if (problems.length > 0) issues.push({ lessonId, surface: 'mc', index, problems });
       else {
         repairs.push(...repaired.repairs);

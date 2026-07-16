@@ -268,6 +268,7 @@ const enrichment = {
   q: 'question',
   op: 'options',
   ai: 'answerIndex',
+  fi: 'sourceFactIndexes',
   dr: 'distractorRationales',
   an: 'answer',
   ex: 'explanation',

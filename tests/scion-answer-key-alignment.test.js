@@ -294,6 +294,155 @@ describe('Scion MC contract recovery', () => {
     expect(repairScionMcItem(item)).toEqual({ item, repairs: [] });
   });
 
+  it.each([
+    {
+      name: 'an experience-map key contradicted by its uniquely relevant source claim',
+      item: {
+        q: 'When creating an experience map, what should be made visible?',
+        op: [
+          'Only the successful paths users take.',
+          'Struggle points and candidate improvement areas.',
+          'The exact technical specifications of the service.',
+          'The final, desired outcome only.',
+        ],
+        ai: 2,
+        ex: 'The correct choice highlights the need to identify areas for enhancement.',
+      },
+      sourceClaims: [
+        "Journey mapping represents an end-to-end experience from the user's perspective.",
+        'An experience map should make struggle points and candidate improvement areas visible.',
+        'A map can reveal dead ends where the user cannot continue toward the larger goal.',
+      ],
+      supportedIndex: 1,
+    },
+    {
+      name: 'an absolute-dating key contradicted despite a related source distractor',
+      item: {
+        q: 'What does absolute dating provide regarding mineral grains in a rock?',
+        op: [
+          'A numerical age in years',
+          'A relative order of events',
+          "The span of Earth's history",
+          'The sequence of deposition',
+        ],
+        ai: 1,
+        ex: 'Absolute dating assigns specific ages in years to mineral grains within a rock.',
+      },
+      sourceClaims: [
+        'Relative dating orders events by which is older or younger, while absolute dating assigns numerical ages.',
+        'Absolute numerical dating assigns specific ages in years to mineral grains within a rock.',
+        'The principle of superposition orders undisturbed layers from oldest to youngest.',
+      ],
+      supportedIndex: 0,
+    },
+  ])('realigns $name without changing model-authored text', ({ item, sourceClaims, supportedIndex }) => {
+    const repaired = repairScionMcItem(item, { sourceClaims });
+    expect(repaired.item).toEqual({ ...item, ai: supportedIndex });
+    expect(repaired.repairs).toHaveLength(1);
+    expect(repaired.repairs[0]).toMatchObject({
+      pass: 'sourceAnswerAlignment',
+      action: 'realigned',
+      preferenceEvidence: {
+        kind: 'deterministic-source-answer-conflict',
+        supportMethod: 'source-question-option-alignment',
+        declaredIndex: item.ai,
+        supportedIndex,
+        minimumQuestionClaimScore: 3,
+        minimumOptionScore: 3,
+        minimumOptionContainment: 0.6,
+        maximumDeclaredOptionScore: 1,
+        minimumMargin: 2,
+      },
+    });
+  });
+
+  it.each([
+    {
+      name: 'the caller supplies no source boundary',
+      item: {
+        q: 'When creating an experience map, what should be made visible?',
+        op: ['Successful paths', 'Struggle points and improvement areas', 'Technical specifications', 'Final outcomes'],
+        ai: 2,
+        ex: 'The correct choice should reveal areas for enhancement.',
+      },
+      sourceClaims: [],
+    },
+    {
+      name: 'the stem asks for the unsupported exception',
+      item: {
+        q: 'Which option is not provided by absolute dating?',
+        op: ['A numerical age in years', 'A measured age', 'A date in years', 'A relative order of events'],
+        ai: 0,
+        ex: 'The question asks for an exception to the source-supported descriptions.',
+      },
+      sourceClaims: ['Absolute dating assigns a numerical age in years to mineral grains.'],
+    },
+    {
+      name: 'two options receive equal source support',
+      item: {
+        q: 'What does absolute dating provide for a rock sample?',
+        op: ['A numerical age in years', 'An age measured in years', 'A relative order', 'A depositional sequence'],
+        ai: 2,
+        ex: 'The source describes a measured numerical result.',
+      },
+      sourceClaims: ['Absolute dating provides a numerical age measured in years for a rock sample.'],
+    },
+    {
+      name: 'a longer paraphrase competes with the short canonical term',
+      item: {
+        q: 'How are relationships between successive notes of a scale referred to?',
+        op: ['Intervals between successive notes', 'Scale steps', 'Frequency ratios', 'Pitch differences'],
+        ai: 2,
+        ex: 'The source uses one of these two equivalent descriptions for the relationship.',
+      },
+      sourceClaims: ['Intervals between successive notes of a scale are also known as scale steps.'],
+    },
+  ])('refuses source-key repair when $name', ({ item, sourceClaims }) => {
+    expect(repairScionMcItem(item, { sourceClaims })).toEqual({ item, repairs: [] });
+  });
+
+  it('never treats a sentence that marks an option incorrect as affirmative lexical support', () => {
+    const item = {
+      q: 'Before a research session, what should expose procedure problems?',
+      op: [
+        'Run test tasks with participants on the session day.',
+        'Agree on broad goals without rehearsing.',
+        'Conduct a practice session with a team member.',
+        'Only test the prototype end-to-end.',
+      ],
+      ai: 3,
+      ex: 'Running tasks on the day is incorrect because researchers should rehearse earlier. The correct choice involves a practice session to expose procedure problems.',
+    };
+    expect(repairScionMcItem(item)).toEqual({ item, repairs: [] });
+
+    const sourceClaims = [
+      'Conduct a practice session with a team member before research to expose procedure problems.',
+    ];
+    const repaired = repairScionMcItem(item, { sourceClaims });
+    expect(repaired.item.ai).toBe(2);
+    expect(repaired.repairs[0].pass).toBe('sourceAnswerAlignment');
+  });
+
+  it('lets a uniquely source-confirmed key block a contradictory explanation-only repair', () => {
+    const item = {
+      q: 'What defines the major silicate structures in rock-forming minerals?',
+      op: [
+        'Isolated tetrahedra',
+        'Chains, sheets, or three-dimensional frameworks',
+        "The silicon-oxygen tetrahedron's bonding pattern",
+        'The abundance of silicon-oxygen atoms',
+      ],
+      ai: 2,
+      ex: 'Chains, sheets, or three-dimensional frameworks',
+    };
+    const sourceClaims = [
+      'Silicate minerals, built from the silicon-oxygen tetrahedron, are rock-forming minerals; the way tetrahedra link together defines the major silicate structures.',
+      'Tetrahedra can link into chains, sheets, or three-dimensional frameworks.',
+    ];
+    expect(repairScionMcItem(item)).toMatchObject({ item: { ai: 1 } });
+    expect(repairScionMcItem(item, { sourceClaims })).toEqual({ item, repairs: [] });
+  });
+
   it('does not repair from an explicit cue that already supports the declared key', () => {
     const item = {
       q: 'Which layer lies below the crust and above the core?',

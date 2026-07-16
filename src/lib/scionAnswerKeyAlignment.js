@@ -19,6 +19,38 @@ const SENTENCE_BOUNDARY_RE = /[.!?][\])}"']?(?=\s+[A-Z0-9"'“‘]|$)/g;
 const ABBREVIATION_BOUNDARY_RE = /(?:\b(?:e\.g|i\.e|u\.s|vs|dr|mr|mrs|ms|prof|fig|no)|\b[A-Z])\.$/i;
 const EXPLANATION_CONTRAST_RE =
   /\b(?:misconception|common misconception|likely misconception|plausible misconception|tempting misconception|by contrast|in contrast|whereas|while|rather than|unlike)\b/i;
+const EXPLANATION_NEGATIVE_EVIDENCE_RE = /\b(?:distractor|incorrect|misconception|not|wrong)\b/i;
+const SOURCE_ALIGNMENT_NEGATIVE_STEM_RE = /\b(?:except|false|incorrect|least|never|not)\b/i;
+const SOURCE_ALIGNMENT_STOP_WORDS = new Set([
+  'and',
+  'are',
+  'because',
+  'can',
+  'did',
+  'does',
+  'for',
+  'from',
+  'has',
+  'have',
+  'how',
+  'into',
+  'may',
+  'should',
+  'that',
+  'the',
+  'their',
+  'then',
+  'this',
+  'was',
+  'were',
+  'what',
+  'when',
+  'where',
+  'which',
+  'while',
+  'will',
+  'with',
+]);
 
 function clean(value) {
   return String(value ?? '')
@@ -55,6 +87,110 @@ function morphologicalAlignmentTokens(value) {
       })
       .filter((token) => token.length >= 3 && !FIRST_SENTENCE_ALIGNMENT_STOP_WORDS.has(token)),
   );
+}
+
+function sourceAlignmentTokens(value) {
+  return new Set(
+    clean(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .split(/\s+/)
+      .map((token) => {
+        let next = token;
+        if (next.length > 3 && next.endsWith('ies')) next = `${next.slice(0, -3)}y`;
+        else if (next.length > 5 && next.endsWith('ing')) next = next.slice(0, -3);
+        else if (next.length > 4 && next.endsWith('ed')) next = next.slice(0, -2);
+        else if (next.length > 3 && next.endsWith('s') && !/(?:ss|ous|ius|is|us|ias)$/.test(next)) {
+          next = next.slice(0, -1);
+        }
+        return next;
+      })
+      .filter((token) => token.length >= 3 && !SOURCE_ALIGNMENT_STOP_WORDS.has(token)),
+  );
+}
+
+function tokenOverlap(left, right) {
+  return [...left].filter((token) => right.has(token)).length;
+}
+
+function sourceClaimText(value) {
+  if (value && typeof value === 'object') return clean(value.text ?? value.claim ?? value.value);
+  return clean(value);
+}
+
+/**
+ * Find a uniquely source-supported answer when the declared key points elsewhere.
+ *
+ * This is intentionally lexical and fail-closed. The question must identify no
+ * more than two equally relevant supplied claims, a single alternative option
+ * must receive strong/contained support from those claims, and the declared
+ * option must receive almost none. Negative stems are excluded because source
+ * support would reverse their intended answer semantics.
+ */
+export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [] } = {}) {
+  const normalized = normalizeScionMcItem(item);
+  const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
+  if (
+    claims.length === 0 ||
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex > 3 ||
+    !normalized.question ||
+    SOURCE_ALIGNMENT_NEGATIVE_STEM_RE.test(normalized.question)
+  ) {
+    return null;
+  }
+
+  const questionTokens = sourceAlignmentTokens(normalized.question);
+  const claimScores = claims.map((claim, index) => {
+    const tokens = sourceAlignmentTokens(claim);
+    return { index, score: tokenOverlap(questionTokens, tokens), tokens };
+  });
+  const bestClaimScore = Math.max(0, ...claimScores.map(({ score }) => score));
+  const relevantClaims = claimScores.filter(({ score }) => score === bestClaimScore);
+  if (bestClaimScore < 3 || relevantClaims.length === 0 || relevantClaims.length > 2) return null;
+
+  const relevantTokens = new Set(relevantClaims.flatMap(({ tokens }) => [...tokens]));
+  const optionTokens = normalized.options.map(sourceAlignmentTokens);
+  const scores = optionTokens.map((tokens) => tokenOverlap(tokens, relevantTokens));
+  const containment = optionTokens.map((tokens, index) =>
+    tokens.size > 0 ? Number((scores[index] / tokens.size).toFixed(6)) : 0,
+  );
+  const bestScore = Math.max(...scores);
+  const bestIndices = scores.map((score, index) => (score === bestScore ? index : -1)).filter((index) => index >= 0);
+  const currentScore = scores[normalized.answerIndex] || 0;
+  const competingContainedOptions = scores
+    .map((score, index) => ({ score, index, containment: containment[index] }))
+    .filter(
+      ({ score, index, containment: optionContainment }) =>
+        !bestIndices.includes(index) && score >= 2 && optionContainment >= 0.6,
+    );
+  if (
+    bestScore < 3 ||
+    bestIndices.length !== 1 ||
+    competingContainedOptions.length > 0 ||
+    containment[bestIndices[0]] < 0.6 ||
+    (bestIndices[0] !== normalized.answerIndex && (currentScore > 1 || bestScore < currentScore + 2))
+  ) {
+    return null;
+  }
+
+  return {
+    declaredIndex: normalized.answerIndex,
+    supportedIndex: bestIndices[0],
+    scores,
+    containment,
+    supportMethod: 'source-question-option-alignment',
+    relevantSourceClaimIndexes: relevantClaims.map(({ index }) => index),
+    questionClaimScore: bestClaimScore,
+  };
+}
+
+export function findScionSourceAnswerConflict(item = {}, { sourceClaims = [] } = {}) {
+  const support = findScionSourceAnswerSupport(item, { sourceClaims });
+  return support && support.supportedIndex !== support.declaredIndex ? support : null;
 }
 
 function findFirstSentenceLexicalCue(normalized) {
@@ -335,6 +471,7 @@ export function findScionExplanationKeyConflict(
     allowAffirmativeLead = true,
     stripTerminalPunctuation = true,
     allowFirstSentenceLexicalCue = true,
+    rejectNegativeEvidence = true,
   } = {},
 ) {
   const normalized = normalizeScionMcItem(item);
@@ -368,6 +505,12 @@ export function findScionExplanationKeyConflict(
   // explaining the key. Score only the affirmative lead; otherwise a quoted
   // distractor in "By contrast, X does not..." looks lexically supported.
   const affirmativeLead = normalized.explanation.split(EXPLANATION_CONTRAST_RE)[0];
+  // A mixed segment that explicitly marks something wrong is not a safe
+  // lexical voting pool. If its first sentence is independently affirmative,
+  // that narrower cue may still qualify; otherwise refuse the repair.
+  if (rejectNegativeEvidence && EXPLANATION_NEGATIVE_EVIDENCE_RE.test(affirmativeLead)) {
+    return allowFirstSentenceLexicalCue ? findFirstSentenceLexicalCue(normalized) : null;
+  }
   const explanationTokens = alignmentTokens(affirmativeLead);
   const scores = normalized.options.map((option) => {
     const optionTokens = alignmentTokens(option);
@@ -424,6 +567,38 @@ export function buildScionAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, 
   };
 }
 
+export function buildScionSourceAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, conflict } = {}) {
+  if (!conflict) return null;
+  const rejected = normalizeScionMcItem(item);
+  return {
+    kind: 'mc-item',
+    pass: 'sourceAnswerAlignment',
+    lessonId,
+    item: itemIndex,
+    action: 'realigned',
+    prompt: 'Choose the answer index uniquely supported by the source claim most relevant to the question.',
+    rejected,
+    chosen: { ...rejected, answerIndex: conflict.supportedIndex },
+    trainingEligible: true,
+    preferenceEvidence: {
+      kind: 'deterministic-source-answer-conflict',
+      verified: true,
+      declaredIndex: conflict.declaredIndex,
+      supportedIndex: conflict.supportedIndex,
+      scores: conflict.scores,
+      containment: conflict.containment,
+      supportMethod: conflict.supportMethod,
+      relevantSourceClaimIndexes: conflict.relevantSourceClaimIndexes,
+      questionClaimScore: conflict.questionClaimScore,
+      minimumQuestionClaimScore: 3,
+      minimumOptionScore: 3,
+      minimumOptionContainment: 0.6,
+      maximumDeclaredOptionScore: 1,
+      minimumMargin: 2,
+    },
+  };
+}
+
 function replaceExplanation(item, value) {
   const next = { ...item };
   if (Object.prototype.hasOwnProperty.call(next, 'ex')) next.ex = value;
@@ -452,6 +627,7 @@ export function repairScionMcItem(
     itemIndex = 0,
     recoverIncompleteExplanation = true,
     realignAnswerKey = true,
+    sourceClaims = [],
     keyConflictOptions,
   } = {},
 ) {
@@ -467,11 +643,20 @@ export function repairScionMcItem(
   }
 
   if (realignAnswerKey) {
-    const conflict = findScionExplanationKeyConflict(next, keyConflictOptions);
-    const keyRepair = buildScionAnswerKeyRepair({ item: next, lessonId, itemIndex, conflict });
-    if (keyRepair) {
-      next = replaceAnswerIndex(next, keyRepair.chosen.answerIndex);
-      repairs.push(keyRepair);
+    const sourceSupport = findScionSourceAnswerSupport(next, { sourceClaims });
+    const sourceConflict =
+      sourceSupport && sourceSupport.supportedIndex !== sourceSupport.declaredIndex ? sourceSupport : null;
+    const sourceRepair = buildScionSourceAnswerKeyRepair({ item: next, lessonId, itemIndex, conflict: sourceConflict });
+    if (sourceRepair) {
+      next = replaceAnswerIndex(next, sourceRepair.chosen.answerIndex);
+      repairs.push(sourceRepair);
+    } else if (!sourceSupport) {
+      const conflict = findScionExplanationKeyConflict(next, keyConflictOptions);
+      const keyRepair = buildScionAnswerKeyRepair({ item: next, lessonId, itemIndex, conflict });
+      if (keyRepair) {
+        next = replaceAnswerIndex(next, keyRepair.chosen.answerIndex);
+        repairs.push(keyRepair);
+      }
     }
   }
 

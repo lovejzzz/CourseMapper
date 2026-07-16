@@ -251,7 +251,14 @@ export function assessSourceAtomResponse(
   if (mcItems.length !== 2) issues.push('mc-count');
   if (keyTerms.length !== 2) issues.push('key-term-count');
   const mcAssessments = mcCandidates.map((item, index) => {
-    const assessment = assessScionMcItem(item, { semanticAdmission, allowFirstSentenceLexicalCue });
+    const citedSourceClaims = validFactIndexes(item?.sourceFactIndexes, sourceClaimCount)
+      ? [...new Set(item.sourceFactIndexes)].map((factIndex) => sourceClaims[factIndex]).filter(Boolean)
+      : [];
+    const assessment = assessScionMcItem(item, {
+      sourceClaims: citedSourceClaims,
+      semanticAdmission,
+      allowFirstSentenceLexicalCue,
+    });
     const itemIssues = [...assessment.issues];
     if (!validFactIndexes(item?.sourceFactIndexes, sourceClaimCount)) itemIssues.push('source-fact-index');
     issues.push(...itemIssues.map((issue) => `mc-${index}-${issue}`));
@@ -305,9 +312,13 @@ export function compileSourceAtomResponse(
   const compiledResponse = {
     ...response,
     mcItems: (Array.isArray(response?.mcItems) ? response.mcItems : []).map((item, itemIndex) => {
+      const citedSourceClaims = validFactIndexes(item?.sourceFactIndexes, sourceClaimCount)
+        ? [...new Set(item.sourceFactIndexes)].map((factIndex) => sourceClaims[factIndex]).filter(Boolean)
+        : [];
       const compiled = repairScionMcItem(item, {
         lessonId,
         itemIndex,
+        sourceClaims: citedSourceClaims,
         keyConflictOptions: { allowFirstSentenceLexicalCue },
       });
       repairs.push(...compiled.repairs.map((repair) => ({ ...repair, sourceFactIndexes: item.sourceFactIndexes })));
@@ -329,6 +340,7 @@ export function compileSourceAtomResponse(
       total: repairs.length,
       incompleteExplanationTail: repairs.filter((repair) => repair.pass === 'incompleteExplanationTail').length,
       explanationKeyAlignment: repairs.filter((repair) => repair.pass === 'explanationKeyAlignment').length,
+      sourceAnswerAlignment: repairs.filter((repair) => repair.pass === 'sourceAnswerAlignment').length,
     },
   };
 }

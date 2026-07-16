@@ -13,7 +13,7 @@ describe('Scion adapter corpus readiness', () => {
     });
 
     expect(receipt).toMatchObject({
-      release: 'v0.16.45',
+      release: 'v0.16.46',
       dataset: {
         status: 'smoke-only',
         promotable: false,
@@ -29,8 +29,14 @@ describe('Scion adapter corpus readiness', () => {
         orderSensitiveCases: 24,
         researchTrainingReady: false,
         compilerReplay: {
-          path: 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json',
-          priorReleaseDelta: { newlyRejectedForRetry: 10 },
+          path: 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.46.json',
+          priorReleaseDelta: { previousRelease: 'v0.16.45', newlyRejectedForRetry: 1 },
+          repairCounts: { sourceAnswerAlignment: 10 },
+          repairEvolution: {
+            replacedExplanationKeyAlignment: 8,
+            newSourceAnswerAlignment: 2,
+            removedExplanationKeyAlignment: 1,
+          },
         },
       },
       conclusion: {
@@ -38,6 +44,27 @@ describe('Scion adapter corpus readiness', () => {
         admissibleModelJudgePairs: 46,
       },
       claimBoundary: { adapterTrained: false, adapterVersusBaseWin: false, paidReferenceParity: false },
+    });
+  });
+
+  it('keeps the historical v0.16.45 source-aware readiness receipt reproducible', async () => {
+    const receipt = await buildScionAdapterCorpusReadinessSnapshot({
+      generatedAt: '2026-07-16T18:20:00.000Z',
+      profile: 'v0.16.45',
+    });
+
+    expect(receipt).toMatchObject({
+      release: 'v0.16.45',
+      dataset: {
+        counts: { loaded: 464, total: 118, singleModelJudgePairs: 46 },
+        evidenceCounts: { 'deterministic-contract-margin': 72, 'single-model-judge-preference': 46 },
+      },
+      judgeCampaign: {
+        compilerReplay: {
+          path: 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json',
+          priorReleaseDelta: { previousRelease: 'v0.16.44', newlyRejectedForRetry: 10 },
+        },
+      },
     });
   });
 

@@ -80,7 +80,10 @@ function sourceIndexesValid(item, factCount) {
 function assessHistoricalItem(item, factCount) {
   const issues = [...assessScionMcItem(item, { semanticAdmission: false }).issues];
   if (!sourceIndexesValid(item, factCount)) issues.push('source-fact-index');
-  const legacyConflict = findScionExplanationKeyConflict(item, { allowExplicitCues: false });
+  const legacyConflict = findScionExplanationKeyConflict(item, {
+    allowExplicitCues: false,
+    rejectNegativeEvidence: false,
+  });
   const filteredIssues = issues.filter(
     (issue) => issue !== 'placeholder-options' && !(issue === 'explanation-key-conflict' && legacyConflict === null),
   );
@@ -150,7 +153,7 @@ export async function buildScionMcContractRecoveryReport({ cwd = process.cwd(), 
           lessonId: call.promptId,
           itemIndex,
           recoverIncompleteExplanation: false,
-          keyConflictOptions: { allowExplicitCues: false },
+          keyConflictOptions: { allowExplicitCues: false, rejectNegativeEvidence: false },
         });
         if (assessHistoricalItem(keyOnly.item, sourceClaimCount).eligible) {
           metrics.afterConservativeKeyAlignment += 1;
@@ -159,7 +162,7 @@ export async function buildScionMcContractRecoveryReport({ cwd = process.cwd(), 
         const recovered = repairScionMcItem(rawItem, {
           lessonId: call.promptId,
           itemIndex,
-          keyConflictOptions: { allowExplicitCues: false },
+          keyConflictOptions: { allowExplicitCues: false, rejectNegativeEvidence: false },
         });
         for (const repair of recovered.repairs) {
           repairHistogram[repair.pass] = (repairHistogram[repair.pass] || 0) + 1;

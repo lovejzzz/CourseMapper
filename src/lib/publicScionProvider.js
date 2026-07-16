@@ -39,10 +39,22 @@ function repairPublicScionMcItems(parsed) {
   if (!parsed || !Array.isArray(parsed.lessons)) return { parsed, repairs };
   for (const lesson of parsed.lessons) {
     if (!Array.isArray(lesson?.mc)) continue;
+    const sourceClaims = Array.isArray(lesson?.facts) ? lesson.facts : [];
     lesson.mc = lesson.mc.map((item, itemIndex) => {
+      const rawSourceFactIndexes = item?.sourceFactIndexes ?? item?.fi;
+      const sourceFactIndexes = Array.isArray(rawSourceFactIndexes)
+        ? [...new Set(rawSourceFactIndexes)].filter(
+            (factIndex) => Number.isInteger(factIndex) && factIndex >= 0 && factIndex < sourceClaims.length,
+          )
+        : [];
+      const citedSourceClaims =
+        sourceFactIndexes.length === rawSourceFactIndexes?.length
+          ? sourceFactIndexes.map((factIndex) => sourceClaims[factIndex]).filter(Boolean)
+          : [];
       const result = repairScionMcItem(item, {
         lessonId: lesson.lessonId,
         itemIndex,
+        sourceClaims: citedSourceClaims,
         // Preserve the browser parser's proven question/steps paraphrase
         // recovery. Canonical admission and benchmark replay keep the more
         // conservative shared default (3 overlapping tokens, margin 3).
@@ -184,6 +196,22 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           knownFacts: Array.isArray(lesson.facts) ? lesson.facts : [],
         });
         for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
+      });
+      const facts = Array.isArray(lesson.facts) ? lesson.facts : [];
+      const mcItems = Array.isArray(lesson.mc) ? lesson.mc : [];
+      mcItems.forEach((item, index) => {
+        const sourceFactIndexes = item?.sourceFactIndexes ?? item?.fi;
+        if (
+          !Array.isArray(sourceFactIndexes) ||
+          sourceFactIndexes.length < 1 ||
+          sourceFactIndexes.length > 2 ||
+          new Set(sourceFactIndexes).size !== sourceFactIndexes.length ||
+          sourceFactIndexes.some(
+            (factIndex) => !Number.isInteger(factIndex) || factIndex < 0 || factIndex >= facts.length,
+          )
+        ) {
+          issues.push(`${expected.lessonId}:mc-${index}:source-fact-index`);
+        }
       });
     }
     return { needsRetry: issues.length > 0, issues };
@@ -493,6 +521,7 @@ function buildPublicScionKernelPrompt(userPrompt) {
           'Plausible methodological claim or action D',
         ],
         ai: 0,
+        fi: [0],
         ex: 'Why the key wins and the closest distractor fails in subject terms.',
       },
     ],
@@ -548,6 +577,7 @@ ${
 - Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, and po has exactly 3 defensible positions — a main position, a contrast, and a conditional or synthesis position. The third position must add real reasoning, not split the difference mechanically.
 - Write one assignmentCore: td is at least 60 characters and names the actual case, data, design, or text plus what students produce; pa has exactly 4 distinct parameters covering scope, submission format, required evidence/source, and a realistic length or time boundary.
 - Write exactly 4 mc items: one concept distinction, one concrete case application, one field-note evidence analysis, and one flawed-method evaluation.
+- Every mc item includes fi with 1-2 distinct zero-based indexes into that lesson's facts. Cite only the facts that determine why the keyed option wins.
 - At least 3 mc stems include specific observed behavior or evidence. Options are parallel, plausible methodological claims or actions; distractors reflect real misconceptions. Every q is 25-50 words; op has exactly 4 options; ai is 0-3; ex explains why the key wins and the closest distractor fails.
 - Never infer motive from one ambiguous behavior. Pair behavior with context, a quote, a second observation, or an outcome so exactly one option is supported.
 - Forbidden after one behavior: "what does this suggest/indicate", "which interpretation", or "what likely explains". Instead ask which neutral follow-up or evidence-collection action comes next, or key an option saying the observation alone is insufficient.
