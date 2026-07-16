@@ -18,29 +18,32 @@
       "npx playwright test tests/release-v01639.spec.js"
     ],
     "ciFast": {
-      "status": "pending-push",
-      "note": "The exact-lineage audit is part of Fast verification and will be bound to the merged main commit before the release proof is finalized."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29481922737",
+      "note": "Fast verification passed in 26m38s on exact main merge commit 5d29c03f37706d7e3cf61b08ffe35b15438209d4, including formatting, lint, release history, cross-revision evidence, the deterministic 400/92 review ledger, exact adapter lineage, 4,491 unit and closed-loop tests with 162 declared skips, proof smoke, all 34 canonical main-evaluation courses with compiler-contract-only claim status, production build, bundle budgets, and evaluation-report upload."
     },
     "ciDeep": {
       "status": "local-only",
       "note": "This bounded milestone ran a fresh real Chrome Apple-Silicon lifecycle locally. The remaining three frozen device profiles still require their actual hardware and browsers."
     },
     "deploy": {
-      "status": "pending",
-      "note": "Production proof will be recorded only after exact-main Fast verification and Pages deployment succeed."
+      "status": "success",
+      "url": "https://github.com/lovejzzz/CourseMapper/actions/runs/29483538832",
+      "liveUrl": "https://edutool.dev/?codex_release_probe=0.16.39-5d29c03f-20260716T0829Z",
+      "note": "GitHub Pages built and deployed the exact Fast-verified merge commit. A unique production probe returned HTTP 200, cache MISS, and a 2026-07-16T08:29:00Z last-modified timestamp. The served index.html, index-CPu9UbAm.js, releaseManifest-DOxOvHJo.js, Changelog-CoBAKHIj.js, AppFlow-CcFKZGP_.js, and scionRuntime-0MHsYOvn.js were byte-for-byte identical to the verified local build with SHA-256 6c7de77d3d2dd9f8fea419032e4ddbd2cd1447cd00c9c1ac446c0b4441740b39, d38378d81e41a99714f973dd00f7b06dde5dfaedd29dedfa5923ce11879deb4c, c99ecc9d91a9591f4bcd17a28abf23f00527eb7a68a75e9ec52bfdbc7b8b9606, 58d18bb21e5712834d22015550331ae7aa7e511c3e27c9c2e560bfa0443adf9e, ccd8f595faebabbf45c2fca7e5e84ec269318ede93bed0bdd11f201aa99f77ce, and a10e12bc6db12ad14f8063c06d1496b32a9606409d09bd1cad6d6cbf383b7210. The live bundles expose v0.16.39, the exact release title, the 400/92 ledger boundary, and the no-quality-win/non-promotable language."
     },
     "liveProvider": {
       "status": "local-only",
-      "note": "The pinned public 3.35 GB Gemma browser base and exact separate smoke adapter ran in a real local Chrome profile with no model backend. No paid provider or held-out quality comparison was invoked."
+      "note": "The pinned public 3.35 GB Gemma browser base and exact separate 52.7 MB smoke adapter ran in a real local Chrome 150 profile with no model backend. The run proves mechanics and one Apple-Silicon device profile only; no paid provider, held-out quality comparison, or adapter win was invoked or claimed."
     },
     "manualHuman": {
       "status": "not-applicable",
       "note": "No human or instructor judgment is claimed or required. This release records mechanical browser evidence and an honest zero-preference corpus boundary."
     },
     "strictLayeredEvaluation": {
-      "status": "passed-local",
+      "status": "success",
       "claimStatus": "compiler-contract-only",
-      "note": "Local proof passed: 4,491 tests with 162 skips, the 34-course layered evaluation, formatting, lint, release-history, exact-lineage, 400/92 review-ledger reproducibility, build, bundle budgets, and the Chromium changelog proof. Exact-main CI and production deployment remain pending."
+      "note": "Local proof passed: 4,491 tests with 162 skips, the 34-course layered evaluation, formatting, lint, release-history, exact-lineage, 400/92 review-ledger reproducibility, build, bundle budgets, and the Chromium changelog proof. Exact-main Fast verification, exact-commit Pages deployment, and byte-identical production assets also pass. These prove delivery mechanics, compiler/software integrity, and one real Apple-Silicon lifecycle; they do not prove educational-quality improvement, an adapter-versus-base win, paid-reference parity, or the other three device profiles."
     }
   },
   "claims": [
