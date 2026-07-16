@@ -1,0 +1,3274 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-ux-evidence-to-prototype-capstone-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "UX Evidence-to-Prototype Capstone, a six-session project course in which students plan research, synthesize personas and journeys, model task flows, build testable prototypes, and combine accessibility conformance with observed usability evidence.",
+  "fileNames": [
+    "source-packet-55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e.json"
+  ],
+  "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"UX Evidence-to-Prototype Capstone\",\"sessions\":[{\"number\":1,\"title\":\"Research planning\"},{\"number\":2,\"title\":\"Personas\"},{\"number\":3,\"title\":\"Journey mapping\"},{\"number\":4,\"title\":\"Task flow analysis\"},{\"number\":5,\"title\":\"Interactive prototyping\"},{\"number\":6,\"title\":\"Accessibility and usability evaluation\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"What should the team establish prior to selecting study details?\",\"op\":[\"The specific evidence capture roles\",\"The desired learning objectives\",\"The rehearsal-ready study setup\",\"The specific tasks\"],\"ai\":1,\"ex\":\"Selecting study details should follow agreement on what the team wants to learn from the research round. Choosing the specific tasks is premature before defining the learning goals.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"},{\"q\":\"What condition must a prototype meet for use in a research venue?\",\"op\":[\"It must be fully accessible\",\"It must be usable and accessible\",\"It must work end-to-end\",\"It must be rehearsed beforehand\"],\"ai\":2,\"ex\":\"A prototype used in research must work end-to-end and be usable and accessible in the research venue. Simply being accessible is insufficient if the prototype fails to function.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-2\":{\"quizItems\":[{\"q\":\"What is the primary function of a research-based persona?\",\"op\":[\"To detail individual interface requests.\",\"To present research findings for sharing.\",\"To describe features intended to meet needs.\",\"To model task flows.\"],\"ai\":0,\"ex\":\"Option 0 is correct because a research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Option 1 is a misconception because personas are not solely for sharing; they are evidence-based profiles.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"How do teams translate user needs into actionable items?\",\"op\":[\"By modeling task flows.\",\"By creating user stories describing features.\",\"By keeping needs separate from stories.\",\"By focusing only on individual interface requests.\"],\"ai\":2,\"ex\":\"Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings.\",\"sourceFactIndexes\":[3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"User needs\",\"df\":\"High-level, stable requirements for a user group.\",\"eg\":\"The need for a mobile app to reliably send notifications.\",\"mi\":\"User needs are transient and change with every interface request.\",\"cx\":\"User needs are generally higher-level and more stable over time than individual interface requests.\",\"sourceFactIndexes\":[2]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"What is the primary purpose of journey mapping?\",\"op\":[\"To document the final product design.\",\"To show connected steps, boundaries, breakdowns, and opportunities.\",\"To list all possible user features.\",\"To define the technical architecture.\"],\"ai\":1,\"ex\":\"The correct choice, 'To show connected steps, boundaries, breakdowns, and opportunities,' is accurate because journey mapping represents an end-to-end experience so a team can see connected steps, boundaries, breakdowns, and opportunities.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"End-to-end experience visualization\",\"df\":\"A visual representation of the complete user path.\",\"eg\":\"Mapping the entire process from initial search to final purchase.\",\"mi\":\"Thinking a map only shows the main features.\",\"cx\":\"It shows connected steps, boundaries, breakdowns, and opportunities.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Struggle point identification\",\"df\":\"Identifying areas where the user encounters difficulty.\",\"eg\":\"Highlighting where a user gets stuck between online booking and in-person check-in.\",\"mi\":\"Assuming all problems are technical errors.\",\"cx\":\"An experience map should make struggle points and candidate improvement areas visible.\",\"sourceFactIndexes\":[2]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"What is the primary function of a task flow analysis?\",\"op\":[\"To model the steps and decision points a user takes to achieve a specific objective.\",\"To predict future user behavior based on historical data.\",\"To document the system's underlying code structure.\",\"To define the final visual design of the user interface.\"],\"ai\":0,\"ex\":\"Option 0 is correct because a task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal (Claim 0).\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"Which element should a task flow diagram illustrate?\",\"op\":[\"Only the single most efficient path a user can take to complete the goal.\",\"The sequence of tasks and decision points a user progresses through to reach a goal.\",\"The technical specifications of the system components involved.\",\"The final, static screen the user sees upon goal completion.\"],\"ai\":1,\"ex\":\"Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2).\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Goal progression mapping\",\"df\":\"A visual representation of the sequence of actions and choices a user makes to achieve a desired outcome.\",\"eg\":\"Mapping the steps from logging in to successfully submitting a purchase form.\",\"mi\":\"Thinking this is just a linear list of steps without considering branching choices.\",\"cx\":\"This mapping must include multiple possible paths, task sequences, and decision points (Claim 4).\",\"sourceFactIndexes\":[4]},{\"tr\":\"User objective validation\",\"df\":\"The process of confirming the team's comprehension of user aims, common situations, and required actions.\",\"eg\":\"Reviewing a flow to ensure it accurately reflects how a user intends to complete a specific workflow.\",\"mi\":\"Believing that simply drawing the steps automatically proves the team understands the user's true objectives.\",\"cx\":\"Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks (Claim 1).\",\"sourceFactIndexes\":[1]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"Which characteristic is essential for a prototype when aiming to support rapid iteration?\",\"op\":[\"It must require every production detail.\",\"It should be inexpensive enough to discard after learning from them.\",\"It must show every interaction perfectly.\",\"It should only focus on functional interactions.\"],\"ai\":1,\"ex\":\"The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0).\",\"sourceFactIndexes\":[0,4],\"type\":\"multiple_choice\"},{\"q\":\"How can prototypes be effectively utilized to validate a design concept?\",\"op\":[\"By requiring every production detail for testing.\",\"By combining them with usability testing or a cognitive walkthrough.\",\"By only showing fully functional interactions.\",\"By ensuring every interaction is perfectly functional.\"],\"ai\":1,\"ex\":\"The correct choice is that prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works (Claim 1). The misconception is that prototypes must only show fully functional interactions (Claim 2).\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-6\":{\"quizItems\":[{\"q\":\"Which activity is central to accessibility and usability evaluation?\",\"op\":[\"Checking standards-based conformance alone.\",\"Observing users completing realistic tasks.\",\"Generalizing one disabled participant's experience.\",\"Thinking aloud while using a product.\"],\"ai\":1,\"ex\":\"Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0).\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"What is a limitation of relying solely on conformance evaluation?\",\"op\":[\"It fails to check standards.\",\"It misses barriers found by disabled or older users.\",\"It is sufficient for all users.\",\"It only observes users without thinking aloud.\"],\"ai\":1,\"ex\":\"It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2).\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Usability testing\",\"df\":\"A method of observing users attempting to use a product or service while thinking aloud.\",\"eg\":\"Watching a user struggle to find the 'submit' button on a prototype while verbalizing their confusion.\",\"mi\":\"Usability testing is just watching users without any verbal feedback.\",\"cx\":\"Usability testing is observing users attempting to use a product or service while thinking aloud (Claim 3).\",\"sourceFactIndexes\":[3]},{\"tr\":\"Conformance evaluation\",\"df\":\"Checking adherence to established accessibility standards.\",\"eg\":\"Verifying if a website meets WCAG criteria for color contrast.\",\"mi\":\"Conformance evaluation is the only way to ensure a product is usable.\",\"cx\":\"Conformance evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0).\",\"sourceFactIndexes\":[0]}]}}}}",
+  "savedAt": "2026-07-14T07:41:19.709Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+    "campaignManifestSha256": "7745ab25f0b006d1d84913f8df9b95acb09414b05cd611944abcd0da34f872da",
+    "promptSetSha256": "0355e7ee7588f6bcfaa114043b19cfb9afe03dbc8e9095aeeaa9b548b2d1835e",
+    "courseInputSha256": "7be7dc729ad970030952d23b2c3330dab15c73a7a53d33dcebda3dc2385f11f5",
+    "courseGroupId": "ux-evidence-to-prototype-capstone",
+    "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/ux-intro.json",
+      "sourceArtifactSha256": "97184a577a92ba3e8103dacfb100bbabbf25c8d90905da95b1b0dec1e0664e54",
+      "kernels": [
+        {
+          "id": "ux/research-planning",
+          "term": "Research planning",
+          "definition": "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "definitionAnchor": {
+            "src": "govuk:plan-user-research",
+            "loc": "Set your research objectives",
+            "quote": "Each round of user research should have clear objectives. Keep your objectives actionable and to the point."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The team should agree what it wants to learn from the research round before selecting study details.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Set your research objectives",
+                "quote": "Work with your team to agree what you want to learn from a round of research."
+              }
+            },
+            {
+              "index": 1,
+              "text": "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Prepare the prototype",
+                "quote": "Your prototype or beta service needs to work from end-to-end and be usable and accessible from the research venue."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Researchers should run through test tasks on the day before the research session.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Prepare the prototype",
+                "quote": "Run through the test tasks on the day before the research."
+              }
+            },
+            {
+              "index": 3,
+              "text": "A practice session with a team member can expose procedure problems before participants arrive.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Run a practice session",
+                "quote": "To make sure your research goes smoothly, consider running through the session with a team member."
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/evidence-based-personas",
+          "term": "Personas",
+          "definition": "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "definitionAnchor": {
+            "src": "govuk:user-needs",
+            "loc": "Share your user needs",
+            "quote": "user profiles or personas that describe groups of users with similar behaviour and needs"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Personas are one way to present research findings so other people can understand and share them.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Share your user needs",
+                "quote": "Present what you've learned in a way that's easy for others to understand and share."
+              }
+            },
+            {
+              "index": 1,
+              "text": "User needs are generally higher-level and more stable over time than individual interface requests.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "User needs tend to be high-level, broad in scope and stable over time."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "These describe the specific features and content you need to create for your service to meet your users' needs."
+              }
+            },
+            {
+              "index": 3,
+              "text": "Keeping each user story linked to its source need enables evaluation of whether the need is being met.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "This traceability allows you to track related activities and determine how well you're meeting a particular user need."
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/journey-mapping",
+          "term": "Journey mapping",
+          "definition": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "definitionAnchor": {
+            "src": "govuk:whole-journey",
+            "loc": "Whole problem",
+            "quote": "It's important for teams to make sure the thing they're building forms a coherent part of a user's wider journey."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "User point of view",
+                "quote": "Start by talking to your users to learn more about the steps they have to take and the transactions involved."
+              }
+            },
+            {
+              "index": 1,
+              "text": "An experience map should make struggle points and candidate improvement areas visible.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "User point of view",
+                "quote": "The map should show which bits of the journey users are struggling with and the areas you might want to focus on improving."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "What to change",
+                "quote": "dead ends in the user journey"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Journey analysis should include gaps between online and offline parts of a service.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "What to change",
+                "quote": "online and offline elements of the transaction not joining up in an intuitive way"
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/task-flow-analysis",
+          "term": "Task flow analysis",
+          "definition": "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "definitionAnchor": {
+            "src": "digitalgov:task-flow",
+            "loc": "What",
+            "quote": "A task flow analysis is a step-by-step diagram showing how a user interacts with a system to reach a goal."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "Validate your understanding of users' goals, common scenarios, and tasks"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A task flow should show how a user progresses through tasks to accomplish a goal.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "Illustrate the overall flow of tasks through which a user progresses to accomplish a goal"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Task flow analysis should surface obstacles that stand between users and their goals.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "Surface obstacles in the way of users achieving their goal"
+              }
+            },
+            {
+              "index": 3,
+              "text": "The diagram may include multiple possible paths, task sequences, and decision points.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "The diagram traces a user's possible paths through sequences of tasks and decision points to meet their goal."
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        },
+        {
+          "id": "ux/interactive-prototyping",
+          "term": "Interactive prototyping",
+          "definition": "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "definitionAnchor": {
+            "src": "digitalgov:prototypes",
+            "loc": "What",
+            "quote": "A prototype is an interactive (high-fidelity) version of the experience you are planning to build. It shows how the design will look and work, without full detail."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "Why",
+                "quote": "Combined with other methods like usability testing or a cognitive walkthrough, prototypes help you test whether a design concept will work."
+              }
+            },
+            {
+              "index": 1,
+              "text": "Functional prototypes allow a team to observe how users interact with a product.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "Why",
+                "quote": "Functional prototypes help you observe how users interact with the product."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A prototype should show the major interactions even when not every interaction is functional.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "How to do it",
+                "quote": "Show the major interactions. Not all interactions need to be functional."
+              }
+            },
+            {
+              "index": 3,
+              "text": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "How to do it",
+                "quote": "Iterate. Prototypes should be quick to create and even quicker to discard."
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        },
+        {
+          "id": "ux/accessibility-usability-evaluation",
+          "term": "Accessibility and usability evaluation",
+          "definition": "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "definitionAnchor": {
+            "src": "w3c:wcag22",
+            "loc": "Introduction",
+            "quote": "WCAG 2.2 is designed to apply broadly to different web technologies now and in the future, and to be testable with a combination of automated testing and human evaluation."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+              "anchor": {
+                "src": "w3c:wcag22",
+                "loc": "Layers of Guidance",
+                "quote": "perceivable, operable, understandable, and robust"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+              "anchor": {
+                "src": "w3c:involving-users",
+                "loc": "Introduction",
+                "quote": "Evaluating with users with disabilities and with older users identifies usability issues that are not discovered by conformance evaluation alone."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A usability test observes users attempting to use a product or service while thinking aloud.",
+              "anchor": {
+                "src": "digitalgov:usability",
+                "loc": "What",
+                "quote": "A usability test observes users as they attempt to use a product or service while thinking out loud."
+              }
+            },
+            {
+              "index": 3,
+              "text": "A single disabled participant's experience should not be generalized to all people with disabilities.",
+              "anchor": {
+                "src": "w3c:involving-users",
+                "loc": "Basics",
+                "quote": "Avoid assuming that input from one person with a disability applies to all people with disabilities."
+              }
+            }
+          ],
+          "license": "W3C Document License and U.S. Government Work",
+          "attribution": [
+            "W3C Web Accessibility Initiative",
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-14T07:41:19.709Z",
+    "admittedPromptIds": [
+      "ux-evidence-to-prototype-capstone:ux/research-planning",
+      "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+      "ux-evidence-to-prototype-capstone:ux/journey-mapping",
+      "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+      "ux-evidence-to-prototype-capstone:ux/interactive-prototyping",
+      "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "ux-evidence-to-prototype-capstone:ux/research-planning",
+          "kernelId": "ux/research-planning",
+          "promptSha256": "aa4d7df051e563f43989993d766030f29eb29473736d23b996591fc4667b560b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What should the team establish prior to selecting study details?",
+                "op": [
+                  "The specific evidence capture roles",
+                  "The desired learning objectives",
+                  "The rehearsal-ready study setup",
+                  "The specific tasks"
+                ],
+                "ai": 1,
+                "ex": "Selecting study details should follow agreement on what the team wants to learn from the research round. Choosing the specific tasks is premature before defining the learning goals.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "What condition must a prototype meet for use in a research venue?",
+                "op": [
+                  "It must be fully accessible",
+                  "It must be usable and accessible",
+                  "It must work end-to-end",
+                  "It must be rehearsed beforehand"
+                ],
+                "ai": 2,
+                "ex": "A prototype used in research must work end-to-end and be usable and accessible in the research venue. Simply being accessible is insufficient if the prototype fails to function.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Actionable learning objectives",
+                "df": "The specific goals derived from a decision need that guide the research.",
+                "eg": "Defining the specific learning objectives for a usability study.",
+                "mi": "Believing objectives are only about the final product features.",
+                "cx": "Objectives turn a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup. [0]",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Rehearsal session",
+                "df": "A practice run conducted with a team member to identify procedural issues before participants arrive.",
+                "eg": "Running through test tasks with a team member the day before the research session.",
+                "mi": "Assuming participants will perform tasks perfectly on the day.",
+                "cx": "A practice session with a team member can expose procedure problems before participants arrive. [3, 4]",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "1eefc1e402d756bbee64c98a2503b6c1701ff921943a86e7619dc7be50b43b9a",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What should the team establish prior to selecting study details?",
+                "op": [
+                  "The specific evidence capture roles",
+                  "The desired learning objectives",
+                  "The rehearsal-ready study setup",
+                  "The specific tasks"
+                ],
+                "ai": 1,
+                "ex": "Selecting study details should follow agreement on what the team wants to learn from the research round. Choosing the specific tasks is premature before defining the learning goals.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "What condition must a prototype meet for use in a research venue?",
+                "op": [
+                  "It must be fully accessible",
+                  "It must be usable and accessible",
+                  "It must work end-to-end",
+                  "It must be rehearsed beforehand"
+                ],
+                "ai": 2,
+                "ex": "A prototype used in research must work end-to-end and be usable and accessible in the research venue. Simply being accessible is insufficient if the prototype fails to function.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "b63b2bd079d10e25bef8af5f3ee9df0eead1e4f0bbf192f44413a6e5118ed2c6",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-claim-marker-residue",
+              "key-term-1-claim-marker-residue",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:40:38.243Z",
+          "durationMs": 6439,
+          "compilerRepairs": [],
+          "compilerRepairCounts": {
+            "total": 0,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 0
+          }
+        },
+        {
+          "promptId": "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+          "kernelId": "ux/evidence-based-personas",
+          "promptSha256": "41664877b24362159e1ffeb7d78d013579d97c521adaff4a470530e343fdba1c",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a research-based persona?",
+                "op": [
+                  "To detail individual interface requests.",
+                  "To present research findings for sharing.",
+                  "To describe features intended to meet needs.",
+                  "To model task flows."
+                ],
+                "ai": 0,
+                "ex": "Option 0 is correct because a research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Option 1 is a misconception because personas are not solely for sharing; they are evidence-based profiles. Option 2 is a mis",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "How do teams translate user needs into actionable items?",
+                "op": [
+                  "By modeling task flows.",
+                  "By creating user stories describing features.",
+                  "By keeping needs separate from stories.",
+                  "By focusing only on individual interface requests."
+                ],
+                "ai": 3,
+                "ex": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings. Option 2 is a mis",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "User needs",
+                "df": "High-level, stable requirements for a user group.",
+                "eg": "The need for a mobile app to reliably send notifications.",
+                "mi": "User needs are transient and change with every interface request.",
+                "cx": "User needs are generally higher-level and more stable over time than individual interface requests.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Research-based persona",
+                "df": "A shareable profile of a user group with similar behavior and needs.",
+                "eg": "A profile representing a group of frequent commuters.",
+                "mi": "A persona is just a collection of individual interface requests.",
+                "cx": "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "efbed09968705f96bd6a2a469349157455da1ee643b5f723b3f6c58bc9231dde",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a research-based persona?",
+                "op": [
+                  "To detail individual interface requests.",
+                  "To present research findings for sharing.",
+                  "To describe features intended to meet needs.",
+                  "To model task flows."
+                ],
+                "ai": 0,
+                "ex": "Option 0 is correct because a research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Option 1 is a misconception because personas are not solely for sharing; they are evidence-based profiles.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "How do teams translate user needs into actionable items?",
+                "op": [
+                  "By modeling task flows.",
+                  "By creating user stories describing features.",
+                  "By keeping needs separate from stories.",
+                  "By focusing only on individual interface requests."
+                ],
+                "ai": 2,
+                "ex": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "User needs",
+                "df": "High-level, stable requirements for a user group.",
+                "eg": "The need for a mobile app to reliably send notifications.",
+                "mi": "User needs are transient and change with every interface request.",
+                "cx": "User needs are generally higher-level and more stable over time than individual interface requests.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "ef12c64a52af0cbf30f9d843fc3419ca82378b3e58e648d605183f23727caa81",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-1-correction-repeats-definition"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:40:44.683Z",
+          "durationMs": 6928,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+              "item": 0,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "What is the primary function of a research-based persona?",
+                "options": [
+                  "To detail individual interface requests.",
+                  "To present research findings for sharing.",
+                  "To describe features intended to meet needs.",
+                  "To model task flows."
+                ],
+                "answerIndex": 0,
+                "explanation": "Option 0 is correct because a research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Option 1 is a misconception because personas are not solely for sharing; they are evidence-based profiles. Option 2 is a mis"
+              },
+              "chosen": {
+                "question": "What is the primary function of a research-based persona?",
+                "options": [
+                  "To detail individual interface requests.",
+                  "To present research findings for sharing.",
+                  "To describe features intended to meet needs.",
+                  "To model task flows."
+                ],
+                "answerIndex": 0,
+                "explanation": "Option 0 is correct because a research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Option 1 is a misconception because personas are not solely for sharing; they are evidence-based profiles."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 282,
+                "removedCharacters": 17,
+                "removedTail": "Option 2 is a mis"
+              },
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+              "item": 1,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "How do teams translate user needs into actionable items?",
+                "options": [
+                  "By modeling task flows.",
+                  "By creating user stories describing features.",
+                  "By keeping needs separate from stories.",
+                  "By focusing only on individual interface requests."
+                ],
+                "answerIndex": 3,
+                "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings. Option 2 is a mis"
+              },
+              "chosen": {
+                "question": "How do teams translate user needs into actionable items?",
+                "options": [
+                  "By modeling task flows.",
+                  "By creating user stories describing features.",
+                  "By keeping needs separate from stories.",
+                  "By focusing only on individual interface requests."
+                ],
+                "answerIndex": 3,
+                "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 251,
+                "removedCharacters": 17,
+                "removedTail": "Option 2 is a mis"
+              },
+              "sourceFactIndexes": [
+                3
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "How do teams translate user needs into actionable items?",
+                "options": [
+                  "By modeling task flows.",
+                  "By creating user stories describing features.",
+                  "By keeping needs separate from stories.",
+                  "By focusing only on individual interface requests."
+                ],
+                "answerIndex": 3,
+                "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings."
+              },
+              "chosen": {
+                "question": "How do teams translate user needs into actionable items?",
+                "options": [
+                  "By modeling task flows.",
+                  "By creating user stories describing features.",
+                  "By keeping needs separate from stories.",
+                  "By focusing only on individual interface requests."
+                ],
+                "answerIndex": 2,
+                "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 2,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 2,
+                    "type": "explicit-option-label",
+                    "surface": "Option 3 is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 3,
+            "incompleteExplanationTail": 2,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "ux-evidence-to-prototype-capstone:ux/journey-mapping",
+          "kernelId": "ux/journey-mapping",
+          "promptSha256": "9657c3700827d940a9f276821c31c57f0c56db3350ae4f8a02fe866e83b60472",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary purpose of journey mapping?",
+                "op": [
+                  "To document the final product design.",
+                  "To show connected steps, boundaries, breakdowns, and opportunities.",
+                  "To list all possible user features.",
+                  "To define the technical architecture."
+                ],
+                "ai": 1,
+                "ex": "The correct choice, 'To show connected steps, boundaries, breakdowns, and opportunities,' is accurate because journey mapping represents an end-to-end experience so a team can see connected steps, boundaries, breakdowns, and opportunities. The misconception, 'To document the final product design,'誤,",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Where should the initial focus of an experience map originate?",
+                "op": [
+                  "On the desired final outcome.",
+                  "On research about the steps users actually take and the transactions involved.",
+                  "On the team's internal workflow.",
+                  "On the technical feasibility of the system."
+                ],
+                "ai": 1,
+                "ex": "The correct choice, 'On research about the steps users actually take and the transactions involved,' is correct because a journey map should start from research about the steps users actually take and the transactions involved. The misconception, 'On the desired final outcome,'誤, ",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "End-to-end experience visualization",
+                "df": "A visual representation of the complete user path.",
+                "eg": "Mapping the entire process from initial search to final purchase.",
+                "mi": "Thinking a map only shows the main features.",
+                "cx": "It shows connected steps, boundaries, breakdowns, and opportunities.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Struggle point identification",
+                "df": "Identifying areas where the user encounters difficulty.",
+                "eg": "Highlighting where a user gets stuck between online booking and in-person check-in.",
+                "mi": "Assuming all problems are technical errors.",
+                "cx": "An experience map should make struggle points and candidate improvement areas visible.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "9d60202877344da44822aa52de4934087f28d55c5696c65bab83ed4d20f5db08",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the primary purpose of journey mapping?",
+                "op": [
+                  "To document the final product design.",
+                  "To show connected steps, boundaries, breakdowns, and opportunities.",
+                  "To list all possible user features.",
+                  "To define the technical architecture."
+                ],
+                "ai": 1,
+                "ex": "The correct choice, 'To show connected steps, boundaries, breakdowns, and opportunities,' is accurate because journey mapping represents an end-to-end experience so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "End-to-end experience visualization",
+                "df": "A visual representation of the complete user path.",
+                "eg": "Mapping the entire process from initial search to final purchase.",
+                "mi": "Thinking a map only shows the main features.",
+                "cx": "It shows connected steps, boundaries, breakdowns, and opportunities.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Struggle point identification",
+                "df": "Identifying areas where the user encounters difficulty.",
+                "eg": "Highlighting where a user gets stuck between online booking and in-person check-in.",
+                "mi": "Assuming all problems are technical errors.",
+                "cx": "An experience map should make struggle points and candidate improvement areas visible.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "ae4df72d5c420afc0498c50fe4826ae2de4fe4f7881d1e0a3280560325ed586e",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-longest-option-cue"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:40:51.612Z",
+          "durationMs": 6897,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/journey-mapping",
+              "item": 0,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "What is the primary purpose of journey mapping?",
+                "options": [
+                  "To document the final product design.",
+                  "To show connected steps, boundaries, breakdowns, and opportunities.",
+                  "To list all possible user features.",
+                  "To define the technical architecture."
+                ],
+                "answerIndex": 1,
+                "explanation": "The correct choice, 'To show connected steps, boundaries, breakdowns, and opportunities,' is accurate because journey mapping represents an end-to-end experience so a team can see connected steps, boundaries, breakdowns, and opportunities. The misconception, 'To document the final product design,'誤,"
+              },
+              "chosen": {
+                "question": "What is the primary purpose of journey mapping?",
+                "options": [
+                  "To document the final product design.",
+                  "To show connected steps, boundaries, breakdowns, and opportunities.",
+                  "To list all possible user features.",
+                  "To define the technical architecture."
+                ],
+                "answerIndex": 1,
+                "explanation": "The correct choice, 'To show connected steps, boundaries, breakdowns, and opportunities,' is accurate because journey mapping represents an end-to-end experience so a team can see connected steps, boundaries, breakdowns, and opportunities."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 239,
+                "removedCharacters": 60,
+                "removedTail": "The misconception, 'To document the final product design,'誤,"
+              },
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/journey-mapping",
+              "item": 1,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "Where should the initial focus of an experience map originate?",
+                "options": [
+                  "On the desired final outcome.",
+                  "On research about the steps users actually take and the transactions involved.",
+                  "On the team's internal workflow.",
+                  "On the technical feasibility of the system."
+                ],
+                "answerIndex": 1,
+                "explanation": "The correct choice, 'On research about the steps users actually take and the transactions involved,' is correct because a journey map should start from research about the steps users actually take and the transactions involved. The misconception, 'On the desired final outcome,'誤,"
+              },
+              "chosen": {
+                "question": "Where should the initial focus of an experience map originate?",
+                "options": [
+                  "On the desired final outcome.",
+                  "On research about the steps users actually take and the transactions involved.",
+                  "On the team's internal workflow.",
+                  "On the technical feasibility of the system."
+                ],
+                "answerIndex": 1,
+                "explanation": "The correct choice, 'On research about the steps users actually take and the transactions involved,' is correct because a journey map should start from research about the steps users actually take and the transactions involved."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 227,
+                "removedCharacters": 52,
+                "removedTail": "The misconception, 'On the desired final outcome,'誤,"
+              },
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 2,
+            "incompleteExplanationTail": 2,
+            "explanationKeyAlignment": 0
+          }
+        },
+        {
+          "promptId": "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+          "kernelId": "ux/task-flow-analysis",
+          "promptSha256": "cf91475a8c0f6ececeecf46a593bd3d60463ed3bad67a0294f23ec83653fe3d3",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a task flow analysis?",
+                "op": [
+                  "To model the steps and decision points a user takes to achieve a specific objective.",
+                  "To predict future user behavior based on historical data.",
+                  "To document the system's underlying code structure.",
+                  "To define the final visual design of the user interface."
+                ],
+                "ai": 0,
+                "ex": "Option 0 is correct because a task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal (Claim 0). Option 1 is a misconception because task flow analysis is not primarily for predicting future behavior; it validates understanding (",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "Which element should a task flow diagram illustrate?",
+                "op": [
+                  "Only the single most efficient path a user can take to complete the goal.",
+                  "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                  "The technical specifications of the system components involved.",
+                  "The final, static screen the user sees upon goal completion."
+                ],
+                "ai": 2,
+                "ex": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2). Option 1 is a misconception because a task flow must show progression, not just the most efficient path (",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Goal progression mapping",
+                "df": "A visual representation of the sequence of actions and choices a user makes to achieve a desired outcome.",
+                "eg": "Mapping the steps from logging in to successfully submitting a purchase form.",
+                "mi": "Thinking this is just a linear list of steps without considering branching choices.",
+                "cx": "This mapping must include multiple possible paths, task sequences, and decision points (Claim 4).",
+                "sourceFactIndexes": [
+                  4
+                ]
+              },
+              {
+                "tr": "User objective validation",
+                "df": "The process of confirming the team's comprehension of user aims, common situations, and required actions.",
+                "eg": "Reviewing a flow to ensure it accurately reflects how a user intends to complete a specific workflow.",
+                "mi": "Believing that simply drawing the steps automatically proves the team understands the user's true objectives.",
+                "cx": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks (Claim 1).",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "19d0545c64956293b1215f3b8cc18fd39bccdd8165294ee0683a6485f4b3c55f",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of a task flow analysis?",
+                "op": [
+                  "To model the steps and decision points a user takes to achieve a specific objective.",
+                  "To predict future user behavior based on historical data.",
+                  "To document the system's underlying code structure.",
+                  "To define the final visual design of the user interface."
+                ],
+                "ai": 0,
+                "ex": "Option 0 is correct because a task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal (Claim 0).",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "Which element should a task flow diagram illustrate?",
+                "op": [
+                  "Only the single most efficient path a user can take to complete the goal.",
+                  "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                  "The technical specifications of the system components involved.",
+                  "The final, static screen the user sees upon goal completion."
+                ],
+                "ai": 1,
+                "ex": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2).",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Goal progression mapping",
+                "df": "A visual representation of the sequence of actions and choices a user makes to achieve a desired outcome.",
+                "eg": "Mapping the steps from logging in to successfully submitting a purchase form.",
+                "mi": "Thinking this is just a linear list of steps without considering branching choices.",
+                "cx": "This mapping must include multiple possible paths, task sequences, and decision points (Claim 4).",
+                "sourceFactIndexes": [
+                  4
+                ]
+              },
+              {
+                "tr": "User objective validation",
+                "df": "The process of confirming the team's comprehension of user aims, common situations, and required actions.",
+                "eg": "Reviewing a flow to ensure it accurately reflects how a user intends to complete a specific workflow.",
+                "mi": "Believing that simply drawing the steps automatically proves the team understands the user's true objectives.",
+                "cx": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks (Claim 1).",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "839f66c49ffe537f696cf8073aa09742da449b9dbdcc3c86f73e857f90a30b3c",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:40:58.510Z",
+          "durationMs": 7593,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+              "item": 0,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "What is the primary function of a task flow analysis?",
+                "options": [
+                  "To model the steps and decision points a user takes to achieve a specific objective.",
+                  "To predict future user behavior based on historical data.",
+                  "To document the system's underlying code structure.",
+                  "To define the final visual design of the user interface."
+                ],
+                "answerIndex": 0,
+                "explanation": "Option 0 is correct because a task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal (Claim 0). Option 1 is a misconception because task flow analysis is not primarily for predicting future behavior; it validates understanding ("
+              },
+              "chosen": {
+                "question": "What is the primary function of a task flow analysis?",
+                "options": [
+                  "To model the steps and decision points a user takes to achieve a specific objective.",
+                  "To predict future user behavior based on historical data.",
+                  "To document the system's underlying code structure.",
+                  "To define the final visual design of the user interface."
+                ],
+                "answerIndex": 0,
+                "explanation": "Option 0 is correct because a task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal (Claim 0)."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 167,
+                "removedCharacters": 132,
+                "removedTail": "Option 1 is a misconception because task flow analysis is not primarily for predicting future behavior; it validates understanding ("
+              },
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+              "item": 1,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "Which element should a task flow diagram illustrate?",
+                "options": [
+                  "Only the single most efficient path a user can take to complete the goal.",
+                  "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                  "The technical specifications of the system components involved.",
+                  "The final, static screen the user sees upon goal completion."
+                ],
+                "answerIndex": 2,
+                "explanation": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2). Option 1 is a misconception because a task flow must show progression, not just the most efficient path ("
+              },
+              "chosen": {
+                "question": "Which element should a task flow diagram illustrate?",
+                "options": [
+                  "Only the single most efficient path a user can take to complete the goal.",
+                  "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                  "The technical specifications of the system components involved.",
+                  "The final, static screen the user sees upon goal completion."
+                ],
+                "answerIndex": 2,
+                "explanation": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2)."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 119,
+                "removedCharacters": 105,
+                "removedTail": "Option 1 is a misconception because a task flow must show progression, not just the most efficient path ("
+              },
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "Which element should a task flow diagram illustrate?",
+                "options": [
+                  "Only the single most efficient path a user can take to complete the goal.",
+                  "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                  "The technical specifications of the system components involved.",
+                  "The final, static screen the user sees upon goal completion."
+                ],
+                "answerIndex": 2,
+                "explanation": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2)."
+              },
+              "chosen": {
+                "question": "Which element should a task flow diagram illustrate?",
+                "options": [
+                  "Only the single most efficient path a user can take to complete the goal.",
+                  "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                  "The technical specifications of the system components involved.",
+                  "The final, static screen the user sees upon goal completion."
+                ],
+                "answerIndex": 1,
+                "explanation": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2)."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 2,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-option-label",
+                    "surface": "Option 2 is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 3,
+            "incompleteExplanationTail": 2,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping",
+          "kernelId": "ux/interactive-prototyping",
+          "promptSha256": "c585daca67ca430b00f7b5bf6b8ec848fff566e6c98a3638811b8fbd8408b495",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which characteristic is essential for a prototype when aiming to support rapid iteration?",
+                "op": [
+                  "It must require every production detail.",
+                  "It should be inexpensive enough to discard after learning from them.",
+                  "It must show every interaction perfectly.",
+                  "It should only focus on functional interactions."
+                ],
+                "ai": 3,
+                "ex": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0).",
+                "sourceFactIndexes": [
+                  0,
+                  4
+                ]
+              },
+              {
+                "q": "How can prototypes be effectively utilized to validate a design concept?",
+                "op": [
+                  "By requiring every production detail for testing.",
+                  "By combining them with usability testing or a cognitive walkthrough.",
+                  "By only showing fully functional interactions.",
+                  "By ensuring every interaction is perfectly functional."
+                ],
+                "ai": 1,
+                "ex": "The correct choice is that prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works (Claim 1). The misconception is that prototypes must only show fully functional interactions (Claim 2).",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Testable representation",
+                "df": "A visual model of an experience that can be used for testing.",
+                "eg": "A low-fidelity wireframe of a new mobile app screen.",
+                "mi": "A prototype that includes every production detail.",
+                "cx": "A visual model of an experience that can be used for testing.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Functional prototypes",
+                "df": "Models that allow users to observe how they interact with a product.",
+                "eg": "A clickable mock-up demonstrating the main navigation flow.",
+                "mi": "A prototype that only shows major interactions without functionality.",
+                "cx": "Models that allow users to observe how they interact with a product.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "bd3b43685b9a3fd593c1799d0bb29151249f9c3349173ae4680de29a8b53d3e4",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which characteristic is essential for a prototype when aiming to support rapid iteration?",
+                "op": [
+                  "It must require every production detail.",
+                  "It should be inexpensive enough to discard after learning from them.",
+                  "It must show every interaction perfectly.",
+                  "It should only focus on functional interactions."
+                ],
+                "ai": 1,
+                "ex": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0).",
+                "sourceFactIndexes": [
+                  0,
+                  4
+                ]
+              },
+              {
+                "q": "How can prototypes be effectively utilized to validate a design concept?",
+                "op": [
+                  "By requiring every production detail for testing.",
+                  "By combining them with usability testing or a cognitive walkthrough.",
+                  "By only showing fully functional interactions.",
+                  "By ensuring every interaction is perfectly functional."
+                ],
+                "ai": 1,
+                "ex": "The correct choice is that prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works (Claim 1). The misconception is that prototypes must only show fully functional interactions (Claim 2).",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "696213eda89af2be1fd87014f6d14592e8b26cb5ab0db279d13af92e8be3b0c1",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:41:06.104Z",
+          "durationMs": 6569,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "Which characteristic is essential for a prototype when aiming to support rapid iteration?",
+                "options": [
+                  "It must require every production detail.",
+                  "It should be inexpensive enough to discard after learning from them.",
+                  "It must show every interaction perfectly.",
+                  "It should only focus on functional interactions."
+                ],
+                "answerIndex": 3,
+                "explanation": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0)."
+              },
+              "chosen": {
+                "question": "Which characteristic is essential for a prototype when aiming to support rapid iteration?",
+                "options": [
+                  "It must require every production detail.",
+                  "It should be inexpensive enough to discard after learning from them.",
+                  "It must show every interaction perfectly.",
+                  "It should only focus on functional interactions."
+                ],
+                "answerIndex": 1,
+                "explanation": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0)."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-named-answer",
+                    "surface": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4)"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0,
+                4
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1
+          }
+        },
+        {
+          "promptId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+          "kernelId": "ux/accessibility-usability-evaluation",
+          "promptSha256": "9d2705722e46c6190a0462994f6c8f4e0c8520eedad2e16e5cfee2d2cbfef37e",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which activity is central to accessibility and usability evaluation?",
+                "op": [
+                  "Checking standards-based conformance alone.",
+                  "Observing users completing realistic tasks.",
+                  "Generalizing one disabled participant's experience.",
+                  "Thinking aloud while using a product."
+                ],
+                "ai": 0,
+                "ex": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0). Generalizing one disabled participant's experience is incorrect because a single disabled participant's 경험should",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is a limitation of relying solely on conformance evaluation?",
+                "op": [
+                  "It fails to check standards.",
+                  "It misses barriers found by disabled or older users.",
+                  "It is sufficient for all users.",
+                  "It only observes users without thinking aloud."
+                ],
+                "ai": 2,
+                "ex": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2). It is sufficient for all users is incorrect because evaluation with disabled and older users can find",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Usability testing",
+                "df": "A method of observing users attempting to use a product or service while thinking aloud.",
+                "eg": "Watching a user struggle to find the 'submit' button on a prototype while verbalizing their confusion.",
+                "mi": "Usability testing is just watching users without any verbal feedback.",
+                "cx": "Usability testing is observing users attempting to use a product or service while thinking aloud (Claim 3).",
+                "sourceFactIndexes": [
+                  3
+                ]
+              },
+              {
+                "tr": "Conformance evaluation",
+                "df": "Checking adherence to established accessibility standards.",
+                "eg": "Verifying if a website meets WCAG criteria for color contrast.",
+                "mi": "Conformance evaluation is the only way to ensure a product is usable.",
+                "cx": "Conformance evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0).",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "e83f47be2bf016bbb3af293ca7c2feac58270079dbb1bd32451b3e6812e6148b",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which activity is central to accessibility and usability evaluation?",
+                "op": [
+                  "Checking standards-based conformance alone.",
+                  "Observing users completing realistic tasks.",
+                  "Generalizing one disabled participant's experience.",
+                  "Thinking aloud while using a product."
+                ],
+                "ai": 1,
+                "ex": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0).",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is a limitation of relying solely on conformance evaluation?",
+                "op": [
+                  "It fails to check standards.",
+                  "It misses barriers found by disabled or older users.",
+                  "It is sufficient for all users.",
+                  "It only observes users without thinking aloud."
+                ],
+                "ai": 1,
+                "ex": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2).",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Usability testing",
+                "df": "A method of observing users attempting to use a product or service while thinking aloud.",
+                "eg": "Watching a user struggle to find the 'submit' button on a prototype while verbalizing their confusion.",
+                "mi": "Usability testing is just watching users without any verbal feedback.",
+                "cx": "Usability testing is observing users attempting to use a product or service while thinking aloud (Claim 3).",
+                "sourceFactIndexes": [
+                  3
+                ]
+              },
+              {
+                "tr": "Conformance evaluation",
+                "df": "Checking adherence to established accessibility standards.",
+                "eg": "Verifying if a website meets WCAG criteria for color contrast.",
+                "mi": "Conformance evaluation is the only way to ensure a product is usable.",
+                "cx": "Conformance evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0).",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "3c04251f3c3b10d3ed3c42a4ad73824bd096ae154061fb929df3f082ffa647e8",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-14T07:41:12.674Z",
+          "durationMs": 7035,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+              "item": 0,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "Which activity is central to accessibility and usability evaluation?",
+                "options": [
+                  "Checking standards-based conformance alone.",
+                  "Observing users completing realistic tasks.",
+                  "Generalizing one disabled participant's experience.",
+                  "Thinking aloud while using a product."
+                ],
+                "answerIndex": 0,
+                "explanation": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0). Generalizing one disabled participant's experience is incorrect because a single disabled participant's 경험should"
+              },
+              "chosen": {
+                "question": "Which activity is central to accessibility and usability evaluation?",
+                "options": [
+                  "Checking standards-based conformance alone.",
+                  "Observing users completing realistic tasks.",
+                  "Generalizing one disabled participant's experience.",
+                  "Thinking aloud while using a product."
+                ],
+                "answerIndex": 0,
+                "explanation": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0)."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 187,
+                "removedCharacters": 112,
+                "removedTail": "Generalizing one disabled participant's experience is incorrect because a single disabled participant's 경험should"
+              },
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+              "item": 0,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "Which activity is central to accessibility and usability evaluation?",
+                "options": [
+                  "Checking standards-based conformance alone.",
+                  "Observing users completing realistic tasks.",
+                  "Generalizing one disabled participant's experience.",
+                  "Thinking aloud while using a product."
+                ],
+                "answerIndex": 0,
+                "explanation": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0)."
+              },
+              "chosen": {
+                "question": "Which activity is central to accessibility and usability evaluation?",
+                "options": [
+                  "Checking standards-based conformance alone.",
+                  "Observing users completing realistic tasks.",
+                  "Generalizing one disabled participant's experience.",
+                  "Thinking aloud while using a product."
+                ],
+                "answerIndex": 1,
+                "explanation": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0)."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 0,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-option-text",
+                    "surface": "Observing users completing realistic tasks is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "incompleteExplanationTail",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+              "item": 1,
+              "action": "trimmed-incomplete-tail",
+              "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+              "rejected": {
+                "question": "What is a limitation of relying solely on conformance evaluation?",
+                "options": [
+                  "It fails to check standards.",
+                  "It misses barriers found by disabled or older users.",
+                  "It is sufficient for all users.",
+                  "It only observes users without thinking aloud."
+                ],
+                "answerIndex": 2,
+                "explanation": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2). It is sufficient for all users is incorrect because evaluation with disabled and older users can find"
+              },
+              "chosen": {
+                "question": "What is a limitation of relying solely on conformance evaluation?",
+                "options": [
+                  "It fails to check standards.",
+                  "It misses barriers found by disabled or older users.",
+                  "It is sufficient for all users.",
+                  "It only observes users without thinking aloud."
+                ],
+                "answerIndex": 2,
+                "explanation": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2)."
+              },
+              "trainingEligible": false,
+              "recoveryEvidence": {
+                "kind": "existing-sentence-boundary",
+                "verified": true,
+                "retainedCharacters": 190,
+                "removedCharacters": 101,
+                "removedTail": "It is sufficient for all users is incorrect because evaluation with disabled and older users can find"
+              },
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "What is a limitation of relying solely on conformance evaluation?",
+                "options": [
+                  "It fails to check standards.",
+                  "It misses barriers found by disabled or older users.",
+                  "It is sufficient for all users.",
+                  "It only observes users without thinking aloud."
+                ],
+                "answerIndex": 2,
+                "explanation": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2)."
+              },
+              "chosen": {
+                "question": "What is a limitation of relying solely on conformance evaluation?",
+                "options": [
+                  "It fails to check standards.",
+                  "It misses barriers found by disabled or older users.",
+                  "It is sufficient for all users.",
+                  "It only observes users without thinking aloud."
+                ],
+                "answerIndex": 1,
+                "explanation": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2)."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 2,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-option-text",
+                    "surface": "It misses barriers found by disabled or older users is correct"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 4,
+            "incompleteExplanationTail": 2,
+            "explanationKeyAlignment": 2
+          }
+        }
+      ],
+      "recoveryCalls": [],
+      "recoveredPromptIds": []
+    },
+    "calls": [
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/research-planning",
+        "kernelId": "ux/research-planning",
+        "promptSha256": "aa4d7df051e563f43989993d766030f29eb29473736d23b996591fc4667b560b",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What should the team establish prior to selecting study details?",
+              "op": [
+                "The specific evidence capture roles",
+                "The desired learning objectives",
+                "The rehearsal-ready study setup",
+                "The specific tasks"
+              ],
+              "ai": 1,
+              "ex": "Selecting study details should follow agreement on what the team wants to learn from the research round. Choosing the specific tasks is premature before defining the learning goals.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "What condition must a prototype meet for use in a research venue?",
+              "op": [
+                "It must be fully accessible",
+                "It must be usable and accessible",
+                "It must work end-to-end",
+                "It must be rehearsed beforehand"
+              ],
+              "ai": 2,
+              "ex": "A prototype used in research must work end-to-end and be usable and accessible in the research venue. Simply being accessible is insufficient if the prototype fails to function.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Actionable learning objectives",
+              "df": "The specific goals derived from a decision need that guide the research.",
+              "eg": "Defining the specific learning objectives for a usability study.",
+              "mi": "Believing objectives are only about the final product features.",
+              "cx": "Objectives turn a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup. [0]",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Rehearsal session",
+              "df": "A practice run conducted with a team member to identify procedural issues before participants arrive.",
+              "eg": "Running through test tasks with a team member the day before the research session.",
+              "mi": "Assuming participants will perform tasks perfectly on the day.",
+              "cx": "A practice session with a team member can expose procedure problems before participants arrive. [3, 4]",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "1eefc1e402d756bbee64c98a2503b6c1701ff921943a86e7619dc7be50b43b9a",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What should the team establish prior to selecting study details?",
+              "op": [
+                "The specific evidence capture roles",
+                "The desired learning objectives",
+                "The rehearsal-ready study setup",
+                "The specific tasks"
+              ],
+              "ai": 1,
+              "ex": "Selecting study details should follow agreement on what the team wants to learn from the research round. Choosing the specific tasks is premature before defining the learning goals.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "What condition must a prototype meet for use in a research venue?",
+              "op": [
+                "It must be fully accessible",
+                "It must be usable and accessible",
+                "It must work end-to-end",
+                "It must be rehearsed beforehand"
+              ],
+              "ai": 2,
+              "ex": "A prototype used in research must work end-to-end and be usable and accessible in the research venue. Simply being accessible is insufficient if the prototype fails to function.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "b63b2bd079d10e25bef8af5f3ee9df0eead1e4f0bbf192f44413a6e5118ed2c6",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-0-claim-marker-residue",
+            "key-term-1-claim-marker-residue",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:40:38.243Z",
+        "durationMs": 6439,
+        "compilerRepairs": [],
+        "compilerRepairCounts": {
+          "total": 0,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 0
+        }
+      },
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+        "kernelId": "ux/evidence-based-personas",
+        "promptSha256": "41664877b24362159e1ffeb7d78d013579d97c521adaff4a470530e343fdba1c",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a research-based persona?",
+              "op": [
+                "To detail individual interface requests.",
+                "To present research findings for sharing.",
+                "To describe features intended to meet needs.",
+                "To model task flows."
+              ],
+              "ai": 0,
+              "ex": "Option 0 is correct because a research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Option 1 is a misconception because personas are not solely for sharing; they are evidence-based profiles. Option 2 is a mis",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "How do teams translate user needs into actionable items?",
+              "op": [
+                "By modeling task flows.",
+                "By creating user stories describing features.",
+                "By keeping needs separate from stories.",
+                "By focusing only on individual interface requests."
+              ],
+              "ai": 3,
+              "ex": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings. Option 2 is a mis",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "User needs",
+              "df": "High-level, stable requirements for a user group.",
+              "eg": "The need for a mobile app to reliably send notifications.",
+              "mi": "User needs are transient and change with every interface request.",
+              "cx": "User needs are generally higher-level and more stable over time than individual interface requests.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Research-based persona",
+              "df": "A shareable profile of a user group with similar behavior and needs.",
+              "eg": "A profile representing a group of frequent commuters.",
+              "mi": "A persona is just a collection of individual interface requests.",
+              "cx": "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "efbed09968705f96bd6a2a469349157455da1ee643b5f723b3f6c58bc9231dde",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a research-based persona?",
+              "op": [
+                "To detail individual interface requests.",
+                "To present research findings for sharing.",
+                "To describe features intended to meet needs.",
+                "To model task flows."
+              ],
+              "ai": 0,
+              "ex": "Option 0 is correct because a research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Option 1 is a misconception because personas are not solely for sharing; they are evidence-based profiles.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "How do teams translate user needs into actionable items?",
+              "op": [
+                "By modeling task flows.",
+                "By creating user stories describing features.",
+                "By keeping needs separate from stories.",
+                "By focusing only on individual interface requests."
+              ],
+              "ai": 2,
+              "ex": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "User needs",
+              "df": "High-level, stable requirements for a user group.",
+              "eg": "The need for a mobile app to reliably send notifications.",
+              "mi": "User needs are transient and change with every interface request.",
+              "cx": "User needs are generally higher-level and more stable over time than individual interface requests.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "ef12c64a52af0cbf30f9d843fc3419ca82378b3e58e648d605183f23727caa81",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-1-correction-repeats-definition"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:40:44.683Z",
+        "durationMs": 6928,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+            "item": 0,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "What is the primary function of a research-based persona?",
+              "options": [
+                "To detail individual interface requests.",
+                "To present research findings for sharing.",
+                "To describe features intended to meet needs.",
+                "To model task flows."
+              ],
+              "answerIndex": 0,
+              "explanation": "Option 0 is correct because a research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Option 1 is a misconception because personas are not solely for sharing; they are evidence-based profiles. Option 2 is a mis"
+            },
+            "chosen": {
+              "question": "What is the primary function of a research-based persona?",
+              "options": [
+                "To detail individual interface requests.",
+                "To present research findings for sharing.",
+                "To describe features intended to meet needs.",
+                "To model task flows."
+              ],
+              "answerIndex": 0,
+              "explanation": "Option 0 is correct because a research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence. Option 1 is a misconception because personas are not solely for sharing; they are evidence-based profiles."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 282,
+              "removedCharacters": 17,
+              "removedTail": "Option 2 is a mis"
+            },
+            "sourceFactIndexes": [
+              0
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+            "item": 1,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "How do teams translate user needs into actionable items?",
+              "options": [
+                "By modeling task flows.",
+                "By creating user stories describing features.",
+                "By keeping needs separate from stories.",
+                "By focusing only on individual interface requests."
+              ],
+              "answerIndex": 3,
+              "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings. Option 2 is a mis"
+            },
+            "chosen": {
+              "question": "How do teams translate user needs into actionable items?",
+              "options": [
+                "By modeling task flows.",
+                "By creating user stories describing features.",
+                "By keeping needs separate from stories.",
+                "By focusing only on individual interface requests."
+              ],
+              "answerIndex": 3,
+              "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 251,
+              "removedCharacters": 17,
+              "removedTail": "Option 2 is a mis"
+            },
+            "sourceFactIndexes": [
+              3
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "How do teams translate user needs into actionable items?",
+              "options": [
+                "By modeling task flows.",
+                "By creating user stories describing features.",
+                "By keeping needs separate from stories.",
+                "By focusing only on individual interface requests."
+              ],
+              "answerIndex": 3,
+              "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings."
+            },
+            "chosen": {
+              "question": "How do teams translate user needs into actionable items?",
+              "options": [
+                "By modeling task flows.",
+                "By creating user stories describing features.",
+                "By keeping needs separate from stories.",
+                "By focusing only on individual interface requests."
+              ],
+              "answerIndex": 2,
+              "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 2,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 2,
+                  "type": "explicit-option-label",
+                  "surface": "Option 3 is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              3
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 3,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/journey-mapping",
+        "kernelId": "ux/journey-mapping",
+        "promptSha256": "9657c3700827d940a9f276821c31c57f0c56db3350ae4f8a02fe866e83b60472",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the primary purpose of journey mapping?",
+              "op": [
+                "To document the final product design.",
+                "To show connected steps, boundaries, breakdowns, and opportunities.",
+                "To list all possible user features.",
+                "To define the technical architecture."
+              ],
+              "ai": 1,
+              "ex": "The correct choice, 'To show connected steps, boundaries, breakdowns, and opportunities,' is accurate because journey mapping represents an end-to-end experience so a team can see connected steps, boundaries, breakdowns, and opportunities. The misconception, 'To document the final product design,'誤,",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Where should the initial focus of an experience map originate?",
+              "op": [
+                "On the desired final outcome.",
+                "On research about the steps users actually take and the transactions involved.",
+                "On the team's internal workflow.",
+                "On the technical feasibility of the system."
+              ],
+              "ai": 1,
+              "ex": "The correct choice, 'On research about the steps users actually take and the transactions involved,' is correct because a journey map should start from research about the steps users actually take and the transactions involved. The misconception, 'On the desired final outcome,'誤, ",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "End-to-end experience visualization",
+              "df": "A visual representation of the complete user path.",
+              "eg": "Mapping the entire process from initial search to final purchase.",
+              "mi": "Thinking a map only shows the main features.",
+              "cx": "It shows connected steps, boundaries, breakdowns, and opportunities.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Struggle point identification",
+              "df": "Identifying areas where the user encounters difficulty.",
+              "eg": "Highlighting where a user gets stuck between online booking and in-person check-in.",
+              "mi": "Assuming all problems are technical errors.",
+              "cx": "An experience map should make struggle points and candidate improvement areas visible.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "9d60202877344da44822aa52de4934087f28d55c5696c65bab83ed4d20f5db08",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the primary purpose of journey mapping?",
+              "op": [
+                "To document the final product design.",
+                "To show connected steps, boundaries, breakdowns, and opportunities.",
+                "To list all possible user features.",
+                "To define the technical architecture."
+              ],
+              "ai": 1,
+              "ex": "The correct choice, 'To show connected steps, boundaries, breakdowns, and opportunities,' is accurate because journey mapping represents an end-to-end experience so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "End-to-end experience visualization",
+              "df": "A visual representation of the complete user path.",
+              "eg": "Mapping the entire process from initial search to final purchase.",
+              "mi": "Thinking a map only shows the main features.",
+              "cx": "It shows connected steps, boundaries, breakdowns, and opportunities.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Struggle point identification",
+              "df": "Identifying areas where the user encounters difficulty.",
+              "eg": "Highlighting where a user gets stuck between online booking and in-person check-in.",
+              "mi": "Assuming all problems are technical errors.",
+              "cx": "An experience map should make struggle points and candidate improvement areas visible.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "ae4df72d5c420afc0498c50fe4826ae2de4fe4f7881d1e0a3280560325ed586e",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-1-longest-option-cue"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:40:51.612Z",
+        "durationMs": 6897,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/journey-mapping",
+            "item": 0,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "What is the primary purpose of journey mapping?",
+              "options": [
+                "To document the final product design.",
+                "To show connected steps, boundaries, breakdowns, and opportunities.",
+                "To list all possible user features.",
+                "To define the technical architecture."
+              ],
+              "answerIndex": 1,
+              "explanation": "The correct choice, 'To show connected steps, boundaries, breakdowns, and opportunities,' is accurate because journey mapping represents an end-to-end experience so a team can see connected steps, boundaries, breakdowns, and opportunities. The misconception, 'To document the final product design,'誤,"
+            },
+            "chosen": {
+              "question": "What is the primary purpose of journey mapping?",
+              "options": [
+                "To document the final product design.",
+                "To show connected steps, boundaries, breakdowns, and opportunities.",
+                "To list all possible user features.",
+                "To define the technical architecture."
+              ],
+              "answerIndex": 1,
+              "explanation": "The correct choice, 'To show connected steps, boundaries, breakdowns, and opportunities,' is accurate because journey mapping represents an end-to-end experience so a team can see connected steps, boundaries, breakdowns, and opportunities."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 239,
+              "removedCharacters": 60,
+              "removedTail": "The misconception, 'To document the final product design,'誤,"
+            },
+            "sourceFactIndexes": [
+              0
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/journey-mapping",
+            "item": 1,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "Where should the initial focus of an experience map originate?",
+              "options": [
+                "On the desired final outcome.",
+                "On research about the steps users actually take and the transactions involved.",
+                "On the team's internal workflow.",
+                "On the technical feasibility of the system."
+              ],
+              "answerIndex": 1,
+              "explanation": "The correct choice, 'On research about the steps users actually take and the transactions involved,' is correct because a journey map should start from research about the steps users actually take and the transactions involved. The misconception, 'On the desired final outcome,'誤,"
+            },
+            "chosen": {
+              "question": "Where should the initial focus of an experience map originate?",
+              "options": [
+                "On the desired final outcome.",
+                "On research about the steps users actually take and the transactions involved.",
+                "On the team's internal workflow.",
+                "On the technical feasibility of the system."
+              ],
+              "answerIndex": 1,
+              "explanation": "The correct choice, 'On research about the steps users actually take and the transactions involved,' is correct because a journey map should start from research about the steps users actually take and the transactions involved."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 227,
+              "removedCharacters": 52,
+              "removedTail": "The misconception, 'On the desired final outcome,'誤,"
+            },
+            "sourceFactIndexes": [
+              1
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 0
+        }
+      },
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+        "kernelId": "ux/task-flow-analysis",
+        "promptSha256": "cf91475a8c0f6ececeecf46a593bd3d60463ed3bad67a0294f23ec83653fe3d3",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a task flow analysis?",
+              "op": [
+                "To model the steps and decision points a user takes to achieve a specific objective.",
+                "To predict future user behavior based on historical data.",
+                "To document the system's underlying code structure.",
+                "To define the final visual design of the user interface."
+              ],
+              "ai": 0,
+              "ex": "Option 0 is correct because a task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal (Claim 0). Option 1 is a misconception because task flow analysis is not primarily for predicting future behavior; it validates understanding (",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "Which element should a task flow diagram illustrate?",
+              "op": [
+                "Only the single most efficient path a user can take to complete the goal.",
+                "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                "The technical specifications of the system components involved.",
+                "The final, static screen the user sees upon goal completion."
+              ],
+              "ai": 2,
+              "ex": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2). Option 1 is a misconception because a task flow must show progression, not just the most efficient path (",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Goal progression mapping",
+              "df": "A visual representation of the sequence of actions and choices a user makes to achieve a desired outcome.",
+              "eg": "Mapping the steps from logging in to successfully submitting a purchase form.",
+              "mi": "Thinking this is just a linear list of steps without considering branching choices.",
+              "cx": "This mapping must include multiple possible paths, task sequences, and decision points (Claim 4).",
+              "sourceFactIndexes": [
+                4
+              ]
+            },
+            {
+              "tr": "User objective validation",
+              "df": "The process of confirming the team's comprehension of user aims, common situations, and required actions.",
+              "eg": "Reviewing a flow to ensure it accurately reflects how a user intends to complete a specific workflow.",
+              "mi": "Believing that simply drawing the steps automatically proves the team understands the user's true objectives.",
+              "cx": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks (Claim 1).",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "19d0545c64956293b1215f3b8cc18fd39bccdd8165294ee0683a6485f4b3c55f",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of a task flow analysis?",
+              "op": [
+                "To model the steps and decision points a user takes to achieve a specific objective.",
+                "To predict future user behavior based on historical data.",
+                "To document the system's underlying code structure.",
+                "To define the final visual design of the user interface."
+              ],
+              "ai": 0,
+              "ex": "Option 0 is correct because a task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal (Claim 0).",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "Which element should a task flow diagram illustrate?",
+              "op": [
+                "Only the single most efficient path a user can take to complete the goal.",
+                "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                "The technical specifications of the system components involved.",
+                "The final, static screen the user sees upon goal completion."
+              ],
+              "ai": 1,
+              "ex": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2).",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Goal progression mapping",
+              "df": "A visual representation of the sequence of actions and choices a user makes to achieve a desired outcome.",
+              "eg": "Mapping the steps from logging in to successfully submitting a purchase form.",
+              "mi": "Thinking this is just a linear list of steps without considering branching choices.",
+              "cx": "This mapping must include multiple possible paths, task sequences, and decision points (Claim 4).",
+              "sourceFactIndexes": [
+                4
+              ]
+            },
+            {
+              "tr": "User objective validation",
+              "df": "The process of confirming the team's comprehension of user aims, common situations, and required actions.",
+              "eg": "Reviewing a flow to ensure it accurately reflects how a user intends to complete a specific workflow.",
+              "mi": "Believing that simply drawing the steps automatically proves the team understands the user's true objectives.",
+              "cx": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks (Claim 1).",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "839f66c49ffe537f696cf8073aa09742da449b9dbdcc3c86f73e857f90a30b3c",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:40:58.510Z",
+        "durationMs": 7593,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+            "item": 0,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "What is the primary function of a task flow analysis?",
+              "options": [
+                "To model the steps and decision points a user takes to achieve a specific objective.",
+                "To predict future user behavior based on historical data.",
+                "To document the system's underlying code structure.",
+                "To define the final visual design of the user interface."
+              ],
+              "answerIndex": 0,
+              "explanation": "Option 0 is correct because a task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal (Claim 0). Option 1 is a misconception because task flow analysis is not primarily for predicting future behavior; it validates understanding ("
+            },
+            "chosen": {
+              "question": "What is the primary function of a task flow analysis?",
+              "options": [
+                "To model the steps and decision points a user takes to achieve a specific objective.",
+                "To predict future user behavior based on historical data.",
+                "To document the system's underlying code structure.",
+                "To define the final visual design of the user interface."
+              ],
+              "answerIndex": 0,
+              "explanation": "Option 0 is correct because a task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal (Claim 0)."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 167,
+              "removedCharacters": 132,
+              "removedTail": "Option 1 is a misconception because task flow analysis is not primarily for predicting future behavior; it validates understanding ("
+            },
+            "sourceFactIndexes": [
+              0,
+              1
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+            "item": 1,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "Which element should a task flow diagram illustrate?",
+              "options": [
+                "Only the single most efficient path a user can take to complete the goal.",
+                "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                "The technical specifications of the system components involved.",
+                "The final, static screen the user sees upon goal completion."
+              ],
+              "answerIndex": 2,
+              "explanation": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2). Option 1 is a misconception because a task flow must show progression, not just the most efficient path ("
+            },
+            "chosen": {
+              "question": "Which element should a task flow diagram illustrate?",
+              "options": [
+                "Only the single most efficient path a user can take to complete the goal.",
+                "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                "The technical specifications of the system components involved.",
+                "The final, static screen the user sees upon goal completion."
+              ],
+              "answerIndex": 2,
+              "explanation": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2)."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 119,
+              "removedCharacters": 105,
+              "removedTail": "Option 1 is a misconception because a task flow must show progression, not just the most efficient path ("
+            },
+            "sourceFactIndexes": [
+              2
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "Which element should a task flow diagram illustrate?",
+              "options": [
+                "Only the single most efficient path a user can take to complete the goal.",
+                "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                "The technical specifications of the system components involved.",
+                "The final, static screen the user sees upon goal completion."
+              ],
+              "answerIndex": 2,
+              "explanation": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2)."
+            },
+            "chosen": {
+              "question": "Which element should a task flow diagram illustrate?",
+              "options": [
+                "Only the single most efficient path a user can take to complete the goal.",
+                "The sequence of tasks and decision points a user progresses through to reach a goal.",
+                "The technical specifications of the system components involved.",
+                "The final, static screen the user sees upon goal completion."
+              ],
+              "answerIndex": 1,
+              "explanation": "Option 2 is correct because a task flow should show how a user progresses through tasks to accomplish a goal (Claim 2)."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 2,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-option-label",
+                  "surface": "Option 2 is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              2
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 3,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping",
+        "kernelId": "ux/interactive-prototyping",
+        "promptSha256": "c585daca67ca430b00f7b5bf6b8ec848fff566e6c98a3638811b8fbd8408b495",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which characteristic is essential for a prototype when aiming to support rapid iteration?",
+              "op": [
+                "It must require every production detail.",
+                "It should be inexpensive enough to discard after learning from them.",
+                "It must show every interaction perfectly.",
+                "It should only focus on functional interactions."
+              ],
+              "ai": 3,
+              "ex": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0).",
+              "sourceFactIndexes": [
+                0,
+                4
+              ]
+            },
+            {
+              "q": "How can prototypes be effectively utilized to validate a design concept?",
+              "op": [
+                "By requiring every production detail for testing.",
+                "By combining them with usability testing or a cognitive walkthrough.",
+                "By only showing fully functional interactions.",
+                "By ensuring every interaction is perfectly functional."
+              ],
+              "ai": 1,
+              "ex": "The correct choice is that prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works (Claim 1). The misconception is that prototypes must only show fully functional interactions (Claim 2).",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Testable representation",
+              "df": "A visual model of an experience that can be used for testing.",
+              "eg": "A low-fidelity wireframe of a new mobile app screen.",
+              "mi": "A prototype that includes every production detail.",
+              "cx": "A visual model of an experience that can be used for testing.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Functional prototypes",
+              "df": "Models that allow users to observe how they interact with a product.",
+              "eg": "A clickable mock-up demonstrating the main navigation flow.",
+              "mi": "A prototype that only shows major interactions without functionality.",
+              "cx": "Models that allow users to observe how they interact with a product.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "bd3b43685b9a3fd593c1799d0bb29151249f9c3349173ae4680de29a8b53d3e4",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which characteristic is essential for a prototype when aiming to support rapid iteration?",
+              "op": [
+                "It must require every production detail.",
+                "It should be inexpensive enough to discard after learning from them.",
+                "It must show every interaction perfectly.",
+                "It should only focus on functional interactions."
+              ],
+              "ai": 1,
+              "ex": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0).",
+              "sourceFactIndexes": [
+                0,
+                4
+              ]
+            },
+            {
+              "q": "How can prototypes be effectively utilized to validate a design concept?",
+              "op": [
+                "By requiring every production detail for testing.",
+                "By combining them with usability testing or a cognitive walkthrough.",
+                "By only showing fully functional interactions.",
+                "By ensuring every interaction is perfectly functional."
+              ],
+              "ai": 1,
+              "ex": "The correct choice is that prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works (Claim 1). The misconception is that prototypes must only show fully functional interactions (Claim 2).",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "696213eda89af2be1fd87014f6d14592e8b26cb5ab0db279d13af92e8be3b0c1",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-0-correction-repeats-definition",
+            "key-term-1-correction-repeats-definition",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:41:06.104Z",
+        "durationMs": 6569,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping",
+            "item": 0,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "Which characteristic is essential for a prototype when aiming to support rapid iteration?",
+              "options": [
+                "It must require every production detail.",
+                "It should be inexpensive enough to discard after learning from them.",
+                "It must show every interaction perfectly.",
+                "It should only focus on functional interactions."
+              ],
+              "answerIndex": 3,
+              "explanation": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0)."
+            },
+            "chosen": {
+              "question": "Which characteristic is essential for a prototype when aiming to support rapid iteration?",
+              "options": [
+                "It must require every production detail.",
+                "It should be inexpensive enough to discard after learning from them.",
+                "It must show every interaction perfectly.",
+                "It should only focus on functional interactions."
+              ],
+              "answerIndex": 1,
+              "explanation": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0)."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-named-answer",
+                  "surface": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4)"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0,
+              4
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        }
+      },
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "promptSha256": "9d2705722e46c6190a0462994f6c8f4e0c8520eedad2e16e5cfee2d2cbfef37e",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which activity is central to accessibility and usability evaluation?",
+              "op": [
+                "Checking standards-based conformance alone.",
+                "Observing users completing realistic tasks.",
+                "Generalizing one disabled participant's experience.",
+                "Thinking aloud while using a product."
+              ],
+              "ai": 0,
+              "ex": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0). Generalizing one disabled participant's experience is incorrect because a single disabled participant's 경험should",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What is a limitation of relying solely on conformance evaluation?",
+              "op": [
+                "It fails to check standards.",
+                "It misses barriers found by disabled or older users.",
+                "It is sufficient for all users.",
+                "It only observes users without thinking aloud."
+              ],
+              "ai": 2,
+              "ex": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2). It is sufficient for all users is incorrect because evaluation with disabled and older users can find",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Usability testing",
+              "df": "A method of observing users attempting to use a product or service while thinking aloud.",
+              "eg": "Watching a user struggle to find the 'submit' button on a prototype while verbalizing their confusion.",
+              "mi": "Usability testing is just watching users without any verbal feedback.",
+              "cx": "Usability testing is observing users attempting to use a product or service while thinking aloud (Claim 3).",
+              "sourceFactIndexes": [
+                3
+              ]
+            },
+            {
+              "tr": "Conformance evaluation",
+              "df": "Checking adherence to established accessibility standards.",
+              "eg": "Verifying if a website meets WCAG criteria for color contrast.",
+              "mi": "Conformance evaluation is the only way to ensure a product is usable.",
+              "cx": "Conformance evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0).",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "e83f47be2bf016bbb3af293ca7c2feac58270079dbb1bd32451b3e6812e6148b",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which activity is central to accessibility and usability evaluation?",
+              "op": [
+                "Checking standards-based conformance alone.",
+                "Observing users completing realistic tasks.",
+                "Generalizing one disabled participant's experience.",
+                "Thinking aloud while using a product."
+              ],
+              "ai": 1,
+              "ex": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0).",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What is a limitation of relying solely on conformance evaluation?",
+              "op": [
+                "It fails to check standards.",
+                "It misses barriers found by disabled or older users.",
+                "It is sufficient for all users.",
+                "It only observes users without thinking aloud."
+              ],
+              "ai": 1,
+              "ex": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2).",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Usability testing",
+              "df": "A method of observing users attempting to use a product or service while thinking aloud.",
+              "eg": "Watching a user struggle to find the 'submit' button on a prototype while verbalizing their confusion.",
+              "mi": "Usability testing is just watching users without any verbal feedback.",
+              "cx": "Usability testing is observing users attempting to use a product or service while thinking aloud (Claim 3).",
+              "sourceFactIndexes": [
+                3
+              ]
+            },
+            {
+              "tr": "Conformance evaluation",
+              "df": "Checking adherence to established accessibility standards.",
+              "eg": "Verifying if a website meets WCAG criteria for color contrast.",
+              "mi": "Conformance evaluation is the only way to ensure a product is usable.",
+              "cx": "Conformance evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0).",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "3c04251f3c3b10d3ed3c42a4ad73824bd096ae154061fb929df3f082ffa647e8",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-14T07:41:12.674Z",
+        "durationMs": 7035,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+            "item": 0,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "Which activity is central to accessibility and usability evaluation?",
+              "options": [
+                "Checking standards-based conformance alone.",
+                "Observing users completing realistic tasks.",
+                "Generalizing one disabled participant's experience.",
+                "Thinking aloud while using a product."
+              ],
+              "answerIndex": 0,
+              "explanation": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0). Generalizing one disabled participant's experience is incorrect because a single disabled participant's 경험should"
+            },
+            "chosen": {
+              "question": "Which activity is central to accessibility and usability evaluation?",
+              "options": [
+                "Checking standards-based conformance alone.",
+                "Observing users completing realistic tasks.",
+                "Generalizing one disabled participant's experience.",
+                "Thinking aloud while using a product."
+              ],
+              "answerIndex": 0,
+              "explanation": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0)."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 187,
+              "removedCharacters": 112,
+              "removedTail": "Generalizing one disabled participant's experience is incorrect because a single disabled participant's 경험should"
+            },
+            "sourceFactIndexes": [
+              0
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+            "item": 0,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "Which activity is central to accessibility and usability evaluation?",
+              "options": [
+                "Checking standards-based conformance alone.",
+                "Observing users completing realistic tasks.",
+                "Generalizing one disabled participant's experience.",
+                "Thinking aloud while using a product."
+              ],
+              "answerIndex": 0,
+              "explanation": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0)."
+            },
+            "chosen": {
+              "question": "Which activity is central to accessibility and usability evaluation?",
+              "options": [
+                "Checking standards-based conformance alone.",
+                "Observing users completing realistic tasks.",
+                "Generalizing one disabled participant's experience.",
+                "Thinking aloud while using a product."
+              ],
+              "answerIndex": 1,
+              "explanation": "Observing users completing realistic tasks is correct because it combines standards-based conformance checks with observation of representative users completing realistic tasks (Claim 0)."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 0,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-option-text",
+                  "surface": "Observing users completing realistic tasks is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              0
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "incompleteExplanationTail",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+            "item": 1,
+            "action": "trimmed-incomplete-tail",
+            "prompt": "Retain only complete model-authored sentences before an unfinished explanation tail.",
+            "rejected": {
+              "question": "What is a limitation of relying solely on conformance evaluation?",
+              "options": [
+                "It fails to check standards.",
+                "It misses barriers found by disabled or older users.",
+                "It is sufficient for all users.",
+                "It only observes users without thinking aloud."
+              ],
+              "answerIndex": 2,
+              "explanation": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2). It is sufficient for all users is incorrect because evaluation with disabled and older users can find"
+            },
+            "chosen": {
+              "question": "What is a limitation of relying solely on conformance evaluation?",
+              "options": [
+                "It fails to check standards.",
+                "It misses barriers found by disabled or older users.",
+                "It is sufficient for all users.",
+                "It only observes users without thinking aloud."
+              ],
+              "answerIndex": 2,
+              "explanation": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2)."
+            },
+            "trainingEligible": false,
+            "recoveryEvidence": {
+              "kind": "existing-sentence-boundary",
+              "verified": true,
+              "retainedCharacters": 190,
+              "removedCharacters": 101,
+              "removedTail": "It is sufficient for all users is incorrect because evaluation with disabled and older users can find"
+            },
+            "sourceFactIndexes": [
+              2
+            ]
+          },
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "What is a limitation of relying solely on conformance evaluation?",
+              "options": [
+                "It fails to check standards.",
+                "It misses barriers found by disabled or older users.",
+                "It is sufficient for all users.",
+                "It only observes users without thinking aloud."
+              ],
+              "answerIndex": 2,
+              "explanation": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2)."
+            },
+            "chosen": {
+              "question": "What is a limitation of relying solely on conformance evaluation?",
+              "options": [
+                "It fails to check standards.",
+                "It misses barriers found by disabled or older users.",
+                "It is sufficient for all users.",
+                "It only observes users without thinking aloud."
+              ],
+              "answerIndex": 1,
+              "explanation": "It misses barriers found by disabled or older users is correct because evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal (Claim 2)."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 2,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-option-text",
+                  "surface": "It misses barriers found by disabled or older users is correct"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              2
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 4,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 2
+        }
+      }
+    ]
+  },
+  "scionCompilerReplay": {
+    "schemaVersion": 1,
+    "protocol": "scion-source-compiler-replay-v1",
+    "release": "v0.16.43",
+    "generatedAt": "2026-07-16T16:00:00.000Z",
+    "sourceProject": {
+      "path": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
+      "bytes": 85792,
+      "sha256": "e9a6a0bb699b20003e95a754a07b8ab0a4a32ab1e3c14ae3c0931aae089da905",
+      "projectId": "scion-source-capture-ux-evidence-to-prototype-capstone-local",
+      "captureProtocol": "scion-source-grounded-atom-capture-v1",
+      "captureCompletedAt": "2026-07-14T07:41:19.709Z"
+    },
+    "compilerSources": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 16897,
+        "sha256": "fb96667bd6aa3564e1cf0c8d60de851905714737e85545065ca1464d49a7fe9d"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 15571,
+        "sha256": "4495ef5c82e72002f2b0270a3660b40be873c23ecda8d790fecb265cab6a4bb3"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 33225,
+        "sha256": "732bbfa7f20bc4767bf8b0783745cee7abf98d130796dab6635837d14ad99ed5"
+      },
+      {
+        "path": "scripts/scionSourceCompilerReplay.mjs",
+        "bytes": 15464,
+        "sha256": "71d098b292ee16764f153bf5663044d0be06f8069b665ec9ca8a25cd91c6dbd7"
+      }
+    ],
+    "responseMutationCount": 0,
+    "repairRows": [
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/accessibility-usability-evaluation",
+        "responseSha256": "e83f47be2bf016bbb3af293ca7c2feac58270079dbb1bd32451b3e6812e6148b",
+        "admittedResponseSha256": "3c04251f3c3b10d3ed3c42a4ad73824bd096ae154061fb929df3f082ffa647e8",
+        "repairCounts": {
+          "total": 4,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 2
+        },
+        "repairsSha256": "1b889a46fe5eb6a8df66a730a127002486066b5942187d83c794d8d0b4c6799e"
+      },
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/evidence-based-personas",
+        "responseSha256": "efbed09968705f96bd6a2a469349157455da1ee643b5f723b3f6c58bc9231dde",
+        "admittedResponseSha256": "ef12c64a52af0cbf30f9d843fc3419ca82378b3e58e648d605183f23727caa81",
+        "repairCounts": {
+          "total": 3,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "d70e6dabb7285882489680601b7391223c15f2429e0f1211845072ec5285c3d1"
+      },
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping",
+        "responseSha256": "bd3b43685b9a3fd593c1799d0bb29151249f9c3349173ae4680de29a8b53d3e4",
+        "admittedResponseSha256": "696213eda89af2be1fd87014f6d14592e8b26cb5ab0db279d13af92e8be3b0c1",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "2380a51aa1816449c1cd5864e1f3097463e2310b25bc28b8657294a56c2ff234"
+      },
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/journey-mapping",
+        "responseSha256": "9d60202877344da44822aa52de4934087f28d55c5696c65bab83ed4d20f5db08",
+        "admittedResponseSha256": "ae4df72d5c420afc0498c50fe4826ae2de4fe4f7881d1e0a3280560325ed586e",
+        "repairCounts": {
+          "total": 2,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 0
+        },
+        "repairsSha256": "bcdf8e3f3e4c419343d06589fdd0ad1f188adf3aab034619abe202e8da4100bd"
+      },
+      {
+        "promptId": "ux-evidence-to-prototype-capstone:ux/task-flow-analysis",
+        "responseSha256": "19d0545c64956293b1215f3b8cc18fd39bccdd8165294ee0683a6485f4b3c55f",
+        "admittedResponseSha256": "839f66c49ffe537f696cf8073aa09742da449b9dbdcc3c86f73e857f90a30b3c",
+        "repairCounts": {
+          "total": 3,
+          "incompleteExplanationTail": 2,
+          "explanationKeyAlignment": 1
+        },
+        "repairsSha256": "6609a021bd52dae89051cbd7b6f5a4baffc01cfe8b11fce38756cae33ae8cf34"
+      }
+    ],
+    "repairCounts": {
+      "total": 13,
+      "incompleteExplanationTail": 8,
+      "explanationKeyAlignment": 5
+    },
+    "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
+    "identity": {
+      "algorithm": "sha256-canonical-source-compiler-replay-v1",
+      "sha256": "4289b5212618b0bf13d9b286cc84d8604122cdb012917410166869ae0f751382"
+    }
+  }
+}

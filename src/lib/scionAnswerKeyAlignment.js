@@ -30,7 +30,27 @@ function escapeRegExp(value) {
 }
 
 function stripOptionLabel(value) {
-  return clean(value).replace(/^(?:(?:option|choice|answer)\s*)?(?:[a-d]|[1-4])\s*[).:\-]\s*/i, '');
+  return clean(value)
+    .replace(/^(?:(?:option|choice|answer)\s*)?(?:[a-d]|[1-4])\s*[).:\-]\s*/i, '')
+    .replace(/[.!?;:,]+$/g, '')
+    .trim();
+}
+
+/** Canonical identity for detecting answer choices that differ only cosmetically. */
+export function normalizeScionOptionIdentity(value) {
+  const surface = stripOptionLabel(value);
+  // Brackets and braces carry meaning in code and mathematics: [1, 2] is a
+  // Python list while (1, 2) is a tuple. Preserve their delimiter signature
+  // so natural-language cleanup cannot collapse distinct executable forms.
+  const structuralDelimiters = (surface.match(/[\[\]{}()]/g) || []).join('');
+  const words = surface
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[‘’']/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .replace(/^(?:a|an|the)\s+/, '');
+  return `${structuralDelimiters}|${words}`;
 }
 
 function optionLabelIndex(value) {
@@ -135,7 +155,22 @@ function findExplicitExplanationAnswerCue(normalized) {
       new RegExp(`(?:^|[.!?]\\s+)(?:the\\s+)?${escaped}\\s+(?:fits|matches)\\s+because\\b`, 'i'),
     ];
     const match = patterns.map((pattern) => affirmative.match(pattern)).find(Boolean);
-    if (match) addCue(index, 'explicit-option-text', match[0]);
+    if (match) {
+      addCue(index, 'explicit-option-text', match[0]);
+      return;
+    }
+
+    // Some small-model answers start the affirmative explanation with the
+    // exact option as its grammatical subject ("Harmony is the concept..."),
+    // but omit the literal words "correct answer". This remains an explicit
+    // cue: it must start the affirmative lead, match one displayed option
+    // exactly, and avoid negative/distractor predicates. We deliberately do
+    // not infer support from a paraphrase here.
+    const affirmativeLead = new RegExp(
+      `^\\s*(?:the\\s+)?${escaped}\\s+(?:is|are|means|refers\\s+to|describes|represents|provides|creates|returns|assigns|identifies|shows|serves)\\b(?!\\s+(?:(?:the|a|an)\\s+)?(?:incorrect|wrong|misconception|distractor|tempting|incomplete|not)\\b)`,
+      'i',
+    ).exec(clean(normalized.explanation));
+    if (affirmativeLead) addCue(index, 'explicit-affirmative-lead', affirmativeLead[0]);
   });
 
   const supported = [...new Set(cues.map((cue) => cue.supportedIndex))];

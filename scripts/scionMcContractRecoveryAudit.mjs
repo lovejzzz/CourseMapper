@@ -73,23 +73,18 @@ function sourceIndexesValid(item, factCount) {
   );
 }
 
-function assessItem(item, factCount) {
-  const issues = [...assessScionMcItem(item).issues];
-  if (!sourceIndexesValid(item, factCount)) issues.push('source-fact-index');
-  return { eligible: issues.length === 0, issues: [...new Set(issues)] };
-}
-
 // This v0.16.22 replay must preserve the admission clock that produced its
 // historical receipt. Later rules (currently explicit answer cues and
 // placeholder-option rejection) are measured by their own release receipts;
 // they must not rewrite which raw items the frozen capture said it admitted.
 function assessHistoricalItem(item, factCount) {
-  const current = assessItem(item, factCount);
+  const issues = [...assessScionMcItem(item, { semanticAdmission: false }).issues];
+  if (!sourceIndexesValid(item, factCount)) issues.push('source-fact-index');
   const legacyConflict = findScionExplanationKeyConflict(item, { allowExplicitCues: false });
-  const issues = current.issues.filter(
+  const filteredIssues = issues.filter(
     (issue) => issue !== 'placeholder-options' && !(issue === 'explanation-key-conflict' && legacyConflict === null),
   );
-  return { eligible: issues.length === 0, issues };
+  return { eligible: filteredIssues.length === 0, issues: filteredIssues };
 }
 
 function addIssues(histogram, issues) {

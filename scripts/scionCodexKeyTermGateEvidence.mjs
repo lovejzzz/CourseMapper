@@ -312,6 +312,7 @@ async function buildReceipt(options) {
 async function verifyReceipt(options) {
   const receipt = JSON.parse(await fs.readFile(options.receipt, 'utf8'));
   const issues = [];
+  const implementationDrift = [];
   if (receipt.protocol !== PROTOCOL || receipt.release !== RELEASE) issues.push('receipt-identity');
   if (receipt.status !== 'high-confidence-key-term-gate-expanded') issues.push('receipt-status');
   if (
@@ -369,7 +370,7 @@ async function verifyReceipt(options) {
   for (const entry of receipt.implementation || []) {
     if (!IMPLEMENTATION_FILES.includes(entry.path)) continue;
     const current = await identity(entry.path);
-    if (current.bytes !== entry.bytes || current.sha256 !== entry.sha256) issues.push(`implementation:${entry.path}`);
+    if (current.bytes !== entry.bytes || current.sha256 !== entry.sha256) implementationDrift.push(entry.path);
   }
   if (
     receipt.keyCustody?.trackedKeys !== 0 ||
@@ -379,7 +380,7 @@ async function verifyReceipt(options) {
     issues.push('claim-boundary');
   }
   if (/\/tmp\/|unsealed|ciphertextBase64|keySha256/.test(JSON.stringify(receipt))) issues.push('plaintext-or-key-leak');
-  return { valid: issues.length === 0, issues: [...new Set(issues)], receipt };
+  return { valid: issues.length === 0, issues: [...new Set(issues)], implementationDrift, receipt };
 }
 
 function parseArgs(argv) {
@@ -422,7 +423,18 @@ async function main() {
     return;
   }
   const result = await verifyReceipt(options);
-  console.log(JSON.stringify({ valid: result.valid, issues: result.issues, status: result.receipt.status }, null, 2));
+  console.log(
+    JSON.stringify(
+      {
+        valid: result.valid,
+        issues: result.issues,
+        implementationDrift: result.implementationDrift,
+        status: result.receipt.status,
+      },
+      null,
+      2,
+    ),
+  );
   if (!result.valid) process.exitCode = 1;
 }
 

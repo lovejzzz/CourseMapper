@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-semantic-admission-replay-v1",
+  "release": "v0.16.43",
+  "generatedAt": "2026-07-16T16:05:00.000Z",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "evidenceClass": "single-model-judge-same-identity-paired-order-replay",
+  "inputs": {
+    "corpus": {
+      "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl",
+      "bytes": 202989,
+      "sha256": "61e2bc936c3f067f2675e73d85e43830a08fb04bdf14ecb72781199a9f1b3a4c",
+      "rows": 46
+    },
+    "campaign": {
+      "path": "evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json",
+      "bytes": 7226,
+      "sha256": "43b1791286befa78c7a24e929ca559a002e06b8a9eda9350f0cabfd615b78b45",
+      "packetId": "scion-review-c0498e55e87825b3c822",
+      "completedOrders": [
+        "A/B",
+        "B/A"
+      ]
+    },
+    "implementation": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 16897,
+        "sha256": "fb96667bd6aa3564e1cf0c8d60de851905714737e85545065ca1464d49a7fe9d"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 15571,
+        "sha256": "4495ef5c82e72002f2b0270a3660b40be873c23ecda8d790fecb265cab6a4bb3"
+      },
+      {
+        "path": "src/lib/blueprintEnrichmentPass.js",
+        "bytes": 70557,
+        "sha256": "60fdfd5bab4b9ac55d12abd10cbe706fef52de4421f5adfd080e70c9fc12a740"
+      }
+    ],
+    "baseline": {
+      "path": "evaluation/scion-adapters/evidence/semantic-admission-baseline-v0.16.42.json",
+      "bytes": 2751,
+      "sha256": "7b24a90fea2a3b7f83f4e1b9768b30173bdf59caf3f1722a5347ed426d895f73",
+      "release": "v0.16.42",
+      "acceptedWithoutInterception": 46
+    }
+  },
+  "summary": {
+    "reviewedStableLosses": 46,
+    "acceptedWithoutInterception": 37,
+    "intercepted": 9,
+    "repaired": 3,
+    "rejectedForRegeneration": 6,
+    "responseTextMutations": 0,
+    "repairFieldMutations": 3,
+    "issues": {
+      "duplicate-options": 2,
+      "explanation-repeats-answer": 4
+    },
+    "repairCues": {
+      "explicit-affirmative-lead": 2,
+      "explicit-option-text": 1
+    },
+    "byDomain": {
+      "computer-science": 1,
+      "music-theory": 7,
+      "user-experience-design": 1
+    }
+  },
+  "intercepted": [
+    {
+      "reviewPairId": "scion-17c6d6e29a5430b85192",
+      "domain": "music-theory",
+      "kind": "mc-item",
+      "action": "answer-index-repaired",
+      "changedFields": [
+        "ai"
+      ],
+      "originalArtifactSha256": "b5aaa99d5ab4cef9ee9dda40576960ba8df05cc3a29bfbc386856367d17828b7",
+      "admittedArtifactSha256": "c359d563745a92052e9e2373473bde4b7d0cce6c9c3bc20ec0475661de6f411d",
+      "repairs": [
+        {
+          "pass": "explanationKeyAlignment",
+          "action": "realigned",
+          "supportMethod": "explicit-explanation-cue",
+          "explicitCueTypes": [
+            "explicit-affirmative-lead"
+          ],
+          "declaredIndex": 0,
+          "supportedIndex": 2
+        }
+      ],
+      "remainingIssues": [],
+      "judgeDefectCount": 5
+    },
+    {
+      "reviewPairId": "scion-26789c491494aac1b3d7",
+      "domain": "music-theory",
+      "kind": "mc-item",
+      "action": "rejected-for-regeneration",
+      "changedFields": [],
+      "originalArtifactSha256": "751b0868ad20a5301b85c5a78d05a3ab48055f660e1336240e5d0faa6a5a7184",
+      "admittedArtifactSha256": "751b0868ad20a5301b85c5a78d05a3ab48055f660e1336240e5d0faa6a5a7184",
+      "repairs": [],
+      "remainingIssues": [
+        "explanation-repeats-answer"
+      ],
+      "judgeDefectCount": 4
+    },
+    {
+      "reviewPairId": "scion-32d15f4253796caa9ccb",
+      "domain": "music-theory",
+      "kind": "mc-item",
+      "action": "rejected-for-regeneration",
+      "changedFields": [],
+      "originalArtifactSha256": "f2ac859d40afd883c59f27c6c9d93e32e78864466e9bf2d2abf7c717a325240e",
+      "admittedArtifactSha256": "f2ac859d40afd883c59f27c6c9d93e32e78864466e9bf2d2abf7c717a325240e",
+      "repairs": [],
+      "remainingIssues": [
+        "explanation-repeats-answer"
+      ],
+      "judgeDefectCount": 4
+    },
+    {
+      "reviewPairId": "scion-81cfd262736cdcba2fd1",
+      "domain": "computer-science",
+      "kind": "mc-item",
+      "action": "rejected-for-regeneration",
+      "changedFields": [],
+      "originalArtifactSha256": "32a5db4ec943ed92c6b66bb06610dfeb840892530950741338b9e44d15aa44d4",
+      "admittedArtifactSha256": "32a5db4ec943ed92c6b66bb06610dfeb840892530950741338b9e44d15aa44d4",
+      "repairs": [],
+      "remainingIssues": [
+        "explanation-repeats-answer"
+      ],
+      "judgeDefectCount": 5
+    },
+    {
+      "reviewPairId": "scion-75bc8bc5d43d3c775825",
+      "domain": "music-theory",
+      "kind": "mc-item",
+      "action": "answer-index-repaired",
+      "changedFields": [
+        "ai"
+      ],
+      "originalArtifactSha256": "de42378621642630a423914f8259ca1642ff1b55631427c00dbc0bc2e93a9fff",
+      "admittedArtifactSha256": "e6ffe06c22340486e77a473dfd6dd20041d18ffe89cc6f28a9287a87a717050f",
+      "repairs": [
+        {
+          "pass": "explanationKeyAlignment",
+          "action": "realigned",
+          "supportMethod": "explicit-explanation-cue",
+          "explicitCueTypes": [
+            "explicit-affirmative-lead"
+          ],
+          "declaredIndex": 1,
+          "supportedIndex": 0
+        }
+      ],
+      "remainingIssues": [],
+      "judgeDefectCount": 5
+    },
+    {
+      "reviewPairId": "scion-6f0b807f229f6cb7f00f",
+      "domain": "music-theory",
+      "kind": "mc-item",
+      "action": "rejected-for-regeneration",
+      "changedFields": [],
+      "originalArtifactSha256": "8ae636d37b01d300df7816dbf18fdaa3bc92a8e1610e2e227f1443ef9d0124d2",
+      "admittedArtifactSha256": "8ae636d37b01d300df7816dbf18fdaa3bc92a8e1610e2e227f1443ef9d0124d2",
+      "repairs": [],
+      "remainingIssues": [
+        "duplicate-options"
+      ],
+      "judgeDefectCount": 5
+    },
+    {
+      "reviewPairId": "scion-49090f4e1cd04f73532a",
+      "domain": "music-theory",
+      "kind": "mc-item",
+      "action": "rejected-for-regeneration",
+      "changedFields": [],
+      "originalArtifactSha256": "f2ac859d40afd883c59f27c6c9d93e32e78864466e9bf2d2abf7c717a325240e",
+      "admittedArtifactSha256": "f2ac859d40afd883c59f27c6c9d93e32e78864466e9bf2d2abf7c717a325240e",
+      "repairs": [],
+      "remainingIssues": [
+        "explanation-repeats-answer"
+      ],
+      "judgeDefectCount": 4
+    },
+    {
+      "reviewPairId": "scion-85b391af51956f2efd11",
+      "domain": "music-theory",
+      "kind": "mc-item",
+      "action": "rejected-for-regeneration",
+      "changedFields": [],
+      "originalArtifactSha256": "15283ec89978b4847dc50da68971d376b154b1732f3db9e2ffbbcf7620e64167",
+      "admittedArtifactSha256": "15283ec89978b4847dc50da68971d376b154b1732f3db9e2ffbbcf7620e64167",
+      "repairs": [],
+      "remainingIssues": [
+        "duplicate-options"
+      ],
+      "judgeDefectCount": 5
+    },
+    {
+      "reviewPairId": "scion-51ec0fe803fab42a35b6",
+      "domain": "user-experience-design",
+      "kind": "mc-item",
+      "action": "answer-index-repaired",
+      "changedFields": [
+        "ai"
+      ],
+      "originalArtifactSha256": "d9daf1a81d00311aab7cdbd1edca01d07aa5a0aefa86eb5519199f069fc5b590",
+      "admittedArtifactSha256": "c9306c25f139c914a9ad2dccdda116e344466a47d717309eb5336c8ddf6df6e8",
+      "repairs": [
+        {
+          "pass": "explanationKeyAlignment",
+          "action": "realigned",
+          "supportMethod": "explicit-explanation-cue",
+          "explicitCueTypes": [
+            "explicit-option-text"
+          ],
+          "declaredIndex": 0,
+          "supportedIndex": 1
+        }
+      ],
+      "remainingIssues": [],
+      "judgeDefectCount": 5
+    }
+  ],
+  "unresolvedStableLosses": 37,
+  "productBehavior": {
+    "repairs": "Only the answer-index field changes when one exact affirmative explanation cue uniquely supports another option.",
+    "rejections": "Cosmetic duplicate options and answer-only feedback are rejected at shared admission and enter the existing regeneration path.",
+    "modelNeutralBenefit": "The shared admission rejections apply to Scion and paid-model outputs; the local Scion parser additionally records conservative answer-key repairs."
+  },
+  "claimBoundary": "This replay measures interception of defects already identified in stable paired-order judgments from one Codex model. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Thirty-seven stable losses remain unresolved.",
+  "identity": {
+    "algorithm": "sha256-canonical-scion-semantic-admission-replay-v1",
+    "sha256": "baed6a3ad16b484efb6d7c053fd4d60b9f90b044ff3462dbb71a9e0d87e7b770"
+  }
+}

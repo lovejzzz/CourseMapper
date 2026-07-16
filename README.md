@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.42
+**Current release:** v0.16.43
 
 ---
 
@@ -31,7 +31,13 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.42**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.43**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.43 turns the measured gap into compiler behavior. An exact replay runs all 46 stable paired-order Scion losses through the frozen v0.16.42 implementation and the current compiler. The old gate intercepted none. The current gate intercepts nine: three contradicted answer keys are realigned from unique exact affirmative explanation cues, two cosmetically duplicated answer sets are rejected, and four explanations that only repeat the keyed answer are rejected. Every repair changes only one answer-index field; question, options, explanation, and all other model-authored text remain unchanged.
+
+The six rejected items enter the existing targeted regeneration path. Duplicate-option identity and answer-only-feedback checks live at the shared admission boundary, so outputs from user-selected paid models benefit from the same quality floor. Scion additionally receives its local provenance-preserving key repair before admission.
+
+This stronger gate has an explicit cost. Replaying the same retained 192 source atoms now admits 141 instead of the 149 reported by v0.16.40, increasing burden from 43 to 51 retry seats. The removed eight atoms include exactly the duplicate-answer and answer-only-feedback families that later lost the stable judge comparisons. We count them as rejected weak work, not as recovered compiler output. The current corpus rebuild admits 123/464 structurally usable pairs—77 deterministic contract pairs and the same 46 paired-order judge preferences—but remains `smoke-only`. Thirty-seven stable losses remain unresolved, the judge-evidence gate remains at 46/100, and no quality adapter has been trained or activated.
 
 v0.16.42 completes the missing reversed reading of the current quality campaign. A second ephemeral GPT-5.6-Luna/max session received only the 100-case B/A workbook and blank decisions; it did not receive the A/B workbook, envelope, key, plaintext, outcome, organizer mapping, repository rules, or user configuration. The workbook reconstructs only when supplied the exact sealed v0.16.41 envelope, whose public identity pins the same model, reasoning level, runtime, and prompt while requiring a different session ID.
 

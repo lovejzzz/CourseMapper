@@ -16,10 +16,10 @@ import {
 } from './lib/scionSourceCapture.mjs';
 
 export const SCION_SOURCE_COMPILER_REPLAY_PROTOCOL = 'scion-source-compiler-replay-v1';
-export const SCION_SOURCE_COMPILER_REPLAY_RELEASE = 'v0.16.40';
-export const SCION_SOURCE_COMPILER_REPLAY_OUTPUT = 'evaluation/scion-source-compiler-replay-v0.16.40';
+export const SCION_SOURCE_COMPILER_REPLAY_RELEASE = 'v0.16.43';
+export const SCION_SOURCE_COMPILER_REPLAY_OUTPUT = 'evaluation/scion-source-compiler-replay-v0.16.43';
 export const SCION_SOURCE_COMPILER_REPLAY_RECEIPT =
-  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.40.json';
+  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.43.json';
 
 const DEFAULT_CAMPAIGNS = [
   {

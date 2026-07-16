@@ -81,6 +81,53 @@ describe('Scion preference admission gate', () => {
     ).toMatchObject({ eligible: false });
   });
 
+  it('rejects answer choices that differ only by labels, articles, or punctuation', () => {
+    const result = assessScionMcItem(
+      goodMc({
+        op: [
+          'A. The ratio between two sonic frequencies.',
+          'B. A difference in pitch between two sounds.',
+          'C. The ratio between notes in a scale.',
+          'D. The difference in pitch between two sounds.',
+        ],
+        ai: 1,
+        ex: 'Pitch difference is the music-theory definition, while a frequency ratio is a physical description.',
+      }),
+    );
+    expect(result).toMatchObject({ eligible: false });
+    expect(result.issues).toContain('duplicate-options');
+  });
+
+  it('preserves structural delimiters when code options contain the same values', () => {
+    const result = assessScionMcItem(
+      goodMc({
+        q: 'Which notation constructs a Python list containing three quiz scores?',
+        op: ['[12, 15, 18]', '(12, 15, 18)', '{12, 15, 18}', '12, 15, 18'],
+        ai: 0,
+        ex: 'Square brackets construct the list; parentheses and braces represent different container forms.',
+      }),
+    );
+    expect(result.issues).not.toContain('duplicate-options');
+    expect(result.eligible).toBe(true);
+  });
+
+  it('rejects feedback that only repeats the keyed answer', () => {
+    const result = assessScionMcItem(
+      goodMc({
+        op: [
+          'The first scale degree alone.',
+          'The width of one scale step.',
+          'The characteristic interval pattern and the first degree.',
+          'The numerical scale-degree labels.',
+        ],
+        ai: 2,
+        ex: 'The characteristic interval pattern and the first degree.',
+      }),
+    );
+    expect(result).toMatchObject({ eligible: false });
+    expect(result.issues).toContain('explanation-repeats-answer');
+  });
+
   it('detects a declared key that contradicts the option supported by its explanation', () => {
     const conflicted = goodMc({
       ai: 0,

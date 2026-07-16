@@ -109,6 +109,45 @@ describe('Scion MC contract recovery', () => {
     });
   });
 
+  it('realigns when the exact option starts a non-negative affirmative explanation', () => {
+    const repaired = repairScionMcItem({
+      q: 'What combines different sounds to generate new musical ideas?',
+      op: ['A. Musical form', 'B. Chord construction', 'C. Harmony', 'D. Rhythmic structure'],
+      ai: 0,
+      ex: 'Harmony is the concept of combining different sounds to create new musical ideas.',
+    });
+    expect(repaired.item.ai).toBe(2);
+    expect(repaired.repairs[0].preferenceEvidence).toMatchObject({
+      supportMethod: 'explicit-explanation-cue',
+      explicitCues: [expect.objectContaining({ type: 'explicit-affirmative-lead' })],
+    });
+  });
+
+  it('ignores an exact-option lead when it marks the option as a misconception', () => {
+    const item = {
+      q: 'What combines different sounds to generate new musical ideas?',
+      op: ['Musical form', 'Chord construction', 'Harmony', 'Rhythmic structure'],
+      ai: 2,
+      ex: 'Chord construction is a misconception because harmony is the broader concept.',
+    };
+    expect(repairScionMcItem(item)).toEqual({ item, repairs: [] });
+  });
+
+  it('matches an explicitly correct option despite display punctuation', () => {
+    const repaired = repairScionMcItem({
+      q: 'Which activity belongs in usability evaluation?',
+      op: [
+        'Checking conformance alone.',
+        'Observing users completing realistic tasks.',
+        'Generalizing one participant.',
+        'Skipping representative tasks.',
+      ],
+      ai: 0,
+      ex: 'Observing users completing realistic tasks is correct because it reveals task-level barriers.',
+    });
+    expect(repaired.item.ai).toBe(1);
+  });
+
   it('realigns from an explicit option label even when option wording has little lexical overlap', () => {
     const repaired = repairScionMcItem({
       q: 'What results when directed stress aligns mineral crystals?',

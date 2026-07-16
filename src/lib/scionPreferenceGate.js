@@ -1,6 +1,10 @@
 import { lintItemAdmission } from './itemAdmissionLint.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
-import { findScionExplanationKeyConflict, normalizeScionMcItem } from './scionAnswerKeyAlignment.js';
+import {
+  findScionExplanationKeyConflict,
+  normalizeScionMcItem,
+  normalizeScionOptionIdentity,
+} from './scionAnswerKeyAlignment.js';
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
 import { validateScionCodexTrainingPreferenceEvidence } from './scionCodexTrainingEvidence.js';
 import { assessScionKeyTermContract } from './scionKeyTermContract.js';
@@ -41,7 +45,7 @@ export const SCION_PREFERENCE_GATE_VERSION = '1.0.0';
 // training pair is admitted only when the chosen side clears the whole gate
 // and the rejected side fails exclusively inside this non-semantic set.
 const DETERMINISTIC_CONTRACT_ISSUE_RE =
-  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|explanation-length|truncated-explanation|process-leakage|meta-surface|all-none-of-above|longest-option-cue|clang-association-cue))$/;
+  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|explanation-length|explanation-repeats-answer|truncated-explanation|process-leakage|meta-surface|all-none-of-above|longest-option-cue|clang-association-cue))$/;
 
 function clean(value) {
   return String(value ?? '')
@@ -55,6 +59,10 @@ function stringInBand(value, min, max) {
 }
 
 function unique(values) {
+  return new Set(values.map(normalizeScionOptionIdentity)).size === values.length;
+}
+
+function legacyDisplayUnique(values) {
   return new Set(values.map((value) => clean(value).toLowerCase())).size === values.length;
 }
 
@@ -70,7 +78,7 @@ function containsGroundingToken(value, token) {
  * Scion quiz items. Passing means the item is safe enough to consider after a
  * separate answer-key verification; it is not a claim of semantic correctness.
  */
-export function assessScionMcItem(item, { topicWords = [] } = {}) {
+export function assessScionMcItem(item, { topicWords = [], semanticAdmission = true } = {}) {
   const normalized = normalizeScionMcItem(item);
   const issues = [];
   if (!stringInBand(normalized.question, 25, 300)) issues.push('stem-length');
@@ -82,7 +90,12 @@ export function assessScionMcItem(item, { topicWords = [] } = {}) {
     const optionLengths = normalized.options.map((option) => clean(option).length);
     if (Math.max(...optionLengths) > Math.min(...optionLengths) * 3 + 20) issues.push('option-homogeneity');
   }
-  if (normalized.options.length === 4 && !unique(normalized.options)) issues.push('duplicate-options');
+  if (
+    normalized.options.length === 4 &&
+    !(semanticAdmission ? unique(normalized.options) : legacyDisplayUnique(normalized.options))
+  ) {
+    issues.push('duplicate-options');
+  }
   if (normalized.options.filter((option) => PLACEHOLDER_OPTION_RE.test(option)).length >= 2) {
     issues.push('placeholder-options');
   }
@@ -90,6 +103,16 @@ export function assessScionMcItem(item, { topicWords = [] } = {}) {
     issues.push('answer-index');
   }
   if (!stringInBand(normalized.explanation, 20, 300)) issues.push('explanation-length');
+  if (
+    semanticAdmission &&
+    Number.isInteger(normalized.answerIndex) &&
+    normalized.answerIndex >= 0 &&
+    normalized.answerIndex < normalized.options.length &&
+    normalizeScionOptionIdentity(normalized.explanation) ===
+      normalizeScionOptionIdentity(normalized.options[normalized.answerIndex])
+  ) {
+    issues.push('explanation-repeats-answer');
+  }
   if (normalized.explanation && !TERMINAL_PUNCT_RE.test(normalized.explanation)) issues.push('truncated-explanation');
   if (PROCESS_LEAK_RE.test([normalized.question, ...normalized.options, normalized.explanation].join(' '))) {
     issues.push('process-leakage');
@@ -173,12 +196,15 @@ function sameIssues(left = [], right = []) {
   return a.length === b.length && a.every((issue, index) => issue === b[index]);
 }
 
-export function deriveDeterministicContractEvidence({ kind, chosen, rejected } = {}) {
+export function deriveDeterministicContractEvidence(
+  { kind, chosen, rejected } = {},
+  { semanticAdmission = true } = {},
+) {
   let chosenResult;
   let rejectedResult;
   if (kind === 'mc-item') {
-    chosenResult = assessScionMcItem(chosen);
-    rejectedResult = assessScionMcItem(rejected);
+    chosenResult = assessScionMcItem(chosen, { semanticAdmission });
+    rejectedResult = assessScionMcItem(rejected, { semanticAdmission });
   } else if (kind === 'key-term') {
     chosenResult = assessScionKeyTerm(chosen);
     rejectedResult = assessScionKeyTerm(rejected);
@@ -212,12 +238,15 @@ export function deriveDeterministicContractEvidence({ kind, chosen, rejected } =
  * or an aggregate benchmark never proves that every response from that model
  * is the chosen response.
  */
-export function assessScionPreferencePair({ kind, chosen, rejected, preferenceEvidence } = {}) {
+export function assessScionPreferencePair(
+  { kind, chosen, rejected, preferenceEvidence } = {},
+  { semanticAdmission = true } = {},
+) {
   let chosenResult;
   let rejectedResult;
   if (kind === 'mc-item') {
-    chosenResult = assessScionMcItem(chosen);
-    rejectedResult = assessScionMcItem(rejected);
+    chosenResult = assessScionMcItem(chosen, { semanticAdmission });
+    rejectedResult = assessScionMcItem(rejected, { semanticAdmission });
   } else if (kind === 'key-term') {
     chosenResult = assessScionKeyTerm(chosen);
     rejectedResult = assessScionKeyTerm(rejected);

@@ -3,25 +3,24 @@ import { APP_VERSION } from './appVersion.js';
 export const CURRENT_RELEASE = {
   version: APP_VERSION,
   date: 'July 16, 2026',
-  title: 'Both Orders Agree: measure the gap before training Scion',
-  landingTitle:
-    'Scion Completes Its First Same-Identity Paired Reading—and Measures a 46–0 Paid-Reference Lead on 100 Source-Grounded Atoms',
+  title: 'Reject the False Pass: turn judged failures into semantic gates',
+  landingTitle: 'Scion’s Compiler Now Intercepts 9 of 46 Measured Losses—Without Rewriting Model Text',
   highlights: [
-    'A second ephemeral GPT-5.6-Luna/max clean room scored the same 100 source-grounded artifacts in reversed B/A order with the exact first-order model, runtime, prompt, and a distinct session identity.',
-    'The two independently sealed orders agree on 76/100 cases: 46 score-qualified winners and 30 stable ties; 23 winner/tie disagreements and one opposite-winner reversal remain quarantined.',
-    'All 46 stable winners favor GPT-5.4-mini over the captured Scion-base pipeline—10 in Computer Science, 6 in Geology, 19 in Music Theory, and 11 in User Experience Design.',
-    'The evidence gate now accepts concrete losing-scorecard defects when the preference-level defect array is empty, retaining the judge’s original scores and decisions while admitting 46 immutable training rows.',
-    'Scion has not trained or activated a quality adapter: 54 additional stable, score-qualified preferences are still required before the research-training gate opens.',
+    'An exact replay turns all 46 stable paired-order Scion losses into executable compiler regressions; the v0.16.42 gate intercepted none, while v0.16.43 intercepts nine.',
+    'Three wrong answer keys are repaired only when one displayed option uniquely begins an affirmative explanation; each repair changes one answer-index field and zero model-authored text.',
+    'Two cosmetically duplicated answer sets and four answer-only explanations are rejected into the existing regeneration path instead of passing a structural schema.',
+    'The stricter current-source replay honestly withdraws eight earlier low-quality admissions: 141/192 atoms now pass instead of 149/192, with zero retained-response mutation and eight additional retry seats.',
+    'Thirty-seven measured losses remain unresolved, the research corpus remains at 46/100 judge preferences, and no quality adapter is trained or active.',
   ],
   landingHighlights: [
-    'Two isolated presentation orders now cover all 100 anonymous cases.',
-    'Cross-order agreement is 76%: 46 winners and 30 stable ties.',
-    'Every stable winner favors GPT-5.4-mini over Scion base.',
-    'Forty-six verified rows now describe the gap Scion must learn from.',
-    'No quality adapter is trained or active; 54 more rows are required.',
+    'All 46 stable losses now run as compiler regressions.',
+    'Three contradicted answer keys are repaired without rewriting text.',
+    'Six unusable assessment items now retry instead of shipping.',
+    'The stricter gate gives up eight old admissions rather than count weak work as recovered.',
+    'Thirty-seven measured losses and the 54-row training shortfall remain.',
   ],
   proof: {
-    contract: 'release-contracts/v0.16.42.json',
+    contract: 'release-contracts/v0.16.43.json',
     roadmap: 'docs/SCION_ADAPTER_ROADMAP.md',
     auditCommand: 'npm run audit:release-history',
   },
@@ -36,31 +35,43 @@ export const CURRENT_RELEASE_CHANGELOG = {
   highlights: CURRENT_RELEASE.highlights,
   sections: [
     {
-      label: 'Complete the second reading without peeking',
+      label: 'Make the judge’s defects executable',
       icon: 'AI',
       color: 'blue',
       items: [
-        'v0.16.42 derives its reversed workbook from the exact v0.16.40 packet and only the public identity and hash of the sealed v0.16.41 envelope. Reconstruction now refuses to run without that exact envelope, preventing the judge profile or campaign lineage from silently drifting.',
-        'One distinct ephemeral Codex CLI 0.144.2 task ran GPT-5.6-Luna with max reasoning against only the B/A workbook and blank working decisions. It had no A/B workbook, key, plaintext, outcome, organizer mapping, repository rules, or user configuration.',
-        'All 100 B/A decisions and 200 scorecards passed identity and completeness checks. A bounded receipt changed only the same unsupported `complete` status label to `scored`; every score, preference, rationale, evidence statement, and defect remained judge-authored.',
-        'The second canonical pass was encrypted directly to a separate AES-256-GCM envelope and 0600 key. No combined judgment plaintext was written, and four local key copies across both orders passed authenticated in-memory round trips.',
+        'The new semantic-admission replay reads the exact 46 stable GPT-5.4-mini-over-Scion rows retained by the v0.16.42 paired-order campaign. It verifies every artifact hash, both presentation orders, the single-model-judge boundary, and the exact compiler implementation before measuring a change.',
+        'The frozen v0.16.42 implementation accepts all 46 losing Scion atoms. The current implementation intercepts nine: three answer-index contradictions, two cosmetically duplicated option sets, and four explanations that merely repeat the keyed answer.',
+        'Each intercepted row is checked against defects already written in both judge orders. The replay does not add labels, re-score a case, reinterpret a tie, or turn an order-sensitive result into training data.',
+        'Thirty-seven stable losses remain outside these conservative rules. They stay visible as unresolved rather than being guessed into a compiler win.',
       ],
     },
     {
-      label: 'Measure the real gap and keep it useful',
+      label: 'Raise the floor without inventing content',
       icon: 'CHECK',
       color: 'emerald',
       items: [
-        'Dual-envelope ingestion decrypts both batches only in memory, reverses B/A labels before unblinding, requires identical public judge profiles and distinct sessions, zeroes plaintext buffers, and writes only aggregate evidence plus admitted training rows.',
-        'The first admission attempt correctly exposed a redundant evidence gate: 54 A/B winners had concrete defects in the losing scorecard but an empty preference-level defect array. The tested fix uses those existing scorecard defects instead of changing, repairing, or re-judging any score or outcome.',
-        'The final same-identity result is 46 stable score-qualified GPT-5.4-mini winners, 30 stable ties, 23 winner/tie disagreements, and one opposite-winner disagreement. Agreement is 76%; Scion base records zero stable wins in this source-bound atom packet.',
-        'The 46 admitted rows are legitimate single-model-judge training evidence, not proof of a trained adapter. The research gate remains closed at 46/100, hosted Scion remains the pinned public Gemma base plus compiler, and the next campaign must add at least 54 qualifying preferences before training.',
+        'Answer-key repair accepts only an exact displayed option in a unique, non-negative affirmative explanation lead. The receipt proves that each repair changes only `ai` or `answerIndex`; question, options, explanation, and all other authored text remain byte-equivalent.',
+        'Shared option identity now ignores display labels, articles, punctuation, case, and spacing, so `A difference…` and `The difference…` cannot masquerade as distinct answers. Feedback equal to the keyed option is rejected because it supplies no learner-facing reasoning.',
+        'Those shared admission failures use the existing targeted regeneration passes, so user-selected paid models benefit too. Scion additionally receives local provenance-preserving key repair before admission.',
+        'The quality floor has a real cost: the current retained-source replay admits 141/192 atoms, not the old 149/192, and compiler burden rises from 43 to 51 retry seats. That is an honest rejection of eight weak atoms, not a model or adapter improvement. The training gate remains 46/100 with no quality adapter active.',
       ],
     },
   ],
 };
 
 export const HISTORICAL_RELEASE_CHANGELOGS = [
+  {
+    version: '0.16.42',
+    date: 'July 16, 2026',
+    title: 'Both Orders Agree: measure the gap before training Scion',
+    highlights: [
+      'A second ephemeral GPT-5.6-Luna/max clean room scored the same 100 source-grounded artifacts in reversed B/A order with the exact first-order model, runtime, prompt, and a distinct session identity.',
+      'The two independently sealed orders agree on 76/100 cases: 46 score-qualified winners and 30 stable ties; 23 winner/tie disagreements and one opposite-winner reversal remain quarantined.',
+      'All 46 stable winners favor GPT-5.4-mini over the captured Scion-base pipeline—10 in Computer Science, 6 in Geology, 19 in Music Theory, and 11 in User Experience Design.',
+      'The evidence gate accepts concrete losing-scorecard defects when the preference-level defect array is empty, retaining the judge’s original scores and decisions while admitting 46 immutable training rows.',
+      'Scion did not train or activate a quality adapter: 54 additional stable, score-qualified preferences remained required before the research-training gate could open.',
+    ],
+  },
   {
     version: '0.16.41',
     date: 'July 16, 2026',

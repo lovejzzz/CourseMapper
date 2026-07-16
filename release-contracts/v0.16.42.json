@@ -2,7 +2,7 @@
   "version": "0.16.42",
   "date": "July 16, 2026",
   "title": "Both Orders Agree: measure the gap before training Scion",
-  "status": "verified-current",
+  "status": "historical",
   "proofSummary": {
     "local": [
       "npm run audit:scion:codex-reverse-order",
@@ -47,7 +47,7 @@
   "claims": [
     {
       "id": "v01642-exact-outcome-blind-reversal",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 0,
       "summary": "The 100-case B/A workbook reconstructs only from the exact packet and sealed first-order public identity, then requires GPT-5.6-Luna/max on Codex CLI 0.144.2 in a distinct session.",
       "anchors": [
@@ -64,7 +64,7 @@
     },
     {
       "id": "v01642-paired-order-agreement",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 1,
       "summary": "Two independently sealed same-identity readings agree on 76 of 100 cases: 46 stable winners and 30 stable ties, with 24 order-sensitive cases quarantined.",
       "anchors": [
@@ -81,7 +81,7 @@
     },
     {
       "id": "v01642-reference-gap-measured",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 2,
       "summary": "All 46 stable score-qualified winners favor GPT-5.4-mini over captured Scion base, distributed 10/6/19/11 across the four training domains.",
       "anchors": [
@@ -98,7 +98,7 @@
     },
     {
       "id": "v01642-existing-scorecard-defect-evidence",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 3,
       "summary": "Winner admission can use concrete defects already recorded on the losing scorecard when the duplicate preference-level defect array is empty, without changing judgment content.",
       "anchors": [
@@ -114,7 +114,7 @@
     },
     {
       "id": "v01642-no-adapter-win-boundary",
-      "status": "verified-current",
+      "status": "historical",
       "changelogHighlightIndex": 4,
       "summary": "The research corpus contains 46 of 100 required same-identity rows; no quality adapter is trained, active, held-out tested, or promoted.",
       "anchors": [
