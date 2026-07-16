@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.44
+**Current release:** v0.16.45
 
 ---
 
@@ -31,7 +31,15 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.44**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.45**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.45 makes key-term admission source-aware. The compiler binds each replayed artifact to the exact source context retained in the anonymous A/B workbook, verifies every context and artifact hash, and rejects a purported misconception only when it affirmatively restates a supplied fact with at least three shared content tokens, 75% shorter-side containment, and 35% whole-sentence overlap. Explicit contrast words such as “must,” “only,” “not,” or “without” refuse this rule, so a legitimate false belief that shares the source's vocabulary is not mistaken for a true statement.
+
+The same gate now recognizes parenthesized internal markers such as `(Claim 0).` instead of allowing them into learner-facing material. Across the 46 stable paired-order Scion losses, interception rises from 12 to 18: six answer indexes are still repaired without rewriting text and twelve artifacts now enter bounded regeneration. The six newly intercepted losses comprise three source facts mislabeled as misconceptions plus four visible claim-marker leaks, with one artifact in both groups. Twenty-eight stable losses remain unresolved.
+
+The stricter standard has an explicit runtime cost. On the same 192 retained source atoms, all 77 conservative repair receipts remain, but admission moves from 141 to 131 and retry burden moves from 51 to 61. Those ten atoms are not deleted or silently rewritten; they are refused and regenerated. The usable adapter corpus remains 118/464—72 deterministic contract pairs plus 46 same-identity paired-order judge preferences—so the research gate remains honestly closed at 46/100.
+
+This is compiler-quality progress, not learned-model progress. Gemma weights are unchanged, no quality adapter is trained or active, and no paid-reference parity is claimed. The source-aware key-term gate lives at the shared compiler boundary, so source-grounded outputs from user-selected paid models benefit too; browser-local Scion additionally uses its bounded local retry and provenance-preserving answer-key repair path.
 
 v0.16.44 repairs three more measured answer-key contradictions without inventing content. After the exact-label and exact-option checks, the compiler may inspect only the first affirmative explanation sentence, normalize a narrow set of plural and verb endings, and move the key only when one option has at least two supported content tokens and uniquely beats the declared key. Every receipt retains the evidence sentence, all four scores, both thresholds, and the before/after index. Literal labels, generic “correct choice” prose, negative or misconception language, tied support, weak one-token paraphrases, and the known ambiguous UX task-flow case all refuse this fallback.
 

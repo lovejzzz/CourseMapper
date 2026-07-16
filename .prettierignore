@@ -67,6 +67,12 @@ evaluation/scion-source-compiler-replay-v0.16.44
 evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.44.json
 evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.44.json
 evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.44.json
+# v0.16.45 adds source-bound misconception and parenthesized claim-marker
+# admission while preserving byte-reproducible replay serialization.
+evaluation/scion-source-compiler-replay-v0.16.45
+evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json
+evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.45.json
+evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.45.json
 .firebase
 .claude
 **/.venv*/

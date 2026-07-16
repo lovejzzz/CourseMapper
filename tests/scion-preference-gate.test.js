@@ -139,6 +139,44 @@ describe('Scion preference admission gate', () => {
     expect(buildMatchedReviewCandidates([pair], { semanticAdmission: false }).summary.candidates).toBe(1);
   });
 
+  it('keeps historical candidate reconstruction on the pre-parenthesized claim-marker contract', () => {
+    const project = (correction) => ({
+      promptText: 'A frozen historical source-grounded course input.',
+      fileNames: [],
+      courseGraphJson: JSON.stringify({
+        sessions: [{ number: 1, title: 'Lesson 1: Absolute Dating' }],
+        enrichmentOverlay: {
+          lessonContent: {
+            'lesson-1': {
+              quizItems: [],
+              keyTerms: [
+                {
+                  tr: 'Absolute dating',
+                  df: 'A numerical method that assigns a measured age in years to mineral grains within a rock.',
+                  eg: 'A laboratory reports that a mineral grain crystallized 120 million years ago.',
+                  mi: 'It provides only an older-or-younger sequence without a numerical result.',
+                  cx: correction,
+                },
+              ],
+            },
+          },
+        },
+      }),
+    });
+    const pair = {
+      id: 'historical-parenthesized-claim-marker',
+      domain: 'geology',
+      candidateRoute: 'scion-test',
+      candidateModel: 'Scion',
+      referenceModel: 'Reference',
+      candidateProject: project('Absolute dating assigns a numerical age in years (Claim 1).'),
+      referenceProject: project('Absolute dating reports a measured numerical age in years.'),
+    };
+
+    expect(buildMatchedReviewCandidates([pair]).summary.candidates).toBe(0);
+    expect(buildMatchedReviewCandidates([pair], { semanticAdmission: false }).summary.candidates).toBe(1);
+  });
+
   it('preserves structural delimiters when code options contain the same values', () => {
     const result = assessScionMcItem(
       goodMc({

@@ -104,7 +104,7 @@ describe('Scion Public provider', () => {
     const contaminatedTerms = completeTerms.map((term, index) => {
       if (index === 0) return { ...term, cx: term.eg };
       if (index === 1) return { ...term, df: `Definition: ${term.df} Example: ${term.eg}` };
-      return { ...term, cx: `${term.cx} [3, 4]` };
+      return { ...term, cx: `${term.cx} (Claim 0).` };
     });
     const assessment = assessPublicScionKernelResponse(
       JSON.stringify({ lessons: [{ lessonId: 'lesson-9', keyTerms: contaminatedTerms }] }),
@@ -154,6 +154,31 @@ describe('Scion Public provider', () => {
 
     expect(assessment.issues).toContain('lesson-9:key-term-0:misconception-repeats-known-fact');
     expect(buildPublicScionRetryFeedback(assessment)).toContain('genuinely false learner belief');
+  });
+
+  it('keeps a source-overlapping misconception when explicit contrast makes the belief false', () => {
+    const prompt = `Course: Interaction Design\nLessons:\n[{"lessonId":"lesson-9","title":"Interactive Prototyping"}]\nReturn ONLY valid JSON.`;
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-9',
+          facts: [
+            'Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.',
+          ],
+          keyTerms: completeTerms.map((term, index) =>
+            index === 0
+              ? {
+                  ...term,
+                  mi: 'A testable representation must include every production detail.',
+                }
+              : term,
+          ),
+        },
+      ],
+    };
+
+    const assessment = assessPublicScionKernelResponse(JSON.stringify(response), prompt, 'blueprintEnrichment');
+    expect(assessment.issues).not.toContain('lesson-9:key-term-0:misconception-repeats-known-fact');
   });
 
   it('merges only earlier fields that strictly reduce cross-attempt contract defects', () => {

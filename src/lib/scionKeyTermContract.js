@@ -9,7 +9,8 @@ const META_SURFACE_RE =
 const NON_LATIN_SCRIPT_RE = /[^\u0000-\u024f\u1e00-\u1eff]/u;
 
 const EMBEDDED_FIELD_LABEL_RE = /\b(?:definition|example|misconception|correction)\s*:/i;
-const CLAIM_MARKER_RESIDUE_RE = /(?:[.!?]\s*\[\s*\d+(?:\s*[,–-]\s*\d+)*\s*\]|\bclaims?\s*#?\d+)\s*$/i;
+const CLAIM_MARKER_RESIDUE_RE =
+  /(?:[.!?]\s*\[\s*\d+(?:\s*[,–-]\s*\d+)*\s*\]|\(?\s*claims?\s*#?\s*\d+(?:\s*[,–-]\s*\d+)*\s*\)?[.!?]?)\s*$/i;
 const MISCONCEPTION_CUE_RE =
   /^(?:believing|thinking|assuming|the idea|the belief|students? (?:believe|think|assume))\s+(?:that\s+)?/i;
 const MISCONCEPTION_CONTRAST_RE =
@@ -61,7 +62,13 @@ function misconceptionRestatesKnownFact(misconception, knownFacts) {
     const intersection = [...candidateTokens].filter((token) => factTokens.has(token)).length;
     const containment = intersection / Math.max(1, Math.min(candidateTokens.size, factTokens.size));
     const union = new Set([...candidateTokens, ...factTokens]).size;
-    return containment >= 0.82 && intersection / Math.max(1, union) >= 0.55;
+    // A source fact and a purported misconception can share vocabulary for a
+    // legitimate contrast. Reject only a substantial affirmative restatement:
+    // at least three content tokens, strong shorter-side containment, and a
+    // meaningful whole-sentence overlap. Explicit contrast language remains
+    // admissible above, so "must include every detail" is not confused with a
+    // source claim that a prototype works without every production detail.
+    return intersection >= 3 && containment >= 0.75 && intersection / Math.max(1, union) >= 0.35;
   });
 }
 

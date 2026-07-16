@@ -145,6 +145,28 @@ describe('Scion source-grounded atom capture', () => {
     expect(assessment.admittedResponse.keyTerms).toHaveLength(1);
   });
 
+  it('rejects a source fact mislabeled as a misconception only when exact source claims are supplied', () => {
+    const response = validResponse();
+    response.keyTerms[0].mi = 'Thinking structure is the same as musical form.';
+    const sourceClaims = [
+      'In music, form refers to the structure of a musical composition or performance.',
+      'Musical form unfolds over time through the expansion and development of ideas.',
+      'Binary form has two sections that are about equal in length.',
+      'Lowercase letters can mark subdivisions of a large musical unit.',
+      'Structural elements include sound, harmony, melody, and rhythm.',
+    ];
+
+    const sourceAware = assessSourceAtomResponse(response, {
+      sourceClaimCount: sourceClaims.length,
+      sourceClaims,
+    });
+    expect(sourceAware).toMatchObject({ counts: { admittedKeyTerms: 1 } });
+    expect(sourceAware.issues).toContain('key-term-0-misconception-repeats-known-fact');
+
+    const contextFree = assessSourceAtomResponse(response, { sourceClaimCount: sourceClaims.length });
+    expect(contextFree.counts.admittedKeyTerms).toBe(2);
+  });
+
   it('replays conservative compiler repairs without mutating retained response bytes', () => {
     const response = validResponse();
     response.mcItems[1].ai = 3;

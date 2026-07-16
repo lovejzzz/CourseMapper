@@ -7,6 +7,7 @@ import { pathToFileURL } from 'node:url';
 
 import { assessCorpusRow } from './scionPreferenceCorpusAudit.mjs';
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
+import { assessHistoricalScionKeyTerm } from './lib/scionHistoricalAdmission.mjs';
 import { deriveScionCourseGroup, SHA256_PATTERN } from './lib/scionCourseGroup.mjs';
 
 const DEFAULT_SOURCES = ['evaluation/scion-review-candidates.jsonl'];
@@ -64,7 +65,7 @@ function resolveCandidateCourseGroup(row, domain) {
 
 function payloadAssessment(kind, value, { semanticAdmission = true } = {}) {
   if (kind === 'mc-item') return assessScionMcItem(value, { semanticAdmission });
-  if (kind === 'key-term') return assessScionKeyTerm(value);
+  if (kind === 'key-term') return semanticAdmission ? assessScionKeyTerm(value) : assessHistoricalScionKeyTerm(value);
   return { eligible: false, issues: ['unsupported-review-kind'] };
 }
 

@@ -10,6 +10,7 @@ import { parseSavedCourseGraph } from '../src/lib/quality/quizContrast.js';
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
 import { normalizeScionMcItem } from '../src/lib/scionAnswerKeyAlignment.js';
 import { canonicalScionCourseInput, deriveScionCourseGroup } from './lib/scionCourseGroup.mjs';
+import { assessHistoricalScionKeyTerm } from './lib/scionHistoricalAdmission.mjs';
 
 const DEFAULT_MANIFEST = 'evaluation/scion-contrast-matrix.json';
 const DEFAULT_OUTPUT = 'evaluation/scion-review-candidates.jsonl';
@@ -189,10 +190,10 @@ function cleanMcItems(content = {}, { semanticAdmission = true } = {}) {
     .filter((item) => assessScionMcItem(item, { semanticAdmission }).eligible);
 }
 
-function cleanKeyTerms(content = {}) {
+function cleanKeyTerms(content = {}, { semanticAdmission = true } = {}) {
   return (Array.isArray(content.keyTerms) ? content.keyTerms : [])
     .map(compactKeyTerm)
-    .filter((term) => assessScionKeyTerm(term).eligible);
+    .filter((term) => (semanticAdmission ? assessScionKeyTerm(term) : assessHistoricalScionKeyTerm(term)).eligible);
 }
 
 function promptFor({ domain, kind, leftTitle, rightTitle }) {
@@ -373,8 +374,8 @@ export function buildMatchedReviewCandidates(pairs = [], { semanticAdmission = t
         pair: qualifiedPair,
         match,
         kind: 'key-term',
-        leftItems: cleanKeyTerms(match.left.content),
-        rightItems: cleanKeyTerms(match.right.content),
+        leftItems: cleanKeyTerms(match.left.content, { semanticAdmission }),
+        rightItems: cleanKeyTerms(match.right.content, { semanticAdmission }),
       });
     }
     pairReports.push({
