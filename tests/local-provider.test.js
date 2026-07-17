@@ -102,6 +102,8 @@ describe('local provider — the house model surface', () => {
     const crucible = fs.readFileSync('scripts/lib/crucibleBrowser.mjs', 'utf8');
     expect(crucible).toContain("localStorage.setItem('coursemapper-enable-local-provider', 'true')");
     expect(crucible).toContain('await page.waitForTimeout(3500)');
+    expect(crucible).toContain('llmShimUrl || localEndpoint ? () => remaining() : remaining');
+    expect(crucible).not.toContain('(cap) => remaining(cap ? cap * 3 : cap)');
 
     const landing = fs.readFileSync('src/screens/Landing.jsx', 'utf8');
     expect(landing).toContain("if (provider === 'local') return `Scion Local ·");

@@ -648,9 +648,14 @@ export async function runCourseInBrowser({
 
     phase = 'generating-workspace';
     // Generation can take 5+ minutes; bounded by the overall budget. On-device
-    // LLM retry ladders run ~2min/call — shim rounds get 3× step caps so the
-    // app's own recovery path can finish instead of the driver aborting it.
-    const stepCap = llmShimUrl || localEndpoint ? (cap) => remaining(cap ? cap * 3 : cap) : remaining;
+    // LLM retry ladders run ~2min/call. For local-model rounds the overall
+    // course budget is the one honest deadline: semantic admission continues
+    // after the workspace appears, so imposing a second 30-minute stage cap
+    // can kill a healthy 14-lesson build seconds before it finishes and then
+    // wastefully restart the whole course. Cloud runs retain the tighter
+    // per-stage caps; local runs may spend whatever remains of their bounded
+    // 45-minute course budget.
+    const stepCap = llmShimUrl || localEndpoint ? () => remaining() : remaining;
     await page.getByTestId('workspace-shell').waitFor({ timeout: stepCap(600_000) });
 
     phase = 'finalizing-package';
