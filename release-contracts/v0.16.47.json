@@ -150,12 +150,15 @@
         "docs/SCION_ADAPTER_ROADMAP.md",
         "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.47.json",
         "scripts/scionCodexFreshJudgeWorkbook.mjs",
+        "scripts/scionAdapterCorpusReadinessAudit.mjs",
+        "scripts/scionAdapterCorpusReadinessV01647.mjs",
         "package.json"
       ],
       "proofCommands": [
         "npm run audit:scion:adapter:corpus-readiness:v0.16.47",
         "npm run audit:scion:codex-first-order",
         "npm run audit:scion:codex-reverse-order",
+        "npm run audit:scion:adapter:corpus-readiness:v0.16.46",
         "npm run audit:release-history"
       ],
       "proofScopes": ["static-audit", "doc"]

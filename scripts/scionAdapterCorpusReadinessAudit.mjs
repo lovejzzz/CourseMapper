@@ -6,11 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-import {
-  buildScionAdapterDataset,
-  SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK,
-  SCION_ADAPTER_LEGACY_SOURCES,
-} from './scionAdapterDataset.mjs';
+import { buildScionAdapterDataset, SCION_ADAPTER_LEGACY_SOURCES } from './scionAdapterDataset.mjs';
 
 export const SCION_ADAPTER_CORPUS_READINESS_RELEASE = 'v0.16.46';
 export const SCION_ADAPTER_CORPUS_READINESS_EVIDENCE =
@@ -39,6 +35,10 @@ const HISTORICAL_SOURCE_REPLAY_EVIDENCE = 'evaluation/scion-adapters/evidence/so
 const SOURCE_REVIEW_PACKET = 'evaluation/scion-adapters/evidence/source-review-packet-v0.16.40.json';
 const PAIRED_CAMPAIGN_EVIDENCE = 'evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json';
 const APPROVED_CORPUS = 'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl';
+// Every profile in this historical auditor predates the implementation-bound
+// v2 ruler. Pin v1 explicitly so a newer default benchmark cannot silently
+// rewrite old corpus identities or make their receipts unreconstructable.
+const LEGACY_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v1.json';
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -283,7 +283,7 @@ export async function buildScionAdapterCorpusReadinessSnapshot({ generatedAt, pr
     const { manifest } = await buildScionAdapterDataset({
       sources,
       outputDir: temporary,
-      heldoutBenchmarkPath: SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK,
+      heldoutBenchmarkPath: LEGACY_HELDOUT_BENCHMARK,
       allowResearch: true,
       allowSmoke: true,
       generatedAt,

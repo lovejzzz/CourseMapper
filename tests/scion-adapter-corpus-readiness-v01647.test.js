@@ -27,6 +27,8 @@ describe('Scion v0.16.47 strict adapter corpus readiness', () => {
         },
         holdoutBoundary: {
           status: 'pass',
+          manifestPath: 'evaluation/scion-adapters/held-out-course-benchmark-v1.json',
+          benchmarkId: 'scion-held-out-course-benchmark-v1',
           admittedDomainOverlapCount: 0,
           admittedCourseGroupOverlapCount: 0,
         },

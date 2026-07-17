@@ -6,7 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-import { buildScionAdapterDataset, SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK } from './scionAdapterDataset.mjs';
+import { buildScionAdapterDataset } from './scionAdapterDataset.mjs';
 
 export const SCION_ADAPTER_CORPUS_READINESS_V01647_PROTOCOL = 'scion-adapter-corpus-readiness-v2';
 export const SCION_ADAPTER_CORPUS_READINESS_V01647_RELEASE = 'v0.16.47';
@@ -16,6 +16,10 @@ export const SCION_ADAPTER_CORPUS_READINESS_V01647_CAMPAIGN =
   'evaluation/scion-adapters/evidence/judge-campaign-readiness-gap-v0.16.47.json';
 export const SCION_ADAPTER_CORPUS_READINESS_V01647_OUTPUT =
   'evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.47.json';
+// Research authorization was sealed against v1 before any candidate was
+// trained. The later implementation-bound v2 ruler governs promotion, not a
+// retroactive rewrite of the training-readiness receipt.
+const SCION_ADAPTER_TRAINING_READINESS_HELDOUT = 'evaluation/scion-adapters/held-out-course-benchmark-v1.json';
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -81,7 +85,7 @@ export async function buildScionAdapterCorpusReadinessV01647({ generatedAt } = {
     const { manifest } = await buildScionAdapterDataset({
       sources: [SCION_ADAPTER_CORPUS_READINESS_V01647_SOURCE],
       outputDir: temporary,
-      heldoutBenchmarkPath: SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK,
+      heldoutBenchmarkPath: SCION_ADAPTER_TRAINING_READINESS_HELDOUT,
       allowResearch: true,
       allowSmoke: true,
       generatedAt,
