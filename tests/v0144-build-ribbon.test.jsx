@@ -796,6 +796,9 @@ describe('B1 — BuildRibbon render', () => {
     expect(html).toContain('data-testid="build-progress-track"');
     expect(html).toContain('role="progressbar"');
     expect(html).toContain('data-testid="ribbon-progress-label"');
+    expect(html).toContain('ease-out');
+    expect(html).toContain('motion-reduce:transition-none');
+    expect(html).toContain('motion-reduce:animate-none');
     expect(html).not.toContain('M5 13l4 4L19 7');
   });
 

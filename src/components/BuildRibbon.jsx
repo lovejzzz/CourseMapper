@@ -36,7 +36,7 @@ function ArtifactStatusMark({ status }) {
       aria-hidden="true"
       className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${
         status === 'active'
-          ? 'animate-pulse bg-indigo-500 dark:bg-indigo-300'
+          ? 'animate-pulse bg-indigo-500 motion-reduce:animate-none dark:bg-indigo-300'
           : status === 'warn'
             ? 'bg-amber-500 dark:bg-amber-300'
             : status === 'settled'
@@ -100,7 +100,7 @@ export default function BuildRibbon({ model }) {
                 ? 'bg-emerald-500 dark:bg-emerald-400'
                 : compilerState === 'review'
                   ? 'bg-amber-500 dark:bg-amber-300'
-                  : 'animate-pulse bg-indigo-500 shadow-[0_0_0_4px_rgba(99,102,241,0.10)] dark:bg-indigo-300'
+                  : 'animate-pulse bg-indigo-500 shadow-[0_0_0_4px_rgba(99,102,241,0.10)] motion-reduce:animate-none dark:bg-indigo-300'
             }`}
           />
           <span className="whitespace-nowrap text-[12px] font-bold tracking-tight text-slate-600 dark:text-slate-300">
@@ -144,7 +144,7 @@ export default function BuildRibbon({ model }) {
                     aria-hidden="true"
                     className={`block h-1.5 w-1.5 flex-shrink-0 rounded-full ${
                       step.status === 'active'
-                        ? 'bg-indigo-500 animate-pulse dark:bg-indigo-400'
+                        ? 'animate-pulse bg-indigo-500 motion-reduce:animate-none dark:bg-indigo-400'
                         : step.status === 'settled'
                           ? 'bg-slate-400 dark:bg-slate-500'
                           : 'bg-slate-300 dark:bg-slate-600'
@@ -261,7 +261,7 @@ export default function BuildRibbon({ model }) {
       >
         <div
           data-testid="build-progress-fill"
-          className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500 transition-[width] duration-500"
+          className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500 transition-[width] duration-500 ease-out motion-reduce:transition-none"
           style={{ width: `${model.progressPct}%` }}
         />
       </div>
