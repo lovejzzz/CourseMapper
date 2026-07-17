@@ -528,6 +528,52 @@ describe('Pass B contract (B2)', () => {
     expect(parsed.authored['lesson-1'].asyncActivities).toEqual(PASS_B_AUTHORING.async);
     expect(parsed.authored['lesson-2'].goal).toBe('Identify minerals from physical properties');
   });
+
+  it('rejects foreign-language content from both the kernel and native authoring halves', () => {
+    const prompt = {
+      courseName: 'Elementary Mandarin Chinese I',
+      lessons: [{ lessonId: 'lesson-1', title: 'Lesson 1: Mandarin numbers' }],
+      itemPlan: [],
+    };
+    const response = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          goal: 'Use Hangul counters to state quantities.',
+          outcomes: ['Choose between native Korean and Sino-Korean number systems.'],
+          async: ['Review Korean number forms.'],
+          sync: ['Practice Korean counters with a partner.'],
+          facts: ['Korean commonly uses native Korean and Sino-Korean number systems in different contexts.'],
+          keyTerms: [
+            {
+              tr: 'Hangul counters',
+              df: 'Hangul is the Korean writing system represented in syllable blocks for written communication.',
+              eg: 'A learner combines a native Korean number with the counter practiced in the dialogue.',
+              mi: 'One Korean number form works in every grammatical context.',
+              cx: 'The grammatical context determines the Korean number system and counter to use.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const parsed = parseNativePassBResponse(response, {
+      prompt,
+      expectedLessonIds: ['lesson-1'],
+    });
+    expect(parsed.kernels).toEqual({});
+    expect(parsed.authored).toEqual({});
+    expect(parsed.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          lessonId: 'lesson-1',
+          surface: 'authoring',
+          reason: 'foreign-language-contamination',
+          problems: ['foreign-language-contamination:korean'],
+        }),
+      ]),
+    );
+  });
 });
 
 // ── Assembly ────────────────────────────────────────────────────────────────

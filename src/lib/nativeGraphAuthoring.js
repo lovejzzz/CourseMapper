@@ -50,6 +50,7 @@ import { attachEnrichmentToGraph } from './courseGraph/blueprintFromGraph.js';
 import { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } from './courseIR.js';
 import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
 import { dedupeNumberedAssessmentEcho } from './compilerText.js';
+import { detectForeignLanguageTeachingContent } from './languageIdentityGuard.js';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
@@ -817,6 +818,19 @@ export function parseNativePassBResponse(text, { prompt, expectedLessonIds, cont
     if (!lessonId) continue;
     if (expected.size > 0 && !expected.has(lessonId)) {
       issues.push({ lessonId, surface: 'authoring', problems: ['out-of-chunk-lesson-id'] });
+      continue;
+    }
+    const languageContamination = detectForeignLanguageTeachingContent({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (languageContamination) {
+      issues.push({
+        lessonId,
+        surface: 'authoring',
+        reason: 'foreign-language-contamination',
+        problems: [`foreign-language-contamination:${languageContamination.languageId}`],
+      });
       continue;
     }
     const outcomes = cleanAtomList(entry?.outcomes ?? entry?.oc, { maxItems: 8, maxChars: 180 });
