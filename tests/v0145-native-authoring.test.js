@@ -23,6 +23,7 @@
  * the wiring sound without a browser or spend.
  */
 import { afterEach, describe, expect, it } from 'vitest';
+import fs from 'node:fs';
 
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from '../src/lib/apiCallBudget';
 import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/deriveFromCourseMap.js';
@@ -1163,6 +1164,13 @@ describe('matchEntityIds (B4)', () => {
 // ── Budget: counter + the constructor-whitelist trap ───────────────────────
 
 describe('apiCallBudget native fields', () => {
+  it('keeps authored course-map surfaces distinct from admitted lesson kernels in the live source', () => {
+    const source = fs.readFileSync('src/hooks/useDeliverables.js', 'utf8');
+    expect(source).toContain('outcomes/activities ${authoredSurfaceCount}/${nativeLessonCount}');
+    expect(source).toContain('knowledge kernels admitted ${admittedKernelCount}/${nativeLessonCount}');
+    expect(source).not.toContain('· Pass B authored ${');
+  });
+
   it('counts nativeSkeletonCall as a provider call and writes the courseMap pipeline line', () => {
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, {

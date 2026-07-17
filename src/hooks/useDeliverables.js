@@ -2157,6 +2157,9 @@ export default function useDeliverables({
           });
           if (resolution.ok) {
             courseGraph = courseGraphLib.attachEnrichmentToGraph(resolution.graph, enrichmentForGraph);
+            const authoredSurfaceCount = Object.keys(blueprintEnrichment?.nativeAuthored || {}).length;
+            const admittedKernelCount = Math.max(0, Number(blueprintEnrichment?.coverage?.enrichedLessons) || 0);
+            const nativeLessonCount = resolution.graph.sessions.length;
             const recoveredResourceDetail = resolution.resourceRecovery?.recoveredCount
               ? ` · recorded ${resolution.resourceRecovery.recoveredCount} missing resource signal${
                   resolution.resourceRecovery.recoveredCount === 1 ? '' : 's'
@@ -2174,9 +2177,7 @@ export default function useDeliverables({
               type: 'pipelineDecision',
               stage: 'nativeAuthoring',
               label: 'Native graph authoring',
-              detail: `assembled ${resolution.graph.sessions.length} sessions onto Pass A entity ids · Pass B authored ${
-                Object.keys(blueprintEnrichment?.nativeAuthored || {}).length
-              } lesson(s) · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}${nativeCourseIRDetail}${nativeRepairDetail}`,
+              detail: `assembled ${nativeLessonCount} sessions onto Pass A entity ids · outcomes/activities ${authoredSurfaceCount}/${nativeLessonCount} · knowledge kernels admitted ${admittedKernelCount}/${nativeLessonCount} · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}${nativeCourseIRDetail}${nativeRepairDetail}`,
             });
             if (nativeCourseIR) {
               appendLog(
