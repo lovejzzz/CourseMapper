@@ -82,14 +82,14 @@ export function TabReadyTick({ status }) {
 export default function BuildRibbon({ model }) {
   if (!model) return null;
 
-  const compilerState = model.stage === 'ready' ? (model.done?.grade ? 'complete' : 'review') : 'live';
+  const compilerState = model.compilerState || 'live';
 
   return (
     <div
       data-testid="build-ribbon"
       className="w-full overflow-hidden rounded-lg border border-slate-200/70 bg-white/80 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/70"
     >
-      <div className="flex min-h-10 items-center gap-3 px-3 py-1.5">
+      <div className="flex min-h-10 flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5 sm:flex-nowrap">
         <div className="flex flex-shrink-0 items-center gap-2">
           <span
             data-testid="living-compiler-signal"
@@ -111,48 +111,53 @@ export default function BuildRibbon({ model }) {
         <p
           data-testid="ribbon-stage-label"
           aria-live="polite"
-          className="min-w-0 flex-1 truncate text-[13px] text-slate-600 dark:text-slate-300"
+          className="order-3 w-full min-w-0 text-[13px] leading-4 text-slate-600 sm:order-none sm:w-auto sm:flex-1 sm:truncate dark:text-slate-300"
         >
           {model.stageLabel}
         </p>
 
         <span
           data-testid="ribbon-progress-label"
-          className="shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 dark:text-indigo-300"
+          className="ml-auto shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
         >
           {model.progressPct}%
         </span>
       </div>
 
       <div className="flex items-center gap-3 border-t border-slate-100/80 px-3 py-1.5 dark:border-slate-800/80">
-        <ol aria-label="Build stages" className="flex flex-shrink-0 items-center gap-2.5">
+        <ol
+          aria-label="Build stages"
+          className="grid min-w-0 flex-1 auto-cols-fr grid-flow-col gap-1 sm:flex sm:flex-none sm:items-center sm:gap-2.5"
+        >
           {model.steps.map((step) => (
             <li
               key={step.id}
               data-testid={`ribbon-step-${step.id}`}
               data-status={step.status}
-              className="flex items-center gap-1"
+              className="flex min-w-0 items-center justify-center gap-0 sm:justify-start sm:gap-1"
             >
-              {step.status === 'done' ? (
-                <StepCheck />
-              ) : (
-                <span
-                  aria-hidden="true"
-                  className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${
-                    step.status === 'active'
-                      ? 'bg-indigo-500 animate-pulse dark:bg-indigo-400'
-                      : step.status === 'settled'
-                        ? 'bg-slate-400 dark:bg-slate-500'
-                        : 'bg-slate-300 dark:bg-slate-600'
-                  }`}
-                />
-              )}
+              <span className="hidden sm:block">
+                {step.status === 'done' ? (
+                  <StepCheck />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className={`block h-1.5 w-1.5 flex-shrink-0 rounded-full ${
+                      step.status === 'active'
+                        ? 'bg-indigo-500 animate-pulse dark:bg-indigo-400'
+                        : step.status === 'settled'
+                          ? 'bg-slate-400 dark:bg-slate-500'
+                          : 'bg-slate-300 dark:bg-slate-600'
+                    }`}
+                  />
+                )}
+              </span>
               <span
-                className={`text-[12px] font-semibold ${
+                className={`min-w-0 text-[12px] font-semibold ${
                   step.status === 'active'
                     ? 'text-indigo-600 dark:text-indigo-300'
                     : step.status === 'done'
-                      ? 'text-slate-600 dark:text-slate-300'
+                      ? 'text-emerald-500 sm:text-slate-600 dark:text-emerald-400 sm:dark:text-slate-300'
                       : step.status === 'settled'
                         ? 'text-slate-500 dark:text-slate-400'
                         : 'text-slate-400 dark:text-slate-500'

@@ -141,11 +141,25 @@ function buildPipelineChips(budget) {
 }
 
 function latestLessonNumber(event) {
-  const numbers = `${String(event?.detail || '')} ${String(event?.chunkLabel || '')}`
-    .match(/\d+/g)
-    ?.map(Number)
-    .filter((value) => Number.isInteger(value) && value > 0);
+  const chunkLessons = [...String(event?.chunkLabel || '').matchAll(/lesson-(\d+)/gi)].map((match) => Number(match[1]));
+  const detail = String(event?.detail || '');
+  const lessonList =
+    detail.match(/^Lessons?\s+([\d,\s]+)/i)?.[1] ||
+    detail.match(/\b(?:dropped\s+)?lessons?\s+([\d,\s]+?)(?:\s*[—+-]|$)/i)?.[1] ||
+    '';
+  const numbers = [...chunkLessons, ...(lessonList.match(/\d+/g) || []).map(Number)].filter(
+    (value) => Number.isInteger(value) && value > 0,
+  );
   return numbers?.length ? Math.max(...numbers) : 0;
+}
+
+function isKnowledgeProgressEvent(event) {
+  if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type)) return true;
+  return (
+    event?.type === 'pipelineDecision' &&
+    ['Scion pass call', 'Scion quality passes'].includes(event?.label) &&
+    latestLessonNumber(event) > 0
+  );
 }
 
 function artifactStatus({ active = false, done = false, settled = false, warn = false } = {}) {
@@ -212,6 +226,11 @@ export function buildLivingCompilerArtifacts({
   packageQualityPass = null,
 } = {}) {
   const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
+  const mappedLessonCount = Number.isFinite(Number(generation.mappedLessonCount))
+    ? Math.max(0, Number(generation.mappedLessonCount))
+    : pipeline?.done?.map
+      ? lessonCount
+      : 0;
   const doneCount = Math.max(0, Number(deliverables.doneCount) || 0);
   const totalCount = Math.max(0, Number(deliverables.totalCount) || 0);
   const outcome = budget?.enrichmentOutcome || null;
@@ -223,6 +242,22 @@ export function buildLivingCompilerArtifacts({
   const terminalReady = pipeline?.state === 'ready' && finishStatus === 'ready';
   const blockers = Math.max(0, Number(packageQualityPass?.blockers) || 0);
   const grade = String(packageQualityPass?.quality?.grade || '').trim();
+  const scionRuntime = generation.scionRuntimeStatus || {};
+  const scionPreparing =
+    generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
+  const mappingLesson = Math.max(
+    0,
+    Number(String(generation.streamDetail || '').match(/(?:Mapping|Starting)\s+Lesson\s+(\d+)/i)?.[1]) || 0,
+  );
+
+  let mapValue = 'Waiting';
+  if (scionPreparing) mapValue = 'Waiting for Scion';
+  else if (pipeline?.state === 'mapping') {
+    mapValue =
+      mappingLesson > 0 && lessonCount > 0 ? `Mapping lesson ${mappingLesson}/${lessonCount}` : 'Mapping in progress';
+  } else if (mappedLessonCount > 0) {
+    mapValue = `${mappedLessonCount} lesson${mappedLessonCount === 1 ? '' : 's'} mapped`;
+  } else if (pipeline?.done?.map) mapValue = 'Mapped';
 
   const knowledgeParts = [];
   if (requested > 0 || enriched > 0) knowledgeParts.push(`${enriched}/${requested || enriched} lesson kernels`);
@@ -242,16 +277,11 @@ export function buildLivingCompilerArtifacts({
     {
       id: 'map',
       label: 'Course map',
-      value:
-        lessonCount > 0
-          ? `${lessonCount} lesson${lessonCount === 1 ? '' : 's'} mapped`
-          : pipeline?.done?.map
-            ? 'Mapped'
-            : 'Waiting',
+      value: mapValue,
       status: artifactStatus({
-        active: pipeline?.state === 'mapping',
+        active: !scionPreparing && pipeline?.state === 'mapping',
         done: terminalReady && pipeline?.done?.map,
-        settled: pipeline?.done?.map,
+        settled: !scionPreparing && pipeline?.done?.map,
       }),
     },
     {
@@ -310,10 +340,10 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
   }
   if (state === 'enriching') {
     const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
-    const recentLesson = Math.max(
-      0,
-      ...(Array.isArray(budget?.recentEvents) ? budget.recentEvents.map(latestLessonNumber) : []),
-    );
+    const knowledgeEvents = Array.isArray(budget?.recentEvents)
+      ? budget.recentEvents.filter(isKnowledgeProgressEvent)
+      : [];
+    const recentLesson = Math.max(0, ...knowledgeEvents.map(latestLessonNumber));
     const attemptedLessons = Math.min(lessonCount, Math.max(0, Number(budget?.blueprintEnrichmentCalls) || 0));
     // Recovery can return to lesson 1 after lesson 15. Progress represents
     // completed build work, so it must not jump backward with that cursor.
@@ -397,6 +427,7 @@ export function buildBuildRibbonModel({
     }
     case 'ready':
       stage = 'ready';
+      stageLabel = 'Ready to export';
       break;
     default:
       // lull (and the unreachable idle-with-activity) — show progress so
@@ -450,6 +481,7 @@ export function buildBuildRibbonModel({
     done,
     progressPct,
     compilerArtifacts,
+    compilerState: pipeline.state === 'blocked' ? 'review' : pipeline.state === 'ready' ? 'complete' : 'live',
     pipelineChips: stage === 'ready' ? allPipelineChips : allPipelineChips.filter((chip) => chip.warn),
   };
 }

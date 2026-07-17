@@ -2809,6 +2809,7 @@ export default function AppFlow({
       streamDetail: gen.streamDetail,
       streamProgress: gen.streamProgress,
       lessonCount: Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : lessonCount,
+      mappedLessonCount: Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0,
       isScion: provider === PUBLIC_SCION_PROVIDER_ID,
       scionRuntimeStatus,
     },

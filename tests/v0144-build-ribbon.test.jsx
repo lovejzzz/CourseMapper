@@ -204,6 +204,12 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(preparing.stage).toBe('model');
     expect(preparing.stageLabel).toBe('Downloading the public Gemma 4 base (50%)…');
     expect(preparing.progressPct).toBe(8);
+    expect(preparing.compilerArtifacts.find((artifact) => artifact.id === 'map')).toEqual({
+      id: 'map',
+      label: 'Course map',
+      value: 'Waiting for Scion',
+      status: 'pending',
+    });
     expect(preparing.steps.map((step) => [step.id, step.status])).toEqual([
       ['model', 'active'],
       ['map', 'pending'],
@@ -231,6 +237,26 @@ describe('B1 — buildRibbonModel selector', () => {
       ['model', 'done'],
       ['map', 'active'],
     ]);
+    expect(mapping.compilerArtifacts.find((artifact) => artifact.id === 'map')?.value).toBe('Mapping in progress');
+
+    const streamingLesson = buildBuildRibbonModel({
+      budget: applyEvents(createApiCallBudget(), [{ type: 'reset', runId: 'run-scion-stream-map' }, ...MAP_EVENTS]),
+      generation: {
+        progressStep: 'generating',
+        isStreaming: true,
+        streamDetail: 'Mapping Lesson 1: Learning Goals...',
+        streamProgress: 12,
+        lessonCount: 1,
+        mappedLessonCount: 1,
+        isScion: true,
+        scionRuntimeStatus: { phase: 'ready', progress: 1, message: 'Scion is ready.' },
+      },
+      deliverables: NO_DELIVERABLES,
+      packageQualityPass: { status: 'idle' },
+    });
+    expect(streamingLesson.compilerArtifacts.find((artifact) => artifact.id === 'map')?.value).toBe(
+      'Mapping lesson 1/1',
+    );
 
     expect(
       deriveRibbonProgress({
@@ -238,6 +264,19 @@ describe('B1 — buildRibbonModel selector', () => {
         generation: { lessonCount: 13 },
       }),
     ).toBe(48);
+    expect(
+      deriveRibbonProgress({
+        pipeline: { state: 'enriching', activity: { detail: 'Lessons 1 — source-bound kernel' } },
+        budget: {
+          blueprintEnrichmentCalls: 1,
+          recentEvents: [
+            { type: 'courseMapCall', detail: 'Mapped 4 lessons with 2190 input tokens' },
+            { type: 'blueprintEnrichmentCall', detail: 'Lessons 1 — 1120 input tokens estimated' },
+          ],
+        },
+        generation: { lessonCount: 4 },
+      }),
+    ).toBe(35);
     expect(
       deriveRibbonProgress({
         pipeline: { state: 'enriching', activity: REAL_RECOVERY_EVENT },
@@ -737,6 +776,7 @@ describe('B1 — BuildRibbon render', () => {
     );
     expect(html).toContain('Genome 6/13');
     expect(html).toContain('data-state="complete"');
+    expect(html).toContain('Ready to export');
     expect(html).toContain('Verified · Grade A');
     expect(html).toContain('Judgment clean');
     expect(html).toContain('Materials 13/13');
@@ -746,6 +786,30 @@ describe('B1 — BuildRibbon render', () => {
     expect(html.match(/M5 13l4 4L19 7/g)?.length).toBe(9);
     expect(html).toContain('data-testid="ribbon-chip-genome"');
     expect(html.split('data-testid="ribbon-chip-genome"')[1].split('>')[0]).toContain('ribbon-chip-emphasis');
+  });
+
+  it('blocked state uses the amber review signal even after grading completed', () => {
+    const html = renderRibbon(
+      buildBuildRibbonModel({
+        budget: applyEvents(createApiCallBudget(), [...MAP_EVENTS, ENRICH_CHUNK_EVENT, ...COMPILE_EVENTS]),
+        generation: DONE_GENERATION,
+        deliverables: { isGenerating: false, doneCount: 9, totalCount: 9 },
+        packageQualityPass: readyPass({ status: 'blocked', blockers: 1 }),
+      }),
+    );
+    expect(html).toContain('Needs review — 1 blocker');
+    expect(html).toContain('data-state="review"');
+    expect(html).not.toContain('data-state="complete"');
+  });
+
+  it('gives live narration a full second row on phone-sized layouts', () => {
+    const source = readSource('src/components/BuildRibbon.jsx');
+    expect(source).toContain('flex-wrap items-center');
+    expect(source).toContain('sm:flex-nowrap');
+    expect(source).toContain('order-3 w-full');
+    expect(source).toContain('sm:order-none sm:w-auto sm:flex-1 sm:truncate');
+    expect(source).toContain('auto-cols-fr grid-flow-col');
+    expect(source).toContain('className="hidden sm:block"');
   });
 
   it('compile state: partial-enrichment chip renders amber before final export review', () => {
