@@ -140,17 +140,34 @@ function buildPipelineChips(budget) {
   return chips;
 }
 
-function latestLessonNumber(event) {
+function lessonNumbersFromEvent(event) {
   const chunkLessons = [...String(event?.chunkLabel || '').matchAll(/lesson-(\d+)/gi)].map((match) => Number(match[1]));
   const detail = String(event?.detail || '');
   const lessonList =
     detail.match(/^Lessons?\s+([\d,\s]+)/i)?.[1] ||
     detail.match(/\b(?:dropped\s+)?lessons?\s+([\d,\s]+?)(?:\s*[—+-]|$)/i)?.[1] ||
     '';
-  const numbers = [...chunkLessons, ...(lessonList.match(/\d+/g) || []).map(Number)].filter(
-    (value) => Number.isInteger(value) && value > 0,
-  );
+  return [
+    ...new Set(
+      [...chunkLessons, ...(lessonList.match(/\d+/g) || []).map(Number)].filter(
+        (value) => Number.isInteger(value) && value > 0,
+      ),
+    ),
+  ];
+}
+
+function latestLessonNumber(event) {
+  const numbers = lessonNumbersFromEvent(event);
   return numbers?.length ? Math.max(...numbers) : 0;
+}
+
+function recoveryAttemptFromEvent(event) {
+  const match = `${String(event?.label || '')} ${String(event?.detail || '')}`.match(/recovery\s+(\d+)\/(\d+)/i);
+  if (!match) return null;
+  const attempt = Number(match[1]);
+  const total = Number(match[2]);
+  if (!Number.isInteger(attempt) || !Number.isInteger(total) || attempt < 1 || total < attempt) return null;
+  return { attempt, total };
 }
 
 function isKnowledgeProgressEvent(event) {
@@ -340,6 +357,21 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
   }
   if (state === 'enriching') {
     const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
+    const activityLessons = lessonNumbersFromEvent(pipeline.activity);
+    const recovery = recoveryAttemptFromEvent(pipeline.activity);
+    // A single batch can cover the whole course. Its event means the work
+    // STARTED, not that every lesson kernel is complete. Give that in-flight
+    // batch one quarter of the enrichment phase, then let each observed
+    // recovery attempt advance the same phase. This prevents a one-lesson
+    // build from jumping straight to 50% and sitting there for several real
+    // model calls while the ribbon says nothing changed.
+    if (lessonCount > 0 && activityLessons.length >= lessonCount) {
+      if (recovery) {
+        const attemptFraction = Math.min(1, (recovery.attempt + 1) / (recovery.total + 1));
+        return Math.round(30 + attemptFraction * 20);
+      }
+      return 35;
+    }
     const knowledgeEvents = Array.isArray(budget?.recentEvents)
       ? budget.recentEvents.filter(isKnowledgeProgressEvent)
       : [];

@@ -279,6 +279,34 @@ describe('B1 — buildRibbonModel selector', () => {
     ).toBe(35);
     expect(
       deriveRibbonProgress({
+        pipeline: {
+          state: 'enriching',
+          activity: {
+            type: 'blueprintEnrichmentCall',
+            label: 'Author lesson batch (native Pass B)',
+            detail: 'Lessons 1 — 1159 input tokens estimated',
+          },
+        },
+        generation: { lessonCount: 1 },
+      }),
+    ).toBe(35);
+    expect(
+      [1, 2, 3, 4].map((attempt) =>
+        deriveRibbonProgress({
+          pipeline: {
+            state: 'enriching',
+            activity: {
+              type: 'repairRetryCall',
+              label: `Author lesson batch (native recovery ${attempt}/4)`,
+              detail: 'Lessons 1 — 1159 input tokens estimated',
+            },
+          },
+          generation: { lessonCount: 1 },
+        }),
+      ),
+    ).toEqual([38, 42, 46, 50]);
+    expect(
+      deriveRibbonProgress({
         pipeline: { state: 'enriching', activity: REAL_RECOVERY_EVENT },
         budget: { blueprintEnrichmentCalls: 15, recentEvents: [REAL_RECOVERY_EVENT] },
         generation: { lessonCount: 15 },
