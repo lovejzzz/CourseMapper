@@ -13,6 +13,8 @@ const READING_RETRIEVED_RE = /open-access via/i;
 const MATERIALS_BLOCK_END_RE =
   /^(assessments this week|session outline|worked example|observation protocol|key terms|formative check|homework|closing activity)$/i;
 const PRIMARY_READING_KIND_RE = /^(?:article|book|chapter|essay|film|novel|play|poem|primary[- ]?text|short[- ]?story)$/i;
+const GENERIC_MATERIALS_TITLE_RE =
+  /^(?:(?:course|class|lesson|assigned|supplemental)\s+)?(?:materials?|resources?|readings?)\s*:/i;
 const TITLE_FUNCTION_WORDS = new Set([
   'a',
   'an',
@@ -71,12 +73,19 @@ function titleHasWorkIdentity(title) {
 
 function isCrediblePrimaryReading(entry, course) {
   if (!entry || typeof entry !== 'object') return false;
-  // Frozen/reference courses can declare the contract explicitly. Uploaded
-  // reading-list items and typed primary works carry equivalent provenance.
-  if (course?.expectReadings === true) return true;
+  // Explicit work metadata can establish identity even if a UI/exporter
+  // prepended a generic materials label to the title.
   if (entry.provenance === 'instructor-provided') return true;
   if (String(entry.author || '').trim()) return true;
   if (PRIMARY_READING_KIND_RE.test(String(entry.kind || '').trim())) return true;
+  // “Course materials: Numbers, Age, and Dates” is a topic/resource bucket,
+  // not an instructor-named primary text. The capitalization after the colon
+  // previously fooled titleHasWorkIdentity() and minted two P0s. Without an
+  // author, primary-work kind, or instructor-provided provenance, a generic
+  // resource label cannot arm the severe work-depth gate.
+  if (GENERIC_MATERIALS_TITLE_RE.test(String(entry.title || '').trim())) return false;
+  // Frozen/reference courses can declare the remaining registry as readings.
+  if (course?.expectReadings === true) return true;
   // The graph's broad `readings` slot can also contain lesson-topic labels.
   // Only strong title identity may self-arm the work-depth rule without an
   // explicit reading contract; sentence-case topical phrases stay out.

@@ -129,9 +129,13 @@ import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.j
 // from sentence-case lesson topics stored in the graph's broad readings slot.
 // 1.10.6 — a foreign `Lesson N:` payload beside a lesson document's cover is
 // a consistency P0; sparse quiz arrays can no longer hide cross-lesson export.
+// 1.10.7 — repeated lesson-title collapse cannot hide an explicit ordered
+// source sequence behind generic or duplicated session titles.
 // 1.10.8 — an explicit source lesson sequence cannot silently omit or shift
 // multiple ordered topics even when every resulting session title is unique.
-export const GRADER_VERSION = '1.10.8';
+// 1.10.9 — generic resource labels such as “Course materials: Numbers, Age,
+// and Dates” no longer masquerade as instructor-named primary works.
+export const GRADER_VERSION = '1.10.9';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
