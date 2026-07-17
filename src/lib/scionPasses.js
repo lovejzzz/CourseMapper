@@ -915,6 +915,27 @@ export async function applyScionKernelPasses(
   if (lessons.length === 0 || typeof generateJson !== 'function') return { text: rawText, events: [] };
   const contentSourced = new Set(contentSourcedLessonIds);
   const events = [];
+
+  // Scion Pass B is intentionally a one-lesson call. Small local models can
+  // still omit the identifier even though the schema pins it. Recover only
+  // when both sides are unambiguous; never guess across a batch.
+  if (
+    lessons.length === 1 &&
+    promptLessons.length === 1 &&
+    !lessons[0]?.lessonId &&
+    typeof promptLessons[0]?.lessonId === 'string' &&
+    promptLessons[0].lessonId.trim()
+  ) {
+    lessons[0].lessonId = promptLessons[0].lessonId;
+    events.push({
+      pass: 'identityRepair',
+      lessonId: lessons[0].lessonId,
+      action: 'inferred',
+      reason: 'single-lesson-call',
+      trainingEligible: false,
+    });
+  }
+
   for (const lesson of lessons) {
     if (contentSourced.has(lesson?.lessonId)) continue; // library content — never touched
     normalizeMcOptionLabels(lesson);

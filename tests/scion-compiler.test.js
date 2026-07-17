@@ -169,6 +169,42 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(event.preferenceEvidence).toMatchObject({ verified: true, chosenAnswers: [1, 1] });
   });
 
+  it('D3: safely restores a missing lesson id for an unambiguous single-lesson call', async () => {
+    const raw = JSON.stringify({ lessons: [{ goal: 'Interpret one supplied source.' }] });
+    const result = await applyScionKernelPasses(raw, {
+      promptLessons: [{ lessonId: 'lesson-7', title: 'Source interpretation' }],
+      contentSourcedLessonIds: ['lesson-7'],
+      generateJson: async () => {
+        throw new Error('content-sourced lesson should skip generative repair passes');
+      },
+    });
+
+    expect(JSON.parse(result.text).lessons[0].lessonId).toBe('lesson-7');
+    expect(result.events).toEqual([
+      {
+        pass: 'identityRepair',
+        lessonId: 'lesson-7',
+        action: 'inferred',
+        reason: 'single-lesson-call',
+        trainingEligible: false,
+      },
+    ]);
+  });
+
+  it('D3: never guesses a missing lesson id when the response or prompt is ambiguous', async () => {
+    const raw = JSON.stringify({ lessons: [{ goal: 'First' }] });
+    const result = await applyScionKernelPasses(raw, {
+      promptLessons: [
+        { lessonId: 'lesson-1', title: 'First' },
+        { lessonId: 'lesson-2', title: 'Second' },
+      ],
+      generateJson: async () => JSON.stringify({}),
+    });
+
+    expect(JSON.parse(result.text).lessons[0].lessonId).toBeUndefined();
+    expect(result.events.some((event) => event.pass === 'identityRepair')).toBe(false);
+  });
+
   it('D3: never ships or banks a regenerated item whose new key fails verification', async () => {
     const original = {
       q: 'Which interval has a 3:2 frequency ratio in just intonation today?',
