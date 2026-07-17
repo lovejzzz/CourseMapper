@@ -12,6 +12,7 @@
 //                             [--scion-pair-run <id> --scion-dataset-manifest <manifest>]
 //                             [--scion-adapter-manifest <manifest> [--scion-smoke]]
 //                             [--judge] [--dry-run] [--headed] [--skip-generate <dir>]
+//                             [--resume-round <roundDir>]
 //                             [--calibrate] [--history] [--diff <roundDirA> <roundDirB>]
 //                             [--import-baseline] [--api-env <path>]
 //
@@ -108,6 +109,7 @@ import {
 } from './lib/crucibleBrowser.mjs';
 import { referenceCourses, resolveCourses, getCourseById, pickStranger } from './crucible/courses.mjs';
 import { prepareScionBenchmarkRun } from './scionAdapterPairedEvidence.mjs';
+import { assessResumableCourseEvidence } from './lib/crucibleResume.mjs';
 import {
   DEFAULT_MAX_SPEND_USD,
   INAPP_SCORE_DRIFT_LIMIT,
@@ -212,6 +214,51 @@ async function readJsonIfExists(filePath) {
   } catch {
     return null;
   }
+}
+
+async function loadResumableCourseEntry({ courseDir, course, provider, modelId, localModel, expectedComparison }) {
+  const [storedCourse, report, zipStat, manifestStat] = await Promise.all([
+    readJsonIfExists(path.join(courseDir, 'course.json')),
+    readJsonIfExists(path.join(courseDir, 'report.json')),
+    fs.stat(path.join(courseDir, `${course.id}-package.zip`)).catch(() => null),
+    fs.stat(path.join(courseDir, 'extracted', 'PACKAGE_MANIFEST.json')).catch(() => null),
+  ]);
+  if (!storedCourse && !report) return null;
+
+  const decision = assessResumableCourseEvidence({
+    storedCourse,
+    report,
+    zipReady: zipStat?.isFile() === true,
+    manifestReady: manifestStat?.isFile() === true,
+    course,
+    provider,
+    modelId,
+    localModel,
+    expectedComparison,
+  });
+  if (decision.action === 'reject') {
+    throw new Error(
+      `Cannot resume ${course.id}: ${decision.reason}. Use a new round directory so unlike evidence is never mixed.`,
+    );
+  }
+  if (decision.action !== 'resume') return null;
+
+  const runResult = {
+    ...report.run,
+    status: 'passed',
+    statusLabel: 'passed (resumed)',
+    zipPath: path.join(courseDir, `${course.id}-package.zip`),
+    attemptCount: Number(report.run.attemptCount) || 1,
+    spendUsd: Number(report.run.spendUsd) || 0,
+  };
+  return {
+    course,
+    runResult,
+    gradeResult: report.normalized,
+    inAppScore: await readInAppScore(courseDir),
+    judge: null,
+    abTwin: null,
+  };
 }
 
 // A5(4): the in-app quality score the package graded itself with at finalize
@@ -1569,6 +1616,13 @@ async function runLiveRounds(options) {
     log(`voice mode: ${voice} — ${courses.length} run(s) across ${baseCourses.length} course(s)`);
   }
   const rounds = Math.max(1, Number(options.rounds) || 1);
+  if (options.resumeRound && rounds !== 1) throw new Error('--resume-round supports exactly one round.');
+  if (options.resumeRound && options.judge) {
+    throw new Error('--resume-round cannot reconstruct advisory-judge responses; resume without --judge.');
+  }
+  if (options.resumeRound && voice === 'ab') {
+    throw new Error('--resume-round does not mix partially completed same-generation voice twins.');
+  }
   // E1: each provider defaults to its cheapest generation-capable model
   // (documented at PROVIDER_DEFAULT_MODELS); --model still overrides.
   let modelId = options.model || PROVIDER_DEFAULT_MODELS[provider];
@@ -1658,6 +1712,7 @@ async function runLiveRounds(options) {
         concurrency,
         rounds,
         maxSpendUsd,
+        flywheelCapture: 'disabled-for-heldout-benchmark',
       },
     });
     log(
@@ -1683,12 +1738,23 @@ async function runLiveRounds(options) {
     log(`warning: baseline ${baseline.dir} has no report.json files — grade it first with --skip-generate`);
   }
 
+  let resumeRoundDir = null;
+  if (options.resumeRound) {
+    resumeRoundDir = path.resolve(repoRoot, String(options.resumeRound));
+    const relative = path.relative(crucibleRoot, resumeRoundDir);
+    if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) {
+      throw new Error(`--resume-round must name an existing directory inside ${crucibleRoot}.`);
+    }
+    const stat = await fs.stat(resumeRoundDir).catch(() => null);
+    if (!stat?.isDirectory()) throw new Error(`--resume-round directory does not exist: ${resumeRoundDir}`);
+  }
+
   for (let roundIndex = 1; roundIndex <= rounds; roundIndex += 1) {
-    const roundLabel = `round-${timestampId()}`;
-    const roundDir = path.join(crucibleRoot, roundLabel);
+    const roundLabel = resumeRoundDir ? path.basename(resumeRoundDir) : `round-${timestampId()}`;
+    const roundDir = resumeRoundDir || path.join(crucibleRoot, roundLabel);
     await fs.mkdir(roundDir, { recursive: true });
     log(
-      `${roundLabel} (${roundIndex}/${rounds}): model ${modelId}, concurrency ${concurrency}, ` +
+      `${roundLabel} (${roundIndex}/${rounds}${resumeRoundDir ? ', resuming' : ''}): model ${modelId}, concurrency ${concurrency}, ` +
         `spend cap $${maxSpendUsd.toFixed(2)}, courses: ${courses.map((c) => c.id).join(', ')}`,
     );
 
@@ -1705,6 +1771,24 @@ async function runLiveRounds(options) {
       entries = await runPool(courses, concurrency, async (course) => {
         const courseDir = path.join(roundDir, course.id);
         await fs.mkdir(courseDir, { recursive: true });
+        const expectedComparison = scionBenchmarkRun
+          ? scionBenchmarkRun.byCourseId[String(course.baseId || course.id).replace(/--.*$/, '')]
+          : null;
+        if (resumeRoundDir) {
+          const resumed = await loadResumableCourseEntry({
+            courseDir,
+            course,
+            provider,
+            modelId,
+            localModel,
+            expectedComparison,
+          });
+          if (resumed) {
+            spendState.spentUsd += resumed.runResult.spendUsd;
+            log(`  ${course.id}: reused complete hash-matched evidence`);
+            return resumed;
+          }
+        }
         // E3: course.json carries the provider so --calibrate can namespace
         // this run's findings (absent on pre-E1 dirs → openai by default).
         await writeJson(path.join(courseDir, 'course.json'), {
@@ -1714,7 +1798,8 @@ async function runLiveRounds(options) {
           roundLabel,
           ...(scionBenchmarkRun
             ? {
-                comparison: scionBenchmarkRun.byCourseId[String(course.baseId || course.id).replace(/--.*$/, '')],
+                comparison: expectedComparison,
+                evaluationFlywheelCapture: 'off',
               }
             : {}),
           ...(localServerUrl
@@ -1785,6 +1870,7 @@ async function runLiveRounds(options) {
             // uses the real Local provider and endpoint so SSE heartbeats flow.
             llmShimUrl,
             localEndpoint: options.llm === 'local' ? localServerUrl : null,
+            disableScionFlywheel: Boolean(scionBenchmarkRun),
             ...(localServerUrl ? { overallTimeoutMs: 45 * 60_000 } : {}),
           });
           attempts.push(runResult);

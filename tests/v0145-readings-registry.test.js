@@ -27,6 +27,7 @@ import {
   deriveCourseGraphFromCourseMap,
   parseReadingAuthor,
   renderCourseMapFromGraph,
+  selectCompilerRegistryBridges,
   validateCourseGraph,
 } from '../src/lib/courseGraph';
 import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
@@ -272,6 +273,56 @@ describe('A2 inheritance — verbatim on every surface', () => {
   const rendered = renderCourseMapFromGraph(graph);
   const blueprint = buildBlueprintFromGraph(graph);
   const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'lessonPlans', 'discussions', 'assignments']);
+
+  it('bridges a Course Map reading that native assembly omitted', () => {
+    const nativeGraphWithoutReadings = {
+      ...graph,
+      readings: [],
+      sessions: graph.sessions.map((session) => ({
+        ...session,
+        sections: session.sections.map((section) => ({ ...section, readingRefs: [] })),
+      })),
+    };
+    const bridges = selectCompilerRegistryBridges(nativeGraphWithoutReadings, graph);
+    expect(bridges.stats).toMatchObject({
+      graphReadingCount: 0,
+      mapReadingCount: 1,
+      missingReadingCount: 1,
+    });
+    expect(bridges.readingsRegistry).toEqual(graph.readings);
+
+    const bridged = compileBlueprintDeliverables(buildBlueprintFromGraph(nativeGraphWithoutReadings, bridges), [
+      'lessonPlans',
+      'discussions',
+      'assignments',
+    ]);
+    expect(bridged.lessonPlans.lessonPlans[7].materials[0]).toBe(NAMED_TITLE);
+    expect(bridged.discussions.discussions[7].prompt).toContain(`Anchor your post in ${NAMED_TITLE}.`);
+    expect(JSON.stringify(bridged.assignments)).toContain(NAMED_TITLE);
+  });
+
+  it('keeps a short canonical title as the lesson evidence source', () => {
+    const shortTitle = 'Inferno';
+    const shortGraph = deriveCourseGraphFromCourseMap(repairedWorldLitMap({ lesson8Readings: [shortTitle] }));
+    const shortBlueprint = buildBlueprintFromGraph(shortGraph);
+    const lesson = shortBlueprint.lessons[7];
+    expect(lesson.readings[0]).toBe(shortTitle);
+    expect(lesson.evidencePlan.sourceCue).toBe(shortTitle);
+    expect(lesson.throughlineCase.evidencePacket).toBe(shortTitle);
+
+    const shortCompiled = compileBlueprintDeliverables(shortBlueprint, [
+      'lessonPlans',
+      'discussions',
+      'assignments',
+      'quizBank',
+      'studyGuides',
+    ]);
+    for (const featureId of ['lessonPlans', 'discussions', 'assignments', 'quizBank', 'studyGuides']) {
+      expect(JSON.stringify(shortCompiled[featureId]), `${featureId} dropped the short registry title`).toContain(
+        shortTitle,
+      );
+    }
+  });
 
   it('course-map supportingResources cell leads with the verbatim title', () => {
     const cell = rendered.lessons[7].sections[0].supportingResources;
@@ -528,6 +579,75 @@ describe('A5 receipts — manifest readings[] and grader checks', () => {
     );
     expect(readingsFindings).toEqual([]);
     expect(result.stats.readingsCount).toBe(1);
+  });
+
+  it('rejects a named primary text copied only into the materials list', async () => {
+    const result = await gradeFixture({
+      'PACKAGE_MANIFEST.json': JSON.stringify(MANIFEST),
+      'Lesson Plans/Lesson 08 - Postcolonial Literature.md': GOOD_PLAN,
+      'Slide Decks/Lesson 08 - Postcolonial Literature.md': 'Postcolonial perspective\nGeneric concept review',
+      'Assignment Briefs/Lesson 08 - Postcolonial Literature.md': 'Write a generic professional decision.',
+      'Discussion Prompts/Lesson 08 - Postcolonial Literature.md': 'Discuss the lesson concept.',
+      'Quiz & Exam Bank/Lesson 08 - Postcolonial Literature.md': 'Q1. Define postcolonial perspective.',
+      'Study Guides/Lesson 08 - Postcolonial Literature.md': 'Review the lesson vocabulary.',
+      'Syllabus/World Literature - Syllabus.md': GOOD_SYLLABUS,
+    });
+    const depthFindings = result.findings.filter((finding) => /primary text/i.test(finding.detail));
+    expect(depthFindings).toHaveLength(2);
+    expect(depthFindings.map((finding) => finding.severity)).toEqual(['P0', 'P0']);
+    expect(depthFindings[0].dimension).toBe('substance');
+    expect(depthFindings[0].evidence).toContain('1/6 surfaces');
+    expect(depthFindings[1].detail).toMatch(/no assessed or discussed evidence task/i);
+  });
+
+  it('accepts a primary text that reaches instruction and an evidence task', async () => {
+    const result = await gradeFixture({
+      'PACKAGE_MANIFEST.json': JSON.stringify(MANIFEST),
+      'Lesson Plans/Lesson 08 - Postcolonial Literature.md': GOOD_PLAN,
+      'Slide Decks/Lesson 08 - Postcolonial Literature.md': `${NAMED_TITLE}\nTrace the novel's narrative perspective.`,
+      'Assignment Briefs/Lesson 08 - Postcolonial Literature.md': `Close-read one passage from ${NAMED_TITLE} and cite two details.`,
+      'Discussion Prompts/Lesson 08 - Postcolonial Literature.md': `Compare two interpretations of ${NAMED_TITLE}.`,
+      'Quiz & Exam Bank/Lesson 08 - Postcolonial Literature.md': 'Q1. Define postcolonial perspective.',
+      'Study Guides/Lesson 08 - Postcolonial Literature.md': 'Review the lesson vocabulary.',
+      'Syllabus/World Literature - Syllabus.md': GOOD_SYLLABUS,
+    });
+    expect(result.findings.filter((finding) => /primary text/i.test(finding.detail))).toEqual([]);
+  });
+
+  it('does not relabel sentence-case lesson topics as instructor-named primary texts', async () => {
+    const topicManifest = {
+      ...MANIFEST,
+      courseName: 'Introduction to Psychology',
+      readings: [
+        {
+          id: 'R4.1',
+          title: 'Memory encoding, storage, and retrieval',
+          lesson: 4,
+          kind: 'other',
+          provenance: 'instructor-named',
+        },
+        {
+          id: 'R9.1',
+          title: 'Piaget’s stages of cognitive development',
+          lesson: 9,
+          kind: 'other',
+          provenance: 'instructor-named',
+        },
+      ],
+    };
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify(topicManifest),
+        'Lesson Plans/Lesson 04 - Memory encoding.md': 'Teach encoding, storage, and retrieval.',
+        'Slide Decks/Lesson 04 - Memory encoding.md': 'Encoding practice',
+        'Assignment Briefs/Lesson 04 - Memory encoding.md': 'Apply an encoding strategy.',
+        'Discussion Prompts/Lesson 04 - Memory encoding.md': 'Discuss retrieval failure.',
+        'Quiz & Exam Bank/Lesson 04 - Memory encoding.md': 'Which strategy improves retrieval?',
+        'Study Guides/Lesson 04 - Memory encoding.md': 'Review encoding and retrieval.',
+      }),
+      course: { id: 'psych-101', title: 'Introduction to Psychology' },
+    });
+    expect(result.findings.filter((finding) => /primary text|named reading/i.test(finding.detail))).toEqual([]);
   });
 
   it('fires P1 per missing surface on the missing-penetration fixture', async () => {

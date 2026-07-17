@@ -1,0 +1,2302 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-economics-evidence-flows-measurement-studio-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Economics Evidence, Flows, and Measurement Studio, a six-session course in which students evaluate natural experiments, circular flows, accumulation, proxy measures, labor-force classifications, and opportunity costs.",
+  "fileNames": [
+    "source-packet-e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce.json"
+  ],
+  "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Economics Evidence, Flows, and Measurement Studio\",\"sessions\":[{\"number\":1,\"title\":\"Natural experiment\"},{\"number\":2,\"title\":\"Circular flow of income\"},{\"number\":3,\"title\":\"Capital accumulation\"},{\"number\":4,\"title\":\"Proxy variable\"},{\"number\":5,\"title\":\"Labor force classification\"},{\"number\":6,\"title\":\"Opportunity cost\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"One county experiences a factory closure while a neighboring county does not, and unemployment rises more in the first county. When can the rise be attributed to the closure rather than to some other cause?\",\"op\":[\"Only when the counties were comparable apart from the closure.\",\"Only when unemployment rose in both counties by the same amount.\",\"Only when the first county had more people looking for work before the closure.\",\"Only when the closure happened after the unemployment increase began.\"],\"ai\":0,\"ex\":\"Only when the counties were comparable apart from the closure. That comparability is what makes the closure the plausible cause of the larger rise instead of a confounding factor. Same-sized changes, prior labor-market size, or a timing reversal would not establish that link.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"Which situation best fits a natural experiment?\",\"op\":[\"A policy change affects one group but not another, letting you estimate a causal effect from-ob\",\"An experiment assigns people randomly and measures the result directly\",\"A survey asks people about their opinions after a change\",\"A group changes behavior for reasons unrelated to any external event\"],\"ai\":0,\"ex\":\"Policy or external event hits one group, so causal effect can be estimated. The groups must be comparable; random assignment is not required here.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Natural experiment\",\"df\":\"A study setup that uses an outside change affecting one group but not another to estimate a causal effect from observed data.\",\"eg\":\"A bus-route change in one town but not a similar neighboring town can be used to compare how school absences changed.\",\"mi\":\"It is just any study that uses a survey or dataset.\",\"cx\":\"The correction is that the key feature is an external change that creates a useful comparison, not merely the presence of data.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Confounding factor\",\"df\":\"Another influence that can move the outcome and make a causal comparison less trustworthy.\",\"eg\":\"If a storm hits only the county that also loses the factory, the storm is a confounding factor when trying to explain unemployment changes.\",\"mi\":\"It is the policy or event being tested.\",\"cx\":\"The correction is that a confounder is a separate influence that can distort the comparison, not the change under study.\",\"sourceFactIndexes\":[1,2]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"A local economy has households saving and paying taxes in the same total amount that firms receive from investment, government spending, and exports. What is the result for the circular flow?\",\"op\":[\"The flow remains in balance, so national income neither rises nor falls.\",\"The flow expands, so national income rises automatically.\",\"The flow contracts, so national income falls automatically.\",\"The flow becomes unbalanced, so income must change direction.\"],\"ai\":0,\"ex\":\"The flow remains in balance when total leakages equal total injections, so national income neither rises nor falls. The tempting mistake is to treat leakages alone as enough to shrink the economy, but the added spending from investment, government spending, and exports offsets them here.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"Households in an economy earn income, save part of it, and pay taxes, while firms, government, and foreign buyers supply extra spending. What must be true if the circular flow is to stay balanced?\",\"op\":[\"The added spending must match the spending that leaves the flow.\",\"The added spending must be zero if saving occurs.\",\"Taxes must always be larger than saving for balance.\",\"Exports must equal imports in every case.\"],\"ai\":0,\"ex\":\"The added spending must match the spending that leaves the flow because injections balance leakages in the circular flow. A common misconception is that any saving automatically breaks the flow, but balance is preserved when outside spending offsets the spending that leaks out.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Leakage\",\"df\":\"Money that leaves the spending stream before it reaches firms as current demand.\",\"eg\":\"In class, a household’s decision to save part of its income is treated as a leakage from the circular flow.\",\"mi\":\"A leakage is any payment made by firms to households.\",\"cx\":\"A correction is that leakages are the parts of income that do not return immediately as spending.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Injection\",\"df\":\"Spending added back into the flow from outside household consumption.\",\"eg\":\"When the government buys goods, that spending acts as an injection in the circular flow.\",\"mi\":\"An injection is the same thing as saving by households.\",\"cx\":\"A correction is that injections are extra spending that comes back into the flow and helps offset leakages.\",\"sourceFactIndexes\":[1,2]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A factory has 100 machines at the start of the year. During the year, the firm buys 12 new machines and retires 5 old ones. What is the change in its equipment stock over the year?\",\"op\":[\"An increase of 7 machines\",\"An increase of 12 machines\",\"A decrease of 5 machines\",\"No change in the equipment stock\"],\"ai\":0,\"ex\":\"An increase of 7 machines is correct because net investment equals gross investment minus depreciation, so 12 minus 5 gives a 7-machine rise in the capital stock. The tempting mistake is to count only purchases; that ignores the machines lost from depreciation and overstates the stock change.\",\"sourceFactIndexes\":[1,0],\"type\":\"multiple_choice\"},{\"q\":\"Which statement best describes when a capital stock grows?\",\"op\":[\"It grows only when net investment is positive\",\"It grows whenever gross investment is positive\",\"It grows whenever depreciation is positive\",\"It grows whenever equipment is replaced\"],\"ai\":0,\"ex\":\"It grows only when net investment is positive is correct because the stock rises when additions exceed losses over the period. A common confusion is to focus on gross investment alone, but if depreciation is larger, the stock does not grow.\",\"sourceFactIndexes\":[2,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Capital stock\",\"df\":\"The amount of productive equipment, structures, and tools available at a point in time.\",\"eg\":\"A firm's plant, machines, and tools at the end of March are part of its capital stock.\",\"mi\":\"It means the dollar value of sales during a year.\",\"cx\":\"Use the stock idea to describe what is on hand at a moment, not what is earned over a period.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Net investment\",\"df\":\"Gross additions minus wear and retirements over a period; it is the period-to-period change in the capital stock.\",\"eg\":\"If a business buys 10 forklifts and loses 4 to depreciation in a year, its net investment is 6 forklifts.\",\"mi\":\"It is the same thing as total spending on new equipment.\",\"cx\":\"Subtract losses from purchases to find the amount that actually changes the stock.\",\"sourceFactIndexes\":[1,2]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"A class compares two places and finds the same GDP per person, then asks what that tells them about people’s living conditions. Which statement is most accurate?\",\"op\":[\"The equal GDP figures prove the two places have identical well-being.\",\"The GDP figures give a partial indicator, but they may miss unpaid work, distribution, and\",\"The GDP figures are useless because any proxy must be ignored.\",\"The GDP figures fully measure the construct if the population sizes match.\"],\"ai\":1,\"ex\":\"The GDP figures give only a partial indicator, because the measure leaves out unpaid work, income distribution, and environmental costs. The tempting mistake is to treat equal GDP as proof of equal well-being, but a proxy is not the construct it stands in for.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"Which statement best describes a proxy variable?\",\"op\":[\"An observable stand-in used to measure an unobservable construct.\",\"A direct observation of the construct itself.\",\"A variable that fully captures every aspect of the construct.\",\"A measure that is useful only when the construct is visible.\"],\"ai\":0,\"ex\":\"It is an observable stand-in for a construct you cannot directly see. It is not the construct itself, so it can miss what it leaves out.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Proxy variable\",\"df\":\"An observable stand-in for a concept that cannot be measured directly.\",\"eg\":\"A student uses GDP as a stand-in for economic well-being when discussing a country’s living conditions.\",\"mi\":\"A proxy variable is the same thing as the hidden concept it represents.\",\"cx\":\"That is incorrect because the proxy is only a measurable substitute, so it can leave important parts of the target concept unmeasured.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"GDP as a proxy for economic well-being\",\"df\":\"A measure based on marketed output that is often used to approximate living conditions.\",\"eg\":\"In a discussion of household welfare, a class uses GDP to compare countries even though unpaid work is not counted.\",\"mi\":\"If GDP goes up, it must mean every part of well-being has improved.\",\"cx\":\"That is false because the measure can miss unpaid work, how income is distributed, and environmental costs.\",\"sourceFactIndexes\":[1,2]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"A statistical agency changes the rule for who counts as unemployed. What happens to the measured unemployment rate?\",\"op\":[\"It stays fixed because joblessness itself is unchanged\",\"It can change because the boundary for unemployment moved\",\"It must rise whenever more people stop searching\",\"It must fall whenever more people are excluded\"],\"ai\":1,\"ex\":\"It can change because where the boundary is drawn changes the measured unemployment rate. The common misconception is that the rate only reflects the underlying number of jobless people, but the classification rule itself affects the measure.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"},{\"q\":\"How are people who have given up looking for work classified?\",\"op\":[\"As unemployed\",\"As out of the labor force\",\"As employed part time\",\"As temporarily absent from work\"],\"ai\":1,\"ex\":\"They are out of the labor force. They are not counted as unemployed, which is the tempting mistake.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Labor force classification\",\"df\":\"A rule-based way of sorting people into categories such as unemployed or out of the labor force.\",\"eg\":\"In class, a discouraged worker who stops looking for work is placed outside unemployment under this rule.\",\"mi\":\"It means the same thing as a person’s actual willingness to work.\",\"cx\":\"The category depends on the labor-force boundary, not on a hidden intention.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Discouraged worker\",\"df\":\"A person excluded from unemployment counts after giving up active job search.\",\"eg\":\"After months of unanswered applications, a job seeker stops looking and is no longer counted as unemployed.\",\"mi\":\"It is someone who is counted as unemployed until they find a job.\",\"cx\":\"The key distinction is that stopping the search moves the person out of unemployment measurement.\",\"sourceFactIndexes\":[0,1]}]},\"lesson-6\":{\"quizItems\":[{\"q\":\"A student skips a paid tutoring hour to attend a free workshop that fills the same hour. What is the opportunity cost of attending the workshop?\",\"op\":[\"The pay from the tutoring hour that was given up\",\"The workshop’s ticket price, which is zero\",\"The value of the tutoring hour, because it was the next best alternative\",\"The notebook and pen used during the workshop\"],\"ai\":2,\"ex\":\"The opportunity cost is the value of the next best alternative that is given up, so the tutoring hour is the relevant loss here. The workshop being free does not erase that cost, and the notebook or pen are not the foregone alternative.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"A person takes a free online class and spends an evening on it instead of doing a paid side job. Which idea is most accurate?\",\"op\":[\"There is no cost because the class is free\",\"The cost is only whatever cash was paid for access\",\"The opportunity cost includes the work and time that could have produced something else\",\"The best choice is always the one with the lowest sticker price\"],\"ai\":2,\"ex\":\"The opportunity cost includes time or resources that could have produced another outcome, so the missed side-job value matters here. Focusing only on cash paid misses the strongest alternative use of the evening.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Opportunity cost\",\"df\":\"The value of the best option that must be given up when a choice is made.\",\"eg\":\"If a student studies for two hours instead of working for pay, the forgone pay is part of the opportunity cost.\",\"mi\":\"It is only the money someone hands over at the checkout.\",\"cx\":\"That mistake ignores the value of the alternative that was not chosen, including time or other resources.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"Next best alternative\",\"df\":\"The most valuable option left behind when a decision is made.\",\"eg\":\"When a student attends a free workshop instead of a paid tutoring shift, the tutoring shift is the next best alternative.\",\"mi\":\"It means any random option that was available.\",\"cx\":\"The relevant alternative is the best one given up, not just any other choice on the table.\",\"sourceFactIndexes\":[0]}]}}}}",
+  "savedAt": "2026-07-16T22:42:40.254Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-course-group-breadth-v0.16.47.json",
+    "campaignManifestSha256": "54233a8e64074f0060a69d3ac778f719850220092ba51eb87ca10ef1fa0c3693",
+    "promptSetSha256": "5a44124735946a0ae568082769b29d43575b9bffa20cea1c81a520d7d48df40f",
+    "courseInputSha256": "e970fb5e07e2e863ae5b4a720cdbf93c7043eb05b982e3776ce73fc9604e4f0b",
+    "courseGroupId": "economics-evidence-flows-measurement-studio",
+    "courseGroupSha256": "4ffd5d5cf1b8cc2c9a11861897b918345bc147d926d7f3b2a711e682fb5c12fa",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/econ-intro.json",
+      "sourceArtifactSha256": "80169c3278f2f18968a60614e01674543cf25cea22529f5815aaa432cd886286",
+      "kernels": [
+        {
+          "id": "econ/natural-experiment",
+          "term": "Natural experiment",
+          "definition": "A natural experiment uses a policy change or external event affecting one group but not another to estimate a causal effect from observational data.",
+          "definitionAnchor": {
+            "src": "openstax:macroeconomics-2e#2",
+            "loc": "2.3",
+            "quote": "a policy change or external event that affects one group but not another to estimate a causal effect from observational data"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The causal claim is credible only if the two groups were comparable apart from the change.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#2",
+                "loc": "2.3",
+                "quote": "whether the two groups were comparable apart from the change"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The effect can be attributed to the policy rather than to a confounding factor only when that comparability holds.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#2",
+                "loc": "2.3",
+                "quote": "the difference can be attributed to the policy rather than to a confounding factor"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Macroeconomics 2e, Ch. 2"
+          ]
+        },
+        {
+          "id": "econ/circular-flow-of-income",
+          "term": "Circular flow of income",
+          "definition": "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+          "definitionAnchor": {
+            "src": "openstax:macroeconomics-2e#1",
+            "loc": "1.2",
+            "quote": "money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#1",
+                "loc": "1.2",
+                "quote": "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow"
+              }
+            },
+            {
+              "index": 1,
+              "text": "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#1",
+                "loc": "1.2",
+                "quote": "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Macroeconomics 2e, Ch. 1"
+          ]
+        },
+        {
+          "id": "econ/capital-accumulation",
+          "term": "Capital accumulation",
+          "definition": "The capital stock is the total quantity of equipment, structures, and tools available for production; it rises through gross investment and falls through depreciation.",
+          "definitionAnchor": {
+            "src": "openstax:macroeconomics-2e#7",
+            "loc": "7.2",
+            "quote": "rises through gross investment and falls through depreciation"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#7",
+                "loc": "7.2",
+                "quote": "gross investment minus depreciation, is the change in the capital stock over a period"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The capital stock grows only when net investment is positive.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#7",
+                "loc": "7.2",
+                "quote": "the stock grows only when net investment is positive"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Macroeconomics 2e, Ch. 7"
+          ]
+        },
+        {
+          "id": "econ/proxy-variable",
+          "term": "Proxy variable",
+          "definition": "A proxy variable is an observable stand-in used to measure a construct that cannot be observed directly.",
+          "definitionAnchor": {
+            "src": "openstax:macroeconomics-2e#6",
+            "loc": "6.4",
+            "quote": "an observable stand-in, to measure a construct they cannot observe directly"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "GDP is used as a proxy for economic well-being, but it captures only marketed output and misses unpaid work, income distribution, and environmental costs.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#6",
+                "loc": "6.4",
+                "quote": "it captures only marketed output and misses unpaid work, income distribution, and environmental costs"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#6",
+                "loc": "6.4",
+                "quote": "Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Macroeconomics 2e, Ch. 6"
+          ]
+        },
+        {
+          "id": "econ/labor-force-classification",
+          "term": "Labor force classification",
+          "definition": "People who have given up looking for work are classified as out of the labor force, not unemployed.",
+          "definitionAnchor": {
+            "src": "openstax:macroeconomics-2e#8",
+            "loc": "8.1",
+            "quote": "people who have given up looking are classified as out of the labor force, not unemployed"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#8",
+                "loc": "8.1",
+                "quote": "discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Where this boundary is drawn changes the measured unemployment rate.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#8",
+                "loc": "8.1",
+                "quote": "Where this boundary is drawn changes the measured unemployment rate"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Macroeconomics 2e, Ch. 8"
+          ]
+        },
+        {
+          "id": "econ/opportunity-cost",
+          "term": "Opportunity cost",
+          "definition": "The opportunity cost of a choice is the value of the next best alternative that must be given up.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#2",
+            "loc": "2.1",
+            "quote": "the opportunity cost of a choice is the value of the next best alternative that must be given up"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#2",
+                "loc": "2.1",
+                "quote": "A decision that looks free still has an opportunity cost if it uses time or resources that could have produced something else"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#2",
+                "loc": "2.1",
+                "quote": "Rational decision-makers weigh the opportunity cost, not just the out-of-pocket price"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 2"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-16T22:42:40.254Z",
+    "admittedPromptIds": [
+      "economics-evidence-flows-measurement-studio:econ/natural-experiment",
+      "economics-evidence-flows-measurement-studio:econ/circular-flow-of-income",
+      "economics-evidence-flows-measurement-studio:econ/capital-accumulation",
+      "economics-evidence-flows-measurement-studio:econ/proxy-variable",
+      "economics-evidence-flows-measurement-studio:econ/labor-force-classification",
+      "economics-evidence-flows-measurement-studio:econ/opportunity-cost"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "economics-evidence-flows-measurement-studio:econ/natural-experiment",
+          "kernelId": "econ/natural-experiment",
+          "promptSha256": "8e59477b1cc0a4893912c54a34dbc414cbb5af693da89e61d5eafc600bd661ef",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A researcher compares school absences in two towns after one town gets a new bus route and the other does not. What makes this comparison credible as a natural experiment?",
+                "op": [
+                  "The towns were comparable apart from the bus-route change.",
+                  "The town with the new route had a larger student population.",
+                  "The new route was installed after absences were already falling.",
+                  "The researcher measured absences in only one town."
+                ],
+                "ai": 0,
+                "ex": "The towns were comparable apart from the bus-route change. That is the condition that lets the observed difference be linked to the route rather than to some preexisting difference between towns. A larger population, an earlier trend, or using only one town does not establish that kind of causal-com",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "One county experiences a factory closure while a neighboring county does not, and unemployment rises more in the first county. When can the rise be attributed to the closure rather than to some other cause?",
+                "op": [
+                  "Only when the counties were comparable apart from the closure.",
+                  "Only when unemployment rose in both counties by the same amount.",
+                  "Only when the first county had more people looking for work before the closure.",
+                  "Only when the closure happened after the unemployment increase began."
+                ],
+                "ai": 0,
+                "ex": "Only when the counties were comparable apart from the closure. That comparability is what makes the closure the plausible cause of the larger rise instead of a confounding factor. Same-sized changes, prior labor-market size, or a timing reversal would not establish that link.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Natural experiment",
+                "df": "A study setup that uses an outside change affecting one group but not another to estimate a causal effect from observed data.",
+                "eg": "A bus-route change in one town but not a similar neighboring town can be used to compare how school absences changed.",
+                "mi": "It is just any study that uses a survey or dataset.",
+                "cx": "The correction is that the key feature is an external change that creates a useful comparison, not merely the presence of data.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Confounding factor",
+                "df": "Another influence that can move the outcome and make a causal comparison less trustworthy.",
+                "eg": "If a storm hits only the county that also loses the factory, the storm is a confounding factor when trying to explain unemployment changes.",
+                "mi": "It is the policy or event being tested.",
+                "cx": "The correction is that a confounder is a separate influence that can distort the comparison, not the change under study.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "ceec8d770bb3dbb80a0584903742755e56d1c0549e338205387a19c8d383d635",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "One county experiences a factory closure while a neighboring county does not, and unemployment rises more in the first county. When can the rise be attributed to the closure rather than to some other cause?",
+                "op": [
+                  "Only when the counties were comparable apart from the closure.",
+                  "Only when unemployment rose in both counties by the same amount.",
+                  "Only when the first county had more people looking for work before the closure.",
+                  "Only when the closure happened after the unemployment increase began."
+                ],
+                "ai": 0,
+                "ex": "Only when the counties were comparable apart from the closure. That comparability is what makes the closure the plausible cause of the larger rise instead of a confounding factor. Same-sized changes, prior labor-market size, or a timing reversal would not establish that link.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Natural experiment",
+                "df": "A study setup that uses an outside change affecting one group but not another to estimate a causal effect from observed data.",
+                "eg": "A bus-route change in one town but not a similar neighboring town can be used to compare how school absences changed.",
+                "mi": "It is just any study that uses a survey or dataset.",
+                "cx": "The correction is that the key feature is an external change that creates a useful comparison, not merely the presence of data.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Confounding factor",
+                "df": "Another influence that can move the outcome and make a causal comparison less trustworthy.",
+                "eg": "If a storm hits only the county that also loses the factory, the storm is a confounding factor when trying to explain unemployment changes.",
+                "mi": "It is the policy or event being tested.",
+                "cx": "The correction is that a confounder is a separate influence that can distort the comparison, not the change under study.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "c737cfbe53abdbe7e6597cf574abd13937a0ea808b1176eba476d9e7a4010bcb",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_037db3df82949da5006a595db8a39c81a2b13e6252e93fc77d",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 748,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 1031,
+              "output_tokens_details": {
+                "reasoning_tokens": 487
+              },
+              "total_tokens": 1779
+            }
+          },
+          "startedAt": "2026-07-16T22:39:52.563Z",
+          "durationMs": 6452
+        },
+        {
+          "promptId": "economics-evidence-flows-measurement-studio:econ/circular-flow-of-income",
+          "kernelId": "econ/circular-flow-of-income",
+          "promptSha256": "4c950e827862e27b20fc8a2122440f3966707dffcdca013db95804f2773b71d2",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A local economy has households saving and paying taxes in the same total amount that firms receive from investment, government spending, and exports. What is the result for the circular flow?",
+                "op": [
+                  "The flow remains in balance, so national income neither rises nor falls.",
+                  "The flow expands, so national income rises automatically.",
+                  "The flow contracts, so national income falls automatically.",
+                  "The flow becomes unbalanced, so income must change direction."
+                ],
+                "ai": 0,
+                "ex": "The flow remains in balance when total leakages equal total injections, so national income neither rises nor falls. The tempting mistake is to treat leakages alone as enough to shrink the economy, but the added spending from investment, government spending, and exports offsets them here.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "Households in an economy earn income, save part of it, and pay taxes, while firms, government, and foreign buyers supply extra spending. What must be true if the circular flow is to stay balanced?",
+                "op": [
+                  "The added spending must match the spending that leaves the flow.",
+                  "The added spending must be zero if saving occurs.",
+                  "Taxes must always be larger than saving for balance.",
+                  "Exports must equal imports in every case."
+                ],
+                "ai": 0,
+                "ex": "The added spending must match the spending that leaves the flow because injections balance leakages in the circular flow. A common misconception is that any saving automatically breaks the flow, but balance is preserved when outside spending offsets the spending that leaks out.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Leakage",
+                "df": "Money that leaves the spending stream before it reaches firms as current demand.",
+                "eg": "In class, a household’s decision to save part of its income is treated as a leakage from the circular flow.",
+                "mi": "A leakage is any payment made by firms to households.",
+                "cx": "A correction is that leakages are the parts of income that do not return immediately as spending.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Injection",
+                "df": "Spending added back into the flow from outside household consumption.",
+                "eg": "When the government buys goods, that spending acts as an injection in the circular flow.",
+                "mi": "An injection is the same thing as saving by households.",
+                "cx": "A correction is that injections are extra spending that comes back into the flow and helps offset leakages.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "3c973c7f491c6621b72c5321e86fc879b4c30c06c579d3e35ce499759603e120",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A local economy has households saving and paying taxes in the same total amount that firms receive from investment, government spending, and exports. What is the result for the circular flow?",
+                "op": [
+                  "The flow remains in balance, so national income neither rises nor falls.",
+                  "The flow expands, so national income rises automatically.",
+                  "The flow contracts, so national income falls automatically.",
+                  "The flow becomes unbalanced, so income must change direction."
+                ],
+                "ai": 0,
+                "ex": "The flow remains in balance when total leakages equal total injections, so national income neither rises nor falls. The tempting mistake is to treat leakages alone as enough to shrink the economy, but the added spending from investment, government spending, and exports offsets them here.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "Households in an economy earn income, save part of it, and pay taxes, while firms, government, and foreign buyers supply extra spending. What must be true if the circular flow is to stay balanced?",
+                "op": [
+                  "The added spending must match the spending that leaves the flow.",
+                  "The added spending must be zero if saving occurs.",
+                  "Taxes must always be larger than saving for balance.",
+                  "Exports must equal imports in every case."
+                ],
+                "ai": 0,
+                "ex": "The added spending must match the spending that leaves the flow because injections balance leakages in the circular flow. A common misconception is that any saving automatically breaks the flow, but balance is preserved when outside spending offsets the spending that leaks out.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Leakage",
+                "df": "Money that leaves the spending stream before it reaches firms as current demand.",
+                "eg": "In class, a household’s decision to save part of its income is treated as a leakage from the circular flow.",
+                "mi": "A leakage is any payment made by firms to households.",
+                "cx": "A correction is that leakages are the parts of income that do not return immediately as spending.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Injection",
+                "df": "Spending added back into the flow from outside household consumption.",
+                "eg": "When the government buys goods, that spending acts as an injection in the circular flow.",
+                "mi": "An injection is the same thing as saving by households.",
+                "cx": "A correction is that injections are extra spending that comes back into the flow and helps offset leakages.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "3c973c7f491c6621b72c5321e86fc879b4c30c06c579d3e35ce499759603e120",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_05c6d7e6a92b97c6006a595dbf1b0481a383c9de33b4d6ebe1",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 765,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 917,
+              "output_tokens_details": {
+                "reasoning_tokens": 416
+              },
+              "total_tokens": 1682
+            }
+          },
+          "startedAt": "2026-07-16T22:39:59.016Z",
+          "durationMs": 5931
+        },
+        {
+          "promptId": "economics-evidence-flows-measurement-studio:econ/capital-accumulation",
+          "kernelId": "econ/capital-accumulation",
+          "promptSha256": "aa26a7171500415abe4e700d25df967ab67cd0587973bd5db9fd4bfdadbff65c",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A factory has 100 machines at the start of the year. During the year, the firm buys 12 new machines and retires 5 old ones. What is the change in its equipment stock over the year?",
+                "op": [
+                  "An increase of 7 machines",
+                  "An increase of 12 machines",
+                  "A decrease of 5 machines",
+                  "No change in the equipment stock"
+                ],
+                "ai": 0,
+                "ex": "An increase of 7 machines is correct because net investment equals gross investment minus depreciation, so 12 minus 5 gives a 7-machine rise in the capital stock. The tempting mistake is to count only purchases; that ignores the machines lost from depreciation and overstates the stock change.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "q": "Which statement best describes when a capital stock grows?",
+                "op": [
+                  "It grows only when net investment is positive",
+                  "It grows whenever gross investment is positive",
+                  "It grows whenever depreciation is positive",
+                  "It grows whenever equipment is replaced"
+                ],
+                "ai": 0,
+                "ex": "It grows only when net investment is positive is correct because the stock rises when additions exceed losses over the period. A common confusion is to focus on gross investment alone, but if depreciation is larger, the stock does not grow.",
+                "sourceFactIndexes": [
+                  2,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Capital stock",
+                "df": "The amount of productive equipment, structures, and tools available at a point in time.",
+                "eg": "A firm's plant, machines, and tools at the end of March are part of its capital stock.",
+                "mi": "It means the dollar value of sales during a year.",
+                "cx": "Use the stock idea to describe what is on hand at a moment, not what is earned over a period.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Net investment",
+                "df": "Gross additions minus wear and retirements over a period; it is the period-to-period change in the capital stock.",
+                "eg": "If a business buys 10 forklifts and loses 4 to depreciation in a year, its net investment is 6 forklifts.",
+                "mi": "It is the same thing as total spending on new equipment.",
+                "cx": "Subtract losses from purchases to find the amount that actually changes the stock.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "b329ec28cc3d6e72343dbd565cb32ea6d300eb2e847785875ae7d04ec1ab6685",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A factory has 100 machines at the start of the year. During the year, the firm buys 12 new machines and retires 5 old ones. What is the change in its equipment stock over the year?",
+                "op": [
+                  "An increase of 7 machines",
+                  "An increase of 12 machines",
+                  "A decrease of 5 machines",
+                  "No change in the equipment stock"
+                ],
+                "ai": 0,
+                "ex": "An increase of 7 machines is correct because net investment equals gross investment minus depreciation, so 12 minus 5 gives a 7-machine rise in the capital stock. The tempting mistake is to count only purchases; that ignores the machines lost from depreciation and overstates the stock change.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "q": "Which statement best describes when a capital stock grows?",
+                "op": [
+                  "It grows only when net investment is positive",
+                  "It grows whenever gross investment is positive",
+                  "It grows whenever depreciation is positive",
+                  "It grows whenever equipment is replaced"
+                ],
+                "ai": 0,
+                "ex": "It grows only when net investment is positive is correct because the stock rises when additions exceed losses over the period. A common confusion is to focus on gross investment alone, but if depreciation is larger, the stock does not grow.",
+                "sourceFactIndexes": [
+                  2,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Capital stock",
+                "df": "The amount of productive equipment, structures, and tools available at a point in time.",
+                "eg": "A firm's plant, machines, and tools at the end of March are part of its capital stock.",
+                "mi": "It means the dollar value of sales during a year.",
+                "cx": "Use the stock idea to describe what is on hand at a moment, not what is earned over a period.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Net investment",
+                "df": "Gross additions minus wear and retirements over a period; it is the period-to-period change in the capital stock.",
+                "eg": "If a business buys 10 forklifts and loses 4 to depreciation in a year, its net investment is 6 forklifts.",
+                "mi": "It is the same thing as total spending on new equipment.",
+                "cx": "Subtract losses from purchases to find the amount that actually changes the stock.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "b329ec28cc3d6e72343dbd565cb32ea6d300eb2e847785875ae7d04ec1ab6685",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0b359a7311cca377006a595dc50784819fb656731b1160fcdf",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 746,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 512,
+              "output_tokens_details": {
+                "reasoning_tokens": 45
+              },
+              "total_tokens": 1258
+            }
+          },
+          "startedAt": "2026-07-16T22:40:04.949Z",
+          "durationMs": 4299
+        },
+        {
+          "promptId": "economics-evidence-flows-measurement-studio:econ/proxy-variable",
+          "kernelId": "econ/proxy-variable",
+          "promptSha256": "db3d21b014da4079054dde05b9dc149827c6368ebe3c11563bd0c08a4c6b2a81",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A researcher uses GDP to summarize economic well-being in a study. Which conclusion is best supported by the evidence provided?",
+                "op": [
+                  "GDP can stand in for the full construct only when unpaid work and environmental costs are also,",
+                  "GDP is an observable stand-in, but any conclusion from it can miss parts of the construct it",
+                  "GDP directly measures economic well-being because it includes income distribution and unpaid,",
+                  "GDP cannot be used in any study because it is always unrelated to well-being."
+                ],
+                "ai": 1,
+                "ex": "GDP is an observable stand-in for a broader construct, so the supported conclusion is that it may omit parts of what the study cares about. The stronger-sounding alternative says GDP directly captures the full construct, but the claims say it records marketed output and leaves out unpaid work, the,",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "A class compares two places and finds the same GDP per person, then asks what that tells them about people’s living conditions. Which statement is most accurate?",
+                "op": [
+                  "The equal GDP figures prove the two places have identical well-being.",
+                  "The GDP figures give a partial indicator, but they may miss unpaid work, distribution, and",
+                  "The GDP figures are useless because any proxy must be ignored.",
+                  "The GDP figures fully measure the construct if the population sizes match."
+                ],
+                "ai": 1,
+                "ex": "The GDP figures give only a partial indicator, because the measure leaves out unpaid work, income distribution, and environmental costs. The tempting mistake is to treat equal GDP as proof of equal well-being, but a proxy is not the construct it stands in for.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Proxy variable",
+                "df": "An observable stand-in for a concept that cannot be measured directly.",
+                "eg": "A student uses GDP as a stand-in for economic well-being when discussing a country’s living conditions.",
+                "mi": "A proxy variable is the same thing as the hidden concept it represents.",
+                "cx": "That is incorrect because the proxy is only a measurable substitute, so it can leave important parts of the target concept unmeasured.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "GDP as a proxy for economic well-being",
+                "df": "A measure based on marketed output that is often used to approximate living conditions.",
+                "eg": "In a discussion of household welfare, a class uses GDP to compare countries even though unpaid work is not counted.",
+                "mi": "If GDP goes up, it must mean every part of well-being has improved.",
+                "cx": "That is false because the measure can miss unpaid work, how income is distributed, and environmental costs.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "1257c32b718deed6e5192b3945b197b884ee151eaefb6b6db3fc8fe497946052",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A class compares two places and finds the same GDP per person, then asks what that tells them about people’s living conditions. Which statement is most accurate?",
+                "op": [
+                  "The equal GDP figures prove the two places have identical well-being.",
+                  "The GDP figures give a partial indicator, but they may miss unpaid work, distribution, and",
+                  "The GDP figures are useless because any proxy must be ignored.",
+                  "The GDP figures fully measure the construct if the population sizes match."
+                ],
+                "ai": 1,
+                "ex": "The GDP figures give only a partial indicator, because the measure leaves out unpaid work, income distribution, and environmental costs. The tempting mistake is to treat equal GDP as proof of equal well-being, but a proxy is not the construct it stands in for.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Proxy variable",
+                "df": "An observable stand-in for a concept that cannot be measured directly.",
+                "eg": "A student uses GDP as a stand-in for economic well-being when discussing a country’s living conditions.",
+                "mi": "A proxy variable is the same thing as the hidden concept it represents.",
+                "cx": "That is incorrect because the proxy is only a measurable substitute, so it can leave important parts of the target concept unmeasured.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "GDP as a proxy for economic well-being",
+                "df": "A measure based on marketed output that is often used to approximate living conditions.",
+                "eg": "In a discussion of household welfare, a class uses GDP to compare countries even though unpaid work is not counted.",
+                "mi": "If GDP goes up, it must mean every part of well-being has improved.",
+                "cx": "That is false because the measure can miss unpaid work, how income is distributed, and environmental costs.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "962f7fceea88ed671a328144a89cc9bef0e2d52231a45a591d7422068534563f",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_072d71d08d8f2f9d006a595dc95514819ca3335617a17883bc",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 750,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 817,
+              "output_tokens_details": {
+                "reasoning_tokens": 262
+              },
+              "total_tokens": 1567
+            }
+          },
+          "startedAt": "2026-07-16T22:40:09.249Z",
+          "durationMs": 5586
+        },
+        {
+          "promptId": "economics-evidence-flows-measurement-studio:econ/labor-force-classification",
+          "kernelId": "econ/labor-force-classification",
+          "promptSha256": "4ba723583c516405802fab372fdf79d65a34fd4ef40afcb2eb6323cc4a4d2d0f",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A person has stopped looking for work after repeated unsuccessful searches. How is that person classified in labor-force statistics?",
+                "op": [
+                  "Unemployed because the person still wants work",
+                  "Out of the labor force because the search stopped",
+                  "Employed because the person had been searching before",
+                  "Not classified because the person is between categories"
+                ],
+                "ai": 1,
+                "ex": "Out of the labor force is correct because people who have given up looking for work are not counted as unemployed under this classification. The tempting mistake is to treat ongoing joblessness as unemployment even after search has stopped; that exclusion is exactly why discouraged workers can make ",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "A statistical agency changes the rule for who counts as unemployed. What happens to the measured unemployment rate?",
+                "op": [
+                  "It stays fixed because joblessness itself is unchanged",
+                  "It can change because the boundary for unemployment moved",
+                  "It must rise whenever more people stop searching",
+                  "It must fall whenever more people are excluded"
+                ],
+                "ai": 1,
+                "ex": "It can change because where the boundary is drawn changes the measured unemployment rate. The common misconception is that the rate only reflects the underlying number of jobless people, but the classification rule itself affects the measure.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Labor force classification",
+                "df": "A rule-based way of sorting people into categories such as unemployed or out of the labor force.",
+                "eg": "In class, a discouraged worker who stops looking for work is placed outside unemployment under this rule.",
+                "mi": "It means the same thing as a person’s actual willingness to work.",
+                "cx": "The category depends on the labor-force boundary, not on a hidden intention.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Discouraged worker",
+                "df": "A person excluded from unemployment counts after giving up active job search.",
+                "eg": "After months of unanswered applications, a job seeker stops looking and is no longer counted as unemployed.",
+                "mi": "It is someone who is counted as unemployed until they find a job.",
+                "cx": "The key distinction is that stopping the search moves the person out of unemployment measurement.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "7c306823a01cdf08f4d533880aefd43d2f94737ecc2d8f93cb4a9e1b31d39b89",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A statistical agency changes the rule for who counts as unemployed. What happens to the measured unemployment rate?",
+                "op": [
+                  "It stays fixed because joblessness itself is unchanged",
+                  "It can change because the boundary for unemployment moved",
+                  "It must rise whenever more people stop searching",
+                  "It must fall whenever more people are excluded"
+                ],
+                "ai": 1,
+                "ex": "It can change because where the boundary is drawn changes the measured unemployment rate. The common misconception is that the rate only reflects the underlying number of jobless people, but the classification rule itself affects the measure.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Labor force classification",
+                "df": "A rule-based way of sorting people into categories such as unemployed or out of the labor force.",
+                "eg": "In class, a discouraged worker who stops looking for work is placed outside unemployment under this rule.",
+                "mi": "It means the same thing as a person’s actual willingness to work.",
+                "cx": "The category depends on the labor-force boundary, not on a hidden intention.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Discouraged worker",
+                "df": "A person excluded from unemployment counts after giving up active job search.",
+                "eg": "After months of unanswered applications, a job seeker stops looking and is no longer counted as unemployed.",
+                "mi": "It is someone who is counted as unemployed until they find a job.",
+                "cx": "The key distinction is that stopping the search moves the person out of unemployment measurement.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "be7e735d7bfbd9e747de0c0697b6ba3c94593ab7079f7bebe1b9b431b8ba49f6",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_05338b31c9af9e6b006a595dcee8e8819db3c928b9ccd635b6",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 736,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 556,
+              "output_tokens_details": {
+                "reasoning_tokens": 105
+              },
+              "total_tokens": 1292
+            }
+          },
+          "startedAt": "2026-07-16T22:40:14.837Z",
+          "durationMs": 4657
+        },
+        {
+          "promptId": "economics-evidence-flows-measurement-studio:econ/opportunity-cost",
+          "kernelId": "econ/opportunity-cost",
+          "promptSha256": "204e4423d484f4109d31b03f21cf703456b1edd51a096ba7f603ba5b1d5e750b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student skips a paid tutoring hour to attend a free workshop that fills the same hour. What is the opportunity cost of attending the workshop?",
+                "op": [
+                  "The pay from the tutoring hour that was given up",
+                  "The workshop’s ticket price, which is zero",
+                  "The value of the tutoring hour, because it was the next best alternative",
+                  "The notebook and pen used during the workshop"
+                ],
+                "ai": 2,
+                "ex": "The opportunity cost is the value of the next best alternative that is given up, so the tutoring hour is the relevant loss here. The workshop being free does not erase that cost, and the notebook or pen are not the foregone alternative.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "A person takes a free online class and spends an evening on it instead of doing a paid side job. Which idea is most accurate?",
+                "op": [
+                  "There is no cost because the class is free",
+                  "The cost is only whatever cash was paid for access",
+                  "The opportunity cost includes the work and time that could have produced something else",
+                  "The best choice is always the one with the lowest sticker price"
+                ],
+                "ai": 2,
+                "ex": "The opportunity cost includes time or resources that could have produced another outcome, so the missed side-job value matters here. Focusing only on cash paid misses the strongest alternative use of the evening.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Opportunity cost",
+                "df": "The value of the best option that must be given up when a choice is made.",
+                "eg": "If a student studies for two hours instead of working for pay, the forgone pay is part of the opportunity cost.",
+                "mi": "It is only the money someone hands over at the checkout.",
+                "cx": "That mistake ignores the value of the alternative that was not chosen, including time or other resources.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Next best alternative",
+                "df": "The most valuable option left behind when a decision is made.",
+                "eg": "When a student attends a free workshop instead of a paid tutoring shift, the tutoring shift is the next best alternative.",
+                "mi": "It means any random option that was available.",
+                "cx": "The relevant alternative is the best one given up, not just any other choice on the table.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "b126eb486bd0101411fe87e2095ff81c5bd5eb63ee152775092a7a5624292d51",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student skips a paid tutoring hour to attend a free workshop that fills the same hour. What is the opportunity cost of attending the workshop?",
+                "op": [
+                  "The pay from the tutoring hour that was given up",
+                  "The workshop’s ticket price, which is zero",
+                  "The value of the tutoring hour, because it was the next best alternative",
+                  "The notebook and pen used during the workshop"
+                ],
+                "ai": 2,
+                "ex": "The opportunity cost is the value of the next best alternative that is given up, so the tutoring hour is the relevant loss here. The workshop being free does not erase that cost, and the notebook or pen are not the foregone alternative.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "A person takes a free online class and spends an evening on it instead of doing a paid side job. Which idea is most accurate?",
+                "op": [
+                  "There is no cost because the class is free",
+                  "The cost is only whatever cash was paid for access",
+                  "The opportunity cost includes the work and time that could have produced something else",
+                  "The best choice is always the one with the lowest sticker price"
+                ],
+                "ai": 2,
+                "ex": "The opportunity cost includes time or resources that could have produced another outcome, so the missed side-job value matters here. Focusing only on cash paid misses the strongest alternative use of the evening.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Opportunity cost",
+                "df": "The value of the best option that must be given up when a choice is made.",
+                "eg": "If a student studies for two hours instead of working for pay, the forgone pay is part of the opportunity cost.",
+                "mi": "It is only the money someone hands over at the checkout.",
+                "cx": "That mistake ignores the value of the alternative that was not chosen, including time or other resources.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Next best alternative",
+                "df": "The most valuable option left behind when a decision is made.",
+                "eg": "When a student attends a free workshop instead of a paid tutoring shift, the tutoring shift is the next best alternative.",
+                "mi": "It means any random option that was available.",
+                "cx": "The relevant alternative is the best one given up, not just any other choice on the table.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "b126eb486bd0101411fe87e2095ff81c5bd5eb63ee152775092a7a5624292d51",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0b4bfca84a89a941006a595dd39258819c8528a9e0c9bb4a97",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 742,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 1043,
+              "output_tokens_details": {
+                "reasoning_tokens": 565
+              },
+              "total_tokens": 1785
+            }
+          },
+          "startedAt": "2026-07-16T22:40:19.496Z",
+          "durationMs": 6791
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "economics-evidence-flows-measurement-studio:econ/natural-experiment",
+          "kernelId": "econ/natural-experiment",
+          "promptSha256": "8e59477b1cc0a4893912c54a34dbc414cbb5af693da89e61d5eafc600bd661ef",
+          "generationPromptSha256": "8ad0659d58804d86c07f1eb048bd312617b887b846d46405eec1f7806633614a",
+          "rawCallSha256": "0f9f0b23c70b7d9341dde9cbdc40f306a1c730bccc28e1985c254475c2163898",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which situation best fits a natural experiment?",
+                "op": [
+                  "A policy change affects one group but not another, letting you estimate a causal effect from-ob",
+                  "An experiment assigns people randomly and measures the result directly",
+                  "A survey asks people about their opinions after a change",
+                  "A group changes behavior for reasons unrelated to any external event"
+                ],
+                "ai": 0,
+                "ex": "Policy or external event hits one group, so causal effect can be estimated. The groups must be comparable; random assignment is not required here.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "5e45ea1031b02d7b1dc17268f11513d74280cfb3bd1c8a4bd08c92055c5f4228",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which situation best fits a natural experiment?",
+                "op": [
+                  "A policy change affects one group but not another, letting you estimate a causal effect from-ob",
+                  "An experiment assigns people randomly and measures the result directly",
+                  "A survey asks people about their opinions after a change",
+                  "A group changes behavior for reasons unrelated to any external event"
+                ],
+                "ai": 0,
+                "ex": "Policy or external event hits one group, so causal effect can be estimated. The groups must be comparable; random assignment is not required here.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "5e45ea1031b02d7b1dc17268f11513d74280cfb3bd1c8a4bd08c92055c5f4228",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_057572cce322d2c1006a595e5ab4cc819fa86244ef1f98a4af",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 693,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 170,
+              "output_tokens_details": {
+                "reasoning_tokens": 36
+              },
+              "total_tokens": 863
+            }
+          },
+          "startedAt": "2026-07-16T22:42:34.589Z",
+          "durationMs": 1672,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "economics-evidence-flows-measurement-studio:econ/proxy-variable",
+          "kernelId": "econ/proxy-variable",
+          "promptSha256": "db3d21b014da4079054dde05b9dc149827c6368ebe3c11563bd0c08a4c6b2a81",
+          "generationPromptSha256": "2e240fb628c25f657df873d859c091380737963e5222200cc73cf416908b5015",
+          "rawCallSha256": "31f3157cd8a71bfacd2c60fca727b562faa4d1437b1c7816357d0cf15789f993",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement best describes a proxy variable?",
+                "op": [
+                  "An observable stand-in used to measure an unobservable construct.",
+                  "A direct observation of the construct itself.",
+                  "A variable that fully captures every aspect of the construct.",
+                  "A measure that is useful only when the construct is visible."
+                ],
+                "ai": 0,
+                "ex": "It is an observable stand-in for a construct you cannot directly see. It is not the construct itself, so it can miss what it leaves out.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "f70f7f095c16dfd13058b1112fdfc013377c3bc4bc10dc81a39b051b235d6be8",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which statement best describes a proxy variable?",
+                "op": [
+                  "An observable stand-in used to measure an unobservable construct.",
+                  "A direct observation of the construct itself.",
+                  "A variable that fully captures every aspect of the construct.",
+                  "A measure that is useful only when the construct is visible."
+                ],
+                "ai": 0,
+                "ex": "It is an observable stand-in for a construct you cannot directly see. It is not the construct itself, so it can miss what it leaves out.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "f70f7f095c16dfd13058b1112fdfc013377c3bc4bc10dc81a39b051b235d6be8",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_035379679d511f56006a595e5c60c481a3b2375d5bf826c074",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 695,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 332,
+              "output_tokens_details": {
+                "reasoning_tokens": 209
+              },
+              "total_tokens": 1027
+            }
+          },
+          "startedAt": "2026-07-16T22:42:36.262Z",
+          "durationMs": 2522,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "economics-evidence-flows-measurement-studio:econ/labor-force-classification",
+          "kernelId": "econ/labor-force-classification",
+          "promptSha256": "4ba723583c516405802fab372fdf79d65a34fd4ef40afcb2eb6323cc4a4d2d0f",
+          "generationPromptSha256": "1656e06b03e9a75464c9470dd3c0774756eff49730f248e21867092ecd89ddaf",
+          "rawCallSha256": "7caa2dec5066c129787ae4c38c00636aa2fdebd50451f1f681a0c257e8bf1c03",
+          "response": {
+            "mcItems": [
+              {
+                "q": "How are people who have given up looking for work classified?",
+                "op": [
+                  "As unemployed",
+                  "As out of the labor force",
+                  "As employed part time",
+                  "As temporarily absent from work"
+                ],
+                "ai": 1,
+                "ex": "They are out of the labor force. They are not counted as unemployed, which is the tempting mistake.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "0d7dc80340ad62931e43b6f0e5240678e490f69d264db7d31766262e3c52f863",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "How are people who have given up looking for work classified?",
+                "op": [
+                  "As unemployed",
+                  "As out of the labor force",
+                  "As employed part time",
+                  "As temporarily absent from work"
+                ],
+                "ai": 1,
+                "ex": "They are out of the labor force. They are not counted as unemployed, which is the tempting mistake.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "0d7dc80340ad62931e43b6f0e5240678e490f69d264db7d31766262e3c52f863",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0d9cdba1f86be848006a595e5eddf081929f3e1386197b2ad6",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 681,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 147,
+              "output_tokens_details": {
+                "reasoning_tokens": 53
+              },
+              "total_tokens": 828
+            }
+          },
+          "startedAt": "2026-07-16T22:42:38.786Z",
+          "durationMs": 1468,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "economics-evidence-flows-measurement-studio:econ/labor-force-classification",
+        "economics-evidence-flows-measurement-studio:econ/natural-experiment",
+        "economics-evidence-flows-measurement-studio:econ/proxy-variable"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "economics-evidence-flows-measurement-studio:econ/natural-experiment",
+        "kernelId": "econ/natural-experiment",
+        "promptSha256": "8e59477b1cc0a4893912c54a34dbc414cbb5af693da89e61d5eafc600bd661ef",
+        "generationPromptSha256": "8ad0659d58804d86c07f1eb048bd312617b887b846d46405eec1f7806633614a",
+        "rawCallSha256": "0f9f0b23c70b7d9341dde9cbdc40f306a1c730bccc28e1985c254475c2163898",
+        "recoveryCallSha256": "475c56af3244e4b1bdba80a34e7ef02879711c63fd8a5c139d8484751d91b301",
+        "response": {
+          "mcItems": [
+            {
+              "q": "One county experiences a factory closure while a neighboring county does not, and unemployment rises more in the first county. When can the rise be attributed to the closure rather than to some other cause?",
+              "op": [
+                "Only when the counties were comparable apart from the closure.",
+                "Only when unemployment rose in both counties by the same amount.",
+                "Only when the first county had more people looking for work before the closure.",
+                "Only when the closure happened after the unemployment increase began."
+              ],
+              "ai": 0,
+              "ex": "Only when the counties were comparable apart from the closure. That comparability is what makes the closure the plausible cause of the larger rise instead of a confounding factor. Same-sized changes, prior labor-market size, or a timing reversal would not establish that link.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which situation best fits a natural experiment?",
+              "op": [
+                "A policy change affects one group but not another, letting you estimate a causal effect from-ob",
+                "An experiment assigns people randomly and measures the result directly",
+                "A survey asks people about their opinions after a change",
+                "A group changes behavior for reasons unrelated to any external event"
+              ],
+              "ai": 0,
+              "ex": "Policy or external event hits one group, so causal effect can be estimated. The groups must be comparable; random assignment is not required here.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Natural experiment",
+              "df": "A study setup that uses an outside change affecting one group but not another to estimate a causal effect from observed data.",
+              "eg": "A bus-route change in one town but not a similar neighboring town can be used to compare how school absences changed.",
+              "mi": "It is just any study that uses a survey or dataset.",
+              "cx": "The correction is that the key feature is an external change that creates a useful comparison, not merely the presence of data.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Confounding factor",
+              "df": "Another influence that can move the outcome and make a causal comparison less trustworthy.",
+              "eg": "If a storm hits only the county that also loses the factory, the storm is a confounding factor when trying to explain unemployment changes.",
+              "mi": "It is the policy or event being tested.",
+              "cx": "The correction is that a confounder is a separate influence that can distort the comparison, not the change under study.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "3b9d760350e37677f2bfcf698de979f4b49cfe588b41df9332a76ed139358c3b",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "One county experiences a factory closure while a neighboring county does not, and unemployment rises more in the first county. When can the rise be attributed to the closure rather than to some other cause?",
+              "op": [
+                "Only when the counties were comparable apart from the closure.",
+                "Only when unemployment rose in both counties by the same amount.",
+                "Only when the first county had more people looking for work before the closure.",
+                "Only when the closure happened after the unemployment increase began."
+              ],
+              "ai": 0,
+              "ex": "Only when the counties were comparable apart from the closure. That comparability is what makes the closure the plausible cause of the larger rise instead of a confounding factor. Same-sized changes, prior labor-market size, or a timing reversal would not establish that link.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which situation best fits a natural experiment?",
+              "op": [
+                "A policy change affects one group but not another, letting you estimate a causal effect from-ob",
+                "An experiment assigns people randomly and measures the result directly",
+                "A survey asks people about their opinions after a change",
+                "A group changes behavior for reasons unrelated to any external event"
+              ],
+              "ai": 0,
+              "ex": "Policy or external event hits one group, so causal effect can be estimated. The groups must be comparable; random assignment is not required here.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Natural experiment",
+              "df": "A study setup that uses an outside change affecting one group but not another to estimate a causal effect from observed data.",
+              "eg": "A bus-route change in one town but not a similar neighboring town can be used to compare how school absences changed.",
+              "mi": "It is just any study that uses a survey or dataset.",
+              "cx": "The correction is that the key feature is an external change that creates a useful comparison, not merely the presence of data.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Confounding factor",
+              "df": "Another influence that can move the outcome and make a causal comparison less trustworthy.",
+              "eg": "If a storm hits only the county that also loses the factory, the storm is a confounding factor when trying to explain unemployment changes.",
+              "mi": "It is the policy or event being tested.",
+              "cx": "The correction is that a confounder is a separate influence that can distort the comparison, not the change under study.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "3b9d760350e37677f2bfcf698de979f4b49cfe588b41df9332a76ed139358c3b",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:34.589Z",
+        "durationMs": 1672
+      },
+      {
+        "promptId": "economics-evidence-flows-measurement-studio:econ/circular-flow-of-income",
+        "kernelId": "econ/circular-flow-of-income",
+        "promptSha256": "4c950e827862e27b20fc8a2122440f3966707dffcdca013db95804f2773b71d2",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A local economy has households saving and paying taxes in the same total amount that firms receive from investment, government spending, and exports. What is the result for the circular flow?",
+              "op": [
+                "The flow remains in balance, so national income neither rises nor falls.",
+                "The flow expands, so national income rises automatically.",
+                "The flow contracts, so national income falls automatically.",
+                "The flow becomes unbalanced, so income must change direction."
+              ],
+              "ai": 0,
+              "ex": "The flow remains in balance when total leakages equal total injections, so national income neither rises nor falls. The tempting mistake is to treat leakages alone as enough to shrink the economy, but the added spending from investment, government spending, and exports offsets them here.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Households in an economy earn income, save part of it, and pay taxes, while firms, government, and foreign buyers supply extra spending. What must be true if the circular flow is to stay balanced?",
+              "op": [
+                "The added spending must match the spending that leaves the flow.",
+                "The added spending must be zero if saving occurs.",
+                "Taxes must always be larger than saving for balance.",
+                "Exports must equal imports in every case."
+              ],
+              "ai": 0,
+              "ex": "The added spending must match the spending that leaves the flow because injections balance leakages in the circular flow. A common misconception is that any saving automatically breaks the flow, but balance is preserved when outside spending offsets the spending that leaks out.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Leakage",
+              "df": "Money that leaves the spending stream before it reaches firms as current demand.",
+              "eg": "In class, a household’s decision to save part of its income is treated as a leakage from the circular flow.",
+              "mi": "A leakage is any payment made by firms to households.",
+              "cx": "A correction is that leakages are the parts of income that do not return immediately as spending.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Injection",
+              "df": "Spending added back into the flow from outside household consumption.",
+              "eg": "When the government buys goods, that spending acts as an injection in the circular flow.",
+              "mi": "An injection is the same thing as saving by households.",
+              "cx": "A correction is that injections are extra spending that comes back into the flow and helps offset leakages.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "3c973c7f491c6621b72c5321e86fc879b4c30c06c579d3e35ce499759603e120",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A local economy has households saving and paying taxes in the same total amount that firms receive from investment, government spending, and exports. What is the result for the circular flow?",
+              "op": [
+                "The flow remains in balance, so national income neither rises nor falls.",
+                "The flow expands, so national income rises automatically.",
+                "The flow contracts, so national income falls automatically.",
+                "The flow becomes unbalanced, so income must change direction."
+              ],
+              "ai": 0,
+              "ex": "The flow remains in balance when total leakages equal total injections, so national income neither rises nor falls. The tempting mistake is to treat leakages alone as enough to shrink the economy, but the added spending from investment, government spending, and exports offsets them here.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Households in an economy earn income, save part of it, and pay taxes, while firms, government, and foreign buyers supply extra spending. What must be true if the circular flow is to stay balanced?",
+              "op": [
+                "The added spending must match the spending that leaves the flow.",
+                "The added spending must be zero if saving occurs.",
+                "Taxes must always be larger than saving for balance.",
+                "Exports must equal imports in every case."
+              ],
+              "ai": 0,
+              "ex": "The added spending must match the spending that leaves the flow because injections balance leakages in the circular flow. A common misconception is that any saving automatically breaks the flow, but balance is preserved when outside spending offsets the spending that leaks out.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Leakage",
+              "df": "Money that leaves the spending stream before it reaches firms as current demand.",
+              "eg": "In class, a household’s decision to save part of its income is treated as a leakage from the circular flow.",
+              "mi": "A leakage is any payment made by firms to households.",
+              "cx": "A correction is that leakages are the parts of income that do not return immediately as spending.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Injection",
+              "df": "Spending added back into the flow from outside household consumption.",
+              "eg": "When the government buys goods, that spending acts as an injection in the circular flow.",
+              "mi": "An injection is the same thing as saving by households.",
+              "cx": "A correction is that injections are extra spending that comes back into the flow and helps offset leakages.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "3c973c7f491c6621b72c5321e86fc879b4c30c06c579d3e35ce499759603e120",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_05c6d7e6a92b97c6006a595dbf1b0481a383c9de33b4d6ebe1",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 765,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 917,
+            "output_tokens_details": {
+              "reasoning_tokens": 416
+            },
+            "total_tokens": 1682
+          }
+        },
+        "startedAt": "2026-07-16T22:39:59.016Z",
+        "durationMs": 5931
+      },
+      {
+        "promptId": "economics-evidence-flows-measurement-studio:econ/capital-accumulation",
+        "kernelId": "econ/capital-accumulation",
+        "promptSha256": "aa26a7171500415abe4e700d25df967ab67cd0587973bd5db9fd4bfdadbff65c",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A factory has 100 machines at the start of the year. During the year, the firm buys 12 new machines and retires 5 old ones. What is the change in its equipment stock over the year?",
+              "op": [
+                "An increase of 7 machines",
+                "An increase of 12 machines",
+                "A decrease of 5 machines",
+                "No change in the equipment stock"
+              ],
+              "ai": 0,
+              "ex": "An increase of 7 machines is correct because net investment equals gross investment minus depreciation, so 12 minus 5 gives a 7-machine rise in the capital stock. The tempting mistake is to count only purchases; that ignores the machines lost from depreciation and overstates the stock change.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            },
+            {
+              "q": "Which statement best describes when a capital stock grows?",
+              "op": [
+                "It grows only when net investment is positive",
+                "It grows whenever gross investment is positive",
+                "It grows whenever depreciation is positive",
+                "It grows whenever equipment is replaced"
+              ],
+              "ai": 0,
+              "ex": "It grows only when net investment is positive is correct because the stock rises when additions exceed losses over the period. A common confusion is to focus on gross investment alone, but if depreciation is larger, the stock does not grow.",
+              "sourceFactIndexes": [
+                2,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Capital stock",
+              "df": "The amount of productive equipment, structures, and tools available at a point in time.",
+              "eg": "A firm's plant, machines, and tools at the end of March are part of its capital stock.",
+              "mi": "It means the dollar value of sales during a year.",
+              "cx": "Use the stock idea to describe what is on hand at a moment, not what is earned over a period.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Net investment",
+              "df": "Gross additions minus wear and retirements over a period; it is the period-to-period change in the capital stock.",
+              "eg": "If a business buys 10 forklifts and loses 4 to depreciation in a year, its net investment is 6 forklifts.",
+              "mi": "It is the same thing as total spending on new equipment.",
+              "cx": "Subtract losses from purchases to find the amount that actually changes the stock.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "b329ec28cc3d6e72343dbd565cb32ea6d300eb2e847785875ae7d04ec1ab6685",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A factory has 100 machines at the start of the year. During the year, the firm buys 12 new machines and retires 5 old ones. What is the change in its equipment stock over the year?",
+              "op": [
+                "An increase of 7 machines",
+                "An increase of 12 machines",
+                "A decrease of 5 machines",
+                "No change in the equipment stock"
+              ],
+              "ai": 0,
+              "ex": "An increase of 7 machines is correct because net investment equals gross investment minus depreciation, so 12 minus 5 gives a 7-machine rise in the capital stock. The tempting mistake is to count only purchases; that ignores the machines lost from depreciation and overstates the stock change.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            },
+            {
+              "q": "Which statement best describes when a capital stock grows?",
+              "op": [
+                "It grows only when net investment is positive",
+                "It grows whenever gross investment is positive",
+                "It grows whenever depreciation is positive",
+                "It grows whenever equipment is replaced"
+              ],
+              "ai": 0,
+              "ex": "It grows only when net investment is positive is correct because the stock rises when additions exceed losses over the period. A common confusion is to focus on gross investment alone, but if depreciation is larger, the stock does not grow.",
+              "sourceFactIndexes": [
+                2,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Capital stock",
+              "df": "The amount of productive equipment, structures, and tools available at a point in time.",
+              "eg": "A firm's plant, machines, and tools at the end of March are part of its capital stock.",
+              "mi": "It means the dollar value of sales during a year.",
+              "cx": "Use the stock idea to describe what is on hand at a moment, not what is earned over a period.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Net investment",
+              "df": "Gross additions minus wear and retirements over a period; it is the period-to-period change in the capital stock.",
+              "eg": "If a business buys 10 forklifts and loses 4 to depreciation in a year, its net investment is 6 forklifts.",
+              "mi": "It is the same thing as total spending on new equipment.",
+              "cx": "Subtract losses from purchases to find the amount that actually changes the stock.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "b329ec28cc3d6e72343dbd565cb32ea6d300eb2e847785875ae7d04ec1ab6685",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0b359a7311cca377006a595dc50784819fb656731b1160fcdf",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 746,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 512,
+            "output_tokens_details": {
+              "reasoning_tokens": 45
+            },
+            "total_tokens": 1258
+          }
+        },
+        "startedAt": "2026-07-16T22:40:04.949Z",
+        "durationMs": 4299
+      },
+      {
+        "promptId": "economics-evidence-flows-measurement-studio:econ/proxy-variable",
+        "kernelId": "econ/proxy-variable",
+        "promptSha256": "db3d21b014da4079054dde05b9dc149827c6368ebe3c11563bd0c08a4c6b2a81",
+        "generationPromptSha256": "2e240fb628c25f657df873d859c091380737963e5222200cc73cf416908b5015",
+        "rawCallSha256": "31f3157cd8a71bfacd2c60fca727b562faa4d1437b1c7816357d0cf15789f993",
+        "recoveryCallSha256": "0e2deb0cef2c4c243202df6d1ed02059170e8b2ee10646888e40832146b11da8",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A class compares two places and finds the same GDP per person, then asks what that tells them about people’s living conditions. Which statement is most accurate?",
+              "op": [
+                "The equal GDP figures prove the two places have identical well-being.",
+                "The GDP figures give a partial indicator, but they may miss unpaid work, distribution, and",
+                "The GDP figures are useless because any proxy must be ignored.",
+                "The GDP figures fully measure the construct if the population sizes match."
+              ],
+              "ai": 1,
+              "ex": "The GDP figures give only a partial indicator, because the measure leaves out unpaid work, income distribution, and environmental costs. The tempting mistake is to treat equal GDP as proof of equal well-being, but a proxy is not the construct it stands in for.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which statement best describes a proxy variable?",
+              "op": [
+                "An observable stand-in used to measure an unobservable construct.",
+                "A direct observation of the construct itself.",
+                "A variable that fully captures every aspect of the construct.",
+                "A measure that is useful only when the construct is visible."
+              ],
+              "ai": 0,
+              "ex": "It is an observable stand-in for a construct you cannot directly see. It is not the construct itself, so it can miss what it leaves out.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Proxy variable",
+              "df": "An observable stand-in for a concept that cannot be measured directly.",
+              "eg": "A student uses GDP as a stand-in for economic well-being when discussing a country’s living conditions.",
+              "mi": "A proxy variable is the same thing as the hidden concept it represents.",
+              "cx": "That is incorrect because the proxy is only a measurable substitute, so it can leave important parts of the target concept unmeasured.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "GDP as a proxy for economic well-being",
+              "df": "A measure based on marketed output that is often used to approximate living conditions.",
+              "eg": "In a discussion of household welfare, a class uses GDP to compare countries even though unpaid work is not counted.",
+              "mi": "If GDP goes up, it must mean every part of well-being has improved.",
+              "cx": "That is false because the measure can miss unpaid work, how income is distributed, and environmental costs.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "995dfadd633136ac64894a9ca374f6cf0190de59e9ae3d9695ece233b8313199",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A class compares two places and finds the same GDP per person, then asks what that tells them about people’s living conditions. Which statement is most accurate?",
+              "op": [
+                "The equal GDP figures prove the two places have identical well-being.",
+                "The GDP figures give a partial indicator, but they may miss unpaid work, distribution, and",
+                "The GDP figures are useless because any proxy must be ignored.",
+                "The GDP figures fully measure the construct if the population sizes match."
+              ],
+              "ai": 1,
+              "ex": "The GDP figures give only a partial indicator, because the measure leaves out unpaid work, income distribution, and environmental costs. The tempting mistake is to treat equal GDP as proof of equal well-being, but a proxy is not the construct it stands in for.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which statement best describes a proxy variable?",
+              "op": [
+                "An observable stand-in used to measure an unobservable construct.",
+                "A direct observation of the construct itself.",
+                "A variable that fully captures every aspect of the construct.",
+                "A measure that is useful only when the construct is visible."
+              ],
+              "ai": 0,
+              "ex": "It is an observable stand-in for a construct you cannot directly see. It is not the construct itself, so it can miss what it leaves out.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Proxy variable",
+              "df": "An observable stand-in for a concept that cannot be measured directly.",
+              "eg": "A student uses GDP as a stand-in for economic well-being when discussing a country’s living conditions.",
+              "mi": "A proxy variable is the same thing as the hidden concept it represents.",
+              "cx": "That is incorrect because the proxy is only a measurable substitute, so it can leave important parts of the target concept unmeasured.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "GDP as a proxy for economic well-being",
+              "df": "A measure based on marketed output that is often used to approximate living conditions.",
+              "eg": "In a discussion of household welfare, a class uses GDP to compare countries even though unpaid work is not counted.",
+              "mi": "If GDP goes up, it must mean every part of well-being has improved.",
+              "cx": "That is false because the measure can miss unpaid work, how income is distributed, and environmental costs.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "995dfadd633136ac64894a9ca374f6cf0190de59e9ae3d9695ece233b8313199",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:36.262Z",
+        "durationMs": 2522
+      },
+      {
+        "promptId": "economics-evidence-flows-measurement-studio:econ/labor-force-classification",
+        "kernelId": "econ/labor-force-classification",
+        "promptSha256": "4ba723583c516405802fab372fdf79d65a34fd4ef40afcb2eb6323cc4a4d2d0f",
+        "generationPromptSha256": "1656e06b03e9a75464c9470dd3c0774756eff49730f248e21867092ecd89ddaf",
+        "rawCallSha256": "7caa2dec5066c129787ae4c38c00636aa2fdebd50451f1f681a0c257e8bf1c03",
+        "recoveryCallSha256": "4549c0819dfd999a09ad5188098e2ee256a9fdb60bdf203ace3f8bca5c986b50",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A statistical agency changes the rule for who counts as unemployed. What happens to the measured unemployment rate?",
+              "op": [
+                "It stays fixed because joblessness itself is unchanged",
+                "It can change because the boundary for unemployment moved",
+                "It must rise whenever more people stop searching",
+                "It must fall whenever more people are excluded"
+              ],
+              "ai": 1,
+              "ex": "It can change because where the boundary is drawn changes the measured unemployment rate. The common misconception is that the rate only reflects the underlying number of jobless people, but the classification rule itself affects the measure.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "How are people who have given up looking for work classified?",
+              "op": [
+                "As unemployed",
+                "As out of the labor force",
+                "As employed part time",
+                "As temporarily absent from work"
+              ],
+              "ai": 1,
+              "ex": "They are out of the labor force. They are not counted as unemployed, which is the tempting mistake.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Labor force classification",
+              "df": "A rule-based way of sorting people into categories such as unemployed or out of the labor force.",
+              "eg": "In class, a discouraged worker who stops looking for work is placed outside unemployment under this rule.",
+              "mi": "It means the same thing as a person’s actual willingness to work.",
+              "cx": "The category depends on the labor-force boundary, not on a hidden intention.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Discouraged worker",
+              "df": "A person excluded from unemployment counts after giving up active job search.",
+              "eg": "After months of unanswered applications, a job seeker stops looking and is no longer counted as unemployed.",
+              "mi": "It is someone who is counted as unemployed until they find a job.",
+              "cx": "The key distinction is that stopping the search moves the person out of unemployment measurement.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "3278c57b9931cb8d0a0e7ef0ba228f8f51297b3efeb0839ef8ff501d42a44467",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A statistical agency changes the rule for who counts as unemployed. What happens to the measured unemployment rate?",
+              "op": [
+                "It stays fixed because joblessness itself is unchanged",
+                "It can change because the boundary for unemployment moved",
+                "It must rise whenever more people stop searching",
+                "It must fall whenever more people are excluded"
+              ],
+              "ai": 1,
+              "ex": "It can change because where the boundary is drawn changes the measured unemployment rate. The common misconception is that the rate only reflects the underlying number of jobless people, but the classification rule itself affects the measure.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "How are people who have given up looking for work classified?",
+              "op": [
+                "As unemployed",
+                "As out of the labor force",
+                "As employed part time",
+                "As temporarily absent from work"
+              ],
+              "ai": 1,
+              "ex": "They are out of the labor force. They are not counted as unemployed, which is the tempting mistake.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Labor force classification",
+              "df": "A rule-based way of sorting people into categories such as unemployed or out of the labor force.",
+              "eg": "In class, a discouraged worker who stops looking for work is placed outside unemployment under this rule.",
+              "mi": "It means the same thing as a person’s actual willingness to work.",
+              "cx": "The category depends on the labor-force boundary, not on a hidden intention.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Discouraged worker",
+              "df": "A person excluded from unemployment counts after giving up active job search.",
+              "eg": "After months of unanswered applications, a job seeker stops looking and is no longer counted as unemployed.",
+              "mi": "It is someone who is counted as unemployed until they find a job.",
+              "cx": "The key distinction is that stopping the search moves the person out of unemployment measurement.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "3278c57b9931cb8d0a0e7ef0ba228f8f51297b3efeb0839ef8ff501d42a44467",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:38.786Z",
+        "durationMs": 1468
+      },
+      {
+        "promptId": "economics-evidence-flows-measurement-studio:econ/opportunity-cost",
+        "kernelId": "econ/opportunity-cost",
+        "promptSha256": "204e4423d484f4109d31b03f21cf703456b1edd51a096ba7f603ba5b1d5e750b",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student skips a paid tutoring hour to attend a free workshop that fills the same hour. What is the opportunity cost of attending the workshop?",
+              "op": [
+                "The pay from the tutoring hour that was given up",
+                "The workshop’s ticket price, which is zero",
+                "The value of the tutoring hour, because it was the next best alternative",
+                "The notebook and pen used during the workshop"
+              ],
+              "ai": 2,
+              "ex": "The opportunity cost is the value of the next best alternative that is given up, so the tutoring hour is the relevant loss here. The workshop being free does not erase that cost, and the notebook or pen are not the foregone alternative.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "A person takes a free online class and spends an evening on it instead of doing a paid side job. Which idea is most accurate?",
+              "op": [
+                "There is no cost because the class is free",
+                "The cost is only whatever cash was paid for access",
+                "The opportunity cost includes the work and time that could have produced something else",
+                "The best choice is always the one with the lowest sticker price"
+              ],
+              "ai": 2,
+              "ex": "The opportunity cost includes time or resources that could have produced another outcome, so the missed side-job value matters here. Focusing only on cash paid misses the strongest alternative use of the evening.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Opportunity cost",
+              "df": "The value of the best option that must be given up when a choice is made.",
+              "eg": "If a student studies for two hours instead of working for pay, the forgone pay is part of the opportunity cost.",
+              "mi": "It is only the money someone hands over at the checkout.",
+              "cx": "That mistake ignores the value of the alternative that was not chosen, including time or other resources.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Next best alternative",
+              "df": "The most valuable option left behind when a decision is made.",
+              "eg": "When a student attends a free workshop instead of a paid tutoring shift, the tutoring shift is the next best alternative.",
+              "mi": "It means any random option that was available.",
+              "cx": "The relevant alternative is the best one given up, not just any other choice on the table.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "b126eb486bd0101411fe87e2095ff81c5bd5eb63ee152775092a7a5624292d51",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student skips a paid tutoring hour to attend a free workshop that fills the same hour. What is the opportunity cost of attending the workshop?",
+              "op": [
+                "The pay from the tutoring hour that was given up",
+                "The workshop’s ticket price, which is zero",
+                "The value of the tutoring hour, because it was the next best alternative",
+                "The notebook and pen used during the workshop"
+              ],
+              "ai": 2,
+              "ex": "The opportunity cost is the value of the next best alternative that is given up, so the tutoring hour is the relevant loss here. The workshop being free does not erase that cost, and the notebook or pen are not the foregone alternative.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "A person takes a free online class and spends an evening on it instead of doing a paid side job. Which idea is most accurate?",
+              "op": [
+                "There is no cost because the class is free",
+                "The cost is only whatever cash was paid for access",
+                "The opportunity cost includes the work and time that could have produced something else",
+                "The best choice is always the one with the lowest sticker price"
+              ],
+              "ai": 2,
+              "ex": "The opportunity cost includes time or resources that could have produced another outcome, so the missed side-job value matters here. Focusing only on cash paid misses the strongest alternative use of the evening.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Opportunity cost",
+              "df": "The value of the best option that must be given up when a choice is made.",
+              "eg": "If a student studies for two hours instead of working for pay, the forgone pay is part of the opportunity cost.",
+              "mi": "It is only the money someone hands over at the checkout.",
+              "cx": "That mistake ignores the value of the alternative that was not chosen, including time or other resources.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Next best alternative",
+              "df": "The most valuable option left behind when a decision is made.",
+              "eg": "When a student attends a free workshop instead of a paid tutoring shift, the tutoring shift is the next best alternative.",
+              "mi": "It means any random option that was available.",
+              "cx": "The relevant alternative is the best one given up, not just any other choice on the table.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "b126eb486bd0101411fe87e2095ff81c5bd5eb63ee152775092a7a5624292d51",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0b4bfca84a89a941006a595dd39258819c8528a9e0c9bb4a97",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 742,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 1043,
+            "output_tokens_details": {
+              "reasoning_tokens": 565
+            },
+            "total_tokens": 1785
+          }
+        },
+        "startedAt": "2026-07-16T22:40:19.496Z",
+        "durationMs": 6791
+      }
+    ]
+  }
+}

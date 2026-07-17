@@ -1,0 +1,2169 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-economics-markets-choice-decision-lab-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Economics Markets and Choice Decision Lab, a six-session course in which students reason about demand, elasticity, equilibrium, inflation feedback, consumer choice, and model assumptions using small evidence-bounded decisions.",
+  "fileNames": [
+    "source-packet-a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016.json"
+  ],
+  "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Economics Markets and Choice Decision Lab\",\"sessions\":[{\"number\":1,\"title\":\"Price elasticity of demand\"},{\"number\":2,\"title\":\"Demand curve\"},{\"number\":3,\"title\":\"Market equilibrium\"},{\"number\":4,\"title\":\"Wage-price spiral\"},{\"number\":5,\"title\":\"Consumer choice\"},{\"number\":6,\"title\":\"Economic model\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"Which expression gives price elasticity of demand?\",\"op\":[\"percentage change in quantity demanded divided by percentage change in price\",\"change in quantity demanded divided by change in price\",\"percentage change in price divided by percentage change in quantity demanded\",\"change in price divided by change in quantity demanded\"],\"ai\":0,\"ex\":\"This is correct because elasticity compares the percentage change in quantity demanded with the percentage change in price. The slope-style option is a common misconception because it uses raw changes instead of percentages.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"Which feature most strongly makes demand more elastic for a good?\",\"op\":[\"having many close substitutes\",\"being a necessity for buyers\",\"having no change in price\",\"selling at a high total quantity\"],\"ai\":0,\"ex\":\"This is correct because the availability of close substitutes is a primary determinant of elasticity. The necessity option is the tempting misconception, but necessities tend to have inelastic demand because consumers have few substitutes.\",\"sourceFactIndexes\":[2,3,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Price elasticity of demand\",\"df\":\"A ratio showing how quantity demanded responds to a price change.\",\"eg\":\"If a price rises by 10% and quantity demanded falls by 20%, the elasticity is -2.\",\"mi\":\"It is the same as the market price level.\",\"cx\":\"It measures responsiveness, not the price itself.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Elastic demand\",\"df\":\"Demand that changes proportionally more than the price does.\",\"eg\":\"A small fare increase that leads many riders to switch to another route shows elastic demand when close alternatives are available.\",\"mi\":\"Any good with a high price is elastic.\",\"cx\":\"Elasticity depends on how buyers respond and on substitutes, not on the price tag alone.\",\"sourceFactIndexes\":[1,3,2]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"A coffee shop raises the price of its iced latte, and customers buy fewer lattes. Which description fits this evidence best?\",\"op\":[\"The quantity demanded moves along the demand curve.\",\"The demand curve shifts right because price rose.\",\"The demand curve shifts left because price rose.\",\"The good becomes more elastic because price rose.\"],\"ai\":0,\"ex\":\"The correct choice is the movement along the demand curve: a price change leads to movement, not a shift. The other choices confuse price changes with shifts, or mix up elasticity with the way the curve itself changes.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"A designer jacket becomes fashionable, so buyers are willing to purchase more at every price. What happens?\",\"op\":[\"The demand curve shifts right.\",\"The quantity demanded moves down the curve.\",\"The curve becomes flatter because tastes changed.\",\"The price level falls because demand changed.\"],\"ai\":0,\"ex\":\"The correct choice is that the demand curve shifts right: a change in tastes shifts the curve. The other choices either describe a movement caused by price, treat slope as the same thing as a shift, or infer a price result that is not given by the claim.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Demand curve\",\"df\":\"A relationship showing how much of a good consumers are willing and able to buy at each price, with other influences held fixed.\",\"eg\":\"When the price of a movie ticket changes, the demand curve is used to trace how much ticket quantity consumers are willing and able to buy at that price.\",\"mi\":\"It is the same thing as a full market outcome after buyers and sellers bargain.\",\"cx\":\"The curve summarizes buyer willingness and ability at different prices; it is not the final traded outcome.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Movement along the demand curve\",\"df\":\"A change in the quantity demanded caused by a change in the good’s own price.\",\"eg\":\"If the price of lemonade rises and customers buy fewer cups, the point slides to a different spot on the same demand curve.\",\"mi\":\"Any change in buyer purchases must mean the entire curve shifted.\",\"cx\":\"A price change moves you along one curve; shifts come from other influences such as income or tastes.\",\"sourceFactIndexes\":[2]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A store lists a good at a price that is above the market level where buyers and sellers agree. What is the most likely market result?\",\"op\":[\"A surplus forms, which puts downward pressure on the price.\",\"A shortage forms, which puts upward pressure on the price.\",\"The market is in equilibrium, so the price has no tendency to change.\",\"Demand shifts right, so the price must rise because buyers prefer it.\"],\"ai\":0,\"ex\":\"A surplus forms, which puts downward pressure on the price. The other choices confuse equilibrium with fairness, shortage, or a demand shift; only a price above the balance point creates excess supply under the given claims.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"At one price, buyers want exactly the same amount that sellers offer. What does this tell you about the market price?\",\"op\":[\"It is the equilibrium price, so there is no tendency for it to change.\",\"It is above equilibrium, so a surplus must be present.\",\"It is below equilibrium, so a shortage must be present.\",\"It is the highest price buyers will accept, so demand has ended.\"],\"ai\":0,\"ex\":\"It is the equilibrium price, so there is no tendency for it to change. The common mistake is to treat equilibrium as a fairness judgment or a ceiling; here, equal quantities from buyers and sellers identify the balance point instead.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Equilibrium price\",\"df\":\"The level where the two sides of the market match in quantity.\",\"eg\":\"In a class simulation, the trading price settled where the number of units students wanted to buy matched the number offered for sale.\",\"mi\":\"It is the price that feels fair to most people.\",\"cx\":\"The matching quantities matter, not a judgment about fairness.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Surplus\",\"df\":\"An excess supply situation that appears when sellers offer more than buyers want at a given price.\",\"eg\":\"When a café set its sandwich price too high, several sandwiches remained unsold at the end of lunch.\",\"mi\":\"It means the good is in short supply and people cannot find enough of it.\",\"cx\":\"The correction is that excess supply pushes the price downward, not upward.\",\"sourceFactIndexes\":[2]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"What kind of feedback is a wage-price spiral?\",\"op\":[\"Positive feedback that amplifies the initial change.\",\"Negative feedback that dampens the initial change.\",\"No feedback because wages and prices move independently.\",\"A one-time shock with no further effects.\"],\"ai\":0,\"ex\":\"Positive feedback makes the first change grow rather than shrink. It is not negative feedback that pushes the system back.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Wage-price spiral\",\"df\":\"A loop where rising prices can trigger higher wage demands, and those higher wages can then push prices up again.\",\"eg\":\"In a lesson on inflation feedback, students trace how higher prices can lead to higher wages and then to another round of price increases.\",\"mi\":\"It is just any situation where wages go up once and prices happen to rise later.\",\"cx\":\"That correction matters because the term refers to a self-reinforcing cycle, not merely two separate events.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Positive feedback\",\"df\":\"A process in which the initial change is strengthened instead of reduced.\",\"eg\":\"When the class models the spiral, a first price increase can be followed by further increases rather than being damped away.\",\"mi\":\"It always means the system becomes fairer or more stable.\",\"cx\":\"In this context, the key idea is amplification, not fairness or automatic stability.\",\"sourceFactIndexes\":[1,2]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"Which statement best describes consumer choice theory?\",\"op\":[\"It shows how a consumer maximizes utility subject to a budget constraint.\",\"It says consumers always buy the cheapest bundle available.\",\"It assumes satisfaction is highest when spending exceeds the budget.\",\"It predicts people choose randomly when prices change.\"],\"ai\":0,\"ex\":\"It matches maximizing utility within a budget. The mistake is thinking the cheapest bundle is always best.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"budget constraint\",\"df\":\"A spending limit that the chosen bundle must fit within.\",\"eg\":\"In the course task, a student can only select snack combinations whose total cost stays within the available money.\",\"mi\":\"It means the consumer may buy whatever seems nicest, even if it costs more than they have.\",\"cx\":\"The correction is that the budget sets a limit, and the choice has to remain affordable.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"utility maximization\",\"df\":\"Picking the affordable option that gives the greatest satisfaction.\",\"eg\":\"When comparing two lunch baskets, a student chooses the one that fits the budget and feels best overall.\",\"mi\":\"It means choosing the biggest bundle regardless of cost.\",\"cx\":\"The correction is that the best bundle is the one with the highest satisfaction among the affordable options.\",\"sourceFactIndexes\":[0,1]}]},\"lesson-6\":{\"quizItems\":[{\"q\":\"A student is deciding whether a market diagram helps answer a question about food prices. Which choice best describes when an economic model is useful?\",\"op\":[\"It keeps only the features relevant to the question and leaves out the rest.\",\"It is useful only when every assumption is exactly true.\",\"It is useful only when the market is perfectly fair.\",\"It must include every detail so the result is complete.\"],\"ai\":0,\"ex\":\"It is useful when it simplifies reality by keeping the features that matter for the question. A common misconception is that a model works only if every assumption is literally exact, but a model can still be useful when its assumptions are close enough for the question at hand.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"A supply-and-demand model is used to estimate the effect of a tax, but one key assumption does not fit the market. What is the best conclusion?\",\"op\":[\"The model may be misleading because a key assumption breaks.\",\"The model is always wrong because all assumptions are false.\",\"The model proves the tax is unfair.\",\"The model must predict the exact price with no error.\"],\"ai\":0,\"ex\":\"The model may be misleading because a key assumption breaks. A common mistake is to treat any imperfect assumption as fatal, but the claim is narrower: models are useful when assumptions are close enough and misleading when a key assumption fails.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Economic model\",\"df\":\"A simplified representation that keeps what matters for a question and leaves out the rest.\",\"eg\":\"In class, a demand-and-supply diagram can serve as an economic model for studying how a price change affects quantity traded.\",\"mi\":\"It is a complete copy of the real economy.\",\"cx\":\"The model is not a full replica; it is a focused tool that omits details irrelevant to the question.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Assumption\",\"df\":\"A condition a model accepts in order to make analysis manageable.\",\"eg\":\"A supply-and-demand exercise may assume rational choice so students can analyze the market clearly.\",\"mi\":\"It is proof that the real world always behaves exactly that way.\",\"cx\":\"An assumption is a starting point for the model, not a guarantee about actual behavior.\",\"sourceFactIndexes\":[1,2]}]}}}}",
+  "savedAt": "2026-07-16T22:42:34.587Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-course-group-breadth-v0.16.47.json",
+    "campaignManifestSha256": "54233a8e64074f0060a69d3ac778f719850220092ba51eb87ca10ef1fa0c3693",
+    "promptSetSha256": "5a44124735946a0ae568082769b29d43575b9bffa20cea1c81a520d7d48df40f",
+    "courseInputSha256": "b595ade323a86b54b5a874652b69e23c50dc7b50918dcde28ce7324722b97c04",
+    "courseGroupId": "economics-markets-choice-decision-lab",
+    "courseGroupSha256": "9426f3e12b3325688e416610cd8e80ad451c6206c0546f0c7a384639a8f29961",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/econ-intro.json",
+      "sourceArtifactSha256": "80169c3278f2f18968a60614e01674543cf25cea22529f5815aaa432cd886286",
+      "kernels": [
+        {
+          "id": "econ/price-elasticity-of-demand",
+          "term": "Price elasticity of demand",
+          "definition": "Price elasticity of demand is the percentage change in quantity demanded divided by the percentage change in price.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#5",
+            "loc": "5.1",
+            "quote": "the percentage change in quantity demanded divided by the percentage change in price"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Demand is elastic when the absolute value of the elasticity is greater than one.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#5",
+                "loc": "5.1",
+                "quote": "Demand is described as elastic when the absolute value of the elasticity is greater than one"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Necessities tend to have inelastic demand because consumers have few substitutes.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#5",
+                "loc": "5.2",
+                "quote": "Necessities tend to have inelastic demand because consumers have few substitutes"
+              }
+            },
+            {
+              "index": 2,
+              "text": "The availability of close substitutes is a primary determinant of elasticity.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#5",
+                "loc": "5.2",
+                "quote": "The availability of close substitutes is a primary determinant of elasticity"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 5"
+          ]
+        },
+        {
+          "id": "econ/demand-curve",
+          "term": "Demand curve",
+          "definition": "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#3",
+            "loc": "3.1",
+            "quote": "the quantity of a good that consumers are willing and able to purchase at each price, holding all other factors constant"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Demand curves typically slope downward, reflecting the law of demand.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#3",
+                "loc": "3.1",
+                "quote": "Demand curves typically slope downward, reflecting the law of demand"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#3",
+                "loc": "3.2",
+                "quote": "A change in price causes a movement along the demand curve"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 3"
+          ]
+        },
+        {
+          "id": "econ/market-equilibrium",
+          "term": "Market equilibrium",
+          "definition": "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#4",
+            "loc": "4.1",
+            "quote": "the price where the quantity demanded by buyers equals the quantity supplied by sellers"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "At the equilibrium price the opposing pressures of demand and supply are balanced and the price has no tendency to change.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#4",
+                "loc": "4.1",
+                "quote": "the opposing pressures of demand and supply are balanced and there is no tendency for the price to change"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A price above equilibrium creates a surplus that pushes it down; a price below creates a shortage that pushes it up.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#4",
+                "loc": "4.2",
+                "quote": "a surplus pushes it down, and when the price is below equilibrium a shortage pushes it up"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 4"
+          ]
+        },
+        {
+          "id": "econ/wage-price-spiral",
+          "term": "Wage-price spiral",
+          "definition": "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "definitionAnchor": {
+            "src": "openstax:macroeconomics-2e#11",
+            "loc": "11.3",
+            "quote": "rising prices lead workers to demand higher wages, and the higher wage costs lead firms to raise prices further"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#11",
+                "loc": "11.3",
+                "quote": "positive feedback, in which an initial change is amplified rather than damped"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Unlike negative feedback, positive feedback drives the system further from where it started.",
+              "anchor": {
+                "src": "openstax:macroeconomics-2e#11",
+                "loc": "11.3",
+                "quote": "positive feedback drives the system further from where it started"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+          ]
+        },
+        {
+          "id": "econ/consumer-choice",
+          "term": "Consumer choice",
+          "definition": "Consumer choice theory models how a consumer maximizes utility subject to a budget constraint.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#6",
+            "loc": "6.1",
+            "quote": "how a consumer maximizes utility subject to a budget constraint"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The consumer selects the affordable bundle of goods that yields the highest satisfaction.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#6",
+                "loc": "6.1",
+                "quote": "selects the affordable bundle of goods that yields the highest satisfaction"
+              }
+            },
+            {
+              "index": 1,
+              "text": "At the optimal choice, utility cannot be increased without exceeding the budget, so the consumer faces a tradeoff between goods.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#6",
+                "loc": "6.2",
+                "quote": "utility cannot be increased without exceeding the budget, so the consumer faces a tradeoff between goods"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 6"
+          ]
+        },
+        {
+          "id": "econ/economic-model",
+          "term": "Economic model",
+          "definition": "An economic model is a simplified representation of reality that keeps the features relevant to a question and discards the rest.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#1",
+            "loc": "1.2",
+            "quote": "a simplified representation of reality that keeps the features relevant to a question and discards the rest"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Models such as supply and demand make assumptions, like rational choice or perfect competition, that do not hold exactly.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#1",
+                "loc": "1.2",
+                "quote": "make assumptions, like rational choice or perfect competition, that do not hold exactly"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#1",
+                "loc": "1.2",
+                "quote": "useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 1"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-16T22:42:34.587Z",
+    "admittedPromptIds": [
+      "economics-markets-choice-decision-lab:econ/price-elasticity-of-demand",
+      "economics-markets-choice-decision-lab:econ/demand-curve",
+      "economics-markets-choice-decision-lab:econ/market-equilibrium",
+      "economics-markets-choice-decision-lab:econ/wage-price-spiral",
+      "economics-markets-choice-decision-lab:econ/consumer-choice",
+      "economics-markets-choice-decision-lab:econ/economic-model"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "economics-markets-choice-decision-lab:econ/price-elasticity-of-demand",
+          "kernelId": "econ/price-elasticity-of-demand",
+          "promptSha256": "c7eeba302da2254bc5aa81c2831f170439d84a9f3738ebc5b78f7756bb62ac5f",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which expression gives price elasticity of demand?",
+                "op": [
+                  "percentage change in quantity demanded divided by percentage change in price",
+                  "change in quantity demanded divided by change in price",
+                  "percentage change in price divided by percentage change in quantity demanded",
+                  "change in price divided by change in quantity demanded"
+                ],
+                "ai": 0,
+                "ex": "This is correct because elasticity compares the percentage change in quantity demanded with the percentage change in price. The slope-style option is a common misconception because it uses raw changes instead of percentages.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Which feature most strongly makes demand more elastic for a good?",
+                "op": [
+                  "having many close substitutes",
+                  "being a necessity for buyers",
+                  "having no change in price",
+                  "selling at a high total quantity"
+                ],
+                "ai": 0,
+                "ex": "This is correct because the availability of close substitutes is a primary determinant of elasticity. The necessity option is the tempting misconception, but necessities tend to have inelastic demand because consumers have few substitutes.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Price elasticity of demand",
+                "df": "A ratio showing how quantity demanded responds to a price change.",
+                "eg": "If a price rises by 10% and quantity demanded falls by 20%, the elasticity is -2.",
+                "mi": "It is the same as the market price level.",
+                "cx": "It measures responsiveness, not the price itself.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Elastic demand",
+                "df": "Demand that changes proportionally more than the price does.",
+                "eg": "A small fare increase that leads many riders to switch to another route shows elastic demand when close alternatives are available.",
+                "mi": "Any good with a high price is elastic.",
+                "cx": "Elasticity depends on how buyers respond and on substitutes, not on the price tag alone.",
+                "sourceFactIndexes": [
+                  1,
+                  3,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "09a373b12aa4f2ea3882c1c2f714703f0076628d4d25b78adb5390e1bb18f6cc",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which expression gives price elasticity of demand?",
+                "op": [
+                  "percentage change in quantity demanded divided by percentage change in price",
+                  "change in quantity demanded divided by change in price",
+                  "percentage change in price divided by percentage change in quantity demanded",
+                  "change in price divided by change in quantity demanded"
+                ],
+                "ai": 0,
+                "ex": "This is correct because elasticity compares the percentage change in quantity demanded with the percentage change in price. The slope-style option is a common misconception because it uses raw changes instead of percentages.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Which feature most strongly makes demand more elastic for a good?",
+                "op": [
+                  "having many close substitutes",
+                  "being a necessity for buyers",
+                  "having no change in price",
+                  "selling at a high total quantity"
+                ],
+                "ai": 0,
+                "ex": "This is correct because the availability of close substitutes is a primary determinant of elasticity. The necessity option is the tempting misconception, but necessities tend to have inelastic demand because consumers have few substitutes.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Price elasticity of demand",
+                "df": "A ratio showing how quantity demanded responds to a price change.",
+                "eg": "If a price rises by 10% and quantity demanded falls by 20%, the elasticity is -2.",
+                "mi": "It is the same as the market price level.",
+                "cx": "It measures responsiveness, not the price itself.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Elastic demand",
+                "df": "Demand that changes proportionally more than the price does.",
+                "eg": "A small fare increase that leads many riders to switch to another route shows elastic demand when close alternatives are available.",
+                "mi": "Any good with a high price is elastic.",
+                "cx": "Elasticity depends on how buyers respond and on substitutes, not on the price tag alone.",
+                "sourceFactIndexes": [
+                  1,
+                  3,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "09a373b12aa4f2ea3882c1c2f714703f0076628d4d25b78adb5390e1bb18f6cc",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0fc5fcace365d364006a595d9b75d481a39054b8ca37986b4d",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 757,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 805,
+              "output_tokens_details": {
+                "reasoning_tokens": 420
+              },
+              "total_tokens": 1562
+            }
+          },
+          "startedAt": "2026-07-16T22:39:23.377Z",
+          "durationMs": 6042
+        },
+        {
+          "promptId": "economics-markets-choice-decision-lab:econ/demand-curve",
+          "kernelId": "econ/demand-curve",
+          "promptSha256": "b18c4cc8b19794dad9fa962ab93dde34ad0273ef8c358df3244e71e27ee32c1f",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A coffee shop raises the price of its iced latte, and customers buy fewer lattes. Which description fits this evidence best?",
+                "op": [
+                  "The quantity demanded moves along the demand curve.",
+                  "The demand curve shifts right because price rose.",
+                  "The demand curve shifts left because price rose.",
+                  "The good becomes more elastic because price rose."
+                ],
+                "ai": 0,
+                "ex": "The correct choice is the movement along the demand curve: a price change leads to movement, not a shift. The other choices confuse price changes with shifts, or mix up elasticity with the way the curve itself changes.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "A designer jacket becomes fashionable, so buyers are willing to purchase more at every price. What happens?",
+                "op": [
+                  "The demand curve shifts right.",
+                  "The quantity demanded moves down the curve.",
+                  "The curve becomes flatter because tastes changed.",
+                  "The price level falls because demand changed."
+                ],
+                "ai": 0,
+                "ex": "The correct choice is that the demand curve shifts right: a change in tastes shifts the curve. The other choices either describe a movement caused by price, treat slope as the same thing as a shift, or infer a price result that is not given by the claim.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Demand curve",
+                "df": "A relationship showing how much of a good consumers are willing and able to buy at each price, with other influences held fixed.",
+                "eg": "When the price of a movie ticket changes, the demand curve is used to trace how much ticket quantity consumers are willing and able to buy at that price.",
+                "mi": "It is the same thing as a full market outcome after buyers and sellers bargain.",
+                "cx": "The curve summarizes buyer willingness and ability at different prices; it is not the final traded outcome.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Movement along the demand curve",
+                "df": "A change in the quantity demanded caused by a change in the good’s own price.",
+                "eg": "If the price of lemonade rises and customers buy fewer cups, the point slides to a different spot on the same demand curve.",
+                "mi": "Any change in buyer purchases must mean the entire curve shifted.",
+                "cx": "A price change moves you along one curve; shifts come from other influences such as income or tastes.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "d1765cee5e9096af8c5c0a856328a5772d6525976fd0c7d48976ceef79819570",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A coffee shop raises the price of its iced latte, and customers buy fewer lattes. Which description fits this evidence best?",
+                "op": [
+                  "The quantity demanded moves along the demand curve.",
+                  "The demand curve shifts right because price rose.",
+                  "The demand curve shifts left because price rose.",
+                  "The good becomes more elastic because price rose."
+                ],
+                "ai": 0,
+                "ex": "The correct choice is the movement along the demand curve: a price change leads to movement, not a shift. The other choices confuse price changes with shifts, or mix up elasticity with the way the curve itself changes.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "A designer jacket becomes fashionable, so buyers are willing to purchase more at every price. What happens?",
+                "op": [
+                  "The demand curve shifts right.",
+                  "The quantity demanded moves down the curve.",
+                  "The curve becomes flatter because tastes changed.",
+                  "The price level falls because demand changed."
+                ],
+                "ai": 0,
+                "ex": "The correct choice is that the demand curve shifts right: a change in tastes shifts the curve. The other choices either describe a movement caused by price, treat slope as the same thing as a shift, or infer a price result that is not given by the claim.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Demand curve",
+                "df": "A relationship showing how much of a good consumers are willing and able to buy at each price, with other influences held fixed.",
+                "eg": "When the price of a movie ticket changes, the demand curve is used to trace how much ticket quantity consumers are willing and able to buy at that price.",
+                "mi": "It is the same thing as a full market outcome after buyers and sellers bargain.",
+                "cx": "The curve summarizes buyer willingness and ability at different prices; it is not the final traded outcome.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Movement along the demand curve",
+                "df": "A change in the quantity demanded caused by a change in the good’s own price.",
+                "eg": "If the price of lemonade rises and customers buy fewer cups, the point slides to a different spot on the same demand curve.",
+                "mi": "Any change in buyer purchases must mean the entire curve shifted.",
+                "cx": "A price change moves you along one curve; shifts come from other influences such as income or tastes.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "d1765cee5e9096af8c5c0a856328a5772d6525976fd0c7d48976ceef79819570",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_049698756bdd3d7a006a595da1809481a1a7eb4fa7f24a66fd",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 744,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 532,
+              "output_tokens_details": {
+                "reasoning_tokens": 52
+              },
+              "total_tokens": 1276
+            }
+          },
+          "startedAt": "2026-07-16T22:39:29.421Z",
+          "durationMs": 4355
+        },
+        {
+          "promptId": "economics-markets-choice-decision-lab:econ/market-equilibrium",
+          "kernelId": "econ/market-equilibrium",
+          "promptSha256": "be01c0051efbe58cfcfaf5f1e6936f2c7ec6b39e95b454325f5b42775c805976",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A store lists a good at a price that is above the market level where buyers and sellers agree. What is the most likely market result?",
+                "op": [
+                  "A surplus forms, which puts downward pressure on the price.",
+                  "A shortage forms, which puts upward pressure on the price.",
+                  "The market is in equilibrium, so the price has no tendency to change.",
+                  "Demand shifts right, so the price must rise because buyers prefer it."
+                ],
+                "ai": 0,
+                "ex": "A surplus forms, which puts downward pressure on the price. The other choices confuse equilibrium with fairness, shortage, or a demand shift; only a price above the balance point creates excess supply under the given claims.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "At one price, buyers want exactly the same amount that sellers offer. What does this tell you about the market price?",
+                "op": [
+                  "It is the equilibrium price, so there is no tendency for it to change.",
+                  "It is above equilibrium, so a surplus must be present.",
+                  "It is below equilibrium, so a shortage must be present.",
+                  "It is the highest price buyers will accept, so demand has ended."
+                ],
+                "ai": 0,
+                "ex": "It is the equilibrium price, so there is no tendency for it to change. The common mistake is to treat equilibrium as a fairness judgment or a ceiling; here, equal quantities from buyers and sellers identify the balance point instead.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Equilibrium price",
+                "df": "The level where the two sides of the market match in quantity.",
+                "eg": "In a class simulation, the trading price settled where the number of units students wanted to buy matched the number offered for sale.",
+                "mi": "It is the price that feels fair to most people.",
+                "cx": "The matching quantities matter, not a judgment about fairness.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Surplus",
+                "df": "An excess supply situation that appears when sellers offer more than buyers want at a given price.",
+                "eg": "When a café set its sandwich price too high, several sandwiches remained unsold at the end of lunch.",
+                "mi": "It means the good is in short supply and people cannot find enough of it.",
+                "cx": "The correction is that excess supply pushes the price downward, not upward.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "aa3e38bc6eb2d305b53abbde8118aed54766b419172ad22b348a081efe975afb",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A store lists a good at a price that is above the market level where buyers and sellers agree. What is the most likely market result?",
+                "op": [
+                  "A surplus forms, which puts downward pressure on the price.",
+                  "A shortage forms, which puts upward pressure on the price.",
+                  "The market is in equilibrium, so the price has no tendency to change.",
+                  "Demand shifts right, so the price must rise because buyers prefer it."
+                ],
+                "ai": 0,
+                "ex": "A surplus forms, which puts downward pressure on the price. The other choices confuse equilibrium with fairness, shortage, or a demand shift; only a price above the balance point creates excess supply under the given claims.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "At one price, buyers want exactly the same amount that sellers offer. What does this tell you about the market price?",
+                "op": [
+                  "It is the equilibrium price, so there is no tendency for it to change.",
+                  "It is above equilibrium, so a surplus must be present.",
+                  "It is below equilibrium, so a shortage must be present.",
+                  "It is the highest price buyers will accept, so demand has ended."
+                ],
+                "ai": 0,
+                "ex": "It is the equilibrium price, so there is no tendency for it to change. The common mistake is to treat equilibrium as a fairness judgment or a ceiling; here, equal quantities from buyers and sellers identify the balance point instead.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Equilibrium price",
+                "df": "The level where the two sides of the market match in quantity.",
+                "eg": "In a class simulation, the trading price settled where the number of units students wanted to buy matched the number offered for sale.",
+                "mi": "It is the price that feels fair to most people.",
+                "cx": "The matching quantities matter, not a judgment about fairness.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Surplus",
+                "df": "An excess supply situation that appears when sellers offer more than buyers want at a given price.",
+                "eg": "When a café set its sandwich price too high, several sandwiches remained unsold at the end of lunch.",
+                "mi": "It means the good is in short supply and people cannot find enough of it.",
+                "cx": "The correction is that excess supply pushes the price downward, not upward.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "aa3e38bc6eb2d305b53abbde8118aed54766b419172ad22b348a081efe975afb",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_02b13c75372912ec006a595da5dc7c819db71e1e6884447555",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 748,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 663,
+              "output_tokens_details": {
+                "reasoning_tokens": 179
+              },
+              "total_tokens": 1411
+            }
+          },
+          "startedAt": "2026-07-16T22:39:33.776Z",
+          "durationMs": 5067
+        },
+        {
+          "promptId": "economics-markets-choice-decision-lab:econ/wage-price-spiral",
+          "kernelId": "econ/wage-price-spiral",
+          "promptSha256": "c8be1c6ce513692832156254ac05e6c9b2d4cabad5fabe0f59906ef66223627e",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement best matches a wage-price spiral?",
+                "op": [
+                  "Higher prices can lead workers to seek higher wages, and those higher labor costs can push more",
+                  "Prices move because of a one-time shortage, then the change stops on its own",
+                  "Wage changes and price changes cancel each other out, so the system returns to its start",
+                  "Firms raise prices only when demand shifts outward, not when wages rise"
+                ],
+                "ai": 0,
+                "ex": "The first option matches a cycle in which rising prices lead to higher wage demands, and higher wages then lead firms to raise prices again. A common misconception is to treat the process as a one-time change or a simple demand shift, but the claim describes a reinforcing loop, not a single step.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "In this course, what does positive feedback mean for a wage-price spiral?",
+                "op": [
+                  "An initial rise is amplified, so the system moves farther from its starting point",
+                  "A price increase is offset, so the system automatically returns to the same level",
+                  "Only workers react, while firms do not change prices afterward",
+                  "The effect is fixed at the first change, so later responses do not matter"
+                ],
+                "ai": 0,
+                "ex": "The first option is correct because positive feedback amplifies the initial change rather than damping it. The most plausible mistake is to confuse it with negative feedback, which would push the system back toward where it started.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Wage-price spiral",
+                "df": "A loop where rising prices can trigger higher wage demands, and those higher wages can then push prices up again.",
+                "eg": "In a lesson on inflation feedback, students trace how higher prices can lead to higher wages and then to another round of price increases.",
+                "mi": "It is just any situation where wages go up once and prices happen to rise later.",
+                "cx": "That correction matters because the term refers to a self-reinforcing cycle, not merely two separate events.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Positive feedback",
+                "df": "A process in which the initial change is strengthened instead of reduced.",
+                "eg": "When the class models the spiral, a first price increase can be followed by further increases rather than being damped away.",
+                "mi": "It always means the system becomes fairer or more stable.",
+                "cx": "In this context, the key idea is amplification, not fairness or automatic stability.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "49dd2b0fba3fce245e1e335e83a3bf2a5f84e9a73a8b6f0da6ce145e23bac354",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Wage-price spiral",
+                "df": "A loop where rising prices can trigger higher wage demands, and those higher wages can then push prices up again.",
+                "eg": "In a lesson on inflation feedback, students trace how higher prices can lead to higher wages and then to another round of price increases.",
+                "mi": "It is just any situation where wages go up once and prices happen to rise later.",
+                "cx": "That correction matters because the term refers to a self-reinforcing cycle, not merely two separate events.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Positive feedback",
+                "df": "A process in which the initial change is strengthened instead of reduced.",
+                "eg": "When the class models the spiral, a first price increase can be followed by further increases rather than being damped away.",
+                "mi": "It always means the system becomes fairer or more stable.",
+                "cx": "In this context, the key idea is amplification, not fairness or automatic stability.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "77aebfa9671360fe20b04f83421b28d44d921a409874f863cb6f339b94c0e42c",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-explanation-key-conflict",
+              "mc-1-process-leakage",
+              "mc-1-meta-surface",
+              "mc-1-explanation-key-conflict",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_05f97088a7616ceb006a595daaed8c81a297d51e20b6096230",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 755,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 598,
+              "output_tokens_details": {
+                "reasoning_tokens": 87
+              },
+              "total_tokens": 1353
+            }
+          },
+          "startedAt": "2026-07-16T22:39:38.844Z",
+          "durationMs": 4827
+        },
+        {
+          "promptId": "economics-markets-choice-decision-lab:econ/consumer-choice",
+          "kernelId": "econ/consumer-choice",
+          "promptSha256": "0d224ad3267257997e495d3d55fd35e68954b85e2edd2680f9cb19325ee2d8a1",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student can buy only one of three snack bundles. Which choice matches consumer choice theory?",
+                "op": [
+                  "The bundle that gives the highest satisfaction while staying within the budget",
+                  "The bundle with the highest price because it must be the best quality",
+                  "The bundle with the most items even if it costs more than the budget",
+                  "Any bundle that makes the spending exactly equal across goods"
+                ],
+                "ai": 0,
+                "ex": "The best choice is the affordable bundle that gives the highest satisfaction, because consumer choice theory says the consumer maximizes utility subject to a budget constraint. A common mistake is to treat the most expensive or largest bundle as automatically best, but the claim requires the choice,",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "At the consumer's best affordable bundle, what is true about gaining more utility?",
+                "op": [
+                  "More utility would require spending beyond the budget",
+                  "More utility is guaranteed by shifting to any more expensive bundle",
+                  "More utility is achieved by making spending equal on all goods",
+                  "More utility is impossible because the consumer already has no tradeoff"
+                ],
+                "ai": 0,
+                "ex": "More utility would require spending beyond the budget, which matches the idea that utility cannot be increased without exceeding the budget at the optimal choice. The misconception is that a more expensive bundle is always better or that the tradeoff disappears, but the claim says the consumer still",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "budget constraint",
+                "df": "A spending limit that the chosen bundle must fit within.",
+                "eg": "In the course task, a student can only select snack combinations whose total cost stays within the available money.",
+                "mi": "It means the consumer may buy whatever seems nicest, even if it costs more than they have.",
+                "cx": "The correction is that the budget sets a limit, and the choice has to remain affordable.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "utility maximization",
+                "df": "Picking the affordable option that gives the greatest satisfaction.",
+                "eg": "When comparing two lunch baskets, a student chooses the one that fits the budget and feels best overall.",
+                "mi": "It means choosing the biggest bundle regardless of cost.",
+                "cx": "The correction is that the best bundle is the one with the highest satisfaction among the affordable options.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "8111454b7ab5205a987e381a991f4e13717137b233d5f2384f39ea050e1a023f",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "budget constraint",
+                "df": "A spending limit that the chosen bundle must fit within.",
+                "eg": "In the course task, a student can only select snack combinations whose total cost stays within the available money.",
+                "mi": "It means the consumer may buy whatever seems nicest, even if it costs more than they have.",
+                "cx": "The correction is that the budget sets a limit, and the choice has to remain affordable.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "utility maximization",
+                "df": "Picking the affordable option that gives the greatest satisfaction.",
+                "eg": "When comparing two lunch baskets, a student chooses the one that fits the budget and feels best overall.",
+                "mi": "It means choosing the biggest bundle regardless of cost.",
+                "cx": "The correction is that the best bundle is the one with the highest satisfaction among the affordable options.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "ee53637135d5d810b52a08adaa5be6e17a9cfbf216f8eadd5d698d36389a52ff",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-1-truncated-explanation",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_01d7cfd14cee04ee006a595dafbf60819cad10d104c76ec2e1",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 737,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 653,
+              "output_tokens_details": {
+                "reasoning_tokens": 174
+              },
+              "total_tokens": 1390
+            }
+          },
+          "startedAt": "2026-07-16T22:39:43.672Z",
+          "durationMs": 5109
+        },
+        {
+          "promptId": "economics-markets-choice-decision-lab:econ/economic-model",
+          "kernelId": "econ/economic-model",
+          "promptSha256": "6b5777953627a2883af6d248410640c59048a5b59e4766d47251a43470731fff",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student is deciding whether a market diagram helps answer a question about food prices. Which choice best describes when an economic model is useful?",
+                "op": [
+                  "It keeps only the features relevant to the question and leaves out the rest.",
+                  "It is useful only when every assumption is exactly true.",
+                  "It is useful only when the market is perfectly fair.",
+                  "It must include every detail so the result is complete."
+                ],
+                "ai": 0,
+                "ex": "It is useful when it simplifies reality by keeping the features that matter for the question. A common misconception is that a model works only if every assumption is literally exact, but a model can still be useful when its assumptions are close enough for the question at hand.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "A supply-and-demand model is used to estimate the effect of a tax, but one key assumption does not fit the market. What is the best conclusion?",
+                "op": [
+                  "The model may be misleading because a key assumption breaks.",
+                  "The model is always wrong because all assumptions are false.",
+                  "The model proves the tax is unfair.",
+                  "The model must predict the exact price with no error."
+                ],
+                "ai": 0,
+                "ex": "The model may be misleading because a key assumption breaks. A common mistake is to treat any imperfect assumption as fatal, but the claim is narrower: models are useful when assumptions are close enough and misleading when a key assumption fails.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Economic model",
+                "df": "A simplified representation that keeps what matters for a question and leaves out the rest.",
+                "eg": "In class, a demand-and-supply diagram can serve as an economic model for studying how a price change affects quantity traded.",
+                "mi": "It is a complete copy of the real economy.",
+                "cx": "The model is not a full replica; it is a focused tool that omits details irrelevant to the question.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Assumption",
+                "df": "A condition a model accepts in order to make analysis manageable.",
+                "eg": "A supply-and-demand exercise may assume rational choice so students can analyze the market clearly.",
+                "mi": "It is proof that the real world always behaves exactly that way.",
+                "cx": "An assumption is a starting point for the model, not a guarantee about actual behavior.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "97c25c8769e2267732f1e113cea4f497cd72a9f86da6d09a62947808e934dc80",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student is deciding whether a market diagram helps answer a question about food prices. Which choice best describes when an economic model is useful?",
+                "op": [
+                  "It keeps only the features relevant to the question and leaves out the rest.",
+                  "It is useful only when every assumption is exactly true.",
+                  "It is useful only when the market is perfectly fair.",
+                  "It must include every detail so the result is complete."
+                ],
+                "ai": 0,
+                "ex": "It is useful when it simplifies reality by keeping the features that matter for the question. A common misconception is that a model works only if every assumption is literally exact, but a model can still be useful when its assumptions are close enough for the question at hand.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "A supply-and-demand model is used to estimate the effect of a tax, but one key assumption does not fit the market. What is the best conclusion?",
+                "op": [
+                  "The model may be misleading because a key assumption breaks.",
+                  "The model is always wrong because all assumptions are false.",
+                  "The model proves the tax is unfair.",
+                  "The model must predict the exact price with no error."
+                ],
+                "ai": 0,
+                "ex": "The model may be misleading because a key assumption breaks. A common mistake is to treat any imperfect assumption as fatal, but the claim is narrower: models are useful when assumptions are close enough and misleading when a key assumption fails.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Economic model",
+                "df": "A simplified representation that keeps what matters for a question and leaves out the rest.",
+                "eg": "In class, a demand-and-supply diagram can serve as an economic model for studying how a price change affects quantity traded.",
+                "mi": "It is a complete copy of the real economy.",
+                "cx": "The model is not a full replica; it is a focused tool that omits details irrelevant to the question.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Assumption",
+                "df": "A condition a model accepts in order to make analysis manageable.",
+                "eg": "A supply-and-demand exercise may assume rational choice so students can analyze the market clearly.",
+                "mi": "It is proof that the real world always behaves exactly that way.",
+                "cx": "An assumption is a starting point for the model, not a guarantee about actual behavior.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "97c25c8769e2267732f1e113cea4f497cd72a9f86da6d09a62947808e934dc80",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0da659c7386802dc006a595db4d81081a19d144d82baf083ae",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 752,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 512,
+              "output_tokens_details": {
+                "reasoning_tokens": 29
+              },
+              "total_tokens": 1264
+            }
+          },
+          "startedAt": "2026-07-16T22:39:48.782Z",
+          "durationMs": 3780
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "economics-markets-choice-decision-lab:econ/wage-price-spiral",
+          "kernelId": "econ/wage-price-spiral",
+          "promptSha256": "c8be1c6ce513692832156254ac05e6c9b2d4cabad5fabe0f59906ef66223627e",
+          "generationPromptSha256": "20fdf17d10c508797487c41e498798722261c81f0ca231bde7671abef7748467",
+          "rawCallSha256": "867223b920dd7d5469ab4d743af7ef06f1940b2d8d8c14f1c27220f51c893ce2",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which description best matches a wage-price spiral?",
+                "op": [
+                  "Prices rise, workers ask for higher wages, and firms then raise prices again.",
+                  "Prices rise and then immediately return to their original level.",
+                  "Wages rise only because workers become more productive.",
+                  "Prices fall because higher wages always reduce demand."
+                ],
+                "ai": 0,
+                "ex": "It is a self-reinforcing cycle where price increases trigger higher wage demands and more price increases. It is not a return to the starting point.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What kind of feedback is a wage-price spiral?",
+                "op": [
+                  "Positive feedback that amplifies the initial change.",
+                  "Negative feedback that dampens the initial change.",
+                  "No feedback because wages and prices move independently.",
+                  "A one-time shock with no further effects."
+                ],
+                "ai": 0,
+                "ex": "Positive feedback makes the first change grow rather than shrink. It is not negative feedback that pushes the system back.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "1c43d0bae4e9adf8f22b5a9f3dbb091d5eb423ca03cfed1365b4be3880d31604",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What kind of feedback is a wage-price spiral?",
+                "op": [
+                  "Positive feedback that amplifies the initial change.",
+                  "Negative feedback that dampens the initial change.",
+                  "No feedback because wages and prices move independently.",
+                  "A one-time shock with no further effects."
+                ],
+                "ai": 0,
+                "ex": "Positive feedback makes the first change grow rather than shrink. It is not negative feedback that pushes the system back.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "f6ffcb1d584d5b0907f08d8d735a5e96960447892fa572eecbe4c68191b0bd49",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-count",
+              "mc-0-explanation-key-conflict",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_093bb59c5c4a88e0006a595e54e0e0819c8e729424a6a76292",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 732,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 282,
+              "output_tokens_details": {
+                "reasoning_tokens": 68
+              },
+              "total_tokens": 1014
+            }
+          },
+          "startedAt": "2026-07-16T22:42:28.769Z",
+          "durationMs": 2929,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "economics-markets-choice-decision-lab:econ/consumer-choice",
+          "kernelId": "econ/consumer-choice",
+          "promptSha256": "0d224ad3267257997e495d3d55fd35e68954b85e2edd2680f9cb19325ee2d8a1",
+          "generationPromptSha256": "bcbd383f0b7a7ed8e2594168a55399b1fd15752c9082af8e1fb9595c1af8f295",
+          "rawCallSha256": "0ce053e20c68599ff55cae0a9f9cec17130ab26b0a3fa5c188b99107d634942f",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement best describes consumer choice theory?",
+                "op": [
+                  "It shows how a consumer maximizes utility subject to a budget constraint.",
+                  "It says consumers always buy the cheapest bundle available.",
+                  "It assumes satisfaction is highest when spending exceeds the budget.",
+                  "It predicts people choose randomly when prices change."
+                ],
+                "ai": 0,
+                "ex": "It matches maximizing utility within a budget. The mistake is thinking the cheapest bundle is always best.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What is true at the consumer's optimal choice?",
+                "op": [
+                  "Utility cannot be increased without exceeding the budget.",
+                  "The consumer can still raise utility by buying more of every good.",
+                  "The consumer has no tradeoff between goods.",
+                  "The budget no longer matters once the best bundle is found."
+                ],
+                "ai": 0,
+                "ex": "At the best bundle, more utility would require breaking the budget. The trap is saying the budget stops mattering.",
+                "sourceFactIndexes": [
+                  2,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "ef4806b7e2b5b5a28a40c155afd37dddddd9b3151f10430d78d7128cc776fb19",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which statement best describes consumer choice theory?",
+                "op": [
+                  "It shows how a consumer maximizes utility subject to a budget constraint.",
+                  "It says consumers always buy the cheapest bundle available.",
+                  "It assumes satisfaction is highest when spending exceeds the budget.",
+                  "It predicts people choose randomly when prices change."
+                ],
+                "ai": 0,
+                "ex": "It matches maximizing utility within a budget. The mistake is thinking the cheapest bundle is always best.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "cf6e2eb9109937f2228b70a57ba7f38ede6ff2a1863e2cd5fcdefd299cb8d91b",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-count",
+              "mc-1-explanation-key-conflict",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0cf5dc2ba2ad62de006a595e57d1a8819e84451a5e589b2d2a",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 697,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 300,
+              "output_tokens_details": {
+                "reasoning_tokens": 90
+              },
+              "total_tokens": 997
+            }
+          },
+          "startedAt": "2026-07-16T22:42:31.699Z",
+          "durationMs": 2888,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "economics-markets-choice-decision-lab:econ/consumer-choice",
+        "economics-markets-choice-decision-lab:econ/wage-price-spiral"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "economics-markets-choice-decision-lab:econ/price-elasticity-of-demand",
+        "kernelId": "econ/price-elasticity-of-demand",
+        "promptSha256": "c7eeba302da2254bc5aa81c2831f170439d84a9f3738ebc5b78f7756bb62ac5f",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which expression gives price elasticity of demand?",
+              "op": [
+                "percentage change in quantity demanded divided by percentage change in price",
+                "change in quantity demanded divided by change in price",
+                "percentage change in price divided by percentage change in quantity demanded",
+                "change in price divided by change in quantity demanded"
+              ],
+              "ai": 0,
+              "ex": "This is correct because elasticity compares the percentage change in quantity demanded with the percentage change in price. The slope-style option is a common misconception because it uses raw changes instead of percentages.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Which feature most strongly makes demand more elastic for a good?",
+              "op": [
+                "having many close substitutes",
+                "being a necessity for buyers",
+                "having no change in price",
+                "selling at a high total quantity"
+              ],
+              "ai": 0,
+              "ex": "This is correct because the availability of close substitutes is a primary determinant of elasticity. The necessity option is the tempting misconception, but necessities tend to have inelastic demand because consumers have few substitutes.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Price elasticity of demand",
+              "df": "A ratio showing how quantity demanded responds to a price change.",
+              "eg": "If a price rises by 10% and quantity demanded falls by 20%, the elasticity is -2.",
+              "mi": "It is the same as the market price level.",
+              "cx": "It measures responsiveness, not the price itself.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Elastic demand",
+              "df": "Demand that changes proportionally more than the price does.",
+              "eg": "A small fare increase that leads many riders to switch to another route shows elastic demand when close alternatives are available.",
+              "mi": "Any good with a high price is elastic.",
+              "cx": "Elasticity depends on how buyers respond and on substitutes, not on the price tag alone.",
+              "sourceFactIndexes": [
+                1,
+                3,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "09a373b12aa4f2ea3882c1c2f714703f0076628d4d25b78adb5390e1bb18f6cc",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which expression gives price elasticity of demand?",
+              "op": [
+                "percentage change in quantity demanded divided by percentage change in price",
+                "change in quantity demanded divided by change in price",
+                "percentage change in price divided by percentage change in quantity demanded",
+                "change in price divided by change in quantity demanded"
+              ],
+              "ai": 0,
+              "ex": "This is correct because elasticity compares the percentage change in quantity demanded with the percentage change in price. The slope-style option is a common misconception because it uses raw changes instead of percentages.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Which feature most strongly makes demand more elastic for a good?",
+              "op": [
+                "having many close substitutes",
+                "being a necessity for buyers",
+                "having no change in price",
+                "selling at a high total quantity"
+              ],
+              "ai": 0,
+              "ex": "This is correct because the availability of close substitutes is a primary determinant of elasticity. The necessity option is the tempting misconception, but necessities tend to have inelastic demand because consumers have few substitutes.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Price elasticity of demand",
+              "df": "A ratio showing how quantity demanded responds to a price change.",
+              "eg": "If a price rises by 10% and quantity demanded falls by 20%, the elasticity is -2.",
+              "mi": "It is the same as the market price level.",
+              "cx": "It measures responsiveness, not the price itself.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Elastic demand",
+              "df": "Demand that changes proportionally more than the price does.",
+              "eg": "A small fare increase that leads many riders to switch to another route shows elastic demand when close alternatives are available.",
+              "mi": "Any good with a high price is elastic.",
+              "cx": "Elasticity depends on how buyers respond and on substitutes, not on the price tag alone.",
+              "sourceFactIndexes": [
+                1,
+                3,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "09a373b12aa4f2ea3882c1c2f714703f0076628d4d25b78adb5390e1bb18f6cc",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0fc5fcace365d364006a595d9b75d481a39054b8ca37986b4d",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 757,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 805,
+            "output_tokens_details": {
+              "reasoning_tokens": 420
+            },
+            "total_tokens": 1562
+          }
+        },
+        "startedAt": "2026-07-16T22:39:23.377Z",
+        "durationMs": 6042
+      },
+      {
+        "promptId": "economics-markets-choice-decision-lab:econ/demand-curve",
+        "kernelId": "econ/demand-curve",
+        "promptSha256": "b18c4cc8b19794dad9fa962ab93dde34ad0273ef8c358df3244e71e27ee32c1f",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A coffee shop raises the price of its iced latte, and customers buy fewer lattes. Which description fits this evidence best?",
+              "op": [
+                "The quantity demanded moves along the demand curve.",
+                "The demand curve shifts right because price rose.",
+                "The demand curve shifts left because price rose.",
+                "The good becomes more elastic because price rose."
+              ],
+              "ai": 0,
+              "ex": "The correct choice is the movement along the demand curve: a price change leads to movement, not a shift. The other choices confuse price changes with shifts, or mix up elasticity with the way the curve itself changes.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "A designer jacket becomes fashionable, so buyers are willing to purchase more at every price. What happens?",
+              "op": [
+                "The demand curve shifts right.",
+                "The quantity demanded moves down the curve.",
+                "The curve becomes flatter because tastes changed.",
+                "The price level falls because demand changed."
+              ],
+              "ai": 0,
+              "ex": "The correct choice is that the demand curve shifts right: a change in tastes shifts the curve. The other choices either describe a movement caused by price, treat slope as the same thing as a shift, or infer a price result that is not given by the claim.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Demand curve",
+              "df": "A relationship showing how much of a good consumers are willing and able to buy at each price, with other influences held fixed.",
+              "eg": "When the price of a movie ticket changes, the demand curve is used to trace how much ticket quantity consumers are willing and able to buy at that price.",
+              "mi": "It is the same thing as a full market outcome after buyers and sellers bargain.",
+              "cx": "The curve summarizes buyer willingness and ability at different prices; it is not the final traded outcome.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Movement along the demand curve",
+              "df": "A change in the quantity demanded caused by a change in the good’s own price.",
+              "eg": "If the price of lemonade rises and customers buy fewer cups, the point slides to a different spot on the same demand curve.",
+              "mi": "Any change in buyer purchases must mean the entire curve shifted.",
+              "cx": "A price change moves you along one curve; shifts come from other influences such as income or tastes.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "d1765cee5e9096af8c5c0a856328a5772d6525976fd0c7d48976ceef79819570",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A coffee shop raises the price of its iced latte, and customers buy fewer lattes. Which description fits this evidence best?",
+              "op": [
+                "The quantity demanded moves along the demand curve.",
+                "The demand curve shifts right because price rose.",
+                "The demand curve shifts left because price rose.",
+                "The good becomes more elastic because price rose."
+              ],
+              "ai": 0,
+              "ex": "The correct choice is the movement along the demand curve: a price change leads to movement, not a shift. The other choices confuse price changes with shifts, or mix up elasticity with the way the curve itself changes.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "A designer jacket becomes fashionable, so buyers are willing to purchase more at every price. What happens?",
+              "op": [
+                "The demand curve shifts right.",
+                "The quantity demanded moves down the curve.",
+                "The curve becomes flatter because tastes changed.",
+                "The price level falls because demand changed."
+              ],
+              "ai": 0,
+              "ex": "The correct choice is that the demand curve shifts right: a change in tastes shifts the curve. The other choices either describe a movement caused by price, treat slope as the same thing as a shift, or infer a price result that is not given by the claim.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Demand curve",
+              "df": "A relationship showing how much of a good consumers are willing and able to buy at each price, with other influences held fixed.",
+              "eg": "When the price of a movie ticket changes, the demand curve is used to trace how much ticket quantity consumers are willing and able to buy at that price.",
+              "mi": "It is the same thing as a full market outcome after buyers and sellers bargain.",
+              "cx": "The curve summarizes buyer willingness and ability at different prices; it is not the final traded outcome.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Movement along the demand curve",
+              "df": "A change in the quantity demanded caused by a change in the good’s own price.",
+              "eg": "If the price of lemonade rises and customers buy fewer cups, the point slides to a different spot on the same demand curve.",
+              "mi": "Any change in buyer purchases must mean the entire curve shifted.",
+              "cx": "A price change moves you along one curve; shifts come from other influences such as income or tastes.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "d1765cee5e9096af8c5c0a856328a5772d6525976fd0c7d48976ceef79819570",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_049698756bdd3d7a006a595da1809481a1a7eb4fa7f24a66fd",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 744,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 532,
+            "output_tokens_details": {
+              "reasoning_tokens": 52
+            },
+            "total_tokens": 1276
+          }
+        },
+        "startedAt": "2026-07-16T22:39:29.421Z",
+        "durationMs": 4355
+      },
+      {
+        "promptId": "economics-markets-choice-decision-lab:econ/market-equilibrium",
+        "kernelId": "econ/market-equilibrium",
+        "promptSha256": "be01c0051efbe58cfcfaf5f1e6936f2c7ec6b39e95b454325f5b42775c805976",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A store lists a good at a price that is above the market level where buyers and sellers agree. What is the most likely market result?",
+              "op": [
+                "A surplus forms, which puts downward pressure on the price.",
+                "A shortage forms, which puts upward pressure on the price.",
+                "The market is in equilibrium, so the price has no tendency to change.",
+                "Demand shifts right, so the price must rise because buyers prefer it."
+              ],
+              "ai": 0,
+              "ex": "A surplus forms, which puts downward pressure on the price. The other choices confuse equilibrium with fairness, shortage, or a demand shift; only a price above the balance point creates excess supply under the given claims.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "At one price, buyers want exactly the same amount that sellers offer. What does this tell you about the market price?",
+              "op": [
+                "It is the equilibrium price, so there is no tendency for it to change.",
+                "It is above equilibrium, so a surplus must be present.",
+                "It is below equilibrium, so a shortage must be present.",
+                "It is the highest price buyers will accept, so demand has ended."
+              ],
+              "ai": 0,
+              "ex": "It is the equilibrium price, so there is no tendency for it to change. The common mistake is to treat equilibrium as a fairness judgment or a ceiling; here, equal quantities from buyers and sellers identify the balance point instead.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Equilibrium price",
+              "df": "The level where the two sides of the market match in quantity.",
+              "eg": "In a class simulation, the trading price settled where the number of units students wanted to buy matched the number offered for sale.",
+              "mi": "It is the price that feels fair to most people.",
+              "cx": "The matching quantities matter, not a judgment about fairness.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Surplus",
+              "df": "An excess supply situation that appears when sellers offer more than buyers want at a given price.",
+              "eg": "When a café set its sandwich price too high, several sandwiches remained unsold at the end of lunch.",
+              "mi": "It means the good is in short supply and people cannot find enough of it.",
+              "cx": "The correction is that excess supply pushes the price downward, not upward.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "aa3e38bc6eb2d305b53abbde8118aed54766b419172ad22b348a081efe975afb",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A store lists a good at a price that is above the market level where buyers and sellers agree. What is the most likely market result?",
+              "op": [
+                "A surplus forms, which puts downward pressure on the price.",
+                "A shortage forms, which puts upward pressure on the price.",
+                "The market is in equilibrium, so the price has no tendency to change.",
+                "Demand shifts right, so the price must rise because buyers prefer it."
+              ],
+              "ai": 0,
+              "ex": "A surplus forms, which puts downward pressure on the price. The other choices confuse equilibrium with fairness, shortage, or a demand shift; only a price above the balance point creates excess supply under the given claims.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "At one price, buyers want exactly the same amount that sellers offer. What does this tell you about the market price?",
+              "op": [
+                "It is the equilibrium price, so there is no tendency for it to change.",
+                "It is above equilibrium, so a surplus must be present.",
+                "It is below equilibrium, so a shortage must be present.",
+                "It is the highest price buyers will accept, so demand has ended."
+              ],
+              "ai": 0,
+              "ex": "It is the equilibrium price, so there is no tendency for it to change. The common mistake is to treat equilibrium as a fairness judgment or a ceiling; here, equal quantities from buyers and sellers identify the balance point instead.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Equilibrium price",
+              "df": "The level where the two sides of the market match in quantity.",
+              "eg": "In a class simulation, the trading price settled where the number of units students wanted to buy matched the number offered for sale.",
+              "mi": "It is the price that feels fair to most people.",
+              "cx": "The matching quantities matter, not a judgment about fairness.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Surplus",
+              "df": "An excess supply situation that appears when sellers offer more than buyers want at a given price.",
+              "eg": "When a café set its sandwich price too high, several sandwiches remained unsold at the end of lunch.",
+              "mi": "It means the good is in short supply and people cannot find enough of it.",
+              "cx": "The correction is that excess supply pushes the price downward, not upward.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "aa3e38bc6eb2d305b53abbde8118aed54766b419172ad22b348a081efe975afb",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_02b13c75372912ec006a595da5dc7c819db71e1e6884447555",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 748,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 663,
+            "output_tokens_details": {
+              "reasoning_tokens": 179
+            },
+            "total_tokens": 1411
+          }
+        },
+        "startedAt": "2026-07-16T22:39:33.776Z",
+        "durationMs": 5067
+      },
+      {
+        "promptId": "economics-markets-choice-decision-lab:econ/wage-price-spiral",
+        "kernelId": "econ/wage-price-spiral",
+        "promptSha256": "c8be1c6ce513692832156254ac05e6c9b2d4cabad5fabe0f59906ef66223627e",
+        "generationPromptSha256": "20fdf17d10c508797487c41e498798722261c81f0ca231bde7671abef7748467",
+        "rawCallSha256": "867223b920dd7d5469ab4d743af7ef06f1940b2d8d8c14f1c27220f51c893ce2",
+        "recoveryCallSha256": "8f98ff6e4bfe67bae878aadc6fd07ddecad2a216b28373b4653c3e40757e818a",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What kind of feedback is a wage-price spiral?",
+              "op": [
+                "Positive feedback that amplifies the initial change.",
+                "Negative feedback that dampens the initial change.",
+                "No feedback because wages and prices move independently.",
+                "A one-time shock with no further effects."
+              ],
+              "ai": 0,
+              "ex": "Positive feedback makes the first change grow rather than shrink. It is not negative feedback that pushes the system back.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Wage-price spiral",
+              "df": "A loop where rising prices can trigger higher wage demands, and those higher wages can then push prices up again.",
+              "eg": "In a lesson on inflation feedback, students trace how higher prices can lead to higher wages and then to another round of price increases.",
+              "mi": "It is just any situation where wages go up once and prices happen to rise later.",
+              "cx": "That correction matters because the term refers to a self-reinforcing cycle, not merely two separate events.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Positive feedback",
+              "df": "A process in which the initial change is strengthened instead of reduced.",
+              "eg": "When the class models the spiral, a first price increase can be followed by further increases rather than being damped away.",
+              "mi": "It always means the system becomes fairer or more stable.",
+              "cx": "In this context, the key idea is amplification, not fairness or automatic stability.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "d12e8a30e1bdf7f604e892c03be15d7a3f5e91e18e8df1316515def0d1ddc0f7",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What kind of feedback is a wage-price spiral?",
+              "op": [
+                "Positive feedback that amplifies the initial change.",
+                "Negative feedback that dampens the initial change.",
+                "No feedback because wages and prices move independently.",
+                "A one-time shock with no further effects."
+              ],
+              "ai": 0,
+              "ex": "Positive feedback makes the first change grow rather than shrink. It is not negative feedback that pushes the system back.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Wage-price spiral",
+              "df": "A loop where rising prices can trigger higher wage demands, and those higher wages can then push prices up again.",
+              "eg": "In a lesson on inflation feedback, students trace how higher prices can lead to higher wages and then to another round of price increases.",
+              "mi": "It is just any situation where wages go up once and prices happen to rise later.",
+              "cx": "That correction matters because the term refers to a self-reinforcing cycle, not merely two separate events.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Positive feedback",
+              "df": "A process in which the initial change is strengthened instead of reduced.",
+              "eg": "When the class models the spiral, a first price increase can be followed by further increases rather than being damped away.",
+              "mi": "It always means the system becomes fairer or more stable.",
+              "cx": "In this context, the key idea is amplification, not fairness or automatic stability.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "d12e8a30e1bdf7f604e892c03be15d7a3f5e91e18e8df1316515def0d1ddc0f7",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:28.769Z",
+        "durationMs": 2929
+      },
+      {
+        "promptId": "economics-markets-choice-decision-lab:econ/consumer-choice",
+        "kernelId": "econ/consumer-choice",
+        "promptSha256": "0d224ad3267257997e495d3d55fd35e68954b85e2edd2680f9cb19325ee2d8a1",
+        "generationPromptSha256": "bcbd383f0b7a7ed8e2594168a55399b1fd15752c9082af8e1fb9595c1af8f295",
+        "rawCallSha256": "0ce053e20c68599ff55cae0a9f9cec17130ab26b0a3fa5c188b99107d634942f",
+        "recoveryCallSha256": "a283b05718c8d2f0b844a53ff915db999303eacd7c9a1f334b696be2b493eb6a",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which statement best describes consumer choice theory?",
+              "op": [
+                "It shows how a consumer maximizes utility subject to a budget constraint.",
+                "It says consumers always buy the cheapest bundle available.",
+                "It assumes satisfaction is highest when spending exceeds the budget.",
+                "It predicts people choose randomly when prices change."
+              ],
+              "ai": 0,
+              "ex": "It matches maximizing utility within a budget. The mistake is thinking the cheapest bundle is always best.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "budget constraint",
+              "df": "A spending limit that the chosen bundle must fit within.",
+              "eg": "In the course task, a student can only select snack combinations whose total cost stays within the available money.",
+              "mi": "It means the consumer may buy whatever seems nicest, even if it costs more than they have.",
+              "cx": "The correction is that the budget sets a limit, and the choice has to remain affordable.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "utility maximization",
+              "df": "Picking the affordable option that gives the greatest satisfaction.",
+              "eg": "When comparing two lunch baskets, a student chooses the one that fits the budget and feels best overall.",
+              "mi": "It means choosing the biggest bundle regardless of cost.",
+              "cx": "The correction is that the best bundle is the one with the highest satisfaction among the affordable options.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "03a1543a07e07e58318fa72ee58eb4665b531a4ab5ad099cae217243b51ecb26",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which statement best describes consumer choice theory?",
+              "op": [
+                "It shows how a consumer maximizes utility subject to a budget constraint.",
+                "It says consumers always buy the cheapest bundle available.",
+                "It assumes satisfaction is highest when spending exceeds the budget.",
+                "It predicts people choose randomly when prices change."
+              ],
+              "ai": 0,
+              "ex": "It matches maximizing utility within a budget. The mistake is thinking the cheapest bundle is always best.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "budget constraint",
+              "df": "A spending limit that the chosen bundle must fit within.",
+              "eg": "In the course task, a student can only select snack combinations whose total cost stays within the available money.",
+              "mi": "It means the consumer may buy whatever seems nicest, even if it costs more than they have.",
+              "cx": "The correction is that the budget sets a limit, and the choice has to remain affordable.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "utility maximization",
+              "df": "Picking the affordable option that gives the greatest satisfaction.",
+              "eg": "When comparing two lunch baskets, a student chooses the one that fits the budget and feels best overall.",
+              "mi": "It means choosing the biggest bundle regardless of cost.",
+              "cx": "The correction is that the best bundle is the one with the highest satisfaction among the affordable options.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "03a1543a07e07e58318fa72ee58eb4665b531a4ab5ad099cae217243b51ecb26",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:31.699Z",
+        "durationMs": 2888
+      },
+      {
+        "promptId": "economics-markets-choice-decision-lab:econ/economic-model",
+        "kernelId": "econ/economic-model",
+        "promptSha256": "6b5777953627a2883af6d248410640c59048a5b59e4766d47251a43470731fff",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student is deciding whether a market diagram helps answer a question about food prices. Which choice best describes when an economic model is useful?",
+              "op": [
+                "It keeps only the features relevant to the question and leaves out the rest.",
+                "It is useful only when every assumption is exactly true.",
+                "It is useful only when the market is perfectly fair.",
+                "It must include every detail so the result is complete."
+              ],
+              "ai": 0,
+              "ex": "It is useful when it simplifies reality by keeping the features that matter for the question. A common misconception is that a model works only if every assumption is literally exact, but a model can still be useful when its assumptions are close enough for the question at hand.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "A supply-and-demand model is used to estimate the effect of a tax, but one key assumption does not fit the market. What is the best conclusion?",
+              "op": [
+                "The model may be misleading because a key assumption breaks.",
+                "The model is always wrong because all assumptions are false.",
+                "The model proves the tax is unfair.",
+                "The model must predict the exact price with no error."
+              ],
+              "ai": 0,
+              "ex": "The model may be misleading because a key assumption breaks. A common mistake is to treat any imperfect assumption as fatal, but the claim is narrower: models are useful when assumptions are close enough and misleading when a key assumption fails.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Economic model",
+              "df": "A simplified representation that keeps what matters for a question and leaves out the rest.",
+              "eg": "In class, a demand-and-supply diagram can serve as an economic model for studying how a price change affects quantity traded.",
+              "mi": "It is a complete copy of the real economy.",
+              "cx": "The model is not a full replica; it is a focused tool that omits details irrelevant to the question.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Assumption",
+              "df": "A condition a model accepts in order to make analysis manageable.",
+              "eg": "A supply-and-demand exercise may assume rational choice so students can analyze the market clearly.",
+              "mi": "It is proof that the real world always behaves exactly that way.",
+              "cx": "An assumption is a starting point for the model, not a guarantee about actual behavior.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "97c25c8769e2267732f1e113cea4f497cd72a9f86da6d09a62947808e934dc80",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student is deciding whether a market diagram helps answer a question about food prices. Which choice best describes when an economic model is useful?",
+              "op": [
+                "It keeps only the features relevant to the question and leaves out the rest.",
+                "It is useful only when every assumption is exactly true.",
+                "It is useful only when the market is perfectly fair.",
+                "It must include every detail so the result is complete."
+              ],
+              "ai": 0,
+              "ex": "It is useful when it simplifies reality by keeping the features that matter for the question. A common misconception is that a model works only if every assumption is literally exact, but a model can still be useful when its assumptions are close enough for the question at hand.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "A supply-and-demand model is used to estimate the effect of a tax, but one key assumption does not fit the market. What is the best conclusion?",
+              "op": [
+                "The model may be misleading because a key assumption breaks.",
+                "The model is always wrong because all assumptions are false.",
+                "The model proves the tax is unfair.",
+                "The model must predict the exact price with no error."
+              ],
+              "ai": 0,
+              "ex": "The model may be misleading because a key assumption breaks. A common mistake is to treat any imperfect assumption as fatal, but the claim is narrower: models are useful when assumptions are close enough and misleading when a key assumption fails.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Economic model",
+              "df": "A simplified representation that keeps what matters for a question and leaves out the rest.",
+              "eg": "In class, a demand-and-supply diagram can serve as an economic model for studying how a price change affects quantity traded.",
+              "mi": "It is a complete copy of the real economy.",
+              "cx": "The model is not a full replica; it is a focused tool that omits details irrelevant to the question.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Assumption",
+              "df": "A condition a model accepts in order to make analysis manageable.",
+              "eg": "A supply-and-demand exercise may assume rational choice so students can analyze the market clearly.",
+              "mi": "It is proof that the real world always behaves exactly that way.",
+              "cx": "An assumption is a starting point for the model, not a guarantee about actual behavior.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "97c25c8769e2267732f1e113cea4f497cd72a9f86da6d09a62947808e934dc80",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0da659c7386802dc006a595db4d81081a19d144d82baf083ae",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 752,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 512,
+            "output_tokens_details": {
+              "reasoning_tokens": 29
+            },
+            "total_tokens": 1264
+          }
+        },
+        "startedAt": "2026-07-16T22:39:48.782Z",
+        "durationMs": 3780
+      }
+    ]
+  }
+}

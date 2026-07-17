@@ -75,6 +75,7 @@ import {
 // V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
 import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 import { addPackageQuizDepthFindings } from './quizItemDepth.js';
+import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -117,7 +118,26 @@ import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 // contain a concrete case or evidence to reason from, rather than trusting tags.
 // 1.10.1 — offline package grading now falls back to the manifest course name
 // for discipline checks, matching the course identity used by in-app grading.
-export const GRADER_VERSION = '1.10.1';
+// 1.10.2 — named foreign-language teaching leakage is a discipline P0 (for
+// example, Hangul or Korean number systems inside a Mandarin package).
+// 1.10.3 — Mandarin depth is measured per lesson; a few dense files can no
+// longer hide target-language-empty lesson plans, decks, or study guides.
+// 1.10.4 — instructor-named primary texts must reach multiple instructional
+// surfaces and at least one evidence task; a title copied only into the
+// syllabus/materials list no longer counts as a grounded literature lesson.
+// 1.10.5 — the primary-text depth gate distinguishes explicit/credible works
+// from sentence-case lesson topics stored in the graph's broad readings slot.
+// 1.10.6 — a foreign `Lesson N:` payload beside a lesson document's cover is
+// a consistency P0; sparse quiz arrays can no longer hide cross-lesson export.
+// 1.10.7 — repeated lesson-title collapse cannot hide an explicit ordered
+// source sequence behind generic or duplicated session titles.
+// 1.10.8 — an explicit source lesson sequence cannot silently omit or shift
+// multiple ordered topics even when every resulting session title is unique.
+// 1.10.9 — generic resource labels such as “Course materials: Numbers, Age,
+// and Dates” no longer masquerade as instructor-named primary works.
+// 1.10.10 — concrete classification cases written as legitimate MC sentence
+// completions count as applied reasoning without admitting bare recall stems.
+export const GRADER_VERSION = '1.10.10';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -864,137 +884,6 @@ function collectDownstreamTitleTokenSets(files) {
   return sets;
 }
 
-// ── v0.14.5 WS-A (A5): the readings registry receipts ───────────────────────
-// (1) Named-reading penetration: every manifest readings[] entry appears
-//     VERBATIM (whitespace-normalized, case-insensitive — never shortened,
-//     never fused) in its week's lesson plan AND in the syllabus schedule.
-//     P1 per missing surface.
-// (2) Provenance order: in a week's rendered materials, no retrieved-tier
-//     item (an "Open-access via …" OpenAlex citation) lists ABOVE an
-//     instructor-named reading. P1. Checked inside the lesson plan's
-//     "Materials & Resources" block and inside each syllabus schedule row.
-// Self-arming: the checks run whenever manifest.readings is populated; a
-// course fixture with expectReadings: true additionally fails the round when
-// the registry never materialized at all.
-
-const READING_RETRIEVED_RE = /open-access via/i;
-// Lesson-plan sub-headings that terminate the materials block (docxExporter
-// rendering order: Materials & Resources → Assessments This Week → Session
-// Outline → …).
-const MATERIALS_BLOCK_END_RE =
-  /^(assessments this week|session outline|worked example|observation protocol|key terms|formative check|homework|closing activity)$/i;
-
-function normalizeReadingMatchText(text) {
-  return String(text || '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
-}
-
-function checkReadings(findings, { files, manifest }, course) {
-  const readings = Array.isArray(manifest?.readings) ? manifest.readings : [];
-  if (readings.length === 0) {
-    if (course?.expectReadings) {
-      findings.add({
-        severity: 'P1',
-        dimension: 'identity',
-        file: 'PACKAGE_MANIFEST.json',
-        detail:
-          'course names per-week readings (expectReadings) but the manifest carries no readings registry — extraction or inheritance dropped the instructor readings',
-        evidence: 'manifest.readings missing or empty',
-      });
-    }
-    return;
-  }
-
-  // Any extracted syllabus file qualifies (docx in production packages;
-  // text fixtures in synthetic grader tests read identically).
-  const syllabusFile = files.find((file) => file.featureId === 'syllabus');
-  const lessonPlanFiles = files.filter((file) => file.featureId === 'lessonPlans');
-  const syllabusText = syllabusFile ? normalizeReadingMatchText(syllabusFile.text) : '';
-
-  // (1) Penetration — each registry title must reach both surfaces verbatim.
-  for (const entry of readings) {
-    const title = normalizeReadingMatchText(entry.title);
-    if (!title) continue;
-    const plan = lessonPlanFiles.find((file) => file.lessonNumber === entry.lesson);
-    if (plan && !normalizeReadingMatchText(plan.text).includes(title)) {
-      findings.add({
-        severity: 'P1',
-        dimension: 'identity',
-        file: plan.path,
-        detail: `named reading ${entry.id || ''} "${entry.title}" (L${entry.lesson}) does not appear verbatim in its week's lesson plan materials`,
-        evidence: entry.title,
-      });
-    }
-    if (syllabusFile && !syllabusText.includes(title)) {
-      findings.add({
-        severity: 'P1',
-        dimension: 'identity',
-        file: syllabusFile.path,
-        detail: `named reading ${entry.id || ''} "${entry.title}" (L${entry.lesson}) does not appear verbatim in the syllabus schedule`,
-        evidence: entry.title,
-      });
-    }
-  }
-
-  // (2) Provenance order — lesson-plan materials block.
-  for (const plan of lessonPlanFiles) {
-    const lessonTitles = readings
-      .filter((entry) => entry.lesson === plan.lessonNumber)
-      .map((entry) => normalizeReadingMatchText(entry.title))
-      .filter(Boolean);
-    if (lessonTitles.length === 0) continue;
-    const lines = (plan.paragraphs || []).map((line) => normalizeReadingMatchText(line));
-    const start = lines.findIndex((line) => line === 'materials & resources');
-    if (start === -1) continue;
-    let firstInstructor = -1;
-    let firstRetrieved = -1;
-    for (let index = start + 1; index < lines.length; index += 1) {
-      const line = lines[index];
-      if (MATERIALS_BLOCK_END_RE.test(line)) break;
-      if (firstRetrieved === -1 && READING_RETRIEVED_RE.test(line)) firstRetrieved = index;
-      if (firstInstructor === -1 && lessonTitles.some((title) => line.includes(title))) firstInstructor = index;
-    }
-    if (firstRetrieved !== -1 && firstInstructor !== -1 && firstRetrieved < firstInstructor) {
-      findings.add({
-        severity: 'P1',
-        dimension: 'citations',
-        file: plan.path,
-        detail: `provenance order violated in L${plan.lessonNumber} materials: a retrieved open reading lists above the instructor-named reading`,
-        evidence: (plan.paragraphs || [])[firstRetrieved] || 'retrieved item listed first',
-      });
-    }
-  }
-
-  // (2b) Provenance order — syllabus schedule rows (one extracted line per
-  // cell, so a retrieved citation and a registry title on the same line
-  // belong to the same week's readings cell).
-  if (syllabusFile) {
-    for (const rawLine of syllabusFile.paragraphs || []) {
-      const line = normalizeReadingMatchText(rawLine);
-      const retrievedMatch = line.match(READING_RETRIEVED_RE);
-      if (!retrievedMatch) continue;
-      const retrievedIndex = line.search(READING_RETRIEVED_RE);
-      for (const entry of readings) {
-        const title = normalizeReadingMatchText(entry.title);
-        if (!title) continue;
-        const titleIndex = line.indexOf(title);
-        if (titleIndex !== -1 && retrievedIndex < titleIndex) {
-          findings.add({
-            severity: 'P1',
-            dimension: 'citations',
-            file: syllabusFile.path,
-            detail: `provenance order violated in the syllabus schedule: a retrieved open reading lists above instructor-named "${entry.title}"`,
-            evidence: rawLine,
-          });
-          break;
-        }
-      }
-    }
-  }
-}
-
 // CONSISTENCY — week labels, lesson-title cross-deliverable, objectives match.
 function checkConsistency(findings, { files }) {
   // Week-label check on every lesson-rooted document. Scanned PER paragraph so
@@ -1026,6 +915,25 @@ function checkConsistency(findings, { files }) {
   const byLesson = new Map();
   for (const file of files) {
     if (file.lessonNumber == null || file.featureId === 'courseMap') continue;
+    // A lesson-aware array can become positionally sparse when exam-day
+    // weekly quizzes are omitted. The live Psychology package then exported
+    // an entire "Lesson 15: Course conclusion" quiz at the start of the
+    // Lesson 13 midterm file. Inspect only the cover window: later references
+    // to other lessons are legitimate in review/exam bodies, but a canonical
+    // `Lesson N:` heading beside the cover must own the enclosing file.
+    const foreignCoverHeading = (file.paragraphs || [])
+      .slice(0, 6)
+      .map((line) => ({ line, match: /^Lesson\s+(\d{1,3})\s*:/i.exec(String(line).trim()) }))
+      .find(({ match }) => match && Number(match[1]) !== file.lessonNumber);
+    if (foreignCoverHeading) {
+      findings.add({
+        severity: 'P0',
+        dimension: 'consistency',
+        file: file.path,
+        detail: `Lesson ${file.lessonNumber} document starts with a Lesson ${foreignCoverHeading.match[1]} payload`,
+        evidence: foreignCoverHeading.line,
+      });
+    }
     const title = inferDocumentLessonTitle(file);
     if (!title) continue;
     if (!byLesson.has(file.lessonNumber)) byLesson.set(file.lessonNumber, []);
@@ -1052,6 +960,7 @@ function checkConsistency(findings, { files }) {
       });
     }
   }
+  return byLesson;
 }
 
 function contextAround(text, index, span = 90) {
@@ -2842,6 +2751,22 @@ function quoteAroundMatch(text, regex, limit = 200) {
 function checkForeignDomainContamination(findings, { files }, probe, course) {
   const courseTitle = String(course?.title || course?.courseName || course?.id || '');
   for (const file of files.filter((entry) => entry.featureId && entry.text)) {
+    const languageContamination = detectForeignLanguageTeachingContent({
+      courseIdentity: courseTitle,
+      text: file.text,
+    });
+    if (languageContamination) {
+      findings.add({
+        severity: 'P0',
+        dimension: 'discipline',
+        file: file.path,
+        detail: `foreign ${languageContamination.languageLabel}-language teaching content appears in ${
+          probe || 'another language'
+        } package (${languageContamination.markerLabels.join(', ')})`,
+        evidence: quoteAroundMatch(file.text, languageContamination.evidencePattern),
+      });
+      return;
+    }
     if (probe !== 'astro') {
       const hits = ASTRO_OBSERVING_CONTAMINATION_TERMS.filter((term) => term.re.test(file.text));
       const headerHit = /\bOBSERVATION PROTOCOL THIS WEEK\b/i.test(file.text);
@@ -2920,12 +2845,44 @@ function checkDiscipline(findings, { files }, course) {
   if (probe === 'mandarin') {
     let cjk = 0;
     let pinyin = 0;
+    const targetLanguageByLesson = new Map();
     for (const file of lessonFiles) {
-      cjk += (file.text.match(/[一-鿿㐀-䶿]/g) || []).length;
-      pinyin += (file.text.match(/[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/gi) || []).length;
+      const fileCjk = (file.text.match(/[一-鿿㐀-䶿]/g) || []).length;
+      const filePinyin = (file.text.match(/[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/gi) || []).length;
+      cjk += fileCjk;
+      pinyin += filePinyin;
+      const lesson = targetLanguageByLesson.get(file.lessonNumber) || { cjk: 0, pinyin: 0, files: [] };
+      lesson.cjk += fileCjk;
+      lesson.pinyin += filePinyin;
+      lesson.files.push(file.path);
+      targetLanguageByLesson.set(file.lessonNumber, lesson);
     }
     const perLesson = (cjk + pinyin) / lessonCount;
-    if (perLesson < 5) {
+    const mandarinIdentity = `${course?.title || ''} ${course?.courseName || ''} ${course?.prompt || ''}`;
+    const requiresHanziPinyinPairing =
+      /\b(?:elementary|beginning|beginner|first[- ]semester|introductory)\b|\bpinyin\b|tone[- ]marked|tone marks?|alongside pinyin/i.test(
+        mandarinIdentity,
+      );
+    const missingTargetLanguageLessons = [...targetLanguageByLesson.entries()]
+      .filter(([, counts]) => counts.cjk === 0 || (requiresHanziPinyinPairing && counts.pinyin === 0))
+      .map(([lessonNumber]) => lessonNumber)
+      .sort((left, right) => left - right);
+    const targetLanguageCoverage = targetLanguageByLesson.size - missingTargetLanguageLessons.length;
+    const distributionFindingAdded = missingTargetLanguageLessons.length > 0;
+    if (distributionFindingAdded) {
+      const coverageRatio = targetLanguageByLesson.size > 0 ? targetLanguageCoverage / targetLanguageByLesson.size : 0;
+      findings.add({
+        severity: coverageRatio < 0.75 ? 'P0' : 'P1',
+        dimension: 'discipline',
+        file: 'lessonPlans + slideDecks',
+        detail: `Mandarin CJK/pinyin target-language coverage reaches ${targetLanguageCoverage}/${targetLanguageByLesson.size} lessons; ${missingTargetLanguageLessons.length} lesson(s) lack ${requiresHanziPinyinPairing ? 'hanzi with tone-marked pinyin' : 'hanzi'} (${missingTargetLanguageLessons.join(', ')})`,
+        evidence:
+          targetLanguageByLesson.get(missingTargetLanguageLessons[0])?.files?.[0] ||
+          lessonFiles[0]?.path ||
+          '(no lesson file)',
+      });
+    }
+    if (!distributionFindingAdded && perLesson < 5) {
       const sample =
         lessonFiles.map((file) => file.text).find((text) => CJK_RE.test(text) || TONE_PINYIN_RE.test(text)) || '(none)';
       findings.add({
@@ -2938,14 +2895,15 @@ function checkDiscipline(findings, { files }, course) {
     }
     // hanzi+pinyin pairing in study-guide tables.
     const guides = files.filter((file) => file.featureId === 'studyGuides');
-    const anyPairing = guides.some((guide) => CJK_RE.test(guide.text) && TONE_PINYIN_RE.test(guide.text));
-    if (guides.length > 0 && !anyPairing) {
+    const pairedGuides = guides.filter((guide) => CJK_RE.test(guide.text) && TONE_PINYIN_RE.test(guide.text));
+    if (guides.length > 0 && pairedGuides.length < guides.length) {
+      const missingGuide = guides.find((guide) => !CJK_RE.test(guide.text) || !TONE_PINYIN_RE.test(guide.text));
       findings.add({
-        severity: 'P1',
+        severity: pairedGuides.length === 0 ? 'P0' : 'P1',
         dimension: 'discipline',
         file: 'studyGuides',
-        detail: 'no study guide pairs hanzi with tone-marked pinyin',
-        evidence: quote(guides[0]?.text || '', 120),
+        detail: `${guides.length - pairedGuides.length}/${guides.length} study guides do not pair hanzi with tone-marked pinyin`,
+        evidence: quote(missingGuide?.text || '', 120),
       });
     }
   } else if (probe === 'cs') {
@@ -3377,14 +3335,21 @@ export async function grade({
   // v0.14.5 (A5): named-reading penetration + provenance order. Self-arming
   // on manifest.readings; expectReadings courses also fail on an absent
   // registry.
-  checkReadings(findings, pkg, course);
+  {
+    const { checkNamedReadings } = await import('./namedReadingInstructionalDepth.js');
+    checkNamedReadings(findings, pkg, course);
+  }
   {
     const { checkSourceLedger, shouldCheckSourceLedger } = await import('./sourceLedgerQualityChecks.js');
     if (shouldCheckSourceLedger(pkg.manifest)) {
       checkSourceLedger(findings, pkg);
     }
   }
-  checkConsistency(findings, pkg);
+  const lessonTitles = checkConsistency(findings, pkg);
+  {
+    const { checkExplicitLessonSequenceReuse } = await import('./lessonSequenceQualityChecks.js');
+    checkExplicitLessonSequenceReuse(findings, lessonTitles, course);
+  }
   // Honesty source: the Crucible passes console text; the in-app finalize
   // path passes honestyFromDigest(budget, digest) (v0.14.3 WS-A A2).
   if (honesty) checkHonestyFromDigest(findings, pkg, honesty);

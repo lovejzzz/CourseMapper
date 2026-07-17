@@ -78,14 +78,14 @@ export async function runScionCompilerBurdenAudit({
     '',
     `Status: ${report.status}`,
     '',
-    '| Route | Source weights | Lessons | Scion calls | Calls / lesson | Rejected actions | Regenerated actions |',
-    '| --- | --- | ---: | ---: | ---: | ---: | ---: |',
+    '| Route | Source weights | Lessons | Scion calls | Calls / lesson | Rejected actions | Regenerated actions | MC repair yield |',
+    '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |',
     ...[
       ['Candidate', candidate],
       ['Control', control],
     ].map(
       ([label, row]) =>
-        `| ${label} | ${row.sourceModelId || row.modelId || 'unknown'} | ${row.lessonCount} | ${row.scion.calls} | ${row.scion.callsPerLesson ?? '—'} | ${row.scion.byAction.rejected || 0} | ${row.scion.byAction.regenerated || 0} |`,
+        `| ${label} | ${row.sourceModelId || row.modelId || 'unknown'} | ${row.lessonCount} | ${row.scion.calls} | ${row.scion.callsPerLesson ?? '—'} | ${row.scion.byAction.rejected || 0} | ${row.scion.byAction.regenerated || 0} | ${row.scion.mcRepairEfficiency?.yield == null ? '—' : `${(row.scion.mcRepairEfficiency.yield * 100).toFixed(1)}%`} |`,
     ),
     '',
     `- Candidate call amplification: ${comparison.callAmplification?.toFixed(2) || 'n/a'}x`,

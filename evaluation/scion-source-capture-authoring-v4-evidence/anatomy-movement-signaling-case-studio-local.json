@@ -1,0 +1,1607 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-anatomy-movement-signaling-case-studio-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "Anatomy Movement and Signaling Case Studio, a five-session course in which students interpret joint structure, muscle categories, nervous tissue, sensory processing, and endocrine signaling through bounded structure-function cases.",
+  "fileNames": [
+    "source-packet-99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634.json"
+  ],
+  "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Anatomy Movement and Signaling Case Studio\",\"sessions\":[{\"number\":1,\"title\":\"Synovial joints\"},{\"number\":2,\"title\":\"Muscle tissue types and contraction\"},{\"number\":3,\"title\":\"Nervous tissue\"},{\"number\":4,\"title\":\"Sensory receptors and perception\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"What structure allows smooth motion in a synovial joint?\",\"op\":[\"The presence of supporting ligaments\",\"The joint cavity and synovial fluid\",\"The articular cartilage and supporting ligaments\",\"The joint cavity and articular cartilage\"],\"ai\":1,\"ex\":\"The joint cavity and synovial fluid allow smooth motion. The presence of supporting ligaments is incorrect because ligaments support the joint by holding bones together and resisting abnormal motion.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"Which feature is a key structural component of a synovial joint?\",\"op\":[\"The supporting ligaments that resist abnormal motion\",\"The joint cavity filled with synovial fluid\",\"The articular cartilage that allows smooth motion\",\"The joint cavity and articular cartilage\"],\"ai\":1,\"ex\":\"The joint cavity filled with synovial fluid is a key structural component. The supporting ligaments are incorrect because they support synovial joints by holding bones together and resisting abnormal motion.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Which muscle tissue type is dependent on nervous-system signaling to function?\",\"op\":[\"Cardiac muscle\",\"Smooth muscle\",\"Skeletal muscle\",\"All muscle types\"],\"ai\":2,\"ex\":\"Skeletal muscle depends on nervous-system signaling to work properly. Cardiac muscle and smooth muscle also share excitability.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-3\":{\"quizItems\":[{\"q\":\"Which component of nervous tissue is primarily responsible for propagating information via electrochemical impulses?\",\"op\":[\"Neurons propagate information through electrochemical impulses called action potentials\",\"Neuroglia support neurons and modulate information propagation\",\"Nervous tissue is excitable tissue made mainly of neurons and neuroglia\",\"Nervous tissue sends and receives electrochemical signals that provide the body with info\"],\"ai\":0,\"ex\":\"Neurons propagate information through electrochemical impulses called action potentials. Neuroglia support neurons and modulate information propagation.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-4\":{\"quizItems\":[{\"q\":\"What is the primary function of sensory receptors?\",\"op\":[\"To process signals into meaningful patterns\",\"To detect sensations\",\"To convert stimuli into electrochemical signals\",\"To change stimuli into nervous system signals\"],\"ai\":1,\"ex\":\"Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system. The correct answer is to detect sensations, as receptors are defined as cells or structures that detect sensations, not to process signals into meaningful patterns.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Sensory receptors\",\"df\":\"Cells or structures that detect sensations are sensory receptors.\",\"eg\":\"Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system.\",\"mi\":\"Sensory receptors process signals into meaningful patterns.\",\"cx\":\"Sensory receptors detect internal or external stimuli and convert them into nervous-system signals.\",\"sourceFactIndexes\":[1,2]}]}}}}",
+  "savedAt": "2026-07-16T23:46:41.346Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-authoring-v4-v0.16.47.json",
+    "campaignManifestSha256": "c772a4344f783ff8e3a10270b4c6c3b52a08b117b2a07a2ad340682c260b622c",
+    "promptSetSha256": "e0d75f3353b42ce64147c47548222d47e2228e13a59fb29d202ed2667039509f",
+    "courseInputSha256": "21cc7a02f13f2f2a24bc0d40e0f69434e5e98305b918a324d33e14922d286f38",
+    "courseGroupId": "anatomy-movement-signaling-case-studio",
+    "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/anatomy-intro.json",
+      "sourceArtifactSha256": "bd4ddecb051add0069a8e7010cd9af0b241fc124d23b235ac391c5524f0763cb",
+      "kernels": [
+        {
+          "id": "anatomy/synovial-joints",
+          "term": "Synovial joints",
+          "definition": "Synovial joints are common movable joints with a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#9-4",
+            "loc": "9.4",
+            "quote": "Synovial joints allow for smooth movements between the adjacent bones"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A key structural feature of a synovial joint is a fluid-filled joint cavity.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#9-4",
+                "loc": "9.4",
+                "quote": "A key structural characteristic for a synovial joint that is not seen at fibrous or cartilaginous joints is the presence of a joint cavity"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Ligaments support synovial joints by holding bones together and resisting abnormal motion.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#9-4",
+                "loc": "9.4",
+                "quote": "Ligaments support the joint by holding the bones together and resisting excess or abnormal joint motions"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/muscle-tissue-types",
+          "term": "Muscle tissue types and contraction",
+          "definition": "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#10-1",
+            "loc": "10.1",
+            "quote": "the body contains three types of muscle tissue: skeletal muscle, cardiac muscle, and smooth muscle"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "All three muscle tissue types share excitability.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#10-1",
+                "loc": "10.1",
+                "quote": "they all exhibit a quality called excitability"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Skeletal muscle depends on nervous-system signaling to work properly.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#10-1",
+                "loc": "10.1",
+                "quote": "skeletal muscle completely depends on signaling from the nervous system to work properly"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/nervous-tissue",
+          "term": "Nervous tissue",
+          "definition": "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#4-5",
+            "loc": "4.5",
+            "quote": "Two main classes of cells make up nervous tissue: the neuron and neuroglia"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#4-5",
+                "loc": "4.5",
+                "quote": "capable of sending and receiving electrochemical signals that provide the body with information"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Neuroglia support neurons and modulate information propagation.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#4-5",
+                "loc": "4.5",
+                "quote": "Neuroglia play an essential role in supporting neurons and modulating their information propagation"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/sensory-perception",
+          "term": "Sensory receptors and perception",
+          "definition": "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#14-1",
+            "loc": "14.1",
+            "quote": "Perception is the central processing of sensory stimuli into a meaningful pattern"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Receptors are cells or structures that detect sensations.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#14-1",
+                "loc": "14.1",
+                "quote": "Receptors are the cells or structures that detect sensations"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Stimuli are changed into electrochemical signals of the nervous system.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#14-1",
+                "loc": "14.1",
+                "quote": "Stimuli from varying sources, and of different types, are received and changed into the electrochemical signals of the nervous system"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/endocrine-hormone-signaling",
+          "term": "Endocrine hormone signaling",
+          "definition": "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#17-2",
+            "loc": "17.2",
+            "quote": "it will affect the activity only of its target cells; that is, cells with receptors for that particular hormone"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Hormone binding initiates a chain of events that leads to a target-cell response.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#17-2",
+                "loc": "17.2",
+                "quote": "Once the hormone binds to the receptor, a chain of events is initiated that leads to the target cell's response"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#17-2",
+                "loc": "17.2",
+                "quote": "metabolism, fluid, and electrolyte balance, sleep, and many other body functions"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-16T23:46:41.346Z",
+    "admittedPromptIds": [
+      "anatomy-movement-signaling-case-studio:anatomy/synovial-joints",
+      "anatomy-movement-signaling-case-studio:anatomy/muscle-tissue-types",
+      "anatomy-movement-signaling-case-studio:anatomy/nervous-tissue",
+      "anatomy-movement-signaling-case-studio:anatomy/sensory-perception"
+    ],
+    "rejectedPromptIds": [
+      "anatomy-movement-signaling-case-studio:anatomy/endocrine-hormone-signaling"
+    ],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/synovial-joints",
+          "kernelId": "anatomy/synovial-joints",
+          "promptSha256": "ce378e4b4fc730e55a702a182bced9dd4c55ae28bc7e40856fce4a1eebd74ce3",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What structure allows smooth motion in a synovial joint?",
+                "op": [
+                  "The presence of supporting ligaments",
+                  "The joint cavity and synovial fluid",
+                  "The articular cartilage and supporting ligaments",
+                  "The joint cavity and articular cartilage"
+                ],
+                "ai": 1,
+                "ex": "The joint cavity and synovial fluid allow smooth motion. The presence of supporting ligaments is incorrect because ligaments support the joint by holding bones together and resisting abnormal motion.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "Which feature is a key structural component of a synovial joint?",
+                "op": [
+                  "The supporting ligaments that resist abnormal motion",
+                  "The joint cavity filled with synovial fluid",
+                  "The articular cartilage that allows smooth motion",
+                  "The joint cavity and articular cartilage"
+                ],
+                "ai": 1,
+                "ex": "The joint cavity filled with synovial fluid is a key structural component. The supporting ligaments are incorrect because they support synovial joints by holding bones together and resisting abnormal motion.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Synovial joints",
+                "df": "Synovial joints are common movable joints with a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion.",
+                "eg": "Synovial joints are common movable joints with a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion.",
+                "mi": "Synovial joints are only characterized by a joint cavity and synovial fluid.",
+                "cx": "Synovial joints are common movable joints with a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Ligaments",
+                "df": "Ligaments support synovial joints by holding bones together and resisting abnormal motion.",
+                "eg": "Ligaments support synovial joints by holding bones together and resisting abnormal motion.",
+                "mi": "Ligaments are the primary structure that allows smooth motion in a joint.",
+                "cx": "Ligaments support synovial joints by holding bones together and resisting abnormal motion.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "80c791c19a8508d211cc09ca2e5cac052aafe68d2c24537f76efea3b6a4d3f82",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What structure allows smooth motion in a synovial joint?",
+                "op": [
+                  "The presence of supporting ligaments",
+                  "The joint cavity and synovial fluid",
+                  "The articular cartilage and supporting ligaments",
+                  "The joint cavity and articular cartilage"
+                ],
+                "ai": 1,
+                "ex": "The joint cavity and synovial fluid allow smooth motion. The presence of supporting ligaments is incorrect because ligaments support the joint by holding bones together and resisting abnormal motion.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "Which feature is a key structural component of a synovial joint?",
+                "op": [
+                  "The supporting ligaments that resist abnormal motion",
+                  "The joint cavity filled with synovial fluid",
+                  "The articular cartilage that allows smooth motion",
+                  "The joint cavity and articular cartilage"
+                ],
+                "ai": 1,
+                "ex": "The joint cavity filled with synovial fluid is a key structural component. The supporting ligaments are incorrect because they support synovial joints by holding bones together and resisting abnormal motion.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "6632c96ef3062196f3bf3b9a3e1f9d7ac39ae5817adb0b6d518e0643ccb51f69",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-circular-definition",
+              "key-term-0-example-repeats-definition",
+              "key-term-0-correction-repeats-definition",
+              "key-term-0-correction-repeats-example",
+              "key-term-1-circular-definition",
+              "key-term-1-example-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "key-term-1-correction-repeats-example",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:41:45.565Z",
+          "durationMs": 8031
+        },
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/muscle-tissue-types",
+          "kernelId": "anatomy/muscle-tissue-types",
+          "promptSha256": "97b9aee2205410710e1a21b9f10899aa55d1cc9a74ec6477e9ed0e62683d58fc",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which muscle tissue type requires nervous-system signaling to function correctly?",
+                "op": [
+                  "Cardiac muscle requires nervous-system signaling to function correctly",
+                  "Skeletal muscle requires nervous-system signaling to function correctly",
+                  "Smooth muscle requires nervous-system signaling to function correctly",
+                  "All muscle tissue types require nervous-system signaling to function correctly"
+                ],
+                "ai": 2,
+                "ex": "Skeletal muscle depends on nervous-system signaling to work properly. Cardiac muscle and smooth muscle also share excitability.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What is a shared characteristic among skeletal, cardiac, and smooth muscle tissue types?",
+                "op": [
+                  "All three muscle tissue types share excitability",
+                  "Skeletal muscle depends on nervous-system signaling to work properly",
+                  "Skeletal muscle contracts by pulling on attachment points",
+                  "Smooth muscle contracts by pulling on attachment points"
+                ],
+                "ai": 1,
+                "ex": "All three muscle tissue types share excitability. Skeletal muscle depends on nervous-system signaling to work properly.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Muscle tissue types",
+                "df": "Muscle tissue types is skeletal, cardiac, and smooth muscle.",
+                "eg": "Muscle tissue includes skeletal, cardiac, and smooth muscle. Cardiac muscle and smooth muscle also share excitability.",
+                "mi": "Muscle tissue includes only skeletal muscle.",
+                "cx": "Cardiac and smooth muscle are also muscle tissue types.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Excitability",
+                "df": "Excitability is shared by all three muscle tissue types.",
+                "eg": "All three muscle tissue types share excitability. Skeletal muscle depends on nervous-system signaling to work properly.",
+                "mi": "Excitability is only found in skeletal muscle.",
+                "cx": "Excitability is shared by cardiac and smooth muscle tissue types.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "83c73187e65f42bcc02d9b3e9047f7473814f029b4f744532d90d8f7a2bb9b1c",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-explanation-key-conflict",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-circular-definition",
+              "key-term-1-circular-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:41:53.596Z",
+          "durationMs": 6819
+        },
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/nervous-tissue",
+          "kernelId": "anatomy/nervous-tissue",
+          "promptSha256": "72d77e3e7238c1b76314fb2e08c559e760ef8e9ad411bbd5d2a60871edc8667e",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which component of nervous tissue is primarily responsible for propagating information via electrochemical impulses?",
+                "op": [
+                  "Neurons propagate information through electrochemical impulses called action potentials",
+                  "Neuroglia support neurons and modulate information propagation",
+                  "Nervous tissue is excitable tissue made mainly of neurons and neuroglia",
+                  "Nervous tissue sends and receives electrochemical signals that provide the body with info"
+                ],
+                "ai": 0,
+                "ex": "Neurons propagate information through electrochemical impulses called action potentials. Neuroglia support neurons and modulate information propagation.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is the primary function of neuroglia within nervous tissue?",
+                "op": [
+                  "Neuroglia support neurons and modulate information propagation",
+                  "Neurons propagate information through electrochemical impulses called action potentials",
+                  "Nervous tissue is excitable tissue made mainly of neurons and neuroglia",
+                  "Nervous tissue sends and receives electrochemical signals that provide the body with info"
+                ],
+                "ai": 2,
+                "ex": "Neuroglia support neurons and modulate information propagation. Neurons propagate information through electrochemical impulses called action potentials.",
+                "sourceFactIndexes": [
+                  2,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Nervous tissue",
+                "df": "Excitable tissue is made mainly of neurons and neuroglia.",
+                "eg": "Nervous tissue is excitable tissue made mainly of neurons and neuroglia. Neuroglia support neurons and modulate information propagation.",
+                "mi": "Nervous tissue is excitable tissue made mainly of neurons and neuroglia.",
+                "cx": "Neuroglia support neurons and modulate information propagation.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Action potentials",
+                "df": "Action potentials are electrochemical impulses propagated by neurons.",
+                "eg": "Action potentials are electrochemical impulses propagated by neurons. Neurons propagate information through electrochemical impulses called action potentials.",
+                "mi": "Action potentials are electrochemical impulses propagated by neurons.",
+                "cx": "Neurons propagate information through electrochemical impulses called action potentials.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "5b5f0c70676f7b4483240623747412a7371848860992b8813195e05d94c6b590",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which component of nervous tissue is primarily responsible for propagating information via electrochemical impulses?",
+                "op": [
+                  "Neurons propagate information through electrochemical impulses called action potentials",
+                  "Neuroglia support neurons and modulate information propagation",
+                  "Nervous tissue is excitable tissue made mainly of neurons and neuroglia",
+                  "Nervous tissue sends and receives electrochemical signals that provide the body with info"
+                ],
+                "ai": 0,
+                "ex": "Neurons propagate information through electrochemical impulses called action potentials. Neuroglia support neurons and modulate information propagation.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "bc3bda9767b2e826d94fdc23c190fb54e3549608a3945d060e10704c36c320a5",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-explanation-key-conflict",
+              "key-term-0-misconception-repeats-definition",
+              "key-term-0-misconception-repeats-example",
+              "key-term-0-correction-repeats-example",
+              "key-term-0-misconception-repeats-known-fact",
+              "key-term-1-circular-definition",
+              "key-term-1-example-repeats-definition",
+              "key-term-1-misconception-repeats-definition",
+              "key-term-1-misconception-repeats-example",
+              "key-term-1-correction-repeats-example",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:42:00.415Z",
+          "durationMs": 7893
+        },
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/sensory-perception",
+          "kernelId": "anatomy/sensory-perception",
+          "promptSha256": "4d538ed3c96df1193e6309da645f6ae728508b257da25043f62bbc94db70942b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of sensory receptors?",
+                "op": [
+                  "To process signals into meaningful patterns",
+                  "To convert stimuli into electrochemical signals",
+                  "To detect sensations",
+                  "To change stimuli into nervous system signals"
+                ],
+                "ai": 1,
+                "ex": "Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What is the role of perception in sensory processing?",
+                "op": [
+                  "Detecting internal or external stimuli",
+                  "Converting stimuli into electrochemical signals",
+                  "Central processing of signals into meaningful patterns",
+                  "Detecting sensations"
+                ],
+                "ai": 0,
+                "ex": "Perception is the central processing of those signals into meaningful patterns. Receptors detect internal or external stimuli and convert them into nervous-system signals.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Sensory receptors",
+                "df": "Cells or structures that detect sensations are sensory receptors.",
+                "eg": "Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system.",
+                "mi": "Sensory receptors process signals into meaningful patterns.",
+                "cx": "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Perception",
+                "df": "Central processing of signals into meaningful patterns is perception.",
+                "eg": "Perception is the central processing of those signals into meaningful patterns. Receptors detect internal or external stimuli and convert them into nervous-system signals.",
+                "mi": "Perception detects internal or external stimuli.",
+                "cx": "Perception is the central processing of those signals into meaningful patterns.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "79199d2a0cf96d2332cf987f527e55461b8514599ba8ed19bf9e3da52b398344",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Sensory receptors",
+                "df": "Cells or structures that detect sensations are sensory receptors.",
+                "eg": "Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system.",
+                "mi": "Sensory receptors process signals into meaningful patterns.",
+                "cx": "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "f40c5508607f1d0ecd603405424eb69efea39a7b53989ee345bf36481c3dc713",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-explanation-key-conflict",
+              "mc-1-explanation-key-conflict",
+              "key-term-1-correction-repeats-definition",
+              "key-term-1-correction-repeats-example",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:42:08.308Z",
+          "durationMs": 6445
+        },
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/endocrine-hormone-signaling",
+          "kernelId": "anatomy/endocrine-hormone-signaling",
+          "promptSha256": "46cbe21a975a67e8f42e3cbb244eaf496085da76f663d0a5d61b830417a03b7b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary mechanism by which endocrine hormones exert their effect?",
+                "op": [
+                  "Hormones affect all cells in the body directly",
+                  "Hormones affect only target cells with appropriate receptors",
+                  "Hormones affect only muscle tissue locations",
+                  "Hormones affect only sensory processing pathways"
+                ],
+                "ai": 0,
+                "ex": "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors. Hormones affect only muscle tissue locations because they only act on specific cells.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Which physiological processes are regulated by endocrine hormones?",
+                "op": [
+                  "Growth, metabolism, fluid balance, electrolyte balance, and sleep",
+                  "Joint structure, muscle categories, and nervous tissue",
+                  "Sensory transduction and perception",
+                  "Movement outcomes and joint components"
+                ],
+                "ai": 2,
+                "ex": "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep. Joint structure is not regulated by endocrine hormones because they act on target cells.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Endocrine hormone signaling",
+                "df": "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors.",
+                "eg": "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors. Hormones affect only muscle tissue locations because they only act on specific cells.",
+                "mi": "Hormones affect all cells in the body directly",
+                "cx": "Hormones affect only target cells with the appropriate receptors.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Target-cell response",
+                "df": "Hormone binding initiates a chain of events that leads to a target-cell response.",
+                "eg": "Hormone binding initiates a chain of events that leads to a target-cell response. Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep.",
+                "mi": "Target-cell response is a direct physical change in a joint component",
+                "cx": "Target-cell response is the result of hormone binding initiating a chain of events.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "7253ee6797314af386adbafce272236031a022a4c9f62cb148a557488660caf5",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-explanation-key-conflict",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-example-repeats-definition",
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-example-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:42:14.754Z",
+          "durationMs": 7430
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/synovial-joints",
+          "kernelId": "anatomy/synovial-joints",
+          "promptSha256": "ce378e4b4fc730e55a702a182bced9dd4c55ae28bc7e40856fce4a1eebd74ce3",
+          "generationPromptSha256": "fb0ac58b4df6f9b1923ddaff5bd9f7b2ef903ee90cc23f4a24ad1bbb95427c77",
+          "rawCallSha256": "bb3d2d00887565f2d6f897143362b37ab9ffc703afd6f8e796cf06f032e5cfed",
+          "assessmentContract": "scion-source-targeted-assessment-v1",
+          "response": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Synovial joints are common movable joints with a joint cavit",
+                "df": "Synovial joints are common movable joints with a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion.",
+                "eg": "A key structural feature of a synovial joint is a fluid-filled joint cavity.",
+                "mi": "Synovial joints are only characterized by a joint cavity.",
+                "cx": "Synovial joints are common movable joints with a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Ligaments support synovial joints by holding bones together",
+                "df": "Ligaments support synovial joints by holding bones together and resisting abnormal motion.",
+                "eg": "A key structural feature of a synovial joint is a fluid-filled joint cavity.",
+                "mi": "Ligaments are only involved in resisting abnormal motion.",
+                "cx": "Ligaments support synovial joints by holding bones together and resisting abnormal motion.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "8b9a4b77cfa4db219b467b66f15f1ff6bb8a5f4bdd78350b2ce9bb657d8d9c70",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 0,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:46:15.890Z",
+          "durationMs": 3346,
+          "recoveryTarget": {
+            "mcItems": 0,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/muscle-tissue-types",
+          "kernelId": "anatomy/muscle-tissue-types",
+          "promptSha256": "97b9aee2205410710e1a21b9f10899aa55d1cc9a74ec6477e9ed0e62683d58fc",
+          "generationPromptSha256": "03e14fa9339c04dd515f8f04e9b6381c6afea6b955987f78ba2de2c879272679",
+          "rawCallSha256": "a7d2c5af649ea2b2e2335b478707d822cca2d1630300f239e37a9f0995343719",
+          "assessmentContract": "scion-source-targeted-assessment-v1",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which muscle tissue type is dependent on nervous-system signaling to function?",
+                "op": [
+                  "Cardiac muscle",
+                  "Smooth muscle",
+                  "Skeletal muscle",
+                  "All muscle types"
+                ],
+                "ai": 2,
+                "ex": "Skeletal muscle depends on nervous-system signaling to work properly. Cardiac muscle and smooth muscle also share excitability.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "q": "What is a shared characteristic among skeletal, cardiac, and smooth muscle?",
+                "op": [
+                  "Contractility",
+                  "Excitability",
+                  "Dependence on nervous system",
+                  "Ability to pull on attachment points"
+                ],
+                "ai": 1,
+                "ex": "All three muscle tissue types share excitability. Contractility allows muscle to pull on attachment points and shorten with force.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Muscle tissue types",
+                "df": "Muscle tissue includes skeletal, cardiac, and smooth muscle.",
+                "eg": "Skeletal muscle depends on nervous-system signaling to work properly.",
+                "mi": "Smooth muscle is the only excitable muscle tissue.",
+                "cx": "Skeletal muscle depends on nervous-system signaling to work properly.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Excitability",
+                "df": "All three muscle tissue types share excitability.",
+                "eg": "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable.",
+                "mi": "Only skeletal muscle is excitable.",
+                "cx": "All three muscle tissue types share excitability.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "a7d1f9b3668ba12cb340d18aec431e057b4e3dc00d333ed9f1000a0a7c06d70a",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which muscle tissue type is dependent on nervous-system signaling to function?",
+                "op": [
+                  "Cardiac muscle",
+                  "Smooth muscle",
+                  "Skeletal muscle",
+                  "All muscle types"
+                ],
+                "ai": 2,
+                "ex": "Skeletal muscle depends on nervous-system signaling to work properly. Cardiac muscle and smooth muscle also share excitability.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "3c4a0dbd525cfe8e79ded6dfffa9d5279a7b17808eb0739e017391ecb10d4720",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-source-answer-conflict",
+              "key-term-0-correction-repeats-example",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:46:19.237Z",
+          "durationMs": 4760,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/nervous-tissue",
+          "kernelId": "anatomy/nervous-tissue",
+          "promptSha256": "72d77e3e7238c1b76314fb2e08c559e760ef8e9ad411bbd5d2a60871edc8667e",
+          "generationPromptSha256": "dcf7ecd113567acb9001572beb50a36c82149631a9b759d88e4cb4a0f44a600b",
+          "rawCallSha256": "8e950ce46c33a749b7b17a4822a28b1ec84c50d6ef665e7393baf56ea1a5f8a1",
+          "assessmentContract": "scion-source-targeted-assessment-v1",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which feature of nervous tissue is decisive in its function?",
+                "op": [
+                  "Neurons propagate information via action potentials",
+                  "Neuroglia support neurons and modulate information propagation",
+                  "Nervous tissue is excitable tissue made mainly of neurons and neuroglia",
+                  "Nervous tissue sends and receives electrochemical signals"
+                ],
+                "ai": 0,
+                "ex": "Neurons propagate information through electrochemical impulses called action potentials. Neuroglia support neurons and modulate information propagation. The statement that nervous tissue is excitable tissue made mainly of neurons and neuroglia is incorrect because the decisive feature is the action-",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Neurons",
+                "df": "Neurons propagate information through electrochemical impulses called action potentials.",
+                "eg": "Neurons are the primary cells that transmit signals.",
+                "mi": "Neurons are primarily responsible for supporting the structure of the nervous system.",
+                "cx": "Neurons propagate information through electrochemical impulses called action potentials.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Neuroglia",
+                "df": "Neuroglia support neurons and modulate information propagation.",
+                "eg": "Neuroglia provide structural and regulatory support for neurons.",
+                "mi": "Neuroglia are the primary cells that generate electrochemical impulses.",
+                "cx": "Neuroglia support neurons and modulate information propagation.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "05f8919ca38482e1949d77f02eca3bd8a7ef32debe391e78a9acf9e9af57f684",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "key-term-0-circular-definition",
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-circular-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:46:23.998Z",
+          "durationMs": 4947,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/sensory-perception",
+          "kernelId": "anatomy/sensory-perception",
+          "promptSha256": "4d538ed3c96df1193e6309da645f6ae728508b257da25043f62bbc94db70942b",
+          "generationPromptSha256": "cb598e83ae5a7e6b5f479af945a259589a238cc7ce44cba1dfa616cb7843d338",
+          "rawCallSha256": "ef2f01e359ff22cba0fc520975d5138200f9f176a6efbcbb79a70942089ccfaa",
+          "assessmentContract": "scion-source-targeted-assessment-v1",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of sensory receptors?",
+                "op": [
+                  "To process signals into meaningful patterns",
+                  "To detect sensations",
+                  "To convert stimuli into electrochemical signals",
+                  "To change stimuli into nervous system signals"
+                ],
+                "ai": 1,
+                "ex": "Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system. The correct answer is to detect sensations, as receptors are defined as cells or structures that detect sensations, not to process signals into meaningful patterns.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What is the role of perception in the sensory process?",
+                "op": [
+                  "Detecting internal or external stimuli",
+                  "Converting stimuli into electrochemical signals",
+                  "Detecting sensations",
+                  "Central processing of those signals into meaningful patterns"
+                ],
+                "ai": 3,
+                "ex": "Stimuli are changed into electrochemical signals of the nervous system. Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns. The correct answer is central processing of the ",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Sensory receptors",
+                "df": "Receptors are cells or structures that detect sensations.",
+                "eg": "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals.",
+                "mi": "Sensory receptors process signals into meaningful patterns.",
+                "cx": "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "ae791f55c0a5180edea8479fd350db0e1d2d7bfdf63df7b5805920880075f6b5",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the primary function of sensory receptors?",
+                "op": [
+                  "To process signals into meaningful patterns",
+                  "To detect sensations",
+                  "To convert stimuli into electrochemical signals",
+                  "To change stimuli into nervous system signals"
+                ],
+                "ai": 1,
+                "ex": "Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system. The correct answer is to detect sensations, as receptors are defined as cells or structures that detect sensations, not to process signals into meaningful patterns.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "7486e31f8382f447a6e57d1f5f6547665b635f9931c5c4f69fdcbb133e004ffa",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-truncated-explanation",
+              "mc-1-explanation-key-conflict",
+              "mc-1-longest-option-cue",
+              "key-term-0-correction-repeats-example",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 1,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:46:28.946Z",
+          "durationMs": 5520,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 1
+          }
+        },
+        {
+          "promptId": "anatomy-movement-signaling-case-studio:anatomy/endocrine-hormone-signaling",
+          "kernelId": "anatomy/endocrine-hormone-signaling",
+          "promptSha256": "46cbe21a975a67e8f42e3cbb244eaf496085da76f663d0a5d61b830417a03b7b",
+          "generationPromptSha256": "be7d026152f04b9881d3e57b563f6e9c03917bc0f765043a2d9554f810b6c4d9",
+          "rawCallSha256": "15bd08a8c61fb25373c68d97735a7f27f8a0352702467ee60083afebb464dffc",
+          "assessmentContract": "scion-source-targeted-assessment-v1",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary mechanism by which hormones exert their effect?",
+                "op": [
+                  "Binding to receptors on target cells",
+                  "Binding to receptors on target cells",
+                  "Binding to receptors on target cells",
+                  "Binding to receptors on target cells"
+                ],
+                "ai": 0,
+                "ex": "Hormone binding initiates a chain of events that leads to a target-cell response. This is the decisive feature of endocrine signaling, correcting the misconception that hormones act on all cells.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "Which physiological processes are regulated by hormones?",
+                "op": [
+                  "Growth, metabolism, fluid balance, and sleep",
+                  "Growth, metabolism, fluid balance, and sleep",
+                  "Growth, metabolism, fluid balance, and sleep",
+                  "Growth, metabolism, fluid balance, and sleep"
+                ],
+                "ai": 0,
+                "ex": "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep. The misconception that hormones only affect target cells is corrected by noting they circulate through the bloodstream.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Hormone binding",
+                "df": "Hormone binding initiates a chain of events that leads to a target-cell response.",
+                "eg": "Hormone binding is the decisive feature of endocrine signaling.",
+                "mi": "Hormone binding is the only way hormones circulate through the bloodstream.",
+                "cx": "Hormone binding initiates a chain of events that leads to a target-cell response.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Target-cell response",
+                "df": "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+                "eg": "Target-cell response is the outcome of hormone binding.",
+                "mi": "Target-cell response is only triggered by hormone binding.",
+                "cx": "Target-cell response is triggered by hormone binding.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "ec76d61344e08f741f4110bb25565ce99526ac8c218968f44a0fc4a517f18d13",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-duplicate-options",
+              "mc-1-duplicate-options",
+              "key-term-0-circular-definition",
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-correction-repeats-misconception",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T23:46:34.467Z",
+          "durationMs": 6879,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 2
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "anatomy-movement-signaling-case-studio:anatomy/muscle-tissue-types",
+        "anatomy-movement-signaling-case-studio:anatomy/sensory-perception"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "anatomy-movement-signaling-case-studio:anatomy/synovial-joints",
+        "kernelId": "anatomy/synovial-joints",
+        "promptSha256": "ce378e4b4fc730e55a702a182bced9dd4c55ae28bc7e40856fce4a1eebd74ce3",
+        "generationPromptSha256": "fb0ac58b4df6f9b1923ddaff5bd9f7b2ef903ee90cc23f4a24ad1bbb95427c77",
+        "rawCallSha256": "bb3d2d00887565f2d6f897143362b37ab9ffc703afd6f8e796cf06f032e5cfed",
+        "recoveryCallSha256": "30cb356b9ed70893d9804766ef72953ea37894d2619668d09a58a31c55e69535",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What structure allows smooth motion in a synovial joint?",
+              "op": [
+                "The presence of supporting ligaments",
+                "The joint cavity and synovial fluid",
+                "The articular cartilage and supporting ligaments",
+                "The joint cavity and articular cartilage"
+              ],
+              "ai": 1,
+              "ex": "The joint cavity and synovial fluid allow smooth motion. The presence of supporting ligaments is incorrect because ligaments support the joint by holding bones together and resisting abnormal motion.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "Which feature is a key structural component of a synovial joint?",
+              "op": [
+                "The supporting ligaments that resist abnormal motion",
+                "The joint cavity filled with synovial fluid",
+                "The articular cartilage that allows smooth motion",
+                "The joint cavity and articular cartilage"
+              ],
+              "ai": 1,
+              "ex": "The joint cavity filled with synovial fluid is a key structural component. The supporting ligaments are incorrect because they support synovial joints by holding bones together and resisting abnormal motion.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "responseSha256": "6632c96ef3062196f3bf3b9a3e1f9d7ac39ae5817adb0b6d518e0643ccb51f69",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What structure allows smooth motion in a synovial joint?",
+              "op": [
+                "The presence of supporting ligaments",
+                "The joint cavity and synovial fluid",
+                "The articular cartilage and supporting ligaments",
+                "The joint cavity and articular cartilage"
+              ],
+              "ai": 1,
+              "ex": "The joint cavity and synovial fluid allow smooth motion. The presence of supporting ligaments is incorrect because ligaments support the joint by holding bones together and resisting abnormal motion.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "Which feature is a key structural component of a synovial joint?",
+              "op": [
+                "The supporting ligaments that resist abnormal motion",
+                "The joint cavity filled with synovial fluid",
+                "The articular cartilage that allows smooth motion",
+                "The joint cavity and articular cartilage"
+              ],
+              "ai": 1,
+              "ex": "The joint cavity filled with synovial fluid is a key structural component. The supporting ligaments are incorrect because they support synovial joints by holding bones together and resisting abnormal motion.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "6632c96ef3062196f3bf3b9a3e1f9d7ac39ae5817adb0b6d518e0643ccb51f69",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-count",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T23:46:15.890Z",
+        "durationMs": 3346
+      },
+      {
+        "promptId": "anatomy-movement-signaling-case-studio:anatomy/muscle-tissue-types",
+        "kernelId": "anatomy/muscle-tissue-types",
+        "promptSha256": "97b9aee2205410710e1a21b9f10899aa55d1cc9a74ec6477e9ed0e62683d58fc",
+        "generationPromptSha256": "03e14fa9339c04dd515f8f04e9b6381c6afea6b955987f78ba2de2c879272679",
+        "rawCallSha256": "a7d2c5af649ea2b2e2335b478707d822cca2d1630300f239e37a9f0995343719",
+        "recoveryCallSha256": "34732bc6ce2f9f15063d3d1a3a11c2bc590afc7cb9f622613327f0e6a58af61a",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which muscle tissue type is dependent on nervous-system signaling to function?",
+              "op": [
+                "Cardiac muscle",
+                "Smooth muscle",
+                "Skeletal muscle",
+                "All muscle types"
+              ],
+              "ai": 2,
+              "ex": "Skeletal muscle depends on nervous-system signaling to work properly. Cardiac muscle and smooth muscle also share excitability.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "responseSha256": "3c4a0dbd525cfe8e79ded6dfffa9d5279a7b17808eb0739e017391ecb10d4720",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which muscle tissue type is dependent on nervous-system signaling to function?",
+              "op": [
+                "Cardiac muscle",
+                "Smooth muscle",
+                "Skeletal muscle",
+                "All muscle types"
+              ],
+              "ai": 2,
+              "ex": "Skeletal muscle depends on nervous-system signaling to work properly. Cardiac muscle and smooth muscle also share excitability.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "3c4a0dbd525cfe8e79ded6dfffa9d5279a7b17808eb0739e017391ecb10d4720",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "key-term-count",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T23:46:19.237Z",
+        "durationMs": 4760
+      },
+      {
+        "promptId": "anatomy-movement-signaling-case-studio:anatomy/nervous-tissue",
+        "kernelId": "anatomy/nervous-tissue",
+        "promptSha256": "72d77e3e7238c1b76314fb2e08c559e760ef8e9ad411bbd5d2a60871edc8667e",
+        "generationPromptSha256": "dcf7ecd113567acb9001572beb50a36c82149631a9b759d88e4cb4a0f44a600b",
+        "rawCallSha256": "8e950ce46c33a749b7b17a4822a28b1ec84c50d6ef665e7393baf56ea1a5f8a1",
+        "recoveryCallSha256": "aaade6ce5c5b6048c4a362d85f21dfbf2fde7e4567640e10c47edb1de84ff00e",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which component of nervous tissue is primarily responsible for propagating information via electrochemical impulses?",
+              "op": [
+                "Neurons propagate information through electrochemical impulses called action potentials",
+                "Neuroglia support neurons and modulate information propagation",
+                "Nervous tissue is excitable tissue made mainly of neurons and neuroglia",
+                "Nervous tissue sends and receives electrochemical signals that provide the body with info"
+              ],
+              "ai": 0,
+              "ex": "Neurons propagate information through electrochemical impulses called action potentials. Neuroglia support neurons and modulate information propagation.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "responseSha256": "bc3bda9767b2e826d94fdc23c190fb54e3549608a3945d060e10704c36c320a5",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which component of nervous tissue is primarily responsible for propagating information via electrochemical impulses?",
+              "op": [
+                "Neurons propagate information through electrochemical impulses called action potentials",
+                "Neuroglia support neurons and modulate information propagation",
+                "Nervous tissue is excitable tissue made mainly of neurons and neuroglia",
+                "Nervous tissue sends and receives electrochemical signals that provide the body with info"
+              ],
+              "ai": 0,
+              "ex": "Neurons propagate information through electrochemical impulses called action potentials. Neuroglia support neurons and modulate information propagation.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "bc3bda9767b2e826d94fdc23c190fb54e3549608a3945d060e10704c36c320a5",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "key-term-count",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T23:46:23.998Z",
+        "durationMs": 4947
+      },
+      {
+        "promptId": "anatomy-movement-signaling-case-studio:anatomy/sensory-perception",
+        "kernelId": "anatomy/sensory-perception",
+        "promptSha256": "4d538ed3c96df1193e6309da645f6ae728508b257da25043f62bbc94db70942b",
+        "generationPromptSha256": "cb598e83ae5a7e6b5f479af945a259589a238cc7ce44cba1dfa616cb7843d338",
+        "rawCallSha256": "ef2f01e359ff22cba0fc520975d5138200f9f176a6efbcbb79a70942089ccfaa",
+        "recoveryCallSha256": "7a3645e6edc4ddd1b55c7ad02102d53f735058901b3fe3b17a985a359492bc5c",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of sensory receptors?",
+              "op": [
+                "To process signals into meaningful patterns",
+                "To detect sensations",
+                "To convert stimuli into electrochemical signals",
+                "To change stimuli into nervous system signals"
+              ],
+              "ai": 1,
+              "ex": "Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system. The correct answer is to detect sensations, as receptors are defined as cells or structures that detect sensations, not to process signals into meaningful patterns.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Sensory receptors",
+              "df": "Cells or structures that detect sensations are sensory receptors.",
+              "eg": "Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system.",
+              "mi": "Sensory receptors process signals into meaningful patterns.",
+              "cx": "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "9e470bf4dd447a65f87ebd61cdce324a3ef7b1b07c982d016650bf7b0e2c11d1",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the primary function of sensory receptors?",
+              "op": [
+                "To process signals into meaningful patterns",
+                "To detect sensations",
+                "To convert stimuli into electrochemical signals",
+                "To change stimuli into nervous system signals"
+              ],
+              "ai": 1,
+              "ex": "Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system. The correct answer is to detect sensations, as receptors are defined as cells or structures that detect sensations, not to process signals into meaningful patterns.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Sensory receptors",
+              "df": "Cells or structures that detect sensations are sensory receptors.",
+              "eg": "Receptors are cells or structures that detect sensations. Stimuli are changed into electrochemical signals of the nervous system.",
+              "mi": "Sensory receptors process signals into meaningful patterns.",
+              "cx": "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "9e470bf4dd447a65f87ebd61cdce324a3ef7b1b07c982d016650bf7b0e2c11d1",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "key-term-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 1,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T23:46:28.946Z",
+        "durationMs": 5520
+      },
+      {
+        "promptId": "anatomy-movement-signaling-case-studio:anatomy/endocrine-hormone-signaling",
+        "kernelId": "anatomy/endocrine-hormone-signaling",
+        "promptSha256": "46cbe21a975a67e8f42e3cbb244eaf496085da76f663d0a5d61b830417a03b7b",
+        "generationPromptSha256": "be7d026152f04b9881d3e57b563f6e9c03917bc0f765043a2d9554f810b6c4d9",
+        "rawCallSha256": "15bd08a8c61fb25373c68d97735a7f27f8a0352702467ee60083afebb464dffc",
+        "recoveryCallSha256": "48fc7dc99fd1b0607c106c8ff3f49a9619bbf940a88884f42eb761d9306e6469",
+        "response": {
+          "mcItems": [],
+          "keyTerms": []
+        },
+        "responseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+        "admittedResponse": {
+          "mcItems": [],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+        "assessment": {
+          "eligible": false,
+          "issues": [
+            "mc-count",
+            "key-term-count",
+            "no-admitted-mc-items",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 0,
+            "admittedMcItems": 0,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T23:46:34.467Z",
+        "durationMs": 6879
+      }
+    ]
+  }
+}

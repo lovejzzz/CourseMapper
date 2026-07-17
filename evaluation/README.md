@@ -99,7 +99,7 @@ npm run audit:scion:adapter -- path/to/scion-adapter.json
 npm run audit:scion:browser-adapter-smoke
 npm run build:scion:codex-first-order
 npm run audit:scion:codex-first-order
-npm run capture:scion:adapter:pairs -- --benchmark evaluation/scion-adapters/held-out-course-benchmark-v1.json --dataset-manifest ... --adapter-manifest ... --candidate-round ... --base-round ...
+npm run capture:scion:adapter:pairs -- --benchmark evaluation/scion-adapters/held-out-course-benchmark-v2.json --dataset-manifest ... --adapter-manifest ... --candidate-round ... --base-round ...
 npm run audit:scion:adapter:promotion -- --manifest ... --candidate ... --base ...
 ```
 
@@ -121,7 +121,7 @@ The historical v0.16.35 A/B workbook remains byte-reconstructable through `npm r
 
 The browser-device boundary is now semantic too. `evaluation/scion-adapters/browser-device-matrix-protocol-v1.json` freezes four profiles: Chrome on integrated 8 GB hardware, Edge on integrated 16 GB hardware, Chrome or Edge on a discrete GPU with at least 8 GB VRAM, and Chrome on Apple Silicon with at least 16 GB unified memory. `npm run audit:scion:browser-device-matrix -- --manifest ... --evidence ...` recomputes the immutable adapter-package identity, checks the exact base/runtime/scale, evaluates load, completion, activation, rollback, memory, interruption, storage, device-loss, and repeat-run requirements, and verifies every retained artifact byte. The adapter promotion audit reruns this semantic verifier after checking the evidence file SHA-256; a hash-correct JSON label can no longer satisfy the device gate. The non-promotable scale-16 smoke now passes the real Apple-Silicon profile, making the matrix 1/4; no promotable candidate has any passing profile.
 
-The held-out ruler is `evaluation/scion-adapters/held-out-course-benchmark-v1.json`. It freezes World Languages, World Literature, Psychology, Nutrition, and Astronomy before another candidate is trained. Every course has 12–15 lessons and binds its complete prompt-only course input and source packet. The ruler also binds the exact QAT base contract and the grader file. Any benchmark domain or course group present in the candidate dataset blocks the run instead of triggering a convenient fixture substitution.
+The promotion ruler is `evaluation/scion-adapters/held-out-course-benchmark-v2.json`. It freezes World Languages, World Literature, Psychology, Nutrition, and Astronomy before another candidate is trained. Every course has 12–15 lessons and binds its complete prompt-only course input and source packet. The ruler binds the exact QAT base contract plus a canonical transitive receipt over the grader wrapper and every relative implementation module. The historical v1 ruler hashed only the wrapper entry; it remains useful for diagnostic artifact comparison but is explicitly ineligible for promotion. Any benchmark domain or course group present in the candidate dataset blocks the run instead of triggering a convenient fixture substitution.
 
 Run the two arms from the same clean commit, with the same pair-run ID and the appropriate Local server state:
 
@@ -129,7 +129,7 @@ Run the two arms from the same clean commit, with the same pair-run ID and the a
 npm run crucible -- \
   --llm local \
   --courses mandarin,world-lit-readings,psych-101,nutrition-101,astro-101 \
-  --scion-benchmark evaluation/scion-adapters/held-out-course-benchmark-v1.json \
+  --scion-benchmark evaluation/scion-adapters/held-out-course-benchmark-v2.json \
   --scion-dataset-manifest /absolute/path/to/dataset-manifest.json \
   --scion-adapter-manifest /absolute/path/to/scion-adapter.json \
   --scion-arm base-only \
@@ -138,7 +138,7 @@ npm run crucible -- \
 
 Repeat with the verified adapter server and `--scion-arm adapter`, leaving every other argument unchanged. Then pass the two resulting round directories to `capture:scion:adapter:pairs`. The preflight refuses a partial fixture set, an exact-base mismatch, dirty compiler source, an inactive candidate adapter, or an adapter-active control before generation spends time.
 
-“Matched” is fail-closed and artifact-derived. Crucible stamps comparison protocol v1 into both real runs: one unique pair ID; the same frozen benchmark, course input, source packet, compiler commit and tree, compiler configuration, grader version and bytes, and exact base-contract digest; the same course ID and at least 12 lessons; and explicit `adapter` versus `base-only` variants. The candidate's adapter ID, manifest digest, base revision, and scale must match its manifest, while the control must report no active adapter and scale zero. The canonical producer hashes each course's `course.json`, saved project, report, digest, console, exported package manifest, and ZIP before emitting candidate/base evidence plus a receipt. The promotion audit rejects records without that producer and artifact identity. Missing courses, duplicate records, reused pair IDs, unmatched domains, settings mismatches, or a package-grade/P2 regression block promotion.
+“Matched” is fail-closed and artifact-derived. Crucible stamps comparison protocol v1 into both real runs: one unique pair ID; the same frozen benchmark, course input, source packet, compiler commit and tree, compiler configuration, grader version, wrapper bytes, transitive grader implementation receipt, and exact base-contract digest; the same course ID and at least 12 lessons; and explicit `adapter` versus `base-only` variants. The candidate's adapter ID, manifest digest, base revision, and scale must match its manifest, while the control must report no active adapter and scale zero. The canonical producer hashes each course's `course.json`, saved project, report, digest, console, exported package manifest, and ZIP before emitting candidate/base evidence plus a receipt. The promotion audit rejects records without that producer, artifact identity, and transitive grader binding. Missing courses, duplicate records, reused pair IDs, unmatched domains, settings mismatches, or a package-grade/P2 regression block promotion.
 
 The production lane remains correctly blocked at 0 independently qualified preferences from the original 471-event audit. `evaluation/scion-adapters/evidence/dataset-gate-v0.16.6.json` retains that fail-closed count, gate issues, leakage result, and empty split hashes. `evaluation/scion-adapters/evidence/legacy-smoke-v0.16.6.json` separately retains the older base-mismatched loading proof and forbids using it as quality or promotion evidence.
 

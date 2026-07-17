@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-kernel-expansion-v1",
+  "release": "v0.16.47",
+  "generatedAt": "2026-07-16T21:30:00.000Z",
+  "status": "source-kernels-expanded",
+  "addedKernels": 8,
+  "addedByDomain": {
+    "music-theory": 4,
+    "user-experience-design": 4
+  },
+  "genome": {
+    "manifest": {
+      "path": "public/genome/manifest.json",
+      "bytes": 11010,
+      "sha256": "ff81df4499b1b3156b2c620b27361f651782c27fe54993dcebdf1090d3cecd66"
+    },
+    "conceptCount": 292,
+    "shards": [
+      {
+        "path": "public/genome/music-scion-v01647.json",
+        "historicalSource": {
+          "path": "public/genome/music-intro.json",
+          "sha256": "0acd827673397b7109c92cbfdd732d3c5be0051e946bb6278935121055c80989",
+          "preserved": true
+        },
+        "bytes": 13580,
+        "sha256": "4cf8d6da04816910caefe3b24f219a73bb65f9e15c8e1e7841874c5fb2948d4b",
+        "conceptCount": 4,
+        "addedKernelIds": [
+          "music/musical-texture",
+          "music/dynamics-articulation-tempo",
+          "music/phrases-and-cadences",
+          "music/tonicization-and-modulation"
+        ],
+        "licenseCounts": {
+          "CC-BY-SA-4.0": 4
+        }
+      },
+      {
+        "path": "public/genome/ux-scion-v01647.json",
+        "historicalSource": {
+          "path": "public/genome/ux-intro.json",
+          "sha256": "97184a577a92ba3e8103dacfb100bbabbf25c8d90905da95b1b0dec1e0664e54",
+          "preserved": true
+        },
+        "bytes": 13855,
+        "sha256": "7e1562dbdf011f7c2cd8f68fa905c448b401a992e7cb32311929ffa78b62676c",
+        "conceptCount": 4,
+        "addedKernelIds": [
+          "ux/service-blueprinting",
+          "ux/user-scenarios",
+          "ux/usability-testing",
+          "ux/process-and-progress-indicators"
+        ],
+        "licenseCounts": {
+          "U.S. Government Work": 4
+        }
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "omt:texture",
+      "displayTitle": "Open Music Theory — Texture",
+      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/texture/"
+    },
+    {
+      "id": "omt:other-notation",
+      "displayTitle": "Open Music Theory — Other Aspects of Notation",
+      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/other-aspects-of-notation/"
+    },
+    {
+      "id": "omt:phrase-archetypes",
+      "displayTitle": "Open Music Theory — The Phrase, Archetypes, and Unique Forms",
+      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/phrase-archetypes-unique-forms/"
+    },
+    {
+      "id": "omt:modulation",
+      "displayTitle": "Open Music Theory — Extended Tonicization and Modulation",
+      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/extended-tonicization-and-modulation-to-closely-related-keys/"
+    },
+    {
+      "id": "digitalgov:journeys",
+      "displayTitle": "Digital.gov — Map your users’ and system’s journeys",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/user-needs/journeys"
+    },
+    {
+      "id": "digitalgov:user-interaction",
+      "displayTitle": "Digital.gov — User interactions",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/designing/user-interaction"
+    },
+    {
+      "id": "digitalgov:usability-testing",
+      "displayTitle": "Digital.gov — Usability testing",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/testing/usability"
+    },
+    {
+      "id": "uswds:step-indicator",
+      "displayTitle": "U.S. Web Design System — Step indicator",
+      "sourceUrl": "https://designsystem.digital.gov/components/step-indicator/"
+    }
+  ],
+  "licenseBoundary": {
+    "researchCompatible": true,
+    "productionCompatible": false,
+    "reason": "Open Music Theory rows are CC-BY-SA-4.0. They may support the declared research lane, but the production adapter gate requires replacement or explicit legal clearance."
+  },
+  "claimBoundary": "This receipt proves eight new source-anchored public genome kernels and their file lineage. It proves no generated preference, trained adapter, model win, or production license clearance."
+}

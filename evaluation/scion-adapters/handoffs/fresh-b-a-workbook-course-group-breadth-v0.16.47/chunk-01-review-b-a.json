@@ -1,0 +1,1035 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-546d143d0e1424e070e2",
+    "packetDigest": "546d143d0e1424e070e27bc7f03c90d6c753d375e74b6a26db25a5a93e7c8312",
+    "organizerDigest": "e9e3826260e2c77e9f32ec180334fd6bf25f04a38f021b2fcd9a39098436eeff"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-4528f36b03b3b7570849",
+      "caseDigest": "99d58ab501caee14cdac91aca6302c816c5bc9c408c459e00033c0a76a3913a7",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "01cefe3f1903e144ad1670e0b2cf2563bbd3a42ee41445b0962018868a959384",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/nervous-tissue",
+        "term": "Nervous tissue",
+        "claims": [
+          "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+          "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+          "Neuroglia support neurons and modulate information propagation."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "1aefefb031a190cccfb40841de70ba5b0719dcc547e63b75f840ddab1728c124",
+          "artifact": {
+            "tr": "Nervous tissue",
+            "df": "Excitable body tissue built mainly from neurons and neuroglia, with neurons carrying information in action potentials.",
+            "eg": "In a lab image from the course, a tissue block with neurons and supporting glia is identified as nervous tissue because it is specialized for signal flow.",
+            "mi": "It is only the same thing as a nerve bundle outside the brain.",
+            "cx": "That description is too narrow: the course term refers to the tissue type itself, not just a visible nerve cord or bundle in one location."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "22dc435991a84b8de8ea0f44549b8d0b371d8986d95ad3eb14bf278a22fc3e82",
+          "artifact": {
+            "tr": "Excitable tissue",
+            "df": "This tissue is characterized by its ability to generate and respond to electrical stimuli.",
+            "eg": "Neurons are an example of excitable tissue because they generate action potentials.",
+            "mi": "Excitable tissue is only composed of support cells.",
+            "cx": "Excitable tissue is made mainly of neurons and neuroglia."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "1aefefb031a190cccfb40841de70ba5b0719dcc547e63b75f840ddab1728c124",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "22dc435991a84b8de8ea0f44549b8d0b371d8986d95ad3eb14bf278a22fc3e82",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-08a67a8f39c692597499",
+      "caseDigest": "711cb47eb341c464ce8cd14024fac9fc772f7235a08c95b42e4631d33c25c72d",
+      "domain": "physics",
+      "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+      "sourceContextSha256": "56f5394db80d0e7fd091f427cd75ee4130d9e80ccbbefc94a7706c7554fe5d70",
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/magnetic-force",
+        "term": "Magnetic force",
+        "claims": [
+          "Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.",
+          "The magnetic force is perpendicular to both the velocity and the magnetic field.",
+          "A charge moving parallel to a magnetic field experiences no magnetic force."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7b3c1e7d7f13695176541ac66287d88f319cad0c556f9242eaf73ede8f5ad8e2",
+          "artifact": {
+            "tr": "Magnetic force",
+            "df": "The push or pull exerted on a moving electrical charge by a magnetic field.",
+            "eg": "A current-carrying wire placed in a magnetic field experiences a magnetic force that causes it to move.",
+            "mi": "The magnetic force is only dependent on the magnetic field strength.",
+            "cx": "The magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7381b6aac47bfb9ccfdec4f0b2ca862d0dcc07dcc03bfe80e65e5931e925d208",
+          "artifact": {
+            "tr": "Magnetic force",
+            "df": "A push on a moving charge caused by a magnetic field.",
+            "eg": "An electron curving through a field is showing magnetic force.",
+            "mi": "It acts on charges whether or not they are moving.",
+            "cx": "The force appears for moving charges in the presence of a magnetic field."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7b3c1e7d7f13695176541ac66287d88f319cad0c556f9242eaf73ede8f5ad8e2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7381b6aac47bfb9ccfdec4f0b2ca862d0dcc07dcc03bfe80e65e5931e925d208",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-12a422f6c3ab39a982f6",
+      "caseDigest": "08e7b6e66c8f6f252362425f0a58f60c04a46448d76beb683344f0865e6b98c6",
+      "domain": "physics",
+      "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+      "sourceContextSha256": "584f8ec519060a9496e18d8f2ea1dba608622eff323399fbb8170bd6d506f31b",
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/gausss-law",
+        "term": "Gauss's law",
+        "claims": [
+          "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+          "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+          "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ab1dc971714dd34b173af203d5d19041f1dd0f7d84dc71f414aa7a71721b94ed",
+          "artifact": {
+            "tr": "Gaussian surface",
+            "df": "A chosen closed surface used to take advantage of symmetry in field calculations.",
+            "eg": "A spherical surface around a point charge is a Gaussian surface because the symmetry makes the field easier to relate to the surface.",
+            "mi": "It is a physical shell that changes the charge distribution inside it.",
+            "cx": "A Gaussian surface is a mathematical choice, not a material object, and it is picked to match symmetry."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a4776b9f12170c071145d490855fe9e6d7330832ff7d9cfe58e31c337510172f",
+          "artifact": {
+            "tr": "Gaussian surface",
+            "df": "A closed boundary used to relate the total electric flux to the total charge contained within it.",
+            "eg": "A spherical surface used to determine the electric field strength outside a point charge.",
+            "mi": "A Gaussian surface is only useful when the enclosed charge is zero.",
+            "cx": "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ab1dc971714dd34b173af203d5d19041f1dd0f7d84dc71f414aa7a71721b94ed",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a4776b9f12170c071145d490855fe9e6d7330832ff7d9cfe58e31c337510172f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-39c37d1fa0d362d8e984",
+      "caseDigest": "fd3e13f4d20f41d277debc7d5e7471f98ba1932feda4404736585db191d780de",
+      "domain": "economics",
+      "courseGroupSha256": "9426f3e12b3325688e416610cd8e80ad451c6206c0546f0c7a384639a8f29961",
+      "sourceContextSha256": "f31534456a06ad64dc1ba94cf336d3ff42dbed98d7add44c63e42b06ae991ac4",
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/consumer-choice",
+        "term": "Consumer choice",
+        "claims": [
+          "Consumer choice theory models how a consumer maximizes utility subject to a budget constraint.",
+          "The consumer selects the affordable bundle of goods that yields the highest satisfaction.",
+          "At the optimal choice, utility cannot be increased without exceeding the budget, so the consumer faces a tradeoff between goods."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "a1ae324ded45344801f53abcb2daa0d7de301a495458bc40364bd5f4f45d0be4",
+          "artifact": {
+            "tr": "utility maximization",
+            "df": "Picking the affordable option that gives the greatest satisfaction.",
+            "eg": "When comparing two lunch baskets, a student chooses the one that fits the budget and feels best overall.",
+            "mi": "It means choosing the biggest bundle regardless of cost.",
+            "cx": "The correction is that the best bundle is the one with the highest satisfaction among the affordable options."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "f3357e96977cb4d1e692c8c864c78a9993faaea60cba17b051614f20eae60c28",
+          "artifact": {
+            "tr": "Budget constraint",
+            "df": "The limitation on the total expenditure a consumer can make on various goods.",
+            "eg": "If a person has $100, the budget constraint limits them to spending no more than $100.",
+            "mi": "The budget constraint dictates that a consumer must spend every dollar they have, regardless of the value of the goods.",
+            "cx": "The boundary defining the set of all possible combinations of goods a consumer can afford."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "a1ae324ded45344801f53abcb2daa0d7de301a495458bc40364bd5f4f45d0be4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "f3357e96977cb4d1e692c8c864c78a9993faaea60cba17b051614f20eae60c28",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-3ed398cda2fc1a82f217",
+      "caseDigest": "a1eb31478a12ad112fb6712f483307c22bb3abe4c4f1bcf72c5a631de0dd3368",
+      "domain": "economics",
+      "courseGroupSha256": "4ffd5d5cf1b8cc2c9a11861897b918345bc147d926d7f3b2a711e682fb5c12fa",
+      "sourceContextSha256": "909ac6205d91d29267599a388454449f976011d4cf720d9b326ccff7e8db421e",
+      "sourceContext": {
+        "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+        "kernelId": "econ/labor-force-classification",
+        "term": "Labor force classification",
+        "claims": [
+          "People who have given up looking for work are classified as out of the labor force, not unemployed.",
+          "Discouraged workers who are excluded make unemployment look lower than the felt experience of joblessness.",
+          "Where this boundary is drawn changes the measured unemployment rate."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 8"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "372b20e26c2315039274a71041998c466efc059cf8a0027568761f508b240deb",
+          "artifact": {
+            "tr": "Labor force classification",
+            "df": "The official grouping used to determine employment status for statistical purposes.",
+            "eg": "A person who has given up looking for work is classified as out of the labor force, not unemployed.",
+            "mi": "The classification system is solely based on whether a person has a job or is actively searching for one.",
+            "cx": "The classification system is based on whether a person is actively seeking work or has given up looking for work."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7f94565aab30537d15b2a49d90fc292a1b7bace7a1019f999ae95e642815b9c3",
+          "artifact": {
+            "tr": "Labor force classification",
+            "df": "A rule-based way of sorting people into categories such as unemployed or out of the labor force.",
+            "eg": "In class, a discouraged worker who stops looking for work is placed outside unemployment under this rule.",
+            "mi": "It means the same thing as a person’s actual willingness to work.",
+            "cx": "The category depends on the labor-force boundary, not on a hidden intention."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "372b20e26c2315039274a71041998c466efc059cf8a0027568761f508b240deb",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7f94565aab30537d15b2a49d90fc292a1b7bace7a1019f999ae95e642815b9c3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-ee11d0152f25f69e2ee1",
+      "caseDigest": "a1a7122b118af9d1274c1bedddc52658d2252e31bd4710364da2d4d672de143b",
+      "domain": "anatomy",
+      "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+      "sourceContextSha256": "1a8dfe1d7994762cfef28852d469b26cba7892d5e4167f0c722254b3501e5695",
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/tissue-types",
+        "term": "Four primary tissue types",
+        "claims": [
+          "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+          "Histology studies tissue appearance, organization, and function under the microscope.",
+          "Tissue cells share morphological features and an orderly arrangement that supports tissue function."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7e58601165bfaf6e605570a497d38ae2539256cf913b3c3db17f34d0ed4fd4c7",
+          "artifact": {
+            "tr": "Histology",
+            "df": "Study of how tissue looks, is arranged, and functions when viewed with a microscope.",
+            "eg": "In a lab station, students compare microscope slides to decide whether the tissue’s organization matches its function.",
+            "mi": "It is the study of bones and organs only.",
+            "cx": "Microscope observations of tissue appearance and arrangement help identify histology."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "c9adb86c362539573250f7e554ecb399b16c444894a8d6435105515917ac1644",
+          "artifact": {
+            "tr": "Four primary tissue types",
+            "df": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+            "eg": "Epithelial tissue forms the outer layer of the skin.",
+            "mi": "Connective tissue is the only tissue that lacks cells.",
+            "cx": "Connective tissue contains cells that are not epithelial."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7e58601165bfaf6e605570a497d38ae2539256cf913b3c3db17f34d0ed4fd4c7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "c9adb86c362539573250f7e554ecb399b16c444894a8d6435105515917ac1644",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-b88735a7b4d366aa109a",
+      "caseDigest": "38508d0350986c46713c929b69698194b3a6d3e6b6e055169b33c10471d0a8b9",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "eca23bab65b39f7895db0bfc6e99847a5a1bf9c84873d62c967a654915a05440",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/endocrine-hormone-signaling",
+        "term": "Endocrine hormone signaling",
+        "claims": [
+          "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+          "Hormone binding initiates a chain of events that leads to a target-cell response.",
+          "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8ecd9497033ecf94a7bcfd378f456b334703dfab9bf119a0cdbfecb380a41bd2",
+          "artifact": {
+            "tr": "target cell",
+            "df": "A cell that responds because it has the appropriate receptor for a hormone.",
+            "eg": "In a class case, a liver cell with the right receptor changes its activity after a hormone arrives in the blood.",
+            "mi": "Any cell touched by blood will react to the hormone.",
+            "cx": "The correction is that receptor match, not simple exposure to blood, makes a cell a target."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "d6f8953d281f6d201edbe01705d31f4a419e2655c0489a27283b8bf487b0e9b4",
+          "artifact": {
+            "tr": "Circulating chemical messengers",
+            "df": "Substances that travel via the bloodstream to influence distant cells.",
+            "eg": "Insulin circulates in the blood to regulate blood glucose levels in muscle cells.",
+            "mi": "Circulating chemical messengers directly change the physical shape of the target cell.",
+            "cx": "Circulating chemical messengers affect only target cells with the appropriate receptors."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8ecd9497033ecf94a7bcfd378f456b334703dfab9bf119a0cdbfecb380a41bd2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "d6f8953d281f6d201edbe01705d31f4a419e2655c0489a27283b8bf487b0e9b4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-dee00319ba68c689d351",
+      "caseDigest": "31ce0670019799d84a5d6093eac803222a958d96ebad8f6402ef7ce6d15d5a02",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "eca23bab65b39f7895db0bfc6e99847a5a1bf9c84873d62c967a654915a05440",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/endocrine-hormone-signaling",
+        "term": "Endocrine hormone signaling",
+        "claims": [
+          "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+          "Hormone binding initiates a chain of events that leads to a target-cell response.",
+          "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "664357471b9c574f3791674360b986ae7334bb7b9c5eb4876beb82495905ee55",
+          "artifact": {
+            "q": "A hormone enters the bloodstream after release from a gland. Which outcome best describes where it will act?",
+            "op": [
+              "Only cells with the matching receptor will respond",
+              "Every tissue in the body will respond equally",
+              "The hormone works only where it was released",
+              "The bloodstream itself is the target tissue"
+            ],
+            "ai": 0,
+            "ex": "Only cells with the appropriate receptor respond to a circulating hormone, so the match between hormone and receptor is the decisive feature. A common mistake is to think blood transport means every cell responds, but the supplied mechanism limits action to target cells."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a2359e86a4ef88f17228c3392988dce26f543152e358ae0159654e4f8a4e5962",
+          "artifact": {
+            "q": "Which statement accurately describes the action of circulating chemical messengers in the body?",
+            "op": [
+              "Chemical messengers only influence cells possessing specific receptors.",
+              "Chemical messengers circulate in the blood and trigger responses in target cells.",
+              "Chemical messengers directly alter the structure of the target cell.",
+              "Chemical messengers only regulate growth and metabolism."
+            ],
+            "ai": 1,
+            "ex": "Chemical messengers circulate in the blood and trigger responses in target cells. This is correct because hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "664357471b9c574f3791674360b986ae7334bb7b9c5eb4876beb82495905ee55",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a2359e86a4ef88f17228c3392988dce26f543152e358ae0159654e4f8a4e5962",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-eb6fb220b96be523b055",
+      "caseDigest": "75114f0e426d7d212ca4ea26002262be0890d33d94f52981bf789e2e7cd4b1a8",
+      "domain": "economics",
+      "courseGroupSha256": "4ffd5d5cf1b8cc2c9a11861897b918345bc147d926d7f3b2a711e682fb5c12fa",
+      "sourceContextSha256": "d7804884e34b840496c7cfc1c2cddd7e82b34146e120a956b89190be7d24582b",
+      "sourceContext": {
+        "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+        "kernelId": "econ/natural-experiment",
+        "term": "Natural experiment",
+        "claims": [
+          "A natural experiment uses a policy change or external event affecting one group but not another to estimate a causal effect from observational data.",
+          "The causal claim is credible only if the two groups were comparable apart from the change.",
+          "The effect can be attributed to the policy rather than to a confounding factor only when that comparability holds."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 2"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "52e6e37288f3d12eb223862ad285a2622f28d7c2202190f2994d57cc9c9b98c3",
+          "artifact": {
+            "q": "Which situation best fits a natural experiment?",
+            "op": [
+              "A policy change affects one group but not another, letting you estimate a causal effect from-ob",
+              "An experiment assigns people randomly and measures the result directly",
+              "A survey asks people about their opinions after a change",
+              "A group changes behavior for reasons unrelated to any external event"
+            ],
+            "ai": 0,
+            "ex": "Policy or external event hits one group, so causal effect can be estimated. The groups must be comparable; random assignment is not required here."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "1207bbed7bfa017291c88a95d8f819af42c5ddb78b3e0f85e00d8bd1526351f9",
+          "artifact": {
+            "q": "Which condition is necessary for a natural experiment to yield a credible causal claim?",
+            "op": [
+              "The two groups must be identical before the policy change",
+              "The two groups must be comparable apart from the change",
+              "The effect can be attributed to the policy regardless of comparability",
+              "The external event must affect both groups equally"
+            ],
+            "ai": 1,
+            "ex": "The causal claim is credible only if the two groups were comparable apart from the change. This comparability ensures the effect is due to the policy and not a confounding factor."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "52e6e37288f3d12eb223862ad285a2622f28d7c2202190f2994d57cc9c9b98c3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "1207bbed7bfa017291c88a95d8f819af42c5ddb78b3e0f85e00d8bd1526351f9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-d9a474377a77b5549b74",
+      "caseDigest": "cc00844d40b8cadc10c08b29cde64bc2ce98bcf9116c34c1a23b574d263c0156",
+      "domain": "physics",
+      "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+      "sourceContextSha256": "56f5394db80d0e7fd091f427cd75ee4130d9e80ccbbefc94a7706c7554fe5d70",
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/magnetic-force",
+        "term": "Magnetic force",
+        "claims": [
+          "Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.",
+          "The magnetic force is perpendicular to both the velocity and the magnetic field.",
+          "A charge moving parallel to a magnetic field experiences no magnetic force."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f7c879eab18f852403c699a22f971b227f86a5b6ebcd0a2375d7c4346d60cbc3",
+          "artifact": {
+            "q": "A proton moves parallel to a uniform magnetic field. What is best supported about the magnetic force on it?",
+            "op": [
+              "No magnetic force acts on the proton.",
+              "A magnetic force acts perpendicular to its motion.",
+              "A stronger force acts because its speed matches the field.",
+              "A force appears only if the field changes in size."
+            ],
+            "ai": 0,
+            "ex": "No magnetic force acts on the proton when its motion is parallel to the field. The nearby misconception is that any moving charge must be forced, but the decisive relation is that parallel motion gives no magnetic force."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "2f1220d24c349c9e904c37fb544901cc27fc925f390f2de1a779980d80c74ed4",
+          "artifact": {
+            "q": "If a charge moves parallel to a magnetic field, what is the resulting magnetic force?",
+            "op": [
+              "a significant force",
+              "zero force",
+              "a force perpendicular to the field",
+              "a force dependent on velocity"
+            ],
+            "ai": 2,
+            "ex": "A charge moving parallel to a magnetic field experiences no magnetic force."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f7c879eab18f852403c699a22f971b227f86a5b6ebcd0a2375d7c4346d60cbc3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "2f1220d24c349c9e904c37fb544901cc27fc925f390f2de1a779980d80c74ed4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

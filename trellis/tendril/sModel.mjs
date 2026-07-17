@@ -5,11 +5,41 @@
 // distribution is a self-inflicted wound.
 
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 export const SKIN_SYSTEM =
   "You are the course's own instructor unifying a lesson plan assembled from proven parts. Rewrite the segment MINIMALLY so it reads as one instructor: fix week/lesson references, add one-clause transitions where segments collide, unify register. NEVER change technical content, examples, numbers, or code; never add new claims; keep the rewrite within ±40% of the original length. Return only the rewritten segment text.";
 export const BLEND_SYSTEM =
   "You polish quiz explanations. The text contains corrective sentences that were pasted in mechanically, so it reads as two voices. Rewrite it as ONE natural explanation (2-3 sentences) that makes every corrective's content its own point — keep the key technical terms (a lexical gate checks this), never paste a corrective as a standalone sentence. Return only the rewritten explanation text.";
+
+const DEFAULT_ITEMS_PYTHON = 'trellis/tendril/.venv-g4/bin/python';
+const DEFAULT_ITEMS_SCRIPT = 'trellis/tendril/distill/serve_g4.py';
+
+function executable(filePath) {
+  try {
+    fs.accessSync(filePath, fs.constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function resolveItemsRuntime({ cwd = process.cwd(), env = process.env, home = os.homedir() } = {}) {
+  const explicitPython = String(env.TENDRIL_ITEMS_PYTHON || '').trim();
+  const cachedPython = path.join(home, '.cache', 'coursemapper', 'venv-g4', 'bin', 'python');
+  return {
+    python: explicitPython
+      ? path.resolve(cwd, explicitPython)
+      : executable(cachedPython)
+        ? cachedPython
+        : path.resolve(cwd, DEFAULT_ITEMS_PYTHON),
+    script: path.resolve(cwd, String(env.TENDRIL_ITEMS_SCRIPT || DEFAULT_ITEMS_SCRIPT).trim()),
+  };
+}
+
+const itemsRuntime = resolveItemsRuntime();
 
 // TASK-ROUTED local serving (v0.2, 'the better model is a pair'): the
 // held-out gate bench measured complementary strengths — Qwen2.5-0.5B
@@ -28,8 +58,8 @@ const ROUTES = {
   // items: Gemma 4 E2B zero-shot via mlx-vlm (plan v0.2 A1) — beat the
   // paid author 26/30 vs 22/30 on its own gates at $0.
   items: {
-    python: process.env.TENDRIL_ITEMS_PYTHON || 'trellis/tendril/.venv-g4/bin/python',
-    script: process.env.TENDRIL_ITEMS_SCRIPT || 'trellis/tendril/distill/serve_g4.py',
+    python: itemsRuntime.python,
+    script: itemsRuntime.script,
   },
 };
 
@@ -99,14 +129,16 @@ async function startRoute(route, { timeoutMs = 120_000 } = {}) {
             process.stderr.write(`[tendril-s:${route}] response ${msg.id} constrained=${msg.constrained}\n`);
           }
           if (msg.error) p.reject(new Error(msg.error));
-          else p.resolve(msg.text);
+          else p.resolve(p.includeMetadata ? { text: msg.text, constrained: msg.constrained ?? null } : msg.text);
         }
       } catch {
         /* non-JSON stdout chatter ignored */
       }
     }
   });
+  let startupTimer = null;
   const rejectPending = (error) => {
+    if (startupTimer) clearTimeout(startupTimer);
     if (!entry.ready) rejectReady(error);
     for (const p of pending.values()) {
       clearTimeout(p.timer);
@@ -117,7 +149,7 @@ async function startRoute(route, { timeoutMs = 120_000 } = {}) {
   };
   proc.on('error', (error) => rejectPending(error));
   proc.on('exit', () => rejectPending(new Error(`tendril-s [${route}] server exited`)));
-  const startupTimer = setTimeout(() => {
+  startupTimer = setTimeout(() => {
     if (!entry.ready) {
       servers.delete(route);
       proc.kill();
@@ -142,7 +174,7 @@ export async function sGenerate(
   // grammar-constrained decoding on the g4 route (serve_g4.py) — parse
   // validity by construction. Ignored by serve_s routes.
   { system, user, source = '', task = 'skin', maxTokens, temperature, schema, jsonMode },
-  { timeoutMs = 180_000 } = {},
+  { timeoutMs = 180_000, includeMetadata = false } = {},
 ) {
   const route = resolveRoute(task);
   // The items route may need to download or cold-load several GB of weights.
@@ -159,7 +191,7 @@ export async function sGenerate(
         reject(new Error('tendril-s timeout'));
       }
     }, timeoutMs);
-    entry.pending.set(id, { resolve, reject, timer });
+    entry.pending.set(id, { resolve, reject, timer, includeMetadata });
   });
   entry.proc.stdin.write(
     `${JSON.stringify({

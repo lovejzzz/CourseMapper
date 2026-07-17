@@ -1,0 +1,475 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-compiler-replay-v1",
+  "release": "v0.16.47",
+  "generatedAt": "2026-07-17T05:53:23Z",
+  "campaigns": [
+    {
+      "manifestPath": "evaluation/scion-source-capture-campaign.json",
+      "sourceDir": "evaluation/scion-source-capture-evidence"
+    },
+    {
+      "manifestPath": "evaluation/scion-source-capture-expansion-v0.16.17.json",
+      "sourceDir": "evaluation/scion-source-capture-expansion-evidence"
+    }
+  ],
+  "previousRelease": {
+    "path": "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.46.json",
+    "bytes": 16108,
+    "sha256": "0ca72298d32e2ec31cadb6fb03ab7c00974d2df47d83198611df37cb789cfdb2",
+    "release": "v0.16.46",
+    "replayedCompiledBurden": {
+      "expectedCalls": 48,
+      "capturedCalls": 48,
+      "eligibleCalls": 46,
+      "fullPassCalls": 18,
+      "partialCalls": 28,
+      "rejectedCalls": 2,
+      "expectedAtoms": 192,
+      "generatedAtoms": 190,
+      "admittedAtoms": 130,
+      "discardedGeneratedAtoms": 60,
+      "missingExpectedAtoms": 2,
+      "burdenAtoms": 62,
+      "burdenRate": 0.322917,
+      "admissionRate": 0.677083,
+      "issueHistogram": {
+        "key-term-0-claim-marker-residue": 7,
+        "key-term-0-correction-repeats-definition": 8,
+        "key-term-0-correction-repeats-example": 1,
+        "key-term-0-correction-repeats-misconception": 3,
+        "key-term-0-embedded-field-label": 5,
+        "key-term-0-misconception-repeats-definition": 1,
+        "key-term-0-misconception-repeats-known-fact": 5,
+        "key-term-1-claim-marker-residue": 7,
+        "key-term-1-correction-repeats-definition": 11,
+        "key-term-1-correction-repeats-example": 3,
+        "key-term-1-correction-repeats-misconception": 2,
+        "key-term-1-embedded-field-label": 5,
+        "key-term-1-example-repeats-definition": 1,
+        "key-term-1-misconception-repeats-definition": 2,
+        "key-term-1-misconception-repeats-known-fact": 4,
+        "key-term-1-source-fact-index": 1,
+        "key-term-count": 1,
+        "mc-0-duplicate-options": 3,
+        "mc-0-explanation-key-conflict": 1,
+        "mc-0-explanation-repeats-answer": 3,
+        "mc-0-longest-option-cue": 4,
+        "mc-0-placeholder-options": 1,
+        "mc-0-truncated-explanation": 1,
+        "mc-1-explanation-key-conflict": 1,
+        "mc-1-explanation-repeats-answer": 3,
+        "mc-1-longest-option-cue": 2,
+        "mc-1-placeholder-options": 1,
+        "mc-count": 1,
+        "no-admitted-key-terms": 17,
+        "no-admitted-mc-items": 5
+      }
+    }
+  },
+  "compilerSources": [
+    {
+      "path": "src/lib/scionAnswerKeyAlignment.js",
+      "bytes": 34390,
+      "sha256": "f9a2d406b0ded6363384abe09afae2784d0e469556b598962ecac3e86827c434"
+    },
+    {
+      "path": "src/lib/scionPreferenceGate.js",
+      "bytes": 18719,
+      "sha256": "355f9bf6bca51af968ae47ef6a6f19021932ae1a06b5ee688e0d3b7932bd4c74"
+    },
+    {
+      "path": "scripts/lib/scionSourceCapture.mjs",
+      "bytes": 50444,
+      "sha256": "a45b664d94d47afeccd69f46ddf0700ee890b7309f05bfb9c3d12e6099813871"
+    },
+    {
+      "path": "scripts/scionSourceCompilerReplay.mjs",
+      "bytes": 20983,
+      "sha256": "b8de39532544eaf0fdd62633a2d5449381dce2bfdbe29be66a752ac24466ae55"
+    }
+  ],
+  "projects": [
+    {
+      "domain": "computer-science",
+      "courseGroupId": "python-control-flow-workshop",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/python-control-flow-workshop-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-control-flow-workshop-local.json",
+      "bytes": 76765,
+      "sha256": "519c096a40d824290e6be7e611c57efa039a16d42f2a24607ce53590058f5fe0",
+      "replayIdentitySha256": "905cdf2d994e8e4496b3729c9b06fcc0ff6961843696f85d1364ffa5a926854f",
+      "repairCounts": {
+        "total": 4,
+        "incompleteExplanationTail": 2,
+        "explanationKeyAlignment": 2,
+        "sourceAnswerAlignment": 0
+      }
+    },
+    {
+      "domain": "computer-science",
+      "courseGroupId": "python-data-structures-lab",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/python-data-structures-lab-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-data-structures-lab-local.json",
+      "bytes": 73354,
+      "sha256": "83f89c793a1a3a2928aa2cdb5b4442f9043167ea3693ff3ae2d047f682739f60",
+      "replayIdentitySha256": "e9899a84b52e8a888693b109251bc50bb7e63693e619b251c96d68b42fc5d27a",
+      "repairCounts": {
+        "total": 4,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 2,
+        "sourceAnswerAlignment": 2
+      }
+    },
+    {
+      "domain": "computer-science",
+      "courseGroupId": "python-program-architecture-studio",
+      "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-program-architecture-studio-local.json",
+      "bytes": 136462,
+      "sha256": "3e0d1e34e7adb7de2d13e9174c26966104e00aba3a29244bc4f68f18607a64ad",
+      "replayIdentitySha256": "d557888c1b93bb60de8e5325ee7872a448e0f763f463b06121e630f1aa9d81f1",
+      "repairCounts": {
+        "total": 7,
+        "incompleteExplanationTail": 2,
+        "explanationKeyAlignment": 5,
+        "sourceAnswerAlignment": 0
+      }
+    },
+    {
+      "domain": "geology",
+      "courseGroupId": "earth-materials-history-lab",
+      "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/earth-materials-history-lab-local.json",
+      "bytes": 138166,
+      "sha256": "39ae72ad4d6ce94552b18b351f9bd3b14efad861a3a7fbafabb4e2dd7f12c617",
+      "replayIdentitySha256": "94803005754af74e19618dbb33ba5f88f12049f043ba049fea65aa9924583efe",
+      "repairCounts": {
+        "total": 7,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 5,
+        "sourceAnswerAlignment": 2
+      }
+    },
+    {
+      "domain": "geology",
+      "courseGroupId": "igneous-volcanic-processes",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/igneous-volcanic-processes-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/igneous-volcanic-processes-local.json",
+      "bytes": 46619,
+      "sha256": "f7dcbd2305254150bf7059bba1b9e0d99ed707d3e727866a42d25ab3e5ea318c",
+      "replayIdentitySha256": "e37b53c0316366f13127b8bb9d5e8b9b59612e715028347245725a0bcb60efea",
+      "repairCounts": {
+        "total": 1,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 1,
+        "sourceAnswerAlignment": 0
+      }
+    },
+    {
+      "domain": "geology",
+      "courseGroupId": "tectonics-seismology-field-lab",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/tectonics-seismology-field-lab-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/tectonics-seismology-field-lab-local.json",
+      "bytes": 85118,
+      "sha256": "978e911e010fe4fa7e70dea3985240fdfce3668fc1692e7c20e7b3705217e2d0",
+      "replayIdentitySha256": "858702b5c2748a0de549d80010cc981ca6b283ec00e4f3c1ca49c85ec28ec156",
+      "repairCounts": {
+        "total": 7,
+        "incompleteExplanationTail": 2,
+        "explanationKeyAlignment": 5,
+        "sourceAnswerAlignment": 0
+      }
+    },
+    {
+      "domain": "music-theory",
+      "courseGroupId": "harmony-form-analysis",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/harmony-form-analysis-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/harmony-form-analysis-local.json",
+      "bytes": 82397,
+      "sha256": "abdaaeb9a8b09533e6dc9f9b75bc20d7e3fc544ffd3c4bfadcc825c75c7a5453",
+      "replayIdentitySha256": "b37e7b95bb99902c7371c7d65396af546e4fc3f4d91898044b73c421d05b1c52",
+      "repairCounts": {
+        "total": 6,
+        "incompleteExplanationTail": 2,
+        "explanationKeyAlignment": 4,
+        "sourceAnswerAlignment": 0
+      }
+    },
+    {
+      "domain": "music-theory",
+      "courseGroupId": "music-notation-ear-training",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/music-notation-ear-training-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/music-notation-ear-training-local.json",
+      "bytes": 53563,
+      "sha256": "daf43dc212fec0f3fca475ccc34cca56f5f3a33611dec012d5bcf23c3d2b261c",
+      "replayIdentitySha256": "1e3f15f294fb52992e1cab432fc5973af8769717e00572ed8bed51a6310543a3",
+      "repairCounts": {
+        "total": 2,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 2,
+        "sourceAnswerAlignment": 0
+      }
+    },
+    {
+      "domain": "music-theory",
+      "courseGroupId": "tonal-analysis-integration-studio",
+      "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/tonal-analysis-integration-studio-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/tonal-analysis-integration-studio-local.json",
+      "bytes": 139227,
+      "sha256": "55b5dac79806ec9c943ec26129ab99149e5c83e03016b95cc60df046e9417050",
+      "replayIdentitySha256": "804d244af2939160add17a2ad190a4f089f4b035c6ba77a2723f810b83b4253c",
+      "repairCounts": {
+        "total": 9,
+        "incompleteExplanationTail": 4,
+        "explanationKeyAlignment": 5,
+        "sourceAnswerAlignment": 0
+      }
+    },
+    {
+      "domain": "user-experience-design",
+      "courseGroupId": "ux-evidence-to-prototype-capstone",
+      "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-evidence-to-prototype-capstone-local.json",
+      "bytes": 164155,
+      "sha256": "b63aca2da0cf125b1f067ab8099e37beeb73d0dc479e27dc6d57def6c4429200",
+      "replayIdentitySha256": "139a84ec2906753653ea9bc6c5876738e82cf595aec0a34f75d7eaee75a8127e",
+      "repairCounts": {
+        "total": 13,
+        "incompleteExplanationTail": 8,
+        "explanationKeyAlignment": 3,
+        "sourceAnswerAlignment": 2
+      }
+    },
+    {
+      "domain": "user-experience-design",
+      "courseGroupId": "ux-prototyping-accessibility-lab",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-prototyping-accessibility-lab-local.json",
+      "bytes": 62280,
+      "sha256": "4601a08286ee502eed777069b2e133c64fd4ec04877cdc6b18667453f891a0a6",
+      "replayIdentitySha256": "68d3d15b87fb2e1b64cc7e48fe376454fcd519f0481781c951cf188361c19d73",
+      "repairCounts": {
+        "total": 1,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 0,
+        "sourceAnswerAlignment": 1
+      }
+    },
+    {
+      "domain": "user-experience-design",
+      "courseGroupId": "ux-research-synthesis-studio",
+      "sourceProjectPath": "evaluation/scion-source-capture-evidence/ux-research-synthesis-studio-local.json",
+      "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-research-synthesis-studio-local.json",
+      "bytes": 72065,
+      "sha256": "82048cbb2e1723e15e45b615767a4175ab230285ca4a55ef4325e82404e433f3",
+      "replayIdentitySha256": "97fd006afea2adc29c6c7e60d64fb60ce5f2e58ebdaaa10b4363b136ce740b54",
+      "repairCounts": {
+        "total": 3,
+        "incompleteExplanationTail": 0,
+        "explanationKeyAlignment": 0,
+        "sourceAnswerAlignment": 3
+      }
+    }
+  ],
+  "summary": {
+    "projectCount": 12,
+    "domainCount": 4,
+    "courseGroupCount": 12,
+    "responseMutationCount": 0,
+    "repairCounts": {
+      "total": 64,
+      "incompleteExplanationTail": 20,
+      "explanationKeyAlignment": 34,
+      "sourceAnswerAlignment": 10
+    },
+    "repairEvolution": {
+      "sourceAnswerAlignment": 10,
+      "replacedExplanationKeyAlignment": 0,
+      "newSourceAnswerAlignment": 10,
+      "removedExplanationKeyAlignment": 14,
+      "removedExplanationRepairs": [
+        {
+          "identity": "python-data-structures-lab|python-data-structures-lab:cs/lists|0",
+          "priorDeclaredIndex": 2,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "python-data-structures-lab|python-data-structures-lab:cs/lists|1",
+          "priorDeclaredIndex": 3,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "python-program-architecture-studio|python-program-architecture-studio:cs/for-loops|1",
+          "priorDeclaredIndex": 3,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "python-program-architecture-studio|python-program-architecture-studio:cs/file-io|1",
+          "priorDeclaredIndex": 1,
+          "priorSupportedIndex": 3,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "earth-materials-history-lab|earth-materials-history-lab:geo/metamorphic-rocks|0",
+          "priorDeclaredIndex": 0,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "earth-materials-history-lab|earth-materials-history-lab:geo/geologic-time|0",
+          "priorDeclaredIndex": 2,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "igneous-volcanic-processes|igneous-volcanic-processes:geo/volcanism|1",
+          "priorDeclaredIndex": 3,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "harmony-form-analysis|harmony-form-analysis:music/musical-form|1",
+          "priorDeclaredIndex": 3,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "music-notation-ear-training|music-notation-ear-training:music/staff-clefs-pitch-notation|0",
+          "priorDeclaredIndex": 2,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "music-notation-ear-training|music-notation-ear-training:music/scales-and-key-signatures|0",
+          "priorDeclaredIndex": 3,
+          "priorSupportedIndex": 2,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "tonal-analysis-integration-studio|tonal-analysis-integration-studio:music/staff-clefs-pitch-notation|0",
+          "priorDeclaredIndex": 2,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "tonal-analysis-integration-studio|tonal-analysis-integration-studio:music/scales-and-key-signatures|0",
+          "priorDeclaredIndex": 3,
+          "priorSupportedIndex": 2,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "tonal-analysis-integration-studio|tonal-analysis-integration-studio:music/scales-and-key-signatures|1",
+          "priorDeclaredIndex": 2,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        },
+        {
+          "identity": "tonal-analysis-integration-studio|tonal-analysis-integration-studio:music/musical-form|1",
+          "priorDeclaredIndex": 2,
+          "priorSupportedIndex": 1,
+          "disposition": "lexical-only-key-repair-disabled-after-live-false-flip"
+        }
+      ]
+    },
+    "historicalCompiledBurden": {
+      "expectedCalls": 48,
+      "capturedCalls": 48,
+      "eligibleCalls": 48,
+      "fullPassCalls": 13,
+      "partialCalls": 35,
+      "rejectedCalls": 0,
+      "expectedAtoms": 192,
+      "generatedAtoms": 190,
+      "admittedAtoms": 133,
+      "discardedGeneratedAtoms": 57,
+      "missingExpectedAtoms": 2,
+      "burdenAtoms": 59,
+      "burdenRate": 0.307292,
+      "admissionRate": 0.692708,
+      "issueHistogram": {
+        "key-term-0-correction-repeats-definition": 6,
+        "key-term-1-correction-repeats-definition": 6,
+        "key-term-1-source-fact-index": 1,
+        "key-term-count": 1,
+        "mc-0-duplicate-options": 1,
+        "mc-0-explanation-key-conflict": 9,
+        "mc-0-longest-option-cue": 3,
+        "mc-0-truncated-explanation": 11,
+        "mc-1-explanation-key-conflict": 16,
+        "mc-1-longest-option-cue": 2,
+        "mc-1-truncated-explanation": 10,
+        "mc-count": 1,
+        "no-admitted-key-terms": 5,
+        "no-admitted-mc-items": 13
+      }
+    },
+    "replayedCompiledBurden": {
+      "expectedCalls": 48,
+      "capturedCalls": 48,
+      "eligibleCalls": 45,
+      "fullPassCalls": 15,
+      "partialCalls": 30,
+      "rejectedCalls": 3,
+      "expectedAtoms": 192,
+      "generatedAtoms": 190,
+      "admittedAtoms": 121,
+      "discardedGeneratedAtoms": 69,
+      "missingExpectedAtoms": 2,
+      "burdenAtoms": 71,
+      "burdenRate": 0.369792,
+      "admissionRate": 0.630208,
+      "issueHistogram": {
+        "key-term-0-claim-marker-residue": 7,
+        "key-term-0-correction-repeats-definition": 8,
+        "key-term-0-correction-repeats-example": 1,
+        "key-term-0-correction-repeats-misconception": 3,
+        "key-term-0-embedded-field-label": 5,
+        "key-term-0-misconception-repeats-definition": 1,
+        "key-term-0-misconception-repeats-known-fact": 5,
+        "key-term-1-claim-marker-residue": 7,
+        "key-term-1-correction-repeats-definition": 11,
+        "key-term-1-correction-repeats-example": 3,
+        "key-term-1-correction-repeats-misconception": 2,
+        "key-term-1-embedded-field-label": 5,
+        "key-term-1-example-repeats-definition": 1,
+        "key-term-1-misconception-repeats-definition": 2,
+        "key-term-1-misconception-repeats-known-fact": 4,
+        "key-term-1-source-fact-index": 1,
+        "key-term-count": 1,
+        "mc-0-duplicate-options": 3,
+        "mc-0-explanation-key-conflict": 8,
+        "mc-0-explanation-repeats-answer": 1,
+        "mc-0-longest-option-cue": 3,
+        "mc-0-placeholder-options": 1,
+        "mc-0-truncated-explanation": 1,
+        "mc-1-explanation-key-conflict": 8,
+        "mc-1-explanation-repeats-answer": 1,
+        "mc-1-longest-option-cue": 2,
+        "mc-1-placeholder-options": 1,
+        "mc-count": 1,
+        "no-admitted-key-terms": 17,
+        "no-admitted-mc-items": 7
+      }
+    },
+    "priorReleaseDelta": {
+      "previousRelease": "v0.16.46",
+      "admittedAtoms": -9,
+      "burdenAtoms": 9,
+      "fullPassCalls": -3,
+      "partialCalls": 2,
+      "rejectedCalls": 1,
+      "admissionRate": -0.046875,
+      "newlyRejectedForRetry": 9
+    },
+    "recoveredAtoms": -12,
+    "burdenAtomReduction": -12,
+    "claimBoundary": "The v0.16.47 replay changes an answer index only from exact explanation cues or uniquely question-relevant supplied claims. Fourteen prior explanation-overlap repairs are disabled after a live Hubble-law false flip; nine additional atoms are now rejected for retry instead of receiving an unverified key mutation. Exact response text remains unchanged, and replayed candidates stay anonymous and unlabeled until both required Codex presentation orders agree above the training floor."
+  },
+  "identity": {
+    "algorithm": "sha256-canonical-source-compiler-replay-receipt-v1",
+    "sha256": "69cd762bd242fb7c992001fe5f4f221945d1ec44b278f443863667873072a718"
+  }
+}

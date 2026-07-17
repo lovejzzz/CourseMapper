@@ -1,0 +1,1067 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1e87a4687c50f0ecf255",
+    "packetDigest": "1e87a4687c50f0ecf2557df7677fd08bf0f5037609907a03531c41ee059e44c7",
+    "organizerDigest": "f401694ee81d1355305749bebeb325cc48264de5e778e0a5fba1bb2994aaadcb"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-0130c307b57c67e16515",
+      "caseDigest": "8b6f48a7070edf9cf8ef2c09782638cdba6496782ca79727d10de039f9979a58",
+      "domain": "economics",
+      "courseGroupSha256": "df6e467dd79911cf8ac7f7535116b3076b2d908b121fd6048e62c242db871f4a",
+      "sourceContextSha256": "4653591be1b72028f333c8de0d2e9a2c75d67aa00c4201d6398416947fbede5c",
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/capital-accumulation",
+        "term": "Capital accumulation",
+        "claims": [
+          "The capital stock is the total quantity of equipment, structures, and tools available for production; it rises through gross investment and falls through depreciation.",
+          "Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period.",
+          "The capital stock grows only when net investment is positive."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 7"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f1238fb9b2f934efd9a2f09ea4f43f66b9d36fa5e9e78074767e8f8757f8aca0",
+          "artifact": {
+            "q": "Which condition is required for an economy’s capital stock to grow over time, based on the source?",
+            "op": [
+              "Net investment must be positive.",
+              "Gross investment must be larger than output.",
+              "Depreciation must be positive.",
+              "The number of tools must stay fixed."
+            ],
+            "ai": 0,
+            "ex": "Correct: the capital stock grows only when net investment is positive. Misconception: positive gross investment alone is not enough if depreciation is larger."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b02efb836f091fab66a9bc6de3f59fdebeac58a8dc84b5bb8eb6fdacb0a77046",
+          "artifact": {
+            "q": "What causes the capital stock to rise according to the source?",
+            "op": [
+              "Gross investment is positive",
+              "Net investment is positive",
+              "Depreciation is positive",
+              "Capital stock is constant"
+            ],
+            "ai": 1,
+            "ex": "Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f1238fb9b2f934efd9a2f09ea4f43f66b9d36fa5e9e78074767e8f8757f8aca0",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b02efb836f091fab66a9bc6de3f59fdebeac58a8dc84b5bb8eb6fdacb0a77046",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-41129f3820f8a5fc7326",
+      "caseDigest": "45cc1e21b8a0d2ae3999dc7fa6c78fbd3a10963c1a489898dfbecde5f2a850b8",
+      "domain": "economics",
+      "courseGroupSha256": "df6e467dd79911cf8ac7f7535116b3076b2d908b121fd6048e62c242db871f4a",
+      "sourceContextSha256": "f4081b3cac6df6c300df707009658ade59fc8a529d497c9f21a618c03ac8cc50",
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/circular-flow-of-income",
+        "term": "Circular flow of income",
+        "claims": [
+          "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+          "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+          "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 1"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b79617662ca04cf5cbeec3a7d4d6d44a791d86db92545724372103acfebe5302",
+          "artifact": {
+            "q": "A household saves part of its income instead of spending it on domestically produced goods and services. In the circular flow, what is that saving best described as?",
+            "op": [
+              "A leakage that reduces spending in the flow",
+              "A government injection that adds spending to the flow",
+              "An export that returns money to firms",
+              "A price change that shifts equilibrium"
+            ],
+            "ai": 0,
+            "ex": "Correct: saving is a leakage because money earned by households does not keep circulating as spending unless it is returned through some other channel. The most plausible mistake is to treat saving like an injection, but injections are additions such as investment, government spending, and exports."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "63e09bf9500766ed9938e42bab9df1966e413a01401346acbd5aa2bf5997b0db",
+          "artifact": {
+            "q": "If total leakages equal total injections in the circular flow of income, what is the resulting effect on national income?",
+            "op": [
+              "Rises",
+              "Falls",
+              "Stays the same",
+              "Increases"
+            ],
+            "ai": 2,
+            "ex": "Stays the same is correct because when leakages equal injections, national income neither rises nor falls, contrasting with the misconception that the flow must always result in a change in income."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b79617662ca04cf5cbeec3a7d4d6d44a791d86db92545724372103acfebe5302",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "63e09bf9500766ed9938e42bab9df1966e413a01401346acbd5aa2bf5997b0db",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4600fdd2411e27c49340",
+      "caseDigest": "a5e2e91c00976e94960e9a964b0e284fc33f576a444087df1a95d4b1eda351b2",
+      "domain": "economics",
+      "courseGroupSha256": "df6e467dd79911cf8ac7f7535116b3076b2d908b121fd6048e62c242db871f4a",
+      "sourceContextSha256": "074c1c8f9bf495a9bf7e7a9c1b65db58fa0aac8d11680cf37cf2c6f00d051465",
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/demand-curve",
+        "term": "Demand curve",
+        "claims": [
+          "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c19dfa7d26d10966382a21b599d139c97a6fcf862396d1e2d4a9a60193527c9b",
+          "artifact": {
+            "q": "What is the typical slope of a demand curve?",
+            "op": [
+              "A upward",
+              "B downward",
+              "C horizontal",
+              "D vertical"
+            ],
+            "ai": 1,
+            "ex": "Demand curves typically slope downward, reflecting the law of demand. A change in price causes a movement along the demand curve."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "3c84f449a0bb2f99c1bc169842f2782ba7fcfec06f15785cf424b8be8052c1fa",
+          "artifact": {
+            "q": "Which statement best describes a demand curve?",
+            "op": [
+              "It shows the quantity consumers are willing and able to buy at each price, holding other things",
+              "It shows how quantity changes when only price changes, holding other things",
+              "It shows the quantity sellers are willing and able to sell at each price, holding other things",
+              "It shows how income and tastes change demand at each price, holding other things"
+            ],
+            "ai": 0,
+            "ex": "Correct: it shows quantity consumers will buy at each price, holding other factors constant. Price moves along it; income or tastes shift it."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c19dfa7d26d10966382a21b599d139c97a6fcf862396d1e2d4a9a60193527c9b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "3c84f449a0bb2f99c1bc169842f2782ba7fcfec06f15785cf424b8be8052c1fa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7fe960314dde29b61216",
+      "caseDigest": "470383826c922b80291a0eaa7d74f0c83750c0c722445d1a76a84b87402fa663",
+      "domain": "economics",
+      "courseGroupSha256": "df6e467dd79911cf8ac7f7535116b3076b2d908b121fd6048e62c242db871f4a",
+      "sourceContextSha256": "4297e9a645663daa0c17d17fa97442d3f6cce7ecfcbb87c25d6e4065f67a72fc",
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/wage-price-spiral",
+        "term": "Wage-price spiral",
+        "claims": [
+          "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "Unlike negative feedback, positive feedback drives the system further from where it started."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "bd3f02efa6dae68469a69a1f7b83049b90c99d40bbd4c48593ee232d311305ff",
+          "artifact": {
+            "q": "Which statement best describes a wage-price spiral?",
+            "op": [
+              "A self-reinforcing cycle where rising prices raise wage demands and higher wages raise prices.",
+              "A one-time price increase that lowers wages and then stabilizes.",
+              "A process in which lower wages cause prices to fall and stay down.",
+              "A fair market outcome where prices and wages move independently."
+            ],
+            "ai": 0,
+            "ex": "It is a self-reinforcing cycle from prices to wages to prices again. It is not a one-time change or an independent movement."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "292d204e1ec7e0942c35f290dc61be32fa9bf1f4bdbf9daa98ccca10e9ba7a16",
+          "artifact": {
+            "q": "Which mechanism describes the wage-price spiral?",
+            "op": [
+              "A) Negative feedback where rising prices stabilize wage demands.",
+              "B) Positive feedback where rising prices amplify wage demands.",
+              "C) A shift in equilibrium caused by reduced labor supply.",
+              "D) A correlation between inflation and unemployment."
+            ],
+            "ai": 1,
+            "ex": "Option B is correct because the wage-price spiral is a positive feedback loop where rising prices cause higher wage demands, amplifying the initial change. Option A is incorrect because the spiral is positive feedback, not negative feedback, and Option C describes a different economic concept."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "bd3f02efa6dae68469a69a1f7b83049b90c99d40bbd4c48593ee232d311305ff",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "292d204e1ec7e0942c35f290dc61be32fa9bf1f4bdbf9daa98ccca10e9ba7a16",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-94ae046c4cb817448232",
+      "caseDigest": "d5127eda67ff7c6f8ea1f98b35d804571dc372cece0029ee5c178f680eb65e2b",
+      "domain": "economics",
+      "courseGroupSha256": "df6e467dd79911cf8ac7f7535116b3076b2d908b121fd6048e62c242db871f4a",
+      "sourceContextSha256": "4653591be1b72028f333c8de0d2e9a2c75d67aa00c4201d6398416947fbede5c",
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/capital-accumulation",
+        "term": "Capital accumulation",
+        "claims": [
+          "The capital stock is the total quantity of equipment, structures, and tools available for production; it rises through gross investment and falls through depreciation.",
+          "Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period.",
+          "The capital stock grows only when net investment is positive."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 7"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8d303d8e46ff80ccbba93c9b3fb7da428df27d09e5d8974399f22f5971304e22",
+          "artifact": {
+            "q": "A factory buys new machines during the year, while some older equipment wears out. According to the source, which statement best describes the change in its capital stock over that period?",
+            "op": [
+              "It changes by net investment, which equals gross investment minus depreciation.",
+              "It always rises whenever any new machine is purchased.",
+              "It rises only when depreciation is exactly zero.",
+              "It is unchanged unless output also increases."
+            ],
+            "ai": 0,
+            "ex": "Correct: net investment is the change in the capital stock over a period. Misconception: any new purchase does not by itself determine the change, because depreciation must also be counted."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "41c964a7a8039de7a778d317f1fb39387a9cfdb03a51eea27f07ca18e8428573",
+          "artifact": {
+            "q": "If the capital stock is defined as the total quantity of equipment, structures, and tools available for production, what causes its growth?",
+            "op": [
+              "A) A decrease in depreciation",
+              "B) A positive change in net investment",
+              "C) A fall in gross investment",
+              "D) A rise in depreciation"
+            ],
+            "ai": 1,
+            "ex": "Option B is correct because the capital stock grows only when net investment is positive (Claim 2). Option A is incorrect because depreciation causes a fall, and Option C is incorrect because gross investment is a component of net investment. Option D is incorrect because depreciation causes a fall."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8d303d8e46ff80ccbba93c9b3fb7da428df27d09e5d8974399f22f5971304e22",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "41c964a7a8039de7a778d317f1fb39387a9cfdb03a51eea27f07ca18e8428573",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9abdc4c89bae1bc4f165",
+      "caseDigest": "07a56eb8f55b6847733467cd2e01041d7f4e4ac0da67bb6cc55e9ee2c689bcdb",
+      "domain": "economics",
+      "courseGroupSha256": "df6e467dd79911cf8ac7f7535116b3076b2d908b121fd6048e62c242db871f4a",
+      "sourceContextSha256": "fbfed49d2b3edf9ac4a3057a433939bd42934b234dcea8d426993b030a128b5e",
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/economic-model",
+        "term": "Economic model",
+        "claims": [
+          "An economic model is a simplified representation of reality that keeps the features relevant to a question and discards the rest.",
+          "Models such as supply and demand make assumptions, like rational choice or perfect competition, that do not hold exactly.",
+          "A model is useful when its assumptions are close enough for the question at hand, and misleading when a key assumption breaks."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 1"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "36e48635e5b59db4d90747292b0e12f88f4e0232906821afb080529cbbd6f999",
+          "artifact": {
+            "q": "What is a primary characteristic of an economic model?",
+            "op": [
+              "A simplified representation of reality that keeps relevant features and discards the rest",
+              "B a perfect reflection of reality with no discarded features",
+              "C a deterministic system that always predicts future outcomes",
+              "D a model that requires no underlying assumptions"
+            ],
+            "ai": 0,
+            "ex": "An economic model is a simplified representation of reality that keeps the features relevant to a question and discards the rest. This simplification is necessary for analysis but means it does not perfectly mirror the real world."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "9584e3e134c01cd95f05e04b3addb80497a437b45e8ba49e9f544fc870fd8d92",
+          "artifact": {
+            "q": "A class is comparing two ways to study the market for concert tickets. Which description best fits an economic model?",
+            "op": [
+              "A complete record of every event in the market",
+              "A simplified representation that keeps relevant features",
+              "A guess about what buyers secretly prefer",
+              "A forecast that must be exact to be useful"
+            ],
+            "ai": 1,
+            "ex": "The best choice is B because a model simplifies reality and keeps the parts relevant to the question. A is the common misconception that a useful model must include everything. The source says models discard the rest, and they can still be useful when their assumptions are close enough for the task."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "36e48635e5b59db4d90747292b0e12f88f4e0232906821afb080529cbbd6f999",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "9584e3e134c01cd95f05e04b3addb80497a437b45e8ba49e9f544fc870fd8d92",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-98fbced5437ffb6dd23a",
+      "caseDigest": "65a161cff6cef45825eb47097c07b0fde0640f0a9fcaa6550bc1b310e3d5c8ba",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "2bfa8ebb96e8338a77c3e61dd51691a2a3f6a5da92c5f09e1ca7a3c08e9c1757",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/faradays-law",
+        "term": "Faraday's law of induction",
+        "claims": [
+          "Faraday's law states that a changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law.",
+          "Induced current direction opposes the change in magnetic flux that produced it.",
+          "Changing field strength, area, or orientation can change magnetic flux."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 13"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "bc034332cffc42ad65327ec15c374a509f2e109918c22f2eb11e97c49c0166c1",
+          "artifact": {
+            "tr": "Faraday's law of induction",
+            "df": "A rule stating that a changing magnetic flux through a circuit produces an emf.",
+            "eg": "If a loop is moved so the flux through it changes, an emf appears in the loop.",
+            "mi": "It says a magnetic field always causes current even when nothing changes.",
+            "cx": "The law applies when flux changes; a steady flux is not the same situation."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "81f0d665f7aa5058fafa8743be8b95bd87d88eb506e8010fd3bc222abc7a9a94",
+          "artifact": {
+            "tr": "Induced current",
+            "df": "The flow of charge resulting from a changing magnetic environment.",
+            "eg": "A current generated in a coil when the magnet inside is moved.",
+            "mi": "Believing the current flows in the same direction as the change in magnetic flux.",
+            "cx": "The induced current direction opposes the change in magnetic flux that produced it."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "bc034332cffc42ad65327ec15c374a509f2e109918c22f2eb11e97c49c0166c1",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "81f0d665f7aa5058fafa8743be8b95bd87d88eb506e8010fd3bc222abc7a9a94",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-d514a1f9ba1f072d5341",
+      "caseDigest": "75349ac0e83c2405b6d656a91549d1208a2ec9b1602945d12cd969a3679f0497",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "882a739d7b8ad744c0173d1ee8e786eefbb31caeba65e7e7adb5ffa0dc730f95",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/levels-of-organization",
+        "term": "Levels of structural organization",
+        "claims": [
+          "Human anatomy and physiology organizes body structure from chemical components to cells, tissues, organs, organ systems, and the organism, so students can connect form to function across scales.",
+          "A cell is the smallest independently functioning unit of a living organism.",
+          "Organs are anatomically distinct structures made of two or more tissue types."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7c89808c1971dd5aa5a079263e7bbc09cedf94c9b7a3314cefc71ddddcc370cc",
+          "artifact": {
+            "tr": "Basic structural unit",
+            "df": "The smallest independently functioning unit of life.",
+            "eg": "A single neuron.",
+            "mi": "Mistaking a tissue for the smallest functional unit.",
+            "cx": "A cell is the smallest independently functioning unit of a living organism (1)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "95a69e7f56b6b921e9b9a3e98b50fa56bc39de50a29b927e1fd28faae2cf3386",
+          "artifact": {
+            "tr": "Levels of structural organization",
+            "df": "An ordered series from chemical components to the whole organism.",
+            "eg": "Chemical components, cells, tissues, organs, organ systems, and the organism.",
+            "mi": "Thinking organs and cells are separate, unrelated categories.",
+            "cx": "Each level builds on the one before it, letting students connect form to function across scales."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7c89808c1971dd5aa5a079263e7bbc09cedf94c9b7a3314cefc71ddddcc370cc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "95a69e7f56b6b921e9b9a3e98b50fa56bc39de50a29b927e1fd28faae2cf3386",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-ccdbd7f70ce18a4adeca",
+      "caseDigest": "6299ae8f11cb487acbe34cfc475484118d9ccf12accb6b9e1a0e037a94788ff4",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "721b4bb8452a3de3c9e3b55bd27cda4d853f6e2073a640ffbf42bb604c821c99",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/electric-charge",
+        "term": "Electric charge",
+        "claims": [
+          "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+          "Like charges repel and unlike charges attract.",
+          "Net charge is conserved in an isolated system."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "791ee70a3493f6a7bbd838546103b9d1c3cb436f26a26e757d07e22d6e91a6d8",
+          "artifact": {
+            "q": "Two small objects are brought near each other. Object A is positively charged and object B is negatively charged. What interaction is expected?",
+            "op": [
+              "They attract each other.",
+              "They repel each other.",
+              "They remain unchanged because charge cannot act at a distance.",
+              "They always move in the same direction."
+            ],
+            "ai": 0,
+            "ex": "The correct choice is attraction, because unlike charges attract. The common misconception is to swap the rule and assume opposite charges repel, but the source states the opposite pairing of charges attracts."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e5dd8c1c087fc22b4ab74de43006602f36a1a32cf2371c07998a54de48065723",
+          "artifact": {
+            "q": "If two particles possess the same type of electric charge, what is the expected interaction between them?",
+            "op": [
+              "They attract",
+              "They repel",
+              "They have no interaction",
+              "They are conserved"
+            ],
+            "ai": 1,
+            "ex": "The correct choice is 'They repel' because like charges repel. The misconception is choosing 'They attract,' which is incorrect as like charges repel."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "791ee70a3493f6a7bbd838546103b9d1c3cb436f26a26e757d07e22d6e91a6d8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e5dd8c1c087fc22b4ab74de43006602f36a1a32cf2371c07998a54de48065723",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-fbc0a0d38f09dfc6038a",
+      "caseDigest": "dd20db28ee36549e21314aa29ae2ccfafbc85a63feead54398981735c99b5c3c",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "e1a44f3fea11fa35d5d5227315dbc7be99b63dea3d4a82d0b23c47fba47721e8",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/electric-field",
+        "term": "Electric field",
+        "claims": [
+          "An electric field describes the electric force per unit positive test charge at each point in space.",
+          "The direction of the electric field is the direction a positive test charge would accelerate.",
+          "Field-line density indicates relative field strength."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6e2e357368787f61e3e3234e1fa19aea8abdff808971900697dfdc8a6e688762",
+          "artifact": {
+            "tr": "Field-line density",
+            "df": "A measure used to show the relative magnitude of the electric field at a given point.",
+            "eg": "Observing how closely packed the lines are near a source of electric charge.",
+            "mi": "Field-line density is the total electric force.",
+            "cx": "Field-line density indicates relative field strength."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "60220fe81a9d8c9c003bccd67a8f1b8184a71c452a1df097550a5687ef7984ab",
+          "artifact": {
+            "tr": "field-line density",
+            "df": "A visual measure that shows relative field strength by how closely packed the field lines are.",
+            "eg": "A diagram with tightly packed lines in one region and wider spacing in another indicates the first region has a stronger field.",
+            "mi": "Closer lines mean the field points in the opposite direction.",
+            "cx": "Line spacing is about relative strength, while direction is shown by the field direction itself."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6e2e357368787f61e3e3234e1fa19aea8abdff808971900697dfdc8a6e688762",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "60220fe81a9d8c9c003bccd67a8f1b8184a71c452a1df097550a5687ef7984ab",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,520 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-codex-fresh-judge-workbook-v1",
+  "status": "fresh-task-ready",
+  "release": "v0.16.47",
+  "generatedAt": "2026-07-16T20:45:00.000Z",
+  "order": "A/B",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "reviewProtocol": "scion-codex-training-review-v2",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1c6adccdcb9edfab7231",
+    "packetDigest": "1c6adccdcb9edfab7231627b2205bbd3e5ce36032c854fb90024b351ea7e0393",
+    "organizerDigest": "6026ed4bdf7145d7b5dc9fcf2ecca5cffc29c74001baaab46c604dea1da65363"
+  },
+  "selectedCases": 120,
+  "judgePrompt": {
+    "path": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "sha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "requiredJudgeIdentity": {
+    "source": "declared-first-order-judge-identity",
+    "order": "A/B",
+    "identity": {
+      "model": "openai/codex",
+      "revision": "gpt-5.6-luna@max",
+      "runtime": "codex-cli-0.144.5",
+      "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+      "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+    },
+    "launchProfile": {
+      "modelId": "gpt-5.6-luna",
+      "reasoningEffort": "max",
+      "runtime": "codex-cli-0.144.5",
+      "identityRevision": "gpt-5.6-luna@max",
+      "selectionMode": "explicit-codex-thread-launch",
+      "internalBuildRevisionAvailable": false
+    }
+  },
+  "schedule": {
+    "chunkSize": 10,
+    "chunkCount": 12,
+    "assignment": "original-index-modulo-chunk-count",
+    "sameFreshSessionRequired": true
+  },
+  "chunks": [
+    {
+      "id": "chunk-01",
+      "templateFile": "chunk-01-review-a-b.json",
+      "decisionsFile": "chunk-01-decisions-a-b.json",
+      "index": 1,
+      "reviewIndices": [
+        0,
+        12,
+        24,
+        36,
+        48,
+        60,
+        72,
+        84,
+        96,
+        108
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "f4cb54b7caef2954ddb9f79426e01590998b9276183e46ab18377ca19a813646",
+      "domainCounts": {
+        "computer-science": 3,
+        "geology": 2,
+        "music-theory": 3,
+        "user-experience-design": 2
+      }
+    },
+    {
+      "id": "chunk-02",
+      "templateFile": "chunk-02-review-a-b.json",
+      "decisionsFile": "chunk-02-decisions-a-b.json",
+      "index": 2,
+      "reviewIndices": [
+        1,
+        13,
+        25,
+        37,
+        49,
+        61,
+        73,
+        85,
+        97,
+        109
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "1d918317439f2d861a83a73bac4b15952442be6f7bb52e852140d537f9f3d827",
+      "domainCounts": {
+        "computer-science": 3,
+        "geology": 2,
+        "music-theory": 3,
+        "user-experience-design": 2
+      }
+    },
+    {
+      "id": "chunk-03",
+      "templateFile": "chunk-03-review-a-b.json",
+      "decisionsFile": "chunk-03-decisions-a-b.json",
+      "index": 3,
+      "reviewIndices": [
+        2,
+        14,
+        26,
+        38,
+        50,
+        62,
+        74,
+        86,
+        98,
+        110
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "d57e7cb81cb328374605b24510d1207fc793d47fbd134118847bedbba2ba301e",
+      "domainCounts": {
+        "computer-science": 3,
+        "geology": 2,
+        "music-theory": 3,
+        "user-experience-design": 2
+      }
+    },
+    {
+      "id": "chunk-04",
+      "templateFile": "chunk-04-review-a-b.json",
+      "decisionsFile": "chunk-04-decisions-a-b.json",
+      "index": 4,
+      "reviewIndices": [
+        3,
+        15,
+        27,
+        39,
+        51,
+        63,
+        75,
+        87,
+        99,
+        111
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "cc6065993c10f6777867f9e7ec9442ebff0c0aeec94c15403f80bc6a147168ca",
+      "domainCounts": {
+        "computer-science": 3,
+        "geology": 2,
+        "music-theory": 3,
+        "user-experience-design": 2
+      }
+    },
+    {
+      "id": "chunk-05",
+      "templateFile": "chunk-05-review-a-b.json",
+      "decisionsFile": "chunk-05-decisions-a-b.json",
+      "index": 5,
+      "reviewIndices": [
+        4,
+        16,
+        28,
+        40,
+        52,
+        64,
+        76,
+        88,
+        100,
+        112
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "85d91f791a5e919fe643644fc6757e1b415eed31143a8959219efb5053fa143e",
+      "domainCounts": {
+        "computer-science": 3,
+        "geology": 2,
+        "music-theory": 3,
+        "user-experience-design": 2
+      }
+    },
+    {
+      "id": "chunk-06",
+      "templateFile": "chunk-06-review-a-b.json",
+      "decisionsFile": "chunk-06-decisions-a-b.json",
+      "index": 6,
+      "reviewIndices": [
+        5,
+        17,
+        29,
+        41,
+        53,
+        65,
+        77,
+        89,
+        101,
+        113
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "1fdb91c11755a440128ddf971f1c3ab279a05d598b3f957ca22b509b588576ed",
+      "domainCounts": {
+        "computer-science": 3,
+        "geology": 2,
+        "music-theory": 3,
+        "user-experience-design": 2
+      }
+    },
+    {
+      "id": "chunk-07",
+      "templateFile": "chunk-07-review-a-b.json",
+      "decisionsFile": "chunk-07-decisions-a-b.json",
+      "index": 7,
+      "reviewIndices": [
+        6,
+        18,
+        30,
+        42,
+        54,
+        66,
+        78,
+        90,
+        102,
+        114
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "899ebb39545c554fe1b66a551ca699bdd37a61c55f33b1a336d5fb5d4bed2634",
+      "domainCounts": {
+        "computer-science": 2,
+        "geology": 3,
+        "music-theory": 2,
+        "user-experience-design": 3
+      }
+    },
+    {
+      "id": "chunk-08",
+      "templateFile": "chunk-08-review-a-b.json",
+      "decisionsFile": "chunk-08-decisions-a-b.json",
+      "index": 8,
+      "reviewIndices": [
+        7,
+        19,
+        31,
+        43,
+        55,
+        67,
+        79,
+        91,
+        103,
+        115
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "38d704a4268fd7037ce5754be5b69ae6d6cdadeb7f58d4052d1c3f0e19b723d3",
+      "domainCounts": {
+        "computer-science": 2,
+        "geology": 3,
+        "music-theory": 2,
+        "user-experience-design": 3
+      }
+    },
+    {
+      "id": "chunk-09",
+      "templateFile": "chunk-09-review-a-b.json",
+      "decisionsFile": "chunk-09-decisions-a-b.json",
+      "index": 9,
+      "reviewIndices": [
+        8,
+        20,
+        32,
+        44,
+        56,
+        68,
+        80,
+        92,
+        104,
+        116
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "0f5aac834e3a421db33d662c5e3d18b00e3adb4a4e0947d372f5c00ba63e4b65",
+      "domainCounts": {
+        "computer-science": 2,
+        "geology": 3,
+        "music-theory": 2,
+        "user-experience-design": 3
+      }
+    },
+    {
+      "id": "chunk-10",
+      "templateFile": "chunk-10-review-a-b.json",
+      "decisionsFile": "chunk-10-decisions-a-b.json",
+      "index": 10,
+      "reviewIndices": [
+        9,
+        21,
+        33,
+        45,
+        57,
+        69,
+        81,
+        93,
+        105,
+        117
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "d6a3599ea098b38834d12cfce6337f202b411a917e592b195e81a7c1a5ee2a14",
+      "domainCounts": {
+        "computer-science": 2,
+        "geology": 3,
+        "music-theory": 2,
+        "user-experience-design": 3
+      }
+    },
+    {
+      "id": "chunk-11",
+      "templateFile": "chunk-11-review-a-b.json",
+      "decisionsFile": "chunk-11-decisions-a-b.json",
+      "index": 11,
+      "reviewIndices": [
+        10,
+        22,
+        34,
+        46,
+        58,
+        70,
+        82,
+        94,
+        106,
+        118
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "9e33b47669835a39e9b835e166582c6bf39d70ca986d83bdf3044aa2ee930b12",
+      "domainCounts": {
+        "computer-science": 2,
+        "geology": 3,
+        "music-theory": 2,
+        "user-experience-design": 3
+      }
+    },
+    {
+      "id": "chunk-12",
+      "templateFile": "chunk-12-review-a-b.json",
+      "decisionsFile": "chunk-12-decisions-a-b.json",
+      "index": 12,
+      "reviewIndices": [
+        11,
+        23,
+        35,
+        47,
+        59,
+        71,
+        83,
+        95,
+        107,
+        119
+      ],
+      "caseCount": 10,
+      "pairIdsSha256": "8c20e3592ca12ad5c11833d84067c90bfd497d764cef8278f689b4de1f8417a1",
+      "domainCounts": {
+        "computer-science": 2,
+        "geology": 3,
+        "music-theory": 2,
+        "user-experience-design": 3
+      }
+    }
+  ],
+  "canonicalPass": {
+    "reviewCount": 120,
+    "templateSha256": "88ef93e263a7ab172b12f11e374be9ef139836d5ef3c4586a09ae5ece1180a25",
+    "pairIdsSha256": "6d3afb3692011f6d1df9a83270de5a3a3fca288433252ae5d5e35bb483e1a293"
+  },
+  "isolation": {
+    "allowedInputs": [
+      "single-model-training-atom-judge-prompt-v2.md",
+      "FRESH_TASK_INSTRUCTIONS.md",
+      "chunk-01-review-a-b.json",
+      "chunk-01-decisions-a-b.json",
+      "chunk-02-review-a-b.json",
+      "chunk-02-decisions-a-b.json",
+      "chunk-03-review-a-b.json",
+      "chunk-03-decisions-a-b.json",
+      "chunk-04-review-a-b.json",
+      "chunk-04-decisions-a-b.json",
+      "chunk-05-review-a-b.json",
+      "chunk-05-decisions-a-b.json",
+      "chunk-06-review-a-b.json",
+      "chunk-06-decisions-a-b.json",
+      "chunk-07-review-a-b.json",
+      "chunk-07-decisions-a-b.json",
+      "chunk-08-review-a-b.json",
+      "chunk-08-decisions-a-b.json",
+      "chunk-09-review-a-b.json",
+      "chunk-09-decisions-a-b.json",
+      "chunk-10-review-a-b.json",
+      "chunk-10-decisions-a-b.json",
+      "chunk-11-review-a-b.json",
+      "chunk-11-decisions-a-b.json",
+      "chunk-12-review-a-b.json",
+      "chunk-12-decisions-a-b.json",
+      "workbook-manifest.json"
+    ],
+    "prohibitedInputs": [
+      "B/A template or completed pass",
+      "B/A task transcript or event log",
+      "any completed decision or outcome for this campaign",
+      "any decryption key or plaintext outcome for this campaign",
+      "organizer mapping or unblinded model identity",
+      "any earlier outcome or aggregate"
+    ],
+    "organizerMappingIncluded": false,
+    "priorOutcomeIncluded": false,
+    "blankOutcomeState": true
+  },
+  "files": {
+    "single-model-training-atom-judge-prompt-v2.md": {
+      "bytes": 2683,
+      "sha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+    },
+    "FRESH_TASK_INSTRUCTIONS.md": {
+      "bytes": 4387,
+      "sha256": "e3c0be24a5cd9a2cf7d020b3db75fcda7a5fe4007a78a913fe9d8a80bcd93d42"
+    },
+    "chunk-01-review-a-b.json": {
+      "bytes": 43358,
+      "sha256": "d79cc67b8c7fb6015c1c3f9ab68dda5307cae9963de12c014105e07ced801eac"
+    },
+    "chunk-01-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "49e579f2b3270b66ed74bc87325c772a0b475e7d8b406eb7633ffc907a587332"
+    },
+    "chunk-02-review-a-b.json": {
+      "bytes": 45370,
+      "sha256": "968881271fccfd8aaba4b261ba4b56bedb5cbff990f889bf4766c0423c58a017"
+    },
+    "chunk-02-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "80c4b40ea4d4719c76b918583edb50fb69c06cb38d75665b143fc92699eee1b6"
+    },
+    "chunk-03-review-a-b.json": {
+      "bytes": 43017,
+      "sha256": "f1e5cef511ba2e63023f80713afb45674784122e05b84f182a0f8b530edb4e10"
+    },
+    "chunk-03-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "f460c03025a09871261e49ab31e4a27bdecfd2488c7c1d7ae473c33a816f9881"
+    },
+    "chunk-04-review-a-b.json": {
+      "bytes": 43463,
+      "sha256": "e11df57ffd50a9abe25427d963e7f480beae9be31522f07e1ae1f64930e70ea7"
+    },
+    "chunk-04-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "39555323b7aa9ae80dfaec81bbb9c0dc07e771040cee2054ad8167a74dfbe250"
+    },
+    "chunk-05-review-a-b.json": {
+      "bytes": 44560,
+      "sha256": "c019213ef33dff2784451599ffa94d584c96aaea78b445753e974d0af2e52ca0"
+    },
+    "chunk-05-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "e124365300c974b5b618d57ec42ee87fe6aba4547b02eb85ff175659554a4db9"
+    },
+    "chunk-06-review-a-b.json": {
+      "bytes": 43284,
+      "sha256": "e69a4ee9828d976e5a94b3a0208c96cfb503d3176d3eaad8fc893386bfca2fe7"
+    },
+    "chunk-06-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "43970e642660deaa61502e8ffae0ee41f1ddec494783672397537a08fd3fba0f"
+    },
+    "chunk-07-review-a-b.json": {
+      "bytes": 43417,
+      "sha256": "44bcaafcba621727c7802f166f359c93c6256baf16fe9c4067ab7b8e6546b783"
+    },
+    "chunk-07-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "3bf220b8c96b9aaf744e6ae01fd5b0a38d41506b56a435ef7d618d64d62e54ef"
+    },
+    "chunk-08-review-a-b.json": {
+      "bytes": 43896,
+      "sha256": "27887e60a1cdab6bb67a58234995233b7f8559a896bc3bfe476cca40694519e2"
+    },
+    "chunk-08-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "262127f9d17094c88a4c13e0490630fd84925b2aaa91299045a72268b66940bd"
+    },
+    "chunk-09-review-a-b.json": {
+      "bytes": 43008,
+      "sha256": "c3637c1d3319a1995fbdf7e9611c3db79c365b86d1d5b6c11cc94f60da4ee431"
+    },
+    "chunk-09-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "aa5dc64d4a91abb7b1a7f57d1c843f7f0178e644f8e89eeb32b43771356cebbb"
+    },
+    "chunk-10-review-a-b.json": {
+      "bytes": 45412,
+      "sha256": "4f8ac29dc0d877b77b03e0bbdb60b97955cc533e49daf3436678d7d2d6c9ee22"
+    },
+    "chunk-10-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "e98eebe235fa02c98845e06a1709edbb05d01a3915060f2b30f82a79d4941e1f"
+    },
+    "chunk-11-review-a-b.json": {
+      "bytes": 43042,
+      "sha256": "07b90c241def60f5c0b686662ff10ed026e16755b8ecaa052504a44958d0a80a"
+    },
+    "chunk-11-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "7294aa1f27c4d95e7117151a924a940873a534736264c1ee67035e712e7a1350"
+    },
+    "chunk-12-review-a-b.json": {
+      "bytes": 44873,
+      "sha256": "062772e56c0aa0fb34ad465ec3c1723ab5d73fae2e3c9fd15c90b7f1b812a537"
+    },
+    "chunk-12-decisions-a-b.json": {
+      "bytes": 10243,
+      "sha256": "743a50ac243a82d96f8c3d7ebb9caa4df013c2923ab48968b1037f9d7b3ea6af"
+    }
+  },
+  "completion": {
+    "protocol": "scion-codex-chunked-complete-and-seal-v1",
+    "plaintextWritten": false,
+    "exclusiveOutputs": true,
+    "outcomeDisclosure": "sealed"
+  },
+  "claimBoundary": "This workbook proves a blank, chunked A/B-only first-order input set with a predeclared Codex identity. It proves no judgment, preference, adapter improvement, model win, human evidence, or paid-reference parity."
+}

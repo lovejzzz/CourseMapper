@@ -1,0 +1,1027 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1e87a4687c50f0ecf255",
+    "packetDigest": "1e87a4687c50f0ecf2557df7677fd08bf0f5037609907a03531c41ee059e44c7",
+    "organizerDigest": "f401694ee81d1355305749bebeb325cc48264de5e778e0a5fba1bb2994aaadcb"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-03c3d0b7d6d9b7e8680a",
+      "caseDigest": "193b768b91721fa366b258d3e29711365fc1b0636f0c397701253bb8d9fcfd31",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "06cff3b44448bcbf3e003084e920f8946889ed7fff791cfe55ade73b74403a89",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/endocrine-hormone-signaling",
+        "term": "Endocrine hormone signaling",
+        "claims": [
+          "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+          "Hormone binding initiates a chain of events that leads to a target-cell response.",
+          "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "79eebf5dd59c9c5f7e22d9d10b5d10ec07e1827ba7f0fa95a5c1489613d52145",
+          "artifact": {
+            "tr": "endocrine hormone signaling",
+            "df": "A bloodstream-based communication system in which a hormone reaches cells and affects only those with the right receptor.",
+            "eg": "A hormone carried in blood that triggers a response in receptor-bearing target cells.",
+            "mi": "Any cell exposed to the hormone responds the same way.",
+            "cx": "Only target cells with appropriate receptors respond; other cells may be reached by blood but do not respond."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "057ae943aae0bcbfe80d3f44fa833c4eef08c1f726f6c65722595cd53c4b2c3a",
+          "artifact": {
+            "tr": "Endocrine hormone signaling",
+            "df": "Hormone binding initiates a chain of events that leads to a target-cell response.",
+            "eg": "Thyroid hormones control metabolism.",
+            "mi": "Endocrine signaling is a direct neural transmission.",
+            "cx": "Endocrine signaling involves a chain of events initiated by hormone binding."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "79eebf5dd59c9c5f7e22d9d10b5d10ec07e1827ba7f0fa95a5c1489613d52145",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "057ae943aae0bcbfe80d3f44fa833c4eef08c1f726f6c65722595cd53c4b2c3a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-10f5cec2c2120533e98d",
+      "caseDigest": "4aa66a97e904a8e3bb4f69f237391967918293d672aca3393321dcf9b6011b89",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "5db053ef22c2b52292028832febb591cf7c78866b61f8c893d841be77b1fdd5e",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "term": "Skeletal system functions",
+        "claims": [
+          "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+          "Bones facilitate movement by providing attachment points for muscles."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "815e14c7fb35b3872516b56e03c3d1ff8f7211ea72220aab62e297490206ba51",
+          "artifact": {
+            "tr": "Skeletal system",
+            "df": "The framework composed of bones and cartilage that supports the body and enables movement.",
+            "eg": "Bones provide attachment points for muscles.",
+            "mi": "The skeletal system is solely responsible for movement.",
+            "cx": "The skeletal system supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a40982146b7605c76d13d34fd1f8e6469a28f3b4b547fe22962157c72f06ed1c",
+          "artifact": {
+            "tr": "Skeletal system functions",
+            "df": "Body roles that include support, movement facilitation, protection, blood cell production, and storage of minerals and fat.",
+            "eg": "The skeleton helps support the body and provides places for muscles to pull during movement.",
+            "mi": "It only protects organs.",
+            "cx": "Protection is one function, but the source also lists support, movement, blood cell production, and storage."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "815e14c7fb35b3872516b56e03c3d1ff8f7211ea72220aab62e297490206ba51",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a40982146b7605c76d13d34fd1f8e6469a28f3b4b547fe22962157c72f06ed1c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-13ca526a0c5a04b9059f",
+      "caseDigest": "19fb24055ee76e0639e176e664a896ec2d6b039a69e4e97904eff0c9decf751f",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "882a739d7b8ad744c0173d1ee8e786eefbb31caeba65e7e7adb5ffa0dc730f95",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/levels-of-organization",
+        "term": "Levels of structural organization",
+        "claims": [
+          "Human anatomy and physiology organizes body structure from chemical components to cells, tissues, organs, organ systems, and the organism, so students can connect form to function across scales.",
+          "A cell is the smallest independently functioning unit of a living organism.",
+          "Organs are anatomically distinct structures made of two or more tissue types."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9717eda7a2e62a4199e72408e7b1e7b5d8d321af539b243f0a230e66a406d2d4",
+          "artifact": {
+            "tr": "Complex structure",
+            "df": "An anatomically distinct structure made of two or more tissue types.",
+            "eg": "The heart or the stomach.",
+            "mi": "Confusing an organ with a simple tissue layer.",
+            "cx": "Organs are anatomically distinct structures made of two or more tissue types (2)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "4123f6c67211ffd4de9c8fe2f242d8e3efd2140365d0344567d93246738cb666",
+          "artifact": {
+            "tr": "Organ",
+            "df": "An anatomically distinct body structure formed from more than one tissue type.",
+            "eg": "A body part that combines multiple tissue categories into one structure.",
+            "mi": "Calling any tissue a complete organ.",
+            "cx": "A tissue is a group of similar cells, while an organ includes two or more tissue types."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9717eda7a2e62a4199e72408e7b1e7b5d8d321af539b243f0a230e66a406d2d4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "4123f6c67211ffd4de9c8fe2f242d8e3efd2140365d0344567d93246738cb666",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-1d0cc5567bfa726522f3",
+      "caseDigest": "cdc0cda1371df263ffcea0e1f9a6beff70abde1336ca181753663b61d1826c87",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "1a2b8d921bd62a90a0e0936d6f18384413db9b21ac358910e5b2e7b9e42b5843",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/nervous-tissue",
+        "term": "Nervous tissue",
+        "claims": [
+          "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+          "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+          "Neuroglia support neurons and modulate information propagation."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2a12219071a55f6f95bf9b24f970700cd51e58317a806d2c082ea002497db23d",
+          "artifact": {
+            "tr": "Nervous tissue",
+            "df": "An excitable tissue made mainly of neurons and neuroglia.",
+            "eg": "Brain tissue that carries information through neuron signals and glial support.",
+            "mi": "It is just another name for any organ that uses nerves.",
+            "cx": "An organ can contain nervous tissue, but nervous tissue is the tissue category itself, not the whole organ."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1dd61a86f4b6528dceda38ad7710fcc1a80b5fdd3541b3a0f81bc2fb85c69184",
+          "artifact": {
+            "tr": "Excitable tissue",
+            "df": "Tissue capable of generating and propagating electrical signals.",
+            "eg": "Nervous tissue.",
+            "mi": "All tissue that sends and receives signals.",
+            "cx": "Nervous tissue."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2a12219071a55f6f95bf9b24f970700cd51e58317a806d2c082ea002497db23d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1dd61a86f4b6528dceda38ad7710fcc1a80b5fdd3541b3a0f81bc2fb85c69184",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a3f30dd8f1824b0ebdeb",
+      "caseDigest": "107c7cc97007b0a1a80ab69990d75eec8830b272a22d1fbfdda9351b9d61b06c",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "96adb79f0eb76e3848098a8722d16e950ff5b2bc7473387a4c756c1516dba8a4",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/muscle-tissue-types",
+        "term": "Muscle tissue types and contraction",
+        "claims": [
+          "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force.",
+          "All three muscle tissue types share excitability.",
+          "Skeletal muscle depends on nervous-system signaling to work properly."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0bfdf863881c793dc5cbe02551e0ebff442c2274dd48ff51911c0cf8996b5145",
+          "artifact": {
+            "tr": "Contraction",
+            "df": "The process by which muscle tissue shortens under force.",
+            "eg": "Cardiac muscle exhibits contraction.",
+            "mi": "Contraction is only possible in smooth muscle tissue.",
+            "cx": "Contraction lets muscle pull on attachment points and shorten with force."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e8c745dcd189a3523bb30e3973783cce09cfe3f8a22a0a440bbd92d724905523",
+          "artifact": {
+            "tr": "Contractility",
+            "df": "The ability to shorten and generate force during action.",
+            "eg": "Muscle can pull on attachment points because it contracts.",
+            "mi": "Contraction only means a signal was received.",
+            "cx": "The source links contraction to shortening with force, not just to receiving input."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0bfdf863881c793dc5cbe02551e0ebff442c2274dd48ff51911c0cf8996b5145",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e8c745dcd189a3523bb30e3973783cce09cfe3f8a22a0a440bbd92d724905523",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a888d38ed93fd868101b",
+      "caseDigest": "ea322d9b10ecfde8f7720e2a86d7897fbc7ddd4e795679bbfec107d2e07bfe14",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "9d7236acde3fb2f95eed66b166372e0443cbac75f71450c9d8525c7854fcff29",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/synovial-joints",
+        "term": "Synovial joints",
+        "claims": [
+          "Synovial joints are common movable joints with a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion.",
+          "A key structural feature of a synovial joint is a fluid-filled joint cavity.",
+          "Ligaments support synovial joints by holding bones together and resisting abnormal motion."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4e293cdd1e547658357e7c4b19d0f331ad945aad0eb8a823cf603f974a29ee3a",
+          "artifact": {
+            "tr": "Synovial joint",
+            "df": "A movable joint built around a fluid-filled cavity.",
+            "eg": "The knee is a synovial joint with articular cartilage and synovial fluid.",
+            "mi": "It is the same thing as any bone connection.",
+            "cx": "Not all bone connections are movable; this term refers to joints with a cavity and smooth motion features."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d5952363b7e1f7dab76b82ac14e6fe19558042bd60080385b410af9a8dab74a7",
+          "artifact": {
+            "tr": "Articular cartilage",
+            "df": "The smooth tissue covering the ends of bones in a joint.",
+            "eg": "The tissue covering the ends of the femur in a hip joint.",
+            "mi": "Articular cartilage is the fluid that lubricates the joint.",
+            "cx": "Articular cartilage is a key structural feature of a synovial joint."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4e293cdd1e547658357e7c4b19d0f331ad945aad0eb8a823cf603f974a29ee3a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d5952363b7e1f7dab76b82ac14e6fe19558042bd60080385b410af9a8dab74a7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a3ea8efc1b5ff20ab677",
+      "caseDigest": "6b08278ab5fd19e789faecb8e7383b521c669f4f91e6a55544ba0bd83bdc2d09",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "5db053ef22c2b52292028832febb591cf7c78866b61f8c893d841be77b1fdd5e",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "term": "Skeletal system functions",
+        "claims": [
+          "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+          "Bones facilitate movement by providing attachment points for muscles."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c41b78b31304008a2d83073f5f2868a16d7821b872d946c8ade8a64f6384b547",
+          "artifact": {
+            "q": "Which function of the skeletal system is primarily related to providing attachment points for muscles?",
+            "op": [
+              "Supporting the body",
+              "Protecting organs",
+              "Enabling movement",
+              "Producing blood cells"
+            ],
+            "ai": 2,
+            "ex": "Bones facilitate movement by providing attachment points for muscles. This is distinct from the skeletal system's role in producing blood cells."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "eec1a570f90cfcb1e565b406f31b69c5c492850ff1031089ed95fe84d081ff01",
+          "artifact": {
+            "q": "Which statement best describes a skeletal system function?",
+            "op": [
+              "Supports the body, enables movement, protects organs, and stores minerals",
+              "Produces hormones and sends nerve impulses",
+              "Is made mostly of muscle tissue",
+              "Only serves as a joint surface for movement"
+            ],
+            "ai": 0,
+            "ex": "Correct; bones and cartilage support the body, protect organs, and enable movement. They do not directly create movement; muscles attach to bones."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c41b78b31304008a2d83073f5f2868a16d7821b872d946c8ade8a64f6384b547",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "eec1a570f90cfcb1e565b406f31b69c5c492850ff1031089ed95fe84d081ff01",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-b89624fcfcce361ce504",
+      "caseDigest": "cebd95eb0598678d8d6f247dbe34cc676a838a2987d9700bf3eed57053bace8f",
+      "domain": "economics",
+      "courseGroupSha256": "df6e467dd79911cf8ac7f7535116b3076b2d908b121fd6048e62c242db871f4a",
+      "sourceContextSha256": "4297e9a645663daa0c17d17fa97442d3f6cce7ecfcbb87c25d6e4065f67a72fc",
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/wage-price-spiral",
+        "term": "Wage-price spiral",
+        "claims": [
+          "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "Unlike negative feedback, positive feedback drives the system further from where it started."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6addcba9101f0daa9b1fe8895a139ac5a500c925a4d230409eac6801e3a34a51",
+          "artifact": {
+            "q": "What describes the mechanism of a wage-price spiral?",
+            "op": [
+              "A self-reinforcing cycle where rising prices cause wage demands, and higher wages cause further",
+              "A system where initial changes are dampened over time",
+              "A process where prices stabilize at a fixed level",
+              "A situation where demand decreases as prices rise"
+            ],
+            "ai": 0,
+            "ex": "A wage-price spiral is a self-reinforcing cycle where rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further. This positive feedback drives the system further from where it started."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e632d1728b29af0711d85e136712bbaf1245a56ae8024bc106e9e3329597b12e",
+          "artifact": {
+            "q": "What does positive feedback mean in the wage-price spiral?",
+            "op": [
+              "An initial change is amplified rather than damped.",
+              "An initial change is reduced until the system returns to start.",
+              "Prices and wages always move in opposite directions.",
+              "The system stays unchanged after the first shock."
+            ],
+            "ai": 0,
+            "ex": "Positive feedback amplifies the initial change instead of damping it. It does not pull the system back to where it started."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6addcba9101f0daa9b1fe8895a139ac5a500c925a4d230409eac6801e3a34a51",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e632d1728b29af0711d85e136712bbaf1245a56ae8024bc106e9e3329597b12e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-fa2513cf563a2bbb25ac",
+      "caseDigest": "537bc9287fad4aa97dc0b5271989ca62e0a8ea36067ad9a808faff98d635fa81",
+      "domain": "economics",
+      "courseGroupSha256": "df6e467dd79911cf8ac7f7535116b3076b2d908b121fd6048e62c242db871f4a",
+      "sourceContextSha256": "01031c3334ee7dfef4972573c0dd472d9feeee466bb07cdd060bb802da302cf5",
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/natural-experiment",
+        "term": "Natural experiment",
+        "claims": [
+          "A natural experiment uses a policy change or external event affecting one group but not another to estimate a causal effect from observational data.",
+          "The causal claim is credible only if the two groups were comparable apart from the change.",
+          "The effect can be attributed to the policy rather than to a confounding factor only when that comparability holds."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 2"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2af8db54833d60248eaab00e8c0cb15426f8f92bdcb73513ba99b92a39ec0a08",
+          "artifact": {
+            "tr": "Confounding factor",
+            "df": "An outside influence that can make a policy appear responsible for an outcome difference.",
+            "eg": "If one district also gets a major road repair during the fare change, that repair could blur the estimate of the fare policy's effect.",
+            "mi": "It is the same thing as the policy being studied.",
+            "cx": "The policy is the change being evaluated; a confounder is a separate influence that weakens causal attribution."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "abe9e0eabb2e6e1da5e8f7a7cfc8b34e402c0e9d66d4af2975c1c1a39961e178",
+          "artifact": {
+            "tr": "Causal claim validity",
+            "df": "The strength of the assertion that one event caused another.",
+            "eg": "Stating that a specific tax change caused a specific employment shift.",
+            "mi": "Assuming the claim is true without checking group comparability.",
+            "cx": "The claim is credible only if the two groups were comparable apart from the change."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2af8db54833d60248eaab00e8c0cb15426f8f92bdcb73513ba99b92a39ec0a08",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "abe9e0eabb2e6e1da5e8f7a7cfc8b34e402c0e9d66d4af2975c1c1a39961e178",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-c8363ae86cb31e1b97c1",
+      "caseDigest": "a59aa577c9473ff0b45d675da440a01a68be6cce5f9f97a38baa4125731a06ed",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "1cb04d013f627a494993c1fb4adb595a4fa9f2856a5004ab1e60634f40da8da0",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/inductance",
+        "term": "Inductance",
+        "claims": [
+          "Inductance measures how a circuit element resists changes in current by inducing emf through changing magnetic flux.",
+          "An inductor stores energy in its magnetic field.",
+          "A changing current creates a changing magnetic flux that induces back emf."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 14"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "329c359daaf04866485d228be317d36057473777535f4adaf5bf8089765adb4b",
+          "artifact": {
+            "tr": "Inductance",
+            "df": "A property that measures how strongly a circuit element resists changes in current by producing an induced emf when magnetic flux changes.",
+            "eg": "A coil in a circuit can oppose a sudden rise or fall in current through the back emf it generates.",
+            "mi": "It is the same thing as resistance or as the amount of current already flowing.",
+            "cx": "Inductance is about opposition to change in current, not about how much current exists at a moment."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c281ca88f3800f8a16c5fb4f21b63dd24eb10b62f10318d7b4447d4f0d804c21",
+          "artifact": {
+            "tr": "Inductance",
+            "df": "A property of a circuit element that opposes changes in current by inducing electromotive force.",
+            "eg": "A coil in an AC circuit.",
+            "mi": "It is the same as resistance.",
+            "cx": "It is the measure of how a circuit element resists changes in current by inducing emf through changing magnetic flux."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "329c359daaf04866485d228be317d36057473777535f4adaf5bf8089765adb4b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c281ca88f3800f8a16c5fb4f21b63dd24eb10b62f10318d7b4447d4f0d804c21",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

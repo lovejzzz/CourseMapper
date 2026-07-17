@@ -1,0 +1,2056 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-earth-history-inference-audit-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "Earth History Inference Audit, a six-session course in which students order rock transformations, separate deep-Earth mechanisms from surface evidence, and audit the limits of seismic and dating inferences.",
+  "fileNames": [
+    "source-packet-9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127.json"
+  ],
+  "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Earth History Inference Audit\",\"sessions\":[{\"number\":1,\"title\":\"Metamorphic rocks and protoliths\"},{\"number\":2,\"title\":\"The rock cycle\"},{\"number\":3,\"title\":\"Earth's interior\"},{\"number\":4,\"title\":\"Plate tectonics and boundaries\"},{\"number\":5,\"title\":\"Earthquakes and seismic waves\"},{\"number\":6,\"title\":\"Geologic time and relative dating\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"What is the term for the starting rock that undergoes metamorphism?\",\"op\":[\"Metamorphic rock\",\"Foliated rock\",\"Protolith\",\"Igneous rock\"],\"ai\":2,\"ex\":\"The starting rock that undergoes metamorphism is called the protolith. Metamorphic rock is the resulting rock, not the starting material.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Protolith\",\"df\":\"The starting rock that undergoes metamorphism.\",\"eg\":\"Granite undergoing metamorphism to form gneiss.\",\"mi\":\"The resulting metamorphic rock.\",\"cx\":\"The protolith is the parent rock that undergoes metamorphism.\",\"sourceFactIndexes\":[2]},{\"tr\":\"Foliation\",\"df\":\"Directed stress aligns mineral crystals into planes.\",\"eg\":\"Banding in schist.\",\"mi\":\"The process of rock transformation.\",\"cx\":\"Foliation is the alignment of mineral crystals into planes due to directed stress.\",\"sourceFactIndexes\":[3]}]},\"lesson-2\":{\"quizItems\":[],\"keyTerms\":[{\"tr\":\"Rock cycle\",\"df\":\"The continuous transformation of Earth's three rock families.\",\"eg\":\"A granite (igneous) weathering into sandstone (sedimentary) and then into slate (metamorphic).\",\"mi\":\"Believing the cycle only involves the formation of igneous rocks.\",\"cx\":\"The cycle describes how igneous, sedimentary, and metamorphic rocks form and transform into one another.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Igneous rock\",\"df\":\"Rock formed when liquid rock freezes solid and lithifies.\",\"eg\":\"Basalt or granite.\",\"mi\":\"Assuming all rock types are formed solely through the process of lithified sediment.\",\"cx\":\"Igneous rock forms when liquid rock freezes solid.\",\"sourceFactIndexes\":[0,2]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"Which description accurately reflects the structural arrangement of Earth's interior layers?\",\"op\":[\"The core is the outermost layer, followed by the mantle, and then the crust.\",\"The mantle is the outermost layer, followed by the core, and then the crust.\",\"The crust is the outermost layer, followed by the core, and then the mantle.\",\"Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core.\"],\"ai\":0,\"ex\":\"The correct option describes the layering as crust, mantle, and core. A common misconception is placing the core as the outermost layer, which contradicts the established structure.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Asthenosphere\",\"df\":\"The mechanically weak, flowing layer within the upper mantle.\",\"eg\":\"The slow movement of the upper mantle driven by convection currents.\",\"mi\":\"The asthenosphere is a rigid, unmoving layer.\",\"cx\":\"The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat.\",\"sourceFactIndexes\":[0,3]},{\"tr\":\"Core\",\"df\":\"The innermost layer of Earth composed mostly of iron and nickel.\",\"eg\":\"The layer that has both liquid and solid components.\",\"mi\":\"The core is entirely solid rock.\",\"cx\":\"The core has both liquid and solid layers and is made mostly of iron and nickel.\",\"sourceFactIndexes\":[2]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"What is the primary mechanism driving the movement of Earth's rigid lithosphere according to plate tectonics?\",\"op\":[\"Movement over the ductile asthenosphere\",\"Creation of new lithosphere at divergent boundaries\",\"Destruction of lithosphere at convergent boundaries\",\"Horizontal sliding past each other at transform boundaries\"],\"ai\":0,\"ex\":\"Movement over the ductile asthenosphere is the primary mechanism. This process allows plates to move across the asthenosphere.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-5\":{\"quizItems\":[{\"q\":\"The mechanism by which an earthquake occurs involves which physical process?\",\"op\":[\"Rock deformation during compression\",\"Elastic rebound theory\",\"Energy dissipation through friction\",\"Wave propagation through liquids\"],\"ai\":1,\"ex\":\"Elastic rebound theory is the correct choice because it explains that stored energy is released and the broken rock springs back. The most plausible misconception is selecting rock deformation during compression, which describes the initial slip but not the full energy release mechanism.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-6\":{\"quizItems\":[{\"q\":\"What does absolute dating provide regarding mineral grains in a rock?\",\"op\":[\"A relative order of events\",\"A numerical age in years\",\"A horizontal depositional pattern\",\"A sequence of superposition\"],\"ai\":1,\"ex\":\"Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: A relative order of events only indicates which event happened first or last, not the specific numerical age.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Numerical age assignment\",\"df\":\"Assigning specific years to rock material based on dating methods.\",\"eg\":\"Determining the exact age of a specific quartz grain in granite.\",\"mi\":\"Assuming that relative dating methods inherently provide precise numerical years.\",\"cx\":\"Absolute dating assigns specific ages in years to mineral grains within a rock.\",\"sourceFactIndexes\":[1]},{\"tr\":\"Relative ordering\",\"df\":\"Ordering events based on which is older or younger.\",\"eg\":\"Determining that a layer of sediment is older than the layer above it.\",\"mi\":\"Confusing relative dating with absolute dating, believing relative terms imply specific year counts.\",\"cx\":\"Relative dating orders events by which is older or younger.\",\"sourceFactIndexes\":[0]}]}}}}",
+  "savedAt": "2026-07-16T20:02:54.444Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-preference-expansion-v0.16.47.json",
+    "campaignManifestSha256": "77cd0f41c9af2be733d987e0d429720e28aec3ca931ce4902ea9d700fbd44e70",
+    "promptSetSha256": "4377647464125077c70edf29659853b6faaf0e3efad4d2b6b0a051fe0cd4a975",
+    "courseInputSha256": "43fbff77f9b25d3d82e33c6e3bdc2d5fcba408821b16b2529aaeebcdee74250a",
+    "courseGroupId": "earth-history-inference-audit",
+    "courseGroupSha256": "af478b3b946a56f3e9d594fc6fc9d3d007b88dc09de874f62a898860542b0ddc",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/geo-intro.json",
+      "sourceArtifactSha256": "d210fd2d2412af5d0f65c8e8f8a9614cd92f5886badc264694fe88e5cc020f14",
+      "kernels": [
+        {
+          "id": "geo/metamorphic-rocks",
+          "term": "Metamorphic rocks and protoliths",
+          "definition": "Metamorphic rock forms when heat, pressure, and fluids change a preexisting parent rock (the protolith) in the solid state, without melting it.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#6.1",
+            "loc": "6.1",
+            "quote": "Metamorphic rocks are created when heat, pressure, and/or fluids change preexisting rocks"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Metamorphism changes a solid rock's composition and texture without the mineral crystals melting.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#6.1",
+                "loc": "6.1",
+                "quote": "Metamorphism occurs when solid rock changes composition and/or texture without mineral crystals melting"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The starting rock that undergoes metamorphism is called the parent rock, or protolith.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#6.1",
+                "loc": "6.1",
+                "quote": "are called the parent rock, or protolith"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Directed stress aligns mineral crystals into planes, producing foliation.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#6.1",
+                "loc": "6.1",
+                "quote": "Foliation is a term used that describes minerals lined up in planes"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §6.1 Metamorphism and metamorphic rocks"
+          ]
+        },
+        {
+          "id": "geo/rock-cycle",
+          "term": "The rock cycle",
+          "definition": "The rock cycle describes how Earth's three rock families — igneous, sedimentary, and metamorphic — form and continually transform into one another through geologic processes.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#4.0",
+            "loc": "4.0",
+            "quote": "the process of changing rocks on Earth into different forms, namely igneous, sedimentary, and metamorphic"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The rock cycle describes the major Earth materials, the processes that form them, and how they relate to each other.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.0",
+                "loc": "4.0",
+                "quote": "describes the major materials that comprise the Earth, the processes that form them, and how they relate to each other"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.0",
+                "loc": "4.0",
+                "quote": "Igneous rock is formed when liquid rock freezes into a solid rock"
+              }
+            },
+            {
+              "index": 2,
+              "text": "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.0",
+                "loc": "4.0",
+                "quote": "the rock cycle begins anew with the creation of new rocks"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §4 The rock cycle"
+          ]
+        },
+        {
+          "id": "geo/earths-interior",
+          "term": "Earth's interior",
+          "definition": "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core; the upper mantle's asthenosphere is solid rock that flows slowly by convection.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#2.1",
+            "loc": "2.1",
+            "quote": "The outermost chemical layer and the one we currently reside on is the crust"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The mantle sits below the crust and above the core.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.1",
+                "loc": "2.1",
+                "quote": "The mantle sits below the crust and above the core"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.1",
+                "loc": "2.1",
+                "quote": "The core of the Earth has both liquid and solid layers and consists mostly of iron, nickel, and possibly some oxygen"
+              }
+            },
+            {
+              "index": 2,
+              "text": "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.1",
+                "loc": "2.1",
+                "quote": "this layer moves and flows due to convection currents created by heat coming from the earth's core"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §2.1 Earth's interior"
+          ]
+        },
+        {
+          "id": "geo/plate-tectonics",
+          "term": "Plate tectonics and boundaries",
+          "definition": "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#2.4",
+            "loc": "2.4",
+            "quote": "Plate boundaries are where most of Earth's geologic action occurs"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.4",
+                "loc": "2.4",
+                "quote": "At divergent boundaries, sometimes called constructive boundaries, lithospheric plates move away from each other"
+              }
+            },
+            {
+              "index": 1,
+              "text": "At convergent boundaries, two or more plates move toward each other and lithosphere is destroyed.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.4",
+                "loc": "2.4",
+                "quote": "Convergent boundaries, also called destructive boundaries, are places where two or more plates move toward each other"
+              }
+            },
+            {
+              "index": 2,
+              "text": "At a transform boundary, plates slide horizontally past each other.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#2.4",
+                "loc": "2.4",
+                "quote": "A transform boundary is where the lithospheric plates slide past each other in the horizontal plane"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
+          ]
+        },
+        {
+          "id": "geo/earthquakes",
+          "term": "Earthquakes and seismic waves",
+          "definition": "An earthquake releases stored elastic energy when rock slips along a fault; the energy travels outward as seismic waves, including fast compressional P waves and slower shear S waves.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#9.1",
+            "loc": "9.1",
+            "quote": "Earthquakes are felt at the surface of the Earth when energy is released by blocks of rock sliding past each other, i.e. faulting has occurred"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Elastic rebound theory explains earthquakes: stored energy is released and the broken rock springs back toward its original position.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#9.1",
+                "loc": "9.1",
+                "quote": "The release of seismic energy is explained by the elastic rebound theory"
+              }
+            },
+            {
+              "index": 1,
+              "text": "P waves are the fastest body waves and move by compression, like sound through air, so they travel through solids, liquids, and gases.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#9.1",
+                "loc": "9.1",
+                "quote": "enabling them to travel through solids, liquids, plasma, and gases"
+              }
+            },
+            {
+              "index": 2,
+              "text": "S waves are slower shear waves restricted to lateral motion, so they travel only through solids, never liquids.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#9.1",
+                "loc": "9.1",
+                "quote": "S waves can only travel through solids but not liquids, plasma, or gases"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §9.1 Earthquakes and seismic waves"
+          ]
+        },
+        {
+          "id": "geo/geologic-time",
+          "term": "Geologic time and relative dating",
+          "definition": "Geologic time spans the roughly 4.5-billion-year history of Earth; relative dating orders events by which is older or younger, while absolute dating assigns numerical ages in years.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#7.1",
+            "loc": "7.1",
+            "quote": "Relative dating is the process of determining if one rock or geologic event is older or younger than another, without knowing their specific ages"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#7.1",
+                "loc": "7.1",
+                "quote": "Absolute dating assigns specific time units, in this case years, to mineral grains within a rock"
+              }
+            },
+            {
+              "index": 1,
+              "text": "By the principle of superposition, in an undisturbed sequence the bottom layers are oldest and the upper layers younger.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#7.1",
+                "loc": "7.1",
+                "quote": "the layers on the bottom are the oldest, and the layers above them are younger"
+              }
+            },
+            {
+              "index": 2,
+              "text": "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#7.1",
+                "loc": "7.1",
+                "quote": "are originally laid down horizontally"
+              }
+            },
+            {
+              "index": 3,
+              "text": "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#7.1",
+                "loc": "7.1",
+                "quote": "The current estimate for the age of the Earth is 4.54 billion years"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-16T20:02:54.444Z",
+    "admittedPromptIds": [
+      "earth-history-inference-audit:geo/metamorphic-rocks",
+      "earth-history-inference-audit:geo/rock-cycle",
+      "earth-history-inference-audit:geo/earths-interior",
+      "earth-history-inference-audit:geo/plate-tectonics",
+      "earth-history-inference-audit:geo/earthquakes",
+      "earth-history-inference-audit:geo/geologic-time"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "earth-history-inference-audit:geo/metamorphic-rocks",
+          "kernelId": "geo/metamorphic-rocks",
+          "promptSha256": "8985bce01c905b4eef2545f8d71dd15009b107a8efb6439f380b6ca90673ace7",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which process describes the formation of a metamorphic rock?",
+                "op": [
+                  "Melting of the parent rock",
+                  "Change in composition without melting",
+                  "Heat, pressure, and fluids changing a preexisting parent rock",
+                  "Alignment of mineral crystals into planes"
+                ],
+                "ai": 0,
+                "ex": "Option 0 is correct because metamorphic rock forms when heat, pressure, and fluids change a preexisting parent rock in the solid state without melting it. Option 1 is a misconception because it incorrectly states that metamorphism changes composition without the mineral crystals melting. Option 2 is",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is the initial rock that undergoes metamorphism termed?",
+                "op": [
+                  "Metamorphic rock",
+                  "Foliated rock",
+                  "Parent rock",
+                  "Solid state rock"
+                ],
+                "ai": 2,
+                "ex": "Option 2 is correct because the starting rock that undergoes metamorphism is called the parent rock, or protolith. Option 0 is a misconception because it describes the resulting rock, not the starting material. Option 1 is",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Protolith",
+                "df": "The original rock before transformation. Example: Shale.",
+                "eg": "Assuming the resulting rock is the protolith.",
+                "mi": "Assuming the protolith is the final metamorphic product.",
+                "cx": "The starting rock that undergoes metamorphism.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Foliation",
+                "df": "Alignment of mineral crystals into planes. Example: Slate.",
+                "eg": "Assuming foliation is the process of melting.",
+                "mi": "Assuming foliation is the result of melting.",
+                "cx": "Directed stress aligns mineral crystals into planes, producing foliation.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "2cf5be36321acd172c0f013396aa5340b8e6007a0e17714c84ffc911e23faae5",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-0-explanation-key-conflict",
+              "mc-1-truncated-explanation",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-embedded-field-label",
+              "key-term-1-embedded-field-label",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:54:26.833Z",
+          "durationMs": 6407
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/rock-cycle",
+          "kernelId": "geo/rock-cycle",
+          "promptSha256": "60a8d2868e9ed56d7d651fd89304ef883df51a2a6c46b9518d318e899ed2a0dc",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement accurately describes the transformation pathway from a pre-existing rock type to a metamorphic rock?",
+                "op": [
+                  "Igneous rock freezes solid",
+                  "Sediment becomes sedimentary rock",
+                  "Pre-existing rock transforms into metamorphic rock",
+                  "Magma forms from liquid rock"
+                ],
+                "ai": 2,
+                "ex": "The correct choice indicates that pre-existing rock can transform into metamorphic rock. A common misconception is that only liquid rock can form new igneous rocks, which is incorrect as the cycle involves transformation between the three rock families.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What initiates the cycle when conditions cause rocks to melt?",
+                "op": [
+                  "Sediment lithifies into sedimentary rock",
+                  "Liquid rock freezes solid",
+                  "Pre-existing rock transforms into metamorphic rock",
+                  "Conditions melt the rocks into magma"
+                ],
+                "ai": 3,
+                "ex": "The correct option states that conditions melt the rocks into magma, which starts the cycle anew with new igneous rocks. A plausible misconception is that the cycle only involves the formation of sedimentary rock from sediment, ignoring the role of melting.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Rock cycle",
+                "df": "The continuous transformation of Earth's three rock families.",
+                "eg": "A granite (igneous) weathering into sandstone (sedimentary) and then into slate (metamorphic).",
+                "mi": "Believing the cycle only involves the formation of igneous rocks.",
+                "cx": "The cycle describes how igneous, sedimentary, and metamorphic rocks form and transform into one another.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Igneous rock",
+                "df": "Rock formed when liquid rock freezes solid and lithifies.",
+                "eg": "Basalt or granite.",
+                "mi": "Assuming all rock types are formed solely through the process of lithified sediment.",
+                "cx": "Igneous rock forms when liquid rock freezes solid.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "0525ce5b729e42025e5fccb1399ce36ebc452644c8f4598a795190ba136b87f1",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Rock cycle",
+                "df": "The continuous transformation of Earth's three rock families.",
+                "eg": "A granite (igneous) weathering into sandstone (sedimentary) and then into slate (metamorphic).",
+                "mi": "Believing the cycle only involves the formation of igneous rocks.",
+                "cx": "The cycle describes how igneous, sedimentary, and metamorphic rocks form and transform into one another.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Igneous rock",
+                "df": "Rock formed when liquid rock freezes solid and lithifies.",
+                "eg": "Basalt or granite.",
+                "mi": "Assuming all rock types are formed solely through the process of lithified sediment.",
+                "cx": "Igneous rock forms when liquid rock freezes solid.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "638e66e9fda063f5924ed6760ac1193e71d60ec3dd1d1365c4c39a0a11255b24",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-clang-association-cue",
+              "mc-1-clang-association-cue",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:54:33.241Z",
+          "durationMs": 7847
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/earths-interior",
+          "kernelId": "geo/earths-interior",
+          "promptSha256": "30b144cc3c3872980901ae517221067b2dc71ac32db47878ae041206a6c0f933",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which description accurately reflects the structural arrangement of Earth's interior layers?",
+                "op": [
+                  "The core is the outermost layer, followed by the mantle, and then the crust.",
+                  "The mantle is the outermost layer, followed by the core, and then the crust.",
+                  "The crust is the outermost layer, followed by the core, and then the mantle.",
+                  "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core."
+                ],
+                "ai": 0,
+                "ex": "The correct option describes the layering as crust, mantle, and core. A common misconception is placing the core as the outermost layer, which contradicts the established structure.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What mechanism drives the slow movement of the upper mantle?",
+                "op": [
+                  "Direct solidification of the asthenosphere due to intense core heat.",
+                  "Convection currents driven by the core's heat.",
+                  "Flow driven by the solid nature of the asthenosphere.",
+                  "Slow movement caused by the metallic core's direct influence."
+                ],
+                "ai": 3,
+                "ex": "The correct option identifies convection currents driven by core heat. A plausible misconception is attributing the flow to the solid nature of the asthenosphere, which is mechanically weak.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Asthenosphere",
+                "df": "The mechanically weak, flowing layer within the upper mantle.",
+                "eg": "The slow movement of the upper mantle driven by convection currents.",
+                "mi": "The asthenosphere is a rigid, unmoving layer.",
+                "cx": "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "tr": "Core",
+                "df": "The innermost layer of Earth composed mostly of iron and nickel.",
+                "eg": "The layer that has both liquid and solid components.",
+                "mi": "The core is entirely solid rock.",
+                "cx": "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "4fd2cc45c1e9ec74719bb6c330f489d44afb435ac3bc309df0b9514a5284ccb2",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which description accurately reflects the structural arrangement of Earth's interior layers?",
+                "op": [
+                  "The core is the outermost layer, followed by the mantle, and then the crust.",
+                  "The mantle is the outermost layer, followed by the core, and then the crust.",
+                  "The crust is the outermost layer, followed by the core, and then the mantle.",
+                  "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core."
+                ],
+                "ai": 0,
+                "ex": "The correct option describes the layering as crust, mantle, and core. A common misconception is placing the core as the outermost layer, which contradicts the established structure.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Asthenosphere",
+                "df": "The mechanically weak, flowing layer within the upper mantle.",
+                "eg": "The slow movement of the upper mantle driven by convection currents.",
+                "mi": "The asthenosphere is a rigid, unmoving layer.",
+                "cx": "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "tr": "Core",
+                "df": "The innermost layer of Earth composed mostly of iron and nickel.",
+                "eg": "The layer that has both liquid and solid components.",
+                "mi": "The core is entirely solid rock.",
+                "cx": "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "ae09ed74a12eb4f22690b2f4fb4c43b0b16a41828414ac2444fa75dc60247394",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-explanation-key-conflict",
+              "mc-1-clang-association-cue"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:54:41.089Z",
+          "durationMs": 9195
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/plate-tectonics",
+          "kernelId": "geo/plate-tectonics",
+          "promptSha256": "b2d26c8198cc1a9f1c9e8f3240295257870783694719de7f2f9044f6f053123e",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which boundary type results in the creation of new lithosphere?",
+                "op": [
+                  "A. Transform boundary",
+                  "B. Convergent boundary",
+                  "C. Divergent boundary",
+                  "D. Transform boundary"
+                ],
+                "ai": 1,
+                "ex": "The correct choice is C because at divergent boundaries, lithospheric plates move away from each other and new lithosphere is created. Option A is incorrect because transform boundaries involve plates sliding horizontally past each other. Option B is incorrect because convergent boundaries involve l",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What geological process occurs at a boundary where plates slide horizontally past one another?",
+                "op": [
+                  "A. Lithosphere destruction",
+                  "B. Lithosphere creation",
+                  "C. Horizontal plate sliding",
+                  "D. Lithosphere destruction"
+                ],
+                "ai": 3,
+                "ex": "The correct choice is C because at a transform boundary, plates slide horizontally past each other. Option A is incorrect because lithosphere destruction occurs at convergent boundaries. Option B is incorrect because lithosphere creation occurs at divergent boundaries. Option D is incorrect because,",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Asthenosphere",
+                "df": "The ductile layer beneath the rigid lithosphere.",
+                "eg": "The mantle material that allows tectonic plates to move.",
+                "mi": "The rigid outer layer of the Earth.",
+                "cx": "The ductile layer beneath the rigid lithosphere.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Divergent boundary",
+                "df": "A plate boundary where lithospheric plates move away from each other.",
+                "eg": "The spreading center of the ocean floor.",
+                "mi": "A boundary where two plates move toward each other.",
+                "cx": "A plate boundary where lithospheric plates move away from each other.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "53945f65be9b2267fa3ca237486825763842c3b9fd9bb75d46ae42d6d847ee4a",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-duplicate-options",
+              "mc-0-truncated-explanation",
+              "mc-0-explanation-key-conflict",
+              "mc-1-duplicate-options",
+              "mc-1-truncated-explanation",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "key-term-1-misconception-repeats-known-fact",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:54:50.285Z",
+          "durationMs": 7947
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/earthquakes",
+          "kernelId": "geo/earthquakes",
+          "promptSha256": "17b3f6c775a111904d4aa905c513d3ef0f8b0ef5b231b78cf477f484223fe105",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+                "op": [
+                  "Fast compressional P waves",
+                  "S waves",
+                  "Slow shear waves",
+                  "Compressional waves"
+                ],
+                "ai": 0,
+                "ex": "S waves are the correct choice because they are shear waves restricted to lateral motion and travel only through solids. The most plausible misconception is selecting P waves, which are compressional waves that travel through solids, liquids, and gases.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "The mechanism by which an earthquake occurs involves which physical process?",
+                "op": [
+                  "Rock deformation during compression",
+                  "Elastic rebound theory",
+                  "Energy dissipation through friction",
+                  "Wave propagation through liquids"
+                ],
+                "ai": 1,
+                "ex": "Elastic rebound theory is the correct choice because it explains that stored energy is released and the broken rock springs back. The most plausible misconception is selecting rock deformation during compression, which describes the initial slip but not the full energy release mechanism.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Fast body wave",
+                "df": "A wave moving by compression that travels through solids, liquids, and gases.",
+                "eg": "P waves are used to map subsurface structures during seismic surveys.",
+                "mi": "Misconception: Assuming all body waves move by shear motion.",
+                "cx": "Correction: P waves move by compression.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Shear wave",
+                "df": "A wave restricted to lateral motion that travels only through solids.",
+                "eg": "S waves are detected by seismometers to determine the state of the Earth's interior.",
+                "mi": "Misconception: Believing shear waves can travel through liquids.",
+                "cx": "Correction: S waves travel only through solids, never liquids.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "bb554338be8f416111fd2175697151e5e1132a6397ed9969710b92e1e41aa7b4",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "The mechanism by which an earthquake occurs involves which physical process?",
+                "op": [
+                  "Rock deformation during compression",
+                  "Elastic rebound theory",
+                  "Energy dissipation through friction",
+                  "Wave propagation through liquids"
+                ],
+                "ai": 1,
+                "ex": "Elastic rebound theory is the correct choice because it explains that stored energy is released and the broken rock springs back. The most plausible misconception is selecting rock deformation during compression, which describes the initial slip but not the full energy release mechanism.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "3bf76f7ffec2ee816c5a07ec450816df1be5844db5e4bc5fe44199ca1279a863",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-explanation-key-conflict",
+              "key-term-0-embedded-field-label",
+              "key-term-1-embedded-field-label",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:54:58.233Z",
+          "durationMs": 8936
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/geologic-time",
+          "kernelId": "geo/geologic-time",
+          "promptSha256": "c7c4013fc32c113143c57f86b5cb6cfd1ea8c6be0ef2e045b959b806a7c32f14",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which principle dictates that in an undisturbed sequence, the lowest layers of rock are the oldest?",
+                "op": [
+                  "Original horizontality",
+                  "Principle of superposition",
+                  "Principle of original horizontality",
+                  "Absolute dating"
+                ],
+                "ai": 2,
+                "ex": "The principle of superposition states that in an undisturbed sequence, the bottom layers are oldest and the upper layers younger. Misconception: Original horizontality suggests that all rock layers must be laid down horizontally, which is not the primary rule for determining relative age in a stack.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "What does absolute dating provide regarding mineral grains in a rock?",
+                "op": [
+                  "A relative order of events",
+                  "A numerical age in years",
+                  "A horizontal depositional pattern",
+                  "A sequence of superposition"
+                ],
+                "ai": 1,
+                "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: A relative order of events only indicates which event happened first or last, not the specific numerical age.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Numerical age assignment",
+                "df": "Assigning specific years to rock material based on dating methods.",
+                "eg": "Determining the exact age of a specific quartz grain in granite.",
+                "mi": "Assuming that relative dating methods inherently provide precise numerical years.",
+                "cx": "Absolute dating assigns specific ages in years to mineral grains within a rock.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Relative ordering",
+                "df": "Ordering events based on which is older or younger.",
+                "eg": "Determining that a layer of sediment is older than the layer above it.",
+                "mi": "Confusing relative dating with absolute dating, believing relative terms imply specific year counts.",
+                "cx": "Relative dating orders events by which is older or younger.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "2de2bd4d44052842bfdfb070ab88ab8f000dac567fb55d0a169ca599a5789323",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What does absolute dating provide regarding mineral grains in a rock?",
+                "op": [
+                  "A relative order of events",
+                  "A numerical age in years",
+                  "A horizontal depositional pattern",
+                  "A sequence of superposition"
+                ],
+                "ai": 1,
+                "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: A relative order of events only indicates which event happened first or last, not the specific numerical age.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Numerical age assignment",
+                "df": "Assigning specific years to rock material based on dating methods.",
+                "eg": "Determining the exact age of a specific quartz grain in granite.",
+                "mi": "Assuming that relative dating methods inherently provide precise numerical years.",
+                "cx": "Absolute dating assigns specific ages in years to mineral grains within a rock.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Relative ordering",
+                "df": "Ordering events based on which is older or younger.",
+                "eg": "Determining that a layer of sediment is older than the layer above it.",
+                "mi": "Confusing relative dating with absolute dating, believing relative terms imply specific year counts.",
+                "cx": "Relative dating orders events by which is older or younger.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "c234579363da3cbac6ce825ed3a0b494022445e3e287a8e91174a513e234b8dd",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-explanation-key-conflict"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:55:07.170Z",
+          "durationMs": 7477
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "earth-history-inference-audit:geo/metamorphic-rocks",
+          "kernelId": "geo/metamorphic-rocks",
+          "promptSha256": "8985bce01c905b4eef2545f8d71dd15009b107a8efb6439f380b6ca90673ace7",
+          "generationPromptSha256": "20ba40ed56cb2244ccb1dba3e0ff7e1d1fbe0f3fd13d8d0128f7d62bffcd0259",
+          "rawCallSha256": "df43e587bb62b9a8b6ba769c481d8586e87968b943cfadc224798c830148c725",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary condition required for the formation of a metamorphic rock?",
+                "op": [
+                  "Heat, pressure, and fluids change a preexisting parent rock in the solid state without melting",
+                  "Melting of the rock due to intense heat",
+                  "Chemical alteration of the rock's original minerals",
+                  "Rapid cooling of the rock after deposition"
+                ],
+                "ai": 0,
+                "ex": "Heat, pressure, and fluids change a preexisting parent rock in the solid state without melting. Melting is not required for metamorphism.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is the term for the starting rock that undergoes metamorphism?",
+                "op": [
+                  "Metamorphic rock",
+                  "Foliated rock",
+                  "Protolith",
+                  "Igneous rock"
+                ],
+                "ai": 2,
+                "ex": "The starting rock that undergoes metamorphism is called the protolith. Metamorphic rock is the resulting rock, not the starting material.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Protolith",
+                "df": "The starting rock that undergoes metamorphism.",
+                "eg": "Granite undergoing metamorphism to form gneiss.",
+                "mi": "The resulting metamorphic rock.",
+                "cx": "The protolith is the parent rock that undergoes metamorphism.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Foliation",
+                "df": "Directed stress aligns mineral crystals into planes.",
+                "eg": "Banding in schist.",
+                "mi": "The process of rock transformation.",
+                "cx": "Foliation is the alignment of mineral crystals into planes due to directed stress.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "e925360eac36b92f970ab70990735c8b7a5b5039c90edd227e9f718efec0631f",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the term for the starting rock that undergoes metamorphism?",
+                "op": [
+                  "Metamorphic rock",
+                  "Foliated rock",
+                  "Protolith",
+                  "Igneous rock"
+                ],
+                "ai": 2,
+                "ex": "The starting rock that undergoes metamorphism is called the protolith. Metamorphic rock is the resulting rock, not the starting material.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Protolith",
+                "df": "The starting rock that undergoes metamorphism.",
+                "eg": "Granite undergoing metamorphism to form gneiss.",
+                "mi": "The resulting metamorphic rock.",
+                "cx": "The protolith is the parent rock that undergoes metamorphism.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Foliation",
+                "df": "Directed stress aligns mineral crystals into planes.",
+                "eg": "Banding in schist.",
+                "mi": "The process of rock transformation.",
+                "cx": "Foliation is the alignment of mineral crystals into planes due to directed stress.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "46c4107177063760a24e983fd38cce3c9f459bd283164507cd3bd83f8ced6cbe",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-longest-option-cue"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:02:27.115Z",
+          "durationMs": 5538,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/rock-cycle",
+          "kernelId": "geo/rock-cycle",
+          "promptSha256": "60a8d2868e9ed56d7d651fd89304ef883df51a2a6c46b9518d318e899ed2a0dc",
+          "generationPromptSha256": "33c6fddba1862e8370c3a2eca97258c95e126a8ccc308427abffc45b326af7bd",
+          "rawCallSha256": "f7a2fd3b0510558ff0a9d0b8a96a306b40a2f3f2db6f561e5c292f35036b84a7",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which process describes the transformation of pre-existing rock into metamorphic rock?",
+                "op": [
+                  "Igneous rock forms when liquid rock freezes solid",
+                  "Lithified sediment becomes sedimentary rock",
+                  "Pre-existing rock can transform into metamorphic rock",
+                  "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks"
+                ],
+                "ai": 2,
+                "ex": "Pre-existing rock can transform into metamorphic rock. This is the correct transformation pathway described in the rock cycle.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What initiates a new cycle within the rock cycle?",
+                "op": [
+                  "Igneous rock forms when liquid rock freezes solid",
+                  "Lithified sediment becomes sedimentary rock",
+                  "Pre-existing rock can transform into metamorphic rock",
+                  "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks"
+                ],
+                "ai": 3,
+                "ex": "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks. This represents the start of the cycle through melting.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "475646ea1c9a146c97999b60792092b0828a1d83313b3a842cfd5f0463ca789e",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "key-term-count",
+              "mc-0-clang-association-cue",
+              "mc-1-longest-option-cue",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:02:32.654Z",
+          "durationMs": 5141,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/earths-interior",
+          "kernelId": "geo/earths-interior",
+          "promptSha256": "30b144cc3c3872980901ae517221067b2dc71ac32db47878ae041206a6c0f933",
+          "generationPromptSha256": "7a4f6bbba5df054c955d64ddaeacbe1f4c4027404fc13e0a5f9d4137f1bc6e5f",
+          "rawCallSha256": "af66ca3d61eb2181b9335c384af59a26bb9e2ff1f0770f99a4a8d6ba3f37d857",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement accurately describes the mechanical behavior of the upper mantle?",
+                "op": [
+                  "The upper mantle is a rigid layer that does not flow.",
+                  "The upper mantle is a solid rock that flows slowly by convection.",
+                  "The upper mantle is mechanically weak and flows by convection currents driven by the core'sheat",
+                  "The upper mantle is primarily composed of iron and nickel."
+                ],
+                "ai": 0,
+                "ex": "The upper mantle is a solid rock that flows slowly by convection.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "84d7bdc01393154e9d563f15654ec1cc3c0cefdd0e41c9037d0fef63e4c873cf",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "mc-0-explanation-key-conflict",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:02:37.796Z",
+          "durationMs": 2384,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/plate-tectonics",
+          "kernelId": "geo/plate-tectonics",
+          "promptSha256": "b2d26c8198cc1a9f1c9e8f3240295257870783694719de7f2f9044f6f053123e",
+          "generationPromptSha256": "c2c2e32a9364e54ba619ebf3557b138bdd660da00b220239194ac29cbaffe540",
+          "rawCallSha256": "c7003822348718fa2b740a208178b1297457515e3801b8abb660e7342d76f814",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the primary mechanism driving the movement of Earth's rigid lithosphere according to plate tectonics?",
+                "op": [
+                  "Movement over the ductile asthenosphere",
+                  "Creation of new lithosphere at divergent boundaries",
+                  "Destruction of lithosphere at convergent boundaries",
+                  "Horizontal sliding past each other at transform boundaries"
+                ],
+                "ai": 0,
+                "ex": "Movement over the ductile asthenosphere is the primary mechanism. This process allows plates to move across the asthenosphere.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Which boundary type results in the creation of new lithosphere?",
+                "op": [
+                  "Convergent boundaries",
+                  "Transform boundaries",
+                  "Divergent boundaries",
+                  "Transform boundaries"
+                ],
+                "ai": 1,
+                "ex": "Divergent boundaries are where lithospheric plates move away from each other, creating new lithosphere. Convergent boundaries involve lithosphere destruction.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Plate tectonics",
+                "df": "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+                "eg": "The movement of plates over the asthenosphere.",
+                "mi": "Plate tectonics only describes surface movement.",
+                "cx": "Plate tectonics describes the rigid lithosphere breaking into plates that move over the ductile asthenosphere.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Divergent boundaries",
+                "df": "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+                "eg": "Where new lithosphere is created.",
+                "mi": "Divergent boundaries destroy lithosphere.",
+                "cx": "Divergent boundaries are where lithospheric plates move away from each other and new lithosphere is created.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "72dab744c39e0ddfe254467dc2eedfcd7d0407c3d02e6875fd34e42466522968",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the primary mechanism driving the movement of Earth's rigid lithosphere according to plate tectonics?",
+                "op": [
+                  "Movement over the ductile asthenosphere",
+                  "Creation of new lithosphere at divergent boundaries",
+                  "Destruction of lithosphere at convergent boundaries",
+                  "Horizontal sliding past each other at transform boundaries"
+                ],
+                "ai": 0,
+                "ex": "Movement over the ductile asthenosphere is the primary mechanism. This process allows plates to move across the asthenosphere.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "033e0738b1f5e6f3a42bd8d62f6d45cdb97d6b0e853b1e68078e81bcaf0cb538",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-duplicate-options",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-circular-definition",
+              "key-term-1-circular-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:02:40.181Z",
+          "durationMs": 6707,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/earthquakes",
+          "kernelId": "geo/earthquakes",
+          "promptSha256": "17b3f6c775a111904d4aa905c513d3ef0f8b0ef5b231b78cf477f484223fe105",
+          "generationPromptSha256": "5a86315655cbfef5965a7e041aedc4d9f2783ecb1a5d7b204e2117c02611352f",
+          "rawCallSha256": "0186034c144582195beaf48591e5cd6df890da77b40e2d7ea6ccd6b970476ec2",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which wave type is characterized by lateral motion and is restricted to traveling only through solids?",
+                "op": [
+                  "Fast compressional P waves",
+                  "S waves",
+                  "Fast shear waves",
+                  "Slow compressional waves"
+                ],
+                "ai": 3,
+                "ex": "S waves are slower shear waves restricted to lateral motion, so they travel only through solids. P waves are the fastest body waves and move by compression.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "P waves",
+                "df": "P waves are the fastest body waves and move by compression, like sound through air, so they travel through solids, liquids, and gases.",
+                "eg": "A P wave is a fast compressional wave.",
+                "mi": "P waves only travel through solids.",
+                "cx": "P waves travel through solids, liquids, and gases.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "S waves",
+                "df": "S waves are slower shear waves restricted to lateral motion, so they travel only through solids, never liquids.",
+                "eg": "S waves are slower shear waves restricted to lateral motion.",
+                "mi": "S waves travel through liquids.",
+                "cx": "S waves travel only through solids, never liquids.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "817077c80ffee7d57ee1c319d667531a005c83b18465c877dfb15327bdf0343a",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "mc-0-explanation-key-conflict",
+              "key-term-0-circular-definition",
+              "key-term-1-circular-definition",
+              "key-term-1-example-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:02:46.890Z",
+          "durationMs": 5200,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "earth-history-inference-audit:geo/geologic-time",
+          "kernelId": "geo/geologic-time",
+          "promptSha256": "c7c4013fc32c113143c57f86b5cb6cfd1ea8c6be0ef2e045b959b806a7c32f14",
+          "generationPromptSha256": "ec9f532a414e50dfcd69f943ec15e9930458862baeec6190221c316a6419abbb",
+          "rawCallSha256": "4c43a510eb222baa86898906d40cac13658e1224505560801da405d5170be81e",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which principle dictates that in an undisturbed sequence, the lowest layers of rock are the oldest?",
+                "op": [
+                  "The principle of superposition",
+                  "The principle of original horizontality",
+                  "Absolute dating assignment",
+                  "The 4.54 billion year age of Earth"
+                ],
+                "ai": 2,
+                "ex": "The principle of superposition states that in an undisturbed sequence, the bottom layers are oldest. This principle is distinct from original horizontality, which concerns the horizontal deposition of sediments.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "e92969085eb5fd95c7e1246291b0cd0b876a99fcdd9130f8c4f2ce856db7063d",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "mc-0-explanation-key-conflict",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:02:52.091Z",
+          "durationMs": 2353,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "earth-history-inference-audit:geo/metamorphic-rocks",
+        "earth-history-inference-audit:geo/plate-tectonics"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "earth-history-inference-audit:geo/metamorphic-rocks",
+        "kernelId": "geo/metamorphic-rocks",
+        "promptSha256": "8985bce01c905b4eef2545f8d71dd15009b107a8efb6439f380b6ca90673ace7",
+        "generationPromptSha256": "20ba40ed56cb2244ccb1dba3e0ff7e1d1fbe0f3fd13d8d0128f7d62bffcd0259",
+        "rawCallSha256": "df43e587bb62b9a8b6ba769c481d8586e87968b943cfadc224798c830148c725",
+        "recoveryCallSha256": "92f6afc30a4b9040e983071590b76a1adec9b7305b6a7a3ef84e689639155cd8",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the term for the starting rock that undergoes metamorphism?",
+              "op": [
+                "Metamorphic rock",
+                "Foliated rock",
+                "Protolith",
+                "Igneous rock"
+              ],
+              "ai": 2,
+              "ex": "The starting rock that undergoes metamorphism is called the protolith. Metamorphic rock is the resulting rock, not the starting material.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Protolith",
+              "df": "The starting rock that undergoes metamorphism.",
+              "eg": "Granite undergoing metamorphism to form gneiss.",
+              "mi": "The resulting metamorphic rock.",
+              "cx": "The protolith is the parent rock that undergoes metamorphism.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Foliation",
+              "df": "Directed stress aligns mineral crystals into planes.",
+              "eg": "Banding in schist.",
+              "mi": "The process of rock transformation.",
+              "cx": "Foliation is the alignment of mineral crystals into planes due to directed stress.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "46c4107177063760a24e983fd38cce3c9f459bd283164507cd3bd83f8ced6cbe",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the term for the starting rock that undergoes metamorphism?",
+              "op": [
+                "Metamorphic rock",
+                "Foliated rock",
+                "Protolith",
+                "Igneous rock"
+              ],
+              "ai": 2,
+              "ex": "The starting rock that undergoes metamorphism is called the protolith. Metamorphic rock is the resulting rock, not the starting material.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Protolith",
+              "df": "The starting rock that undergoes metamorphism.",
+              "eg": "Granite undergoing metamorphism to form gneiss.",
+              "mi": "The resulting metamorphic rock.",
+              "cx": "The protolith is the parent rock that undergoes metamorphism.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Foliation",
+              "df": "Directed stress aligns mineral crystals into planes.",
+              "eg": "Banding in schist.",
+              "mi": "The process of rock transformation.",
+              "cx": "Foliation is the alignment of mineral crystals into planes due to directed stress.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "46c4107177063760a24e983fd38cce3c9f459bd283164507cd3bd83f8ced6cbe",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:02:27.115Z",
+        "durationMs": 5538
+      },
+      {
+        "promptId": "earth-history-inference-audit:geo/rock-cycle",
+        "kernelId": "geo/rock-cycle",
+        "promptSha256": "60a8d2868e9ed56d7d651fd89304ef883df51a2a6c46b9518d318e899ed2a0dc",
+        "generationPromptSha256": "33c6fddba1862e8370c3a2eca97258c95e126a8ccc308427abffc45b326af7bd",
+        "rawCallSha256": "f7a2fd3b0510558ff0a9d0b8a96a306b40a2f3f2db6f561e5c292f35036b84a7",
+        "recoveryCallSha256": "eae6ffd9fd4d54bce51c30e93d02d36e6b550678c91a08c5b82350765e3684ee",
+        "response": {
+          "mcItems": [],
+          "keyTerms": [
+            {
+              "tr": "Rock cycle",
+              "df": "The continuous transformation of Earth's three rock families.",
+              "eg": "A granite (igneous) weathering into sandstone (sedimentary) and then into slate (metamorphic).",
+              "mi": "Believing the cycle only involves the formation of igneous rocks.",
+              "cx": "The cycle describes how igneous, sedimentary, and metamorphic rocks form and transform into one another.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Igneous rock",
+              "df": "Rock formed when liquid rock freezes solid and lithifies.",
+              "eg": "Basalt or granite.",
+              "mi": "Assuming all rock types are formed solely through the process of lithified sediment.",
+              "cx": "Igneous rock forms when liquid rock freezes solid.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "638e66e9fda063f5924ed6760ac1193e71d60ec3dd1d1365c4c39a0a11255b24",
+        "admittedResponse": {
+          "mcItems": [],
+          "keyTerms": [
+            {
+              "tr": "Rock cycle",
+              "df": "The continuous transformation of Earth's three rock families.",
+              "eg": "A granite (igneous) weathering into sandstone (sedimentary) and then into slate (metamorphic).",
+              "mi": "Believing the cycle only involves the formation of igneous rocks.",
+              "cx": "The cycle describes how igneous, sedimentary, and metamorphic rocks form and transform into one another.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Igneous rock",
+              "df": "Rock formed when liquid rock freezes solid and lithifies.",
+              "eg": "Basalt or granite.",
+              "mi": "Assuming all rock types are formed solely through the process of lithified sediment.",
+              "cx": "Igneous rock forms when liquid rock freezes solid.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "638e66e9fda063f5924ed6760ac1193e71d60ec3dd1d1365c4c39a0a11255b24",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "no-admitted-mc-items"
+          ],
+          "counts": {
+            "generatedMcItems": 0,
+            "admittedMcItems": 0,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:02:32.654Z",
+        "durationMs": 5141
+      },
+      {
+        "promptId": "earth-history-inference-audit:geo/earths-interior",
+        "kernelId": "geo/earths-interior",
+        "promptSha256": "30b144cc3c3872980901ae517221067b2dc71ac32db47878ae041206a6c0f933",
+        "generationPromptSha256": "7a4f6bbba5df054c955d64ddaeacbe1f4c4027404fc13e0a5f9d4137f1bc6e5f",
+        "rawCallSha256": "af66ca3d61eb2181b9335c384af59a26bb9e2ff1f0770f99a4a8d6ba3f37d857",
+        "recoveryCallSha256": "841bd12d61a4f9bd7b6411f8381763e6806c019db5993984e5c39cf2310a6eb7",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which description accurately reflects the structural arrangement of Earth's interior layers?",
+              "op": [
+                "The core is the outermost layer, followed by the mantle, and then the crust.",
+                "The mantle is the outermost layer, followed by the core, and then the crust.",
+                "The crust is the outermost layer, followed by the core, and then the mantle.",
+                "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core."
+              ],
+              "ai": 0,
+              "ex": "The correct option describes the layering as crust, mantle, and core. A common misconception is placing the core as the outermost layer, which contradicts the established structure.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Asthenosphere",
+              "df": "The mechanically weak, flowing layer within the upper mantle.",
+              "eg": "The slow movement of the upper mantle driven by convection currents.",
+              "mi": "The asthenosphere is a rigid, unmoving layer.",
+              "cx": "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "tr": "Core",
+              "df": "The innermost layer of Earth composed mostly of iron and nickel.",
+              "eg": "The layer that has both liquid and solid components.",
+              "mi": "The core is entirely solid rock.",
+              "cx": "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "ae09ed74a12eb4f22690b2f4fb4c43b0b16a41828414ac2444fa75dc60247394",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which description accurately reflects the structural arrangement of Earth's interior layers?",
+              "op": [
+                "The core is the outermost layer, followed by the mantle, and then the crust.",
+                "The mantle is the outermost layer, followed by the core, and then the crust.",
+                "The crust is the outermost layer, followed by the core, and then the mantle.",
+                "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core."
+              ],
+              "ai": 0,
+              "ex": "The correct option describes the layering as crust, mantle, and core. A common misconception is placing the core as the outermost layer, which contradicts the established structure.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Asthenosphere",
+              "df": "The mechanically weak, flowing layer within the upper mantle.",
+              "eg": "The slow movement of the upper mantle driven by convection currents.",
+              "mi": "The asthenosphere is a rigid, unmoving layer.",
+              "cx": "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "tr": "Core",
+              "df": "The innermost layer of Earth composed mostly of iron and nickel.",
+              "eg": "The layer that has both liquid and solid components.",
+              "mi": "The core is entirely solid rock.",
+              "cx": "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "ae09ed74a12eb4f22690b2f4fb4c43b0b16a41828414ac2444fa75dc60247394",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:02:37.796Z",
+        "durationMs": 2384
+      },
+      {
+        "promptId": "earth-history-inference-audit:geo/plate-tectonics",
+        "kernelId": "geo/plate-tectonics",
+        "promptSha256": "b2d26c8198cc1a9f1c9e8f3240295257870783694719de7f2f9044f6f053123e",
+        "generationPromptSha256": "c2c2e32a9364e54ba619ebf3557b138bdd660da00b220239194ac29cbaffe540",
+        "rawCallSha256": "c7003822348718fa2b740a208178b1297457515e3801b8abb660e7342d76f814",
+        "recoveryCallSha256": "283017de90ca5afce12519794fcbd662a3a5b0f31a3fc0d64452b8ad104d7b8c",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the primary mechanism driving the movement of Earth's rigid lithosphere according to plate tectonics?",
+              "op": [
+                "Movement over the ductile asthenosphere",
+                "Creation of new lithosphere at divergent boundaries",
+                "Destruction of lithosphere at convergent boundaries",
+                "Horizontal sliding past each other at transform boundaries"
+              ],
+              "ai": 0,
+              "ex": "Movement over the ductile asthenosphere is the primary mechanism. This process allows plates to move across the asthenosphere.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "responseSha256": "033e0738b1f5e6f3a42bd8d62f6d45cdb97d6b0e853b1e68078e81bcaf0cb538",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the primary mechanism driving the movement of Earth's rigid lithosphere according to plate tectonics?",
+              "op": [
+                "Movement over the ductile asthenosphere",
+                "Creation of new lithosphere at divergent boundaries",
+                "Destruction of lithosphere at convergent boundaries",
+                "Horizontal sliding past each other at transform boundaries"
+              ],
+              "ai": 0,
+              "ex": "Movement over the ductile asthenosphere is the primary mechanism. This process allows plates to move across the asthenosphere.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "033e0738b1f5e6f3a42bd8d62f6d45cdb97d6b0e853b1e68078e81bcaf0cb538",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "key-term-count",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:02:40.181Z",
+        "durationMs": 6707
+      },
+      {
+        "promptId": "earth-history-inference-audit:geo/earthquakes",
+        "kernelId": "geo/earthquakes",
+        "promptSha256": "17b3f6c775a111904d4aa905c513d3ef0f8b0ef5b231b78cf477f484223fe105",
+        "generationPromptSha256": "5a86315655cbfef5965a7e041aedc4d9f2783ecb1a5d7b204e2117c02611352f",
+        "rawCallSha256": "0186034c144582195beaf48591e5cd6df890da77b40e2d7ea6ccd6b970476ec2",
+        "recoveryCallSha256": "96fe2cdf6a5f97b5f5d8f87c3a7257ccfcffe0ac441a85acf64c92de506edcf7",
+        "response": {
+          "mcItems": [
+            {
+              "q": "The mechanism by which an earthquake occurs involves which physical process?",
+              "op": [
+                "Rock deformation during compression",
+                "Elastic rebound theory",
+                "Energy dissipation through friction",
+                "Wave propagation through liquids"
+              ],
+              "ai": 1,
+              "ex": "Elastic rebound theory is the correct choice because it explains that stored energy is released and the broken rock springs back. The most plausible misconception is selecting rock deformation during compression, which describes the initial slip but not the full energy release mechanism.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "responseSha256": "3bf76f7ffec2ee816c5a07ec450816df1be5844db5e4bc5fe44199ca1279a863",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "The mechanism by which an earthquake occurs involves which physical process?",
+              "op": [
+                "Rock deformation during compression",
+                "Elastic rebound theory",
+                "Energy dissipation through friction",
+                "Wave propagation through liquids"
+              ],
+              "ai": 1,
+              "ex": "Elastic rebound theory is the correct choice because it explains that stored energy is released and the broken rock springs back. The most plausible misconception is selecting rock deformation during compression, which describes the initial slip but not the full energy release mechanism.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "3bf76f7ffec2ee816c5a07ec450816df1be5844db5e4bc5fe44199ca1279a863",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "key-term-count",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:02:46.890Z",
+        "durationMs": 5200
+      },
+      {
+        "promptId": "earth-history-inference-audit:geo/geologic-time",
+        "kernelId": "geo/geologic-time",
+        "promptSha256": "c7c4013fc32c113143c57f86b5cb6cfd1ea8c6be0ef2e045b959b806a7c32f14",
+        "generationPromptSha256": "ec9f532a414e50dfcd69f943ec15e9930458862baeec6190221c316a6419abbb",
+        "rawCallSha256": "4c43a510eb222baa86898906d40cac13658e1224505560801da405d5170be81e",
+        "recoveryCallSha256": "a2058e21f68a88bb4c382180eaf3c93fe9eb544695f90c5d9b39103ea1460742",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What does absolute dating provide regarding mineral grains in a rock?",
+              "op": [
+                "A relative order of events",
+                "A numerical age in years",
+                "A horizontal depositional pattern",
+                "A sequence of superposition"
+              ],
+              "ai": 1,
+              "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: A relative order of events only indicates which event happened first or last, not the specific numerical age.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Numerical age assignment",
+              "df": "Assigning specific years to rock material based on dating methods.",
+              "eg": "Determining the exact age of a specific quartz grain in granite.",
+              "mi": "Assuming that relative dating methods inherently provide precise numerical years.",
+              "cx": "Absolute dating assigns specific ages in years to mineral grains within a rock.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Relative ordering",
+              "df": "Ordering events based on which is older or younger.",
+              "eg": "Determining that a layer of sediment is older than the layer above it.",
+              "mi": "Confusing relative dating with absolute dating, believing relative terms imply specific year counts.",
+              "cx": "Relative dating orders events by which is older or younger.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "c234579363da3cbac6ce825ed3a0b494022445e3e287a8e91174a513e234b8dd",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What does absolute dating provide regarding mineral grains in a rock?",
+              "op": [
+                "A relative order of events",
+                "A numerical age in years",
+                "A horizontal depositional pattern",
+                "A sequence of superposition"
+              ],
+              "ai": 1,
+              "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: A relative order of events only indicates which event happened first or last, not the specific numerical age.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Numerical age assignment",
+              "df": "Assigning specific years to rock material based on dating methods.",
+              "eg": "Determining the exact age of a specific quartz grain in granite.",
+              "mi": "Assuming that relative dating methods inherently provide precise numerical years.",
+              "cx": "Absolute dating assigns specific ages in years to mineral grains within a rock.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Relative ordering",
+              "df": "Ordering events based on which is older or younger.",
+              "eg": "Determining that a layer of sediment is older than the layer above it.",
+              "mi": "Confusing relative dating with absolute dating, believing relative terms imply specific year counts.",
+              "cx": "Relative dating orders events by which is older or younger.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "c234579363da3cbac6ce825ed3a0b494022445e3e287a8e91174a513e234b8dd",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:02:52.091Z",
+        "durationMs": 2353
+      }
+    ]
+  }
+}

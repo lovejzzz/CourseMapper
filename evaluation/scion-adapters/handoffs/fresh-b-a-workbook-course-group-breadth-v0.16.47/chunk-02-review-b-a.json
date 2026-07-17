@@ -1,0 +1,985 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-546d143d0e1424e070e2",
+    "packetDigest": "546d143d0e1424e070e27bc7f03c90d6c753d375e74b6a26db25a5a93e7c8312",
+    "organizerDigest": "e9e3826260e2c77e9f32ec180334fd6bf25f04a38f021b2fcd9a39098436eeff"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-1219ab84c59cb9cbda18",
+      "caseDigest": "69e11ce47c2ae42b29d558494a25f8e21d3d185d39cce87c980b082f2e624041",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "567f976c861e00bf1ac110fcaf3b316e8b57a913f0c864624be38bd1c2ef48a2",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/muscle-tissue-types",
+        "term": "Muscle tissue types and contraction",
+        "claims": [
+          "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force.",
+          "All three muscle tissue types share excitability.",
+          "Skeletal muscle depends on nervous-system signaling to work properly."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e9233374ea0fc6ced1b1e981c4593fcb2b08178c1d0d7f5ac0c74ea9db7ea93d",
+          "artifact": {
+            "q": "Which muscle tissue type requires nervous-system signaling to function correctly?",
+            "op": [
+              "Cardiac muscle",
+              "Smooth muscle",
+              "Skeletal muscle",
+              "All muscle types"
+            ],
+            "ai": 2,
+            "ex": "Skeletal muscle depends on nervous-system signaling to work properly. This is correct because skeletal muscle requires nervous-system signaling to function properly, whereas cardiac and smooth muscle types do not have this dependency mentioned in the provided information."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7ebab07ebc229b3f150a9801b6fdf81fb8d4d6f6bcb7bad8c61f90de6f6f1f7a",
+          "artifact": {
+            "q": "A lab case compares three muscle samples. Which sample must rely on nervous-system signaling to work properly?",
+            "op": [
+              "The skeletal muscle sample",
+              "The cardiac muscle sample",
+              "The smooth muscle sample",
+              "The excitable muscle sample"
+            ],
+            "ai": 0,
+            "ex": "The skeletal muscle sample is the only one identified as depending on nervous-system signaling to work properly. A common mistake is to assume all muscle works the same way just because all muscle can contract, but the supplied evidence singles out skeletal muscle for this dependence."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e9233374ea0fc6ced1b1e981c4593fcb2b08178c1d0d7f5ac0c74ea9db7ea93d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7ebab07ebc229b3f150a9801b6fdf81fb8d4d6f6bcb7bad8c61f90de6f6f1f7a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-0c96ec9737b3bb82230a",
+      "caseDigest": "84aeae39612a6308b87c8692daf9bdce166fe55d02079a628a29e70b79553b07",
+      "domain": "physics",
+      "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+      "sourceContextSha256": "84e4a32349da6d843bd187fcc3312ecff004db700c22c10615f6e59258afd526",
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/magnetic-field",
+        "term": "Magnetic field",
+        "claims": [
+          "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+          "Currents produce magnetic fields."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11-12"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b75fbeb540147a4d4d20ff9d2c22feb2ed30f4e2e660c8db3461fe0ea079e83b",
+          "artifact": {
+            "q": "Which statement accurately describes the relationship between electrical flow and magnetic influence?",
+            "op": [
+              "Currents generate magnetic fields",
+              "Magnetic fields determine magnetic forces on moving charges",
+              "Magnetic fields are created by moving charges",
+              "Electrical flow dictates the shape of magnetic field lines"
+            ],
+            "ai": 0,
+            "ex": "Currents generate magnetic fields because this is stated in the source material."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "00512335925f3c95767acbff2674a3cbaf181bd4dd74e43f765427e27150b6fd",
+          "artifact": {
+            "q": "A wire in a circuit carries current. What does that current produce?",
+            "op": [
+              "A magnetic field around the wire",
+              "A magnetic force without any field",
+              "Closed field lines that start at the wire",
+              "Only a change in resistance"
+            ],
+            "ai": 0,
+            "ex": "The correct choice matches the stated relation that currents produce magnetic fields. A common mistake is to confuse the field with the force itself; the force is what the field can exert on moving charges and currents."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b75fbeb540147a4d4d20ff9d2c22feb2ed30f4e2e660c8db3461fe0ea079e83b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "00512335925f3c95767acbff2674a3cbaf181bd4dd74e43f765427e27150b6fd",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-10dc9711aa913aee9eb9",
+      "caseDigest": "6e6a549ae21d6a63e433e2304fe511f70679cb08ce42270ec45fb8d362bdb3fb",
+      "domain": "physics",
+      "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+      "sourceContextSha256": "fff1d86b898c2d1618aef307b0b7f98c77bd84a8069fa6ec63ee47a3e3829063",
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-current",
+        "term": "Electric current",
+        "claims": [
+          "Electric current is the rate at which charge passes through a surface.",
+          "Conventional current direction is the direction positive charge would move.",
+          "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e6bd79bb5d4a71573a127390244ddfb4b158d9dc78c387b577f48ec9c09961c8",
+          "artifact": {
+            "q": "Which statement matches electric current in this workshop?",
+            "op": [
+              "Charge passes through a surface at a certain rate.",
+              "Charge stored on a surface determines the circuit layout.",
+              "A surface forces charge to move rapidly through a wire.",
+              "The direction of charge motion always matches the electric signal."
+            ],
+            "ai": 0,
+            "ex": "Charge passing through a surface per unit time is electric current. A common mix-up is to treat current as stored charge or as the signal speed, but those are different ideas."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "29d7e56d3a256a19728f6371b4407fbd8829c2b98f6d5dca8fa482b8feca873d",
+          "artifact": {
+            "q": "What is the definition of electric current?",
+            "op": [
+              "The rate at which charge passes through a surface",
+              "The direction positive charge would move",
+              "The speed of microscopic drift",
+              "The propagation speed of the electric signal"
+            ],
+            "ai": 0,
+            "ex": "Electric current is the rate at which charge passes through a surface. This is different from the direction positive charge would move."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e6bd79bb5d4a71573a127390244ddfb4b158d9dc78c387b577f48ec9c09961c8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "29d7e56d3a256a19728f6371b4407fbd8829c2b98f6d5dca8fa482b8feca873d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4419e2b0dde49c285f1a",
+      "caseDigest": "2600db374b2f3160294c1568944449563060a1452bc9984dd4ebf17d8a2754fc",
+      "domain": "economics",
+      "courseGroupSha256": "9426f3e12b3325688e416610cd8e80ad451c6206c0546f0c7a384639a8f29961",
+      "sourceContextSha256": "b50f870e02527123fd877a3dc8f5e526aca45c461fc77ed4459b105404ce8103",
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/market-equilibrium",
+        "term": "Market equilibrium",
+        "claims": [
+          "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers.",
+          "At the equilibrium price the opposing pressures of demand and supply are balanced and the price has no tendency to change.",
+          "A price above equilibrium creates a surplus that pushes it down; a price below creates a shortage that pushes it up."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 4"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "46134948c861b54ce8022129ce26f0263c48745b7c93524707e5e0034c28bcd4",
+          "artifact": {
+            "q": "A store lists a good at a price that is above the market level where buyers and sellers agree. What is the most likely market result?",
+            "op": [
+              "A surplus forms, which puts downward pressure on the price.",
+              "A shortage forms, which puts upward pressure on the price.",
+              "The market is in equilibrium, so the price has no tendency to change.",
+              "Demand shifts right, so the price must rise because buyers prefer it."
+            ],
+            "ai": 0,
+            "ex": "A surplus forms, which puts downward pressure on the price. The other choices confuse equilibrium with fairness, shortage, or a demand shift; only a price above the balance point creates excess supply under the given claims."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "abc9db61531a97bf0527c30bb13d86a4194c13d74bd9ddc14f86f15cf6778739",
+          "artifact": {
+            "q": "When the price is set above the market equilibrium, what happens to the quantity supplied and demanded?",
+            "op": [
+              "The quantity supplied decreases while the quantity demanded remains constant.",
+              "The quantity demanded decreases while the quantity supplied remains constant.",
+              "The quantity supplied increases while the quantity demanded remains constant.",
+              "The quantity demanded increases while the quantity supplied remains constant."
+            ],
+            "ai": 1,
+            "ex": "The quantity demanded decreases while the quantity supplied remains constant because the price above equilibrium creates a surplus that pushes it down."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "46134948c861b54ce8022129ce26f0263c48745b7c93524707e5e0034c28bcd4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "abc9db61531a97bf0527c30bb13d86a4194c13d74bd9ddc14f86f15cf6778739",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-6ca7d25afbf17438d423",
+      "caseDigest": "7a1296704ccb6be8f33612cc3e74f84a565fa251c34a7a1ccfe6965fcb420086",
+      "domain": "economics",
+      "courseGroupSha256": "4ffd5d5cf1b8cc2c9a11861897b918345bc147d926d7f3b2a711e682fb5c12fa",
+      "sourceContextSha256": "6cbea23935a571871a116aa5fef1cf727ba6dc3c43fcc02e51c244e55130d5be",
+      "sourceContext": {
+        "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+        "kernelId": "econ/circular-flow-of-income",
+        "term": "Circular flow of income",
+        "claims": [
+          "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+          "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+          "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 1"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "99b10e1f1cb075f8a0f609fc13ea681e147499120956d2a3befff02a18b10f6b",
+          "artifact": {
+            "q": "Households in an economy earn income, save part of it, and pay taxes, while firms, government, and foreign buyers supply extra spending. What must be true if the circular flow is to stay balanced?",
+            "op": [
+              "The added spending must match the spending that leaves the flow.",
+              "The added spending must be zero if saving occurs.",
+              "Taxes must always be larger than saving for balance.",
+              "Exports must equal imports in every case."
+            ],
+            "ai": 0,
+            "ex": "The added spending must match the spending that leaves the flow because injections balance leakages in the circular flow. A common misconception is that any saving automatically breaks the flow, but balance is preserved when outside spending offsets the spending that leaks out."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "bf43aceccfdeee8f1f1f9b91c1aa0f31ac162d4be793977c257b4a5e2e72e8d9",
+          "artifact": {
+            "q": "If total leakages equal total injections within the circular flow of income, what occurs to national income?",
+            "op": [
+              "It rises",
+              "It falls",
+              "It remains neither rising nor falling",
+              "It increases indefinitely"
+            ],
+            "ai": 2,
+            "ex": "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "99b10e1f1cb075f8a0f609fc13ea681e147499120956d2a3befff02a18b10f6b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "bf43aceccfdeee8f1f1f9b91c1aa0f31ac162d4be793977c257b4a5e2e72e8d9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-64b512b0a72b19514e6c",
+      "caseDigest": "01452b30290fae135b4cec4b2af0cdbce7cf9a9757df215faaf52681f86e8b40",
+      "domain": "anatomy",
+      "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+      "sourceContextSha256": "1a8dfe1d7994762cfef28852d469b26cba7892d5e4167f0c722254b3501e5695",
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/tissue-types",
+        "term": "Four primary tissue types",
+        "claims": [
+          "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+          "Histology studies tissue appearance, organization, and function under the microscope.",
+          "Tissue cells share morphological features and an orderly arrangement that supports tissue function."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c4a90aae20334d4c6a1dbc0c8456b21f18b38c7045ad717b2b0dc5cbbff1ca2e",
+          "artifact": {
+            "q": "What is the primary focus of histology studies?",
+            "op": [
+              "Feedback regulation mechanisms",
+              "Tissue appearance, organization, and function under the microscope",
+              "Levels of organization and feedback regulation",
+              "Skin structure classification"
+            ],
+            "ai": 1,
+            "ex": "Tissue appearance, organization, and function under the microscope is the primary focus of histology studies. Levels of organization and feedback regulation is the primary focus of histology studies."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a0f0f49cf96d2d0e816d3be4d93d4055b20f4e149f6e0a5f05b068c7d3e60903",
+          "artifact": {
+            "q": "Which option names the four broad tissue categories used to organize the body?",
+            "op": [
+              "Epithelial, connective, muscle, and nervous tissue.",
+              "Epidermal, dermal, subcutaneous, and muscular tissue.",
+              "Cells, tissues, organs, and organ systems.",
+              "Surface, support, movement, and control tissue."
+            ],
+            "ai": 0,
+            "ex": "Epithelial, connective, muscle, and nervous tissue are the four broad tissue categories. The other choices mix anatomical layers, organization levels, or function labels rather than the standard tissue groups."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c4a90aae20334d4c6a1dbc0c8456b21f18b38c7045ad717b2b0dc5cbbff1ca2e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a0f0f49cf96d2d0e816d3be4d93d4055b20f4e149f6e0a5f05b068c7d3e60903",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-47bf7ebff415c5ff0f90",
+      "caseDigest": "8d0b111493d4928b4a7693df70837aee39bf5f84e430d6da38230ac2cd82c418",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "01cefe3f1903e144ad1670e0b2cf2563bbd3a42ee41445b0962018868a959384",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/nervous-tissue",
+        "term": "Nervous tissue",
+        "claims": [
+          "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+          "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+          "Neuroglia support neurons and modulate information propagation."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "15beb8dd7cce43c390a7aeb54a884b56157f68d7c9cc440a0176192d2c3329fb",
+          "artifact": {
+            "q": "What is the primary function of the tissue that sends and receives electrochemical signals?",
+            "op": [
+              "Support neurons",
+              "Modulate propagation",
+              "Information exchange",
+              "Structural support"
+            ],
+            "ai": 2,
+            "ex": "Nervous tissue sends and receives electrochemical signals that provide the body with information."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7324c6da6cb81e5118755f592b3ab2765c44f854aa796ec4693e5554b25264a7",
+          "artifact": {
+            "q": "Which description best matches nervous tissue?",
+            "op": [
+              "Excitable tissue mainly made of neurons and neuroglia that carries action potentials",
+              "Connective tissue built mainly from collagen fibers that stores minerals",
+              "Epithelial tissue formed mainly by tightly packed cells that line surfaces",
+              "Muscle tissue made mainly of fibers that shorten to produce force"
+            ],
+            "ai": 0,
+            "ex": "Correct: nervous tissue is mainly neurons and neuroglia that use action potentials. It is not just support cells; neuroglia support neurons."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "15beb8dd7cce43c390a7aeb54a884b56157f68d7c9cc440a0176192d2c3329fb",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7324c6da6cb81e5118755f592b3ab2765c44f854aa796ec4693e5554b25264a7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a351ea7b9036edd38813",
+      "caseDigest": "d4a6cc41612a7e77bf81b76765478686cb56d020a05f0161993023f9925a3558",
+      "domain": "anatomy",
+      "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+      "sourceContextSha256": "51410721edc1c02b8f27a44aed825cbde8d3107e03cf16b0bbed847191feed6e",
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "term": "Skeletal system functions",
+        "claims": [
+          "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+          "Bones facilitate movement by providing attachment points for muscles."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "dd54f47770af6777ba31fa85bafc2434ff2441a28355c35fd4ff99dd808a7e2d",
+          "artifact": {
+            "q": "Which statement best matches how bones help movement in the body?",
+            "op": [
+              "They provide attachment points for muscles.",
+              "They directly contract to move the skeleton.",
+              "They mainly digest stored minerals.",
+              "They replace cartilage in every joint."
+            ],
+            "ai": 0,
+            "ex": "Bones help movement by giving muscles places to attach, so muscle pull can act on the skeleton. The other choices describe functions or structures that are not supported by the claims."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "705bb7603b31dd90ba658fa3424d14332b81d0f77ae154b801d6e460d2cf9c18",
+          "artifact": {
+            "q": "Which component of the body is characterized by being hard, dense connective tissue that constitutes the majority of the adult skeleton?",
+            "op": [
+              "Cartilage",
+              "Bone tissue",
+              "Muscle tissue",
+              "Skin structure"
+            ],
+            "ai": 1,
+            "ex": "Bone tissue is hard, dense connective tissue that forms most of the adult skeleton."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "dd54f47770af6777ba31fa85bafc2434ff2441a28355c35fd4ff99dd808a7e2d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "705bb7603b31dd90ba658fa3424d14332b81d0f77ae154b801d6e460d2cf9c18",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9f32d372305eacf057ce",
+      "caseDigest": "61bf6ccbbac46582b05418236c9632172d2105208935480d9e51a3eec3f55eab",
+      "domain": "economics",
+      "courseGroupSha256": "9426f3e12b3325688e416610cd8e80ad451c6206c0546f0c7a384639a8f29961",
+      "sourceContextSha256": "b50f870e02527123fd877a3dc8f5e526aca45c461fc77ed4459b105404ce8103",
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/market-equilibrium",
+        "term": "Market equilibrium",
+        "claims": [
+          "Market equilibrium occurs at the price where the quantity demanded by buyers equals the quantity supplied by sellers.",
+          "At the equilibrium price the opposing pressures of demand and supply are balanced and the price has no tendency to change.",
+          "A price above equilibrium creates a surplus that pushes it down; a price below creates a shortage that pushes it up."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 4"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "701ddbc1db710f9fef899d4f611a9073ef33a729708b0bb3e706adf582a7d0fb",
+          "artifact": {
+            "q": "If the price is set below the market equilibrium, what is the resulting effect on the market quantity?",
+            "op": [
+              "The quantity supplied increases while the quantity demanded remains constant.",
+              "The quantity demanded increases while the quantity supplied remains constant.",
+              "The quantity supplied decreases while the quantity demanded remains constant.",
+              "The quantity demanded decreases while the quantity supplied remains constant."
+            ],
+            "ai": 3,
+            "ex": "The quantity demanded increases while the quantity supplied remains constant because a price below equilibrium creates a shortage that pushes it up."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "4ad1643c8cd05ba172a138cef7586d27cf871607ecfb95e85e4fa0f80abfd906",
+          "artifact": {
+            "q": "At one price, buyers want exactly the same amount that sellers offer. What does this tell you about the market price?",
+            "op": [
+              "It is the equilibrium price, so there is no tendency for it to change.",
+              "It is above equilibrium, so a surplus must be present.",
+              "It is below equilibrium, so a shortage must be present.",
+              "It is the highest price buyers will accept, so demand has ended."
+            ],
+            "ai": 0,
+            "ex": "It is the equilibrium price, so there is no tendency for it to change. The common mistake is to treat equilibrium as a fairness judgment or a ceiling; here, equal quantities from buyers and sellers identify the balance point instead."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "701ddbc1db710f9fef899d4f611a9073ef33a729708b0bb3e706adf582a7d0fb",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "4ad1643c8cd05ba172a138cef7586d27cf871607ecfb95e85e4fa0f80abfd906",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

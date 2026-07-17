@@ -6,13 +6,22 @@ import { describe, expect, it } from 'vitest';
 
 import {
   SOURCE_ATOM_SCHEMA,
+  SOURCE_PARTIAL_RECOVERY_PROTOCOL,
+  SOURCE_PROMPT_POLICY_V2,
+  SOURCE_PROMPT_POLICY_V3,
+  SOURCE_PROMPT_POLICY_V4,
   SOURCE_RECOVERY_SCHEMA,
+  SOURCE_TARGETED_ASSESSMENT_CONTRACT,
   assessSourceAtomResponse,
+  buildSourceAtomPrompt,
   buildSourceCaptureProject,
+  buildSourcePartialRecoverySchema,
   buildSourceRecoveryPrompt,
   compileSourceAtomResponse,
   materializeSourceCaptureCampaign,
+  mergeSourceRecoveryCall,
   sourceCaptureSha256,
+  sourceRecoveryTarget,
   sourceTextIssues,
   summarizeSourceCaptureBurden,
   verifySourceCaptureProject,
@@ -111,6 +120,182 @@ describe('Scion source-grounded atom capture', () => {
     expect(retained.summary).toMatchObject({ groups: 8, prompts: 24, expectedCandidates: 96 });
   });
 
+  it('supports an explicit targeted-domain gap campaign without weakening the default four-domain policy', async () => {
+    const targeted = await materializeSourceCaptureCampaign({
+      cwd: repoRoot,
+      manifestPath: 'evaluation/scion-source-capture-novel-kernels-v0.16.47.json',
+    });
+    expect(targeted.summary).toMatchObject({
+      groups: 2,
+      prompts: 8,
+      expectedCandidates: 32,
+      domains: ['music-theory', 'user-experience-design'],
+      domainGroupCounts: { 'music-theory': 1, 'user-experience-design': 1 },
+      coveragePolicy: {
+        protocol: 'scion-source-capture-targeted-domain-gap-v1',
+        domains: ['music-theory', 'user-experience-design'],
+      },
+    });
+    expect(new Set(targeted.groups.flatMap((group) => group.prompts.map((prompt) => prompt.kernelId))).size).toBe(8);
+
+    const retained = await materializeSourceCaptureCampaign({ cwd: repoRoot });
+    expect(retained.summary.coveragePolicy).toEqual({
+      protocol: 'scion-source-capture-four-domain-balance-v1',
+      domains: 4,
+    });
+    expect(retained.summary.domains).toHaveLength(4);
+  });
+
+  it('materializes two v2 course groups per novel domain for controlled breadth', async () => {
+    const campaign = await materializeSourceCaptureCampaign({
+      cwd: repoRoot,
+      manifestPath: 'evaluation/scion-source-capture-course-group-breadth-v0.16.47.json',
+    });
+
+    expect(campaign.summary).toMatchObject({
+      groups: 6,
+      prompts: 34,
+      expectedCandidates: 136,
+      promptPolicy: SOURCE_PROMPT_POLICY_V2,
+      domainGroupCounts: { anatomy: 2, economics: 2, physics: 2 },
+    });
+    expect(
+      campaign.groups.every((group) =>
+        group.prompts.every((prompt) => prompt.promptPolicy === SOURCE_PROMPT_POLICY_V2),
+      ),
+    ).toBe(true);
+    expect(new Set(campaign.groups.flatMap((group) => group.prompts.map((prompt) => prompt.kernelId))).size).toBe(34);
+  });
+
+  it('materializes a bounded economics and music readiness-gap campaign', async () => {
+    const campaign = await materializeSourceCaptureCampaign({
+      cwd: repoRoot,
+      manifestPath: 'evaluation/scion-source-capture-readiness-gap-v0.16.47.json',
+    });
+
+    expect(campaign.summary).toMatchObject({
+      groups: 2,
+      prompts: 5,
+      expectedCandidates: 20,
+      promptPolicy: SOURCE_PROMPT_POLICY_V2,
+      domainGroupCounts: { economics: 1, 'music-theory': 1 },
+    });
+    expect(new Set(campaign.groups.flatMap((group) => group.prompts.map((prompt) => prompt.kernelId))).size).toBe(5);
+    expect(campaign.groups.flatMap((group) => group.prompts.map((prompt) => prompt.kernelId))).toContain(
+      'music/rhythm-and-meter',
+    );
+  });
+
+  it('materializes v3 and v4 on the exact v2 kernels and course groups', async () => {
+    const [v2, v3, v4] = await Promise.all([
+      materializeSourceCaptureCampaign({
+        cwd: repoRoot,
+        manifestPath: 'evaluation/scion-source-capture-course-group-breadth-v0.16.47.json',
+      }),
+      materializeSourceCaptureCampaign({
+        cwd: repoRoot,
+        manifestPath: 'evaluation/scion-source-capture-authoring-v3-v0.16.47.json',
+      }),
+      materializeSourceCaptureCampaign({
+        cwd: repoRoot,
+        manifestPath: 'evaluation/scion-source-capture-authoring-v4-v0.16.47.json',
+      }),
+    ]);
+
+    expect(v3.summary).toMatchObject({
+      groups: 6,
+      prompts: 34,
+      expectedCandidates: 136,
+      promptPolicy: SOURCE_PROMPT_POLICY_V3,
+      domainGroupCounts: { anatomy: 2, economics: 2, physics: 2 },
+    });
+    expect(v3.groups.map((group) => group.id)).toEqual(v2.groups.map((group) => group.id));
+    expect(v3.groups.flatMap((group) => group.prompts.map((prompt) => prompt.kernelId))).toEqual(
+      v2.groups.flatMap((group) => group.prompts.map((prompt) => prompt.kernelId)),
+    );
+    expect(v3.promptSetSha256).not.toBe(v2.promptSetSha256);
+    expect(v4.summary).toMatchObject({
+      groups: 6,
+      prompts: 34,
+      expectedCandidates: 136,
+      promptPolicy: SOURCE_PROMPT_POLICY_V4,
+      domainGroupCounts: { anatomy: 2, economics: 2, physics: 2 },
+    });
+    expect(v4.groups.map((group) => group.id)).toEqual(v2.groups.map((group) => group.id));
+    expect(v4.groups.flatMap((group) => group.prompts.map((prompt) => prompt.kernelId))).toEqual(
+      v2.groups.flatMap((group) => group.prompts.map((prompt) => prompt.kernelId)),
+    );
+    expect(v4.promptSetSha256).not.toBe(v2.promptSetSha256);
+    expect(v4.promptSetSha256).not.toBe(v3.promptSetSha256);
+  });
+
+  it('versions stricter authoring instructions without changing retained v1 prompts', () => {
+    const group = {
+      id: 'test-group',
+      courseBrief: 'A source-grounded test course.',
+      qualityFocus: 'Separate close alternatives and keep every learner-facing field free of source metadata.',
+      sourcePacketSha256: 'a'.repeat(64),
+    };
+    const kernel = {
+      id: 'test/kernel',
+      term: 'Test kernel',
+      definition: 'A complete definition for the test kernel.',
+      facts: [{ text: 'A complete supporting fact for the test kernel.' }],
+      attribution: ['Test source'],
+      license: 'CC-BY-4.0',
+    };
+    const retained = buildSourceAtomPrompt(group, kernel);
+    const strict = buildSourceAtomPrompt(group, kernel, { promptPolicy: SOURCE_PROMPT_POLICY_V2 });
+    const compact = buildSourceAtomPrompt(group, kernel, { promptPolicy: SOURCE_PROMPT_POLICY_V3 });
+    const focused = buildSourceAtomPrompt(group, kernel, { promptPolicy: SOURCE_PROMPT_POLICY_V4 });
+    const recovery = buildSourceRecoveryPrompt(
+      strict,
+      { assessment: { issues: ['claim-marker-residue'] } },
+      { target: { mcItems: 1, keyTerms: 1 } },
+    );
+
+    expect(retained.promptPolicy).toBeUndefined();
+    expect(retained.user).not.toContain('Never mention claim numbers');
+    expect(strict.promptPolicy).toBe(SOURCE_PROMPT_POLICY_V2);
+    expect(strict.user).toContain('Never mention claim numbers');
+    expect(strict.user).toContain('genuinely false misconception');
+    expect(recovery.user).toContain('Never expose claim numbers');
+    expect(compact.promptPolicy).toBe(SOURCE_PROMPT_POLICY_V3);
+    expect(compact.user).toContain('under 80 characters each');
+    expect(compact.user).toContain('exactly two complete sentences under 180 characters total');
+    expect(compact.user).toContain('an actor or object, an action, and an observable result');
+
+    const compactRecovery = buildSourceRecoveryPrompt(
+      compact,
+      { assessment: { issues: ['truncated-option'] } },
+      { target: { mcItems: 1, keyTerms: 0 } },
+    );
+    expect(compactRecovery.user).toContain('end it with a complete content phrase');
+    expect(compactRecovery.user).toContain('directly refute it without copying df');
+
+    expect(focused.promptPolicy).toBe(SOURCE_PROMPT_POLICY_V4);
+    expect(focused.user).toContain('four parallel, cue-free op alternatives under 80 characters each');
+    expect(focused.user).not.toContain('an actor or object, an action, and an observable result');
+
+    const focusedMcRecovery = buildSourceRecoveryPrompt(
+      focused,
+      { assessment: { issues: ['truncated-option', 'key-term-example-not-concrete'] } },
+      { target: { mcItems: 1, keyTerms: 0 } },
+    );
+    expect(focusedMcRecovery.user).toContain('MC rule:');
+    expect(focusedMcRecovery.user).not.toContain('Key-term rule:');
+    expect(focusedMcRecovery.user).not.toContain('key-term-example-not-concrete');
+
+    const focusedKeyTermRecovery = buildSourceRecoveryPrompt(
+      focused,
+      { assessment: { issues: ['truncated-option', 'key-term-example-not-concrete'] } },
+      { target: { mcItems: 0, keyTerms: 1 } },
+    );
+    expect(focusedKeyTermRecovery.user).toContain('Key-term rule:');
+    expect(focusedKeyTermRecovery.user).not.toContain('MC rule:');
+    expect(focusedKeyTermRecovery.user).not.toContain('truncated-option');
+  });
+
   it('rejects contextless and truncated source fragments before model calls', () => {
     expect(sourceTextIssues('See: additive rhythm and divisive rhythm.')).toContain('fact-contextless-fragment');
     expect(sourceTextIssues('This source ends without punctuation')).toContain('fact-missing-terminal-punctuation');
@@ -192,6 +377,58 @@ describe('Scion source-grounded atom capture', () => {
       action: 'realigned',
       sourceFactIndexes: [0, 2],
     });
+  });
+
+  it('removes only a redundant key-term definition lead without inventing replacement prose', () => {
+    const response = validResponse();
+    response.keyTerms[0].tr = 'Capital stock';
+    response.keyTerms[0].df =
+      'The capital stock is the total quantity of equipment, structures, and tools available for production.';
+    response.keyTerms[0].sourceFactIndexes = [0];
+    const retained = structuredClone(response);
+
+    const replayed = compileSourceAtomResponse(response, {
+      sourceClaimCount: 2,
+      sourceClaims: [
+        'The capital stock is the total quantity of equipment, structures, and tools available for production.',
+        'Gross investment increases the capital stock while depreciation decreases it.',
+      ],
+      lessonId: 'capital-stock-replay',
+    });
+
+    expect(response).toEqual(retained);
+    expect(replayed.compiledResponse.keyTerms[0].df).toBe(
+      'The total quantity of equipment, structures, and tools available for production.',
+    );
+    expect(replayed.repairCounts.redundantDefinitionLead).toBe(1);
+    expect(replayed.repairs).toContainEqual(
+      expect.objectContaining({
+        pass: 'redundantDefinitionLead',
+        action: 'removed-leading-term-copula',
+        proof: 'deletion-only-noun-phrase-remainder',
+        termIndex: 0,
+        sourceFactIndexes: [0],
+      }),
+    );
+  });
+
+  it('does not strip a circular definition when deletion would leave a predicate fragment', () => {
+    const response = validResponse();
+    response.keyTerms[0].tr = 'Epidermis';
+    response.keyTerms[0].df = 'The epidermis is made of keratinized stratified squamous epithelium.';
+
+    const replayed = compileSourceAtomResponse(response, {
+      sourceClaimCount: 2,
+      sourceClaims: [
+        'The epidermis is made of keratinized stratified squamous epithelium.',
+        'Skin has two major layers.',
+      ],
+      lessonId: 'epidermis-replay',
+    });
+
+    expect(replayed.compiledResponse.keyTerms[0].df).toBe(response.keyTerms[0].df);
+    expect(replayed.repairCounts.redundantDefinitionLead).toBe(0);
+    expect(replayed.issues).toContain('key-term-0-circular-definition');
   });
 
   it('realigns a wrong key only from the exact source facts cited by the item', () => {
@@ -375,6 +612,86 @@ describe('Scion source-grounded atom capture', () => {
       valid: true,
       issues: [],
     });
+
+    const partialRawCall = structuredClone(calls[0]);
+    partialRawCall.response.mcItems = partialRawCall.response.mcItems.slice(0, 1);
+    const partialRawAssessment = assessSourceAtomResponse(partialRawCall.response, {
+      sourceClaimCount: group.prompts[0].sourceClaims.length,
+      sourceClaims: group.prompts[0].sourceClaims,
+    });
+    partialRawCall.responseSha256 = sourceCaptureSha256(partialRawCall.response);
+    partialRawCall.admittedResponse = partialRawAssessment.admittedResponse;
+    partialRawCall.admittedResponseSha256 = sourceCaptureSha256(partialRawAssessment.admittedResponse);
+    partialRawCall.assessment = {
+      eligible: partialRawAssessment.eligible,
+      issues: partialRawAssessment.issues,
+      counts: partialRawAssessment.counts,
+    };
+    const partialTarget = sourceRecoveryTarget(partialRawCall);
+    expect(partialTarget).toEqual({ mcItems: 1, keyTerms: 0 });
+    expect(
+      sourceRecoveryTarget({ assessment: { counts: { admittedMcItems: Number.NaN, admittedKeyTerms: 99 } } }),
+    ).toEqual({ mcItems: 2, keyTerms: 0 });
+    expect(buildSourcePartialRecoverySchema(partialTarget).properties).toMatchObject({
+      mcItems: { minItems: 1, maxItems: 1 },
+      keyTerms: { minItems: 0, maxItems: 0 },
+    });
+    const partialPrompt = buildSourceRecoveryPrompt(group.prompts[0], partialRawCall, { target: partialTarget });
+    const partialResponse = { mcItems: [validResponse().mcItems[1]], keyTerms: [] };
+    const partialAssessment = assessSourceAtomResponse(partialResponse, {
+      sourceClaimCount: group.prompts[0].sourceClaims.length,
+      sourceClaims: group.prompts[0].sourceClaims,
+      expectedCounts: partialTarget,
+    });
+    expect(partialAssessment).toMatchObject({
+      eligible: true,
+      issues: [],
+      counts: { generatedMcItems: 1, admittedMcItems: 1, generatedKeyTerms: 0, admittedKeyTerms: 0 },
+    });
+    const partialRecoveryCall = {
+      promptId: group.prompts[0].id,
+      kernelId: group.prompts[0].kernelId,
+      promptSha256: sourceCaptureSha256({ system: group.prompts[0].system, user: group.prompts[0].user }),
+      generationPromptSha256: sourceCaptureSha256({ system: partialPrompt.system, user: partialPrompt.user }),
+      rawCallSha256: sourceCaptureSha256(partialRawCall),
+      assessmentContract: SOURCE_TARGETED_ASSESSMENT_CONTRACT,
+      recoveryTarget: partialTarget,
+      response: partialResponse,
+      responseSha256: sourceCaptureSha256(partialResponse),
+      admittedResponse: partialAssessment.admittedResponse,
+      admittedResponseSha256: sourceCaptureSha256(partialAssessment.admittedResponse),
+      assessment: {
+        eligible: partialAssessment.eligible,
+        issues: partialAssessment.issues,
+        counts: partialAssessment.counts,
+      },
+    };
+    const mergedPartialCall = mergeSourceRecoveryCall({
+      rawCall: partialRawCall,
+      recoveryCall: partialRecoveryCall,
+      prompt: group.prompts[0],
+    });
+    expect(mergedPartialCall.assessment).toMatchObject({
+      eligible: true,
+      issues: [],
+      counts: { admittedMcItems: 2, admittedKeyTerms: 2 },
+    });
+    const partialRecoveryProject = buildSourceCaptureProject({
+      campaign,
+      group,
+      arm: 'local',
+      model,
+      calls: [mergedPartialCall, calls[1], calls[2]],
+      rawCalls: [partialRawCall, calls[1], calls[2]],
+      recoveryCalls: [partialRecoveryCall],
+      recoveryProtocol: SOURCE_PARTIAL_RECOVERY_PROTOCOL,
+      generatedAt: '2026-07-13T00:00:00.000Z',
+    });
+    expect(verifySourceCaptureProject(partialRecoveryProject, { campaign, group, arm: 'local', model })).toEqual({
+      valid: true,
+      issues: [],
+    });
+
     recoveredProject.scionSourceCapture.compilerRecovery.recoveryCalls[0].rawCallSha256 = '0'.repeat(64);
     expect(verifySourceCaptureProject(recoveredProject, { campaign, group, arm: 'local', model })).toMatchObject({
       valid: false,
@@ -577,9 +894,9 @@ describe('Scion source-grounded atom capture', () => {
       sha256: '59f313090292d03332e59b16b1cd91da64ebd2b02baf2f66b86c16c06391bc7b',
     });
     expect(fileSha256(candidateRaw)).not.toBe(receipt.sourceFiles[0].sha256);
-    expect(candidates).toHaveLength(446);
-    expect(new Set(candidates.map((row) => row.courseGroupSha256)).size).toBe(16);
-    expect(candidates.filter((row) => row.sourceContext)).toHaveLength(138);
+    expect(candidates).toHaveLength(515);
+    expect(new Set(candidates.map((row) => row.courseGroupSha256)).size).toBe(24);
+    expect(candidates.filter((row) => row.sourceContext)).toHaveLength(219);
     expect(receipt).toMatchObject({
       status: 'ready-for-model-judge-research',
       selectedCases: 160,

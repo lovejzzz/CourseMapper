@@ -12,6 +12,7 @@ import {
   PUBLIC_SCION_MODEL_ID,
   PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
+  publicScionEnrichmentRecoveryCallLimit,
   assessPublicScionKernelResponse,
   buildPublicScionRetryFeedback,
   buildPublicScionMessages,
@@ -39,6 +40,9 @@ describe('Scion Public provider', () => {
 
   it('reserves bounded compiler recovery calls for browser-local Scion', () => {
     expect(PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS).toBe(4);
+    expect(publicScionEnrichmentRecoveryCallLimit(1)).toBe(1);
+    expect(publicScionEnrichmentRecoveryCallLimit(2)).toBe(2);
+    expect(publicScionEnrichmentRecoveryCallLimit(10)).toBe(4);
   });
 
   it('uses a short bounded retry ladder for malformed local generations', () => {
@@ -424,7 +428,7 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     expect(repaired.lessons[0].studyGuide.rs).toContain('supplied evidence');
   });
 
-  it('realigns a public mc key only when its explanation uniquely supports another option', () => {
+  it('does not move a public mc key from explanation-only lexical support', () => {
     const mismatched = {
       lessons: [
         {
@@ -446,14 +450,14 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
       ],
     };
     const repaired = JSON.parse(repairPublicScionJsonText(JSON.stringify(mismatched)));
-    expect(repaired.lessons[0].mc[0].ai).toBe(0);
+    expect(repaired.lessons[0].mc[0].ai).toBe(1);
 
     mismatched.lessons[0].mc[0].ex = 'This option is correct under the stated conditions.';
     const ambiguous = JSON.parse(repairPublicScionJsonText(JSON.stringify(mismatched)));
     expect(ambiguous.lessons[0].mc[0].ai).toBe(1);
   });
 
-  it('realigns a public key when the rationale uses a question/steps paraphrase', () => {
+  it('does not move a public key from an unverified question/steps paraphrase', () => {
     const response = {
       lessons: [
         {
@@ -475,16 +479,8 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
       ],
     };
     const repaired = JSON.parse(repairPublicScionJsonText(JSON.stringify(response)));
-    expect(repaired.lessons[0].mc[0].ai).toBe(0);
-    expect(repairPublicScionJson(JSON.stringify(response)).repairs).toEqual([
-      expect.objectContaining({
-        pass: 'explanationKeyAlignment',
-        trainingEligible: false,
-        preferenceEvidence: expect.objectContaining({
-          evidenceScope: 'browser-relaxed-paraphrase-recovery',
-        }),
-      }),
-    ]);
+    expect(repaired.lessons[0].mc[0].ai).toBe(1);
+    expect(repairPublicScionJson(JSON.stringify(response)).repairs).toEqual([]);
   });
 
   it('gives an MC item’s exact cited lesson facts precedence over a conflicting rationale', () => {

@@ -1,0 +1,841 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-50182a317a3712705e4a",
+    "packetDigest": "50182a317a3712705e4a49aca529a2a7f741a46197beff82f7ad702cc8ef9b9f",
+    "organizerDigest": "3ec521f752b8d13d4c2a6a6bc8fb1abc92ee19e0386e4966a1e5bb5d2d3f59ce"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-279bc71a2638ce23df9e",
+      "caseDigest": "7b64294d470079bfb0d5e80630a9211c561fcb60dece9f3a86dbfcf269f2103e",
+      "domain": "economics",
+      "courseGroupSha256": "0ace6623e100df62e824f06e351fefb4d91fc80773d65d958354322de394bdf6",
+      "sourceContextSha256": "68f0f9bde6e13a65f6fe7d7b9f1c68857d2302e82e0c56be339e98f67b451b12",
+      "sourceContext": {
+        "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+        "kernelId": "econ/monopoly",
+        "term": "Monopoly",
+        "claims": [
+          "A monopoly is a market with a single seller of a product that has no close substitutes, protected by barriers to entry.",
+          "Unlike a price-taking competitive firm, a monopoly is a price maker: it can raise price by restricting the quantity it sells.",
+          "Because it produces less and charges more than a competitive market, a monopoly creates deadweight loss."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4017a245c2ae526005b84272111df91b824e5b2eb6bddffdb9c9e2a0416b4ff1",
+          "artifact": {
+            "tr": "Monopoly",
+            "df": "A market with a single seller of a product that has no close substitutes, protected by barriers to entry.",
+            "eg": "A local utility company providing water to a city is a monopoly.",
+            "mi": "A monopoly is a price taker.",
+            "cx": "A monopoly is a price maker because it can raise the price by restricting the quantity it sells."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "973af4700bc1e1d5534e9fbe31f15d12ff5d0ca5d91ce276bdbbcad716651820",
+          "artifact": {
+            "tr": "Monopoly",
+            "df": "A market in which one seller faces no close substitutes and entry is blocked by barriers.",
+            "eg": "Our clinic example treated a single local supplier with no close substitutes and high entry barriers as a monopoly market.",
+            "mi": "A monopoly just means a very large firm.",
+            "cx": "Size alone is not enough; the key features are one seller, no close substitutes, and barriers to entry."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4017a245c2ae526005b84272111df91b824e5b2eb6bddffdb9c9e2a0416b4ff1",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "973af4700bc1e1d5534e9fbe31f15d12ff5d0ca5d91ce276bdbbcad716651820",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-12994b6e9ffab95e9807",
+      "caseDigest": "c886dde1dbabad4b84ca5253e17665b0027db0e8d0b9095c366efd1caba2da5a",
+      "domain": "music-theory",
+      "courseGroupSha256": "4bc109807593e504f4d225336634058b3d8a375511ab5f1fd8bbb93f1104b741",
+      "sourceContextSha256": "8a57f3584813b3b66341b3f84be0a8bb96cf4a194eedd48b0408cf41689b8d52",
+      "sourceContext": {
+        "sourcePacketSha256": "9010d732b2a3acafe2891a7d47adb3f480d7265e81dc5fd004735359a8b8854f",
+        "kernelId": "music/rhythm-and-meter",
+        "term": "Rhythm and meter",
+        "claims": [
+          "A beat is a regularly recurring pulse, and meter organizes recurring beats into groups while rhythm places durations and attacks within that framework.",
+          "Duple meter groups beats in twos, triple meter groups them in threes, and quadruple meter groups them in fours.",
+          "In simple meter, each beat divides into two equal parts; in compound meter, each beat divides into three equal parts.",
+          "In a simple-meter time signature, the top number gives the beats per measure and the bottom number identifies the note value used as the beat unit.",
+          "A measure contains one recurring beat group, and bar lines separate adjacent measures in notation."
+        ],
+        "attribution": [
+          "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "cf69ef5c2d8d386bbb8facaa0ce6337d429b7b9e2cb3c3b470a6c56268de4fc2",
+          "artifact": {
+            "q": "In a simple-meter time signature, what does the top number show?",
+            "op": [
+              "How many beats are in each measure",
+              "Which note value gets one beat",
+              "How each beat splits into smaller parts",
+              "How many measures are in a phrase"
+            ],
+            "ai": 0,
+            "ex": "The top number shows how many beats are in each measure. A common mix-up is to treat that number as the note value for the beat, but that role belongs to the bottom number in simple meter."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1a9029c26b799e6013cd70bee5d5e594a3c3a2b4aceaa0fa1fb6613a34bb1495",
+          "artifact": {
+            "q": "When analyzing a simple-meter time signature, what does the top number represent?",
+            "op": [
+              "The number of equal parts that make up each beat",
+              "The total number of beats in the measure",
+              "The note value used as the beat unit",
+              "The number of recurring beat groups in the measure"
+            ],
+            "ai": 1,
+            "ex": "The top number represents the total number of beats in the measure because the top number in a simple-meter time signature gives the beats per measure."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "cf69ef5c2d8d386bbb8facaa0ce6337d429b7b9e2cb3c3b470a6c56268de4fc2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "1a9029c26b799e6013cd70bee5d5e594a3c3a2b4aceaa0fa1fb6613a34bb1495",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-3ce066411c41f31a6aae",
+      "caseDigest": "fa2c58f87f7afecfed2cab3750f30bceacac516f8d6b7394346fef0962e71dd9",
+      "domain": "economics",
+      "courseGroupSha256": "0ace6623e100df62e824f06e351fefb4d91fc80773d65d958354322de394bdf6",
+      "sourceContextSha256": "0f900cfde7577c53a422b46f47ed925d0e2a1389550e92dc9e8a141b721409d8",
+      "sourceContext": {
+        "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+        "kernelId": "econ/supply-curve",
+        "term": "Supply curve",
+        "claims": [
+          "By the law of supply, a higher price raises the quantity producers are willing to supply, so the supply curve slopes upward.",
+          "A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve.",
+          "Quantity supplied is a flow per period, not a fixed stock."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "41edbc8b54f8f091d6822887eabe5a96f0ea7731b5c226bba2a21c99f9159157",
+          "artifact": {
+            "q": "A bakery sees the price of its bread rise while its flour costs and ovens stay the same. What happens to the bakery's supply curve for bread?",
+            "op": [
+              "It moves upward along the same curve",
+              "It shifts to a new position",
+              "It becomes flatter because costs stayed the same",
+              "It leaves quantity supplied unchanged"
+            ],
+            "ai": 0,
+            "ex": "It moves upward along the same curve because a change in the good's own price changes the quantity supplied rather than shifting the entire supply curve. A shift is more likely when input costs or technology change, which is not the case here."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6b0a4740f3201e092212a68665f445ad8018b29f2791821f29d340c2606387f2",
+          "artifact": {
+            "q": "If the price of a good increases, what happens to the quantity producers are willing to supply?",
+            "op": [
+              "The quantity supplied decreases",
+              "The quantity supplied remains unchanged",
+              "The quantity supplied increases",
+              "The quantity supplied shifts the entire curve"
+            ],
+            "ai": 2,
+            "ex": "Quantity supplied is a flow per period, not a fixed stock. The quantity supplied increases because a higher price raises the quantity producers are willing to supply."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "41edbc8b54f8f091d6822887eabe5a96f0ea7731b5c226bba2a21c99f9159157",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6b0a4740f3201e092212a68665f445ad8018b29f2791821f29d340c2606387f2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-558a880025f8de55dae7",
+      "caseDigest": "d7ac7e5bab09735de7a62ba225f05835af0a7e7268c8e1bd2c50b6acdb7eae84",
+      "domain": "economics",
+      "courseGroupSha256": "0ace6623e100df62e824f06e351fefb4d91fc80773d65d958354322de394bdf6",
+      "sourceContextSha256": "0f900cfde7577c53a422b46f47ed925d0e2a1389550e92dc9e8a141b721409d8",
+      "sourceContext": {
+        "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+        "kernelId": "econ/supply-curve",
+        "term": "Supply curve",
+        "claims": [
+          "By the law of supply, a higher price raises the quantity producers are willing to supply, so the supply curve slopes upward.",
+          "A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve.",
+          "Quantity supplied is a flow per period, not a fixed stock."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "68d57173364f80b74581b003de9d92bf131a691301fd2b466a099479b9f1da2a",
+          "artifact": {
+            "tr": "Supply shift",
+            "df": "A change in factors other than the good's own price that alters the entire supply curve.",
+            "eg": "If the cost of labor decreases, the entire supply curve shifts to the right.",
+            "mi": "A supply shift is the same as a movement along the supply curve caused by a change in the good's own price.",
+            "cx": "A supply shift occurs when input costs or technology change, moving the whole curve."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "72d63a11e60d8a5534215e05169f2cf0c2f2a600a2fbfa620194866774624d1c",
+          "artifact": {
+            "tr": "Quantity supplied",
+            "df": "The amount offered for sale during a given time period at a particular price.",
+            "eg": "A fruit seller may supply 200 apples this week at one price and a different amount next week at another price.",
+            "mi": "It means the total items a seller owns.",
+            "cx": "It is a per-period flow of goods offered for sale, not a stock of inventory."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "68d57173364f80b74581b003de9d92bf131a691301fd2b466a099479b9f1da2a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "72d63a11e60d8a5534215e05169f2cf0c2f2a600a2fbfa620194866774624d1c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9a1d21c34ab1ef3a9b67",
+      "caseDigest": "1c21e038bcbefe4d47876ef1eae8a347c6549fa64893905c6518a8883c56b524",
+      "domain": "economics",
+      "courseGroupSha256": "0ace6623e100df62e824f06e351fefb4d91fc80773d65d958354322de394bdf6",
+      "sourceContextSha256": "da5fb13ff73868f7df519526e6ede9cd91f6a39732ca9b07b98af68ed0df0da6",
+      "sourceContext": {
+        "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+        "kernelId": "econ/comparative-advantage",
+        "term": "Comparative advantage",
+        "claims": [
+          "A producer has a comparative advantage in the good it can make at the lower opportunity cost, even if another producer is better at making everything.",
+          "When each producer specializes according to comparative advantage and then trades, total output rises and both can consume beyond what they could produce alone.",
+          "Gains from trade come from differences in opportunity cost, not from absolute skill."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 19"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6510e1d8cc4687de8f90e1734e0ce580bec3e952c0c6bc878cc6857b6b5a68e3",
+          "artifact": {
+            "tr": "Relative cost advantage",
+            "df": "This describes the situation where one entity can produce a good using fewer resources than another entity.",
+            "eg": "If Producer A can make 10 widgets for the same resources that Producer B can only make 5 widgets, Producer A has the relative cost advantage.",
+            "mi": "The relative cost advantage is determined solely by the total quantity of output each producer can generate.",
+            "cx": "The relative cost advantage is determined by the opportunity cost associated with producing each good."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "52bb8d7f49fb3a27a96a523de13ab764390c0e620f0fb9f84c06d4b9822ce954",
+          "artifact": {
+            "tr": "Comparative advantage",
+            "df": "The lower-opportunity-cost producer in a good.",
+            "eg": "In the clinic, one student may have comparative advantage in chart design because giving up fewer practice problems is needed to make a polished slide.",
+            "mi": "It means the person who is best at a task in every respect.",
+            "cx": "The correction is that comparative advantage depends on lower opportunity cost, not overall talent or being strongest at everything."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6510e1d8cc4687de8f90e1734e0ce580bec3e952c0c6bc878cc6857b6b5a68e3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "52bb8d7f49fb3a27a96a523de13ab764390c0e620f0fb9f84c06d4b9822ce954",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-d316de02f0e7d5a76d83",
+      "caseDigest": "de25f27cd5fe3c1f2f395113d5d6eb2091af6630b2c2a1e7c66218d21d764755",
+      "domain": "economics",
+      "courseGroupSha256": "0ace6623e100df62e824f06e351fefb4d91fc80773d65d958354322de394bdf6",
+      "sourceContextSha256": "0f900cfde7577c53a422b46f47ed925d0e2a1389550e92dc9e8a141b721409d8",
+      "sourceContext": {
+        "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+        "kernelId": "econ/supply-curve",
+        "term": "Supply curve",
+        "claims": [
+          "By the law of supply, a higher price raises the quantity producers are willing to supply, so the supply curve slopes upward.",
+          "A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve.",
+          "Quantity supplied is a flow per period, not a fixed stock."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "550d57924ea97002861de047f3862f31218b6ec4a7f73902d58f0bf80a9c924e",
+          "artifact": {
+            "tr": "Supply curve",
+            "df": "A graph showing how much producers are willing to sell at different prices; higher prices are linked to larger quantities supplied.",
+            "eg": "In a pizza shop, a higher price for slices is associated with a larger amount the shop is willing to supply.",
+            "mi": "A curve is always a list of all firms in a market.",
+            "cx": "The curve describes price-quantity willingness, not the number of firms."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "bd1996095dbd3e26a4c38b3a3d5d2973d0293ca85b211c8e113c9e4274c5a025",
+          "artifact": {
+            "tr": "Supply curve",
+            "df": "The line illustrating the relationship between the price of a good and the quantity producers are willing to offer for sale.",
+            "eg": "If the price of wheat rises, farmers will offer a larger quantity of wheat for sale.",
+            "mi": "The supply curve represents the total amount of a good that exists in the market at a specific price point.",
+            "cx": "The supply curve shows how the quantity producers are willing to supply changes when the good's own price changes."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "550d57924ea97002861de047f3862f31218b6ec4a7f73902d58f0bf80a9c924e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "bd1996095dbd3e26a4c38b3a3d5d2973d0293ca85b211c8e113c9e4274c5a025",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e3199b72eff409c5370f",
+      "caseDigest": "d19c25cc47701c88833866c1fe1e63d88290f812f1da5ba0000f03e4f884ea36",
+      "domain": "economics",
+      "courseGroupSha256": "0ace6623e100df62e824f06e351fefb4d91fc80773d65d958354322de394bdf6",
+      "sourceContextSha256": "68f0f9bde6e13a65f6fe7d7b9f1c68857d2302e82e0c56be339e98f67b451b12",
+      "sourceContext": {
+        "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+        "kernelId": "econ/monopoly",
+        "term": "Monopoly",
+        "claims": [
+          "A monopoly is a market with a single seller of a product that has no close substitutes, protected by barriers to entry.",
+          "Unlike a price-taking competitive firm, a monopoly is a price maker: it can raise price by restricting the quantity it sells.",
+          "Because it produces less and charges more than a competitive market, a monopoly creates deadweight loss."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c1b71302230f0aade8894e0d66de0560630333fc3696ab25f9dbee2e1d197432",
+          "artifact": {
+            "tr": "Price maker",
+            "df": "A seller that can influence the market price by changing how much it sells.",
+            "eg": "In the course case, the seller raises price by cutting the quantity offered.",
+            "mi": "A price maker is any firm that sells at a high price.",
+            "cx": "The important idea is control over price, not simply charging a high price or having many customers."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "907c74e22a8c9ceb8554aaf20b81e85bc8c288732c4bef055efd692780cbf1a8",
+          "artifact": {
+            "tr": "Price Maker",
+            "df": "Unlike a price-taking competitive firm, a monopoly is a price maker: it can raise price by restricting the quantity it sells.",
+            "eg": "A firm with a monopoly can increase its selling price by reducing the amount of goods it offers.",
+            "mi": "A price maker is a firm that cannot change its price.",
+            "cx": "A price maker is a firm that can raise its price by restricting the quantity it sells."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c1b71302230f0aade8894e0d66de0560630333fc3696ab25f9dbee2e1d197432",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "907c74e22a8c9ceb8554aaf20b81e85bc8c288732c4bef055efd692780cbf1a8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-d162c4f1d6da32efcec7",
+      "caseDigest": "c009d0249d784972e98799c78dc2ec83ab49474dfbe05444d00b476055d15f6f",
+      "domain": "economics",
+      "courseGroupSha256": "0ace6623e100df62e824f06e351fefb4d91fc80773d65d958354322de394bdf6",
+      "sourceContextSha256": "7c64391f66ada936e2cdaca325e98a0bc538d95d47bea1a34ae5ad2f6de71086",
+      "sourceContext": {
+        "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+        "kernelId": "econ/externality",
+        "term": "Externality",
+        "claims": [
+          "An externality is a cost or benefit from a transaction that falls on a third party who is not part of the exchange.",
+          "With a negative externality like pollution, the market produces more than the socially efficient quantity because the price excludes the spillover cost.",
+          "Correcting an externality means making decision-makers face the costs or benefits the market boundary leaves out."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 12"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0e40e4caba1246e3aef29441d389f9f74ad1b48be7d8bb40eb272e3b162f00c5",
+          "artifact": {
+            "q": "Why can pollution lead a market to produce too much?",
+            "op": [
+              "The price leaves out spillover cost, so the market boundary is too narrow.",
+              "The buyer's private value rises above the seller's asking price.",
+              "Each producer has a larger plant than rivals.",
+              "Trade stops whenever costs are visible."
+            ],
+            "ai": 0,
+            "ex": "The first option fits because when the price excludes the spillover cost, the market can produce more than the socially efficient quantity. A common mistake is to treat the problem as ordinary bargaining, but the issue here is the missing third-party cost, not a mismatch between buyer and seller."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "8f59ecaa228de3402cf8f5f18bfe3a64af5f426fc53c79501c8b704031ef1ef8",
+          "artifact": {
+            "q": "What action is required to correct an externality?",
+            "op": [
+              "Adjusting the firm's production level to match the social cost",
+              "Making decision-makers face the costs or benefits the market boundary leaves out",
+              "Increasing the price to reflect the full social cost of the transaction",
+              "Allowing the market to self-correct by increasing the quantity produced"
+            ],
+            "ai": 1,
+            "ex": "Correcting an externality means making decision-makers face the costs or benefits the market boundary leaves out. The most plausible misconception is that correcting an externality only involves adjusting the firm's production level, which ignores the broader scope of the correction."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0e40e4caba1246e3aef29441d389f9f74ad1b48be7d8bb40eb272e3b162f00c5",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "8f59ecaa228de3402cf8f5f18bfe3a64af5f426fc53c79501c8b704031ef1ef8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

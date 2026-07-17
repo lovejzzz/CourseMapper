@@ -1,0 +1,530 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-novel-breadth-evidence-v1",
+  "release": "v0.16.47",
+  "generatedAt": "2026-07-16T23:00:00.000Z",
+  "status": "novel-breadth-packet-awaiting-paired-judgment",
+  "captures": [
+    {
+      "id": "targeted-novel-kernels",
+      "campaign": {
+        "manifestPath": "evaluation/scion-source-capture-novel-kernels-v0.16.47.json",
+        "manifestSha256": "97ac9210a3be47f6aec12da1b2be8844b3ee8b4aac97653f7a35ffae1f13f02e",
+        "promptSetSha256": "36eb3f24584637bd38a67432511f85e802197615c85339fc19fc4a2d89b73404",
+        "groups": 2,
+        "prompts": 8,
+        "expectedAtomsPerArm": 32,
+        "domains": [
+          "music-theory",
+          "user-experience-design"
+        ],
+        "sourceSnapshots": [
+          {
+            "logicalPath": "public/genome/music-scion-v01647.json",
+            "path": "evaluation/scion-adapters/source-snapshots/music-scion-v01647-novel.json",
+            "bytes": 13580,
+            "sha256": "4cf8d6da04816910caefe3b24f219a73bb65f9e15c8e1e7841874c5fb2948d4b"
+          }
+        ]
+      },
+      "models": {
+        "local": {
+          "identity": {
+            "provider": "local",
+            "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+            "name": "Scion base (Gemma 4 E2B)",
+            "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+            "route": "mlx-vlm-base-only",
+            "decoding": "greedy-json-schema",
+            "maxOutputTokens": 2200
+          },
+          "identityCount": 1,
+          "rawCalls": 8,
+          "adapterActive": {
+            "false": 8
+          },
+          "constrained": {
+            "schema": 8
+          }
+        },
+        "reference": {
+          "identity": {
+            "provider": "openai",
+            "id": "gpt-5.4-mini",
+            "name": "gpt-5.4-mini",
+            "route": "responses-api",
+            "reasoningEffort": "low",
+            "maxOutputTokens": 4000
+          },
+          "identityCount": 1,
+          "rawCalls": 8,
+          "adapterActive": {
+            "false": 8
+          },
+          "constrained": {
+            "unknown": 8
+          }
+        }
+      },
+      "artifacts": {
+        "path": "evaluation/scion-source-capture-novel-kernels-evidence",
+        "setSha256": "b5059283d089a8f7c561b403d7541d0ce35cfe373225e44a332b2d657ee0cd1e",
+        "projects": [
+          {
+            "path": "evaluation/scion-source-capture-novel-kernels-evidence/music-structure-expression-evidence-lab-local.json",
+            "sha256": "977f4647a6554b4d8173bfbda2dda36be75e6b5352d9e559c552bec4a31e0cc8"
+          },
+          {
+            "path": "evaluation/scion-source-capture-novel-kernels-evidence/music-structure-expression-evidence-lab-reference.json",
+            "sha256": "5a8bfc1b4839781f75d0c0838ea2c2d4242337fce44d786f700b72a60d7fe217"
+          },
+          {
+            "path": "evaluation/scion-source-capture-novel-kernels-evidence/ux-service-evidence-and-progress-lab-local.json",
+            "sha256": "5430e9ff5c4cc6ac2bc7570d356b5dbf71f3dd3ca78430216b84fa3df6ab621c"
+          },
+          {
+            "path": "evaluation/scion-source-capture-novel-kernels-evidence/ux-service-evidence-and-progress-lab-reference.json",
+            "sha256": "d5104d3a0af5a699f529e830bdd81113904e65d98c95db881e4b2f5ac063d323"
+          }
+        ],
+        "burden": {
+          "local": {
+            "raw": {
+              "expectedCalls": 8,
+              "capturedCalls": 8,
+              "eligibleCalls": 8,
+              "fullPassCalls": 2,
+              "partialCalls": 6,
+              "rejectedCalls": 0,
+              "expectedAtoms": 32,
+              "generatedAtoms": 32,
+              "admittedAtoms": 22,
+              "discardedGeneratedAtoms": 10,
+              "missingExpectedAtoms": 0,
+              "burdenAtoms": 10,
+              "burdenRate": 0.3125,
+              "admissionRate": 0.6875,
+              "issueHistogram": {
+                "key-term-0-misconception-repeats-known-fact": 1,
+                "key-term-1-circular-definition": 1,
+                "key-term-1-misconception-repeats-known-fact": 1,
+                "mc-0-clang-association-cue": 1,
+                "mc-0-truncated-explanation": 2,
+                "mc-1-explanation-key-conflict": 3,
+                "mc-1-truncated-explanation": 1,
+                "no-admitted-mc-items": 2
+              }
+            },
+            "compiled": {
+              "expectedCalls": 8,
+              "capturedCalls": 8,
+              "eligibleCalls": 8,
+              "fullPassCalls": 4,
+              "partialCalls": 4,
+              "rejectedCalls": 0,
+              "expectedAtoms": 32,
+              "generatedAtoms": 26,
+              "admittedAtoms": 26,
+              "discardedGeneratedAtoms": 0,
+              "missingExpectedAtoms": 6,
+              "burdenAtoms": 6,
+              "burdenRate": 0.1875,
+              "admissionRate": 0.8125,
+              "issueHistogram": {
+                "key-term-count": 3,
+                "mc-count": 2,
+                "no-admitted-mc-items": 1
+              }
+            },
+            "recoveryCalls": 6,
+            "validProjects": 2,
+            "completeEvidence": true
+          },
+          "reference": {
+            "raw": {
+              "expectedCalls": 8,
+              "capturedCalls": 8,
+              "eligibleCalls": 8,
+              "fullPassCalls": 5,
+              "partialCalls": 3,
+              "rejectedCalls": 0,
+              "expectedAtoms": 32,
+              "generatedAtoms": 32,
+              "admittedAtoms": 28,
+              "discardedGeneratedAtoms": 4,
+              "missingExpectedAtoms": 0,
+              "burdenAtoms": 4,
+              "burdenRate": 0.125,
+              "admissionRate": 0.875,
+              "issueHistogram": {
+                "mc-0-meta-surface": 1,
+                "mc-0-truncated-explanation": 1,
+                "mc-1-source-answer-conflict": 1,
+                "mc-1-truncated-explanation": 1,
+                "no-admitted-mc-items": 1
+              }
+            },
+            "compiled": {
+              "expectedCalls": 8,
+              "capturedCalls": 8,
+              "eligibleCalls": 8,
+              "fullPassCalls": 6,
+              "partialCalls": 2,
+              "rejectedCalls": 0,
+              "expectedAtoms": 32,
+              "generatedAtoms": 30,
+              "admittedAtoms": 30,
+              "discardedGeneratedAtoms": 0,
+              "missingExpectedAtoms": 2,
+              "burdenAtoms": 2,
+              "burdenRate": 0.0625,
+              "admissionRate": 0.9375,
+              "issueHistogram": {
+                "mc-count": 2
+              }
+            },
+            "recoveryCalls": 3,
+            "validProjects": 2,
+            "completeEvidence": true
+          }
+        },
+        "comparison": {
+          "ready": true,
+          "rawLocalBurdenDeltaAtoms": 6,
+          "rawLocalBurdenDeltaRate": 0.1875,
+          "compiledLocalBurdenDeltaAtoms": 4,
+          "compiledLocalBurdenDeltaRate": 0.125,
+          "localRawHasLowerCompilerBurden": false,
+          "claimBoundary": "Compiler burden counts requested atoms that were missing or deterministically rejected. It does not establish instructor preference or factual superiority."
+        }
+      },
+      "assertions": {
+        "complete": true,
+        "exactCampaign": true,
+        "exactMeasuredBurden": true,
+        "recoveryDoesNotReduceAdmission": true,
+        "exactPinnedLocalBase": true,
+        "exactReference": true
+      }
+    },
+    {
+      "id": "domain-breadth",
+      "campaign": {
+        "manifestPath": "evaluation/scion-source-capture-domain-breadth-v0.16.47.json",
+        "manifestSha256": "53857ac23c02247c879332d73b8b69e3c1b424e996c7268ac8474cbb1f44322a",
+        "promptSetSha256": "c7d942019b9e891055e48a40beddede525f3450e9815f414540de2f0817acda0",
+        "groups": 3,
+        "prompts": 34,
+        "expectedAtomsPerArm": 136,
+        "domains": [
+          "anatomy",
+          "economics",
+          "physics"
+        ],
+        "sourceSnapshots": []
+      },
+      "models": {
+        "local": {
+          "identity": {
+            "provider": "local",
+            "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+            "name": "Scion base (Gemma 4 E2B)",
+            "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+            "route": "mlx-vlm-base-only",
+            "decoding": "greedy-json-schema",
+            "maxOutputTokens": 2200
+          },
+          "identityCount": 1,
+          "rawCalls": 34,
+          "adapterActive": {
+            "false": 34
+          },
+          "constrained": {
+            "schema": 34
+          }
+        },
+        "reference": {
+          "identity": {
+            "provider": "openai",
+            "id": "gpt-5.4-mini",
+            "name": "gpt-5.4-mini",
+            "route": "responses-api",
+            "reasoningEffort": "low",
+            "maxOutputTokens": 4000
+          },
+          "identityCount": 1,
+          "rawCalls": 34,
+          "adapterActive": {
+            "false": 34
+          },
+          "constrained": {
+            "unknown": 34
+          }
+        }
+      },
+      "artifacts": {
+        "path": "evaluation/scion-source-capture-domain-breadth-evidence",
+        "setSha256": "fbf0fa218b8fef7fec09cbfa70950510b828547c411206b8229fda6bb7df9872",
+        "projects": [
+          {
+            "path": "evaluation/scion-source-capture-domain-breadth-evidence/anatomy-structure-regulation-systems-studio-local.json",
+            "sha256": "e282e54ff421d717f9835f4cd63e0f47440f730e2e7351097bb5251352fea831"
+          },
+          {
+            "path": "evaluation/scion-source-capture-domain-breadth-evidence/anatomy-structure-regulation-systems-studio-reference.json",
+            "sha256": "df64f38c071094e9ef698e55611a96344eaa1a2d5170e56934c50dc6860e1e5d"
+          },
+          {
+            "path": "evaluation/scion-source-capture-domain-breadth-evidence/economics-models-markets-evidence-lab-local.json",
+            "sha256": "83c69a4b5ce131de5a6bfdaceed4c2ef2368cf85bd5a447f256b99762ca10def"
+          },
+          {
+            "path": "evaluation/scion-source-capture-domain-breadth-evidence/economics-models-markets-evidence-lab-reference.json",
+            "sha256": "ccfd0e88751aa6e216a25d7bc8f61c0770fc9d5ad213b9d9d612906da0b3c6e6"
+          },
+          {
+            "path": "evaluation/scion-source-capture-domain-breadth-evidence/physics-fields-circuits-induction-workshop-local.json",
+            "sha256": "104681b3f6f561eee17cde7a24ccb245da0df8309984a16af1bbebea7e7e513d"
+          },
+          {
+            "path": "evaluation/scion-source-capture-domain-breadth-evidence/physics-fields-circuits-induction-workshop-reference.json",
+            "sha256": "7e6d03c8d6ebfce7f9c79bea7af72e1ea7ca9c0852c91e7d7b446e626222cb1d"
+          }
+        ],
+        "burden": {
+          "local": {
+            "raw": {
+              "expectedCalls": 34,
+              "capturedCalls": 34,
+              "eligibleCalls": 22,
+              "fullPassCalls": 4,
+              "partialCalls": 18,
+              "rejectedCalls": 12,
+              "expectedAtoms": 136,
+              "generatedAtoms": 120,
+              "admittedAtoms": 49,
+              "discardedGeneratedAtoms": 71,
+              "missingExpectedAtoms": 16,
+              "burdenAtoms": 87,
+              "burdenRate": 0.639706,
+              "admissionRate": 0.360294,
+              "issueHistogram": {
+                "invalid-model-response": 4,
+                "key-term-0-circular-definition": 1,
+                "key-term-0-claim-marker-residue": 2,
+                "key-term-0-correction-repeats-definition": 8,
+                "key-term-0-embedded-field-label": 3,
+                "key-term-0-misconception-repeats-known-fact": 3,
+                "key-term-1-circular-definition": 1,
+                "key-term-1-claim-marker-residue": 2,
+                "key-term-1-correction-repeats-definition": 11,
+                "key-term-1-correction-repeats-example": 2,
+                "key-term-1-embedded-field-label": 3,
+                "key-term-1-example-repeats-definition": 1,
+                "key-term-1-misconception-repeats-known-fact": 1,
+                "mc-0-duplicate-options": 1,
+                "mc-0-explanation-key-conflict": 13,
+                "mc-0-truncated-explanation": 9,
+                "mc-1-duplicate-options": 1,
+                "mc-1-explanation-key-conflict": 15,
+                "mc-1-source-answer-conflict": 1,
+                "mc-1-truncated-explanation": 9,
+                "no-admitted-key-terms": 12,
+                "no-admitted-mc-items": 16
+              }
+            },
+            "compiled": {
+              "expectedCalls": 34,
+              "capturedCalls": 34,
+              "eligibleCalls": 28,
+              "fullPassCalls": 6,
+              "partialCalls": 22,
+              "rejectedCalls": 6,
+              "expectedAtoms": 136,
+              "generatedAtoms": 69,
+              "admittedAtoms": 69,
+              "discardedGeneratedAtoms": 0,
+              "missingExpectedAtoms": 67,
+              "burdenAtoms": 67,
+              "burdenRate": 0.492647,
+              "admissionRate": 0.507353,
+              "issueHistogram": {
+                "key-term-count": 21,
+                "mc-count": 23,
+                "no-admitted-key-terms": 12,
+                "no-admitted-mc-items": 11
+              }
+            },
+            "recoveryCalls": 30,
+            "validProjects": 3,
+            "completeEvidence": true
+          },
+          "reference": {
+            "raw": {
+              "expectedCalls": 34,
+              "capturedCalls": 34,
+              "eligibleCalls": 34,
+              "fullPassCalls": 18,
+              "partialCalls": 16,
+              "rejectedCalls": 0,
+              "expectedAtoms": 136,
+              "generatedAtoms": 136,
+              "admittedAtoms": 114,
+              "discardedGeneratedAtoms": 22,
+              "missingExpectedAtoms": 0,
+              "burdenAtoms": 22,
+              "burdenRate": 0.161765,
+              "admissionRate": 0.838235,
+              "issueHistogram": {
+                "mc-0-duplicate-options": 1,
+                "mc-0-explanation-key-conflict": 1,
+                "mc-0-truncated-explanation": 10,
+                "mc-1-duplicate-options": 1,
+                "mc-1-explanation-key-conflict": 1,
+                "mc-1-truncated-explanation": 8,
+                "no-admitted-mc-items": 6
+              }
+            },
+            "compiled": {
+              "expectedCalls": 34,
+              "capturedCalls": 34,
+              "eligibleCalls": 34,
+              "fullPassCalls": 33,
+              "partialCalls": 1,
+              "rejectedCalls": 0,
+              "expectedAtoms": 136,
+              "generatedAtoms": 135,
+              "admittedAtoms": 135,
+              "discardedGeneratedAtoms": 0,
+              "missingExpectedAtoms": 1,
+              "burdenAtoms": 1,
+              "burdenRate": 0.007353,
+              "admissionRate": 0.992647,
+              "issueHistogram": {
+                "mc-count": 1
+              }
+            },
+            "recoveryCalls": 16,
+            "validProjects": 3,
+            "completeEvidence": true
+          }
+        },
+        "comparison": {
+          "ready": true,
+          "rawLocalBurdenDeltaAtoms": 65,
+          "rawLocalBurdenDeltaRate": 0.477941,
+          "compiledLocalBurdenDeltaAtoms": 66,
+          "compiledLocalBurdenDeltaRate": 0.485294,
+          "localRawHasLowerCompilerBurden": false,
+          "claimBoundary": "Compiler burden counts requested atoms that were missing or deterministically rejected. It does not establish instructor preference or factual superiority."
+        }
+      },
+      "assertions": {
+        "complete": true,
+        "exactCampaign": true,
+        "exactMeasuredBurden": true,
+        "recoveryDoesNotReduceAdmission": true,
+        "exactPinnedLocalBase": true,
+        "exactReference": true
+      }
+    }
+  ],
+  "combinedCapture": {
+    "prompts": 42,
+    "expectedAtomsPerArm": 168,
+    "localRawAdmitted": 71,
+    "localCompiledAdmitted": 95,
+    "referenceRawAdmitted": 142,
+    "referenceCompiledAdmitted": 165,
+    "compiledReferenceLead": 70
+  },
+  "candidatePool": {
+    "path": "evaluation/scion-review-candidates-novel-breadth-v0.16.47.jsonl",
+    "sha256": "f8df79dc561b7fa7c18aee8cdd55833bc0c5914adbab06135b865b7b314960ae",
+    "rows": 94,
+    "attemptedSourceKernels": 42,
+    "reviewableSourceKernels": 36,
+    "reviewableSourceTasks": 60,
+    "courseGroups": 5,
+    "domains": {
+      "anatomy": 21,
+      "economics": 21,
+      "music-theory": 11,
+      "physics": 27,
+      "user-experience-design": 14
+    },
+    "kinds": {
+      "key-term": 48,
+      "mc-item": 46
+    },
+    "licenses": {
+      "CC-BY-4.0": 69,
+      "CC-BY-SA-4.0": 11,
+      "U.S. Government Work": 14
+    },
+    "priorJudgedKernelOverlap": 0,
+    "interpretation": "The capture campaigns attempted 42 new semantic source kernels. Only 36 produced at least one matched candidate/reference artifact pair, so reviewable coverage is 36 kernels rather than 42."
+  },
+  "packet": {
+    "receiptPath": "evaluation/scion-adapters/evidence/source-review-packet-novel-breadth-v0.16.47.json",
+    "receiptSha256": "b472f5f8fa6e6ffeb2158c6777d543816856210873d04c113dd2c4a4567ce63c",
+    "packetId": "scion-review-1e87a4687c50f0ecf255",
+    "packetDigest": "1e87a4687c50f0ecf2557df7677fd08bf0f5037609907a03531c41ee059e44c7",
+    "organizerDigest": "f401694ee81d1355305749bebeb325cc48264de5e778e0a5fba1bb2994aaadcb",
+    "selectedCases": 94,
+    "domainCounts": {
+      "anatomy": 21,
+      "economics": 21,
+      "music-theory": 11,
+      "physics": 27,
+      "user-experience-design": 14
+    },
+    "kindCounts": {
+      "mc-item": 46,
+      "key-term": 48
+    },
+    "sourceKernelExclusions": {
+      "path": "evaluation/scion-adapters/evidence/prior-judged-source-kernels-v0.16.47.json",
+      "sha256": "a5164c3868a98a34f3114c6cf428a57da97a6438da54582d2a00a95222d7a743",
+      "protocol": "scion-source-kernel-exclusions-v1",
+      "declaredCount": 37,
+      "matchedRows": 0,
+      "matchedKernels": 0,
+      "unmatchedCount": 37
+    },
+    "heldOutBenchmark": {
+      "path": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+      "sha256": "e3f07d2ccdf197315556e0205b97b30aee7a447399e14c440d6c1865e11b08a5",
+      "domains": [
+        "astronomy",
+        "nutrition",
+        "psychology",
+        "world-languages",
+        "world-literature"
+      ],
+      "excluded": {},
+      "excludedCount": 0
+    },
+    "courseGroupCount": 5,
+    "targetCourseGroupsPerDomain": 3,
+    "coverageStatus": "needs-more-course-groups",
+    "judgmentStatus": "not-yet-measured"
+  },
+  "licenseBoundary": {
+    "productionCompatibleRows": 83,
+    "shareAlikeResearchRows": 11,
+    "interpretation": "CC-BY-SA music rows may be evaluated in the isolated research lane, but are not silently treated as production-compatible adapter data."
+  },
+  "assertions": {
+    "capturesValid": true,
+    "exactCombinedCapture": true,
+    "candidateLedgerBound": true,
+    "exactCandidateCapacity": true,
+    "allSourceGrounded": true,
+    "priorKernelDisjoint": true,
+    "holdoutDisjoint": true,
+    "packetBound": true,
+    "incompleteCourseGroupCoverageDeclared": true
+  },
+  "claimBoundary": "This receipt proves real, hash-bound capture on new source kernels and a holdout-disjoint 94-case blind packet. It exposes the large base-model compiler burden and incomplete course-group coverage. It proves no judge preference, adapter authorization, adapter win, or production promotion."
+}

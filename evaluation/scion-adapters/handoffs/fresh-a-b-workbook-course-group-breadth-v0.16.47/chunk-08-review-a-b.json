@@ -1,0 +1,978 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-546d143d0e1424e070e2",
+    "packetDigest": "546d143d0e1424e070e27bc7f03c90d6c753d375e74b6a26db25a5a93e7c8312",
+    "organizerDigest": "e9e3826260e2c77e9f32ec180334fd6bf25f04a38f021b2fcd9a39098436eeff"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-0833e0483023860e2744",
+      "caseDigest": "71a453b9e5a14d3353885ac1d3991fb794a8108aee12bb9e67c5ba38fbb387ad",
+      "domain": "economics",
+      "courseGroupSha256": "9426f3e12b3325688e416610cd8e80ad451c6206c0546f0c7a384639a8f29961",
+      "sourceContextSha256": "2d97648f29e47fbe911d613caa3ec5bd317a7ecca90c7d8bdea279ac5b61958b",
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/price-elasticity-of-demand",
+        "term": "Price elasticity of demand",
+        "claims": [
+          "Price elasticity of demand is the percentage change in quantity demanded divided by the percentage change in price.",
+          "Demand is elastic when the absolute value of the elasticity is greater than one.",
+          "Necessities tend to have inelastic demand because consumers have few substitutes.",
+          "The availability of close substitutes is a primary determinant of elasticity."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2e9cf073175927e6b2c1fdaa2a5649205ebbb86ce3ddeee2e4aa756c68b1b370",
+          "artifact": {
+            "q": "Which condition describes demand that is elastic?",
+            "op": [
+              "The absolute value of the elasticity is less than one",
+              "The absolute value of the elasticity is greater than one",
+              "The absolute value of the elasticity is equal to one",
+              "The absolute value of the elasticity is zero"
+            ],
+            "ai": 1,
+            "ex": "Demand is elastic when the absolute value of the elasticity is greater than one."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "4a9b7f70510fc646a8ea6695e1cebcfa4c1d4aabff2937e609c079fca2bd9a75",
+          "artifact": {
+            "q": "Which expression gives price elasticity of demand?",
+            "op": [
+              "percentage change in quantity demanded divided by percentage change in price",
+              "change in quantity demanded divided by change in price",
+              "percentage change in price divided by percentage change in quantity demanded",
+              "change in price divided by change in quantity demanded"
+            ],
+            "ai": 0,
+            "ex": "This is correct because elasticity compares the percentage change in quantity demanded with the percentage change in price. The slope-style option is a common misconception because it uses raw changes instead of percentages."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2e9cf073175927e6b2c1fdaa2a5649205ebbb86ce3ddeee2e4aa756c68b1b370",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "4a9b7f70510fc646a8ea6695e1cebcfa4c1d4aabff2937e609c079fca2bd9a75",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-5a189e6cf1fa480b34f2",
+      "caseDigest": "44640a4a87e07726aae4c710f1fef8255b266ad4f85ade2d6c32d0a695c481be",
+      "domain": "economics",
+      "courseGroupSha256": "4ffd5d5cf1b8cc2c9a11861897b918345bc147d926d7f3b2a711e682fb5c12fa",
+      "sourceContextSha256": "2e0dc8fd0aacec5990c479b42e559b2cb3d37f301443eac218fdc9fdffa015aa",
+      "sourceContext": {
+        "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+        "kernelId": "econ/proxy-variable",
+        "term": "Proxy variable",
+        "claims": [
+          "A proxy variable is an observable stand-in used to measure a construct that cannot be observed directly.",
+          "GDP is used as a proxy for economic well-being, but it captures only marketed output and misses unpaid work, income distribution, and environmental costs.",
+          "Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "552a99c4e1c6a7339d33131a00c226405a25f74e479f4e6c61b3a58fbb3e84aa",
+          "artifact": {
+            "q": "Which statement best describes a proxy variable?",
+            "op": [
+              "An observable stand-in used to measure an unobservable construct.",
+              "A direct observation of the construct itself.",
+              "A variable that fully captures every aspect of the construct.",
+              "A measure that is useful only when the construct is visible."
+            ],
+            "ai": 0,
+            "ex": "It is an observable stand-in for a construct you cannot directly see. It is not the construct itself, so it can miss what it leaves out."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a427007a26ffc1b452ea7d28012bcd5fadf52838fdae2abef9cdec0654764440",
+          "artifact": {
+            "q": "When using GDP as a proxy for economic well-being, what limitation must be considered?",
+            "op": [
+              "GDP only captures marketed output and misses unpaid work",
+              "GDP accurately measures all forms of economic well-being",
+              "GDP is a direct measure of income distribution",
+              "GDP fully accounts for environmental costs"
+            ],
+            "ai": 0,
+            "ex": "GDP only captures marketed output and misses unpaid work. Conclusions drawn from this proxy inherit what the measure leaves out."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "552a99c4e1c6a7339d33131a00c226405a25f74e479f4e6c61b3a58fbb3e84aa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a427007a26ffc1b452ea7d28012bcd5fadf52838fdae2abef9cdec0654764440",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2abab499cff1daf90ddd",
+      "caseDigest": "ba9db93389ef78b3337ed8e2e3a5a6a5437a518c5315b4d08c3e40dbbc1da49c",
+      "domain": "anatomy",
+      "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+      "sourceContextSha256": "6959c6e4a825b9ebc313f4956daf6ed3a291ada8e78ea6dfc6655276a0cf41c9",
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/levels-of-organization",
+        "term": "Levels of structural organization",
+        "claims": [
+          "Human anatomy and physiology organizes body structure from chemical components to cells, tissues, organs, organ systems, and the organism, so students can connect form to function across scales.",
+          "A cell is the smallest independently functioning unit of a living organism.",
+          "Organs are anatomically distinct structures made of two or more tissue types."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "794893507fba83a33c9d5fa3ac7cc794020982d52bcb917ec04e8b1681621524",
+          "artifact": {
+            "q": "What is the smallest independently functioning unit of a living organism?",
+            "op": [
+              "Tissue",
+              "Cellular",
+              "Organ",
+              "Organ System"
+            ],
+            "ai": 1,
+            "ex": "A cell is the smallest independently functioning unit of a living organism."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "2ae8a87ab9e6c26a0ab6caab8fe05484d673aabb1de9ea3349f4bc7ad013899d",
+          "artifact": {
+            "q": "Which structure is the smallest independently functioning unit of a living organism?",
+            "op": [
+              "Chemical components",
+              "Cells",
+              "Tissues",
+              "Organs"
+            ],
+            "ai": 1,
+            "ex": "Cells are the smallest independently functioning unit. Tissues, organs, and chemical components are larger levels of organization."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "794893507fba83a33c9d5fa3ac7cc794020982d52bcb917ec04e8b1681621524",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "2ae8a87ab9e6c26a0ab6caab8fe05484d673aabb1de9ea3349f4bc7ad013899d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-264523cd4678e88d2b82",
+      "caseDigest": "0ae5d1f72c8eabbddcfb8a48f49a28e9156b7cf6554a282cfe0cbf384de98355",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "b47f69941f61f5e7d4c60cefbb54d60eda26ee078f741893c9877f6ef1e8439e",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/synovial-joints",
+        "term": "Synovial joints",
+        "claims": [
+          "Synovial joints are common movable joints with a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion.",
+          "A key structural feature of a synovial joint is a fluid-filled joint cavity.",
+          "Ligaments support synovial joints by holding bones together and resisting abnormal motion."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c0e9face25cf5c411e8096ede7b4f815fdf7d5569f789530650d2f47fd0db316",
+          "artifact": {
+            "q": "During a lab case, a joint is tested for restraint against an unusual pull so the bones stay aligned while movement remains possible. Which role best matches the structures that provide that restraint?",
+            "op": [
+              "They hold the bones together and resist abnormal motion",
+              "They create the joint cavity and its fluid",
+              "They cover bone ends with articular cartilage",
+              "They produce movement directly by contracting"
+            ],
+            "ai": 0,
+            "ex": "Ligaments hold bones together and resist abnormal motion, which is the decisive supporting role. A common misconception is to treat the smooth movement of the joint as the ligament's job, but movement comes from the joint system overall rather than from ligaments producing force."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "af06a9380b23d3803deb0df4b695c744f8523c68a157e576131d6273023721c7",
+          "artifact": {
+            "q": "What component provides resistance to abnormal motion in a joint structure?",
+            "op": [
+              "Articular cartilage",
+              "Synovial fluid",
+              "Supporting ligaments",
+              "Joint cavity"
+            ],
+            "ai": 2,
+            "ex": "Supporting ligaments hold bones together and resist abnormal motion in synovial joints."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c0e9face25cf5c411e8096ede7b4f815fdf7d5569f789530650d2f47fd0db316",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "af06a9380b23d3803deb0df4b695c744f8523c68a157e576131d6273023721c7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-8a6a128391f9a7a95229",
+      "caseDigest": "084bb7e80208323bde0ae2ee581660bd947a4598d295d1e61dce73fd432e9997",
+      "domain": "physics",
+      "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+      "sourceContextSha256": "84e4a32349da6d843bd187fcc3312ecff004db700c22c10615f6e59258afd526",
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/magnetic-field",
+        "term": "Magnetic field",
+        "claims": [
+          "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+          "Currents produce magnetic fields."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11-12"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4f6a8e7ee7e20e7e5139360271bedaf52794374553d39fc411b1142c111e1fb7",
+          "artifact": {
+            "q": "What is a characteristic of magnetic field lines?",
+            "op": [
+              "They always start and end on magnetic charges",
+              "They form continuous, closed loops",
+              "They are only present around moving currents",
+              "They are directly proportional to the current magnitude"
+            ],
+            "ai": 1,
+            "ex": "Magnetic field lines form continuous, closed loops because this is stated in the source material."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ff896a36d7332a0560ae51ac49a61a0ae6ec18546105a65cd2b1025a0516f652",
+          "artifact": {
+            "q": "Which statement best describes magnetic field lines?",
+            "op": [
+              "They form closed loops and do not begin or end on isolated magnetic charges",
+              "They are the forces acting directly on stationary charges",
+              "They start on a north pole and end on a south pole",
+              "They are created only by permanent magnets"
+            ],
+            "ai": 0,
+            "ex": "The correct choice follows the statement that magnetic field lines form closed loops and do not begin or end on isolated magnetic charges. A nearby misconception is to treat field lines like arrows that start and stop at separate magnetic charges, but the source relation rules that out."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4f6a8e7ee7e20e7e5139360271bedaf52794374553d39fc411b1142c111e1fb7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ff896a36d7332a0560ae51ac49a61a0ae6ec18546105a65cd2b1025a0516f652",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-33d71d7276dc1876f6d0",
+      "caseDigest": "cc724f4160dd0d07354012dbb34a0704cd0215abc5ded25edb368c565d6d48ce",
+      "domain": "physics",
+      "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+      "sourceContextSha256": "b9a783084a1c5d24b49701bef5705a78e13d4b3bdb36071677d1c07638c51b39",
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-field",
+        "term": "Electric field",
+        "claims": [
+          "An electric field describes the electric force per unit positive test charge at each point in space.",
+          "The direction of the electric field is the direction a positive test charge would accelerate.",
+          "Field-line density indicates relative field strength."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "99cec4f76f73e06b344e574fe1cbef0572b5950dfab0c19fccdcf9035947b018",
+          "artifact": {
+            "q": "Which statement best matches the meaning of electric field at a point in space?",
+            "op": [
+              "The force on a positive test charge divided by the charge amount at that point",
+              "The total force on every nearby charge added together",
+              "The potential energy stored by a charge at that point",
+              "The number of field lines crossing a surface at that point"
+            ],
+            "ai": 0,
+            "ex": "It is the force per unit positive test charge, so dividing force by charge gives the field. A common confusion is to treat the field as the force itself, but the force depends on how much charge the test object has."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e41502cfd1368cf5bd6ecdf3ae2b1ffa919f9dcc2f78be2467218722df8e2525",
+          "artifact": {
+            "q": "If an electric field is present at a point, what does its direction indicate regarding a positive test charge?",
+            "op": [
+              "The direction the positive test charge would accelerate",
+              "The direction the electric field lines flow",
+              "The direction the field-line density is highest",
+              "The direction the electric force is weakest"
+            ],
+            "ai": 0,
+            "ex": "The direction the positive test charge would accelerate is the correct choice because the electric field describes the electric force per unit positive test charge at each point in space."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "99cec4f76f73e06b344e574fe1cbef0572b5950dfab0c19fccdcf9035947b018",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e41502cfd1368cf5bd6ecdf3ae2b1ffa919f9dcc2f78be2467218722df8e2525",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7f916e3ab1ccfaf8b154",
+      "caseDigest": "fec28d5d67cf3879cfdb4d0d9fce546b0d20906b2af37e0789375491f1077b94",
+      "domain": "physics",
+      "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+      "sourceContextSha256": "a62095b5592eb883443e140183a119f3dea3947689ffed63c1af715cfa164587",
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-charge",
+        "term": "Electric charge",
+        "claims": [
+          "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+          "Like charges repel and unlike charges attract.",
+          "Net charge is conserved in an isolated system."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f456c6e7b6f0b394257ba6d7277248e6992326e486b843737690e5e17a5c5cd7",
+          "artifact": {
+            "q": "A charged object is placed in an isolated system and no charge is added or removed. Which statement best matches the situation?",
+            "op": [
+              "The net charge stays the same.",
+              "The net charge disappears.",
+              "The net charge becomes positive.",
+              "The net charge changes whenever the object moves."
+            ],
+            "ai": 0,
+            "ex": "The net charge stays the same. A likely misconception is that motion alone changes charge, but the conserved quantity in an isolated system is net charge, not position or movement."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "45128cd346b7fa09acaf30737d1dd1b45178f82c3e89803ae941d26080a87528",
+          "artifact": {
+            "q": "If two particles have the same sign of electric charge, what will happen when they are brought near each other?",
+            "op": [
+              "They will attract",
+              "They will repel",
+              "They will have no interaction",
+              "They will change their charge"
+            ],
+            "ai": 1,
+            "ex": "Like charges repel because they have the same sign. Unlike charges attract because they have opposite signs."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f456c6e7b6f0b394257ba6d7277248e6992326e486b843737690e5e17a5c5cd7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "45128cd346b7fa09acaf30737d1dd1b45178f82c3e89803ae941d26080a87528",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-fa1f3bf50a201d0d449a",
+      "caseDigest": "24154e46548f0233c729667cf8688ceff3c2b49fee3f884221fac5f27e7a554a",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "567f976c861e00bf1ac110fcaf3b316e8b57a913f0c864624be38bd1c2ef48a2",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/muscle-tissue-types",
+        "term": "Muscle tissue types and contraction",
+        "claims": [
+          "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force.",
+          "All three muscle tissue types share excitability.",
+          "Skeletal muscle depends on nervous-system signaling to work properly."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "d83fa1d60b81999f06de85ccf84c0db2e3f9208c6398748eaebc9d3117167523",
+          "artifact": {
+            "tr": "Skeletal muscle",
+            "df": "A muscle type that must use nervous-system signaling to function properly.",
+            "eg": "In a movement case, a skeletal muscle sample only responds correctly when the nervous system provides the needed signal.",
+            "mi": "It is the same as any muscle that contracts without outside input.",
+            "cx": "The correction is that this tissue is the one specifically tied to nervous-system signaling in the supplied material."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3488efdf70637d1ebc7f0571e192028dbe8013e38bed956da51d73efa1489cab",
+          "artifact": {
+            "tr": "Excitable tissue",
+            "df": "A tissue capable of responding to a stimulus.",
+            "eg": "Skeletal muscle is an excitable tissue because it responds to nervous-system signals to contract.",
+            "mi": "Excitable tissue only refers to muscle tissue.",
+            "cx": "Excitable tissue is any tissue that can be stimulated to produce a response."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "d83fa1d60b81999f06de85ccf84c0db2e3f9208c6398748eaebc9d3117167523",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3488efdf70637d1ebc7f0571e192028dbe8013e38bed956da51d73efa1489cab",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-da81673729b8130a002e",
+      "caseDigest": "4f2b87ba0c75bc9f93c067504b5a5807deb7a2d0fccab6719ddff77b84e512dd",
+      "domain": "economics",
+      "courseGroupSha256": "9426f3e12b3325688e416610cd8e80ad451c6206c0546f0c7a384639a8f29961",
+      "sourceContextSha256": "bfacd924da3f93aaecbed166e867fc57b7d4e5d8dfeeec0b072e61f645afe09e",
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/wage-price-spiral",
+        "term": "Wage-price spiral",
+        "claims": [
+          "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "Unlike negative feedback, positive feedback drives the system further from where it started."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "96a1c7e37aeca7b905f2b80b895d51ab573c5af5387e3eb4bea25dc32cb88022",
+          "artifact": {
+            "q": "How does the wage-price spiral function in terms of feedback?",
+            "op": [
+              "A it operates as negative feedback, dampening the initial price changes",
+              "B it functions as positive feedback, amplifying the initial change",
+              "C it represents a stable equilibrium where price and wage levels remain constant",
+              "D it is a system where initial shifts are immediately reversed by consumer behavior"
+            ],
+            "ai": 1,
+            "ex": "The wage-price spiral is positive feedback: an initial change is amplified rather than damped. This is correct because the claims state that the wage-price spiral is positive feedback: an initial change is amplified rather than damped."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3431fe805edf5407257cda46f04234fa6b6570daf72acaf0231f1c549178d473",
+          "artifact": {
+            "q": "What kind of feedback is a wage-price spiral?",
+            "op": [
+              "Positive feedback that amplifies the initial change.",
+              "Negative feedback that dampens the initial change.",
+              "No feedback because wages and prices move independently.",
+              "A one-time shock with no further effects."
+            ],
+            "ai": 0,
+            "ex": "Positive feedback makes the first change grow rather than shrink. It is not negative feedback that pushes the system back."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "96a1c7e37aeca7b905f2b80b895d51ab573c5af5387e3eb4bea25dc32cb88022",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3431fe805edf5407257cda46f04234fa6b6570daf72acaf0231f1c549178d473",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

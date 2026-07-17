@@ -11,12 +11,15 @@
 // mutation is returned as a telemetry event; D4 forwards accepted/regenerated
 // pairs to the local flywheel.
 //
-// All passes are best-effort: any failure ships the draft unchanged.
+// Infrastructure failures are best-effort. An item independently confirmed
+// invalid twice is different: it is repaired or quarantined, never trusted.
 
 import { assessScionKeyTerm, assessScionMcItem } from './scionPreferenceGate.js';
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
 
 const APPLIED_MCQ_TARGET_PER_LESSON = 2;
+const INVALID_MC_ANSWER = '__INVALID_OR_AMBIGUOUS__';
+const INVALID_MC_ANSWER_INDEX = -1;
 
 const TOPIC_STOPWORDS = new Set([
   'lesson',
@@ -140,7 +143,10 @@ async function blindSolve(items, generateJson) {
     properties: {
       answers: {
         type: 'array',
-        prefixItems: items.map((item) => ({ type: 'string', enum: normalizeOptionLabels(item.op) })),
+        prefixItems: items.map((item) => ({
+          type: 'string',
+          enum: [...normalizeOptionLabels(item.op), INVALID_MC_ANSWER],
+        })),
         items: false,
         minItems: items.length,
         maxItems: items.length,
@@ -149,8 +155,7 @@ async function blindSolve(items, generateJson) {
     required: ['answers'],
   };
   const reply = await generateJson({
-    system:
-      'You are answering a quiz cold. For each question, copy the exact text of the best option into the answers array in question order. Return no labels, indices, or explanations.',
+    system: `You are validating a quiz cold, without seeing its answer key or explanation. For each question, copy the exact text of the ONE uniquely supported option. Return ${INVALID_MC_ANSWER} when the stem lacks necessary facts, no option is supported, multiple options are defensible, or the requested causal/inferential claim is not established. Do not choose a merely least-wrong option. Return no labels, indices, or explanations.`,
     user: JSON.stringify(items.map((item) => ({ q: item.q, op: item.op }))),
     schemaProfile: { name: 'blind_solve', schema, strict: true },
     maxOutputTokens: 200,
@@ -162,13 +167,14 @@ async function blindSolve(items, generateJson) {
     // endpoints, but the live schema constrains new solves to exact option
     // text so weak models do not have to translate a proposition into an
     // error-prone zero-based index.
+    if (answer === INVALID_MC_ANSWER) return INVALID_MC_ANSWER_INDEX;
     if (Number.isInteger(answer) && answer >= 0 && answer <= 3) return answer;
     const value = String(answer || '')
       .normalize('NFKC')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, ' ')
       .trim();
-    return normalizeOptionLabels(items[index]?.op).findIndex(
+    const optionIndex = normalizeOptionLabels(items[index]?.op).findIndex(
       (option) =>
         String(option || '')
           .normalize('NFKC')
@@ -176,54 +182,103 @@ async function blindSolve(items, generateJson) {
           .replace(/[^a-z0-9]+/g, ' ')
           .trim() === value,
     );
+    return optionIndex >= 0 ? optionIndex : null;
   });
-  return normalized.every((answer) => answer >= 0 && answer <= 3) ? normalized : null;
+  return normalized.every(
+    (answer) => answer === INVALID_MC_ANSWER_INDEX || (Number.isInteger(answer) && answer >= 0 && answer <= 3),
+  )
+    ? normalized
+    : null;
 }
 
-async function verifyReplacementKey(item, generateJson) {
-  const first = await blindSolve([item], generateJson).catch(() => null);
-  const second = await blindSolve([item], generateJson).catch(() => null);
-  const expected = Number(item?.ai);
-  const answers = [first?.[0], second?.[0]];
-  return {
-    verified: Number.isInteger(expected) && answers.every((answer) => answer === expected),
-    answers,
-  };
-}
-
-async function generateVerifiedReplacement({ system, user, promptLesson, topicTokens = [], generateJson }) {
-  const prompt = `Lesson: ${JSON.stringify(promptLesson ?? {})}\n${user}`;
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+async function generateVerifiedReplacementBatch({ targets, promptLesson, topicTokens = [], generateJson }) {
+  const accepted = new Map();
+  let pending = [...targets];
+  for (let attempt = 1; attempt <= 2 && pending.length > 0; attempt += 1) {
+    const indices = pending.map(({ index }) => index);
+    const schema = {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        repairs: {
+          type: 'array',
+          minItems: pending.length,
+          maxItems: pending.length,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            properties: { index: { type: 'integer', enum: indices }, ...MC_ITEM_SCHEMA.properties },
+            required: ['index', ...MC_ITEM_SCHEMA.required],
+          },
+        },
+      },
+      required: ['repairs'],
+    };
+    const system =
+      'You write flawless quiz items. Replace every faulty multiple-choice item that two blind validators found invalid, ambiguous, or incorrectly keyed. Preserve each listed concept and difficulty; test ONLY the listed lesson topics. Supply every fact needed by the stem, make exactly one option defensible, and ensure every answer key (ai) is verifiably correct. Return only JSON.';
+    const user = JSON.stringify({
+      lesson: promptLesson || null,
+      attempt,
+      faultyItems: pending.map(({ item, index }) => ({ index, item })),
+    });
     try {
       const reply = await generateJson({
         system,
-        user: `${prompt}\nRepair attempt: ${attempt}.`,
-        schemaProfile: { name: 'mc_item', schema: MC_ITEM_SCHEMA, strict: true },
-        maxOutputTokens: 2000,
+        user,
+        schemaProfile: { name: 'mc_verify_repair_batch', schema, strict: true },
+        maxOutputTokens: Math.max(1800, pending.length * 650),
         temperature: 0.7,
       });
-      const parsed = JSON.parse(reply);
-      const fresh = {
-        ...parsed,
-        q: normalizeRepairedStem(parsed?.q),
-        op: normalizeOptionLabels(parsed?.op),
-        ex: completeSentencePrefix(parsed?.ex),
-      };
-      const admission = assessScionMcItem(fresh, { topicWords: topicTokens });
-      if (!admission.eligible) continue;
-      const keyVerification = await verifyReplacementKey(fresh, generateJson);
-      if (!keyVerification.verified) continue;
-      return { fresh, prompt, admission, keyVerification, attempt };
+      const repairs = JSON.parse(reply)?.repairs;
+      if (!Array.isArray(repairs)) continue;
+      const byIndex = new Map(repairs.map((repair) => [repair?.index, repair]));
+      const candidates = pending
+        .map((target) => {
+          const repair = byIndex.get(target.index);
+          if (!repair) return null;
+          const fresh = {
+            q: normalizeRepairedStem(repair.q),
+            op: normalizeOptionLabels(repair.op),
+            ai: repair.ai,
+            ex: completeSentencePrefix(repair.ex),
+          };
+          const admission = assessScionMcItem(fresh, { topicWords: topicTokens, semanticProfile: 'strict' });
+          return admission.eligible ? { ...target, fresh, admission } : null;
+        })
+        .filter(Boolean);
+      if (candidates.length === 0) continue;
+      const first = await blindSolve(
+        candidates.map(({ fresh }) => fresh),
+        generateJson,
+      ).catch(() => null);
+      const second = await blindSolve(
+        candidates.map(({ fresh }) => fresh),
+        generateJson,
+      ).catch(() => null);
+      if (!first || !second) continue;
+      candidates.forEach((candidate, candidateIndex) => {
+        const expected = Number(candidate.fresh.ai);
+        const answers = [first[candidateIndex], second[candidateIndex]];
+        if (!Number.isInteger(expected) || !answers.every((answer) => answer === expected)) return;
+        accepted.set(candidate.index, {
+          ...candidate,
+          prompt: `System: ${system}\nUser: ${user}`,
+          keyVerification: { verified: true, answers },
+          attempt,
+        });
+      });
+      pending = pending.filter(({ index }) => !accepted.has(index));
     } catch {
-      /* try one more bounded repair */
+      /* retry only the still-unverified seats once */
     }
   }
-  return null;
+  return accepted;
 }
 
 /**
  * Verify a lesson's mc answer keys by blind re-solving; regenerate an item
  * only when TWO independent blind solves agree on the same non-key answer
+ * or both independently abstain because the item is invalid/ambiguous
  * (single-solve regeneration measurably swapped good items for hastier ones).
  */
 async function verifyMcAnswers(lesson, promptLesson, generateJson, events) {
@@ -234,41 +289,57 @@ async function verifyMcAnswers(lesson, promptLesson, generateJson, events) {
   const disagreements = items.map((item, index) => first[index] !== undefined && first[index] !== item.ai);
   if (!disagreements.some(Boolean)) return;
   const second = await blindSolve(items, generateJson).catch(() => null);
-  for (const [index, item] of items.entries()) {
-    if (!disagreements[index]) continue;
-    if (!second || second[index] !== first[index]) continue; // solves disagree — keep the item
-    try {
-      const replacement = await generateVerifiedReplacement({
-        system:
-          'You write flawless quiz items. Replace a faulty multiple-choice item (its key disagreed with two blind solves). Same concept, same difficulty, tests ONLY the listed lesson topics. The answer key (ai) MUST be verifiably correct. Return ONLY the item JSON object.',
-        user: `Faulty item: ${JSON.stringify(item)}`,
-        promptLesson,
-        generateJson,
+  if (!second) return;
+  const targets = items
+    .map((item, index) => ({ item, index }))
+    .filter(({ index }) => disagreements[index] && second[index] === first[index]);
+  if (targets.length === 0) return;
+  const replacements = await generateVerifiedReplacementBatch({
+    targets,
+    promptLesson,
+    generateJson,
+  });
+  for (const { item, index } of targets) {
+    const replacement = replacements.get(index);
+    if (!replacement) {
+      // A twice-confirmed bad item must not silently survive because repair
+      // generation failed. Quarantine the seat; the following admission gate
+      // gets one bounded chance to backfill it, and projection drops a null if
+      // even that independently verified repair cannot be earned.
+      items[index] = null;
+      events.push({
+        pass: 'mcVerify',
+        lessonId: lesson.lessonId,
+        item: index,
+        action: 'quarantined',
+        reason:
+          first[index] === INVALID_MC_ANSWER_INDEX
+            ? 'double-blind-invalid-or-ambiguous'
+            : 'double-blind-key-disagreement',
+        rejected: item,
+        trainingEligible: false,
       });
-      if (replacement) {
-        const { fresh, prompt, keyVerification, attempt } = replacement;
-        events.push({
-          pass: 'mcVerify',
-          lessonId: lesson.lessonId,
-          item: index,
-          action: 'regenerated',
-          rejected: item,
-          chosen: fresh,
-          prompt,
-          trainingEligible: true,
-          preferenceEvidence: {
-            kind: 'double-blind-key-repair',
-            verified: true,
-            rejectedAnswers: [first[index], second[index]],
-            chosenAnswers: keyVerification.answers,
-            attempt,
-          },
-        });
-        items[index] = fresh;
-      }
-    } catch {
-      /* keep the original item */
+      continue;
     }
+    const { fresh, prompt, keyVerification, attempt } = replacement;
+    events.push({
+      pass: 'mcVerify',
+      lessonId: lesson.lessonId,
+      item: index,
+      action: 'regenerated',
+      rejected: item,
+      chosen: fresh,
+      prompt,
+      trainingEligible: true,
+      preferenceEvidence: {
+        kind: first[index] === INVALID_MC_ANSWER_INDEX ? 'double-blind-validity-repair' : 'double-blind-key-repair',
+        verified: true,
+        rejectedAnswers: [first[index], second[index]],
+        chosenAnswers: keyVerification.answers,
+        attempt,
+      },
+    });
+    items[index] = fresh;
   }
 }
 
@@ -277,7 +348,7 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
   const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
   const words = topicWords(promptLesson);
   if (items.length === 0 || words.length === 0) return;
-  const targets = items.map((item, index) => ({ item, index })).filter(({ item }) => !onTopic(item, words));
+  const targets = items.map((item, index) => ({ item, index })).filter(({ item }) => item && !onTopic(item, words));
   if (targets.length === 0) return;
   const indices = targets.map(({ index }) => index);
   const schema = {
@@ -335,7 +406,7 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
           ai: repair.ai,
           ex: completeSentencePrefix(repair.ex),
         };
-        const admission = assessScionMcItem(fresh, { topicWords: words });
+        const admission = assessScionMcItem(fresh, { topicWords: words, semanticProfile: 'strict' });
         if (!admission.eligible || !onTopic(fresh, words)) {
           events.push({
             pass: 'topicGate',
@@ -405,7 +476,13 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
   const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
   const topicTokens = topicWords(promptLesson);
   const targets = items
-    .map((item, index) => ({ item, index, admission: assessScionMcItem(item, { topicWords: topicTokens }) }))
+    .map((item, index) => ({
+      item,
+      index,
+      admission: item
+        ? assessScionMcItem(item, { topicWords: topicTokens, semanticProfile: 'strict' })
+        : { eligible: false, issues: ['missing-item'], score: 0 },
+    }))
     .filter(({ admission }) => !admission.eligible);
   for (let index = items.length; index < expectedMcCount; index += 1) {
     targets.push({ item: null, index, admission: { eligible: false, issues: ['missing-item'], score: 0 } });
@@ -469,7 +546,7 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
           ai: repair.ai,
           ex: completeSentencePrefix(repair.ex),
         };
-        const admission = assessScionMcItem(fresh, { topicWords: topicTokens });
+        const admission = assessScionMcItem(fresh, { topicWords: topicTokens, semanticProfile: 'strict' });
         if (!admission.eligible) {
           events.push({
             pass: 'admissionGate',
@@ -545,7 +622,7 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
   const assessed = terms.map((term, index) => ({
     term,
     index,
-    result: assessScionKeyTerm(term, { lessonTitle: promptLesson?.title }),
+    result: assessScionKeyTerm(term, { lessonTitle: promptLesson?.title, semanticProfile: 'strict' }),
   }));
   const targets = assessed.filter(({ result }) => !result.eligible);
   for (let index = terms.length; index < minimumKeyTermCount; index += 1) {
@@ -618,7 +695,10 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
         mi: completeSentencePrefix(repair.mi),
         cx: completeSentencePrefix(repair.cx),
       };
-      const admission = assessScionKeyTerm(fresh, { lessonTitle: promptLesson?.title });
+      const admission = assessScionKeyTerm(fresh, {
+        lessonTitle: promptLesson?.title,
+        semanticProfile: 'strict',
+      });
       const duplicate = terms.some(
         (other, otherIndex) =>
           otherIndex !== index &&
@@ -685,7 +765,10 @@ async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
     .map((item, index) => ({ item, index }))
     .filter(
       ({ item, index }) =>
-        index > 0 && !isAppliedQuizStem(item?.q) && assessScionMcItem(item, { topicWords: topicTokens }).eligible,
+        item &&
+        index > 0 &&
+        !isAppliedQuizStem(item?.q) &&
+        assessScionMcItem(item, { topicWords: topicTokens, semanticProfile: 'strict' }).eligible,
     )
     .slice(0, neededRepairs);
   const grounding = groundingWords(lesson);
@@ -744,7 +827,7 @@ async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
           return null;
         }
         const fresh = { ...item, q: normalizeRepairedStem(repair.q) };
-        const admission = assessScionMcItem(fresh, { topicWords: topicTokens });
+        const admission = assessScionMcItem(fresh, { topicWords: topicTokens, semanticProfile: 'strict' });
         const matchedGrounding = matchingGroundingWords(fresh.q, grounding);
         const reasons = [
           ...admission.issues,
@@ -906,6 +989,27 @@ export async function applyScionKernelPasses(
   if (lessons.length === 0 || typeof generateJson !== 'function') return { text: rawText, events: [] };
   const contentSourced = new Set(contentSourcedLessonIds);
   const events = [];
+
+  // Scion Pass B is intentionally a one-lesson call. Small local models can
+  // still omit the identifier even though the schema pins it. Recover only
+  // when both sides are unambiguous; never guess across a batch.
+  if (
+    lessons.length === 1 &&
+    promptLessons.length === 1 &&
+    !lessons[0]?.lessonId &&
+    typeof promptLessons[0]?.lessonId === 'string' &&
+    promptLessons[0].lessonId.trim()
+  ) {
+    lessons[0].lessonId = promptLessons[0].lessonId;
+    events.push({
+      pass: 'identityRepair',
+      lessonId: lessons[0].lessonId,
+      action: 'inferred',
+      reason: 'single-lesson-call',
+      trainingEligible: false,
+    });
+  }
+
   for (const lesson of lessons) {
     if (contentSourced.has(lesson?.lessonId)) continue; // library content — never touched
     normalizeMcOptionLabels(lesson);

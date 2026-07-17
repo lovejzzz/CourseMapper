@@ -56,9 +56,8 @@ export async function normalizeScionCodexDecisionStatuses({ decisionsDir, receip
         }
       }
     }
-    if (fileRepairs === 0) throw new Error(`${entry.name} contains no complete-to-scored repair`);
     const afterRaw = jsonBytes(document);
-    await fs.writeFile(filePath, afterRaw);
+    if (fileRepairs > 0) await fs.writeFile(filePath, afterRaw);
     files.push({
       file: entry.name,
       beforeSha256: hashBytes(beforeRaw),

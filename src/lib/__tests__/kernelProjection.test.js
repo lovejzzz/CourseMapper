@@ -521,7 +521,7 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(courseLevel.quality.source).toBe('kernel-chunk-1');
   });
 
-  it('realigns a decisively contradicted MC key at canonical kernel admission and records a trainable pair', () => {
+  it('rejects an explanation-key conflict when only lexical overlap supports moving the key', () => {
     const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
     const response = JSON.parse(shortKeyResponse);
     response.lessons[0].mc = [
@@ -539,17 +539,17 @@ describe('kernel parse → project → compile (end to end)', () => {
     ];
 
     const parsed = parseLessonKernelResponse(JSON.stringify(response), { prompt });
-    const repairedItem = parsed.lessons['lesson-1'].quizItems.find((item) => item.type === 'multiple_choice');
-    expect(repairedItem.answerIndex).toBe(1);
-    expect(parsed.repairs).toHaveLength(1);
-    expect(parsed.repairs[0]).toMatchObject({
-      kind: 'mc-item',
-      pass: 'explanationKeyAlignment',
-      trainingEligible: true,
-      rejected: { answerIndex: 0 },
-      chosen: { answerIndex: 1 },
-      preferenceEvidence: { verified: true, supportedIndex: 1 },
-    });
+    expect(parsed.lessons['lesson-1'].quizItems).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ question: response.lessons[0].mc[0].q })]),
+    );
+    expect(parsed.repairs).toEqual([]);
+    expect(parsed.issues).toContainEqual(
+      expect.objectContaining({
+        lessonId: 'lesson-1',
+        surface: 'mc',
+        problems: expect.arrayContaining(['explanation-key-conflict']),
+      }),
+    );
   });
 
   it('lets exact kernel fact citations repair a key before canonical projection', () => {

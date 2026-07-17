@@ -1,0 +1,356 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-adapter-corpus-readiness-v2",
+  "release": "v0.16.47",
+  "generatedAt": "2026-07-17T00:30:00.000Z",
+  "status": "research-training-authorized",
+  "sources": {
+    "approvedPreferences": {
+      "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-readiness-gap.jsonl",
+      "bytes": 712534,
+      "sha256": "5c956fea931c8c3f83ec4f60b6c6c28c7848f9fc6c9b7279909e0df27fdc3c94"
+    },
+    "judgeCampaign": {
+      "path": "evaluation/scion-adapters/evidence/judge-campaign-readiness-gap-v0.16.47.json",
+      "bytes": 9042,
+      "sha256": "a7de1cb3c9fbab7c51a66f362ff30421a7631c1daeba2bb61ff4fbe27b5175a9"
+    }
+  },
+  "dataset": {
+    "identity": {
+      "protocol": "scion-adapter-dataset-identity-v2",
+      "sha256": "4dd927d850312303c30ccaa9a4789ca9f69df6a1b92bbf4cc7d6bfa6a4c20e85"
+    },
+    "status": "research-ready",
+    "promotable": false,
+    "counts": {
+      "loaded": 145,
+      "total": 143,
+      "quarantined": 2,
+      "domains": 7,
+      "groups": 32,
+      "trainingTaskGroups": 81,
+      "trainingSourceKernels": 64,
+      "train": 114,
+      "valid": 15,
+      "test": 14,
+      "trainDomains": 7,
+      "validDomains": 7,
+      "testDomains": 7,
+      "blindInstructorPairs": 0,
+      "blindInstructorDomains": 0,
+      "singleModelJudgePairs": 143,
+      "singleModelJudgeDomains": 7,
+      "sourceBoundModelJudgePairs": 143
+    },
+    "domains": [
+      "anatomy",
+      "computer-science",
+      "economics",
+      "geology",
+      "music-theory",
+      "physics",
+      "user-experience-design"
+    ],
+    "modelJudgeDomainCounts": {
+      "anatomy": 13,
+      "computer-science": 20,
+      "economics": 28,
+      "geology": 10,
+      "music-theory": 35,
+      "physics": 13,
+      "user-experience-design": 24
+    },
+    "domainGroupCounts": {
+      "anatomy": 3,
+      "computer-science": 5,
+      "economics": 4,
+      "geology": 4,
+      "music-theory": 7,
+      "physics": 3,
+      "user-experience-design": 6
+    },
+    "domainTaskGroupCounts": {
+      "anatomy": 6,
+      "computer-science": 14,
+      "economics": 15,
+      "geology": 7,
+      "music-theory": 16,
+      "physics": 9,
+      "user-experience-design": 14
+    },
+    "domainSourceKernelCounts": {
+      "anatomy": 6,
+      "computer-science": 10,
+      "economics": 13,
+      "geology": 6,
+      "music-theory": 10,
+      "physics": 9,
+      "user-experience-design": 10
+    },
+    "sourceGroundingPolicy": {
+      "requiredForModelJudge": true,
+      "promptEmbeddingEnabled": true,
+      "sourceBoundModelJudgePairs": 143,
+      "unboundAdmittedModelJudgePairs": 0
+    },
+    "sourceLicensePolicy": {
+      "protocol": "scion-source-license-policy-v1",
+      "declaredRows": 143,
+      "missingRows": 0,
+      "licenses": {
+        "CC-BY-4.0": 74,
+        "CC-BY-NC-SA-4.0": 10,
+        "CC-BY-SA-4.0": 35,
+        "Open Government Licence v3.0": 6,
+        "U.S. Government Work": 14,
+        "W3C Document License and U.S. Government Work": 4
+      },
+      "nonCommercialRows": 10,
+      "shareAlikeRows": 45,
+      "researchCompatible": true,
+      "productionCompatible": false,
+      "productionRule": "noncommercial and share-alike source rows require replacement or explicit legal clearance"
+    },
+    "holdoutBoundary": {
+      "protocol": "scion-training-holdout-firewall-v1",
+      "status": "pass",
+      "manifestPath": "evaluation/scion-adapters/held-out-course-benchmark-v1.json",
+      "manifestSha256": "e3f07d2ccdf197315556e0205b97b30aee7a447399e14c440d6c1865e11b08a5",
+      "benchmarkId": "scion-held-out-course-benchmark-v1",
+      "frozenAt": "2026-07-13T10:45:00Z",
+      "domainDisjointRequired": true,
+      "courseGroupDisjointRequired": true,
+      "domains": [
+        "astronomy",
+        "nutrition",
+        "psychology",
+        "world-languages",
+        "world-literature"
+      ],
+      "domainCount": 5,
+      "courseGroupCount": 5,
+      "admittedDomainOverlapCount": 0,
+      "admittedCourseGroupOverlapCount": 0,
+      "excludedPairCount": 0,
+      "excludedDomainPairCount": 0,
+      "excludedCourseGroupPairCount": 0
+    },
+    "splitIdentity": {
+      "strategy": "domain-stratified-source-task-hash-v2",
+      "groups": {
+        "train": [
+          "1f78d9010ad1a580a85db5c7544f91a2feac1d6f7a421c987241bf9fe0e6133d",
+          "2c1eba78b5f42d220a97d210d5c7ae9e8e700027a5d2e81be144ca947043b602",
+          "30e26436f78ee30a0ffc79d1dc9b9f86b008739849e038b2ce6cee5cf9769ef8",
+          "344b55e14dde7b7166a43a9d6e8b3b9dffcde0f80ea45d5d6a193ad80f6ac839",
+          "35d89bcaf3ddca4f5db524865d11c6c157cb21dda5b6747f51e6087d29ee677e",
+          "404932a06a65b779ec558c577b37f4047333de372d62971e4cd879f5cbe841f0",
+          "40a0a54856720c4a8da6794f75b11dc1d441dbb9006bac60e9a3e85c4499678a",
+          "40d0c8329100306415e7ae3bf5ab99e433677bb6daf1273eb9e5b950e871a736",
+          "4bacb403ae720bf494d6e1ecc246975f3793b65dc863989c09bec87a33468908",
+          "4c7c50f8c15723a543fbb79c29dc07c3bc2a5e36957024c88d8f1f7ce9cb8c77",
+          "51c5fc01ab086792f17a389759b999ecc5da10cc3694a499b6ecdb3e05bf97f4",
+          "5cfc4fc6ec36add5a1776b096fad5e911c648500f3ef91b0056cd2596fe5937b",
+          "5d2b4eae96aef8ac2eb66285ff242d0fd6a01b78a14bda0f4bde11351edbef18",
+          "5df9def60611825a43c51f5b245851008c91d8720d02e2e9bde57acc5401b0c3",
+          "61061fc4392e7f07836057eb444308dbc51bb61e37dd090ec53175e88102e50f",
+          "61788e7f501f85bad759fcbfd50e6c99bc6f6344cfdc3783c6272b35fb8f6ee7",
+          "64aef0af204de3a6c62ad7c5a114499d6eb36bc6eb0abf0737c1d042c81c13b7",
+          "695ae7da4a01464cca41ad6d4de693199e2d4a5b7ff6fb4cf6c49f24d7d2e75e",
+          "69b9b903daa499d1500a6a0d1852de4e4c05ebc18dcbd3a96219b2763f29226c",
+          "6ab1b7a3ddf4ec0474be4620ebc8f14da97b16e49b5dd44dec0b9503e2edaa1e",
+          "6f1d739d05e39b4d899686a6bff37386422636eaeca3bffa087b697d2f66096e",
+          "6f22adf4f08684968c5fff74c502c5192f91efdac21a22b161f7940d66c63eb9",
+          "71478a53e49d61db4cd212140464c40ac2e74c9ed901758946592a4a899c2e49",
+          "7f6cb5561f898c4070185237e5e1aab9a06c44ef9af9bec0691680f093ea7f5a",
+          "868293be35da4131903c71fd123d54a69837e14c5ddf2da9cd1e6d924078eaed",
+          "8984331f0b1ad1975aa6971968c476ab20f9465ac17c294d261c50123da16955",
+          "8ac5b112b59b07935e9771a3a06810ba8663c24f632b55694945b84b0ec9c847",
+          "8b462e11068df3c5bc6e040598ec78a9dc2bf58adabbe7ad2e939f92525687b6",
+          "8c5d8c5d9d68c17742a2a3846c956dee35ab476df978a53fc53d8873806febc4",
+          "9cc06525d6b4c64ce51bd311b5a3d43bf14678d7287827297e362477214a3796",
+          "9e8e13c3ae1ba4ba6faaf85cb51940ebefbbddaa099170d050bcf94ad31d2760",
+          "9f8a151a5828b9a76b6efdc7039a41785804ce9cf33e9724fd1305406b73aadc",
+          "a143d25622cfe78f231bb4428807f50f9a4be5b0108df5984430354a4747b482",
+          "a1f786607e3698c52c1ef0ec59b751250daf5afc0f85683597ce27410035477e",
+          "a5788c43d3d3f2dd40271f63c5ca71c72fcdf8d05471f3b108dbe126b411e7be",
+          "a7b67bae35da3f3a0b52aadb5a2b0e99d0420469e2ea9b55c9a6b8f2bf12e047",
+          "a869df8d724cdad104d9e15421e86c8f860e827012994fda9489bfa2aab8029d",
+          "acd131a8f6168abd173cfcefe558bb1839a4e55cb88aadef0c15528b14850098",
+          "b1ac5329d07f8798a6ba36eb94305109f7249344a2ca94cc9d6960de7119a851",
+          "b8814ca718ff4fa9b204c140dd6f315b93be257c83bd02607b6c967bf5bc17e5",
+          "b9a7f7a1b529088a471a74c2acaa88c82ea8594f8d9ea20cbba12c2ef5a84331",
+          "ba9a5c29b4bc09ea21bcd65fbb32ba904653746c015d8e8b3f324ec93f38a04b",
+          "be0c2d19f0c81b2f27e6afd79fb2c4a6fa0d49e996e4b38977facd592497d895",
+          "c6a34bf2079837dc739dec327f9a6444c07dec2f7f1c5409463be4b47217e458",
+          "c6e7d9627e7d7d067cc1b946685368c29ce8f9f38888099c48339aab7c3e5aa9",
+          "ccaa2b06ca243e454aaffd82c7acdf7cd29fa7a56149582045be65639e7ea697",
+          "d2676da34c5f292a77ef83520995ae82cb3ff6905587caab0fae9abbf063fab0",
+          "d40a11e1fca7e425afb991a8b0b1528ae464bdeaff0d1641bbf94cc298a500c9",
+          "d56e8e9a3a3b8e7fe5a8d6a4aa481f5e20557ce2a2b853fd1b1419d2c4d3875a",
+          "d64a996994fe9e943c4624b8ee888e30dc8618768d421e15f4d450db1c7ab78a",
+          "d7e0687e6ad2dc8dcd6ae975b9d597cc41970a0963b8ab07c94b9b7b167ad212",
+          "d846de9f822f915c10b6b60cd4705b8140e723d20b7f40249eec036dc553092b",
+          "db5f2522f00c9d896bd11212330823de270ea54a990ea9598c29cff6ee793e77",
+          "df29b57a283d00053429e50b8b53fed6b3cb40cddcedaad682d544174527b804",
+          "e12c762944d855800065e993928defa57b4c2688da199392c54fbd0911680bf5",
+          "e135e481ce7afd19f40a890ed505e16bad324f840a3cb17df6f9d3aaf62fc718",
+          "e7301d515525b6cc0dce170c06093b0e75e09fa71f12eccc57412120f1b1e0af",
+          "e93759e20a4a3611c0c781b1ee793572ed89d5f9d504a2c0778a9943ebdcd556",
+          "f1c975e5b5ff6e15d424e9b0bf4e72be106ac6a663ee6d671dd2a13d4ed382f5",
+          "f50225322763215d6695667921ea354bc91d7899cdacbd832a2d10617b8110cc",
+          "f755121788d3b6554ac4c700b084d3bd3e74c4b5189c2c85901241b759f1f04b",
+          "f8e01cce0eb81e5e6959bc635c6fecf620cb521853d0eab258acfc3f81800105",
+          "fc008dc6e91fe5d2fa0ef566bc3528c3a5aeb6eff36dfdbf6768dcac4398af7d"
+        ],
+        "valid": [
+          "10f7b0d6767eabe4c6aeeecdc95a7af461f7c90c8db18dbd48958f40874b84bc",
+          "122e7d6a49c67c78e74f7d65a39e65a1fe23e4ff15c251249b4d0b03abb18abc",
+          "1db377222000f371045acd83e5a005d4c45f994c9a223dc409897ab9d0d5a10a",
+          "22492892b9fcc4529077ac9e525f8c369365d92633892ce69d76942cc44d4a36",
+          "272f30c6ce3b13b614be9539295c4e32976d9329c50deb1052e1290c24fc1fef",
+          "373552d2aaa920a02815cdfe752b29cfa2b3010f8b181e90270bb5491cae757b",
+          "48c66f934f008987cc0b6f1539486b0c0426ddf33060280dd5b65ae6c0458ce7",
+          "4b324d4388007eda8f96f5b0cab04a160d9e07ea2bb5d3733aea2f7c554e2d14",
+          "bd7e68d1f542762f0fa03af7c7fb3b64a61b2ea990acb4d9950cb6fa3958109d"
+        ],
+        "test": [
+          "006561d73fe617ac443696eb27756f32c0c410d22129dd2386a675d23337bcd0",
+          "031fc18a6fec80c85fb92b79e8fc3b2f711e9f297bf6c365978242eb7e0b5c49",
+          "0483252a9dd4b5941a6221e53ff4238fe5e87998db03f5f05878fdcd3a94ff7e",
+          "08c2a000b098b9f8d20efbb5a45fc8cd5d67c81ee06e220e70ad0d3ca99e2ec7",
+          "0be10b0077d5226f9615fc4c6059cf73ecfc626822d9fb702e5055ccaddaf89d",
+          "0dcbc9956f1986c04e92ca7b879bcdf6039eb51bb3d9abea0f93fdc6ab7255b5",
+          "168d4c0f47d1eb2e4b3b3dab65fedf1eea3acd4d05e4dd48ae66f7a8266ae2c8",
+          "1f6f736575d5d46398deaac313505a788afb4ab5f2a33e60b9d28cb239b05a1c",
+          "5de78bba2d0adbbb811b335ca2d45c72703d74624cc7c1fa5aa926eb6821417e"
+        ]
+      },
+      "domains": {
+        "train": [
+          "anatomy",
+          "computer-science",
+          "economics",
+          "geology",
+          "music-theory",
+          "physics",
+          "user-experience-design"
+        ],
+        "valid": [
+          "anatomy",
+          "computer-science",
+          "economics",
+          "geology",
+          "music-theory",
+          "physics",
+          "user-experience-design"
+        ],
+        "test": [
+          "anatomy",
+          "computer-science",
+          "economics",
+          "geology",
+          "music-theory",
+          "physics",
+          "user-experience-design"
+        ]
+      }
+    },
+    "trainingFormat": {
+      "protocol": "scion-orpo-conversations-v2",
+      "columns": [
+        "chosen",
+        "rejected",
+        "provenance"
+      ],
+      "sequence": [
+        "user",
+        "assistant"
+      ],
+      "promptIncludedInBothSequences": true,
+      "sourceGrounding": "semantic-source-context-in-user-turn",
+      "legacyFallback": "row-prompt-only-for-non-source-grounded-evidence"
+    },
+    "strictQuarantine": [
+      {
+        "source": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-readiness-gap.jsonl",
+        "line": 21,
+        "issues": [
+          "chosen:example-underdeveloped"
+        ]
+      },
+      {
+        "source": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-readiness-gap.jsonl",
+        "line": 94,
+        "issues": [
+          "chosen:explanation-key-conflict"
+        ]
+      }
+    ],
+    "gateProfiles": {
+      "production": {
+        "minimumPairs": 3000,
+        "minimumDomains": 5,
+        "minimumGroupsPerDomain": 3,
+        "minimumTaskGroupsPerDomain": 20,
+        "minimumSourceKernelsPerDomain": 10,
+        "minimumModelJudgePairs": 100,
+        "minimumModelJudgeDomains": 5,
+        "minimumModelJudgePairsPerDomain": 20,
+        "qualifiedModelJudgeDomains": 4,
+        "issues": [
+          "verified-pairs:143<3000",
+          "single-model-judge-qualified-domains:4<5",
+          "domain-task-groups:computer-science:14<20",
+          "domain-task-groups:economics:15<20",
+          "domain-task-groups:music-theory:16<20",
+          "domain-task-groups:user-experience-design:14<20",
+          "source-license-noncommercial:10",
+          "source-license-sharealike-review:45"
+        ]
+      },
+      "research": {
+        "minimumPairs": 100,
+        "minimumDomains": 4,
+        "minimumGroupsPerDomain": 3,
+        "minimumTaskGroupsPerDomain": 10,
+        "minimumSourceKernelsPerDomain": 10,
+        "minimumModelJudgePairs": 100,
+        "minimumModelJudgeDomains": 4,
+        "minimumModelJudgePairsPerDomain": 20,
+        "qualifiedModelJudgeDomains": 4,
+        "issues": []
+      }
+    }
+  },
+  "judgeEvidence": {
+    "evidenceClass": "single-model-judge-same-identity-paired-order",
+    "completedOrders": [
+      "A/B",
+      "B/A"
+    ],
+    "completedPerCasePasses": 30,
+    "newStablePreferences": 11,
+    "qualifyingTrainingRows": 145,
+    "minimumResearchPreferences": 100,
+    "preferenceCountThresholdMet": true,
+    "stableWinnerByModel": {
+      "GPT-5.4-mini": 8,
+      "Scion base + compiler recovery (Gemma 4 E2B)": 3
+    },
+    "agreementRate": 0.866667
+  },
+  "authorization": {
+    "researchTrainingAuthorized": true,
+    "adapterPromotionAuthorized": false,
+    "productionTrainingAuthorized": false,
+    "blockers": [],
+    "nextGate": "Run a reproducible research-only adapter training attempt, then evaluate the exact adapter against base-only Scion on the frozen held-out benchmark."
+  },
+  "claimBoundary": "Passing the 100-row count is necessary but not sufficient. This receipt enforces strict semantic admission, source binding, task and kernel diversity, license disclosure, and a frozen holdout firewall. It is single-model-judge evidence and proves no adapter win or production readiness.",
+  "identity": {
+    "algorithm": "sha256-canonical-scion-adapter-corpus-readiness-v2",
+    "sha256": "60e40678f70098f8c379a2d884d2540eabc48ea177a8784d6aebaf40bc555dc2"
+  }
+}

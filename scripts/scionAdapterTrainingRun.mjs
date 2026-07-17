@@ -220,6 +220,42 @@ export async function verifyScionAdapterDatasetForTraining({ manifestPath, lane,
   if (lane === 'production' && manifest?.promotable !== true) issues.push('production-dataset-not-promotable');
   if (lane !== 'production' && manifest?.promotable !== false) issues.push(`${lane}-dataset-must-not-promote`);
   if (manifest?.primaryPreferenceEvidence !== 'single-model-judge') issues.push('primary-preference-evidence');
+  if (manifest?.sourceGroundingPolicy?.requiredForModelJudge !== true) {
+    issues.push('source-grounding-policy');
+  }
+  if (manifest?.sourceGroundingPolicy?.promptEmbeddingEnabled !== true) {
+    issues.push('source-grounding-prompt');
+  }
+  if (
+    manifest?.trainingTaskIdentity?.algorithm !== 'sha256-source-task-or-course-group-v2' ||
+    manifest?.trainingTaskIdentity?.hashes?.length !== manifest?.counts?.trainingTaskGroups
+  ) {
+    issues.push('training-task-identity');
+  }
+  if (
+    manifest?.trainingSourceKernelIdentity?.algorithm !== 'sha256-semantic-source-kernel-v1' ||
+    manifest?.trainingSourceKernelIdentity?.groups !== manifest?.counts?.trainingSourceKernels ||
+    manifest?.trainingSourceKernelIdentity?.hashes?.length !== manifest?.counts?.trainingSourceKernels
+  ) {
+    issues.push('training-source-kernel-identity');
+  }
+  if (
+    manifest?.sourceGroundingPolicy?.sourceBoundModelJudgePairs !== manifest?.counts?.singleModelJudgePairs ||
+    manifest?.sourceGroundingPolicy?.unboundAdmittedModelJudgePairs !== 0
+  ) {
+    issues.push('source-grounding-counts');
+  }
+  if (
+    manifest?.sourceLicensePolicy?.protocol !== 'scion-source-license-policy-v1' ||
+    manifest?.sourceLicensePolicy?.declaredRows !== manifest?.counts?.singleModelJudgePairs ||
+    manifest?.sourceLicensePolicy?.missingRows !== 0 ||
+    manifest?.sourceLicensePolicy?.researchCompatible !== true
+  ) {
+    issues.push('source-license-policy');
+  }
+  if (lane === 'production' && manifest?.sourceLicensePolicy?.productionCompatible !== true) {
+    issues.push('source-license-production');
+  }
   if (manifest?.leakage?.groupOverlapCount !== 0) issues.push('dataset-group-leakage');
   const expectedIdentity = computeScionAdapterDatasetIdentity(manifest);
   if (manifest?.identity?.protocol !== 'scion-adapter-dataset-identity-v2') issues.push('dataset-identity-protocol');

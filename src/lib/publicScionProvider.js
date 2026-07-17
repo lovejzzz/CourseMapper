@@ -21,6 +21,16 @@ export const PUBLIC_SCION_KERNEL_CONCURRENCY = 1;
 export const PUBLIC_SCION_MIN_RETRIES = 2;
 export const PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS = 4;
 
+// Each provider call already performs the initial completion plus two
+// internal retries. Scale the OUTER lesson-recovery budget to the amount of
+// work that can actually be restored instead of spending four more calls on
+// one missing lesson (fifteen near-identical completions in the browser).
+// Larger courses retain the calibrated four-call ceiling.
+export function publicScionEnrichmentRecoveryCallLimit(lessonCount) {
+  const lessons = Math.max(1, Math.ceil(Number(lessonCount) || 1));
+  return Math.min(PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS, lessons);
+}
+
 export function publicScionRetryDelay(attempt) {
   const retryNumber = Math.max(1, Number(attempt) || 1);
   return Math.min(250 * 2 ** (retryNumber - 1), 2000);
@@ -32,8 +42,8 @@ export function isPublicScionProvider(provider) {
 
 // The shared repair module stays lightweight and does not import the full
 // preference gate. Browser preprocessing and canonical admission share one
-// repair order; the browser's retained two-token paraphrase exception is
-// explicit below and its evidence is always marked non-training.
+// repair order. Only explicit answer text/labels or uniquely cited source
+// claims may move a key; lexical overlap remains a rejection signal.
 function repairPublicScionMcItems(parsed) {
   const repairs = [];
   if (!parsed || !Array.isArray(parsed.lessons)) return { parsed, repairs };
@@ -55,28 +65,8 @@ function repairPublicScionMcItems(parsed) {
         lessonId: lesson.lessonId,
         itemIndex,
         sourceClaims: citedSourceClaims,
-        // Preserve the browser parser's proven question/steps paraphrase
-        // recovery. Canonical admission and benchmark replay keep the more
-        // conservative shared default (3 overlapping tokens, margin 3).
-        keyConflictOptions: { minimumBestScore: 2, minimumMargin: 1 },
       });
-      repairs.push(
-        ...result.repairs.map((repair) =>
-          repair.pass === 'explanationKeyAlignment'
-            ? {
-                ...repair,
-                // The browser parser intentionally accepts one proven
-                // two-token paraphrase family. It improves the product path
-                // but must not enter the stricter training-preference lane.
-                trainingEligible: false,
-                preferenceEvidence: {
-                  ...repair.preferenceEvidence,
-                  evidenceScope: 'browser-relaxed-paraphrase-recovery',
-                },
-              }
-            : repair,
-        ),
-      );
+      repairs.push(...result.repairs);
       return result.item;
     });
   }

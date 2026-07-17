@@ -1,0 +1,1538 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-ux-service-evidence-and-progress-lab-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "UX Service Evidence and Progress Lab, a four-session course in which students connect service operations to user experience, write contextual scenarios, plan observational tests, and communicate multi-stage progress accessibly.",
+  "fileNames": [
+    "source-packet-91025e358b91265f110903e864438a936557a07bce01795345fa49826e0ca607.json"
+  ],
+  "sourcePacketSha256": "91025e358b91265f110903e864438a936557a07bce01795345fa49826e0ca607",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"UX Service Evidence and Progress Lab\",\"sessions\":[{\"number\":1,\"title\":\"Service blueprinting\"},{\"number\":2,\"title\":\"User scenarios\"},{\"number\":3,\"title\":\"Usability testing\"},{\"number\":4,\"title\":\"Process and progress indicators\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"Which evidence source can support a service blueprint?\",\"op\":[\"Desk research and interviews with users, staff, and stakeholders\",\"Only a decorative status color choice\",\"A moderator coaching script during observation\",\"A feature walkthrough written from memory\"],\"ai\":0,\"ex\":\"Blueprint evidence can come from desk research and interviews. It is not limited to coached observation or a walkthrough.\",\"sourceFactIndexes\":[4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Frontstage actions\",\"df\":\"Steps and visible interactions that happen where users can see them.\",\"eg\":\"A support agent confirms a booking in front of the customer during a service lab exercise.\",\"mi\":\"These are the hidden internal tasks that only staff can see.\",\"cx\":\"No—the hidden internal tasks are backstage actions; frontstage actions are the visible service moments.\",\"sourceFactIndexes\":[0,3]},{\"tr\":\"Backstage actions\",\"df\":\"Work done out of the user’s view to support the service experience.\",\"eg\":\"A staff member updates the order system after a user submits a request.\",\"mi\":\"These are the same as the user’s own steps through the service.\",\"cx\":\"Not quite—user steps are separate from backstage work, which happens behind the scenes to enable the service.\",\"sourceFactIndexes\":[0,3]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"A team writes a short statement for a mobile renewal flow. Which option is a user scenario rather than a feature walkthrough?\",\"op\":[\"A busy parent checks a library renewal page after work to extend a loan before it is due.\",\"The page opens with a blue button, a confirmation message, and a list of account features.\",\"A designer lists every screen element and the order of clicks in the renewal interface.\",\"The team records the final page copy and button labels for the release notes.\"],\"ai\":0,\"ex\":\"Correct: it names a user type, context, goal, and interaction. The tempting misconception is the feature walkthrough, which describes interface parts or screen order instead of a specific user acting toward a goal.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"During scenario planning, which practice best matches the source guidance?\",\"op\":[\"Treat one scenario as final and apply it to all users.\",\"Write the scenario, then validate and refine it with the represented user group and partners.\",\"Skip context details so the scenario stays broad and reusable.\",\"Use the scenario only after launch, when observations are no longer needed.\"],\"ai\":1,\"ex\":\"Correct: scenarios should be checked and improved with the user group and collaborators. The most plausible misconception is to treat the scenario as fixed or universal, but the source says needs vary by context and across diverse users.\",\"sourceFactIndexes\":[3,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"User scenario\",\"df\":\"A narrative that places a user type in a specific context with a motivation, goal, and tasks.\",\"eg\":\"A commuter on a phone at the station renews a transit pass before boarding.\",\"mi\":\"It is just a list of interface steps.\",\"cx\":\"Use it to explain who is acting, where, why, what they want, and how they try to do it.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"Scenario validation\",\"df\":\"Checking a draft scenario against the people and teammates it represents, then improving it.\",\"eg\":\"A team shares a draft scenario with students who use the service and revises details about timing and access.\",\"mi\":\"It means polishing the wording without feedback from anyone represented.\",\"cx\":\"Use it to test whether the scenario fits real users and collaboration needs.\",\"sourceFactIndexes\":[4,3]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A team is preparing a usability test for a prototype of a service portal. Which plan best matches the method?\",\"op\":[\"Have representative users attempt realistic tasks while the team observes and notes behavior.\",\"Have the moderator teach each participant the preferred workflow during the session.\",\"Have the team discuss the interface in a meeting without any users present.\",\"Have representatives try realistic tasks while thinking aloud and the team records observations\"],\"ai\":0,\"ex\":\"The best choice is the realistic-task observation with representative users. A usability test is about watching users try tasks, often while they think aloud. The teaching option is the common misconception because it turns the moderator into a teacher instead of an observer.\",\"sourceFactIndexes\":[0,3],\"type\":\"multiple_choice\"},{\"q\":\"Before scheduling a usability test, which step belongs in the recruitment part of the plan?\",\"op\":[\"Identify appropriate users and obtain their consent.\",\"Ask the moderator to explain the correct answers during the session.\",\"Invite anyone available, then screen them after the test ends.\",\"Replace participant recruitment with a script that coaches each task.\"],\"ai\":0,\"ex\":\"The correct step is to recruit appropriate users and secure their consent before the session. The most plausible misconception is to treat recruitment as an afterthought or to rely on coaching, but the plan calls for matching participants to the goal and getting consent first.\",\"sourceFactIndexes\":[2,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Test script\",\"df\":\"A repeatable session structure for a usability test.\",\"eg\":\"In a course lab, the moderator follows the same task prompts for each participant while still letting the participant work independently.\",\"mi\":\"It should turn the moderator into a teacher.\",\"cx\":\"The script gives consistency; it should not coach people through the task.\",\"sourceFactIndexes\":[3]},{\"tr\":\"Recruitment\",\"df\":\"The step of selecting appropriate participants and securing consent before the session.\",\"eg\":\"For a service-portal test, the team recruits people who match the intended user group and confirms consent before the session begins.\",\"mi\":\"It can be done after the test, once the results are known.\",\"cx\":\"Recruitment happens first so the team has the right users and permission to proceed.\",\"sourceFactIndexes\":[2,4]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"A team is designing a four-screen intake flow for a service lab. Which pattern best shows the learner’s place in the flow while they move through Back and Next controls?\",\"op\":[\"A numbered step indicator across the screens\",\"A decorative status palette for each page\",\"A freeform task list beside the form\",\"A single landing page menu of sections\"],\"ai\":0,\"ex\":\"A numbered step indicator is correct because it marks the user’s current position in a linear, multi-page flow and works with Back and Next controls. The common mistake is choosing color or a list: color alone does not carry completion meaning, and a list explains instructions rather than position.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"A reviewer wants the current step in a three-part onboarding flow to be understandable without relying on green or gray alone. What should the interface expose for the active step?\",\"op\":[\"The active step should use aria-current\",\"The active step should use a larger logo\",\"The active step should use only color contrast\",\"The active step should be hidden until finished\"],\"ai\":0,\"ex\":\"Using aria-current is correct because the current labeled step must be exposed programmatically. The likely misconception is to depend on color alone; that can suggest status visually, but it does not provide a reliable current-step meaning by itself.\",\"sourceFactIndexes\":[3,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Step indicator\",\"df\":\"A visual control that marks the user’s current place in a linear multi-page process.\",\"eg\":\"In a three-screen appointment setup, the bar shows Step 2 of 3 while Back and Next remain available.\",\"mi\":\"A progress color scheme that simply makes the page look organized.\",\"cx\":\"In the service evidence lab, students can use it for a multi-screen booking flow, not for a one-page checklist.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"aria-current\",\"df\":\"A programmatic signal that identifies which labeled item is current.\",\"eg\":\"The active step in a four-part intake flow is announced with aria-current so screen readers know where the user is.\",\"mi\":\"A decorative highlight that only changes the appearance of the step.\",\"cx\":\"When students compare accessible progress cues, this is the way to mark the present step, not color alone.\",\"sourceFactIndexes\":[4,3]}]}}}}",
+  "savedAt": "2026-07-16T21:39:12.808Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-novel-kernels-v0.16.47.json",
+    "campaignManifestSha256": "97ac9210a3be47f6aec12da1b2be8844b3ee8b4aac97653f7a35ffae1f13f02e",
+    "promptSetSha256": "36eb3f24584637bd38a67432511f85e802197615c85339fc19fc4a2d89b73404",
+    "courseInputSha256": "cb7a1307ca9ee5a46b3729d91288a9d5b92428b9efdd7173da8c455d0e856a7f",
+    "courseGroupId": "ux-service-evidence-and-progress-lab",
+    "courseGroupSha256": "49084902fd5d4d054c3efce0301e2e580ca82b9482b8ffecd85c01da71de4775",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/ux-scion-v01647.json",
+      "sourceArtifactSha256": "7e1562dbdf011f7c2cd8f68fa905c448b401a992e7cb32311929ffa78b62676c",
+      "kernels": [
+        {
+          "id": "ux/service-blueprinting",
+          "term": "Service blueprinting",
+          "definition": "A service blueprint maps how a service works across user actions, visible interactions, backstage activities, and supporting operations.",
+          "definitionAnchor": {
+            "src": "digitalgov:journeys",
+            "loc": "Service blueprints — What",
+            "quote": "works across systems and operations"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A service blueprint clarifies relationships among systems and processes and can expose improvement opportunities.",
+              "anchor": {
+                "src": "digitalgov:journeys",
+                "loc": "Service blueprints — Why",
+                "quote": "clarify relationships between systems and processes"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Unlike a journey map, a service blueprint includes operational layers beyond the user perspective.",
+              "anchor": {
+                "src": "digitalgov:journeys",
+                "loc": "Understand the differences",
+                "quote": "created from the perspective of the user"
+              }
+            },
+            {
+              "index": 2,
+              "text": "The diagram separates user steps, frontstage actions, backstage actions, and support processes.",
+              "anchor": {
+                "src": "digitalgov:journeys",
+                "loc": "Service blueprints — How",
+                "quote": "Create a diagram with four rows"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Blueprint evidence can come from desk research and interviews with users, staff, and stakeholders.",
+              "anchor": {
+                "src": "digitalgov:journeys",
+                "loc": "Service blueprints — How",
+                "quote": "desk research and user, staff, and stakeholder interviews"
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        },
+        {
+          "id": "ux/user-scenarios",
+          "term": "User scenarios",
+          "definition": "A user scenario is a narrative that situates a user type, motivation, context, goal, and tasks in a specific interaction.",
+          "definitionAnchor": {
+            "src": "digitalgov:user-interaction",
+            "loc": "User scenarios — What",
+            "quote": "tells a story about how users interact"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Scenarios communicate a design idea through a specific interaction for a specific user.",
+              "anchor": {
+                "src": "digitalgov:user-interaction",
+                "loc": "User scenarios — Why",
+                "quote": "specific interaction for a specific user"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A scenario should state who the user is, why and where they act, what goal they have, and how they pursue it.",
+              "anchor": {
+                "src": "digitalgov:user-interaction",
+                "loc": "User scenarios — How",
+                "quote": "Who they are"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Scenario work can reveal how needs vary with context and across diverse users.",
+              "anchor": {
+                "src": "digitalgov:user-interaction",
+                "loc": "User scenarios — Why",
+                "quote": "needs might vary depending on their context"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Teams should validate and refine scenarios with the represented user group and collaborators.",
+              "anchor": {
+                "src": "digitalgov:user-interaction",
+                "loc": "User scenarios — How",
+                "quote": "validation, feedback, and refinement"
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        },
+        {
+          "id": "ux/usability-testing",
+          "term": "Usability testing",
+          "definition": "A usability test observes representative users attempting realistic tasks with a product or service, often while thinking aloud.",
+          "definitionAnchor": {
+            "src": "digitalgov:usability-testing",
+            "loc": "What",
+            "quote": "observes users as they attempt to use"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A usability test can examine a sketch, prototype, competitor product, or other artifact relevant to a user goal.",
+              "anchor": {
+                "src": "digitalgov:usability-testing",
+                "loc": "How to do it",
+                "quote": "Choose what you will test"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The plan should align the team on scenarios, participants, recruitment, moderation, and observation roles.",
+              "anchor": {
+                "src": "digitalgov:usability-testing",
+                "loc": "How to do it",
+                "quote": "Plan the test"
+              }
+            },
+            {
+              "index": 2,
+              "text": "A test script gives the session a repeatable structure without turning the moderator into a teacher.",
+              "anchor": {
+                "src": "digitalgov:usability-testing",
+                "loc": "How to do it",
+                "quote": "Prepare a usability test script"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Recruitment should identify appropriate users and obtain their consent before the session.",
+              "anchor": {
+                "src": "digitalgov:usability-testing",
+                "loc": "How to do it",
+                "quote": "Recruit users and get their consent"
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        },
+        {
+          "id": "ux/process-and-progress-indicators",
+          "term": "Process and progress indicators",
+          "definition": "Process lists explain sequential instructions, while step indicators show a user’s current position in a linear multi-page flow.",
+          "definitionAnchor": {
+            "src": "uswds:step-indicator",
+            "loc": "Overview",
+            "quote": "updates users on their progress"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A step indicator suits a linear process with at least three high-level steps across multiple screens.",
+              "anchor": {
+                "src": "uswds:step-indicator",
+                "loc": "When to use",
+                "quote": "three or more high-level steps"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The indicator complements back and next controls; it is not navigation by itself.",
+              "anchor": {
+                "src": "uswds:step-indicator",
+                "loc": "When to use",
+                "quote": "not to be navigation of its own"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Completion and current-step meaning must not rely on color alone.",
+              "anchor": {
+                "src": "uswds:step-indicator",
+                "loc": "Accessibility guidance",
+                "quote": "make the completion status of each step explicit"
+              }
+            },
+            {
+              "index": 3,
+              "text": "The current labeled step should be exposed programmatically with aria-current.",
+              "anchor": {
+                "src": "uswds:step-indicator",
+                "loc": "Accessibility guidance",
+                "quote": "use aria-current=\"true\""
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "U.S. Web Design System, U.S. General Services Administration"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "91025e358b91265f110903e864438a936557a07bce01795345fa49826e0ca607",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-16T21:39:12.808Z",
+    "admittedPromptIds": [
+      "ux-service-evidence-and-progress-lab:ux/service-blueprinting",
+      "ux-service-evidence-and-progress-lab:ux/user-scenarios",
+      "ux-service-evidence-and-progress-lab:ux/usability-testing",
+      "ux-service-evidence-and-progress-lab:ux/process-and-progress-indicators"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "ux-service-evidence-and-progress-lab:ux/service-blueprinting",
+          "kernelId": "ux/service-blueprinting",
+          "promptSha256": "a4691b1b55fc04d0cd818b92ab6019f73389acffaee3f87a58aa2ee1b6178c5b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "In the lab, a team wants a diagram that goes beyond what users see and also shows staff work and system support. Which artifact best fits that evidence boundary?",
+                "op": [
+                  "Service blueprint",
+                  "Journey map",
+                  "Feature walkthrough",
+                  "Status indicator"
+                ],
+                "ai": 0,
+                "ex": "A service blueprint is correct because it maps user actions, visible interactions, backstage activities, and supporting operations. A journey map is the tempting misconception here, but it stays within the user perspective and does not add the operational layers needed for this task.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              },
+              {
+                "q": "A student says their notes came from talking with users, staff, and stakeholders, plus looking at existing materials, and they want to use that evidence to expose improvement opportunities in the service. What are they building?",
+                "op": [
+                  "Observation log",
+                  "Service blueprint",
+                  "Moderator script",
+                  "Color legend"
+                ],
+                "ai": 1,
+                "ex": "A service blueprint fits because it can be informed by desk research and interviews and can clarify how systems and processes relate so improvement opportunities become visible. The common misconception is to treat this as simple observation or a presentation aid, but those do not by themselves map,",
+                "sourceFactIndexes": [
+                  1,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Frontstage actions",
+                "df": "Steps and visible interactions that happen where users can see them.",
+                "eg": "A support agent confirms a booking in front of the customer during a service lab exercise.",
+                "mi": "These are the hidden internal tasks that only staff can see.",
+                "cx": "No—the hidden internal tasks are backstage actions; frontstage actions are the visible service moments.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "tr": "Backstage actions",
+                "df": "Work done out of the user’s view to support the service experience.",
+                "eg": "A staff member updates the order system after a user submits a request.",
+                "mi": "These are the same as the user’s own steps through the service.",
+                "cx": "Not quite—user steps are separate from backstage work, which happens behind the scenes to enable the service.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "30e2beb92def19fb810a814f6b59f94dc9e5021e58f59a850b0d234c33ac7b46",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Frontstage actions",
+                "df": "Steps and visible interactions that happen where users can see them.",
+                "eg": "A support agent confirms a booking in front of the customer during a service lab exercise.",
+                "mi": "These are the hidden internal tasks that only staff can see.",
+                "cx": "No—the hidden internal tasks are backstage actions; frontstage actions are the visible service moments.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "tr": "Backstage actions",
+                "df": "Work done out of the user’s view to support the service experience.",
+                "eg": "A staff member updates the order system after a user submits a request.",
+                "mi": "These are the same as the user’s own steps through the service.",
+                "cx": "Not quite—user steps are separate from backstage work, which happens behind the scenes to enable the service.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "728d792de9b611ceeb7437843c430af48a76af926e12afe6bc9733e914fe6321",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-meta-surface",
+              "mc-1-truncated-explanation",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_06492a52b3887162006a594ef5eb3c819185f2658ded7b434f",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 678,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 694,
+              "output_tokens_details": {
+                "reasoning_tokens": 262
+              },
+              "total_tokens": 1372
+            }
+          },
+          "startedAt": "2026-07-16T21:36:53.793Z",
+          "durationMs": 5627
+        },
+        {
+          "promptId": "ux-service-evidence-and-progress-lab:ux/user-scenarios",
+          "kernelId": "ux/user-scenarios",
+          "promptSha256": "d964b8dff3ab869ea2e46bb0b87d12391fdcb50c61d45b83ece3cb939f38711c",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team writes a short statement for a mobile renewal flow. Which option is a user scenario rather than a feature walkthrough?",
+                "op": [
+                  "A busy parent checks a library renewal page after work to extend a loan before it is due.",
+                  "The page opens with a blue button, a confirmation message, and a list of account features.",
+                  "A designer lists every screen element and the order of clicks in the renewal interface.",
+                  "The team records the final page copy and button labels for the release notes."
+                ],
+                "ai": 0,
+                "ex": "Correct: it names a user type, context, goal, and interaction. The tempting misconception is the feature walkthrough, which describes interface parts or screen order instead of a specific user acting toward a goal.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "During scenario planning, which practice best matches the source guidance?",
+                "op": [
+                  "Treat one scenario as final and apply it to all users.",
+                  "Write the scenario, then validate and refine it with the represented user group and partners.",
+                  "Skip context details so the scenario stays broad and reusable.",
+                  "Use the scenario only after launch, when observations are no longer needed."
+                ],
+                "ai": 1,
+                "ex": "Correct: scenarios should be checked and improved with the user group and collaborators. The most plausible misconception is to treat the scenario as fixed or universal, but the source says needs vary by context and across diverse users.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "User scenario",
+                "df": "A narrative that places a user type in a specific context with a motivation, goal, and tasks.",
+                "eg": "A commuter on a phone at the station renews a transit pass before boarding.",
+                "mi": "It is just a list of interface steps.",
+                "cx": "Use it to explain who is acting, where, why, what they want, and how they try to do it.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Scenario validation",
+                "df": "Checking a draft scenario against the people and teammates it represents, then improving it.",
+                "eg": "A team shares a draft scenario with students who use the service and revises details about timing and access.",
+                "mi": "It means polishing the wording without feedback from anyone represented.",
+                "cx": "Use it to test whether the scenario fits real users and collaboration needs.",
+                "sourceFactIndexes": [
+                  4,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "9dc2bbc460d9666891481fac38800c9b63d48efe3b97b58bac23577f5b7284a8",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A team writes a short statement for a mobile renewal flow. Which option is a user scenario rather than a feature walkthrough?",
+                "op": [
+                  "A busy parent checks a library renewal page after work to extend a loan before it is due.",
+                  "The page opens with a blue button, a confirmation message, and a list of account features.",
+                  "A designer lists every screen element and the order of clicks in the renewal interface.",
+                  "The team records the final page copy and button labels for the release notes."
+                ],
+                "ai": 0,
+                "ex": "Correct: it names a user type, context, goal, and interaction. The tempting misconception is the feature walkthrough, which describes interface parts or screen order instead of a specific user acting toward a goal.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "During scenario planning, which practice best matches the source guidance?",
+                "op": [
+                  "Treat one scenario as final and apply it to all users.",
+                  "Write the scenario, then validate and refine it with the represented user group and partners.",
+                  "Skip context details so the scenario stays broad and reusable.",
+                  "Use the scenario only after launch, when observations are no longer needed."
+                ],
+                "ai": 1,
+                "ex": "Correct: scenarios should be checked and improved with the user group and collaborators. The most plausible misconception is to treat the scenario as fixed or universal, but the source says needs vary by context and across diverse users.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "User scenario",
+                "df": "A narrative that places a user type in a specific context with a motivation, goal, and tasks.",
+                "eg": "A commuter on a phone at the station renews a transit pass before boarding.",
+                "mi": "It is just a list of interface steps.",
+                "cx": "Use it to explain who is acting, where, why, what they want, and how they try to do it.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Scenario validation",
+                "df": "Checking a draft scenario against the people and teammates it represents, then improving it.",
+                "eg": "A team shares a draft scenario with students who use the service and revises details about timing and access.",
+                "mi": "It means polishing the wording without feedback from anyone represented.",
+                "cx": "Use it to test whether the scenario fits real users and collaboration needs.",
+                "sourceFactIndexes": [
+                  4,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "9dc2bbc460d9666891481fac38800c9b63d48efe3b97b58bac23577f5b7284a8",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_01d5afe8d75e9cdd006a594efb7c5481a091d7b73ca40e7407",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 685,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 557,
+              "output_tokens_details": {
+                "reasoning_tokens": 74
+              },
+              "total_tokens": 1242
+            }
+          },
+          "startedAt": "2026-07-16T21:36:59.421Z",
+          "durationMs": 4630
+        },
+        {
+          "promptId": "ux-service-evidence-and-progress-lab:ux/usability-testing",
+          "kernelId": "ux/usability-testing",
+          "promptSha256": "ff8f1fc4e753e36f5e5a5035dfbcbf95c579e83a79ed5b57d75de1f069a75f9b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team is preparing a usability test for a prototype of a service portal. Which plan best matches the method?",
+                "op": [
+                  "Have representative users attempt realistic tasks while the team observes and notes behavior.",
+                  "Have the moderator teach each participant the preferred workflow during the session.",
+                  "Have the team discuss the interface in a meeting without any users present.",
+                  "Have representatives try realistic tasks while thinking aloud and the team records observations"
+                ],
+                "ai": 0,
+                "ex": "The best choice is the realistic-task observation with representative users. A usability test is about watching users try tasks, often while they think aloud. The teaching option is the common misconception because it turns the moderator into a teacher instead of an observer.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "q": "Before scheduling a usability test, which step belongs in the recruitment part of the plan?",
+                "op": [
+                  "Identify appropriate users and obtain their consent.",
+                  "Ask the moderator to explain the correct answers during the session.",
+                  "Invite anyone available, then screen them after the test ends.",
+                  "Replace participant recruitment with a script that coaches each task."
+                ],
+                "ai": 0,
+                "ex": "The correct step is to recruit appropriate users and secure their consent before the session. The most plausible misconception is to treat recruitment as an afterthought or to rely on coaching, but the plan calls for matching participants to the goal and getting consent first.",
+                "sourceFactIndexes": [
+                  2,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Test script",
+                "df": "A repeatable session structure for a usability test.",
+                "eg": "In a course lab, the moderator follows the same task prompts for each participant while still letting the participant work independently.",
+                "mi": "It should turn the moderator into a teacher.",
+                "cx": "The script gives consistency; it should not coach people through the task.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              },
+              {
+                "tr": "Recruitment",
+                "df": "The step of selecting appropriate participants and securing consent before the session.",
+                "eg": "For a service-portal test, the team recruits people who match the intended user group and confirms consent before the session begins.",
+                "mi": "It can be done after the test, once the results are known.",
+                "cx": "Recruitment happens first so the team has the right users and permission to proceed.",
+                "sourceFactIndexes": [
+                  2,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "fb38238c654c3b2b49e0cd6c4c738a047b87e798a814d665d66182083a975695",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A team is preparing a usability test for a prototype of a service portal. Which plan best matches the method?",
+                "op": [
+                  "Have representative users attempt realistic tasks while the team observes and notes behavior.",
+                  "Have the moderator teach each participant the preferred workflow during the session.",
+                  "Have the team discuss the interface in a meeting without any users present.",
+                  "Have representatives try realistic tasks while thinking aloud and the team records observations"
+                ],
+                "ai": 0,
+                "ex": "The best choice is the realistic-task observation with representative users. A usability test is about watching users try tasks, often while they think aloud. The teaching option is the common misconception because it turns the moderator into a teacher instead of an observer.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "q": "Before scheduling a usability test, which step belongs in the recruitment part of the plan?",
+                "op": [
+                  "Identify appropriate users and obtain their consent.",
+                  "Ask the moderator to explain the correct answers during the session.",
+                  "Invite anyone available, then screen them after the test ends.",
+                  "Replace participant recruitment with a script that coaches each task."
+                ],
+                "ai": 0,
+                "ex": "The correct step is to recruit appropriate users and secure their consent before the session. The most plausible misconception is to treat recruitment as an afterthought or to rely on coaching, but the plan calls for matching participants to the goal and getting consent first.",
+                "sourceFactIndexes": [
+                  2,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Test script",
+                "df": "A repeatable session structure for a usability test.",
+                "eg": "In a course lab, the moderator follows the same task prompts for each participant while still letting the participant work independently.",
+                "mi": "It should turn the moderator into a teacher.",
+                "cx": "The script gives consistency; it should not coach people through the task.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              },
+              {
+                "tr": "Recruitment",
+                "df": "The step of selecting appropriate participants and securing consent before the session.",
+                "eg": "For a service-portal test, the team recruits people who match the intended user group and confirms consent before the session begins.",
+                "mi": "It can be done after the test, once the results are known.",
+                "cx": "Recruitment happens first so the team has the right users and permission to proceed.",
+                "sourceFactIndexes": [
+                  2,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "fb38238c654c3b2b49e0cd6c4c738a047b87e798a814d665d66182083a975695",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_08e5376b212c8ace006a594f00228081919b7652c12c56b3b4",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 683,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 929,
+              "output_tokens_details": {
+                "reasoning_tokens": 465
+              },
+              "total_tokens": 1612
+            }
+          },
+          "startedAt": "2026-07-16T21:37:04.053Z",
+          "durationMs": 7896
+        },
+        {
+          "promptId": "ux-service-evidence-and-progress-lab:ux/process-and-progress-indicators",
+          "kernelId": "ux/process-and-progress-indicators",
+          "promptSha256": "0ecc30f9df6ee615b8995749590ca1e6d2e53d76e5d20ab35428b73fb6ff8b9d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team is designing a four-screen intake flow for a service lab. Which pattern best shows the learner’s place in the flow while they move through Back and Next controls?",
+                "op": [
+                  "A numbered step indicator across the screens",
+                  "A decorative status palette for each page",
+                  "A freeform task list beside the form",
+                  "A single landing page menu of sections"
+                ],
+                "ai": 0,
+                "ex": "A numbered step indicator is correct because it marks the user’s current position in a linear, multi-page flow and works with Back and Next controls. The common mistake is choosing color or a list: color alone does not carry completion meaning, and a list explains instructions rather than position.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "A reviewer wants the current step in a three-part onboarding flow to be understandable without relying on green or gray alone. What should the interface expose for the active step?",
+                "op": [
+                  "The active step should use aria-current",
+                  "The active step should use a larger logo",
+                  "The active step should use only color contrast",
+                  "The active step should be hidden until finished"
+                ],
+                "ai": 0,
+                "ex": "Using aria-current is correct because the current labeled step must be exposed programmatically. The likely misconception is to depend on color alone; that can suggest status visually, but it does not provide a reliable current-step meaning by itself.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Step indicator",
+                "df": "A visual control that marks the user’s current place in a linear multi-page process.",
+                "eg": "In a three-screen appointment setup, the bar shows Step 2 of 3 while Back and Next remain available.",
+                "mi": "A progress color scheme that simply makes the page look organized.",
+                "cx": "In the service evidence lab, students can use it for a multi-screen booking flow, not for a one-page checklist.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "aria-current",
+                "df": "A programmatic signal that identifies which labeled item is current.",
+                "eg": "The active step in a four-part intake flow is announced with aria-current so screen readers know where the user is.",
+                "mi": "A decorative highlight that only changes the appearance of the step.",
+                "cx": "When students compare accessible progress cues, this is the way to mark the present step, not color alone.",
+                "sourceFactIndexes": [
+                  4,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "e659a52f45af2c3061eb801a72e51b74a334d53cc0b33030e5e2e515365eff15",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A team is designing a four-screen intake flow for a service lab. Which pattern best shows the learner’s place in the flow while they move through Back and Next controls?",
+                "op": [
+                  "A numbered step indicator across the screens",
+                  "A decorative status palette for each page",
+                  "A freeform task list beside the form",
+                  "A single landing page menu of sections"
+                ],
+                "ai": 0,
+                "ex": "A numbered step indicator is correct because it marks the user’s current position in a linear, multi-page flow and works with Back and Next controls. The common mistake is choosing color or a list: color alone does not carry completion meaning, and a list explains instructions rather than position.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "A reviewer wants the current step in a three-part onboarding flow to be understandable without relying on green or gray alone. What should the interface expose for the active step?",
+                "op": [
+                  "The active step should use aria-current",
+                  "The active step should use a larger logo",
+                  "The active step should use only color contrast",
+                  "The active step should be hidden until finished"
+                ],
+                "ai": 0,
+                "ex": "Using aria-current is correct because the current labeled step must be exposed programmatically. The likely misconception is to depend on color alone; that can suggest status visually, but it does not provide a reliable current-step meaning by itself.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Step indicator",
+                "df": "A visual control that marks the user’s current place in a linear multi-page process.",
+                "eg": "In a three-screen appointment setup, the bar shows Step 2 of 3 while Back and Next remain available.",
+                "mi": "A progress color scheme that simply makes the page look organized.",
+                "cx": "In the service evidence lab, students can use it for a multi-screen booking flow, not for a one-page checklist.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "aria-current",
+                "df": "A programmatic signal that identifies which labeled item is current.",
+                "eg": "The active step in a four-part intake flow is announced with aria-current so screen readers know where the user is.",
+                "mi": "A decorative highlight that only changes the appearance of the step.",
+                "cx": "When students compare accessible progress cues, this is the way to mark the present step, not color alone.",
+                "sourceFactIndexes": [
+                  4,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "e659a52f45af2c3061eb801a72e51b74a334d53cc0b33030e5e2e515365eff15",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_09df1cc5a302b163006a594f0804908191b6b85a612b463219",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 677,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 554,
+              "output_tokens_details": {
+                "reasoning_tokens": 63
+              },
+              "total_tokens": 1231
+            }
+          },
+          "startedAt": "2026-07-16T21:37:11.951Z",
+          "durationMs": 4478
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "ux-service-evidence-and-progress-lab:ux/service-blueprinting",
+          "kernelId": "ux/service-blueprinting",
+          "promptSha256": "a4691b1b55fc04d0cd818b92ab6019f73389acffaee3f87a58aa2ee1b6178c5b",
+          "generationPromptSha256": "ae0e4d6d7a4175052153804b34c8a32a73c894b0d02a7e4acd6e168a6c33911d",
+          "rawCallSha256": "a6323379de4f8c55bf33c67125b1a38d9c3207d8698aebd780a2a8fbee695c31",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which artifact best shows user actions alongside backstage and support work in a service?",
+                "op": [
+                  "A journey map centered only on the user's experience",
+                  "A service blueprint with user, frontstage, backstage, and support layers",
+                  "A feature walkthrough that explains how to use one tool",
+                  "A status palette that signals progress with color only"
+                ],
+                "ai": 1,
+                "ex": "It maps user actions with visible and backstage work. It is not limited to the user's view like a journey map.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              },
+              {
+                "q": "Which evidence source can support a service blueprint?",
+                "op": [
+                  "Desk research and interviews with users, staff, and stakeholders",
+                  "Only a decorative status color choice",
+                  "A moderator coaching script during observation",
+                  "A feature walkthrough written from memory"
+                ],
+                "ai": 0,
+                "ex": "Blueprint evidence can come from desk research and interviews. It is not limited to coached observation or a walkthrough.",
+                "sourceFactIndexes": [
+                  4
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "7634688b019bd83c174e101c578130c54d76f55a9c1dbb865c03e07a56b8efad",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which evidence source can support a service blueprint?",
+                "op": [
+                  "Desk research and interviews with users, staff, and stakeholders",
+                  "Only a decorative status color choice",
+                  "A moderator coaching script during observation",
+                  "A feature walkthrough written from memory"
+                ],
+                "ai": 0,
+                "ex": "Blueprint evidence can come from desk research and interviews. It is not limited to coached observation or a walkthrough.",
+                "sourceFactIndexes": [
+                  4
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "523668dda5f2bd496da398de2fc7b63f887bbf5e0382af621db52091b466892a",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-count",
+              "mc-0-meta-surface",
+              "mc-0-clang-association-cue",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_04ac7636217b12fd006a594f7ddbac81a2a8445b471de586c9",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 691,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 273,
+              "output_tokens_details": {
+                "reasoning_tokens": 61
+              },
+              "total_tokens": 964
+            }
+          },
+          "startedAt": "2026-07-16T21:39:09.784Z",
+          "durationMs": 3024,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "ux-service-evidence-and-progress-lab:ux/service-blueprinting"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "ux-service-evidence-and-progress-lab:ux/service-blueprinting",
+        "kernelId": "ux/service-blueprinting",
+        "promptSha256": "a4691b1b55fc04d0cd818b92ab6019f73389acffaee3f87a58aa2ee1b6178c5b",
+        "generationPromptSha256": "ae0e4d6d7a4175052153804b34c8a32a73c894b0d02a7e4acd6e168a6c33911d",
+        "rawCallSha256": "a6323379de4f8c55bf33c67125b1a38d9c3207d8698aebd780a2a8fbee695c31",
+        "recoveryCallSha256": "97232717e75d0579b7c47c548c86cc74a08d0260c0da96205a563c32b218d9bd",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which evidence source can support a service blueprint?",
+              "op": [
+                "Desk research and interviews with users, staff, and stakeholders",
+                "Only a decorative status color choice",
+                "A moderator coaching script during observation",
+                "A feature walkthrough written from memory"
+              ],
+              "ai": 0,
+              "ex": "Blueprint evidence can come from desk research and interviews. It is not limited to coached observation or a walkthrough.",
+              "sourceFactIndexes": [
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Frontstage actions",
+              "df": "Steps and visible interactions that happen where users can see them.",
+              "eg": "A support agent confirms a booking in front of the customer during a service lab exercise.",
+              "mi": "These are the hidden internal tasks that only staff can see.",
+              "cx": "No—the hidden internal tasks are backstage actions; frontstage actions are the visible service moments.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "tr": "Backstage actions",
+              "df": "Work done out of the user’s view to support the service experience.",
+              "eg": "A staff member updates the order system after a user submits a request.",
+              "mi": "These are the same as the user’s own steps through the service.",
+              "cx": "Not quite—user steps are separate from backstage work, which happens behind the scenes to enable the service.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "a366163d47bbc2fe2f536776e7ffe9190621cc52edb45b4e31ad0fc1e3927cae",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which evidence source can support a service blueprint?",
+              "op": [
+                "Desk research and interviews with users, staff, and stakeholders",
+                "Only a decorative status color choice",
+                "A moderator coaching script during observation",
+                "A feature walkthrough written from memory"
+              ],
+              "ai": 0,
+              "ex": "Blueprint evidence can come from desk research and interviews. It is not limited to coached observation or a walkthrough.",
+              "sourceFactIndexes": [
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Frontstage actions",
+              "df": "Steps and visible interactions that happen where users can see them.",
+              "eg": "A support agent confirms a booking in front of the customer during a service lab exercise.",
+              "mi": "These are the hidden internal tasks that only staff can see.",
+              "cx": "No—the hidden internal tasks are backstage actions; frontstage actions are the visible service moments.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "tr": "Backstage actions",
+              "df": "Work done out of the user’s view to support the service experience.",
+              "eg": "A staff member updates the order system after a user submits a request.",
+              "mi": "These are the same as the user’s own steps through the service.",
+              "cx": "Not quite—user steps are separate from backstage work, which happens behind the scenes to enable the service.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "a366163d47bbc2fe2f536776e7ffe9190621cc52edb45b4e31ad0fc1e3927cae",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T21:39:09.784Z",
+        "durationMs": 3024
+      },
+      {
+        "promptId": "ux-service-evidence-and-progress-lab:ux/user-scenarios",
+        "kernelId": "ux/user-scenarios",
+        "promptSha256": "d964b8dff3ab869ea2e46bb0b87d12391fdcb50c61d45b83ece3cb939f38711c",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A team writes a short statement for a mobile renewal flow. Which option is a user scenario rather than a feature walkthrough?",
+              "op": [
+                "A busy parent checks a library renewal page after work to extend a loan before it is due.",
+                "The page opens with a blue button, a confirmation message, and a list of account features.",
+                "A designer lists every screen element and the order of clicks in the renewal interface.",
+                "The team records the final page copy and button labels for the release notes."
+              ],
+              "ai": 0,
+              "ex": "Correct: it names a user type, context, goal, and interaction. The tempting misconception is the feature walkthrough, which describes interface parts or screen order instead of a specific user acting toward a goal.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "During scenario planning, which practice best matches the source guidance?",
+              "op": [
+                "Treat one scenario as final and apply it to all users.",
+                "Write the scenario, then validate and refine it with the represented user group and partners.",
+                "Skip context details so the scenario stays broad and reusable.",
+                "Use the scenario only after launch, when observations are no longer needed."
+              ],
+              "ai": 1,
+              "ex": "Correct: scenarios should be checked and improved with the user group and collaborators. The most plausible misconception is to treat the scenario as fixed or universal, but the source says needs vary by context and across diverse users.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "User scenario",
+              "df": "A narrative that places a user type in a specific context with a motivation, goal, and tasks.",
+              "eg": "A commuter on a phone at the station renews a transit pass before boarding.",
+              "mi": "It is just a list of interface steps.",
+              "cx": "Use it to explain who is acting, where, why, what they want, and how they try to do it.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Scenario validation",
+              "df": "Checking a draft scenario against the people and teammates it represents, then improving it.",
+              "eg": "A team shares a draft scenario with students who use the service and revises details about timing and access.",
+              "mi": "It means polishing the wording without feedback from anyone represented.",
+              "cx": "Use it to test whether the scenario fits real users and collaboration needs.",
+              "sourceFactIndexes": [
+                4,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "9dc2bbc460d9666891481fac38800c9b63d48efe3b97b58bac23577f5b7284a8",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A team writes a short statement for a mobile renewal flow. Which option is a user scenario rather than a feature walkthrough?",
+              "op": [
+                "A busy parent checks a library renewal page after work to extend a loan before it is due.",
+                "The page opens with a blue button, a confirmation message, and a list of account features.",
+                "A designer lists every screen element and the order of clicks in the renewal interface.",
+                "The team records the final page copy and button labels for the release notes."
+              ],
+              "ai": 0,
+              "ex": "Correct: it names a user type, context, goal, and interaction. The tempting misconception is the feature walkthrough, which describes interface parts or screen order instead of a specific user acting toward a goal.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "During scenario planning, which practice best matches the source guidance?",
+              "op": [
+                "Treat one scenario as final and apply it to all users.",
+                "Write the scenario, then validate and refine it with the represented user group and partners.",
+                "Skip context details so the scenario stays broad and reusable.",
+                "Use the scenario only after launch, when observations are no longer needed."
+              ],
+              "ai": 1,
+              "ex": "Correct: scenarios should be checked and improved with the user group and collaborators. The most plausible misconception is to treat the scenario as fixed or universal, but the source says needs vary by context and across diverse users.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "User scenario",
+              "df": "A narrative that places a user type in a specific context with a motivation, goal, and tasks.",
+              "eg": "A commuter on a phone at the station renews a transit pass before boarding.",
+              "mi": "It is just a list of interface steps.",
+              "cx": "Use it to explain who is acting, where, why, what they want, and how they try to do it.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Scenario validation",
+              "df": "Checking a draft scenario against the people and teammates it represents, then improving it.",
+              "eg": "A team shares a draft scenario with students who use the service and revises details about timing and access.",
+              "mi": "It means polishing the wording without feedback from anyone represented.",
+              "cx": "Use it to test whether the scenario fits real users and collaboration needs.",
+              "sourceFactIndexes": [
+                4,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "9dc2bbc460d9666891481fac38800c9b63d48efe3b97b58bac23577f5b7284a8",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_01d5afe8d75e9cdd006a594efb7c5481a091d7b73ca40e7407",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 685,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 557,
+            "output_tokens_details": {
+              "reasoning_tokens": 74
+            },
+            "total_tokens": 1242
+          }
+        },
+        "startedAt": "2026-07-16T21:36:59.421Z",
+        "durationMs": 4630
+      },
+      {
+        "promptId": "ux-service-evidence-and-progress-lab:ux/usability-testing",
+        "kernelId": "ux/usability-testing",
+        "promptSha256": "ff8f1fc4e753e36f5e5a5035dfbcbf95c579e83a79ed5b57d75de1f069a75f9b",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A team is preparing a usability test for a prototype of a service portal. Which plan best matches the method?",
+              "op": [
+                "Have representative users attempt realistic tasks while the team observes and notes behavior.",
+                "Have the moderator teach each participant the preferred workflow during the session.",
+                "Have the team discuss the interface in a meeting without any users present.",
+                "Have representatives try realistic tasks while thinking aloud and the team records observations"
+              ],
+              "ai": 0,
+              "ex": "The best choice is the realistic-task observation with representative users. A usability test is about watching users try tasks, often while they think aloud. The teaching option is the common misconception because it turns the moderator into a teacher instead of an observer.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "q": "Before scheduling a usability test, which step belongs in the recruitment part of the plan?",
+              "op": [
+                "Identify appropriate users and obtain their consent.",
+                "Ask the moderator to explain the correct answers during the session.",
+                "Invite anyone available, then screen them after the test ends.",
+                "Replace participant recruitment with a script that coaches each task."
+              ],
+              "ai": 0,
+              "ex": "The correct step is to recruit appropriate users and secure their consent before the session. The most plausible misconception is to treat recruitment as an afterthought or to rely on coaching, but the plan calls for matching participants to the goal and getting consent first.",
+              "sourceFactIndexes": [
+                2,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Test script",
+              "df": "A repeatable session structure for a usability test.",
+              "eg": "In a course lab, the moderator follows the same task prompts for each participant while still letting the participant work independently.",
+              "mi": "It should turn the moderator into a teacher.",
+              "cx": "The script gives consistency; it should not coach people through the task.",
+              "sourceFactIndexes": [
+                3
+              ]
+            },
+            {
+              "tr": "Recruitment",
+              "df": "The step of selecting appropriate participants and securing consent before the session.",
+              "eg": "For a service-portal test, the team recruits people who match the intended user group and confirms consent before the session begins.",
+              "mi": "It can be done after the test, once the results are known.",
+              "cx": "Recruitment happens first so the team has the right users and permission to proceed.",
+              "sourceFactIndexes": [
+                2,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "fb38238c654c3b2b49e0cd6c4c738a047b87e798a814d665d66182083a975695",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A team is preparing a usability test for a prototype of a service portal. Which plan best matches the method?",
+              "op": [
+                "Have representative users attempt realistic tasks while the team observes and notes behavior.",
+                "Have the moderator teach each participant the preferred workflow during the session.",
+                "Have the team discuss the interface in a meeting without any users present.",
+                "Have representatives try realistic tasks while thinking aloud and the team records observations"
+              ],
+              "ai": 0,
+              "ex": "The best choice is the realistic-task observation with representative users. A usability test is about watching users try tasks, often while they think aloud. The teaching option is the common misconception because it turns the moderator into a teacher instead of an observer.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "q": "Before scheduling a usability test, which step belongs in the recruitment part of the plan?",
+              "op": [
+                "Identify appropriate users and obtain their consent.",
+                "Ask the moderator to explain the correct answers during the session.",
+                "Invite anyone available, then screen them after the test ends.",
+                "Replace participant recruitment with a script that coaches each task."
+              ],
+              "ai": 0,
+              "ex": "The correct step is to recruit appropriate users and secure their consent before the session. The most plausible misconception is to treat recruitment as an afterthought or to rely on coaching, but the plan calls for matching participants to the goal and getting consent first.",
+              "sourceFactIndexes": [
+                2,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Test script",
+              "df": "A repeatable session structure for a usability test.",
+              "eg": "In a course lab, the moderator follows the same task prompts for each participant while still letting the participant work independently.",
+              "mi": "It should turn the moderator into a teacher.",
+              "cx": "The script gives consistency; it should not coach people through the task.",
+              "sourceFactIndexes": [
+                3
+              ]
+            },
+            {
+              "tr": "Recruitment",
+              "df": "The step of selecting appropriate participants and securing consent before the session.",
+              "eg": "For a service-portal test, the team recruits people who match the intended user group and confirms consent before the session begins.",
+              "mi": "It can be done after the test, once the results are known.",
+              "cx": "Recruitment happens first so the team has the right users and permission to proceed.",
+              "sourceFactIndexes": [
+                2,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "fb38238c654c3b2b49e0cd6c4c738a047b87e798a814d665d66182083a975695",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_08e5376b212c8ace006a594f00228081919b7652c12c56b3b4",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 683,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 929,
+            "output_tokens_details": {
+              "reasoning_tokens": 465
+            },
+            "total_tokens": 1612
+          }
+        },
+        "startedAt": "2026-07-16T21:37:04.053Z",
+        "durationMs": 7896
+      },
+      {
+        "promptId": "ux-service-evidence-and-progress-lab:ux/process-and-progress-indicators",
+        "kernelId": "ux/process-and-progress-indicators",
+        "promptSha256": "0ecc30f9df6ee615b8995749590ca1e6d2e53d76e5d20ab35428b73fb6ff8b9d",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A team is designing a four-screen intake flow for a service lab. Which pattern best shows the learner’s place in the flow while they move through Back and Next controls?",
+              "op": [
+                "A numbered step indicator across the screens",
+                "A decorative status palette for each page",
+                "A freeform task list beside the form",
+                "A single landing page menu of sections"
+              ],
+              "ai": 0,
+              "ex": "A numbered step indicator is correct because it marks the user’s current position in a linear, multi-page flow and works with Back and Next controls. The common mistake is choosing color or a list: color alone does not carry completion meaning, and a list explains instructions rather than position.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "A reviewer wants the current step in a three-part onboarding flow to be understandable without relying on green or gray alone. What should the interface expose for the active step?",
+              "op": [
+                "The active step should use aria-current",
+                "The active step should use a larger logo",
+                "The active step should use only color contrast",
+                "The active step should be hidden until finished"
+              ],
+              "ai": 0,
+              "ex": "Using aria-current is correct because the current labeled step must be exposed programmatically. The likely misconception is to depend on color alone; that can suggest status visually, but it does not provide a reliable current-step meaning by itself.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Step indicator",
+              "df": "A visual control that marks the user’s current place in a linear multi-page process.",
+              "eg": "In a three-screen appointment setup, the bar shows Step 2 of 3 while Back and Next remain available.",
+              "mi": "A progress color scheme that simply makes the page look organized.",
+              "cx": "In the service evidence lab, students can use it for a multi-screen booking flow, not for a one-page checklist.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "aria-current",
+              "df": "A programmatic signal that identifies which labeled item is current.",
+              "eg": "The active step in a four-part intake flow is announced with aria-current so screen readers know where the user is.",
+              "mi": "A decorative highlight that only changes the appearance of the step.",
+              "cx": "When students compare accessible progress cues, this is the way to mark the present step, not color alone.",
+              "sourceFactIndexes": [
+                4,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "e659a52f45af2c3061eb801a72e51b74a334d53cc0b33030e5e2e515365eff15",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A team is designing a four-screen intake flow for a service lab. Which pattern best shows the learner’s place in the flow while they move through Back and Next controls?",
+              "op": [
+                "A numbered step indicator across the screens",
+                "A decorative status palette for each page",
+                "A freeform task list beside the form",
+                "A single landing page menu of sections"
+              ],
+              "ai": 0,
+              "ex": "A numbered step indicator is correct because it marks the user’s current position in a linear, multi-page flow and works with Back and Next controls. The common mistake is choosing color or a list: color alone does not carry completion meaning, and a list explains instructions rather than position.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "A reviewer wants the current step in a three-part onboarding flow to be understandable without relying on green or gray alone. What should the interface expose for the active step?",
+              "op": [
+                "The active step should use aria-current",
+                "The active step should use a larger logo",
+                "The active step should use only color contrast",
+                "The active step should be hidden until finished"
+              ],
+              "ai": 0,
+              "ex": "Using aria-current is correct because the current labeled step must be exposed programmatically. The likely misconception is to depend on color alone; that can suggest status visually, but it does not provide a reliable current-step meaning by itself.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Step indicator",
+              "df": "A visual control that marks the user’s current place in a linear multi-page process.",
+              "eg": "In a three-screen appointment setup, the bar shows Step 2 of 3 while Back and Next remain available.",
+              "mi": "A progress color scheme that simply makes the page look organized.",
+              "cx": "In the service evidence lab, students can use it for a multi-screen booking flow, not for a one-page checklist.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "aria-current",
+              "df": "A programmatic signal that identifies which labeled item is current.",
+              "eg": "The active step in a four-part intake flow is announced with aria-current so screen readers know where the user is.",
+              "mi": "A decorative highlight that only changes the appearance of the step.",
+              "cx": "When students compare accessible progress cues, this is the way to mark the present step, not color alone.",
+              "sourceFactIndexes": [
+                4,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "e659a52f45af2c3061eb801a72e51b74a334d53cc0b33030e5e2e515365eff15",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_09df1cc5a302b163006a594f0804908191b6b85a612b463219",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 677,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 554,
+            "output_tokens_details": {
+              "reasoning_tokens": 63
+            },
+            "total_tokens": 1231
+          }
+        },
+        "startedAt": "2026-07-16T21:37:11.951Z",
+        "durationMs": 4478
+      }
+    ]
+  }
+}

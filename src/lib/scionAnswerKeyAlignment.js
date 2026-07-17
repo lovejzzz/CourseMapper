@@ -128,7 +128,7 @@ function sourceClaimText(value) {
  * option must receive almost none. Negative stems are excluded because source
  * support would reverse their intended answer semantics.
  */
-export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [] } = {}) {
+export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [], strict = false } = {}) {
   const normalized = normalizeScionMcItem(item);
   const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
   if (
@@ -150,7 +150,7 @@ export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [] } = 
   });
   const bestClaimScore = Math.max(0, ...claimScores.map(({ score }) => score));
   const relevantClaims = claimScores.filter(({ score }) => score === bestClaimScore);
-  if (bestClaimScore < 3 || relevantClaims.length === 0 || relevantClaims.length > 2) return null;
+  if (bestClaimScore < (strict ? 2 : 3) || relevantClaims.length === 0 || relevantClaims.length > 2) return null;
 
   const relevantTokens = new Set(relevantClaims.flatMap(({ tokens }) => [...tokens]));
   const optionTokens = normalized.options.map(sourceAlignmentTokens);
@@ -165,14 +165,15 @@ export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [] } = 
     .map((score, index) => ({ score, index, containment: containment[index] }))
     .filter(
       ({ score, index, containment: optionContainment }) =>
-        !bestIndices.includes(index) && score >= 2 && optionContainment >= 0.6,
+        !bestIndices.includes(index) && score >= (strict ? Math.max(2, bestScore - 1) : 2) && optionContainment >= 0.6,
     );
   if (
     bestScore < 3 ||
     bestIndices.length !== 1 ||
     competingContainedOptions.length > 0 ||
     containment[bestIndices[0]] < 0.6 ||
-    (bestIndices[0] !== normalized.answerIndex && (currentScore > 1 || bestScore < currentScore + 2))
+    (bestIndices[0] !== normalized.answerIndex &&
+      (strict ? bestScore < currentScore + 3 : currentScore > 1 || bestScore < currentScore + 2))
   ) {
     return null;
   }
@@ -188,8 +189,8 @@ export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [] } = 
   };
 }
 
-export function findScionSourceAnswerConflict(item = {}, { sourceClaims = [] } = {}) {
-  const support = findScionSourceAnswerSupport(item, { sourceClaims });
+export function findScionSourceAnswerConflict(item = {}, { sourceClaims = [], strict = false } = {}) {
+  const support = findScionSourceAnswerSupport(item, { sourceClaims, strict });
   return support && support.supportedIndex !== support.declaredIndex ? support : null;
 }
 
@@ -402,6 +403,154 @@ export function normalizeScionMcItem(item = {}) {
     answerIndex: Number(item.ai ?? item.answerIndex),
     explanation: clean(item.ex ?? item.explanation),
   };
+}
+
+function semanticOptionTokens(value) {
+  const surface = stripOptionLabel(value).toLowerCase();
+  const tokens = new Set(
+    [...sourceAlignmentTokens(stripOptionLabel(value))].map((token) => {
+      if (['index', 'position'].includes(token)) return 'position';
+      if (['instance', 'object'].includes(token)) return token;
+      return token;
+    }),
+  );
+  for (const numeric of surface.match(/\b(?:\d+|n(?:\s*[-+]\s*\d+)?)\b/g) || []) {
+    tokens.add(`numeric:${numeric.replace(/\s+/g, '')}`);
+  }
+  return tokens;
+}
+
+/**
+ * Detect when the affirmative first sentence clearly supports a different
+ * displayed option. This is deliberately narrower than open-ended semantic
+ * grading: negative/distractor prose is excluded, labels are removed, and a
+ * unique token-containment winner is required.
+ */
+export function findScionAffirmativeOptionConflict(item = {}) {
+  const normalized = normalizeScionMcItem(item);
+  if (
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex > 3 ||
+    !normalized.explanation
+  ) {
+    return null;
+  }
+  const firstSentence =
+    clean(normalized.explanation)
+      .match(/^.*?[.!?](?=\s|$)/)?.[0]
+      ?.trim() || clean(normalized.explanation);
+  if (!firstSentence || EXPLANATION_NEGATIVE_EVIDENCE_RE.test(firstSentence)) return null;
+  const affirmative = firstSentence
+    .replace(/^\s*(?:the\s+)?(?:correct|best)\s+(?:option|choice|answer)\s*(?:is|was|:|,)\s*(?:that\s+)?/i, '')
+    .trim();
+  const evidenceTokens = semanticOptionTokens(affirmative);
+  const optionTokens = normalized.options.map(semanticOptionTokens);
+  const scores = optionTokens.map((tokens) => tokenOverlap(tokens, evidenceTokens));
+  const containment = optionTokens.map((tokens, index) => scores[index] / Math.max(1, tokens.size));
+  const bestScore = Math.max(...scores);
+  const bestIndices = scores.map((score, index) => (score === bestScore ? index : -1)).filter((index) => index >= 0);
+  if (bestIndices.length !== 1) return null;
+  const supportedIndex = bestIndices[0];
+  const shortExactSupport =
+    optionTokens[supportedIndex].size === 1 && bestScore === 1 && containment[supportedIndex] === 1;
+  if (
+    (!shortExactSupport && (bestScore < 2 || containment[supportedIndex] < 0.6)) ||
+    supportedIndex === normalized.answerIndex
+  ) {
+    return null;
+  }
+  return {
+    declaredIndex: normalized.answerIndex,
+    supportedIndex,
+    scores,
+    containment,
+    supportMethod: 'affirmative-first-sentence-containment',
+    evidenceSentence: firstSentence,
+  };
+}
+
+/** A keyed option explicitly called incorrect in the explanation is invalid. */
+export function findScionExplicitNegativeKeyConflict(item = {}) {
+  const normalized = normalizeScionMcItem(item);
+  if (
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex > 3
+  ) {
+    return null;
+  }
+  const conflicts = [];
+  for (const match of clean(normalized.explanation).matchAll(
+    /\b(?:option|choice|answer)\s*([A-D1-4])\s+(?:is|was)\s+(?:an?\s+)?(?:incorrect|wrong|distractor)\b/gi,
+  )) {
+    const index = optionLabelIndex(match[1]);
+    if (index === normalized.answerIndex) conflicts.push({ index, surface: match[0] });
+  }
+  return conflicts.length > 0
+    ? { declaredIndex: normalized.answerIndex, conflicts, supportMethod: 'explicit-negative-key-cue' }
+    : null;
+}
+
+/**
+ * Find two or more options independently supported by supplied source claims.
+ * The check is fail-closed and lexical: each option needs either an exact
+ * phrase or at least three content-token matches with strong containment.
+ */
+export function findScionMultipleSourceSupportedOptions(item = {}, { sourceClaims = [] } = {}) {
+  const normalized = normalizeScionMcItem(item);
+  const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
+  if (normalized.options.length !== 4 || claims.length === 0) return null;
+  if (
+    !/\b(?:what (?:is|are)(?:\s+the\s+primary)?|how (?:is|are)[^?]{0,100}(?:defined|structured|referred|represented)|which (?:statement|description|characteristic|function|role)[^?]{0,100}(?:best|primary|describes|defines))\b/i.test(
+      normalized.question,
+    )
+  ) {
+    return null;
+  }
+  const questionTokens = sourceAlignmentTokens(normalized.question);
+  const claimScores = claims.map((claim, index) => ({
+    index,
+    score: tokenOverlap(questionTokens, sourceAlignmentTokens(claim)),
+  }));
+  const bestQuestionScore = Math.max(0, ...claimScores.map(({ score }) => score));
+  if (bestQuestionScore < 2) return null;
+  const relevantClaimIndexes = claimScores
+    .filter(({ score }) => score >= Math.max(2, bestQuestionScore - 1))
+    .map(({ index }) => index);
+  if (relevantClaimIndexes.length === 0 || relevantClaimIndexes.length > 3) return null;
+  const claimTokens = claims.map(sourceAlignmentTokens);
+  const supported = normalized.options
+    .map((option, index) => {
+      const surface = stripOptionLabel(option).toLowerCase();
+      const tokens = semanticOptionTokens(option);
+      let best = { score: 0, containment: 0, claimIndex: -1, exactPhrase: false };
+      relevantClaimIndexes.forEach((claimIndex) => {
+        const claim = claims[claimIndex];
+        const claimSurface = claim.toLowerCase();
+        if (/\b(?:false|never|not|only)\b/i.test(surface) && !/\b(?:false|never|not|only)\b/i.test(claimSurface)) {
+          return;
+        }
+        const score = tokenOverlap(tokens, claimTokens[claimIndex]);
+        const containment = score / Math.max(1, tokens.size);
+        const exactPhrase = surface.length >= 8 && claimSurface.includes(surface);
+        if (
+          Number(exactPhrase) > Number(best.exactPhrase) ||
+          (exactPhrase === best.exactPhrase &&
+            (containment > best.containment || (containment === best.containment && score > best.score)))
+        ) {
+          best = { score, containment, claimIndex, exactPhrase };
+        }
+      });
+      const eligible = best.exactPhrase || (best.score >= 3 && best.containment >= 0.72);
+      return { index, ...best, eligible };
+    })
+    .filter((entry) => entry.eligible);
+  return supported.length >= 2
+    ? { supported, relevantClaimIndexes, supportMethod: 'question-relevant-source-option-support' }
+    : null;
 }
 
 /**
@@ -628,7 +777,9 @@ export function repairScionMcItem(
     recoverIncompleteExplanation = true,
     realignAnswerKey = true,
     sourceClaims = [],
+    strictSourceAlignment = false,
     keyConflictOptions,
+    allowUnverifiedLexicalRepair = false,
   } = {},
 ) {
   let next = item;
@@ -643,7 +794,7 @@ export function repairScionMcItem(
   }
 
   if (realignAnswerKey) {
-    const sourceSupport = findScionSourceAnswerSupport(next, { sourceClaims });
+    const sourceSupport = findScionSourceAnswerSupport(next, { sourceClaims, strict: strictSourceAlignment });
     const sourceConflict =
       sourceSupport && sourceSupport.supportedIndex !== sourceSupport.declaredIndex ? sourceSupport : null;
     const sourceRepair = buildScionSourceAnswerKeyRepair({ item: next, lessonId, itemIndex, conflict: sourceConflict });
@@ -651,8 +802,23 @@ export function repairScionMcItem(
       next = replaceAnswerIndex(next, sourceRepair.chosen.answerIndex);
       repairs.push(sourceRepair);
     } else if (!sourceSupport) {
-      const conflict = findScionExplanationKeyConflict(next, keyConflictOptions);
-      const keyRepair = buildScionAnswerKeyRepair({ item: next, lessonId, itemIndex, conflict });
+      const conflict =
+        findScionExplanationKeyConflict(next, keyConflictOptions) ||
+        (strictSourceAlignment ? findScionAffirmativeOptionConflict(next) : null);
+      // Exact answer labels/text are deterministic evidence. Lexical overlap
+      // is only a useful defect detector: an explanation can repeat the words
+      // of a false distractor while refuting its direction (the live Hubble's
+      // law package did exactly that). Keep the historical switch solely for
+      // receipt replay; production sends such conflicts to semantic admission
+      // and regeneration instead of mutating the key.
+      const autoRepairableConflict =
+        conflict?.supportMethod === 'explicit-explanation-cue' || allowUnverifiedLexicalRepair ? conflict : null;
+      const keyRepair = buildScionAnswerKeyRepair({
+        item: next,
+        lessonId,
+        itemIndex,
+        conflict: autoRepairableConflict,
+      });
       if (keyRepair) {
         next = replaceAnswerIndex(next, keyRepair.chosen.answerIndex);
         repairs.push(keyRepair);

@@ -1,0 +1,1064 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1c6adccdcb9edfab7231",
+    "packetDigest": "1c6adccdcb9edfab7231627b2205bbd3e5ce36032c854fb90024b351ea7e0393",
+    "organizerDigest": "6026ed4bdf7145d7b5dc9fcf2ecca5cffc29c74001baaab46c604dea1da65363"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-0e4a5074352fc596abf6",
+      "caseDigest": "c389399884f907ba699c6547732aa55aff6ba050846502435a7fd1adec29d78d",
+      "domain": "computer-science",
+      "courseGroupSha256": "a57b8b121bb7e6a648ad18f451be33b8830a4062aecaa167f52ddc58adc0e987",
+      "sourceContextSha256": "ce9027a25ba613801cc68dd70bca97df77c9995ba1c54339cf0336d133ec2369",
+      "sourceContext": {
+        "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+        "kernelId": "cs/while-loops",
+        "term": "While loops",
+        "claims": [
+          "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+          "After each pass through the body, the loop expression is evaluated again to decide whether to continue.",
+          "If the loop expression is true, the body runs again; if it is false, the loop terminates.",
+          "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §5.1 While loop"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0c432c3e6fa70f5e62ad6ac8cbf53f3edfba165a9f91d6375c95920b627a3d55",
+          "artifact": {
+            "tr": "Infinite loop",
+            "df": "A while loop whose condition never becomes false.",
+            "eg": "while True: pass",
+            "mi": "A loop that always terminates after one iteration.",
+            "cx": "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3ecaf8a221d6b12d1b23a89a77366544f83ff86edc5c8a8895696a5aaf8266d2",
+          "artifact": {
+            "tr": "Infinite loop",
+            "df": "A loop that keeps repeating because its test never turns false.",
+            "eg": "If a counter never decreases, while counter > 0: can continue forever.",
+            "mi": "Any loop that runs more than once is infinite.",
+            "cx": "Repeated execution is normal; it becomes infinite only when the condition never becomes false and the body does not move toward ending it."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0c432c3e6fa70f5e62ad6ac8cbf53f3edfba165a9f91d6375c95920b627a3d55",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3ecaf8a221d6b12d1b23a89a77366544f83ff86edc5c8a8895696a5aaf8266d2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-f7d9953fdfdb881fb648",
+      "caseDigest": "06a26c9835bdbcc7a9ecd2d55dc7ed3127ac90a09b06c086258e541723b2f368",
+      "domain": "computer-science",
+      "courseGroupSha256": "ded9e9d9f6cceb99c8af9ce3918113430a7374aa9ed2503e1b376137a4ef1ae8",
+      "sourceContextSha256": "d043bd7677de3faae4ebcbb710aa5fec58cbe00ec70c7a873291a7b4b7f3b6c1",
+      "sourceContext": {
+        "sourcePacketSha256": "fcf62d1d5d91e7f804d0d8fc6e1bb5bc3a4380dce44ec6396a2bb1da157dfaeb",
+        "kernelId": "cs/conditionals",
+        "term": "Conditionals and boolean logic",
+        "claims": [
+          "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+          "An else clause holds statements that run when the if condition is false.",
+          "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9d59b0de1241b3be8334a78be1299ca3d7d7bb198146e9ed94ae21bf802dbc88",
+          "artifact": {
+            "tr": "conditional statement",
+            "df": "A control structure that selects a code path according to whether a condition evaluates to true or false.",
+            "eg": "If a temperature is below freezing, print a warning; otherwise, continue normally.",
+            "mi": "It always runs both branches.",
+            "cx": "Only one branch runs, and an if-else chooses exactly one branch based on the condition."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c7694bcd20c7170e76002b6270f7a9ce5411b41bc3fba0ed031398e719f07a49",
+          "artifact": {
+            "tr": "Compound condition operator",
+            "df": "Operators like 'and', 'or', and 'not' combine multiple simple tests into one complex test.",
+            "eg": "Using 'and' to check if a variable is greater than five AND less than ten.",
+            "mi": "Believing 'and' always requires both parts to be true for the whole statement to be true.",
+            "cx": "The 'and' operator returns True only if both conditions are true."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9d59b0de1241b3be8334a78be1299ca3d7d7bb198146e9ed94ae21bf802dbc88",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c7694bcd20c7170e76002b6270f7a9ce5411b41bc3fba0ed031398e719f07a49",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a64a83bee3471e4b309f",
+      "caseDigest": "3d71e7e222e989dafd109f435f622e93f4aa37e02369a2edd53f067de791823c",
+      "domain": "computer-science",
+      "courseGroupSha256": "a57b8b121bb7e6a648ad18f451be33b8830a4062aecaa167f52ddc58adc0e987",
+      "sourceContextSha256": "e5499ea5a98dff3fc3e3f5e3c5ba7c8e1e617bd6f670ada224b9fa780f443665",
+      "sourceContext": {
+        "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+        "kernelId": "cs/conditionals",
+        "term": "Conditionals and boolean logic",
+        "claims": [
+          "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+          "An else clause holds statements that run when the if condition is false.",
+          "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ff8017abfc2faeb55b804ee0f1197a0b6edcc28de5c21292d7e456adacc589c5",
+          "artifact": {
+            "tr": "Control structure for conditional execution",
+            "df": "A block of code executed based on a boolean test.",
+            "eg": "An if statement executes code only if a variable is greater than ten.",
+            "mi": "Thinking the code always runs the 'if' block regardless of the test result.",
+            "cx": "The block runs only when the test evaluates to true."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "62aee1585c831eef384d55b5384d88705473a42162690b32bd7ba12538cfc3ef",
+          "artifact": {
+            "tr": "Boolean logic",
+            "df": "A way to combine truth values into a single test.",
+            "eg": "A condition like `a > 0 and b > 0` checks two comparisons together before choosing a branch.",
+            "mi": "It means a variable can only be True or False.",
+            "cx": "Boolean logic uses operators such as `and`, `or`, and `not` to build compound conditions."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ff8017abfc2faeb55b804ee0f1197a0b6edcc28de5c21292d7e456adacc589c5",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "62aee1585c831eef384d55b5384d88705473a42162690b32bd7ba12538cfc3ef",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-84fdd3176e25a0b1364e",
+      "caseDigest": "b867c12973c476e48ef2fe549584e06a47904dd85db7d40394b6a92cf4127c29",
+      "domain": "geology",
+      "courseGroupSha256": "af478b3b946a56f3e9d594fc6fc9d3d007b88dc09de874f62a898860542b0ddc",
+      "sourceContextSha256": "9d760604cda51297c2dddaf4b414e8179f709b74f8f1f922722e9f6083541aa1",
+      "sourceContext": {
+        "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+        "kernelId": "geo/earths-interior",
+        "term": "Earth's interior",
+        "claims": [
+          "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core; the upper mantle's asthenosphere is solid rock that flows slowly by convection.",
+          "The mantle sits below the crust and above the core.",
+          "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+          "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.1 Earth's interior"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "bf2c49517bf2cbf2f601d660c1d87e71b60ab7feb8d52fe02667523fdadae588",
+          "artifact": {
+            "q": "Which layer lies below the crust and above the core?",
+            "op": [
+              "The mantle",
+              "The crust",
+              "The inner core",
+              "The asthenosphere"
+            ],
+            "ai": 0,
+            "ex": "The mantle is the layer between the crust and the core. A common misconception is to pick the asthenosphere, but that is a mechanically weak part of the upper mantle rather than a separate layer between crust and core."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cb670b06f77ce5010a7229e1da07dd237b2e70baa4892d1bc7436694a02e2740",
+          "artifact": {
+            "q": "Which description accurately reflects the structural arrangement of Earth's interior layers?",
+            "op": [
+              "The core is the outermost layer, followed by the mantle, and then the crust.",
+              "The mantle is the outermost layer, followed by the core, and then the crust.",
+              "The crust is the outermost layer, followed by the core, and then the mantle.",
+              "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core."
+            ],
+            "ai": 0,
+            "ex": "The correct option describes the layering as crust, mantle, and core. A common misconception is placing the core as the outermost layer, which contradicts the established structure."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "bf2c49517bf2cbf2f601d660c1d87e71b60ab7feb8d52fe02667523fdadae588",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cb670b06f77ce5010a7229e1da07dd237b2e70baa4892d1bc7436694a02e2740",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7faee75f77346546ec50",
+      "caseDigest": "981b8ab657f4a437ebb9ee1dfb2efb15aca937b59cb563edd2a379e3f2e008d8",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "bb1aec1482bb90844701b35166ea23c2908ce6ffa73c8ccc12fdd1dab384a51b",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/sedimentary-rocks",
+        "term": "Sedimentary rocks and environments",
+        "claims": [
+          "Sedimentary rock forms when sediment is deposited, compacted under burial, and cemented into stone — a process called lithification — and its features record the depositional environment.",
+          "Compaction occurs as more material accumulates on top, squeezing the grains together.",
+          "Cementation glues the grains together with minerals; compaction and cementation together are lithification.",
+          "Clastic (detrital) sedimentary rocks are made of pieces of preexisting weathered rock.",
+          "The features of a sedimentary rock are read to reconstruct its original depositional environment."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §5.3 Sedimentary rocks"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "dd1a63beb94d8a0465cf707bb927d1596385aba271668da7e6906e3b3210224e",
+          "artifact": {
+            "q": "What process describes the formation of sedimentary rock when sediment is deposited, compacted under burial, and cemented into stone?",
+            "op": [
+              "Erosion",
+              "Lithification",
+              "Metamorphism",
+              "Weathering"
+            ],
+            "ai": 1,
+            "ex": "Lithification is the correct process because it involves both compaction and cementation, which together form the rock. Metamorphism is incorrect because it involves changes to existing rock structure, not the initial formation from sediment."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "475aaf9e832506863e55390fe45b23f1d9c02e0a7798cc720502bdece821c7bd",
+          "artifact": {
+            "q": "A student studies a sandstone layer and wants to explain how it became stone. Which process best describes its formation?",
+            "op": [
+              "Sediment is deposited, then compacted and cemented into rock",
+              "Melt cools slowly underground until crystals interlock",
+              "Existing rock is changed by heat and pressure alone",
+              "Minerals dissolve completely and leave a hollow bed"
+            ],
+            "ai": 0,
+            "ex": "Sedimentary rock forms after deposition, burial compaction, and mineral cementation; the common misconception is to confuse this with igneous cooling or metamorphic change."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "dd1a63beb94d8a0465cf707bb927d1596385aba271668da7e6906e3b3210224e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "475aaf9e832506863e55390fe45b23f1d9c02e0a7798cc720502bdece821c7bd",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-992dc4413273bd836c1d",
+      "caseDigest": "e84b75f0ffeb4092c8afc3953fee471acf0d125cc4c9680a77cb46a5699c2e19",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "174163792d6897d305829f820e67fa9924397308ac8147eb797b172a0fa80a9a",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/intervals",
+        "term": "Interval (music)",
+        "claims": [
+          "In music theory, an interval is a difference in pitch between two sounds.",
+          "In physical terms, an interval is the ratio between two sonic frequencies.",
+          "Intervals between successive notes of a scale are also known as scale steps."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "d86a09cfa22104719a9fe7401903f138b4b11343bc6e12401309be6fc0dcd1ad",
+          "artifact": {
+            "q": "How are the intervals between successive notes of a scale referred to in music theory?",
+            "op": [
+              "A. Chord constructions.",
+              "B. Scale steps.",
+              "C. Harmonic progressions.",
+              "D. Pitch differences."
+            ],
+            "ai": 1,
+            "ex": "Option B is correct because intervals between successive notes of a scale are also known as scale steps (Claim 2). Option A is incorrect because chord constructions involve multiple notes. Option C is incorrect because harmonic progressions involve sequences of chords."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "976e3bdcfa354b9d2a5490e7ab60c89eedfcd6f8c2e15890c6f900612c1b2672",
+          "artifact": {
+            "q": "In an analysis note, a student says the distance between two pitches is being described. Which term fits best?",
+            "op": [
+              "Pitch difference",
+              "Sonic ratio",
+              "Scale step",
+              "Chord inversion"
+            ],
+            "ai": 0,
+            "ex": "Pitch difference is correct because an interval is defined as the difference in pitch between two sounds. A common misconception is to treat the same idea as a frequency ratio; that ratio is the physical description, not the basic theoretical one."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "d86a09cfa22104719a9fe7401903f138b4b11343bc6e12401309be6fc0dcd1ad",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "976e3bdcfa354b9d2a5490e7ab60c89eedfcd6f8c2e15890c6f900612c1b2672",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9fe6651e790072f2d85a",
+      "caseDigest": "7fd9f8667db75a4f691cde70c008f33b54050d3a408e979fbc14acef2c355d05",
+      "domain": "music-theory",
+      "courseGroupSha256": "bdc5f740594dfde48fe072660a390e7dd5892b4d5aba2b6d961980baad4899ae",
+      "sourceContextSha256": "c957977b0a8b5a247008abd14204ab7158b5c9b0c56fcc3b0275ec200c742cec",
+      "sourceContext": {
+        "sourcePacketSha256": "e38bfea2b79bdd4b3cfff63de22c63df96e995c7028500ab2b803ee35f367642",
+        "kernelId": "music/rhythm-and-meter",
+        "term": "Rhythm and meter",
+        "claims": [
+          "Rhythm (from Greek ῥυθμός, rhythmos, \"any regular recurring motion, symmetry\") generally means a \"movement marked by the regulated succession of strong and weak elements, or of opposite or different conditions\".",
+          "\"Meter may be defined as a regular, recurring pattern of strong and weak beats.",
+          "Triple metre is a metre in which each bar is divided into three beats, or a multiple thereof."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "fed6e912caee517c5fe24e8575c6765dd7725080591f6973632d524d39f31905",
+          "artifact": {
+            "q": "Which description best fits meter?",
+            "op": [
+              "A movement marked by regulated strong and weak elements",
+              "A pattern of chord functions in a progression",
+              "A scale pattern built from whole and half steps",
+              "A formal scheme of sections and reprises"
+            ],
+            "ai": 0,
+            "ex": "Meter is a regular, recurring pattern of strong and weak beats. It is not a harmonic, scalar, or formal pattern."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "57e13cec5d1c867e2655f4d7c91ffc167fc52ac3f532c4ed8d50b1e88cf3fc3f",
+          "artifact": {
+            "q": "A pattern where each bar is divided into three beats, or a multiple thereof, is known as:",
+            "op": [
+              "Rhythm",
+              "Meter",
+              "Triple metre",
+              "Movement"
+            ],
+            "ai": 2,
+            "ex": "Triple metre is a metre in which each bar is divided into three beats, or a multiple thereof. Meter is the pattern of beats; triple metre specifies the division of the bar."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "fed6e912caee517c5fe24e8575c6765dd7725080591f6973632d524d39f31905",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "57e13cec5d1c867e2655f4d7c91ffc167fc52ac3f532c4ed8d50b1e88cf3fc3f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-ea528ab88f2f91b60fbd",
+      "caseDigest": "4e9b12eb34741e952df3fe1c15ebe4505a7cdd432a0935bb7faf1a3338018e93",
+      "domain": "music-theory",
+      "courseGroupSha256": "6280ddd32cb07b8ee70f74fbe8a2d79205efa545aa9360a1f13e86996096df8d",
+      "sourceContextSha256": "522e62a0f30efc5d78b8e5fdbdc2088d7c5a433fa2452a1711969c6d2ab33765",
+      "sourceContext": {
+        "sourcePacketSha256": "e3b0f206c41fd8f910ccfc596c4f6bc3ee9e4c98c0dda44d1b35a5d654760938",
+        "kernelId": "music/scales-and-key-signatures",
+        "term": "Scales and key signatures",
+        "claims": [
+          "In music theory, a scale is \"any consecutive series of notes that form a progression between one note and its octave\", typically by order of pitch or fundamental frequency.",
+          "A measure of the width of each scale step provides a method to classify scales.",
+          "Scales can be abstracted from performance or composition.",
+          "Therefore, any scale is distinguishable by its \"step-pattern\", or how its intervals interact with each other.",
+          "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic).",
+          "The expression scale degree refers to these numerical labels."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "38b9f8357ef543b4891bdf8c15a8437ad5634df984d2c139cb0ace21de172787",
+          "artifact": {
+            "tr": "First Degree (Tonic)",
+            "df": "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic).",
+            "eg": "In the C major scale, C is the first degree.",
+            "mi": "The first degree is simply the lowest note in the scale.",
+            "cx": "The first degree is a special note that defines a specific scale, not just the lowest note."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3473ad854cf3fe88ed039b23ec39c6b76c93d8ea59786a6b34246c89f79c64c9",
+          "artifact": {
+            "tr": "scale degree",
+            "df": "A numerical label used to name a note's position within a scale.",
+            "eg": "In class, a student calls the first note of the scale the first degree and labels the next notes in order.",
+            "mi": "Scale degree means the size of each interval step.",
+            "cx": "The step size is used to classify scales, while scale degree names positions within that scale."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "38b9f8357ef543b4891bdf8c15a8437ad5634df984d2c139cb0ace21de172787",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3473ad854cf3fe88ed039b23ec39c6b76c93d8ea59786a6b34246c89f79c64c9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-3adbfa5335873f48d769",
+      "caseDigest": "1b544f90c1b9b4ecc54c803791cd6653e9bb90b935bf0b1d9502d34431ecd761",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "61d4c90977f13b23b93368a208941fd2db304b807bfe6bf7728b4b6b9f222097",
+      "sourceContextSha256": "c0d8fb4dbc8f9b003086468ee2796135300c84b5d26f9c11a5330ebc60c7e612",
+      "sourceContext": {
+        "sourcePacketSha256": "f0261b4e9d65d69eb1fd27b6e93e9702910c6f23322aeb3fcf3b799bb742fa6d",
+        "kernelId": "ux/task-flow-analysis",
+        "term": "Task flow analysis",
+        "claims": [
+          "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "The diagram may include multiple possible paths, task sequences, and decision points."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3cd72d1c6e4f9cff83ed6d0c681efb242241be70cc029bf0d6c568123140cc17",
+          "artifact": {
+            "q": "What does task flow analysis diagram?",
+            "op": [
+              "The steps and decision points a user follows to reach a goal.",
+              "A brand's visual style choices for a product.",
+              "A survey summary of user opinions and demographics.",
+              "A timeline of how the team built the interface."
+            ],
+            "ai": 0,
+            "ex": "It shows steps and decision points in reaching a defined goal. It is not about style, opinions, or the team's build history."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a6cf738ff1ee5f5809d2b71b996183fb5d23a969f29a1c13216e55f2f3412eb4",
+          "artifact": {
+            "q": "Which element should a task flow diagram include to effectively surface user difficulties?",
+            "op": [
+              "Only the successful path to the final objective.",
+              "Multiple possible paths, task sequences, and decision points.",
+              "A detailed description of the system's backend architecture.",
+              "The user's personal preferences for color schemes."
+            ],
+            "ai": 3,
+            "ex": "Option 1 is incorrect because it omits the necessary elements for showing progression. Option 3 is incorrect because the focus is on user interaction, not backend structure. Option 4 is incorrect because user preferences are not the primary focus of the flow analysis."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3cd72d1c6e4f9cff83ed6d0c681efb242241be70cc029bf0d6c568123140cc17",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a6cf738ff1ee5f5809d2b71b996183fb5d23a969f29a1c13216e55f2f3412eb4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a85f6b0ff4a1949fe400",
+      "caseDigest": "6a100271a503ee29ac83dd64816d42f8013de347a98e26d3fcb825d6ec580496",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "06ab2cdeac734edd8ef5df93070d35408285ceb632fbba18e19ae1247777989a",
+      "sourceContextSha256": "a70c8f06affd7fff739a324888bb31d80cb05b1c9851142e36fd91f46f1cf18f",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/research-planning",
+        "term": "Research planning",
+        "claims": [
+          "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "The team should agree what it wants to learn from the research round before selecting study details.",
+          "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+          "Researchers should run through test tasks on the day before the research session.",
+          "A practice session with a team member can expose procedure problems before participants arrive."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "41ed323c47a60a5541d2e5dc616b2669de589102e8664be76833ff3e63c07a84",
+          "artifact": {
+            "tr": "Actionable learning objectives",
+            "df": "Specific goals derived from a need for learning.",
+            "eg": "Defining what a user should be able to accomplish during a usability test.",
+            "mi": "Believing objectives are just general ideas.",
+            "cx": "These are specific goals that turn a need into a plan."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "2a056aa318f504298d874f12ce1d4bf39b58b9659c11a48db3744de51ac230c0",
+          "artifact": {
+            "tr": "Research plan",
+            "df": "A document that turns a decision need into learning goals, participants, tasks, evidence roles, and a ready study setup.",
+            "eg": "A team defines what it needs to learn, then lists who to recruit, what to ask them to do, who captures notes, and how the session will run.",
+            "mi": "A research plan is only a schedule of dates.",
+            "cx": "It also specifies learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready setup."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "41ed323c47a60a5541d2e5dc616b2669de589102e8664be76833ff3e63c07a84",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "2a056aa318f504298d874f12ce1d4bf39b58b9659c11a48db3744de51ac230c0",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

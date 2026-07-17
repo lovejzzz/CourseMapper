@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-grounded-atom-capture-v1",
+  "release": "v0.16.47",
+  "coveragePolicy": {
+    "protocol": "scion-source-capture-targeted-domain-gap-v1",
+    "domains": ["music-theory", "user-experience-design"],
+    "reason": "The existing approved corpus cannot reach the 10-source-kernel research gate in these two domains because the prior public shards contain only seven music kernels and six UX kernels. The four-domain corpus gate remains unchanged."
+  },
+  "groups": [
+    {
+      "id": "music-structure-expression-evidence-lab",
+      "domain": "music-theory",
+      "title": "Music Structure and Expression Evidence Lab",
+      "courseBrief": "Music Structure and Expression Evidence Lab, a four-session course in which students distinguish texture, expressive markings, phrase closure, and changes of tonic through source-grounded listening and notation decisions.",
+      "qualityFocus": "Stress near-neighbor distinctions: texture versus instrumentation count, dynamics versus tempo, a local pause versus cadential closure, and tonicization versus sustained modulation. Require explanations to rule out the strongest plausible alternative without inventing unheard musical evidence.",
+      "sourceFile": "public/genome/music-scion-v01647.json",
+      "kernels": [
+        { "id": "music/musical-texture" },
+        { "id": "music/dynamics-articulation-tempo" },
+        { "id": "music/phrases-and-cadences" },
+        { "id": "music/tonicization-and-modulation" }
+      ]
+    },
+    {
+      "id": "ux-service-evidence-and-progress-lab",
+      "domain": "user-experience-design",
+      "title": "UX Service Evidence and Progress Lab",
+      "courseBrief": "UX Service Evidence and Progress Lab, a four-session course in which students connect service operations to user experience, write contextual scenarios, plan observational tests, and communicate multi-stage progress accessibly.",
+      "qualityFocus": "Stress evidence boundaries and method selection: separate a service blueprint from a journey map, a user scenario from a feature walkthrough, observation from moderator coaching, and a true linear step indicator from decorative status color. Make each misconception concrete and correctable.",
+      "sourceFile": "public/genome/ux-scion-v01647.json",
+      "kernels": [
+        { "id": "ux/service-blueprinting" },
+        { "id": "ux/user-scenarios" },
+        { "id": "ux/usability-testing" },
+        { "id": "ux/process-and-progress-indicators" }
+      ]
+    }
+  ],
+  "claimBoundary": "This targeted campaign closes measured source-kernel gaps in music theory and UX. It does not weaken the unchanged four-domain training gate, supply preference labels, or prove an adapter win."
+}

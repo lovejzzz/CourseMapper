@@ -1,0 +1,766 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-authoring-v4-local-controlled-experiment-v1",
+  "release": "v0.16.47",
+  "generatedAt": "2026-07-17T02:15:00.000Z",
+  "status": "candidate-rejected-regression",
+  "campaigns": [
+    {
+      "id": "accepted-v2-baseline",
+      "promptPolicy": "source-atom-authoring-v2",
+      "campaign": {
+        "path": "evaluation/scion-source-capture-course-group-breadth-v0.16.47.json",
+        "sha256": "54233a8e64074f0060a69d3ac778f719850220092ba51eb87ca10ef1fa0c3693",
+        "promptSetSha256": "5a44124735946a0ae568082769b29d43575b9bffa20cea1c81a520d7d48df40f",
+        "groups": 6,
+        "prompts": 34,
+        "domainGroupCounts": {
+          "anatomy": 2,
+          "economics": 2,
+          "physics": 2
+        }
+      },
+      "model": {
+        "provider": "local",
+        "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+        "name": "Scion base (Gemma 4 E2B)",
+        "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "route": "mlx-vlm-base-only",
+        "decoding": "greedy-json-schema",
+        "maxOutputTokens": 2200
+      },
+      "groupIds": [
+        "anatomy-homeostasis-tissues-diagnostic-lab",
+        "anatomy-movement-signaling-case-studio",
+        "economics-markets-choice-decision-lab",
+        "economics-evidence-flows-measurement-studio",
+        "physics-charge-fields-potential-workshop",
+        "physics-circuits-magnetism-induction-lab"
+      ],
+      "courseInputSha256": [
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "sha256": "f56acfff0d29bdc297cd65da104e05b7c79a2440a4c94236f739dfa609200209"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "sha256": "21cc7a02f13f2f2a24bc0d40e0f69434e5e98305b918a324d33e14922d286f38"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "sha256": "b595ade323a86b54b5a874652b69e23c50dc7b50918dcde28ce7324722b97c04"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "sha256": "e970fb5e07e2e863ae5b4a720cdbf93c7043eb05b982e3776ce73fc9604e4f0b"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "sha256": "81ef6cab5cc18c975b0523a6acbb80f8be10b5a56bf0a205b047441bd4086c32"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "sha256": "09a2104531eb86f5bf546e83d06e132b3153bde17335606d7fd732696e3c635b"
+        }
+      ],
+      "kernelPayloads": [
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/levels-of-organization",
+          "sha256": "95957c6d5ead7311d1cbe617d6f306fe5468c2dd272ec064cda3add16c4a4947"
+        },
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/homeostasis-feedback",
+          "sha256": "74a3be6d3edf60348cdeed48ae695585edff1a2c8108a17b811aa214584a8790"
+        },
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/tissue-types",
+          "sha256": "49542341fe9fb87b8014cfb7388ebcc745e68d3b16ff2ea87808c782055f9eb2"
+        },
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/integumentary-skin-layers",
+          "sha256": "b1042cc519cdb031ef78ce62289e6cf2579f5ffe5482400241680ad3c7f12b69"
+        },
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/skeletal-system-functions",
+          "sha256": "44352f37126a517ed1d94ff20e2f200127cf8d4b4b5ac6d0bf26364ce9538dbe"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/synovial-joints",
+          "sha256": "93d2129ac2b107d057f57c102c0f77ce4c7a14c69eebd38e67c52a2aaab97bef"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/muscle-tissue-types",
+          "sha256": "8f1c87f276c80129419f38d00de871ec8628f4bfea8d189992a4693962c3b9d4"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/nervous-tissue",
+          "sha256": "c415ab8b31e89c28fca2ce8bd281a67bc5d7c1b6d62b0121c32d229981e1adb6"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/sensory-perception",
+          "sha256": "625c8a3f98a2acf8f5aba289cc7f413ad73e8b3718b46d5aa9ea631e19768b3f"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/endocrine-hormone-signaling",
+          "sha256": "4e20c5c75d1a48156755965d71ead4f1e248c170f7790b98b03f5ce718396e18"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/price-elasticity-of-demand",
+          "sha256": "b28036f4cd19012c5e8fb2c7bae8ebf0cf419f9b5b405b72043fca74f1c005a4"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/demand-curve",
+          "sha256": "b3b575920485e61b6481ee0044e4e21a6bb80c83ab3e252b41a9195d0a57e2d7"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/market-equilibrium",
+          "sha256": "a62da2c5c75d755e88248c31e34506c79a5a27f7c36171a15ff9846eef4f65c7"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/wage-price-spiral",
+          "sha256": "d5517da41c2ab5e7eb9ff7b8cb76673a2b8b859d74c9752220d0ead821527eda"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/consumer-choice",
+          "sha256": "2934f6d58c0ed32541eb9a19f926c86f411b1340559872e278acacfc31cba5d6"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/economic-model",
+          "sha256": "b95e703573a2c485f214827e7a25c44a7da0d3e6e8877db4f0bc011bc37a1cdc"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/natural-experiment",
+          "sha256": "7fe0e61a8bcff76d1b61407885d139b42b72070e4abf7ee71cfc7ffe7b9c7102"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/circular-flow-of-income",
+          "sha256": "89c9c61114f6c36db1d44f3995d3465b070c9eac07555108793307e61616392a"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/capital-accumulation",
+          "sha256": "b426dbec6e80ae90790960b0d76f3f96fc7a1b54f811cf91c194cd0c288c867e"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/proxy-variable",
+          "sha256": "ff03db49c51f72e67410b0b69acf9455a1de7ef758efc6ae13ccc55537856476"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/labor-force-classification",
+          "sha256": "00a3693e82a4cb97994029c69be812b8e7d75029d7c8d4e4037e7e8770180a51"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/opportunity-cost",
+          "sha256": "b297ed74375d8f08038ebf2fe5dc62705e2428e1abbe5f5fb84f1551b698535b"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/electric-charge",
+          "sha256": "f44cd3d1f7edae0512b448b62a3053783f6088ff88a0d436bc9d8fabc0a40852"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/electric-field",
+          "sha256": "77ee73672912bb571bfa698757ccdfa1661ecdfd16a2c49fa11f07e9b5257905"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/gausss-law",
+          "sha256": "c8e17dacb3fdaea78bd4642d532ea77b5643466b2cebd40852d62e0588c96fb8"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/electric-potential",
+          "sha256": "201d43b057e839153621afab56899da08847a5545c6a591d77902694d6ef4cd2"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/capacitance",
+          "sha256": "d6228cba86eaf66ba13f346b4cc77d9190636e103b0006266de062295018083a"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/electric-current",
+          "sha256": "1cb566babdf36d6bdf3d0dd61c3435ef47e7ff2273c140c125eeb22237742287"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/resistance-ohms-law",
+          "sha256": "686dae0f402dfa3323f513cc40cf7bb85869dfed83a1841064d1093346bcc723"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/dc-circuits",
+          "sha256": "0cf86af1fee92201f060a1ebc48246cd60a11f4b98be5ccb2f81b92b7965e7de"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/magnetic-field",
+          "sha256": "1328201cb389b66b809cd7e43bcea93fd7793cf0e6891a4473886f774ac91709"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/magnetic-force",
+          "sha256": "10f944bdf9fa4842a1586b026628f9024b93feb4e8e7a4d79c2d2388a08b18ce"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/faradays-law",
+          "sha256": "e5f84cfb519f38c2edd60b16ec3d9256349e5fe65b9426e3eaec74880cd7c4a0"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/inductance",
+          "sha256": "bf8ce84a1b3819efd995697564cc41848f0e60de77ccd793cc118b56192f17ab"
+        }
+      ],
+      "kernelSetSha256": "7494ff6b97153daaca7494b721e1afdf5191a9055d0f342742d5762f224e5b4d",
+      "artifacts": [
+        {
+          "path": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-homeostasis-tissues-diagnostic-lab-local.json",
+          "bytes": 83525,
+          "sha256": "ec4fbec6636000cdbb5704c76025c11c5d6fe3101343794713fce982dbd07c9a"
+        },
+        {
+          "path": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-movement-signaling-case-studio-local.json",
+          "bytes": 78263,
+          "sha256": "a620037e03e32641078772b463fdb635b9a55de7e2746d2e4668924baacd5e1c"
+        },
+        {
+          "path": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-markets-choice-decision-lab-local.json",
+          "bytes": 108482,
+          "sha256": "4a788a98f4559a4813f2283b41b53c6bae22f8012a0ddaf93f7273b5beda8422"
+        },
+        {
+          "path": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-evidence-flows-measurement-studio-local.json",
+          "bytes": 104202,
+          "sha256": "dc19302acbb2bf6e67ed0aab44f621ffe8ed756a7dbd14bed24d20997cc25a4a"
+        },
+        {
+          "path": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-charge-fields-potential-workshop-local.json",
+          "bytes": 97665,
+          "sha256": "74d9501b31b6cb834865e0439f1cb15dfe385dec6302f32f0743cdf940357000"
+        },
+        {
+          "path": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-circuits-magnetism-induction-lab-local.json",
+          "bytes": 97933,
+          "sha256": "c712b2ebe76be9aa7b77fa2843ca4bd243164f7de677f80be236254411799320"
+        }
+      ],
+      "strictReplay": {
+        "raw": {
+          "calls": 34,
+          "expectedAtoms": 136,
+          "admittedAtoms": 77,
+          "admittedMcItems": 43,
+          "admittedKeyTerms": 34,
+          "admissionRate": 0.566176,
+          "missingResponses": 0,
+          "issueHistogram": {
+            "key-term-0-circular-definition": 5,
+            "key-term-0-correction-repeats-definition": 6,
+            "key-term-0-correction-repeats-example": 3,
+            "key-term-0-correction-repeats-misconception": 4,
+            "key-term-0-example-repeats-definition": 1,
+            "key-term-0-misconception-repeats-definition": 3,
+            "key-term-0-misconception-repeats-example": 1,
+            "key-term-0-misconception-repeats-known-fact": 4,
+            "key-term-1-circular-definition": 8,
+            "key-term-1-correction-repeats-definition": 11,
+            "key-term-1-correction-repeats-example": 3,
+            "key-term-1-correction-repeats-misconception": 5,
+            "key-term-1-example-repeats-definition": 1,
+            "key-term-1-misconception-repeats-definition": 2,
+            "key-term-1-misconception-repeats-example": 2,
+            "key-term-1-misconception-repeats-known-fact": 6,
+            "mc-0-clang-association-cue": 4,
+            "mc-0-duplicate-options": 1,
+            "mc-0-explanation-key-conflict": 1,
+            "mc-0-explanation-repeats-answer": 2,
+            "mc-0-longest-option-cue": 2,
+            "mc-0-multiple-source-supported-options": 3,
+            "mc-0-option-homogeneity": 1,
+            "mc-0-source-answer-conflict": 2,
+            "mc-0-truncated-explanation": 6,
+            "mc-0-truncated-option": 1,
+            "mc-1-clang-association-cue": 4,
+            "mc-1-explanation-key-conflict": 3,
+            "mc-1-explanation-repeats-answer": 1,
+            "mc-1-longest-option-cue": 1,
+            "mc-1-multiple-source-supported-options": 1,
+            "mc-1-option-homogeneity": 1,
+            "mc-1-source-answer-conflict": 1,
+            "mc-1-truncated-explanation": 3,
+            "mc-1-truncated-option": 1,
+            "no-admitted-key-terms": 13,
+            "no-admitted-mc-items": 8
+          }
+        },
+        "effective": {
+          "calls": 34,
+          "expectedAtoms": 136,
+          "admittedAtoms": 91,
+          "admittedMcItems": 54,
+          "admittedKeyTerms": 37,
+          "admissionRate": 0.669118,
+          "missingResponses": 0,
+          "issueHistogram": {
+            "key-term-count": 21,
+            "mc-0-multiple-source-supported-options": 1,
+            "mc-0-source-answer-conflict": 1,
+            "mc-count": 8,
+            "no-admitted-key-terms": 10,
+            "no-admitted-mc-items": 4
+          }
+        }
+      },
+      "targetedRecovery": {
+        "calls": 25,
+        "targetedAssessmentCalls": 0,
+        "targetBoundCalls": 0,
+        "admittedAtoms": 0,
+        "countContractNoise": 0,
+        "issueHistogram": {}
+      }
+    },
+    {
+      "id": "candidate-v4",
+      "promptPolicy": "source-atom-authoring-v4",
+      "campaign": {
+        "path": "evaluation/scion-source-capture-authoring-v4-v0.16.47.json",
+        "sha256": "c772a4344f783ff8e3a10270b4c6c3b52a08b117b2a07a2ad340682c260b622c",
+        "promptSetSha256": "e0d75f3353b42ce64147c47548222d47e2228e13a59fb29d202ed2667039509f",
+        "groups": 6,
+        "prompts": 34,
+        "domainGroupCounts": {
+          "anatomy": 2,
+          "economics": 2,
+          "physics": 2
+        }
+      },
+      "model": {
+        "provider": "local",
+        "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+        "name": "Scion base (Gemma 4 E2B)",
+        "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+        "route": "mlx-vlm-base-only",
+        "decoding": "greedy-json-schema",
+        "maxOutputTokens": 2200
+      },
+      "groupIds": [
+        "anatomy-homeostasis-tissues-diagnostic-lab",
+        "anatomy-movement-signaling-case-studio",
+        "economics-markets-choice-decision-lab",
+        "economics-evidence-flows-measurement-studio",
+        "physics-charge-fields-potential-workshop",
+        "physics-circuits-magnetism-induction-lab"
+      ],
+      "courseInputSha256": [
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "sha256": "f56acfff0d29bdc297cd65da104e05b7c79a2440a4c94236f739dfa609200209"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "sha256": "21cc7a02f13f2f2a24bc0d40e0f69434e5e98305b918a324d33e14922d286f38"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "sha256": "b595ade323a86b54b5a874652b69e23c50dc7b50918dcde28ce7324722b97c04"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "sha256": "e970fb5e07e2e863ae5b4a720cdbf93c7043eb05b982e3776ce73fc9604e4f0b"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "sha256": "81ef6cab5cc18c975b0523a6acbb80f8be10b5a56bf0a205b047441bd4086c32"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "sha256": "09a2104531eb86f5bf546e83d06e132b3153bde17335606d7fd732696e3c635b"
+        }
+      ],
+      "kernelPayloads": [
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/levels-of-organization",
+          "sha256": "95957c6d5ead7311d1cbe617d6f306fe5468c2dd272ec064cda3add16c4a4947"
+        },
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/homeostasis-feedback",
+          "sha256": "74a3be6d3edf60348cdeed48ae695585edff1a2c8108a17b811aa214584a8790"
+        },
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/tissue-types",
+          "sha256": "49542341fe9fb87b8014cfb7388ebcc745e68d3b16ff2ea87808c782055f9eb2"
+        },
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/integumentary-skin-layers",
+          "sha256": "b1042cc519cdb031ef78ce62289e6cf2579f5ffe5482400241680ad3c7f12b69"
+        },
+        {
+          "groupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+          "kernelId": "anatomy/skeletal-system-functions",
+          "sha256": "44352f37126a517ed1d94ff20e2f200127cf8d4b4b5ac6d0bf26364ce9538dbe"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/synovial-joints",
+          "sha256": "93d2129ac2b107d057f57c102c0f77ce4c7a14c69eebd38e67c52a2aaab97bef"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/muscle-tissue-types",
+          "sha256": "8f1c87f276c80129419f38d00de871ec8628f4bfea8d189992a4693962c3b9d4"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/nervous-tissue",
+          "sha256": "c415ab8b31e89c28fca2ce8bd281a67bc5d7c1b6d62b0121c32d229981e1adb6"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/sensory-perception",
+          "sha256": "625c8a3f98a2acf8f5aba289cc7f413ad73e8b3718b46d5aa9ea631e19768b3f"
+        },
+        {
+          "groupId": "anatomy-movement-signaling-case-studio",
+          "kernelId": "anatomy/endocrine-hormone-signaling",
+          "sha256": "4e20c5c75d1a48156755965d71ead4f1e248c170f7790b98b03f5ce718396e18"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/price-elasticity-of-demand",
+          "sha256": "b28036f4cd19012c5e8fb2c7bae8ebf0cf419f9b5b405b72043fca74f1c005a4"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/demand-curve",
+          "sha256": "b3b575920485e61b6481ee0044e4e21a6bb80c83ab3e252b41a9195d0a57e2d7"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/market-equilibrium",
+          "sha256": "a62da2c5c75d755e88248c31e34506c79a5a27f7c36171a15ff9846eef4f65c7"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/wage-price-spiral",
+          "sha256": "d5517da41c2ab5e7eb9ff7b8cb76673a2b8b859d74c9752220d0ead821527eda"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/consumer-choice",
+          "sha256": "2934f6d58c0ed32541eb9a19f926c86f411b1340559872e278acacfc31cba5d6"
+        },
+        {
+          "groupId": "economics-markets-choice-decision-lab",
+          "kernelId": "econ/economic-model",
+          "sha256": "b95e703573a2c485f214827e7a25c44a7da0d3e6e8877db4f0bc011bc37a1cdc"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/natural-experiment",
+          "sha256": "7fe0e61a8bcff76d1b61407885d139b42b72070e4abf7ee71cfc7ffe7b9c7102"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/circular-flow-of-income",
+          "sha256": "89c9c61114f6c36db1d44f3995d3465b070c9eac07555108793307e61616392a"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/capital-accumulation",
+          "sha256": "b426dbec6e80ae90790960b0d76f3f96fc7a1b54f811cf91c194cd0c288c867e"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/proxy-variable",
+          "sha256": "ff03db49c51f72e67410b0b69acf9455a1de7ef758efc6ae13ccc55537856476"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/labor-force-classification",
+          "sha256": "00a3693e82a4cb97994029c69be812b8e7d75029d7c8d4e4037e7e8770180a51"
+        },
+        {
+          "groupId": "economics-evidence-flows-measurement-studio",
+          "kernelId": "econ/opportunity-cost",
+          "sha256": "b297ed74375d8f08038ebf2fe5dc62705e2428e1abbe5f5fb84f1551b698535b"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/electric-charge",
+          "sha256": "f44cd3d1f7edae0512b448b62a3053783f6088ff88a0d436bc9d8fabc0a40852"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/electric-field",
+          "sha256": "77ee73672912bb571bfa698757ccdfa1661ecdfd16a2c49fa11f07e9b5257905"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/gausss-law",
+          "sha256": "c8e17dacb3fdaea78bd4642d532ea77b5643466b2cebd40852d62e0588c96fb8"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/electric-potential",
+          "sha256": "201d43b057e839153621afab56899da08847a5545c6a591d77902694d6ef4cd2"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/capacitance",
+          "sha256": "d6228cba86eaf66ba13f346b4cc77d9190636e103b0006266de062295018083a"
+        },
+        {
+          "groupId": "physics-charge-fields-potential-workshop",
+          "kernelId": "physics/electric-current",
+          "sha256": "1cb566babdf36d6bdf3d0dd61c3435ef47e7ff2273c140c125eeb22237742287"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/resistance-ohms-law",
+          "sha256": "686dae0f402dfa3323f513cc40cf7bb85869dfed83a1841064d1093346bcc723"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/dc-circuits",
+          "sha256": "0cf86af1fee92201f060a1ebc48246cd60a11f4b98be5ccb2f81b92b7965e7de"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/magnetic-field",
+          "sha256": "1328201cb389b66b809cd7e43bcea93fd7793cf0e6891a4473886f774ac91709"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/magnetic-force",
+          "sha256": "10f944bdf9fa4842a1586b026628f9024b93feb4e8e7a4d79c2d2388a08b18ce"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/faradays-law",
+          "sha256": "e5f84cfb519f38c2edd60b16ec3d9256349e5fe65b9426e3eaec74880cd7c4a0"
+        },
+        {
+          "groupId": "physics-circuits-magnetism-induction-lab",
+          "kernelId": "physics/inductance",
+          "sha256": "bf8ce84a1b3819efd995697564cc41848f0e60de77ccd793cc118b56192f17ab"
+        }
+      ],
+      "kernelSetSha256": "7494ff6b97153daaca7494b721e1afdf5191a9055d0f342742d5762f224e5b4d",
+      "artifacts": [
+        {
+          "path": "evaluation/scion-source-capture-authoring-v4-evidence/anatomy-homeostasis-tissues-diagnostic-lab-local.json",
+          "bytes": 82385,
+          "sha256": "6177bf22da4677d2431efc2f96c1f6e362a7283c8691495551d54e036dc2f6eb"
+        },
+        {
+          "path": "evaluation/scion-source-capture-authoring-v4-evidence/anatomy-movement-signaling-case-studio-local.json",
+          "bytes": 77332,
+          "sha256": "b9cf227cc722b32aa2c768796cdb6c3579f94b15724bfe7f75a64f316d280766"
+        },
+        {
+          "path": "evaluation/scion-source-capture-authoring-v4-evidence/economics-markets-choice-decision-lab-local.json",
+          "bytes": 106812,
+          "sha256": "3feda3e5ed29fe641ec233eb8e646c5738ba27570d06769bb6739166a1789b39"
+        },
+        {
+          "path": "evaluation/scion-source-capture-authoring-v4-evidence/economics-evidence-flows-measurement-studio-local.json",
+          "bytes": 106160,
+          "sha256": "effced84a4fadddf7325474bd3d7e01fe9c930255513d71d641c3cd2b3f96fa8"
+        },
+        {
+          "path": "evaluation/scion-source-capture-authoring-v4-evidence/physics-charge-fields-potential-workshop-local.json",
+          "bytes": 99455,
+          "sha256": "2248135365a85bf9e113b2b84c0dad8202041a26232699a2cdc502cc7ebe3503"
+        },
+        {
+          "path": "evaluation/scion-source-capture-authoring-v4-evidence/physics-circuits-magnetism-induction-lab-local.json",
+          "bytes": 103856,
+          "sha256": "be580a887f65f77a402586c7a1285bf98b8f1e950a38539833bfce7f6f945bee"
+        }
+      ],
+      "strictReplay": {
+        "raw": {
+          "calls": 34,
+          "expectedAtoms": 136,
+          "admittedAtoms": 31,
+          "admittedMcItems": 30,
+          "admittedKeyTerms": 1,
+          "admissionRate": 0.227941,
+          "missingResponses": 0,
+          "issueHistogram": {
+            "key-term-0-circular-definition": 16,
+            "key-term-0-correction-repeats-definition": 27,
+            "key-term-0-correction-repeats-example": 26,
+            "key-term-0-correction-repeats-misconception": 14,
+            "key-term-0-example-repeats-definition": 28,
+            "key-term-0-misconception-repeats-definition": 13,
+            "key-term-0-misconception-repeats-example": 13,
+            "key-term-0-misconception-repeats-known-fact": 17,
+            "key-term-1-circular-definition": 15,
+            "key-term-1-correction-repeats-definition": 27,
+            "key-term-1-correction-repeats-example": 26,
+            "key-term-1-correction-repeats-misconception": 11,
+            "key-term-1-example-repeats-definition": 27,
+            "key-term-1-misconception-repeats-definition": 11,
+            "key-term-1-misconception-repeats-example": 11,
+            "key-term-1-misconception-repeats-known-fact": 14,
+            "mc-0-clang-association-cue": 1,
+            "mc-0-duplicate-options": 2,
+            "mc-0-explanation-key-conflict": 8,
+            "mc-0-multiple-source-supported-options": 3,
+            "mc-0-option-homogeneity": 1,
+            "mc-0-source-answer-conflict": 4,
+            "mc-0-truncated-option": 2,
+            "mc-1-clang-association-cue": 1,
+            "mc-1-duplicate-options": 4,
+            "mc-1-explanation-key-conflict": 6,
+            "mc-1-longest-option-cue": 1,
+            "mc-1-multiple-source-supported-options": 6,
+            "mc-1-option-homogeneity": 1,
+            "mc-1-source-answer-conflict": 4,
+            "mc-1-truncated-option": 1,
+            "no-admitted-key-terms": 33,
+            "no-admitted-mc-items": 15
+          }
+        },
+        "effective": {
+          "calls": 34,
+          "expectedAtoms": 136,
+          "admittedAtoms": 47,
+          "admittedMcItems": 44,
+          "admittedKeyTerms": 3,
+          "admissionRate": 0.345588,
+          "missingResponses": 0,
+          "issueHistogram": {
+            "key-term-count": 34,
+            "mc-0-multiple-source-supported-options": 3,
+            "mc-0-source-answer-conflict": 2,
+            "mc-0-truncated-option": 2,
+            "mc-1-multiple-source-supported-options": 2,
+            "mc-count": 14,
+            "no-admitted-key-terms": 31,
+            "no-admitted-mc-items": 8
+          }
+        }
+      },
+      "targetedRecovery": {
+        "calls": 34,
+        "targetedAssessmentCalls": 34,
+        "targetBoundCalls": 34,
+        "admittedAtoms": 20,
+        "countContractNoise": 0,
+        "issueHistogram": {
+          "key-term-0-circular-definition": 20,
+          "key-term-0-correction-repeats-definition": 20,
+          "key-term-0-correction-repeats-example": 10,
+          "key-term-0-correction-repeats-misconception": 8,
+          "key-term-0-example-repeats-definition": 9,
+          "key-term-0-misconception-repeats-definition": 6,
+          "key-term-0-misconception-repeats-example": 3,
+          "key-term-0-misconception-repeats-known-fact": 15,
+          "key-term-1-circular-definition": 15,
+          "key-term-1-correction-repeats-definition": 27,
+          "key-term-1-correction-repeats-example": 13,
+          "key-term-1-correction-repeats-misconception": 7,
+          "key-term-1-example-repeats-definition": 16,
+          "key-term-1-misconception-repeats-definition": 5,
+          "key-term-1-misconception-repeats-example": 5,
+          "key-term-1-misconception-repeats-known-fact": 13,
+          "mc-0-clang-association-cue": 1,
+          "mc-0-duplicate-options": 2,
+          "mc-0-explanation-key-conflict": 2,
+          "mc-0-truncated-explanation": 6,
+          "mc-1-duplicate-options": 1,
+          "mc-1-explanation-key-conflict": 4,
+          "mc-1-longest-option-cue": 1,
+          "mc-1-source-answer-conflict": 1,
+          "mc-1-truncated-explanation": 1,
+          "no-admitted-key-terms": 32,
+          "no-admitted-mc-items": 8
+        }
+      }
+    }
+  ],
+  "implementation": [
+    {
+      "path": "scripts/lib/scionSourceCapture.mjs",
+      "bytes": 50444,
+      "sha256": "a45b664d94d47afeccd69f46ddf0700ee890b7309f05bfb9c3d12e6099813871"
+    },
+    {
+      "path": "scripts/scionSourceCapture.mjs",
+      "bytes": 39556,
+      "sha256": "85a0b0efe812affb0509180b9fe4859c0fbaf30ce30a79d5d4fc59361ec3122a"
+    },
+    {
+      "path": "src/lib/scionPreferenceGate.js",
+      "bytes": 18719,
+      "sha256": "355f9bf6bca51af968ae47ef6a6f19021932ae1a06b5ee688e0d3b7932bd4c74"
+    },
+    {
+      "path": "src/lib/scionAnswerKeyAlignment.js",
+      "bytes": 33686,
+      "sha256": "cab8d7f238ff5ce274cf93d1dd402bf7f0503d341440af9f0d549f4e669ac24c"
+    },
+    {
+      "path": "src/lib/scionKeyTermContract.js",
+      "bytes": 13595,
+      "sha256": "8b132dd79f950b45bf45ad344141576b52a1edc5f73dcc2e7615ffbbd3c572d6"
+    }
+  ],
+  "delta": {
+    "rawAdmittedAtoms": -46,
+    "effectiveAdmittedAtoms": -44,
+    "rawAdmittedMcItems": -13,
+    "rawAdmittedKeyTerms": -33,
+    "effectiveAdmittedMcItems": -10,
+    "effectiveAdmittedKeyTerms": -34,
+    "malformedResponses": 0
+  },
+  "assertions": {
+    "exactControlledSurface": true,
+    "exactBaseIdentity": true,
+    "exactV2Baseline": true,
+    "targetAwareRecovery": true,
+    "outputSchemaStable": true,
+    "candidateRejected": true,
+    "keyTermRegression": true
+  },
+  "decision": {
+    "promoted": false,
+    "activeAuthoringPolicy": "source-atom-authoring-v2",
+    "rejectedPolicy": "source-atom-authoring-v4",
+    "nextExperiment": "Keep the proven v2 authoring policy active. Improve deterministic compiler repair and corpus breadth next; do not add more main-prompt constraints until a smaller isolated change has a local win."
+  },
+  "interpretation": "The focused v4 prompt preserved valid JSON output but reduced strict admission, with the dominant loss concentrated in key-term atoms. Target-aware recovery remained contract-correct with no false count issues, yet its shorter rules did not recover the lost quality. The candidate is rejected and v2 remains active.",
+  "claimBoundary": "This is one deterministic local replay on the same base, kernels, and course groups. It is useful negative pipeline evidence, not a model, adapter, reference-model, human, classroom, held-out, speed, or production-quality result."
+}

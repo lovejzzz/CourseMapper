@@ -23,6 +23,7 @@
  * the wiring sound without a browser or spend.
  */
 import { afterEach, describe, expect, it } from 'vitest';
+import fs from 'node:fs';
 
 import { applyApiCallBudgetEvent, createApiCallBudget, getApiCallBudgetTotal } from '../src/lib/apiCallBudget';
 import { deriveCourseGraphFromCourseMap } from '../src/lib/courseGraph/deriveFromCourseMap.js';
@@ -268,6 +269,91 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(skeleton.sessions.map((session) => session.id)).toEqual(['s1', 's2', 's3']);
   });
 
+  it('restores an explicit source lesson sequence when Pass A repeats a capstone title', () => {
+    const sourceText =
+      'Human Nutrition, a 14-lesson course. Lessons cover: the six classes of nutrients; carbohydrates, simple and complex; dietary fiber, soluble and insoluble; proteins and amino acids; lipids including saturated, unsaturated, and trans fats; fat-soluble and water-soluble vitamins; major minerals and electrolytes; water and hydration; digestion and absorption in the GI tract; energy balance and metabolism; healthy eating patterns and MyPlate; reading a Nutrition Facts label and percent daily value; a review of nutrient functions; and a final diet-analysis project.';
+    const modelTitles = [
+      'Nutrient classes',
+      'Carbohydrates',
+      'Proteins',
+      'Lipids',
+      'Minerals and water',
+      'Digestion',
+      'Energy balance',
+      'Healthy eating',
+      'Label reading',
+      'Nutrient review',
+      'Final project',
+      'Midterm review',
+      'Final project',
+      'Final project',
+    ];
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Human Nutrition', term: 'FA26' },
+        sessions: modelTitles.map((title, index) => ({
+          id: `s${index + 1}`,
+          order: index + 1,
+          title,
+          sectionTitles: [title],
+        })),
+      }),
+      { expectedLessons: 14, sourceText },
+    );
+
+    expect(skeleton.sessions[2].title).toBe('dietary fiber, soluble and insoluble');
+    expect(skeleton.sessions[5].title).toBe('fat-soluble and water-soluble vitamins');
+    expect(skeleton.sessions[12].title).toBe('review of nutrient functions');
+    expect(skeleton.sessions[13].title).toBe('final diet-analysis project');
+    expect(skeleton.sessions.filter((session) => /final project/i.test(session.title))).toHaveLength(0);
+    expect(skeleton.sessionSequenceRecovery).toMatchObject({
+      kind: 'explicit-source-lesson-sequence',
+      recoveredCount: 14,
+      reason: 'repeated-titles',
+      authoredTitles: expect.arrayContaining(['Final project']),
+    });
+  });
+
+  it('restores omitted and shifted explicit topics even when every authored title is unique', () => {
+    const sourceText =
+      'Introduction to Astronomy, a 12-lesson course. Lessons cover: diurnal motion and the apparent daily motion of the sky; the celestial sphere and celestial coordinates; the seasons and axial tilt with solstice and equinox; phases of the Moon; Kepler’s third law and the laws of planetary motion; the electromagnetic spectrum and wavelengths of light; spectral lines, absorption and emission spectra of stars; telescope light-gathering power and aperture; stellar parallax and celestial distances measured in parsecs; apparent magnitude and the brightness of stars; the solar nebula hypothesis and the formation of the solar system; and Hubble’s law and the expanding universe with a course review.';
+    const modelTitles = [
+      'Diurnal motion',
+      'Celestial coordinates',
+      'Seasons and tilt',
+      'Moon phases',
+      'Planetary motion',
+      'Electromagnetic spectrum',
+      'Stellar spectra',
+      'Stellar brightness',
+      'Solar system formation',
+      'Hubble’s law',
+      'Course review',
+      'Midterm exam',
+    ];
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introduction to Astronomy', term: 'FA26' },
+        sessions: modelTitles.map((title, index) => ({
+          id: `s${index + 1}`,
+          order: index + 1,
+          title,
+          sectionTitles: [title],
+        })),
+      }),
+      { expectedLessons: 12, sourceText },
+    );
+
+    expect(skeleton.sessions[7].title).toBe('telescope light-gathering power and aperture');
+    expect(skeleton.sessions[8].title).toBe('stellar parallax and celestial distances measured in parsecs');
+    expect(skeleton.sessions[11].title).toBe('Hubble’s law and the expanding universe with a course review');
+    expect(skeleton.sessionSequenceRecovery).toMatchObject({
+      kind: 'explicit-source-lesson-sequence',
+      reason: 'ordered-topic-misalignment',
+      misalignedOrders: [8, 9, 10, 11, 12],
+    });
+  });
+
   it('synthesizes one weighted assessment per session when Pass A omits assessments', () => {
     const skeleton = parseNativeSkeletonResponse(
       JSON.stringify({
@@ -295,6 +381,98 @@ describe('Pass A skeleton contract (B1)', () => {
       'Lesson 2 applied problem: Electric fields (33%)',
       "Lesson 3 practice brief: Gauss's law (33%)",
     ]);
+  });
+
+  it('splits fused weighted assessment lists, rejects unsupported parts, and restores the registered midterm exam', () => {
+    const sourceText =
+      'Human Nutrition, a 14-lesson introductory college course with weekly diet-analysis labs and a midterm. Lessons cover nutrient functions and a final diet-analysis project.';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Human Nutrition', term: 'FA26' },
+        sessions: Array.from({ length: 14 }, (_, index) => ({
+          order: index + 1,
+          title: `Nutrition topic ${index + 1}`,
+        })),
+        assessments: [
+          {
+            id: 'a1',
+            title: 'weekly diet-analysis labs (20%) 2. weekly autograded quizzes (10%)',
+            kind: 'graded-artifact',
+            dueSession: 1,
+            weightPct: 20,
+          },
+          {
+            id: 'a7',
+            title: 'midterm (20%) 2. weekly reading responses (10%)',
+            kind: 'graded-artifact',
+            dueSession: 7,
+            weightPct: 20,
+          },
+          {
+            id: 'a14',
+            title: 'final diet-analysis project (30%)',
+            kind: 'graded-artifact',
+            dueSession: 14,
+            weightPct: 30,
+          },
+        ],
+      }),
+      { expectedLessons: 14, sourceText },
+    );
+
+    expect(
+      skeleton.assessments.map(({ title, kind, dueSession, weightPct }) => ({
+        title,
+        kind,
+        dueSession,
+        weightPct,
+      })),
+    ).toEqual([
+      { title: 'weekly diet-analysis labs (20%)', kind: 'graded-artifact', dueSession: 1, weightPct: 20 },
+      { title: 'midterm (20%)', kind: 'exam', dueSession: 7, weightPct: 20 },
+      { title: 'final diet-analysis project (30%)', kind: 'graded-artifact', dueSession: 14, weightPct: 30 },
+    ]);
+    expect(skeleton.assessmentListRecovery).toEqual({
+      fusedEntryCount: 2,
+      recoveredItemCount: 2,
+      unsupportedItemCount: 2,
+    });
+
+    const graph = deriveCourseGraphFromCourseMap(buildNativeWireMap(skeleton));
+    expect(graph.assessments.map(({ title, kind, dueSession }) => ({ title, kind, dueSession }))).toEqual([
+      { title: 'weekly diet-analysis labs (20%)', kind: 'graded-artifact', dueSession: 1 },
+      { title: 'midterm (20%)', kind: 'exam', dueSession: 7 },
+      { title: 'final diet-analysis project (30%)', kind: 'graded-artifact', dueSession: 14 },
+    ]);
+    const compiled = compileBlueprintDeliverables(buildBlueprintFromGraph(graph), ['quizBank'], {
+      enforceCompilerContract: false,
+    });
+    const exams = (compiled.quizBank.quizzes || []).filter((entry) => entry.kind === 'exam');
+    expect(exams).toHaveLength(1);
+    expect(exams[0].lessonTitle).toContain('midterm (20%)');
+    expect(exams[0].questions.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('does not split an ordinary numbered project phase that is not a weighted list', () => {
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Design Studio', term: 'FA26' },
+        sessions: [{ order: 1, title: 'Capstone delivery' }],
+        assessments: [
+          {
+            id: 'a1',
+            title: 'Final project phase 2. Analysis and handoff (30%)',
+            kind: 'graded-artifact',
+            dueSession: 1,
+            weightPct: 30,
+          },
+        ],
+      }),
+    );
+
+    expect(skeleton.assessments).toHaveLength(1);
+    expect(skeleton.assessments[0].title).toBe('Final project phase 2. Analysis and handoff (30%)');
+    expect(skeleton.assessmentListRecovery).toBeUndefined();
   });
 
   it('tolerates code fences and surrounding prose', () => {
@@ -526,6 +704,52 @@ describe('Pass B contract (B2)', () => {
     expect(parsed.authored['lesson-1'].outcomes).toEqual(PASS_B_AUTHORING.outcomes);
     expect(parsed.authored['lesson-1'].asyncActivities).toEqual(PASS_B_AUTHORING.async);
     expect(parsed.authored['lesson-2'].goal).toBe('Identify minerals from physical properties');
+  });
+
+  it('rejects foreign-language content from both the kernel and native authoring halves', () => {
+    const prompt = {
+      courseName: 'Elementary Mandarin Chinese I',
+      lessons: [{ lessonId: 'lesson-1', title: 'Lesson 1: Mandarin numbers' }],
+      itemPlan: [],
+    };
+    const response = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          goal: 'Use Hangul counters to state quantities.',
+          outcomes: ['Choose between native Korean and Sino-Korean number systems.'],
+          async: ['Review Korean number forms.'],
+          sync: ['Practice Korean counters with a partner.'],
+          facts: ['Korean commonly uses native Korean and Sino-Korean number systems in different contexts.'],
+          keyTerms: [
+            {
+              tr: 'Hangul counters',
+              df: 'Hangul is the Korean writing system represented in syllable blocks for written communication.',
+              eg: 'A learner combines a native Korean number with the counter practiced in the dialogue.',
+              mi: 'One Korean number form works in every grammatical context.',
+              cx: 'The grammatical context determines the Korean number system and counter to use.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const parsed = parseNativePassBResponse(response, {
+      prompt,
+      expectedLessonIds: ['lesson-1'],
+    });
+    expect(parsed.kernels).toEqual({});
+    expect(parsed.authored).toEqual({});
+    expect(parsed.issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          lessonId: 'lesson-1',
+          surface: 'authoring',
+          reason: 'foreign-language-contamination',
+          problems: ['foreign-language-contamination:korean'],
+        }),
+      ]),
+    );
   });
 });
 
@@ -910,6 +1134,8 @@ describe('Pass A recurring-cadence contract (defect 1, contract side)', () => {
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/RECURRING ASSESSMENTS/);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/one assessments\[\] entry PER SESSION/);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/fewer entries than sessions/);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/Never copy an assessment genre or cadence from these instructions/i);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).not.toMatch(/weekly autograded quizzes|weekly reading responses/i);
     // The cadence expansion must not weaken verbatim traceability for
     // one-off named titles.
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/one-off named titles stay verbatim/i);
@@ -1163,6 +1389,13 @@ describe('matchEntityIds (B4)', () => {
 // ── Budget: counter + the constructor-whitelist trap ───────────────────────
 
 describe('apiCallBudget native fields', () => {
+  it('keeps authored course-map surfaces distinct from admitted lesson kernels in the live source', () => {
+    const source = fs.readFileSync('src/hooks/useDeliverables.js', 'utf8');
+    expect(source).toContain('outcomes/activities ${authoredSurfaceCount}/${nativeLessonCount}');
+    expect(source).toContain('knowledge kernels admitted ${admittedKernelCount}/${nativeLessonCount}');
+    expect(source).not.toContain('· Pass B authored ${');
+  });
+
   it('counts nativeSkeletonCall as a provider call and writes the courseMap pipeline line', () => {
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, {

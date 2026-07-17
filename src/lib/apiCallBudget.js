@@ -44,6 +44,30 @@ function cloneFeatureUsage(featureUsage = {}) {
   );
 }
 
+export function normalizeEnrichmentOutcome(outcome = null) {
+  if (!outcome || typeof outcome !== 'object') return outcome;
+  const requested = Math.max(0, Number(outcome.requestedLessons) || 0);
+  const declaredEnriched = Math.max(0, Number(outcome.enrichedLessons) || 0);
+  if (requested <= 0) return { ...outcome, enrichedLessons: declaredEnriched };
+  const hasMissingLedger = Array.isArray(outcome.missingLessons);
+  const missingLessons = hasMissingLedger
+    ? [
+        ...new Set(
+          outcome.missingLessons
+            .map(Number)
+            .filter((lesson) => Number.isSafeInteger(lesson) && lesson >= 1 && lesson <= requested),
+        ),
+      ].sort((left, right) => left - right)
+    : [];
+  // The missing-lesson ledger is the per-lesson admission truth. Payload
+  // objects may include thin genome/template overlays, so counting object
+  // keys can overstate how many lessons actually cleared enrichment.
+  const enrichedLessons = hasMissingLedger
+    ? Math.max(0, requested - missingLessons.length)
+    : Math.min(requested, declaredEnriched);
+  return { ...outcome, requestedLessons: requested, enrichedLessons, ...(hasMissingLedger ? { missingLessons } : {}) };
+}
+
 function normalizeFeatureIds(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
   if (value) return [value];
@@ -63,6 +87,8 @@ function enrichmentOutcomeRank(outcome = null) {
 }
 
 function preferEnrichmentOutcome(previous = null, incoming = null) {
+  previous = normalizeEnrichmentOutcome(previous);
+  incoming = normalizeEnrichmentOutcome(incoming);
   if (!previous) return incoming;
   if (!incoming) return previous;
   const previousRank = enrichmentOutcomeRank(previous);
@@ -152,12 +178,7 @@ export function createApiCallBudget(overrides = {}) {
     // survives every rebuild without aliasing the previous budget.
     ...(overrides.enrichmentOutcome
       ? {
-          enrichmentOutcome: {
-            ...overrides.enrichmentOutcome,
-            ...(Array.isArray(overrides.enrichmentOutcome.missingLessons)
-              ? { missingLessons: [...overrides.enrichmentOutcome.missingLessons] }
-              : {}),
-          },
+          enrichmentOutcome: normalizeEnrichmentOutcome(overrides.enrichmentOutcome),
         }
       : {}),
   };
@@ -440,6 +461,7 @@ export function getApiCallBudgetTotal(budget = {}) {
  */
 export function formatEnrichmentOutcomeLabel(outcome) {
   if (!outcome) return 'unknown';
+  outcome = normalizeEnrichmentOutcome(outcome);
   const enriched = Number(outcome.enrichedLessons) || 0;
   if (outcome.modelStage === 'ran') {
     const requested = Number(outcome.requestedLessons) || 0;

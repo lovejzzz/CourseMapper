@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-bound-preference-migration-v1",
+  "release": "v0.16.47",
+  "generatedAt": "2026-07-16T21:30:00.000Z",
+  "status": "source-context-restored",
+  "input": {
+    "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl",
+    "bytes": 202989,
+    "sha256": "61e2bc936c3f067f2675e73d85e43830a08fb04bdf14ecb72781199a9f1b3a4c",
+    "rows": 46
+  },
+  "workbook": {
+    "path": "evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.41.json",
+    "bytes": 12691,
+    "sha256": "552cb411ae0875e9909f16f81e7a6f0b57ac8dcf76b246d1dacee67315ca9d28",
+    "handoff": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41",
+    "order": "A/B",
+    "selectedCases": 100,
+    "reviewFiles": [
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-01-review-a-b.json",
+        "bytes": 44109,
+        "sha256": "4aa50025dfa08d12e8a7c0371da9cae626e77f74aa106959bf715e30c2bc9d13",
+        "reviews": 10
+      },
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-02-review-a-b.json",
+        "bytes": 44316,
+        "sha256": "d77491859a2c5dd3fbb2d7febe2a817dec17a5146b7b8f5b5f915eec6a51298b",
+        "reviews": 10
+      },
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-03-review-a-b.json",
+        "bytes": 42852,
+        "sha256": "9dbed0a20554e89a8bf5bd3a34ef4d42a7cb47f587f516c60b1e96d9e8a186d5",
+        "reviews": 10
+      },
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-04-review-a-b.json",
+        "bytes": 44093,
+        "sha256": "9eaf4ac568b2c81278699c304fb83fad92f05e359aed5854e1215356eabe5ddd",
+        "reviews": 10
+      },
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-05-review-a-b.json",
+        "bytes": 44528,
+        "sha256": "84fd7f38e43bc181b1b46211cdba623a3624eed03956d2b743163898c7a57562",
+        "reviews": 10
+      },
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-06-review-a-b.json",
+        "bytes": 44559,
+        "sha256": "7055cb26ff95a50388f6a8497ed11959b332b6b7fb2687ca363b2a9b4ccc2531",
+        "reviews": 10
+      },
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-07-review-a-b.json",
+        "bytes": 45036,
+        "sha256": "c433d040a9cd98b80458b3cecb4392c9c2cd4b359e89136c0f74ada99b75c4c8",
+        "reviews": 10
+      },
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-08-review-a-b.json",
+        "bytes": 43514,
+        "sha256": "5082c1b1c26459d9543e55b072409d9011af567393957d5cc4ebe4651fe86c4d",
+        "reviews": 10
+      },
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-09-review-a-b.json",
+        "bytes": 44281,
+        "sha256": "1f097657a1bb230bb71503dae2569a6069a881ffed7c019de3f3ef5c3a03489d",
+        "reviews": 10
+      },
+      {
+        "path": "evaluation/scion-adapters/handoffs/fresh-a-b-workbook-v0.16.41/chunk-10-review-a-b.json",
+        "bytes": 43973,
+        "sha256": "0320c58c814500701f554915245f79bd939f22980fe70b2f332ac5928816b5ec",
+        "reviews": 10
+      }
+    ]
+  },
+  "output": {
+    "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-seed.jsonl",
+    "bytes": 239484,
+    "sha256": "815774d8f9fc4a85f70d714e56e29d36beba27c75283d92dc96cad80b5cbdc5b",
+    "rows": 46
+  },
+  "restoredRows": 46,
+  "missingRows": 0,
+  "changedPreferenceOutcomes": 0,
+  "changedChosenArtifacts": 0,
+  "changedRejectedArtifacts": 0,
+  "promptProtocol": "source-bound-row-prompt-v1",
+  "claimBoundary": "This deterministic migration restores the exact source context already hash-bound to each approved v0.16.42 preference. It changes no judgment, winner, score, chosen artifact, or rejected artifact and proves no adapter or model win."
+}

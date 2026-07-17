@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-semantic-admission-v2-replay-v1",
+  "release": "v0.16.47",
+  "generatedAt": "2026-07-16T22:15:00.000Z",
+  "status": "stable-loss-detection-improved",
+  "evidence": {
+    "approvedCorpus": {
+      "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47.jsonl",
+      "bytes": 392679,
+      "sha256": "ce042d3631638229a1f63c4ba0d54d5439249d9f703e1d01e5af2acbbef32402",
+      "rows": 78
+    },
+    "judgeCampaign": {
+      "path": "evaluation/scion-adapters/evidence/judge-campaign-v0.16.47.json",
+      "bytes": 7686,
+      "sha256": "2cb01d46f19d5cf502683ff8ff5694020b77b23e58845955f8a17b0569b13705"
+    },
+    "currentPacketId": "scion-review-1c6adccdcb9edfab7231",
+    "implementation": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 33686,
+        "sha256": "cab8d7f238ff5ce274cf93d1dd402bf7f0503d341440af9f0d549f4e669ac24c"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 18719,
+        "sha256": "355f9bf6bca51af968ae47ef6a6f19021932ae1a06b5ee688e0d3b7932bd4c74"
+      },
+      {
+        "path": "src/lib/scionKeyTermContract.js",
+        "bytes": 13595,
+        "sha256": "8b132dd79f950b45bf45ad344141576b52a1edc5f73dcc2e7615ffbbd3c572d6"
+      },
+      {
+        "path": "src/lib/scionPasses.js",
+        "bytes": 35702,
+        "sha256": "a27fd0c3c4efa153aeec92f8dd24afd6cd56a9196ee769fb9f8b9da07c37b21e"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 50444,
+        "sha256": "a45b664d94d47afeccd69f46ddf0700ee890b7309f05bfb9c3d12e6099813871"
+      }
+    ]
+  },
+  "allStablePreferences": {
+    "rows": 78,
+    "legacy": {
+      "preferredEligible": 78,
+      "rejectedDetected": 21
+    },
+    "strict": {
+      "preferredEligible": 78,
+      "preferredRegressions": 0,
+      "rejectedDetected": 50,
+      "preferredOnlyMargins": 50,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 15,
+        "cx-repeats-itself": 1,
+        "duplicate-options": 2,
+        "example-underdeveloped": 3,
+        "explanation-key-conflict": 11,
+        "explanation-negates-key": 1,
+        "explanation-repeats-answer": 4,
+        "misconception-repeats-known-fact": 3,
+        "multiple-source-supported-options": 9,
+        "option-label-prefixes": 16,
+        "option-label-suffixes": 1,
+        "source-answer-conflict": 4,
+        "truncated-option": 1
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 20,
+          "rejectedDetected": 12,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 10,
+          "rejectedDetected": 10,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 29,
+          "rejectedDetected": 19,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 19,
+          "rejectedDetected": 9,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 34,
+          "rejectedDetected": 9,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 44,
+          "rejectedDetected": 41,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "currentCampaign": {
+    "rows": 32,
+    "legacy": {
+      "preferredEligible": 32,
+      "rejectedDetected": 1
+    },
+    "strict": {
+      "preferredEligible": 32,
+      "preferredRegressions": 0,
+      "rejectedDetected": 20,
+      "preferredOnlyMargins": 20,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 5,
+        "cx-repeats-itself": 1,
+        "example-underdeveloped": 2,
+        "explanation-key-conflict": 4,
+        "explanation-negates-key": 1,
+        "multiple-source-supported-options": 3,
+        "option-label-prefixes": 7,
+        "source-answer-conflict": 2,
+        "truncated-option": 1
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 10,
+          "rejectedDetected": 7,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 4,
+          "rejectedDetected": 4,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 10,
+          "rejectedDetected": 5,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 8,
+          "rejectedDetected": 4,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 13,
+          "rejectedDetected": 3,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 19,
+          "rejectedDetected": 17,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "assertions": {
+    "corpusBound": true,
+    "exactStableLossCorpus": true,
+    "exactCurrentCampaignRows": true,
+    "noPreferredArtifactRegression": true,
+    "stableLossDetectionLift": true,
+    "currentCampaignDetection": true
+  },
+  "claimBoundary": "This retrospective replay proves deterministic detection lift on 78 already judged stable losses with zero rejection of their preferred counterparts. It is not an independent, human, held-out, classroom, or adapter-quality result; unseen-output precision remains a separate gate."
+}

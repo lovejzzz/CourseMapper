@@ -1,0 +1,1076 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1c6adccdcb9edfab7231",
+    "packetDigest": "1c6adccdcb9edfab7231627b2205bbd3e5ce36032c854fb90024b351ea7e0393",
+    "organizerDigest": "6026ed4bdf7145d7b5dc9fcf2ecca5cffc29c74001baaab46c604dea1da65363"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-3e0e633424ac9f8930b4",
+      "caseDigest": "f2f6e228aa6417b3d2229c84a3e37af34e46f9667977939b8b5adc6b3e6bc353",
+      "domain": "computer-science",
+      "courseGroupSha256": "a57b8b121bb7e6a648ad18f451be33b8830a4062aecaa167f52ddc58adc0e987",
+      "sourceContextSha256": "0f9feab6d55ae7fbc693e4f578243d3fff7c4ead54e209a070a8fb765780d36e",
+      "sourceContext": {
+        "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+        "kernelId": "cs/expressions-and-types",
+        "term": "Expressions and data types",
+        "claims": [
+          "Every Python value has a data type (such as int, float, or str); expressions combine values, and conversion functions move a value from one type to another.",
+          "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.",
+          "int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.",
+          "True division (/) converts numbers to floats before dividing and always returns a float.",
+          "Floor division (//) computes the whole-number quotient, discarding the remainder."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §2.2 Type conversion; §2.5 Dividing integers"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "409729e7c69e307ce9f60f8f5a0a4224aaa9965fdef3b2370260c17a98650fdd",
+          "artifact": {
+            "tr": "implicit type conversion",
+            "df": "Automatic promotion of values inside a mixed expression so the expression can be evaluated.",
+            "eg": "In a mixed numeric expression, the interpreter can promote types automatically before computing the result.",
+            "mi": "It means Python changes every value only when a programmer calls a conversion function.",
+            "cx": "The correction is that the interpreter can perform the conversion on its own inside a mixed expression."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d866b18feecfe4972edc35c4519e951d61abca7103ba86096f73e3ad36c63178",
+          "artifact": {
+            "tr": "Type promotion",
+            "df": "The automatic process where the interpreter changes a value's data type to a more general type within a mixed expression.",
+            "eg": "In the expression `5 + 3.1`, the integer 5 is implicitly converted to a float to allow addition.",
+            "mi": "Believing that all operations maintain the original data type of the operands.",
+            "cx": "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "409729e7c69e307ce9f60f8f5a0a4224aaa9965fdef3b2370260c17a98650fdd",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d866b18feecfe4972edc35c4519e951d61abca7103ba86096f73e3ad36c63178",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-472def5eb4b2687f275d",
+      "caseDigest": "92428e259dadefba3c3076b777264e4a0ff154b4f03dbc3842d0f6ec7d74d5fd",
+      "domain": "computer-science",
+      "courseGroupSha256": "a57b8b121bb7e6a648ad18f451be33b8830a4062aecaa167f52ddc58adc0e987",
+      "sourceContextSha256": "6a29c9c9d41382f31f126e09f81ce31bae95e483e47d28d02200da2265eb5f85",
+      "sourceContext": {
+        "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+        "kernelId": "cs/variables",
+        "term": "Variables and assignment",
+        "claims": [
+          "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+          "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+          "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+          "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+          "Variable names are case-sensitive, so total and Total are two different variables."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.3 Variables"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "832bd6252611db8e2d58cadd7a8b6e419fb1684cc979ca981dec0c45152a6b9a",
+          "artifact": {
+            "q": "If `x = 10` is executed, what is the relationship between the variable `x` and the value `10`?",
+            "op": [
+              "A: `x` is a copy of `10`.",
+              "B: `x` is a reference to the value `10`.",
+              "C: `x` is mathematically equal to `10`.",
+              "D: `x` is a name that refers to a stored value."
+            ],
+            "ai": 1,
+            "ex": "Option B is correct because the assignment operator binds the name on the left to the value produced on the right, and for objects, it binds the reference, meaning no copy is made. Option A is incorrect because assignment is not mathematical equality; it copies a value into a variable rather than a."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "8da23c7d92e40d9b6229faeaa2ad84db501040836a9e87355c0a4be973cc4dc0",
+          "artifact": {
+            "q": "In a debug trace, which action matches Python assignment when `total = 7` runs?",
+            "op": [
+              "It binds `total` to the value 7.",
+              "It checks whether `total` and 7 are equal.",
+              "It creates a new variable named `7`.",
+              "It copies 7 into every existing name."
+            ],
+            "ai": 0,
+            "ex": "The correct choice is the binding of the name on the left to the value on the right. The closest distractor is the equality check, but assignment is not mathematical equality; the evidence is the rule that `=` binds a name to a produced value rather than asserting two sides are equal."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "832bd6252611db8e2d58cadd7a8b6e419fb1684cc979ca981dec0c45152a6b9a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "8da23c7d92e40d9b6229faeaa2ad84db501040836a9e87355c0a4be973cc4dc0",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-012d0eebf30cf5d4f2a8",
+      "caseDigest": "0ac8b483098f9e334f480440bd21801441ed367f2a764cd6b68c124de0850eb8",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "23c589d4cdb33d2ac5c0d82cc414095c49290bb0a3175dcf22947e3ef0d9bad1",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/geologic-time",
+        "term": "Geologic time and relative dating",
+        "claims": [
+          "Geologic time spans the roughly 4.5-billion-year history of Earth; relative dating orders events by which is older or younger, while absolute dating assigns numerical ages in years.",
+          "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock.",
+          "By the principle of superposition, in an undisturbed sequence the bottom layers are oldest and the upper layers younger.",
+          "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+          "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6d37329fc359d0f66b884e9dc65363c1c3fc2e7519446de4c62a5f1e41230163",
+          "artifact": {
+            "q": "A geology student compares two rock layers in an undisturbed outcrop and needs the older layer without assigning a calendar age. Which approach fits best?",
+            "op": [
+              "Use relative dating to rank the layers",
+              "Use absolute dating to rank the layers",
+              "Use original horizontality to rank the layers",
+              "Use geologic time to rank the layers"
+            ],
+            "ai": 0,
+            "ex": "Relative dating is the correct choice because it determines whether one layer is older or younger than another. Absolute dating is the common misconception here because it gives numerical ages in years rather than just an order."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "48318f3f399a5a082657d660497584422b13eb9bf58737be2217f282ecf38d7c",
+          "artifact": {
+            "q": "What does absolute dating provide regarding mineral grains in a rock?",
+            "op": [
+              "A numerical age in years",
+              "A relative order of events",
+              "The span of Earth's history",
+              "The sequence of deposition"
+            ],
+            "ai": 1,
+            "ex": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "6d37329fc359d0f66b884e9dc65363c1c3fc2e7519446de4c62a5f1e41230163",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "48318f3f399a5a082657d660497584422b13eb9bf58737be2217f282ecf38d7c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-b2a3fb1981839ff5e9f1",
+      "caseDigest": "daba8fbd98fc32e1a7cf15b7908abf4587d80b76f07aa168dfdc50ff1942afe3",
+      "domain": "geology",
+      "courseGroupSha256": "41db303891dbbffdd4bc29d5aa9c2988e5e44317cff1397d41fa982ec4a22b26",
+      "sourceContextSha256": "fe312934727b1881579ff8494fbc1d68928765bcce9c0a391826897506371465",
+      "sourceContext": {
+        "sourcePacketSha256": "afe665d7a9599479da3ab654f9e9865ac0ce1d3112c5b05d29eb2f83fcebb6fe",
+        "kernelId": "geo/igneous-rocks",
+        "term": "Igneous rocks and magma",
+        "claims": [
+          "Igneous rock forms when molten magma or lava cools and crystallizes; how fast it cools controls crystal size, distinguishing coarse intrusive rocks from fine-grained extrusive rocks.",
+          "Lava cooling quickly at the surface forms tiny crystals, while magma cooling slowly at depth forms large crystals.",
+          "Magma that cools slowly deep within the crust forms intrusive (plutonic) rock with a coarse-grained texture.",
+          "Lava cooling at or near the surface forms extrusive (volcanic) rock with a fine-grained texture."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4.1 Magma generation and igneous textures"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "53627ebd24033edbe076417b861e8ecc04745121f7ffc18e7145b33127be63a6",
+          "artifact": {
+            "tr": "Intrusive rock",
+            "df": "A rock formed when molten magma cools slowly deep within the crust, resulting in a coarse-grained texture.",
+            "eg": "Granite, formed from slowly cooling magma.",
+            "mi": "Intrusive rocks form when magma cools quickly at the surface.",
+            "cx": "Intrusive rocks form when magma cools slowly deep within the crust."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e4be556194c3766f9383a39fa9bb123aed984af36c5ba2beafbaf4e589e33efc",
+          "artifact": {
+            "tr": "intrusive rock",
+            "df": "Igneous rock that forms when magma cools slowly below the surface, producing a coarse-grained texture.",
+            "eg": "A plutonic sample with large crystals found deep in the crust.",
+            "mi": "Any rock with large crystals must be sedimentary.",
+            "cx": "Large crystals can point to slow cooling of magma underground, not deposition."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "53627ebd24033edbe076417b861e8ecc04745121f7ffc18e7145b33127be63a6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e4be556194c3766f9383a39fa9bb123aed984af36c5ba2beafbaf4e589e33efc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-fdcd6a7f6cd72bd47c43",
+      "caseDigest": "e6e3126901f670aa1549bd9bb3060e5204c4beed834a3c17fa540ec222a79003",
+      "domain": "geology",
+      "courseGroupSha256": "af478b3b946a56f3e9d594fc6fc9d3d007b88dc09de874f62a898860542b0ddc",
+      "sourceContextSha256": "9d760604cda51297c2dddaf4b414e8179f709b74f8f1f922722e9f6083541aa1",
+      "sourceContext": {
+        "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+        "kernelId": "geo/earths-interior",
+        "term": "Earth's interior",
+        "claims": [
+          "Earth is layered into a thin outer crust, a thick rocky mantle, and a metallic core; the upper mantle's asthenosphere is solid rock that flows slowly by convection.",
+          "The mantle sits below the crust and above the core.",
+          "The core has both liquid and solid layers and is made mostly of iron and nickel.",
+          "The asthenosphere is mechanically weak and flows by convection currents driven by the core's heat."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.1 Earth's interior"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "02e7c2a07f46eb863893d4df68c7a9e8e25f0669c16f97ca052150a805f7e2ac",
+          "artifact": {
+            "tr": "asthenosphere",
+            "df": "A mechanically weak zone of the upper mantle that moves slowly by convection.",
+            "eg": "Students may use the asthenosphere to explain slow rock flow beneath the lithosphere.",
+            "mi": "It is a fully liquid layer.",
+            "cx": "The source describes it as solid rock that flows slowly, not as liquid."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "79c7793e8dfeeac42eaabb23c2961d7973c4a8d1b1d98ba5eb6db21adc5a0c14",
+          "artifact": {
+            "tr": "Core",
+            "df": "The innermost layer of Earth composed mostly of iron and nickel.",
+            "eg": "The layer that has both liquid and solid components.",
+            "mi": "The core is entirely solid rock.",
+            "cx": "The core has both liquid and solid layers and is made mostly of iron and nickel."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "02e7c2a07f46eb863893d4df68c7a9e8e25f0669c16f97ca052150a805f7e2ac",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "79c7793e8dfeeac42eaabb23c2961d7973c4a8d1b1d98ba5eb6db21adc5a0c14",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a1788d347ca4fbc20bc2",
+      "caseDigest": "be357babd8d1facda1c4b015ffb4e62511c885b3ab7ff0923eff315f6aa57709",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "5f18a980ba2c17a3065865cd9b4b4a65d17eea22c603b12eff77d6ad61020a2b",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/staff-clefs-pitch-notation",
+        "term": "Staff and clefs",
+        "claims": [
+          "In Western musical notation, the staff (UK usually stave); (plural: staves), also occasionally referred to as a pentagram, is a set of horizontal lines (usually five) with spaces between them, that each represent a different musical pitch.",
+          "Which staff positions represent which notes is determined by a clef placed at the beginning of the staff.",
+          "A clef (from French: clef 'key') is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+          "The treble clef is also the upper staff of the grand staff used for harp and keyboard instruments.",
+          "Bass clef is the bottom clef in the grand staff for harp and keyboard instruments."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0140ced307a7d275c2d62386e97f3b5b939606b819fdef791ff50a861c2baa95",
+          "artifact": {
+            "q": "What does a clef tell you about a staff?",
+            "op": [
+              "which notes the lines and spaces represent",
+              "how many lines the staff has",
+              "how fast the music should be played",
+              "where the bar lines go"
+            ],
+            "ai": 0,
+            "ex": "A clef indicates which notes are represented by the staff’s lines and spaces. A likely misconception is that it changes the staff’s layout; instead, it assigns pitch names to positions."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "992ede9e7071e98ba6e65174501b7558a885e05a1c8145f07d64805638b40623",
+          "artifact": {
+            "q": "Which clef is typically used as the bottom clef in the grand staff for keyboard instruments?",
+            "op": [
+              "Treble clef",
+              "Bass clef",
+              "Staff clef",
+              "Grand staff clef"
+            ],
+            "ai": 1,
+            "ex": "The correct choice is the Bass clef, which is the bottom clef in the grand staff for harp and keyboard instruments. The misconception is selecting the Treble clef, which is the upper staff clef for harp and keyboard instruments."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0140ced307a7d275c2d62386e97f3b5b939606b819fdef791ff50a861c2baa95",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "992ede9e7071e98ba6e65174501b7558a885e05a1c8145f07d64805638b40623",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-d033e7f18940905b82f2",
+      "caseDigest": "cbd7e1be2611ca796ae92c79237905e05ff575f318ddff973c679e6615c802aa",
+      "domain": "music-theory",
+      "courseGroupSha256": "6280ddd32cb07b8ee70f74fbe8a2d79205efa545aa9360a1f13e86996096df8d",
+      "sourceContextSha256": "a9d404a2e67d0dc76545e2ef57e13ebfdfdd2137d94c7bd9a8c1f1e901833c99",
+      "sourceContext": {
+        "sourcePacketSha256": "e3b0f206c41fd8f910ccfc596c4f6bc3ee9e4c98c0dda44d1b35a5d654760938",
+        "kernelId": "music/triads-and-seventh-chords",
+        "term": "Triads and seventh chords",
+        "claims": [
+          "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+          "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+          "There are four different inversions of a seventh chord."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "be6fdf8e6dbc1d65f036733fa1ab165617615203d5b1b21a038fd4695a85a0c5",
+          "artifact": {
+            "q": "Which musical structure involves three notes stacked vertically in thirds?",
+            "op": [
+              "A) A seventh chord",
+              "b) A scale",
+              "C) A triad",
+              "D) A progression"
+            ],
+            "ai": 2,
+            "ex": "The correct choice is C) A triad. A common misconception is selecting A) A seventh chord, which is a triad plus an added note, confusing the basic three-note structure with the extended structure."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "031236bc91c7ef12f0eb3f904b61c257164d4e0de3ed2c5f143cabb94fad6330",
+          "artifact": {
+            "q": "A student labels a sonority as a triad with one additional note a seventh above the root. Which label fits best?",
+            "op": [
+              "Triad",
+              "Seventh chord",
+              "Octave doubling",
+              "Four-part inversion"
+            ],
+            "ai": 1,
+            "ex": "The best label is a seventh chord because it is a triad plus a note forming a seventh above the root. A common misconception is to call it a triad just because three notes are present, but the extra seventh changes the chord type."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "be6fdf8e6dbc1d65f036733fa1ab165617615203d5b1b21a038fd4695a85a0c5",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "031236bc91c7ef12f0eb3f904b61c257164d4e0de3ed2c5f143cabb94fad6330",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-6f470e75a25f24cb349b",
+      "caseDigest": "a5c6ba9f96c01b08702183debd57f9e5833afa8d8d083d7f51a4cae3cd126afa",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "7d93de170a838d6299cd66fa8adb8a9dc269c6d5189e4eb968c3b5d9b5c0981e",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5bd6efdae1d09da5293cdceb3b0e0f6acf1d0a960fc820426b3453018b20ac35",
+          "artifact": {
+            "q": "How can prototypes be effectively utilized to validate a design concept?",
+            "op": [
+              "By requiring every production detail for testing.",
+              "By combining them with usability testing or a cognitive walkthrough.",
+              "By only showing fully functional interactions.",
+              "By ensuring every interaction is perfectly functional."
+            ],
+            "ai": 1,
+            "ex": "The correct choice is that prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works (Claim 1). The misconception is that prototypes must only show fully functional interactions (Claim 2)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e4b7ebc5cbaafaf9c331c3c27d54b491a8e9b0cb8806007fc66c5a17e903b11e",
+          "artifact": {
+            "q": "What is the main role of a prototype in a UX project before full development?",
+            "op": [
+              "Create a testable model of the planned experience without every production detail.",
+              "Freeze the final interface so no changes are needed later.",
+              "Document the business model for the planned service.",
+              "Replace usability evidence with designer preference."
+            ],
+            "ai": 0,
+            "ex": "The correct choice emphasizes a testable representation that can be learned from before full production. A common misconception is that a prototype is the finished product or a fixed specification, but prototypes are meant to support learning rather than lock the design in place."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5bd6efdae1d09da5293cdceb3b0e0f6acf1d0a960fc820426b3453018b20ac35",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e4b7ebc5cbaafaf9c331c3c27d54b491a8e9b0cb8806007fc66c5a17e903b11e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-60fbc18677e373e84384",
+      "caseDigest": "16add9769be3fdf8491d15d0003d98cd4984e367006880ec7e1d205acbaf599d",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "06ab2cdeac734edd8ef5df93070d35408285ceb632fbba18e19ae1247777989a",
+      "sourceContextSha256": "9e63834d6d05656f879aa25eb35eb0aa921c6279a7d5bbc555f6ba4ab57d9df2",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/journey-mapping",
+        "term": "Journey mapping",
+        "claims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0c2513b8dc1f26a6a9ec20ed53f569de94fb8dd4638485692ced7811788ec35b",
+          "artifact": {
+            "q": "Which method best fits a team that wants to show a user's end-to-end service experience, including connected steps and breakdowns?",
+            "op": [
+              "Journey mapping",
+              "Card sorting",
+              "A/B testing",
+              "Heuristic evaluation"
+            ],
+            "ai": 0,
+            "ex": "It shows the end-to-end experience from the user's perspective. Card sorting groups labels, not service steps."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c6f348f8a94c9bd979e22fbe612f6bbbe16aa58f9fb43a23c4a63318d04c4aad",
+          "artifact": {
+            "q": "Which method is best suited for visualizing connected steps, boundaries, and opportunities across an entire user experience?",
+            "op": [
+              "Prototyping",
+              "Journey mapping",
+              "Usability testing",
+              "Flow charting"
+            ],
+            "ai": 1,
+            "ex": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities. The nearest plausible method, Flow charting, focuses on sequential steps but lacks the end-to-end perspective of a journey map."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0c2513b8dc1f26a6a9ec20ed53f569de94fb8dd4638485692ced7811788ec35b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "c6f348f8a94c9bd979e22fbe612f6bbbe16aa58f9fb43a23c4a63318d04c4aad",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-ba9657778dcfe1143498",
+      "caseDigest": "d8e86a33ec440c98d10f7920ce64b7ad14f20cc871fe1d54b480759ef889eda6",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "06ab2cdeac734edd8ef5df93070d35408285ceb632fbba18e19ae1247777989a",
+      "sourceContextSha256": "9e63834d6d05656f879aa25eb35eb0aa921c6279a7d5bbc555f6ba4ab57d9df2",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/journey-mapping",
+        "term": "Journey mapping",
+        "claims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5bc71af5ed89e9b94e3f0ecbc06d24c340b2fefe3f40aa2a3f4d90b80bb832d3",
+          "artifact": {
+            "tr": "Journey mapping",
+            "df": "A way to represent the user's end-to-end experience so the team can see connected steps, boundaries, breakdowns, and opportunities.",
+            "eg": "A service team maps how a person books online, arrives in person, and resolves a problem across those touchpoints.",
+            "mi": "It is mainly a list of interface screens or a research interview script.",
+            "cx": "Those are different artifacts; the map organizes the whole experience, while research methods gather the evidence that can inform it."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "5182b715fe153b7c08f699c5259b0a0b0fb33473f01ce230d8b4ed26848efa00",
+          "artifact": {
+            "tr": "End-to-end experience visualization",
+            "df": "A visual representation showing the complete user path.",
+            "eg": "Mapping the entire process from initial need to final task completion.",
+            "mi": "Confusing this with simple task sequencing.",
+            "cx": "This method shows connected steps, boundaries, breakdowns, and opportunities."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "5bc71af5ed89e9b94e3f0ecbc06d24c340b2fefe3f40aa2a3f4d90b80bb832d3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "5182b715fe153b7c08f699c5259b0a0b0fb33473f01ce230d8b4ed26848efa00",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

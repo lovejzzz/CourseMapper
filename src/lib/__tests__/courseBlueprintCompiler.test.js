@@ -4383,7 +4383,7 @@ describe('courseBlueprintCompiler', () => {
         },
         ['syllabus'],
       ),
-    ).toThrow(/Blueprint compiler contract blocked compilation/);
+    ).toThrow(/Contract blocked compilation/);
     expect(
       compileBlueprintDeliverables(
         {
@@ -6079,6 +6079,68 @@ describe('courseBlueprintCompiler', () => {
         reviewFocus: expect.stringContaining('revised target-language use'),
       }),
     });
+  });
+
+  it.each([
+    {
+      courseName: 'Elementary Mandarin Chinese I',
+      topic: 'Pinyin, four tones, greetings, self-introductions, and oral performance',
+      decisionNoun: 'communication choice',
+    },
+    {
+      courseName: 'World Literature',
+      topic: 'Oral epic, Homeric epic, Tang poetry, frame narratives, and modernist poetry',
+      decisionNoun: 'interpretive claim',
+    },
+    {
+      courseName: 'Introduction to Psychology',
+      topic: 'Classical conditioning, memory encoding, psychosocial development, and overjustification',
+      decisionNoun: 'psychological explanation',
+    },
+    {
+      courseName: 'Human Nutrition',
+      topic: 'Nutrients, carbohydrates, proteins, lipids, vitamins, and minerals',
+      decisionNoun: 'diet-analysis conclusion',
+    },
+    {
+      courseName: 'Introduction to Astronomy',
+      topic: 'Celestial coordinates, Moon phases, stellar parallax, solar nebula, and Hubble law',
+      decisionNoun: 'astronomical explanation',
+    },
+  ])('does not let a generic model lens flatten $courseName', ({ courseName, topic, decisionNoun }) => {
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName,
+        semester: 'Fall 2026',
+        lessons: [
+          {
+            title: `Lesson 1: ${topic.split(',')[0]}`,
+            sections: [
+              {
+                topicSection: topic,
+                learningObjectives: `Explain and apply ${topic}.`,
+                weeklyAssessments: `Evidence-backed response about ${topic}.`,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        enrichment: {
+          source: 'generic-model-probe',
+          lens: {
+            domain: 'applied course practice',
+            evidenceNoun: 'source evidence',
+            decisionNoun: 'professional decision',
+            learnerRole: 'course practitioner',
+            exampleNoun: 'applied case',
+          },
+        },
+      },
+    );
+
+    expect(blueprint.enrichment.lens.decisionNoun).toBe(decisionNoun);
+    expect(JSON.stringify(blueprint.enrichment.lens)).not.toContain('professional decision');
   });
 
   it('decodes performing arts courses as rehearsal evidence instead of generic simulation', () => {

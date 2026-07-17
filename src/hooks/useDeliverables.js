@@ -72,14 +72,15 @@ import {
   buildJudgmentStageEvent,
   buildSourceBackedJudgmentStageEvent,
   formatEnrichmentOutcomeLabel,
+  normalizeEnrichmentOutcome,
 } from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
 import {
-  PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS,
   PUBLIC_SCION_KERNEL_CONCURRENCY,
   PUBLIC_SCION_KERNEL_LESSONS_PER_CALL,
   PUBLIC_SCION_PROVIDER_ID,
+  publicScionEnrichmentRecoveryCallLimit,
 } from '../lib/publicScionProvider';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
@@ -637,9 +638,9 @@ export default function useDeliverables({
           ? Math.max(1, Math.ceil(enrichmentLessonCount / Math.max(1, plannedEnrichmentBatchSize)))
           : 1;
       const enrichmentRecoveryCallLimit =
-        provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS : 2;
+        provider === PUBLIC_SCION_PROVIDER_ID ? publicScionEnrichmentRecoveryCallLimit(enrichmentLessonCount) : 2;
       const plannedEnrichmentRecoveryReserve =
-        blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false && enrichmentLessonCount > 1
+        blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false
           ? enrichmentRecoveryCallLimit
           : 0;
       const costPlan = buildApiCostPlan({
@@ -1214,6 +1215,43 @@ export default function useDeliverables({
           };
         };
 
+        const recordLanguageIdentityFirewall = (issues = []) => {
+          const isLanguageIdentityProblem = (problem) =>
+            ['foreign-language-contamination:', 'target-language-missing:'].some((prefix) =>
+              String(problem).startsWith(prefix),
+            );
+          const languageIssues = issues.filter((issue) => issue?.problems?.some(isLanguageIdentityProblem));
+          if (languageIssues.length === 0) return;
+          const lessonNumbers = [
+            ...new Set(
+              languageIssues
+                .map((issue) => Number(String(issue.lessonId || '').replace('lesson-', '')))
+                .filter((value) => Number.isInteger(value) && value > 0),
+            ),
+          ].sort((left, right) => left - right);
+          const languageIds = [
+            ...new Set(
+              languageIssues.flatMap((issue) =>
+                issue.problems
+                  .filter(isLanguageIdentityProblem)
+                  .map((problem) => String(problem).split(':')[1])
+                  .filter(Boolean),
+              ),
+            ),
+          ];
+          recordGenerationApiCallEvent({
+            type: 'pipelineDecision',
+            label: 'Language identity firewall',
+            detail: `Lessons ${lessonNumbers.join(', ')} — rejected content outside ${blueprintCourseMap?.courseName || 'the course'}'s ${languageIds.join(', ')} language contract`,
+            featureId: 'blueprintEnrichment',
+            task: 'scionPass',
+          });
+          appendLog(
+            `Course identity protected: rejected off-course language content in lesson${lessonNumbers.length === 1 ? '' : 's'} ${lessonNumbers.join(', ')}`,
+            'progress',
+          );
+        };
+
         // ── v0.14.5 WS-B (B2): native Pass B — replaces the model stage ──
         // Pass B is NOT optional enrichment on the native path: it replaces
         // both the course-map call's authorship and the enrichment calls, so
@@ -1378,6 +1416,7 @@ export default function useDeliverables({
                 );
               }
               if (parsed.issues.length > 0) {
+                recordLanguageIdentityFirewall(parsed.issues);
                 appendLog(`Native Pass B dropped ${parsed.issues.length} atom(s) that failed admission`, 'progress');
               }
             };
@@ -1501,14 +1540,19 @@ export default function useDeliverables({
               );
             }
 
-            const enrichedLessonCount = Object.keys(lessonContent).length;
-            if (enrichedLessonCount === 0 && Object.keys(nativeAuthored).length === 0) {
+            const availablePayloadCount = Object.keys(lessonContent).length;
+            const enrichedLessonCount = normalizeEnrichmentOutcome({
+              requestedLessons: allLessonIndices.length,
+              enrichedLessons: availablePayloadCount,
+              missingLessons: missingLessonNumbers,
+            }).enrichedLessons;
+            if (availablePayloadCount === 0 && Object.keys(nativeAuthored).length === 0) {
               appendLog('⚠ Native Pass B produced no usable payloads', 'warn');
               stageDecisions.modelStage = 'failed: no usable Pass B payloads';
               return genomeOnlyEnrichment();
             }
             appendLog(
-              `✓ Native Pass B authored ${Object.keys(nativeAuthored).length} lesson(s) of outcomes + activities onto the skeleton (${enrichedLessonCount} lesson kernel${enrichedLessonCount === 1 ? '' : 's'} total)`,
+              `✓ Native Pass B authored ${Object.keys(nativeAuthored).length} lesson(s) of outcomes + activities onto the skeleton (${enrichedLessonCount}/${allLessonIndices.length} lesson kernel${allLessonIndices.length === 1 ? '' : 's'} admitted; ${availablePayloadCount} payload${availablePayloadCount === 1 ? '' : 's'} available)`,
               'done',
             );
             abortMapRef.current.delete(abortKey);
@@ -1728,6 +1772,7 @@ export default function useDeliverables({
                   }
                 }
                 if (parsedKernels.issues.length > 0) {
+                  recordLanguageIdentityFirewall(parsedKernels.issues);
                   appendLog(
                     `Content enrichment dropped ${parsedKernels.issues.length} atom(s) that failed item-writing or grounding checks`,
                     'progress',
@@ -1942,8 +1987,13 @@ export default function useDeliverables({
             );
           }
 
-          const enrichedLessonCount = Object.keys(lessonContent).length;
-          if (enrichedLessonCount === 0) {
+          const availablePayloadCount = Object.keys(lessonContent).length;
+          const enrichedLessonCount = normalizeEnrichmentOutcome({
+            requestedLessons: allLessonIndices.length,
+            enrichedLessons: availablePayloadCount,
+            missingLessons: missingLessonNumbers,
+          }).enrichedLessons;
+          if (availablePayloadCount === 0) {
             appendLog('⚠ Blueprint enrichment produced no usable lesson kernels', 'warn');
             stageDecisions.modelStage = 'failed: no usable kernels parsed';
             return genomeOnlyEnrichment();
@@ -1965,7 +2015,7 @@ export default function useDeliverables({
             stageDecisions,
           };
           appendLog(
-            `✓ Knowledge kernels enriched for ${enrichedLessonCount} lesson${enrichedLessonCount === 1 ? '' : 's'} (quiz, slides, study guide, discussion, assignment from one payload)${absorbedCourseLevel ? ` + course lens (${absorbedCourseLevel.signatureTerms.length} terms)` : ''}`,
+            `✓ Knowledge kernels admitted for ${enrichedLessonCount}/${allLessonIndices.length} lesson${allLessonIndices.length === 1 ? '' : 's'} (${availablePayloadCount} payload${availablePayloadCount === 1 ? '' : 's'} available; quiz, slides, study guide, discussion, assignment from one payload)${absorbedCourseLevel ? ` + course lens (${absorbedCourseLevel.signatureTerms.length} terms)` : ''}`,
             'done',
           );
           return enrichment;
@@ -2075,9 +2125,9 @@ export default function useDeliverables({
         // (digest pipeline line, PACKAGE_MANIFEST, finalizer warning).
         const enrichmentOutcome = {
           modelStage: blueprintEnrichment?.stageDecisions?.modelStage || 'none',
-          enrichedLessons: blueprintEnrichment?.lessonContent
-            ? Object.keys(blueprintEnrichment.lessonContent).length
-            : 0,
+          enrichedLessons:
+            blueprintEnrichment?.coverage?.enrichedLessons ??
+            (blueprintEnrichment?.lessonContent ? Object.keys(blueprintEnrichment.lessonContent).length : 0),
           ...(blueprintEnrichment?.coverage
             ? {
                 requestedLessons: blueprintEnrichment.coverage.requestedLessons,
@@ -2146,6 +2196,9 @@ export default function useDeliverables({
           });
           if (resolution.ok) {
             courseGraph = courseGraphLib.attachEnrichmentToGraph(resolution.graph, enrichmentForGraph);
+            const authoredSurfaceCount = Object.keys(blueprintEnrichment?.nativeAuthored || {}).length;
+            const admittedKernelCount = Math.max(0, Number(blueprintEnrichment?.coverage?.enrichedLessons) || 0);
+            const nativeLessonCount = resolution.graph.sessions.length;
             const recoveredResourceDetail = resolution.resourceRecovery?.recoveredCount
               ? ` · recorded ${resolution.resourceRecovery.recoveredCount} missing resource signal${
                   resolution.resourceRecovery.recoveredCount === 1 ? '' : 's'
@@ -2163,9 +2216,7 @@ export default function useDeliverables({
               type: 'pipelineDecision',
               stage: 'nativeAuthoring',
               label: 'Native graph authoring',
-              detail: `assembled ${resolution.graph.sessions.length} sessions onto Pass A entity ids · Pass B authored ${
-                Object.keys(blueprintEnrichment?.nativeAuthored || {}).length
-              } lesson(s) · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}${nativeCourseIRDetail}${nativeRepairDetail}`,
+              detail: `assembled ${nativeLessonCount} sessions onto Pass A entity ids · outcomes/activities ${authoredSurfaceCount}/${nativeLessonCount} · knowledge kernels admitted ${admittedKernelCount}/${nativeLessonCount} · ${(resolution.graph.readings || []).length} registry readings${recoveredResourceDetail}${nativeCourseIRDetail}${nativeRepairDetail}`,
             });
             if (nativeCourseIR) {
               appendLog(
@@ -2323,32 +2374,28 @@ export default function useDeliverables({
           appendLog(`⚠ Alignment: ${finding.message}`, 'warn');
         }
         let courseMapAssessmentRegistry = null;
+        let courseMapReadingsRegistry = null;
         try {
-          const mapDerivedGraph = courseGraphLib.deriveCourseGraphFromCourseMap(blueprintCourseMap);
-          const mapAssessments = Array.isArray(mapDerivedGraph?.assessments) ? mapDerivedGraph.assessments : [];
-          const graphAssessmentCount = Array.isArray(courseGraph?.assessments) ? courseGraph.assessments.length : 0;
-          if (mapAssessments.length > graphAssessmentCount) {
-            courseMapAssessmentRegistry = mapAssessments;
-            traceGeneration(generationRunId, 'compiler_assessment_registry_bridge', {
-              source: 'course-map-derived-registry',
-              nativeAssessmentCount: graphAssessmentCount,
-              courseMapAssessmentCount: mapAssessments.length,
-            });
-            recordGenerationApiCallEvent({
-              type: 'pipelineDecision',
-              stage: 'blueprintCompiler',
-              label: 'Assessment registry bridge',
-              detail: `Compiler using ${mapAssessments.length} Course Map assessment row(s) instead of ${graphAssessmentCount} native graph row(s) so promised assessments get downstream artifacts.`,
-            });
-          }
+          const { bridgeCompilerRegistries } = await import('../lib/compilerRegistryBridge');
+          const registryBridges = bridgeCompilerRegistries({
+            courseGraph,
+            courseMap: blueprintCourseMap,
+            runId: generationRunId,
+            trace: traceGeneration,
+            recordEvent: recordGenerationApiCallEvent,
+          });
+          courseMapAssessmentRegistry = registryBridges.assessmentRegistry || null;
+          courseMapReadingsRegistry = registryBridges.readingsRegistry || null;
         } catch {
           courseMapAssessmentRegistry = null;
+          courseMapReadingsRegistry = null;
         }
         const blueprint = compactBlueprintForStorage(
           courseGraphLib.buildBlueprintFromGraph(courseGraph, {
             scopeIndices,
             localization: (await import('../lib/professorProfile')).getProfile(),
             ...(courseMapAssessmentRegistry ? { assessmentRegistry: courseMapAssessmentRegistry } : {}),
+            ...(courseMapReadingsRegistry ? { readingsRegistry: courseMapReadingsRegistry } : {}),
             compilerPath: {
               mode: blueprintEnrichment ? 'enriched' : 'deterministic',
               reason: !blueprintEnrichment

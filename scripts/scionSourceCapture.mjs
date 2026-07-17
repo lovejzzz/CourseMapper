@@ -1,23 +1,30 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
+import { constants as fsConstants } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 import { buildOpenAIResponsesBody, extractOpenAIResponsesText } from '../src/lib/openaiProvider.js';
-import { sGenerate, stopS } from '../trellis/tendril/sModel.mjs';
+import { resolveItemsRuntime, sGenerate, stopS } from '../trellis/tendril/sModel.mjs';
 import { loadApiKey } from './lib/crucibleBrowser.mjs';
 import {
   SOURCE_ATOM_SCHEMA,
+  SOURCE_PARTIAL_RECOVERY_PROTOCOL,
   SOURCE_RECOVERY_PROTOCOL,
   SOURCE_RECOVERY_SCHEMA,
+  SOURCE_TARGETED_ASSESSMENT_CONTRACT,
   assessSourceAtomResponse,
+  buildSourcePartialRecoverySchema,
   buildSourceRecoveryPrompt,
   buildSourceCaptureProject,
   canonicalJson,
   materializeSourceCaptureCampaign,
+  mergeSourceRecoveryCall,
   parseSourceAtomResponse,
+  sourceRecoveryTarget,
+  sourceGroupMinimumAdmittedPrompts,
   sourceCaptureCompletedAt,
   sourceCaptureSha256,
   summarizeSourceCaptureBurden,
@@ -30,6 +37,77 @@ const DEFAULT_CHECKPOINTS = 'verification-output/scion-source-capture/checkpoint
 const DEFAULT_REPORT = 'verification-output/scion-source-capture/latest.json';
 const BASE_CONTRACT = 'evaluation/scion-adapters/base-contracts/gemma-4-e2b.json';
 const LOCAL_CAPTURE_TIMEOUT_MS = 2_400_000;
+let referenceKeyCache = null;
+
+function resolveRuntimePath(value, cwd = process.cwd()) {
+  return path.isAbsolute(value) ? value : path.resolve(cwd, value);
+}
+
+function configuredReferenceEnvPath(cwd = process.cwd()) {
+  const configured = String(process.env.COURSEMAPPER_API_ENV || '').trim();
+  return configured ? resolveRuntimePath(configured, cwd) : undefined;
+}
+
+async function referenceApiKey(cwd = process.cwd()) {
+  const fromEnv = String(process.env.COURSEMAPPER_OPENAI_API_KEY || process.env.OPENAI_API_KEY || '').trim();
+  const apiEnvPath = configuredReferenceEnvPath(cwd);
+  const identity = fromEnv ? `env:${sourceCaptureSha256(fromEnv)}` : `file:${apiEnvPath || 'repository-default'}`;
+  if (referenceKeyCache?.identity !== identity) {
+    referenceKeyCache = {
+      identity,
+      promise: fromEnv ? Promise.resolve(fromEnv) : loadApiKey(apiEnvPath, 'openai'),
+    };
+  }
+  return referenceKeyCache.promise;
+}
+
+/**
+ * Resolve all arm-wide prerequisites once, before a campaign mutates its
+ * checkpoint. Per-prompt content failures remain retained evidence; a missing
+ * runtime, model snapshot, or credential is an execution failure and must not
+ * masquerade as 48 independent model failures.
+ */
+export async function preflightSourceCaptureArm({ arm, model, cwd = process.cwd() }) {
+  if (arm === 'reference') {
+    await referenceApiKey(cwd);
+    return {
+      arm,
+      provider: 'openai',
+      credentialSource: process.env.COURSEMAPPER_OPENAI_API_KEY || process.env.OPENAI_API_KEY ? 'environment' : 'file',
+    };
+  }
+  if (arm !== 'local') throw new Error(`Unknown source-capture arm: ${arm}`);
+
+  const { python: pythonPath, script: scriptPath } = resolveItemsRuntime({ cwd });
+  try {
+    await fs.access(pythonPath, fsConstants.X_OK);
+  } catch {
+    throw new Error(
+      `Scion local runtime is unavailable at ${pythonPath}. Set TENDRIL_ITEMS_PYTHON to an executable MLX runtime before capture.`,
+    );
+  }
+  try {
+    await fs.access(scriptPath, fsConstants.R_OK);
+  } catch {
+    throw new Error(
+      `Scion local serving script is unavailable at ${scriptPath}. Set TENDRIL_ITEMS_SCRIPT to the pinned serve_g4.py path.`,
+    );
+  }
+
+  const cacheRoot = resolveRuntimePath(
+    process.env.HF_HUB_CACHE || path.join(os.homedir(), '.cache', 'coursemapper', 'scion-models'),
+    cwd,
+  );
+  const modelDirectory = `models--${String(model?.id || '').replaceAll('/', '--')}`;
+  const snapshotPath = path.join(cacheRoot, modelDirectory, 'snapshots', String(model?.revision || ''));
+  const entries = await fs.readdir(snapshotPath).catch(() => []);
+  if (!entries.includes('config.json') || !entries.some((entry) => /^model(?:-[^.]+)?\.safetensors$/.test(entry))) {
+    throw new Error(
+      `Pinned Scion base snapshot is unavailable at ${snapshotPath}. Populate that exact revision before offline capture.`,
+    );
+  }
+  return { arm, provider: 'local', pythonPath, scriptPath, snapshotPath };
+}
 
 function parseArgs(argv) {
   const args = {
@@ -40,6 +118,7 @@ function parseArgs(argv) {
     arm: '',
     verify: false,
     recover: false,
+    recoverPartial: false,
     fresh: false,
     limit: 0,
     referenceModel: 'gpt-5.4-mini',
@@ -53,7 +132,10 @@ function parseArgs(argv) {
     else if (argv[index] === '--reference-model') args.referenceModel = argv[++index] || args.referenceModel;
     else if (argv[index] === '--verify') args.verify = true;
     else if (argv[index] === '--recover') args.recover = true;
-    else if (argv[index] === '--fresh') args.fresh = true;
+    else if (argv[index] === '--recover-partial') {
+      args.recover = true;
+      args.recoverPartial = true;
+    } else if (argv[index] === '--fresh') args.fresh = true;
     else if (argv[index] === '--limit') args.limit = Number(argv[++index] || 0);
     else if (argv[index] === '--help' || argv[index] === '-h') args.help = true;
     else throw new Error(`Unknown Scion source-capture option: ${argv[index]}`);
@@ -113,7 +195,7 @@ async function modelIdentity({ arm, referenceModel }) {
 }
 
 async function callLocal(prompt, model, schema = SOURCE_ATOM_SCHEMA) {
-  const text = await sGenerate(
+  const result = await sGenerate(
     {
       system: prompt.system,
       user: prompt.user,
@@ -121,13 +203,20 @@ async function callLocal(prompt, model, schema = SOURCE_ATOM_SCHEMA) {
       maxTokens: model.maxOutputTokens,
       schema,
     },
-    { timeoutMs: LOCAL_CAPTURE_TIMEOUT_MS },
+    { timeoutMs: LOCAL_CAPTURE_TIMEOUT_MS, includeMetadata: true },
   );
-  return { text, receipt: { provider: 'local', constrained: 'json-schema', adapterActive: false } };
+  return {
+    text: result.text,
+    receipt: {
+      provider: 'local',
+      constrained: result.constrained || 'unknown',
+      adapterActive: false,
+    },
+  };
 }
 
 async function callReference(prompt, model, schema = SOURCE_ATOM_SCHEMA) {
-  const key = String(process.env.OPENAI_API_KEY || '').trim() || (await loadApiKey(undefined, 'openai'));
+  const key = await referenceApiKey();
   const response = await fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
@@ -180,6 +269,7 @@ async function capturePromptCall({
   model,
   rawCall = null,
   schema = SOURCE_ATOM_SCHEMA,
+  assessmentTarget = null,
 }) {
   const startedAt = new Date().toISOString();
   const start = Date.now();
@@ -201,6 +291,7 @@ async function capturePromptCall({
       promptSha256,
       generationPromptSha256,
       ...(rawCall ? { rawCallSha256: sourceCaptureSha256(rawCall) } : {}),
+      ...(assessmentTarget ? { assessmentContract: SOURCE_TARGETED_ASSESSMENT_CONTRACT } : {}),
       assessment: {
         eligible: false,
         issues: ['model-call-failed'],
@@ -218,6 +309,7 @@ async function capturePromptCall({
     assessment = assessSourceAtomResponse(response, {
       sourceClaimCount: basePrompt.sourceClaims.length,
       sourceClaims: basePrompt.sourceClaims,
+      ...(assessmentTarget ? { expectedCounts: assessmentTarget } : {}),
     });
   } catch (error) {
     return {
@@ -226,6 +318,7 @@ async function capturePromptCall({
       promptSha256,
       generationPromptSha256,
       ...(rawCall ? { rawCallSha256: sourceCaptureSha256(rawCall) } : {}),
+      ...(assessmentTarget ? { assessmentContract: SOURCE_TARGETED_ASSESSMENT_CONTRACT } : {}),
       rawResponseSha256: sourceCaptureSha256(result.text),
       assessment: {
         eligible: false,
@@ -244,6 +337,7 @@ async function capturePromptCall({
     promptSha256,
     generationPromptSha256,
     ...(rawCall ? { rawCallSha256: sourceCaptureSha256(rawCall) } : {}),
+    ...(assessmentTarget ? { assessmentContract: SOURCE_TARGETED_ASSESSMENT_CONTRACT } : {}),
     response,
     responseSha256: sourceCaptureSha256(response),
     admittedResponse: assessment.admittedResponse,
@@ -279,6 +373,9 @@ function reassessCapturedCall(call, prompt, rawCall = null) {
   const assessment = assessSourceAtomResponse(call.response, {
     sourceClaimCount: prompt.sourceClaims.length,
     sourceClaims: prompt.sourceClaims,
+    ...(call.assessmentContract === SOURCE_TARGETED_ASSESSMENT_CONTRACT && call.recoveryTarget
+      ? { expectedCounts: call.recoveryTarget }
+      : {}),
   });
   return {
     ...call,
@@ -426,7 +523,12 @@ export async function generateSourceCapture({ campaign, arm, model, checkpointPa
     const calls = group.prompts
       .map((prompt) => (checkpoint.calls || []).find((call) => call.promptId === prompt.id))
       .filter(Boolean);
-    if (calls.length !== group.prompts.length || calls.filter((call) => call.assessment?.eligible).length < 2) continue;
+    if (
+      calls.length !== group.prompts.length ||
+      calls.filter((call) => call.assessment?.eligible).length < sourceGroupMinimumAdmittedPrompts(group)
+    ) {
+      continue;
+    }
     const project = buildSourceCaptureProject({
       campaign,
       group,
@@ -468,14 +570,16 @@ export async function generateSourceCapture({ campaign, arm, model, checkpointPa
   };
 }
 
-function existingValidRecoveryCall(checkpoint, prompt, rawCall) {
+function existingValidRecoveryCall(checkpoint, prompt, rawCall, { partialRecovery = false } = {}) {
   const call = (checkpoint.calls || []).find((entry) => entry.promptId === prompt.id);
   if (!call || !call.assessment?.eligible) return null;
-  const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall);
+  const target = partialRecovery ? sourceRecoveryTarget(rawCall) : null;
+  const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall, partialRecovery ? { target } : {});
   if (call.promptSha256 !== sourceCaptureSha256({ system: prompt.system, user: prompt.user })) return null;
   if (call.generationPromptSha256 !== sourceCaptureSha256({ system: recoveryPrompt.system, user: recoveryPrompt.user }))
     return null;
   if (call.rawCallSha256 !== sourceCaptureSha256(rawCall)) return null;
+  if (partialRecovery && canonicalJson(call.recoveryTarget) !== canonicalJson(target)) return null;
   if (call.responseSha256 !== sourceCaptureSha256(call.response)) return null;
   if (call.admittedResponseSha256 !== sourceCaptureSha256(call.admittedResponse)) return null;
   return call;
@@ -489,6 +593,7 @@ export async function generateSourceRecovery({
   recoveryCheckpointPath,
   outputDir,
   limit = 0,
+  partialRecovery = false,
 }) {
   const rawCheckpoint = await readJson(rawCheckpointPath, null);
   if (!rawCheckpoint) throw new Error(`Missing raw ${arm} checkpoint at ${rawCheckpointPath}`);
@@ -500,45 +605,59 @@ export async function generateSourceRecovery({
   rawCheckpoint.calls = reassessCheckpointCalls(campaign, rawCheckpoint);
   if (sourceCaptureSha256(rawCheckpoint.calls) !== rawCallsBefore) await atomicWrite(rawCheckpointPath, rawCheckpoint);
   const rawCallsSha256 = sourceCaptureSha256(rawCheckpoint.calls || []);
+  const recoveryProtocol = partialRecovery ? SOURCE_PARTIAL_RECOVERY_PROTOCOL : SOURCE_RECOVERY_PROTOCOL;
+  const requiresRecovery = (rawCall) =>
+    partialRecovery
+      ? Object.values(sourceRecoveryTarget(rawCall)).some((count) => count > 0)
+      : !rawCall.assessment?.eligible;
   const recoveryPromptSetSha256 = sourceCaptureSha256(
     campaign.groups.flatMap((group) =>
       group.prompts
         .map((prompt) => ({ prompt, rawCall: (rawCheckpoint.calls || []).find((call) => call.promptId === prompt.id) }))
-        .filter(({ rawCall }) => rawCall && !rawCall.assessment?.eligible)
+        .filter(({ rawCall }) => rawCall && requiresRecovery(rawCall))
         .map(({ prompt, rawCall }) => {
-          const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall);
-          return { id: prompt.id, system: recoveryPrompt.system, user: recoveryPrompt.user };
+          const target = partialRecovery ? sourceRecoveryTarget(rawCall) : null;
+          const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall, partialRecovery ? { target } : {});
+          return {
+            id: prompt.id,
+            system: recoveryPrompt.system,
+            user: recoveryPrompt.user,
+            ...(target ? { target, schema: buildSourcePartialRecoverySchema(target) } : {}),
+          };
         }),
     ),
   );
   const identitySha256 = sourceCaptureSha256({
-    protocol: SOURCE_RECOVERY_PROTOCOL,
+    protocol: recoveryProtocol,
     rawIdentitySha256: rawCheckpoint.identitySha256,
     rawCallsSha256,
     recoveryPromptSetSha256,
     arm,
     model,
-    schema: SOURCE_RECOVERY_SCHEMA,
+    schema: partialRecovery ? 'per-call-target-schema' : SOURCE_RECOVERY_SCHEMA,
   });
   let stored = await readJson(recoveryCheckpointPath, null);
   if (stored) {
     stored.calls = reassessCheckpointCalls(campaign, stored, rawCheckpoint.calls || []);
     if (stored.identitySha256 !== identitySha256) {
-      const requiredRecoveryCallsValid = (rawCheckpoint.calls || [])
-        .filter((rawCall) => !rawCall.assessment?.eligible)
-        .every((rawCall) => {
-          const prompt = campaignPrompt(campaign, rawCall.promptId);
-          const call = (stored.calls || []).find((entry) => entry.promptId === rawCall.promptId);
-          if (!prompt || !call) return false;
-          const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall);
-          return (
-            call.generationPromptSha256 ===
-              sourceCaptureSha256({ system: recoveryPrompt.system, user: recoveryPrompt.user }) &&
-            call.response?.mcItems?.length === 1 &&
-            call.response?.keyTerms?.length === 1
-          );
-        });
+      const requiredRecoveryCallsValid =
+        !partialRecovery &&
+        (rawCheckpoint.calls || [])
+          .filter((rawCall) => !rawCall.assessment?.eligible)
+          .every((rawCall) => {
+            const prompt = campaignPrompt(campaign, rawCall.promptId);
+            const call = (stored.calls || []).find((entry) => entry.promptId === rawCall.promptId);
+            if (!prompt || !call) return false;
+            const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall);
+            return (
+              call.generationPromptSha256 ===
+                sourceCaptureSha256({ system: recoveryPrompt.system, user: recoveryPrompt.user }) &&
+              call.response?.mcItems?.length === 1 &&
+              call.response?.keyTerms?.length === 1
+            );
+          });
       const migratable =
+        !partialRecovery &&
         stored.protocol === SOURCE_RECOVERY_PROTOCOL &&
         stored.rawIdentitySha256 === rawCheckpoint.identitySha256 &&
         requiredRecoveryCallsValid &&
@@ -553,7 +672,7 @@ export async function generateSourceRecovery({
   }
   const checkpoint = stored || {
     schemaVersion: 1,
-    protocol: SOURCE_RECOVERY_PROTOCOL,
+    protocol: recoveryProtocol,
     identitySha256,
     rawIdentitySha256: rawCheckpoint.identitySha256,
     rawCallsSha256,
@@ -566,18 +685,21 @@ export async function generateSourceRecovery({
   for (const group of campaign.groups) {
     for (const prompt of group.prompts) {
       const rawCall = (rawCheckpoint.calls || []).find((call) => call.promptId === prompt.id);
-      if (!rawCall || rawCall.assessment?.eligible) continue;
-      if (existingValidRecoveryCall(checkpoint, prompt, rawCall)) continue;
+      if (!rawCall || !requiresRecovery(rawCall)) continue;
+      if (existingValidRecoveryCall(checkpoint, prompt, rawCall, { partialRecovery })) continue;
       if (limit > 0 && newCalls >= limit) break;
-      const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall);
-      const call = await capturePromptCall({
+      const target = partialRecovery ? sourceRecoveryTarget(rawCall) : null;
+      const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall, partialRecovery ? { target } : {});
+      const capturedCall = await capturePromptCall({
         basePrompt: prompt,
         generationPrompt: recoveryPrompt,
         arm,
         model,
         rawCall,
-        schema: SOURCE_RECOVERY_SCHEMA,
+        schema: partialRecovery ? buildSourcePartialRecoverySchema(target) : SOURCE_RECOVERY_SCHEMA,
+        assessmentTarget: partialRecovery ? target : null,
       });
+      const call = target ? { ...capturedCall, recoveryTarget: target } : capturedCall;
       checkpoint.calls = (checkpoint.calls || []).filter((entry) => entry.promptId !== prompt.id);
       checkpoint.calls.push(call);
       checkpoint.calls.sort((left, right) => left.promptId.localeCompare(right.promptId));
@@ -591,8 +713,13 @@ export async function generateSourceRecovery({
     if (limit > 0 && newCalls >= limit) break;
   }
   const effectiveCalls = (rawCheckpoint.calls || []).map((rawCall) => {
+    const recoveryCall = (checkpoint.calls || []).find((call) => call.promptId === rawCall.promptId);
+    if (partialRecovery && recoveryCall) {
+      const prompt = campaignPrompt(campaign, rawCall.promptId);
+      return mergeSourceRecoveryCall({ rawCall, recoveryCall, prompt });
+    }
     if (rawCall.assessment?.eligible) return rawCall;
-    return (checkpoint.calls || []).find((call) => call.promptId === rawCall.promptId) || rawCall;
+    return recoveryCall || rawCall;
   });
   const projects = [];
   for (const group of campaign.groups) {
@@ -602,7 +729,7 @@ export async function generateSourceRecovery({
     const groupRecoveryCalls = group.prompts
       .map((prompt) => {
         const rawCall = groupRawCalls.find((call) => call.promptId === prompt.id);
-        return rawCall && !rawCall.assessment?.eligible
+        return rawCall && requiresRecovery(rawCall)
           ? (checkpoint.calls || []).find((call) => call.promptId === prompt.id)
           : null;
       })
@@ -612,7 +739,7 @@ export async function generateSourceRecovery({
       .filter(Boolean);
     if (
       groupEffectiveCalls.length !== group.prompts.length ||
-      groupEffectiveCalls.filter((call) => call.assessment?.eligible).length < 2
+      groupEffectiveCalls.filter((call) => call.assessment?.eligible).length < sourceGroupMinimumAdmittedPrompts(group)
     )
       continue;
     const project = buildSourceCaptureProject({
@@ -623,6 +750,7 @@ export async function generateSourceRecovery({
       calls: groupEffectiveCalls,
       rawCalls: groupRawCalls,
       recoveryCalls: groupRecoveryCalls,
+      recoveryProtocol,
       generatedAt: sourceCaptureCompletedAt(groupEffectiveCalls),
     });
     const verification = verifySourceCaptureProject(project, { campaign, group, arm, model });
@@ -648,7 +776,7 @@ export async function generateSourceRecovery({
   });
   return {
     arm,
-    protocol: SOURCE_RECOVERY_PROTOCOL,
+    protocol: recoveryProtocol,
     model,
     newCalls,
     recoveryCalls: checkpoint.calls.length,
@@ -770,6 +898,7 @@ async function run(args) {
     const model = models[args.arm];
     const checkpointPath = path.resolve(args.checkpointDir, `${args.arm}.json`);
     const recoveryCheckpointPath = path.resolve(args.checkpointDir, `${args.arm}-recovery.json`);
+    await preflightSourceCaptureArm({ arm: args.arm, model });
     if (args.fresh) await fs.rm(args.recover ? recoveryCheckpointPath : checkpointPath, { force: true });
     try {
       generation = args.recover
@@ -781,6 +910,7 @@ async function run(args) {
             recoveryCheckpointPath,
             outputDir: args.outputDir,
             limit: args.limit,
+            partialRecovery: args.recoverPartial,
           })
         : await generateSourceCapture({
             campaign,
@@ -821,7 +951,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(
-      'Usage: node scripts/scionSourceCapture.mjs [--verify] [--arm local|reference] [--recover] [--fresh] [--limit N]',
+      'Usage: node scripts/scionSourceCapture.mjs [--verify] [--arm local|reference] [--recover|--recover-partial] [--fresh] [--limit N]',
     );
     return;
   }
@@ -831,7 +961,7 @@ async function main() {
   );
   if (report.generation) {
     console.log(
-      `${report.generation.arm}${report.generation.protocol === SOURCE_RECOVERY_PROTOCOL ? ' recovery' : ''}: ${report.generation.completeProjects}/${report.campaign.groups} projects complete (${report.generation.newCalls} new calls)`,
+      `${report.generation.arm}${[SOURCE_RECOVERY_PROTOCOL, SOURCE_PARTIAL_RECOVERY_PROTOCOL].includes(report.generation.protocol) ? ' recovery' : ''}: ${report.generation.completeProjects}/${report.campaign.groups} projects complete (${report.generation.newCalls} new calls)`,
     );
     if (args.limit === 0 && !report.generation.complete) {
       const rejectedCalls =

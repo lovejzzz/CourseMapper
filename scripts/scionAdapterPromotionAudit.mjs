@@ -67,6 +67,7 @@ function assessPairingContract({ candidateCourse, baseCourse, manifest }) {
     'compilerConfigSha256',
     'graderVersion',
     'graderSha256',
+    'graderImplementationSha256',
     'baseContractSha256',
   ];
   const sharedValuesMatch = sharedFields.every((field) => clean(candidate[field]) === clean(base[field]));
@@ -82,6 +83,7 @@ function assessPairingContract({ candidateCourse, baseCourse, manifest }) {
     SHA256.test(clean(candidate.compilerConfigSha256)) &&
     clean(candidate.graderVersion).length > 0 &&
     SHA256.test(clean(candidate.graderSha256)) &&
+    SHA256.test(clean(candidate.graderImplementationSha256)) &&
     SHA256.test(clean(candidate.baseContractSha256)) &&
     candidate.evidenceProducer === SCION_PAIRED_EVIDENCE_PRODUCER &&
     base.evidenceProducer === SCION_PAIRED_EVIDENCE_PRODUCER &&
@@ -226,6 +228,29 @@ export function assessScionAdapterPromotion({
   const manifestValidation = validateScionAdapterManifest(manifest);
   const candidate = groupByDomain(flattenCourses(candidateEvidence));
   const base = groupByDomain(flattenCourses(baseEvidence));
+  const evidenceBindingPass = (records) =>
+    records.length > 0 &&
+    records.every(
+      (record) =>
+        record?.graderBinding?.transitiveBound === true &&
+        record.graderBinding.status === 'transitively-bound' &&
+        SHA256.test(clean(record.graderBinding.implementationSha256)) &&
+        record.graderBinding.implementationSha256 === record.graderBinding.declaredImplementationSha256 &&
+        Number.isSafeInteger(record.graderBinding.implementationFileCount) &&
+        record.graderBinding.implementationFileCount >= 2,
+    );
+  const candidateBindingHashes = new Set(
+    candidateEvidence.map((record) => clean(record?.graderBinding?.implementationSha256)).filter(Boolean),
+  );
+  const baseBindingHashes = new Set(
+    baseEvidence.map((record) => clean(record?.graderBinding?.implementationSha256)).filter(Boolean),
+  );
+  const graderBindingPass =
+    evidenceBindingPass(candidateEvidence) &&
+    evidenceBindingPass(baseEvidence) &&
+    candidateBindingHashes.size === 1 &&
+    baseBindingHashes.size === 1 &&
+    [...candidateBindingHashes][0] === [...baseBindingHashes][0];
   const candidateDomains = [...candidate.keys()].sort();
   const baseDomains = [...base.keys()].sort();
   const domains = [...candidate.keys()].filter((domain) => base.has(domain)).sort();
@@ -314,10 +339,12 @@ export function assessScionAdapterPromotion({
     pairedEvidence:
       courseChecks.length >= minimumDomains &&
       courseChecks.every((entry) => entry.uniqueEvidencePass && entry.pairingPass) &&
+      graderBindingPass &&
       uniquePairIds &&
       unmatchedCandidateDomains.length === 0 &&
       unmatchedBaseDomains.length === 0,
     courseQuality: courseChecks.length >= minimumDomains && courseChecks.every((entry) => entry.pass),
+    graderBinding: graderBindingPass,
     medianEfficiency: medianReduction !== null && medianReduction >= 0.2,
     ...Object.fromEntries(Object.entries(externalEvidence).map(([key, value]) => [`evidence:${key}`, value])),
   };
@@ -332,6 +359,11 @@ export function assessScionAdapterPromotion({
     domains,
     courseChecks,
     pairing: { pairIds, uniquePairIds, unmatchedCandidateDomains, unmatchedBaseDomains },
+    graderBinding: {
+      pass: graderBindingPass,
+      candidateImplementationSha256: [...candidateBindingHashes][0] || null,
+      baseImplementationSha256: [...baseBindingHashes][0] || null,
+    },
     efficiency: { candidateMedian, baseMedian, medianReduction },
     externalEvidence,
     gates,

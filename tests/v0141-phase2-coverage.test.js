@@ -23,6 +23,7 @@ import {
   buildSourceBackedJudgmentStageEvent,
   createApiCallBudget,
   formatEnrichmentOutcomeLabel,
+  normalizeEnrichmentOutcome,
 } from '../src/lib/apiCallBudget.js';
 import { buildRunDigest, formatRunDigest } from '../src/lib/runDigest.js';
 import { buildEnrichmentCoverageIssues } from '../src/lib/packageFinalizer.js';
@@ -192,6 +193,32 @@ describe('enrichment coverage label (P2.2)', () => {
         missingLessons: [8],
       }),
     ).toBe('ran (13/14 — lesson 8 fell back to template)');
+  });
+
+  it('uses the missing-lesson ledger when payload objects overstate admitted coverage', () => {
+    const inconsistent = {
+      modelStage: 'ran',
+      enrichedLessons: 9,
+      requestedLessons: 15,
+      missingLessons: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    };
+    expect(normalizeEnrichmentOutcome(inconsistent)).toMatchObject({
+      enrichedLessons: 1,
+      requestedLessons: 15,
+      missingLessons: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    });
+    expect(formatEnrichmentOutcomeLabel(inconsistent)).toBe(
+      'ran (1/15 — lessons 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 fell back to template)',
+    );
+
+    let budget = createApiCallBudget({ runId: 'run-inconsistent-coverage' });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      outcome: inconsistent,
+    });
+    expect(budget.enrichmentOutcome.enrichedLessons).toBe(1);
+    expect(buildRunDigest({ budget }).gates.enrichmentCoverage).toBeCloseTo(1 / 15, 5);
   });
 
   it('keeps the legacy genome-only and skipped forms', () => {

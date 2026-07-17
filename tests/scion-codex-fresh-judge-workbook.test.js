@@ -293,6 +293,7 @@ describe('Scion fresh Codex judge workbook', () => {
     expect(instructions).toContain('If any identity is unavailable or different, stop before judgment');
     expect(instructions).toContain('model `gpt-5.5` and reasoning effort `xhigh` selected explicitly');
     expect(instructions).toContain('not a claim about an unexposed provider build revision');
+    expect(instructions).toContain('For a positional win, set `preference.decision`');
     expect(instructions).toContain('Do not unseal, ingest, or begin the B/A order');
 
     const decisionsDir = await writeCompletedWorkingDecisions(handoffDir, built.manifest);
@@ -334,6 +335,13 @@ describe('Scion fresh Codex judge workbook', () => {
       promptPath: 'evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md',
       promptSha256: '0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7',
     };
+    const instructionRouting = {
+      workingDecisionsDir: 'verification-output/campaign-specific-decisions',
+      sealedOutput: 'evaluation/scion-adapters/evidence/campaign-specific-a-b.sealed.json',
+      keyOutput: '~/.codex/scion-secrets/CourseMapper/campaign-specific-a-b.key',
+      handoffDir: 'evaluation/scion-adapters/handoffs/campaign-specific-a-b',
+      receiptFile: 'evaluation/scion-adapters/evidence/campaign-specific-a-b.json',
+    };
     await buildScionCodexFreshJudgeWorkbook({
       packetDir,
       outputDir: handoffDir,
@@ -351,6 +359,7 @@ describe('Scion fresh Codex judge workbook', () => {
         selectionMode: 'explicit-codex-thread-launch',
         internalBuildRevisionAvailable: false,
       },
+      instructionRouting,
     });
 
     await expect(auditTrackedWorkbook(receiptOutput, handoffDir, packetDir)).resolves.toMatchObject({
@@ -360,7 +369,41 @@ describe('Scion fresh Codex judge workbook', () => {
     const instructions = await fs.readFile(path.join(handoffDir, 'FRESH_TASK_INSTRUCTIONS.md'), 'utf8');
     expect(instructions).toContain('Start one new ephemeral Codex CLI task');
     expect(instructions).toContain('runtime `codex-cli-0.144.2` exactly');
+    expect(instructions).toContain(instructionRouting.workingDecisionsDir);
+    expect(instructions).toContain(instructionRouting.sealedOutput);
+    expect(instructions).toContain(instructionRouting.keyOutput);
+    expect(instructions).toContain(`--handoff ${instructionRouting.handoffDir}`);
+    expect(instructions).toContain(`--receipt ${instructionRouting.receiptFile}`);
     expect(instructions).not.toContain('Start a newly created Codex Desktop task');
+
+    const legacyHandoffDir = path.join(root, 'legacy-cli-first-order-workbook');
+    const legacyReceiptOutput = path.join(root, 'legacy-cli-first-order-receipt.json');
+    await buildScionCodexFreshJudgeWorkbook({
+      packetDir,
+      outputDir: legacyHandoffDir,
+      receiptOutput: legacyReceiptOutput,
+      generatedAt: '2026-07-16T11:59:00.000Z',
+      chunkSize: 2,
+      order: 'A/B',
+      release: 'v0.16.41',
+      declaredJudgeIdentity,
+      declaredJudgeLaunchProfile: {
+        modelId: 'gpt-5.6-luna',
+        reasoningEffort: 'max',
+        runtime: 'codex-cli-0.144.2',
+        identityRevision: 'gpt-5.6-luna@max',
+        selectionMode: 'explicit-codex-thread-launch',
+        internalBuildRevisionAvailable: false,
+      },
+      instructionRouting,
+      includePositionalDecisionInstructions: false,
+    });
+    const legacyInstructions = await fs.readFile(path.join(legacyHandoffDir, 'FRESH_TASK_INSTRUCTIONS.md'), 'utf8');
+    expect(legacyInstructions).not.toContain('For a positional win, set `preference.decision`');
+    await expect(auditTrackedWorkbook(legacyReceiptOutput, legacyHandoffDir, packetDir)).resolves.toMatchObject({
+      valid: true,
+      issues: [],
+    });
   });
 
   it('refuses to build a first-order workbook without a predeclared judge identity', async () => {

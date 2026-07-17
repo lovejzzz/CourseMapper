@@ -37,7 +37,75 @@ describe('Scion compiler burden audit', () => {
         byPass: { appliedDepth: 1, polish: 1 },
         byAction: { rejected: 1, done: 1 },
         rejectionReasons: { 'not-applied': 1 },
+        mcRepairEfficiency: {
+          calls: 0,
+          individualCalls: 0,
+          batchCalls: 0,
+          verifiedRepairs: 0,
+          yield: null,
+          callsWithoutVerifiedRepair: 0,
+        },
       },
+    });
+  });
+
+  it('reports low-yield serial MC repair as compiler debt on either arm', () => {
+    const events = parseScionConsoleEvents(
+      [
+        ...Array.from({ length: 8 }, () => line({ type: 'providerRequestStart', task: 'scionPass', attempt: 1 })),
+        ...Array.from({ length: 8 }, () =>
+          line({ type: 'pipelineDecision', label: 'Scion pass call', detail: 'mc_item' }),
+        ),
+        line({
+          type: 'pipelineDecision',
+          label: 'Scion quality passes',
+          detail: 'mcVerify:lesson-3 regenerated',
+        }),
+      ].join('\n'),
+    );
+    const candidate = summarizeScionCompilerBurden(events, { lessonCount: 14 });
+    expect(candidate.scion.mcRepairEfficiency).toEqual({
+      calls: 8,
+      individualCalls: 8,
+      batchCalls: 0,
+      verifiedRepairs: 1,
+      yield: 0.125,
+      callsWithoutVerifiedRepair: 7,
+    });
+    const comparison = compareScionCompilerBurden(candidate, {
+      lessonCount: 14,
+      scion: {
+        calls: 8,
+        unattributedCalls: 0,
+        byAction: {},
+        rejectionReasons: {},
+        mcRepairEfficiency: { calls: 0, verifiedRepairs: 0, yield: null },
+      },
+    });
+    expect(comparison.findings).toContainEqual(
+      expect.objectContaining({ severity: 'P1', code: 'candidate-low-yield-mc-repair' }),
+    );
+  });
+
+  it('credits one batched generation call for multiple verified key repairs', () => {
+    const events = parseScionConsoleEvents(
+      [
+        line({ type: 'pipelineDecision', label: 'Scion pass call', detail: 'mc_verify_repair_batch' }),
+        line({
+          type: 'pipelineDecision',
+          label: 'Scion quality passes',
+          detail: 'mcVerify:lesson-3 regenerated · mcVerify:lesson-3 regenerated',
+        }),
+      ].join('\n'),
+    );
+    const burden = summarizeScionCompilerBurden(events, { lessonCount: 1 });
+    expect(burden.scion.mcRepairEfficiency).toEqual({
+      calls: 1,
+      individualCalls: 0,
+      batchCalls: 1,
+      verifiedRepairs: 2,
+      yield: 2,
+      callsWithoutVerifiedRepair: 0,
     });
   });
 

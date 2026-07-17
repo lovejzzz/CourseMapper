@@ -168,3 +168,39 @@ export function buildBlueprintFromGraph(graph, options = {}) {
     ...(readingsRegistry.length > 0 && !options.readingsRegistry ? { readingsRegistry } : {}),
   });
 }
+
+function registryEntityKey(entry = {}) {
+  return `${Number(entry.dueSession) || 0}|${String(entry.title || '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()}`;
+}
+
+/**
+ * Native assembly can legitimately have fewer registry entities than the
+ * already-visible Course Map when a small Pass-A response omits a named
+ * reading or assessment. The Course Map is the instructor-facing source in
+ * that conflict. Return complete registry overrides for any entity the graph
+ * dropped so downstream compilers do not silently turn a named primary text
+ * into a generic lesson shell.
+ */
+export function selectCompilerRegistryBridges(graph, mapDerivedGraph) {
+  const graphAssessments = Array.isArray(graph?.assessments) ? graph.assessments : [];
+  const mapAssessments = Array.isArray(mapDerivedGraph?.assessments) ? mapDerivedGraph.assessments : [];
+  const graphReadings = Array.isArray(graph?.readings) ? graph.readings : [];
+  const mapReadings = Array.isArray(mapDerivedGraph?.readings) ? mapDerivedGraph.readings : [];
+  const graphReadingKeys = new Set(graphReadings.map(registryEntityKey));
+  const missingReadings = mapReadings.filter((entry) => !graphReadingKeys.has(registryEntityKey(entry)));
+
+  return {
+    ...(mapAssessments.length > graphAssessments.length ? { assessmentRegistry: mapAssessments } : {}),
+    ...(missingReadings.length > 0 ? { readingsRegistry: mapReadings } : {}),
+    stats: {
+      graphAssessmentCount: graphAssessments.length,
+      mapAssessmentCount: mapAssessments.length,
+      graphReadingCount: graphReadings.length,
+      mapReadingCount: mapReadings.length,
+      missingReadingCount: missingReadings.length,
+    },
+  };
+}

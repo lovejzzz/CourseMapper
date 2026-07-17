@@ -63,6 +63,20 @@ function bookUrlFromSrc(src) {
   // (CC BY), the literature foundry books.
   const milne = String(src).match(/^milne:([a-z0-9-]+)/i);
   if (milne) return `https://milnepublishing.geneseo.edu/${milne[1]}/`;
+  const openMusicTheoryChapter = {
+    'omt:texture': 'texture',
+    'omt:other-notation': 'other-aspects-of-notation',
+    'omt:phrase-archetypes': 'phrase-archetypes',
+    'omt:modulation': 'modulation',
+    'omt:simple-meter-and-time-signatures': 'simple-meter-and-time-signatures',
+    'omt:compound-meter-and-time-signatures': 'compound-meters-and-time-signatures',
+  }[String(src).toLowerCase()];
+  if (openMusicTheoryChapter) {
+    return `https://viva.pressbooks.pub/openmusictheory/chapter/${openMusicTheoryChapter}/`;
+  }
+  if (/^omt:/i.test(src)) return 'https://viva.pressbooks.pub/openmusictheory/';
+  if (/^digitalgov:/i.test(src)) return 'https://digital.gov/guides/research-collaboration/';
+  if (/^uswds:/i.test(src)) return 'https://designsystem.digital.gov/components/';
   // Curated in-genome reference srcs (e.g. "historical-thinking:reference")
   // have no web home by design — they are not dead links.
   if (/:reference$/i.test(src)) return 'internal';

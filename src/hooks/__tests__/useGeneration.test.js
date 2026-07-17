@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   assertExpectedLessonCount,
   buildIncompleteCourseMapErrorMessage,
+  constrainHighConfidenceLessonCount,
   getCourseMapExamineScan,
   getLessonCount,
 } from '../useGeneration';
@@ -24,6 +25,18 @@ describe('useGeneration completion guards', () => {
 
     expect(assertExpectedLessonCount(courseMap, 2)).toBe(courseMap);
     expect(assertExpectedLessonCount(courseMap, null)).toBe(courseMap);
+  });
+
+  it('removes only an unrequested tail when the user scope is high-confidence', () => {
+    const courseMap = { courseName: 'Workshop', lessons: [{ title: 'One' }, { title: 'Two' }, { title: 'Three' }] };
+    expect(constrainHighConfidenceLessonCount(courseMap, { expected: 1, confidence: 'high' })).toEqual({
+      courseMap: { courseName: 'Workshop', lessons: [{ title: 'One' }] },
+      removedCount: 2,
+    });
+    expect(constrainHighConfidenceLessonCount(courseMap, { expected: 1, confidence: 'medium' })).toEqual({
+      courseMap,
+      removedCount: 0,
+    });
   });
 });
 

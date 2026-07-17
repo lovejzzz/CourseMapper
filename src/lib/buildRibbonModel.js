@@ -42,6 +42,14 @@ export function formatLessonRange(listText = '') {
 // the event label.
 function enrichmentLabelFromEvent(event) {
   const detail = String(event?.detail || '');
+  const recoveryLabel = String(event?.label || '').match(/recovery\s+(\d+)\/(\d+)/i);
+  if (recoveryLabel) {
+    const lessons = detail.match(/^Lessons?\s+([\d,\s]+)/i);
+    const range = formatLessonRange(lessons?.[1] || '');
+    return `Recovery ${recoveryLabel[1]}/${recoveryLabel[2]}${
+      range ? ` — lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}` : ''
+    }`;
+  }
   const recovery = detail.match(/^Recovery (\d+)\/(\d+) for .*?lessons? ([\d,\s]+?)(?:\s*[—+-].*)?$/);
   if (recovery) {
     const range = formatLessonRange(recovery[3]);
@@ -132,12 +140,257 @@ function buildPipelineChips(budget) {
   return chips;
 }
 
+function lessonNumbersFromEvent(event) {
+  const chunkLessons = [...String(event?.chunkLabel || '').matchAll(/lesson-(\d+)/gi)].map((match) => Number(match[1]));
+  const detail = String(event?.detail || '');
+  const lessonList =
+    detail.match(/^Lessons?\s+([\d,\s]+)/i)?.[1] ||
+    detail.match(/\b(?:dropped\s+)?lessons?\s+([\d,\s]+?)(?:\s*[—+-]|$)/i)?.[1] ||
+    '';
+  return [
+    ...new Set(
+      [...chunkLessons, ...(lessonList.match(/\d+/g) || []).map(Number)].filter(
+        (value) => Number.isInteger(value) && value > 0,
+      ),
+    ),
+  ];
+}
+
 function latestLessonNumber(event) {
-  const numbers = String(event?.detail || '')
-    .match(/\d+/g)
-    ?.map(Number)
-    .filter((value) => Number.isInteger(value) && value > 0);
+  const numbers = lessonNumbersFromEvent(event);
   return numbers?.length ? Math.max(...numbers) : 0;
+}
+
+function recoveryAttemptFromEvent(event) {
+  const match = `${String(event?.label || '')} ${String(event?.detail || '')}`.match(/recovery\s+(\d+)\/(\d+)/i);
+  if (!match) return null;
+  const attempt = Number(match[1]);
+  const total = Number(match[2]);
+  if (!Number.isInteger(attempt) || !Number.isInteger(total) || attempt < 1 || total < attempt) return null;
+  return { attempt, total };
+}
+
+function isBlueprintEnrichmentRetry(event) {
+  if (!['streamRetryCall', 'repairRetryCall'].includes(event?.type)) return false;
+  if (event?.featureId === 'blueprintEnrichment' || event?.task === 'blueprintEnrichment') return true;
+  return event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event) !== null;
+}
+
+/**
+ * Turn the two nested retry loops into one observable checkpoint sequence.
+ *
+ * A public-Scion enrichment request already retries locally before the
+ * compiler starts an outer recovery call. Counting only the outer call made
+ * a one-lesson build sit at 35%, jump to 50%, then sit again. The trace tells
+ * us both limits, so the ribbon can instead move after each completed local
+ * attempt without inventing time-based progress:
+ *
+ *   initial retry 1, initial retry 2, recovery 1 starts,
+ *   recovery retry 1, recovery retry 2
+ *
+ * The returned denominator is the real maximum for the current nested loop.
+ */
+function enrichmentRetryCheckpoint(events = [], plannedOuterRecoveries = 0) {
+  const recent = Array.isArray(events) ? events : [];
+  const relevant = recent.filter(isBlueprintEnrichmentRetry);
+  const recoveryEvent = relevant.find((event) => event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event));
+  const recovery = recoveryAttemptFromEvent(recoveryEvent);
+  const streamEvent = relevant.find((event) => event?.type === 'streamRetryCall');
+  const innerRetryLimit = Math.max(0, Number(streamEvent?.maxRetries) || 0);
+  if (innerRetryLimit <= 0) return null;
+
+  const outerTotal = Math.max(recovery?.total || 0, Math.max(0, Number(plannedOuterRecoveries) || 0));
+  const outerAttempt = Math.min(outerTotal, Math.max(0, recovery?.attempt || 0));
+  const recoveryIndex = recoveryEvent ? recent.indexOf(recoveryEvent) : -1;
+  const streamIndex = streamEvent ? recent.indexOf(streamEvent) : -1;
+  const streamBelongsToCurrentOuter =
+    streamEvent && (!recoveryEvent || (streamIndex >= 0 && recoveryIndex >= 0 && streamIndex < recoveryIndex));
+  const innerAttempt = streamBelongsToCurrentOuter
+    ? Math.min(innerRetryLimit, Math.max(0, Number(streamEvent.attempt) || 0))
+    : 0;
+  const checkpoint = outerAttempt * (innerRetryLimit + 1) + innerAttempt;
+  const total = outerTotal * (innerRetryLimit + 1) + innerRetryLimit;
+  if (checkpoint <= 0 || total <= 0) return null;
+  return { checkpoint: Math.min(checkpoint, total), total };
+}
+
+function isKnowledgeProgressEvent(event) {
+  if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type)) return true;
+  if (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) return true;
+  return (
+    event?.type === 'pipelineDecision' &&
+    ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
+    latestLessonNumber(event) > 0
+  );
+}
+
+function artifactStatus({ active = false, done = false, settled = false, warn = false } = {}) {
+  if (warn) return 'warn';
+  if (active) return 'active';
+  if (done) return 'done';
+  if (settled) return 'settled';
+  return 'pending';
+}
+
+const SCION_PASS_ACTIVITY = {
+  applied_mc_batch: 'Checking applied questions',
+  blind_solve: 'Checking answer keys',
+  key_term_admission_batch: 'Checking key terms',
+  mc_admission_batch: 'Checking quiz choices',
+  mc_item: 'Repairing a quiz item',
+  misconception_item: 'Checking misconceptions',
+  prose_polish: 'Polishing lesson language',
+  topic_repair_batch: 'Repairing lesson focus',
+};
+
+export function latestKnowledgeActivity(events = []) {
+  const recent = Array.isArray(events) ? events : [];
+  const activity = recent.find(
+    (event) =>
+      ['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type) ||
+      (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) ||
+      (event?.type === 'pipelineDecision' &&
+        ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
+        event?.detail),
+  );
+  if (activity?.label === 'Language identity firewall') {
+    const range = formatLessonRange(lessonNumbersFromEvent(activity).join(','));
+    return `Protecting course identity${
+      range ? ` · lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}` : ''
+    }`;
+  }
+  if (activity?.label === 'Scion pass call') {
+    const label = SCION_PASS_ACTIVITY[String(activity.detail)] || 'Running a semantic quality check';
+    const lessonIds = [...String(activity.chunkLabel || '').matchAll(/lesson-(\d+)/g)].map((match) => match[1]);
+    const range = formatLessonRange(lessonIds.join(','));
+    return range ? `${label} · lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}` : label;
+  }
+  if (activity?.label === 'Scion quality passes') {
+    const detail = String(activity.detail);
+    if (detail.includes('identityRepair:')) return 'Linking lesson to course map';
+    if (detail.includes('keyTermAdmission:')) return 'Key terms checked';
+    if (detail.includes('appliedDepth:')) return 'Applied questions checked';
+    if (detail.includes('topicGate:')) return 'Lesson focus checked';
+    if (detail.includes('admissionGate:')) return 'Quiz choices checked';
+    if (detail.includes('mcVerify:')) return 'Answer keys checked';
+    if (detail.includes('polish:')) return 'Lesson language polished';
+    return 'Applying source-grounded quality decisions';
+  }
+  if (activity?.type === 'streamRetryCall') {
+    const attempt = Math.max(0, Number(activity.attempt) || 0);
+    const total = Math.max(1, Number(activity.maxRetries) + 1 || 1);
+    const nextAttempt = Math.min(total, attempt + 1);
+    return `Retrying local lesson kernel · attempt ${nextAttempt}/${total}`;
+  }
+  if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(activity?.type)) {
+    return enrichmentLabelFromEvent(activity);
+  }
+  return 'Building lesson knowledge';
+}
+
+/**
+ * The user-facing artifact ledger for the Living Course Compiler. Every value
+ * comes from state the pipeline already records; an unavailable count stays
+ * "Waiting" instead of being estimated or animated into existence.
+ */
+export function buildLivingCompilerArtifacts({
+  pipeline,
+  budget = {},
+  generation = {},
+  deliverables = {},
+  packageQualityPass = null,
+} = {}) {
+  const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
+  const mappedLessonCount = Number.isFinite(Number(generation.mappedLessonCount))
+    ? Math.max(0, Number(generation.mappedLessonCount))
+    : pipeline?.done?.map
+      ? lessonCount
+      : 0;
+  const doneCount = Math.max(0, Number(deliverables.doneCount) || 0);
+  const totalCount = Math.max(0, Number(deliverables.totalCount) || 0);
+  const outcome = budget?.enrichmentOutcome || null;
+  const enriched = Math.max(0, Number(outcome?.enrichedLessons) || 0);
+  const requested = Math.max(0, Number(outcome?.requestedLessons) || 0);
+  const partialKnowledge = outcome?.modelStage === 'ran' && requested > 0 && enriched < requested;
+  const genome = parseGenomeLinkerDetail(budget?.pipeline?.genomeLinker);
+  const finishStatus = packageQualityPass?.status || 'idle';
+  const terminalReady = pipeline?.state === 'ready' && finishStatus === 'ready';
+  const blockers = Math.max(0, Number(packageQualityPass?.blockers) || 0);
+  const grade = String(packageQualityPass?.quality?.grade || '').trim();
+  const scionRuntime = generation.scionRuntimeStatus || {};
+  const scionPreparing =
+    generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
+  const mappingLesson = Math.max(
+    0,
+    Number(String(generation.streamDetail || '').match(/(?:Mapping|Starting)\s+Lesson\s+(\d+)/i)?.[1]) || 0,
+  );
+
+  let mapValue = 'Waiting';
+  if (scionPreparing) mapValue = 'Waiting for Scion';
+  else if (pipeline?.state === 'mapping') {
+    mapValue =
+      mappingLesson > 0 && lessonCount > 0 ? `Mapping lesson ${mappingLesson}/${lessonCount}` : 'Mapping in progress';
+  } else if (mappedLessonCount > 0) {
+    mapValue = `${mappedLessonCount} lesson${mappedLessonCount === 1 ? '' : 's'} mapped`;
+  } else if (pipeline?.done?.map) mapValue = 'Mapped';
+
+  const knowledgeParts = [];
+  if (requested > 0 || enriched > 0) knowledgeParts.push(`${enriched}/${requested || enriched} lesson kernels`);
+  if (genome && genome.linked > 0) knowledgeParts.push(`${genome.linked}/${genome.total} source-linked`);
+  const knowledgeValue =
+    pipeline?.state === 'enriching'
+      ? [latestKnowledgeActivity(budget?.recentEvents), ...knowledgeParts].join(' · ')
+      : knowledgeParts.join(' · ') || (pipeline?.done?.enrich ? 'Knowledge pass complete' : 'Waiting');
+
+  let checksValue = 'Waiting';
+  if (finishStatus === 'blocked') checksValue = `${blockers || 1} blocker${blockers === 1 ? '' : 's'} to review`;
+  else if (finishStatus === 'ready') checksValue = grade ? `Verified · Grade ${grade}` : 'Verified';
+  else if (pipeline?.state === 'grading') checksValue = 'Grading package';
+  else if (pipeline?.state === 'verifying') checksValue = 'Checking and repairing';
+
+  return [
+    {
+      id: 'map',
+      label: 'Course map',
+      value: mapValue,
+      status: artifactStatus({
+        active: !scionPreparing && pipeline?.state === 'mapping',
+        done: terminalReady && pipeline?.done?.map,
+        settled: !scionPreparing && pipeline?.done?.map,
+      }),
+    },
+    {
+      id: 'knowledge',
+      label: 'Knowledge',
+      value: knowledgeValue,
+      status: artifactStatus({
+        active: pipeline?.state === 'enriching',
+        done: terminalReady && pipeline?.done?.enrich,
+        settled: pipeline?.done?.enrich,
+        warn: partialKnowledge,
+      }),
+    },
+    {
+      id: 'materials',
+      label: 'Materials',
+      value: totalCount > 0 ? `${doneCount}/${totalCount} ready` : pipeline?.done?.compile ? 'Compiled' : 'Waiting',
+      status: artifactStatus({
+        active: pipeline?.state === 'compiling',
+        done: terminalReady && pipeline?.done?.compile,
+        settled: pipeline?.done?.compile,
+      }),
+    },
+    {
+      id: 'checks',
+      label: 'Checks',
+      value: checksValue,
+      status: artifactStatus({
+        active: ['verifying', 'grading'].includes(pipeline?.state),
+        done: finishStatus === 'ready',
+        warn: finishStatus === 'blocked',
+      }),
+    },
+  ];
 }
 
 /**
@@ -146,7 +399,7 @@ function latestLessonNumber(event) {
  * compiled deliverable counts, and terminal finish state. This is progress,
  * not a quality score.
  */
-export function deriveRibbonProgress({ pipeline, generation = {}, deliverables = {} } = {}) {
+export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, deliverables = {} } = {}) {
   const scionRuntime = generation.scionRuntimeStatus || {};
   const scionPreparing =
     generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
@@ -162,7 +415,36 @@ export function deriveRibbonProgress({ pipeline, generation = {}, deliverables =
   }
   if (state === 'enriching') {
     const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
-    const currentLesson = latestLessonNumber(pipeline.activity);
+    const activityLessons = lessonNumbersFromEvent(pipeline.activity);
+    const recovery = recoveryAttemptFromEvent(pipeline.activity);
+    // A single batch can cover the whole course. Its event means the work
+    // STARTED, not that every lesson kernel is complete. Give that in-flight
+    // batch one quarter of the enrichment phase, then let each observed
+    // recovery attempt advance the same phase. This prevents a one-lesson
+    // build from jumping straight to 50% and sitting there for several real
+    // model calls while the ribbon says nothing changed.
+    if (lessonCount > 0 && activityLessons.length >= lessonCount) {
+      const retryCheckpoint = enrichmentRetryCheckpoint(
+        budget?.recentEvents,
+        budget?.costPlan?.blueprintEnrichmentRecoveryReserve,
+      );
+      if (retryCheckpoint) {
+        return Math.round(35 + (retryCheckpoint.checkpoint / retryCheckpoint.total) * 14);
+      }
+      if (recovery) {
+        const attemptFraction = Math.min(1, (recovery.attempt + 1) / (recovery.total + 1));
+        return Math.round(30 + attemptFraction * 20);
+      }
+      return 35;
+    }
+    const knowledgeEvents = Array.isArray(budget?.recentEvents)
+      ? budget.recentEvents.filter(isKnowledgeProgressEvent)
+      : [];
+    const recentLesson = Math.max(0, ...knowledgeEvents.map(latestLessonNumber));
+    const attemptedLessons = Math.min(lessonCount, Math.max(0, Number(budget?.blueprintEnrichmentCalls) || 0));
+    // Recovery can return to lesson 1 after lesson 15. Progress represents
+    // completed build work, so it must not jump backward with that cursor.
+    const currentLesson = Math.max(latestLessonNumber(pipeline.activity), recentLesson, attemptedLessons);
     const fraction = lessonCount > 0 && currentLesson > 0 ? Math.min(1, currentLesson / lessonCount) : 0.25;
     return Math.round(30 + fraction * 20);
   }
@@ -211,7 +493,7 @@ export function buildBuildRibbonModel({
       break;
     case 'enriching':
       stage = 'enrich';
-      stageLabel = enrichmentLabelFromEvent(pipeline.activity);
+      stageLabel = latestKnowledgeActivity(budget?.recentEvents);
       break;
     case 'compiling':
       stage = 'compile';
@@ -242,6 +524,7 @@ export function buildBuildRibbonModel({
     }
     case 'ready':
       stage = 'ready';
+      stageLabel = 'Ready to export';
       break;
     default:
       // lull (and the unreachable idle-with-activity) — show progress so
@@ -270,7 +553,14 @@ export function buildBuildRibbonModel({
 
   const costUsd = budget.tokenUsage?.costUsd || 0;
   const spendDisplay = costUsd > 0 ? formatUsd(costUsd) : '';
-  const progressPct = deriveRibbonProgress({ pipeline, generation, deliverables });
+  const progressPct = deriveRibbonProgress({ pipeline, budget, generation, deliverables });
+  const compilerArtifacts = buildLivingCompilerArtifacts({
+    pipeline,
+    budget,
+    generation,
+    deliverables,
+    packageQualityPass,
+  });
 
   let elapsedDisplay = '';
   if (stage === 'ready' && finishStatus === 'ready' && getApiCallBudgetTotal(budget) > 0) {
@@ -287,6 +577,8 @@ export function buildBuildRibbonModel({
     steps,
     done,
     progressPct,
+    compilerArtifacts,
+    compilerState: pipeline.state === 'blocked' ? 'review' : pipeline.state === 'ready' ? 'complete' : 'live',
     pipelineChips: stage === 'ready' ? allPipelineChips : allPipelineChips.filter((chip) => chip.warn),
   };
 }

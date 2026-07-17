@@ -1,0 +1,929 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-546d143d0e1424e070e2",
+    "packetDigest": "546d143d0e1424e070e27bc7f03c90d6c753d375e74b6a26db25a5a93e7c8312",
+    "organizerDigest": "e9e3826260e2c77e9f32ec180334fd6bf25f04a38f021b2fcd9a39098436eeff"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-43985ec7d95255b1790b",
+      "caseDigest": "06712840513b347af4d9f97f541a3e8141f55109ac958062a9eb52f7209ecc87",
+      "domain": "anatomy",
+      "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+      "sourceContextSha256": "6959c6e4a825b9ebc313f4956daf6ed3a291ada8e78ea6dfc6655276a0cf41c9",
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/levels-of-organization",
+        "term": "Levels of structural organization",
+        "claims": [
+          "Human anatomy and physiology organizes body structure from chemical components to cells, tissues, organs, organ systems, and the organism, so students can connect form to function across scales.",
+          "A cell is the smallest independently functioning unit of a living organism.",
+          "Organs are anatomically distinct structures made of two or more tissue types."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "86208f7cdd825815e34fc7bbb3fc0ec8794966802704f7e61f23eef9d631f36a",
+          "artifact": {
+            "tr": "Levels of structural organization",
+            "df": "The process of moving from chemical components to the organism.",
+            "eg": "The progression from chemical components to cells to tissues to organs to the organism demonstrates the levels of structural organization.",
+            "mi": "Levels of structural organization is only about chemical components and cells.",
+            "cx": "Levels of structural organization includes chemical components, cells, tissues, organs, organ systems, and the organism."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "62be6b592ec66a0310fadfc786701c09ab6f4306c2fa2b5e0bb685b5c8a63b88",
+          "artifact": {
+            "tr": "Organ",
+            "df": "A body structure formed from at least two tissue types and built for a specific anatomical role.",
+            "eg": "The heart is a useful course example because it is treated as an organ rather than as a single tissue.",
+            "mi": "An organ is simply any visible body part, even if it contains only one tissue type.",
+            "cx": "The correction is that an organ is identified by its tissue combination, not just by its size or shape."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "86208f7cdd825815e34fc7bbb3fc0ec8794966802704f7e61f23eef9d631f36a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "62be6b592ec66a0310fadfc786701c09ab6f4306c2fa2b5e0bb685b5c8a63b88",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4cc4e3a39f931bdaa7c0",
+      "caseDigest": "ab54f0acee7209913275eae0b567966eb1550e853c2e3da3ac24731b0e14acca",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "6aab2242feae1d72b70b77319e9e185050a26ae4df897f766ad7227b93f7b8fc",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/sensory-perception",
+        "term": "Sensory receptors and perception",
+        "claims": [
+          "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns.",
+          "Receptors are cells or structures that detect sensations.",
+          "Stimuli are changed into electrochemical signals of the nervous system."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f7278f96baadb0e23713ca73b4b66aee448e3328879e957b7787e6ddc552192c",
+          "artifact": {
+            "tr": "Receptors",
+            "df": "Cells or structures that detect sensations in the body.",
+            "eg": "Sensory receptors detect internal or external stimuli.",
+            "mi": "Receptors are the structures that process signals into meaningful patterns.",
+            "cx": "Receptors are the cells or structures that detect sensations."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e6971db0ecc63cc5222deb76b0dd992c6a8b0288e361875bdd77205864a1dd7a",
+          "artifact": {
+            "tr": "Perception",
+            "df": "Central processing that organizes sensory signals into meaningful patterns.",
+            "eg": "After a signal reaches the nervous system, perception lets the body interpret it as a recognizable touch or sound.",
+            "mi": "It is the moment when a receptor first notices the stimulus.",
+            "cx": "The first notice happens at the receptor; perception is the later processing step."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f7278f96baadb0e23713ca73b4b66aee448e3328879e957b7787e6ddc552192c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e6971db0ecc63cc5222deb76b0dd992c6a8b0288e361875bdd77205864a1dd7a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-1f620789e72f7d5c1bf5",
+      "caseDigest": "f8e3546a54353a1344784439f1f619c6aaa78e073cbb11c0cd7bb95651f76196",
+      "domain": "physics",
+      "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+      "sourceContextSha256": "e52b9f723ec7dd8eeadc444efa0ad09c8e8624f60dc87e4f1cb335ffc937b90a",
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/resistance-ohms-law",
+        "term": "Ohmic resistance in electric circuits",
+        "claims": [
+          "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+          "For an ohmic device at fixed temperature, current is proportional to voltage.",
+          "Resistance depends on material, length, cross-sectional area, and temperature."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "842eef3b26085ff3dc798176538cac31cdf8e6e99d6e54427c7bb2eceb4bf57e",
+          "artifact": {
+            "tr": "Resistance",
+            "df": "A property that measures how strongly a material or device opposes current.",
+            "eg": "In the lab, the longer wire had greater resistance than the shorter wire of the same material and temperature.",
+            "mi": "Resistance is the same thing as voltage.",
+            "cx": "The correction is that voltage can drive current, while resistance is the property that opposes that current."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "36e4b6d3bdbdacf91ffd79b660fcf0edd7ace4d621a68f251136ec9a71250ca4",
+          "artifact": {
+            "tr": "Electrical resistance",
+            "df": "The measure of how strongly a material opposes the flow of electric current in a circuit.",
+            "eg": "The resistance of a copper wire determines how much current flows through it when a voltage is applied.",
+            "mi": "Resistance is the same for all materials regardless of their physical dimensions.",
+            "cx": "Resistance is determined by the material, length, cross-sectional area, and temperature."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "842eef3b26085ff3dc798176538cac31cdf8e6e99d6e54427c7bb2eceb4bf57e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "36e4b6d3bdbdacf91ffd79b660fcf0edd7ace4d621a68f251136ec9a71250ca4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-3b0d1df177c56ea91265",
+      "caseDigest": "10bf3c5cae1461c1e93c4456bd8d2546428de22a2fa4e7e951707e82462aaee9",
+      "domain": "physics",
+      "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+      "sourceContextSha256": "584f8ec519060a9496e18d8f2ea1dba608622eff323399fbb8170bd6d506f31b",
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/gausss-law",
+        "term": "Gauss's law",
+        "claims": [
+          "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+          "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+          "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "4f1a4acb8c0fcd25f4130fcdcc28952c9d9359966f8bae7cd08bcfd166631af8",
+          "artifact": {
+            "tr": "Electric flux",
+            "df": "The measure of the net electric field passing through a given surface.",
+            "eg": "Calculating the total electric flux through a cylinder to find the enclosed charge.",
+            "mi": "Electric flux is always zero if there is a net charge inside the surface.",
+            "cx": "Electric flux is related to the net charge enclosed by a closed surface."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "de4891e64d22a399b9b0831123e94e3e039bd817bc61d888556061b91522613a",
+          "artifact": {
+            "tr": "Net electric flux",
+            "df": "The total electric flow through a closed surface, linked to how much charge the surface encloses.",
+            "eg": "If a closed surface encloses no net charge, the net electric flux through it is zero.",
+            "mi": "It is the electric field strength at one point on the surface.",
+            "cx": "Flux summarizes the whole closed surface, while field strength describes the field at a location."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "4f1a4acb8c0fcd25f4130fcdcc28952c9d9359966f8bae7cd08bcfd166631af8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "de4891e64d22a399b9b0831123e94e3e039bd817bc61d888556061b91522613a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-410e216e1591a1768de7",
+      "caseDigest": "28b9169f57eabf06e92a6b72e4de381641c26fc43ebe8ea70e3134ca7d175f72",
+      "domain": "economics",
+      "courseGroupSha256": "9426f3e12b3325688e416610cd8e80ad451c6206c0546f0c7a384639a8f29961",
+      "sourceContextSha256": "bfacd924da3f93aaecbed166e867fc57b7d4e5d8dfeeec0b072e61f645afe09e",
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/wage-price-spiral",
+        "term": "Wage-price spiral",
+        "claims": [
+          "A wage-price spiral is a self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+          "The wage-price spiral is positive feedback: an initial change is amplified rather than damped.",
+          "Unlike negative feedback, positive feedback drives the system further from where it started."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6fff74f1e32977ac41fb3d0678ef3853e558bb2562a536b2b5c5ae0586a430c5",
+          "artifact": {
+            "tr": "Wage-price spiral",
+            "df": "A loop where rising prices can trigger higher wage demands, and those higher wages can then push prices up again.",
+            "eg": "In a lesson on inflation feedback, students trace how higher prices can lead to higher wages and then to another round of price increases.",
+            "mi": "It is just any situation where wages go up once and prices happen to rise later.",
+            "cx": "That correction matters because the term refers to a self-reinforcing cycle, not merely two separate events."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7268d7ea05cb0edf105c16791baee7da18ac9c82fbed885eade61bb402a0f166",
+          "artifact": {
+            "tr": "Wage-price spiral",
+            "df": "A self-reinforcing cycle in which rising prices lead workers to demand higher wages, and higher wage costs lead firms to raise prices further.",
+            "eg": "If the cost of labor increases, workers demand higher wages, which then causes firms to increase prices.",
+            "mi": "A wage-price spiral is a process where initial changes are damped over time.",
+            "cx": "A wage-price spiral is a positive feedback loop where initial changes are amplified rather than damped."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6fff74f1e32977ac41fb3d0678ef3853e558bb2562a536b2b5c5ae0586a430c5",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7268d7ea05cb0edf105c16791baee7da18ac9c82fbed885eade61bb402a0f166",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-510ea462f338ea7e79b7",
+      "caseDigest": "d169568cc7e6acec6648e81b72aaf3edcaa69ab4ac3252d59d1e026c0db48422",
+      "domain": "economics",
+      "courseGroupSha256": "4ffd5d5cf1b8cc2c9a11861897b918345bc147d926d7f3b2a711e682fb5c12fa",
+      "sourceContextSha256": "6cbea23935a571871a116aa5fef1cf727ba6dc3c43fcc02e51c244e55130d5be",
+      "sourceContext": {
+        "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+        "kernelId": "econ/circular-flow-of-income",
+        "term": "Circular flow of income",
+        "claims": [
+          "In the circular flow of income, money that households earn returns to firms as spending unless it leaks out of the flow as saving, taxes, or spending on imports.",
+          "Leakages are balanced by injections such as investment, government spending, and exports that add spending back into the flow.",
+          "When total leakages equal total injections, the circular flow is in balance and national income neither rises nor falls."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 1"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "862aeeef920a6f9e31eae4027416c0691bc9b013bfc460699bab4ff5611cc192",
+          "artifact": {
+            "tr": "Injection",
+            "df": "Spending added back into the flow from outside household consumption.",
+            "eg": "When the government buys goods, that spending acts as an injection in the circular flow.",
+            "mi": "An injection is the same thing as saving by households.",
+            "cx": "A correction is that injections are extra spending that comes back into the flow and helps offset leakages."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "caeee64e91976b0bab9de9ad35d63473e3d97ae1b8c71ca051970cecb5d6b7ba",
+          "artifact": {
+            "tr": "Injections",
+            "df": "Spending that adds money back into the circular flow of income, such as investment, government spending, and exports.",
+            "eg": "Government spending is an example of an injection into the circular flow.",
+            "mi": "Injections are the only factors that can cause national income to decrease.",
+            "cx": "Injections are the components of the circular flow of income that represent money entering the system."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "862aeeef920a6f9e31eae4027416c0691bc9b013bfc460699bab4ff5611cc192",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "caeee64e91976b0bab9de9ad35d63473e3d97ae1b8c71ca051970cecb5d6b7ba",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-784e4a5db543634b2e2a",
+      "caseDigest": "36992f334cd84f55ec851fffb6c1f98a87783c59aecb364c302bc4a6ba937eee",
+      "domain": "anatomy",
+      "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+      "sourceContextSha256": "6959c6e4a825b9ebc313f4956daf6ed3a291ada8e78ea6dfc6655276a0cf41c9",
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/levels-of-organization",
+        "term": "Levels of structural organization",
+        "claims": [
+          "Human anatomy and physiology organizes body structure from chemical components to cells, tissues, organs, organ systems, and the organism, so students can connect form to function across scales.",
+          "A cell is the smallest independently functioning unit of a living organism.",
+          "Organs are anatomically distinct structures made of two or more tissue types."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "3236ef8a6f43de7c4a0c745df27bc34a83677727843617cfd653740d698d8e7d",
+          "artifact": {
+            "q": "Which level of organization includes the organism as the highest level?",
+            "op": [
+              "Cellular",
+              "Tissue",
+              "Organ System",
+              "Organism"
+            ],
+            "ai": 3,
+            "ex": "The organism is the highest level because it encompasses all other structures."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b22275766cc6818661201f1108000a0eb29e6f2ba77bcc3efb86d85688c29f45",
+          "artifact": {
+            "q": "Which structure is the smallest independently functioning unit in this sequence: cell, tissue, organ, organ system, organism?",
+            "op": [
+              "celltissueorganismorgan system",
+              "tissuecellorgan systemorganism",
+              "organcelltissueorganism",
+              "organ systemtissueorganorganism"
+            ],
+            "ai": 0,
+            "ex": "Cell is correct because it is the smallest independently functioning unit of a living organism. A tissue is a group level above cells, so it cannot be the smallest independently functioning unit."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "3236ef8a6f43de7c4a0c745df27bc34a83677727843617cfd653740d698d8e7d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b22275766cc6818661201f1108000a0eb29e6f2ba77bcc3efb86d85688c29f45",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-f4d09eaeddea1baba9a0",
+      "caseDigest": "ba32e6121d242386072465f660d586be14d0c7a4fdc0148532d606114eefae00",
+      "domain": "economics",
+      "courseGroupSha256": "4ffd5d5cf1b8cc2c9a11861897b918345bc147d926d7f3b2a711e682fb5c12fa",
+      "sourceContextSha256": "2e0dc8fd0aacec5990c479b42e559b2cb3d37f301443eac218fdc9fdffa015aa",
+      "sourceContext": {
+        "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+        "kernelId": "econ/proxy-variable",
+        "term": "Proxy variable",
+        "claims": [
+          "A proxy variable is an observable stand-in used to measure a construct that cannot be observed directly.",
+          "GDP is used as a proxy for economic well-being, but it captures only marketed output and misses unpaid work, income distribution, and environmental costs.",
+          "Because the proxy is not the construct, conclusions drawn from it inherit whatever the measure leaves out."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e34eb8af7ce4718c97dbaf4496934cd62766901c09831cd2a1039bdf53fbb89f",
+          "artifact": {
+            "tr": "GDP as a proxy for economic well-being",
+            "df": "A measure based on marketed output that is often used to approximate living conditions.",
+            "eg": "In a discussion of household welfare, a class uses GDP to compare countries even though unpaid work is not counted.",
+            "mi": "If GDP goes up, it must mean every part of well-being has improved.",
+            "cx": "That is false because the measure can miss unpaid work, how income is distributed, and environmental costs."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "ca2f3670ff970c3c48751250a15eccc69cec2cb1a3c64eb8184a6d23786fc3c1",
+          "artifact": {
+            "tr": "Economic well-being indicator",
+            "df": "GDP is used as a proxy for economic well-being, but it captures only marketed output and misses unpaid work, income distribution, and environmental costs.",
+            "eg": "Using GDP to estimate the general standard of living.",
+            "mi": "GDP fully accounts for all aspects of economic activity.",
+            "cx": "GDP is a measure that includes all forms of economic activity."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e34eb8af7ce4718c97dbaf4496934cd62766901c09831cd2a1039bdf53fbb89f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "ca2f3670ff970c3c48751250a15eccc69cec2cb1a3c64eb8184a6d23786fc3c1",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a08a3ce3889200d8faab",
+      "caseDigest": "9c264ba2ab610242f2435618eb0b19eeedca6d8c970372da175a3841259cd278",
+      "domain": "physics",
+      "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+      "sourceContextSha256": "a62095b5592eb883443e140183a119f3dea3947689ffed63c1af715cfa164587",
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-charge",
+        "term": "Electric charge",
+        "claims": [
+          "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+          "Like charges repel and unlike charges attract.",
+          "Net charge is conserved in an isolated system."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9e50e223fa4eb706c212c876dd659c2f6997ed1e244137d94e743db5115fa3f8",
+          "artifact": {
+            "q": "Two identical plastic balls are given the same kind of charge and then brought near each other. What happens when they are close together?",
+            "op": [
+              "They push apart because like charges repel.",
+              "They pull together because like charges attract.",
+              "They do neither because charge has no effect on matter.",
+              "They always become neutral when they are close together."
+            ],
+            "ai": 0,
+            "ex": "They push apart because like charges repel. A common mistake is to think identical charges draw together, but the stated interaction is repulsion for like charges and attraction for unlike charges."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "751777e6abc031e43d72d3c155951ed1fd630ed0a3ecb64d427e3ebd0658be8a",
+          "artifact": {
+            "q": "If a system has a net charge of zero, what must be true about the total electric charge within that system?",
+            "op": [
+              "The total electric charge is conserved.",
+              "The total electric charge is always positive.",
+              "The total electric charge is always negative.",
+              "The total electric charge is determined by the interactions between like charges."
+            ],
+            "ai": 0,
+            "ex": "The total electric charge is conserved because net charge is conserved in an isolated system."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9e50e223fa4eb706c212c876dd659c2f6997ed1e244137d94e743db5115fa3f8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "751777e6abc031e43d72d3c155951ed1fd630ed0a3ecb64d427e3ebd0658be8a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

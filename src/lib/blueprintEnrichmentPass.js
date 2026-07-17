@@ -2,8 +2,14 @@ import { cleanText, stripLessonPrefix } from './compilerText';
 import { expandKeys } from './keyMaps';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
+import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from './languageIdentityGuard';
 import { lintDecisionScenario } from './scenarioContract';
-import { normalizeScionOptionIdentity, repairScionMcItem } from './scionAnswerKeyAlignment';
+import {
+  findScionExplanationKeyConflict,
+  findScionSourceAnswerSupport,
+  normalizeScionOptionIdentity,
+  repairScionMcItem,
+} from './scionAnswerKeyAlignment';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
 
 const DEFAULT_MAX_LESSONS = 12;
@@ -917,13 +923,14 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
   return {
     systemPrompt: LESSON_CONTENT_SYSTEM_PROMPT,
     userPrompt,
+    courseName: truncateText(courseMap?.courseName || 'Untitled Course', 120),
     lessons,
     itemPlan,
     approxInputTokens: Math.ceil((LESSON_CONTENT_SYSTEM_PROMPT.length + userPrompt.length) / 4),
   };
 }
 
-export function lintEnrichedQuizItem(item, { groundingText = '' } = {}) {
+export function lintEnrichedQuizItem(item, { groundingText = '', sourceClaims = [] } = {}) {
   const issues = [];
   const question = cleanText(item?.question);
   if (question.length < 20) issues.push('stem-too-short');
@@ -949,6 +956,8 @@ export function lintEnrichedQuizItem(item, { groundingText = '' } = {}) {
     ) {
       issues.push('explanation-repeats-answer');
     }
+    const sourceSupport = findScionSourceAnswerSupport(item, { sourceClaims });
+    if (!sourceSupport && findScionExplanationKeyConflict(item)) issues.push('explanation-key-conflict');
     // CurriculumOS V1 Phase A: test-wiseness battery shared with the foundry
     // admission gate — cues that reveal the key without knowing the content.
     issues.push(...lintItemAdmission({ ...item, options }));
@@ -1022,6 +1031,38 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
   for (const entry of parsed.lessons) {
     const lessonId = cleanText(entry?.lessonId);
     if (!lessonId) continue;
+    const languageContamination = detectForeignLanguageTeachingContent({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (languageContamination) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: 0,
+        reason: 'foreign-language-contamination',
+        atomIssueCount: 0,
+        problems: [`foreign-language-contamination:${languageContamination.languageId}`],
+      });
+      continue;
+    }
+    const targetLanguagePresence = assessTargetLanguagePresence({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (!targetLanguagePresence.complete) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: 0,
+        reason: 'target-language-missing',
+        atomIssueCount: 0,
+        problems: targetLanguagePresence.missing.map(
+          (missing) => `target-language-missing:${targetLanguagePresence.languageId}:${missing}`,
+        ),
+      });
+      continue;
+    }
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
     const quizItems = [];
     asArray(entry?.quizItems).forEach((item, index) => {
@@ -1280,6 +1321,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
   return {
     systemPrompt,
     userPrompt,
+    courseName: truncateText(courseMap?.courseName || 'Untitled Course', 120),
     lessons,
     itemPlan,
     includeCourseLevel,
@@ -1416,6 +1458,38 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     }
     const issueCountAtEntryStart = issues.length;
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
+    const languageContamination = detectForeignLanguageTeachingContent({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (languageContamination) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'foreign-language-contamination',
+        atomIssueCount: 0,
+        problems: [`foreign-language-contamination:${languageContamination.languageId}`],
+      });
+      continue;
+    }
+    const targetLanguagePresence = assessTargetLanguagePresence({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (!targetLanguagePresence.complete) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'target-language-missing',
+        atomIssueCount: 0,
+        problems: targetLanguagePresence.missing.map(
+          (missing) => `target-language-missing:${targetLanguagePresence.languageId}:${missing}`,
+        ),
+      });
+      continue;
+    }
 
     const facts = [];
     const sourceFactsByIndex = asArray(entry?.facts).map((fact, index) => {
@@ -1522,7 +1596,10 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
         : [];
       const repaired = repairScionMcItem(item, { lessonId, itemIndex: index, sourceClaims: citedSourceClaims });
       const admittedItem = repaired.item;
-      const problems = lintEnrichedQuizItem({ ...admittedItem, type: 'multiple_choice' }, { groundingText });
+      const problems = lintEnrichedQuizItem(
+        { ...admittedItem, type: 'multiple_choice' },
+        { groundingText, sourceClaims: citedSourceClaims },
+      );
       if (rawSourceFactIndexes !== undefined && !sourceFactIndexesValid) problems.push('source-fact-index');
       if (problems.length > 0) issues.push({ lessonId, surface: 'mc', index, problems });
       else {

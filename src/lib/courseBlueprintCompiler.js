@@ -869,9 +869,10 @@ function hasInterpretiveHumanitiesEvidence(text = '') {
       ));
   return (
     hasHumanitiesDomain &&
-    /\b(close[-\s]?reading|interpretive claim|interpretive argument|passage evidence|textual evidence|historical context|translation choice|critical lens|genre convention|visual analysis|scene analysis|primary source analysis|historiography|archive note|reception context|source integrity)\b/.test(
+    (/\b(close[-\s]?reading|interpretive claim|interpretive argument|passage evidence|textual evidence|historical context|translation choice|critical lens|genre convention|visual analysis|scene analysis|primary source analysis|historiography|archive note|reception context|source integrity)\b/.test(
       text,
-    )
+    ) ||
+      /\b(world literature|comparative literature|literary studies|english literature)\b/.test(text))
   );
 }
 
@@ -893,7 +894,7 @@ function hasWorldLanguageEvidence(text = '') {
       text,
     );
   const hasCommunicativePractice =
-    /\b(conversation|dialogue|oral proficiency|speaking|listening|pronunciation|grammar|vocabulary|interpersonal|interpretive|presentational|cultural comparison|language function|can[-\s]?do statement|proficiency task|comprehensible input)\b/.test(
+    /\b(conversation|dialogue|oral proficiency|speaking|listening|pronunciation|grammar|vocabulary|interpersonal|interpretive|presentational|cultural comparison|language function|can[-\s]?do statement|proficiency task|comprehensible input|pinyin|tones?|hanzi|characters?|greetings?|self[-\s]?introductions?|oral performance)\b/.test(
       text,
     );
   return hasLanguageDomain && hasCommunicativePractice;
@@ -1107,124 +1108,155 @@ function hasPhysicsProblemEvidence(text = '') {
   return hasPhysicsDomain && hasProblemPractice;
 }
 
+function disciplineLens(domain, evidenceNoun, decisionNoun, learnerRole, exampleNoun) {
+  return { domain, evidenceNoun, decisionNoun, learnerRole, exampleNoun };
+}
+
 function inferDisciplineLens(courseName, concepts = []) {
   const text = `${courseName} ${concepts.join(' ')}`.toLowerCase();
+  if (/\b(astronomy|celestial|stellar|hubble(?:'s)? law|solar nebula|moon phases?)\b/.test(text)) {
+    return disciplineLens(
+      'observational and quantitative astronomy',
+      'observational and quantitative evidence',
+      'astronomical explanation',
+      'astronomy observer',
+      'sky-observation or calculation scenario',
+    );
+  }
+  if (/\b(psychology|conditioning|memory encoding|psychosocial development|overjustification)\b/.test(text)) {
+    return disciplineLens(
+      'psychological science',
+      'behavioral and study evidence',
+      'psychological explanation',
+      'psychology analyst',
+      'behavioral case',
+    );
+  }
+  if (/\b(nutrition|nutrients?|dietary|carbohydrates?|proteins?|lipids?|vitamins?|minerals?)\b/.test(text)) {
+    return disciplineLens(
+      'human nutrition science',
+      'nutrient and dietary evidence',
+      'diet-analysis conclusion',
+      'nutrition analyst',
+      'dietary case or label analysis',
+    );
+  }
   if (hasProofSeminarEvidence(text)) {
-    return {
-      domain: 'proof-based mathematics seminar',
-      evidenceNoun: 'proof evidence',
-      decisionNoun: 'proof-strategy decision',
-      learnerRole: 'mathematical proof writer',
-      exampleNoun: 'theorem proof scenario',
-    };
+    return disciplineLens(
+      'proof-based mathematics seminar',
+      'proof evidence',
+      'proof-strategy decision',
+      'mathematical proof writer',
+      'theorem proof scenario',
+    );
   }
   if (hasEngineeringDesignEvidence(text)) {
-    return {
-      domain: 'engineering design test lab',
-      evidenceNoun: 'engineering test evidence',
-      decisionNoun: 'design-verification decision',
-      learnerRole: 'engineering designer',
-      exampleNoun: 'prototype test scenario',
-    };
+    return disciplineLens(
+      'engineering design test lab',
+      'engineering test evidence',
+      'design-verification decision',
+      'engineering designer',
+      'prototype test scenario',
+    );
   }
   if (hasPhysicsProblemEvidence(text)) {
-    return {
-      domain: 'introductory physics problem solving',
-      evidenceNoun: 'worked-example evidence',
-      decisionNoun: 'solution-strategy decision',
-      learnerRole: 'physics problem solver',
-      exampleNoun: 'field, circuit, or induction scenario',
-    };
+    return disciplineLens(
+      'introductory physics problem solving',
+      'worked-example evidence',
+      'solution-strategy decision',
+      'physics problem solver',
+      'field, circuit, or induction scenario',
+    );
   }
   if (hasStatisticsInferenceEvidence(text)) {
-    return {
-      domain: 'statistical inference',
-      evidenceNoun: 'statistical evidence',
-      decisionNoun: 'inference decision',
-      learnerRole: 'statistical analyst',
-      exampleNoun: 'inference scenario',
-    };
+    return disciplineLens(
+      'statistical inference',
+      'statistical evidence',
+      'inference decision',
+      'statistical analyst',
+      'inference scenario',
+    );
   }
   if (hasInformationLiteracyEvidence(text)) {
-    return {
-      domain: 'information literacy and source research',
-      evidenceNoun: 'source evidence',
-      decisionNoun: 'source-use decision',
-      learnerRole: 'academic researcher',
-      exampleNoun: 'database search scenario',
-    };
+    return disciplineLens(
+      'information literacy and source research',
+      'source evidence',
+      'source-use decision',
+      'academic researcher',
+      'database search scenario',
+    );
   }
   if (hasTeacherPreparationEvidence(text)) {
-    return {
-      domain: 'teacher preparation and instructional practice',
-      evidenceNoun: 'classroom evidence',
-      decisionNoun: 'instructional decision',
-      learnerRole: 'teacher candidate',
-      exampleNoun: 'microteaching lesson scenario',
-    };
+    return disciplineLens(
+      'teacher preparation and instructional practice',
+      'classroom evidence',
+      'instructional decision',
+      'teacher candidate',
+      'microteaching lesson scenario',
+    );
   }
   if (hasCounselingPracticeEvidence(text)) {
-    return {
-      domain: 'counseling and helping-skills practice',
-      evidenceNoun: 'client-interaction evidence',
-      decisionNoun: 'helping response decision',
-      learnerRole: 'helping professional',
-      exampleNoun: 'client-conversation scenario',
-    };
+    return disciplineLens(
+      'counseling and helping-skills practice',
+      'client-interaction evidence',
+      'helping response decision',
+      'helping professional',
+      'client-conversation scenario',
+    );
   }
   if (hasAccountingFinanceEvidence(text)) {
-    return {
-      domain: 'accounting and finance analysis',
-      evidenceNoun: 'financial evidence',
-      decisionNoun: 'financial decision',
-      learnerRole: 'financial analyst',
-      exampleNoun: 'financial statement scenario',
-    };
+    return disciplineLens(
+      'accounting and finance analysis',
+      'financial evidence',
+      'financial decision',
+      'financial analyst',
+      'financial statement scenario',
+    );
   }
   if (hasPolicyAnalysisEvidence(text)) {
-    return {
-      domain: 'public policy analysis',
-      evidenceNoun: 'policy evidence',
-      decisionNoun: 'policy decision',
-      learnerRole: 'policy analyst',
-      exampleNoun: 'policy memo scenario',
-    };
+    return disciplineLens(
+      'public policy analysis',
+      'policy evidence',
+      'policy decision',
+      'policy analyst',
+      'policy memo scenario',
+    );
   }
   if (hasEconomicsAnalysisEvidence(text)) {
-    return {
-      domain: 'economics analysis',
-      evidenceNoun: 'economic evidence',
-      decisionNoun: 'economic decision',
-      learnerRole: 'economic analyst',
-      exampleNoun: 'market analysis scenario',
-    };
+    return disciplineLens(
+      'economics analysis',
+      'economic evidence',
+      'economic decision',
+      'economic analyst',
+      'market analysis scenario',
+    );
   }
   if (hasEthicsArgumentEvidence(text)) {
-    return {
-      domain: 'ethics argumentation',
-      evidenceNoun: 'moral argument evidence',
-      decisionNoun: 'moral decision',
-      learnerRole: 'ethical reasoner',
-      exampleNoun: 'ethical dilemma scenario',
-    };
+    return disciplineLens(
+      'ethics argumentation',
+      'moral argument evidence',
+      'moral decision',
+      'ethical reasoner',
+      'ethical dilemma scenario',
+    );
   }
   if (hasClinicalPlacementEvidence(text)) {
-    return {
-      domain: 'clinical placement practice',
-      evidenceNoun: 'supervised clinical evidence',
-      decisionNoun: 'clinical placement decision',
-      learnerRole: 'clinical placement practitioner',
-      exampleNoun: 'patient-care placement scenario',
-    };
+    return disciplineLens(
+      'clinical placement practice',
+      'supervised clinical evidence',
+      'clinical placement decision',
+      'clinical placement practitioner',
+      'patient-care placement scenario',
+    );
   }
   if (hasClinicalJudgmentEvidence(text)) {
-    return {
-      domain: 'clinical judgment and care planning',
-      evidenceNoun: 'patient-assessment evidence',
-      decisionNoun: 'clinical care decision',
-      learnerRole: 'clinical decision maker',
-      exampleNoun: 'patient-care case',
-    };
+    return disciplineLens(
+      'clinical judgment and care planning',
+      'patient-assessment evidence',
+      'clinical care decision',
+      'clinical decision maker',
+      'patient-care case',
+    );
   }
   if (hasDataScienceLabEvidence(text)) {
     return {
@@ -1244,149 +1276,149 @@ function inferDisciplineLens(courseName, concepts = []) {
     };
   }
   if (hasProgrammingLabEvidence(text)) {
-    return {
-      domain: 'software programming lab',
-      evidenceNoun: 'code evidence',
-      decisionNoun: 'implementation decision',
-      learnerRole: 'software developer',
-      exampleNoun: 'code review scenario',
-    };
+    return disciplineLens(
+      'software programming lab',
+      'code evidence',
+      'implementation decision',
+      'software developer',
+      'code review scenario',
+    );
   }
   if (
     /\b(ai|prompt|automation|machine learning|generative ai|llm|large language model)\b/.test(text) ||
     (/\bmodel\b/.test(text) && /\b(ai|prompt|machine learning|predictive|generative)\b/.test(text))
   ) {
-    return {
-      domain: 'AI course design',
-      evidenceNoun: 'design evidence',
-      decisionNoun: 'implementation decision',
-      learnerRole: 'course designer',
-      exampleNoun: 'AI-supported teaching scenario',
-    };
+    return disciplineLens(
+      'AI course design',
+      'design evidence',
+      'implementation decision',
+      'course designer',
+      'AI-supported teaching scenario',
+    );
   }
   if (
     /\b(clinical|healthcare|health care|patient|interpreter|symptom|discharge|triage|medication|dosage)\b/.test(text)
   ) {
-    return {
-      domain: 'healthcare communication',
-      evidenceNoun: 'role-play evidence',
-      decisionNoun: 'clinical communication decision',
-      learnerRole: 'healthcare communicator',
-      exampleNoun: 'patient-care scenario',
-    };
+    return disciplineLens(
+      'healthcare communication',
+      'role-play evidence',
+      'clinical communication decision',
+      'healthcare communicator',
+      'patient-care scenario',
+    );
   }
   if (hasWorldLanguageEvidence(text)) {
-    return {
-      domain: 'communicative language learning',
-      evidenceNoun: 'language-use evidence',
-      decisionNoun: 'communication choice',
-      learnerRole: 'language learner',
-      exampleNoun: 'communicative scenario',
-    };
+    return disciplineLens(
+      'communicative language learning',
+      'language-use evidence',
+      'communication choice',
+      'language learner',
+      'communicative scenario',
+    );
   }
   if (
     /\b(field placement|placement|practicum|internship|site evidence|supervision|case handoff|professional boundary)\b/.test(
       text,
     )
   ) {
-    return {
-      domain: 'field placement practice',
-      evidenceNoun: 'field evidence',
-      decisionNoun: 'placement decision',
-      learnerRole: 'field practitioner',
-      exampleNoun: 'site-based practice scenario',
-    };
+    return disciplineLens(
+      'field placement practice',
+      'field evidence',
+      'placement decision',
+      'field practitioner',
+      'site-based practice scenario',
+    );
   }
   if (
     /\b(capstone|senior project|client project|sponsor|project charter|project milestone|final showcase|portfolio defense)\b/.test(
       text,
     )
   ) {
-    return {
-      domain: 'capstone project integration',
-      evidenceNoun: 'project evidence',
-      decisionNoun: 'capstone decision',
-      learnerRole: 'capstone project lead',
-      exampleNoun: 'client project scenario',
-    };
+    return disciplineLens(
+      'capstone project integration',
+      'project evidence',
+      'capstone decision',
+      'capstone project lead',
+      'client project scenario',
+    );
   }
   if (
     /\b(competency|proficiency|accreditation|standards[-\s]?aligned|program standard|performance task|evidence portfolio|mastery demonstration|benchmark|remediation plan)\b/.test(
       text,
     )
   ) {
-    return {
-      domain: 'competency-based assessment',
-      evidenceNoun: 'competency evidence',
-      decisionNoun: 'proficiency decision',
-      learnerRole: 'competency candidate',
-      exampleNoun: 'standards-aligned performance task',
-    };
+    return disciplineLens(
+      'competency-based assessment',
+      'competency evidence',
+      'proficiency decision',
+      'competency candidate',
+      'standards-aligned performance task',
+    );
   }
   if (hasPerformingArtsEvidence(text)) {
-    return {
-      domain: 'performing arts rehearsal',
-      evidenceNoun: 'performance evidence',
-      decisionNoun: 'rehearsal decision',
-      learnerRole: 'performing artist',
-      exampleNoun: 'rehearsal scenario',
-    };
+    return disciplineLens(
+      'performing arts rehearsal',
+      'performance evidence',
+      'rehearsal decision',
+      'performing artist',
+      'rehearsal scenario',
+    );
   }
   if (hasCreativeProductionEvidence(text)) {
-    return {
-      domain: 'creative arts workshop',
-      evidenceNoun: 'craft evidence',
-      decisionNoun: 'revision decision',
-      learnerRole: 'creative practitioner',
-      exampleNoun: 'workshop draft',
-    };
+    return disciplineLens(
+      'creative arts workshop',
+      'craft evidence',
+      'revision decision',
+      'creative practitioner',
+      'workshop draft',
+    );
   }
   if (hasCaseMethodEvidence(text)) {
-    return {
-      domain: 'business strategy case method',
-      evidenceNoun: 'case evidence',
-      decisionNoun: 'strategic recommendation',
-      learnerRole: 'case analyst',
-      exampleNoun: 'business case scenario',
-    };
+    return disciplineLens(
+      'business strategy case method',
+      'case evidence',
+      'strategic recommendation',
+      'case analyst',
+      'business case scenario',
+    );
   }
   if (hasLegalDoctrinalEvidence(text)) {
-    return {
-      domain: 'legal doctrine and case analysis',
-      evidenceNoun: 'doctrinal evidence',
-      decisionNoun: 'legal conclusion',
-      learnerRole: 'legal analyst',
-      exampleNoun: 'case hypothetical',
-    };
+    return disciplineLens(
+      'legal doctrine and case analysis',
+      'doctrinal evidence',
+      'legal conclusion',
+      'legal analyst',
+      'case hypothetical',
+    );
   }
   if (hasInterpretiveHumanitiesEvidence(text)) {
-    return {
-      domain: 'interpretive humanities seminar',
-      evidenceNoun: 'textual evidence',
-      decisionNoun: 'interpretive claim',
-      learnerRole: 'humanities interpreter',
-      exampleNoun: 'passage or scene case',
-    };
+    return disciplineLens(
+      'interpretive humanities seminar',
+      'textual evidence',
+      'interpretive claim',
+      'humanities interpreter',
+      'passage or scene case',
+    );
   }
   if (hasLectureExamEvidence(text)) {
-    return {
-      domain: 'conceptual lecture and exam preparation',
-      evidenceNoun: 'concept-check evidence',
-      decisionNoun: 'exam-readiness decision',
-      learnerRole: 'conceptual learner',
-      exampleNoun: 'lecture concept example',
-    };
+    return disciplineLens(
+      'conceptual lecture and exam preparation',
+      'concept-check evidence',
+      'exam-readiness decision',
+      'conceptual learner',
+      'lecture concept example',
+    );
   }
   if (
     /\b(interaction design|prototype|wireframe|usability|design system|portfolio rationale|journey map)\b/.test(text)
   ) {
-    return {
-      domain: 'interaction design studio',
-      evidenceNoun: 'prototype evidence',
-      decisionNoun: 'design decision',
-      learnerRole: 'studio designer',
-      exampleNoun: 'studio critique case',
-    };
+    return disciplineLens(
+      'interaction design studio',
+      'prototype evidence',
+      'design decision',
+      'studio designer',
+      'studio critique case',
+    );
   }
   if (
     /\b(community health|public health|population health|health equity|community program|program evaluation|community evaluation|health program)\b/.test(
@@ -1394,33 +1426,33 @@ function inferDisciplineLens(courseName, concepts = []) {
     ) ||
     (/\b(health|community)\b/.test(text) && /\b(evaluation|program|implementation|stakeholder)\b/.test(text))
   ) {
-    return {
-      domain: 'community health evaluation',
-      evidenceNoun: 'community evidence',
-      decisionNoun: 'program decision',
-      learnerRole: 'evaluation practitioner',
-      exampleNoun: 'community implementation case',
-    };
+    return disciplineLens(
+      'community health evaluation',
+      'community evidence',
+      'program decision',
+      'evaluation practitioner',
+      'community implementation case',
+    );
   }
   if (/\b(research|sampling|survey|interview|statistics|qualitative|quantitative|irb|ethics)\b/.test(text)) {
-    return {
-      domain: 'applied research methods',
-      evidenceNoun: 'research evidence',
-      decisionNoun: 'methodological decision',
-      learnerRole: 'research practitioner',
-      exampleNoun: 'study-design scenario',
-    };
+    return disciplineLens(
+      'applied research methods',
+      'research evidence',
+      'methodological decision',
+      'research practitioner',
+      'study-design scenario',
+    );
   }
   // v0.15.187 fallback telemetry: nothing matched the 29 discipline
   // predicates — the course ships the subject-free default register.
   recordContentFallbackHit('lens-default', text.slice(0, 200));
-  return {
-    domain: 'applied course practice',
-    evidenceNoun: 'source evidence',
-    decisionNoun: 'professional decision',
-    learnerRole: 'course practitioner',
-    exampleNoun: 'applied case',
-  };
+  return disciplineLens(
+    'applied course practice',
+    'source evidence',
+    'professional decision',
+    'course practitioner',
+    'applied case',
+  );
 }
 
 function appendLensPhrase(value, addition, joiner = 'and') {
@@ -1571,10 +1603,15 @@ function normalizeBlueprintEnrichment({
   const providedTerms = Array.isArray(provided.signatureTerms) ? provided.signatureTerms : [];
   const signatureTerms = unique([...providedTerms, ...courseConcepts], 12);
   const inferredLens = inferDisciplineLens(courseName, signatureTerms);
+  const providedLens = provided.lens && typeof provided.lens === 'object' ? provided.lens : {};
+  const providedLensIsGeneric =
+    /\b(?:applied course practice|professional decision|course practitioner|applied case)\b/i.test(
+      Object.values(providedLens).join(' '),
+    );
   const rawLens = alignLensToCourseModality(
     {
       ...inferredLens,
-      ...(provided.lens && typeof provided.lens === 'object' ? provided.lens : {}),
+      ...(providedLensIsGeneric && inferredLens.domain !== 'applied course practice' ? {} : providedLens),
     },
     courseModalityProfile,
   );
@@ -4689,6 +4726,7 @@ function buildCourseThroughlineContext({
   courseConcepts = [],
   lens = {},
   courseModalityProfile,
+  readingsRegistry = [],
 }) {
   const profile = selectThroughlineProfile({ courseName, courseConcepts, lens, courseModalityProfile });
   const first = lessons[0];
@@ -4714,15 +4752,17 @@ function buildCourseThroughlineContext({
     version: 1,
     source: 'course-throughline',
     resourceCounts,
+    // normalizeReadingsRegistry already guarantees a clean, non-empty title.
+    registryReadingTitles: (readingsRegistry || []).map((entry) => entry.title.toLowerCase()),
     ...profile,
-    recurringQuestion: `What should ${profile.clientName} do next in ${profile.setting}, and what evidence makes that decision defensible?`,
+    recurringQuestion: `What should ${profile.clientName} do next in ${profile.setting}, and what evidence makes it defensible?`,
     sequenceSummary:
       first && last
         ? `${profile.projectName} starts with ${firstFocus} and returns through ${lastFocus} as students revise evidence, tradeoffs, and recommendations.`
         : `${profile.projectName} gives the course a recurring evidence case across lessons.`,
     evidenceBoundary:
       profile.sourceMode === 'data-science-lab'
-        ? 'This is a fictional course-created case for classroom practice; replace it with official local sources when the instructor has a required case, dataset, or policy document.'
+        ? 'This fictional course-created case is for practice; replace it with official sources when the instructor requires a case, dataset, or policy document.'
         : 'Use instructor-provided readings, examples, cases, media, notes, or local materials. Do not invent source titles, datasets, authors, URLs, or official facts.',
   };
 }
@@ -4739,6 +4779,7 @@ function buildLessonThroughlineCase(context, lesson) {
   // course-wide packet verbatim in every lesson would trade the placeholder
   // for boilerplate repetition.
   const resourceCounts = context.resourceCounts || {};
+  const registryReadingTitles = new Set(context.registryReadingTitles || []);
   const isLessonSpecific = (reading) => (resourceCounts[cleanText(reading).toLowerCase()] ?? 1) <= 2;
   // v0.14.1 round-2 (fix 3): never elect the lesson's SUBJECT as its evidence
   // packet. World Lit Lesson 5 read "The Thousand and One Nights" — the same
@@ -4758,7 +4799,7 @@ function buildLessonThroughlineCase(context, lesson) {
           .find(
             (reading) =>
               reading &&
-              reading.length >= 8 &&
+              (reading.length >= 8 || registryReadingTitles.has(reading.toLowerCase())) &&
               reading.length <= 90 &&
               !/instructor-provided course/i.test(reading) &&
               !isPromptArtifactEvidenceCue(reading) &&
@@ -11684,6 +11725,7 @@ function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
       courseConcepts,
       lens: enrichment.lens,
       courseModalityProfile,
+      readingsRegistry: blueprint.readingsRegistry,
     });
 
   let lessons = normalizeLessonsForCompiler(blueprint, {
@@ -12237,7 +12279,7 @@ function assertBlueprintCompilerContract(blueprint, options = {}) {
   const contract = blueprintContractForCompilation(blueprint);
   if (options.enforceCompilerContract === false) return contract;
   if (contract.status === 'blocked') {
-    throw new Error(`Blueprint compiler contract blocked compilation: ${formatContractFailure(contract)}.`);
+    throw new Error(`Contract blocked compilation: ${formatContractFailure(contract)}`);
   }
   return contract;
 }
@@ -14612,6 +14654,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     courseConcepts,
     lens: normalizedEnrichment.lens,
     courseModalityProfile,
+    readingsRegistry,
   });
   const baseLessons = sequencedLessons.map((lesson) => {
     const modalityDecode = buildLessonModalityDecode(courseModalityProfile, lesson);
@@ -19358,6 +19401,12 @@ function compileQuizBank(blueprint, config = {}) {
       ? `Autograding: ${questions.length} multiple-choice items, one correct letter each, ${questions[0].points || 2} points per item, no partial credit — ${totalPoints} points total. Machine-scorable against the answer key on the instructor page; no manual grading required.`
       : '';
     return {
+      // Weekly entries used to rely on array position for lesson scoping.
+      // Once exam-day quizzes are omitted, that array is sparse relative to
+      // the course (for example L1-L12, then L15); the L15 quiz was therefore
+      // exported inside the L13 midterm file. Carry canonical identity just
+      // like registry exam entries so filtering never guesses by position.
+      lessonNumber: lesson.lessonNumber,
       lessonTitle: lesson.title,
       totalQuestions: questions.length,
       totalPoints,
@@ -23591,7 +23640,7 @@ function compileFeatureInto(result, compileErrors, featureId, compilerBlueprint,
     if (data) result[featureId] = data;
   } catch (error) {
     const message = error?.message || String(error);
-    console.error(`[CM] Blueprint compile failed for ${featureId}: ${message}`, error);
+    console.error(`[CM] ${featureId} compile failed: ${message}`, error);
     compileErrors.push({ featureId, message });
     if (typeof options.onFeatureCompileError === 'function') {
       options.onFeatureCompileError(featureId, error);

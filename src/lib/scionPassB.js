@@ -61,6 +61,7 @@ export async function runScionPasses({
         type: 'pipelineDecision',
         label: 'Scion pass call',
         detail: schemaProfile?.name || 'unknown',
+        chunkLabel: expectedLessonIds.join(','),
         featureId: 'blueprintEnrichment',
         task: 'scionPass',
       });
@@ -93,6 +94,7 @@ export async function runScionPasses({
               `${event.pass}:${event.lessonId}${event.action ? ` ${event.action}` : ''}${event.reason ? ` [${event.reason}]` : ''}`,
           )
           .join(' · '),
+        chunkLabel: expectedLessonIds.join(','),
         featureId: 'blueprintEnrichment',
         task: 'scionPass',
       });

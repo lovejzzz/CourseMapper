@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-readiness-gap-paired-order-campaign-v1",
+  "release": "v0.16.47",
+  "generatedAt": "2026-07-17T00:21:48.607Z",
+  "status": "paired-orders-preference-threshold-met",
+  "evidenceClass": "single-model-judge-same-identity-paired-order",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "packet": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-50182a317a3712705e4a",
+    "packetDigest": "50182a317a3712705e4a49aca529a2a7f741a46197beff82f7ad702cc8ef9b9f",
+    "organizerDigest": "3ec521f752b8d13d4c2a6a6bc8fb1abc92ee19e0386e4966a1e5bb5d2d3f59ce",
+    "sourceBackedCases": 15,
+    "receipt": {
+      "path": "evaluation/scion-adapters/evidence/source-review-packet-readiness-gap-v0.16.47.json",
+      "bytes": 2262,
+      "sha256": "3833fe4e7e87fb168a26eb2360955d34b1fd86d37aa55273d46770d8603d6fc2"
+    },
+    "heldoutDomainOverlap": 0,
+    "domains": [
+      "economics",
+      "music-theory"
+    ],
+    "domainCounts": {
+      "economics": 13,
+      "music-theory": 2
+    },
+    "courseGroupCount": 2,
+    "domainGroupCounts": {
+      "economics": 1,
+      "music-theory": 1
+    },
+    "courseGroupCoverage": "needs-more-course-groups"
+  },
+  "pipelineEvidence": {
+    "path": "evaluation/scion-contrast-matrix-readiness-gap-v0.16.47.json",
+    "bytes": 3618,
+    "sha256": "494ab66f4b6089dfbd441dfd7d4c2e6f8445fc4d5a711f88c07f65c6abe42e0b",
+    "protocol": "scion-contrast-matrix-v1",
+    "promptPolicy": "source-atom-authoring-v2",
+    "neutralCourseGroups": 2,
+    "sourceKernels": 5,
+    "courseGroupsByDomain": {
+      "economics": 1,
+      "music-theory": 1
+    },
+    "campaign": {
+      "path": "evaluation/scion-source-capture-readiness-gap-v0.16.47.json",
+      "sha256": "fa81d207826fd4226aa9302855b8a56543a91f5e1d73145214ff79c94dffe613",
+      "promptSetSha256": "2c92b418e427a0d6648b2348bfabbd20c31e2225935594bcd3cc7218fc4f7cb2"
+    },
+    "artifacts": 4
+  },
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "completedOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "completedPerCasePasses": 30,
+  "requiredPerCasePasses": 30,
+  "newStablePreferences": 11,
+  "newApprovedTrainingPairs": 11,
+  "priorApprovedTrainingPairs": 134,
+  "qualifyingTrainingRows": 145,
+  "minimumResearchPreferences": 100,
+  "preferenceCountThresholdMet": true,
+  "adapterTrainingAuthorized": false,
+  "outcomeDisclosure": "combined-after-two-sealed-orders",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "gpt-5.6-luna@max",
+    "runtime": "codex-cli-0.144.5",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7",
+    "sessionIds": [
+      "019f6d60-d6b9-7ff3-b601-7ad07ec50ba2",
+      "019f6d69-7b49-7a02-bb90-7f0f15ce3da9"
+    ]
+  },
+  "cleanrooms": {
+    "sessions": 2,
+    "surface": "codex-cli",
+    "ephemeral": true,
+    "userConfigLoaded": false,
+    "repositoryRulesLoaded": false,
+    "organizerMappingAvailableDuringJudgment": false,
+    "otherOrderAvailableDuringJudgment": false,
+    "priorOutcomeAvailableDuringJudgment": false
+  },
+  "workbooks": [
+    {
+      "order": "A/B",
+      "path": "evaluation/scion-adapters/evidence/fresh-a-b-workbook-readiness-gap-v0.16.47.json",
+      "bytes": 5502,
+      "sha256": "8263681e66913e9609915e420edb0728a4f1a71a87f2d7853f39bf82ea5a4e02",
+      "selectedCases": 15,
+      "chunkCount": 2,
+      "canonicalTemplateSha256": "63768e0c5d6cb87e0e058e8ec5cda2732dc7dabe2c610e6ee723bd1a9e02c419"
+    },
+    {
+      "order": "B/A",
+      "path": "evaluation/scion-adapters/evidence/fresh-b-a-workbook-readiness-gap-v0.16.47.json",
+      "bytes": 5566,
+      "sha256": "b823025d6c4c43a84bf45a2523ea555e66f64f1e8d27c95f7e0f1f7e8f719bd1",
+      "selectedCases": 15,
+      "chunkCount": 2,
+      "canonicalTemplateSha256": "293f2d691c7b4d3fb37ffdbaac9bb71696f6ce0786835d9e9910bfcd34af60ae"
+    }
+  ],
+  "protocolNormalization": [
+    {
+      "order": "A/B",
+      "path": "evaluation/scion-adapters/evidence/codex-decision-status-repair-readiness-gap-v0.16.47-a-b.json",
+      "bytes": 1311,
+      "sha256": "8b70a134381133c80525da021ed31eb943d0ad2a0ce08a384ee0a276d6e09996",
+      "protocol": "scion-codex-decision-status-repair-v1",
+      "scorecardsVisited": 30,
+      "repairsApplied": 0
+    },
+    {
+      "order": "B/A",
+      "path": "evaluation/scion-adapters/evidence/codex-decision-status-repair-readiness-gap-v0.16.47-b-a.json",
+      "bytes": 1311,
+      "sha256": "354eca81d46794dc2910b7300da2925e4a4c4ed77c93c1850e31102a6124a36e",
+      "protocol": "scion-codex-decision-status-repair-v1",
+      "scorecardsVisited": 30,
+      "repairsApplied": 0
+    }
+  ],
+  "templateBinding": [
+    {
+      "order": "A/B",
+      "path": "evaluation/scion-adapters/evidence/codex-decision-template-repair-readiness-gap-v0.16.47-a-b.json",
+      "bytes": 2127,
+      "sha256": "1f37cdcd25d07a323eb0256d87adb58d977a7dfdde63ba93355d272000ce5e5b",
+      "protocol": "scion-codex-decision-template-repair-v1",
+      "templatesVisited": 2,
+      "decisionsVisited": 15,
+      "repairsApplied": 0
+    },
+    {
+      "order": "B/A",
+      "path": "evaluation/scion-adapters/evidence/codex-decision-template-repair-readiness-gap-v0.16.47-b-a.json",
+      "bytes": 2127,
+      "sha256": "5b5d79bbe594dcf0601d53217ad927f27ffa84671ebb7e05306ef4417f7c590e",
+      "protocol": "scion-codex-decision-template-repair-v1",
+      "templatesVisited": 2,
+      "decisionsVisited": 15,
+      "repairsApplied": 0
+    }
+  ],
+  "sealedEnvelopes": [
+    {
+      "order": "A/B",
+      "path": "evaluation/scion-adapters/evidence/codex-review-readiness-gap-v0.16.47-a-b.sealed.json",
+      "bytes": 107518,
+      "sha256": "1bb8bd220f7b1a1e18e2853f38e36f39450b081326462096d6d7a87fb0cb05c5",
+      "plaintextSha256": "55942dfb05599e704773e81822936f7be979fd1164b009136c8027120ffa5cda",
+      "reviewCount": 15,
+      "validationStatus": "structurally-valid-complete"
+    },
+    {
+      "order": "B/A",
+      "path": "evaluation/scion-adapters/evidence/codex-review-readiness-gap-v0.16.47-b-a.sealed.json",
+      "bytes": 116298,
+      "sha256": "4c2a07578b8b1393fd82aad96284297899f6e29f16372820f8f9055d429327c6",
+      "plaintextSha256": "73aac6d709882d0e8d2591034b81252140998dc9cecb58b189136721b24c90b8",
+      "reviewCount": 15,
+      "validationStatus": "structurally-valid-complete"
+    }
+  ],
+  "analysis": {
+    "status": "same-identity-order-analysis",
+    "judgeIdentityCompatible": true,
+    "stableWinners": 11,
+    "stableTies": 2,
+    "winnerTieDisagreements": 2,
+    "oppositeWinnerDisagreements": 0,
+    "insufficientOrInvalid": 0,
+    "byDomain": {
+      "economics": {
+        "total": 13,
+        "stableWinners": 10,
+        "stableTies": 2,
+        "disagreements": 1,
+        "stableWinnerByModel": {
+          "GPT-5.4-mini": 7,
+          "Scion base + compiler recovery (Gemma 4 E2B)": 3
+        }
+      },
+      "music-theory": {
+        "total": 2,
+        "stableWinners": 1,
+        "stableTies": 0,
+        "disagreements": 1,
+        "stableWinnerByModel": {
+          "GPT-5.4-mini": 1
+        }
+      }
+    },
+    "stableWinnerByModel": {
+      "GPT-5.4-mini": 8,
+      "Scion base + compiler recovery (Gemma 4 E2B)": 3
+    },
+    "confounding": "",
+    "crossOrderAgreement": 13,
+    "agreementRate": 0.866667
+  },
+  "quarantineReasons": {
+    "order-sensitive-model-judge-decision": 2,
+    "stable-tie-model-judge": 2
+  },
+  "priorApprovedCorpus": {
+    "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-course-groups.jsonl",
+    "bytes": 656217,
+    "sha256": "ba9f38820d4c5615b7fe2acc21970e2675ad12a54f3b78fc3c4cab59d944a833",
+    "rows": 134,
+    "campaign": {
+      "path": "evaluation/scion-adapters/evidence/judge-campaign-course-group-breadth-v0.16.47.json",
+      "bytes": 9737,
+      "sha256": "7e646a56c4ec226a63eb72d5f2c50c33ffd6e42ec9b5bfaae661c06cb806fb94"
+    }
+  },
+  "approvedCorpus": {
+    "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-readiness-gap.jsonl",
+    "bytes": 712534,
+    "sha256": "5c956fea931c8c3f83ec4f60b6c6c28c7848f9fc6c9b7279909e0df27fdc3c94",
+    "rows": 145,
+    "primaryPreferenceEvidence": "single-model-judge"
+  },
+  "keyCustody": {
+    "status": "four-local-roundtrips-verified-at-release",
+    "trackedCopies": 0,
+    "localCopies": 4,
+    "fileMode": "0600",
+    "plaintextCommitted": false,
+    "recoverableInFreshClone": false
+  },
+  "nextGate": "Run corpus readiness, license, source diversity, and held-out adapter-vs-base gates before training or promotion.",
+  "claimBoundary": "This receipt records same-identity A/B and B/A model-judge evidence on a bounded economics and music-theory readiness-gap packet. Combined coverage across the prior and current packets must be recomputed by the strict readiness gate. Meeting the row-count threshold does not authorize training. This is not human, independent, classroom, held-out-adapter, device, or production-win evidence."
+}

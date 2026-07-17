@@ -1238,6 +1238,7 @@ async function ingestScionCodexTrainingReviewBatches({
         courseGroupSha256: key.courseGroupSha256,
         domainSource: 'verified-blind-atom-packet',
       },
+      sourceContext: key.case.sourceContext,
       lessonId: key.sourceRow.lessonId,
       reviewPairId: pairId,
       reviewPacketId: keyPacket.meta.packetId,

@@ -476,6 +476,7 @@ async function forwardToLlmShim(route, llmShimUrl) {
  * @param {string} [options.modelName] display name (defaults from modelId).
  * @param {string} options.outDir artifact directory for this course run.
  * @param {boolean} [options.headed=false]
+ * @param {boolean} [options.disableScionFlywheel=false] isolate held-out evaluation from corpus capture.
  * @param {import('@playwright/test').Browser} [options.browser] optional shared browser.
  * @param {number} [options.overallTimeoutMs=720000] hard 12-minute budget per course.
  * @returns {Promise<{ status: 'passed'|'failed', zipPath: string|null, consoleLogPath: string,
@@ -508,6 +509,7 @@ export async function runCourseInBrowser({
   // Real Local-provider route. Unlike llmShimUrl, this is called directly by
   // the page so SSE keep-alive heartbeats are not buffered by Playwright.
   localEndpoint = null,
+  disableScionFlywheel = false,
 }) {
   const startedAt = Date.now();
   const deadlineAt = startedAt + overallTimeoutMs;
@@ -564,7 +566,16 @@ export async function runCourseInBrowser({
     phase = 'loading-landing';
     // localStorage seeding borrowed from scripts/liveBrowserQualityLoop.mjs (runCourse).
     await page.addInitScript(
-      ({ key, selectedModelId, selectedModelName, authoring, voice, selectedProvider, selectedLocalEndpoint }) => {
+      ({
+        key,
+        selectedModelId,
+        selectedModelName,
+        authoring,
+        voice,
+        selectedProvider,
+        selectedLocalEndpoint,
+        flywheelDisabled,
+      }) => {
         localStorage.clear();
         sessionStorage.clear();
         // E1: the app reads the provider from 'coursemapper-provider' and the
@@ -579,6 +590,7 @@ export async function runCourseInBrowser({
           localStorage.setItem('coursemapper-enable-local-provider', 'true');
           if (selectedLocalEndpoint) localStorage.setItem('coursemapper-local-endpoint', selectedLocalEndpoint);
         }
+        if (flywheelDisabled) localStorage.setItem('coursemapper-scion-flywheel', 'off');
         // v0.15.1 (post-flip): the app defaults are native + voiced. Plain
         // rounds seed NOTHING (test what users get); explicit arms seed
         // their mode, including the opt-outs ('prose', 'off') that the
@@ -596,6 +608,7 @@ export async function runCourseInBrowser({
         voice: voiceMode || null,
         selectedProvider: provider || 'openai',
         selectedLocalEndpoint: localEndpoint || null,
+        flywheelDisabled: disableScionFlywheel,
       },
     );
     await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
@@ -648,9 +661,14 @@ export async function runCourseInBrowser({
 
     phase = 'generating-workspace';
     // Generation can take 5+ minutes; bounded by the overall budget. On-device
-    // LLM retry ladders run ~2min/call — shim rounds get 3× step caps so the
-    // app's own recovery path can finish instead of the driver aborting it.
-    const stepCap = llmShimUrl || localEndpoint ? (cap) => remaining(cap ? cap * 3 : cap) : remaining;
+    // LLM retry ladders run ~2min/call. For local-model rounds the overall
+    // course budget is the one honest deadline: semantic admission continues
+    // after the workspace appears, so imposing a second 30-minute stage cap
+    // can kill a healthy 14-lesson build seconds before it finishes and then
+    // wastefully restart the whole course. Cloud runs retain the tighter
+    // per-stage caps; local runs may spend whatever remains of their bounded
+    // 45-minute course budget.
+    const stepCap = llmShimUrl || localEndpoint ? () => remaining() : remaining;
     await page.getByTestId('workspace-shell').waitFor({ timeout: stepCap(600_000) });
 
     phase = 'finalizing-package';

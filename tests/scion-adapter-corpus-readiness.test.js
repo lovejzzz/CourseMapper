@@ -19,6 +19,10 @@ describe('Scion adapter corpus readiness', () => {
         promotable: false,
         counts: { loaded: 464, total: 118, singleModelJudgePairs: 46, singleModelJudgeDomains: 4 },
         evidenceCounts: { 'deterministic-contract-margin': 72, 'single-model-judge-preference': 46 },
+        holdoutBoundary: {
+          manifestPath: 'evaluation/scion-adapters/held-out-course-benchmark-v1.json',
+          benchmarkId: 'scion-held-out-course-benchmark-v1',
+        },
       },
       judgeCampaign: {
         status: 'paired-orders-evidence-shortfall',

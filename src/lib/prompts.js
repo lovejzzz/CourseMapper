@@ -290,7 +290,7 @@ export function buildUserPrompt(
     const lessonNumbers = scopeIndices.map((i) => i + 1).join(', ');
     lessonScopeInstruction = `2. Generate ONLY the following lesson numbers from the syllabus: ${lessonNumbers} (1-indexed). Do NOT generate any other lessons. The "lessons" array in your JSON must contain EXACTLY ${scopeIndices.length} lesson(s) corresponding to these positions in the syllabus.`;
   } else if (expectedLessons && confidence === 'high') {
-    lessonScopeInstruction = `2. The syllabus contains approximately ${expectedLessons} lessons/weeks. Generate exactly that many lessons. If you detect a slightly different structure, match the syllabus but aim for ${expectedLessons} total.`;
+    lessonScopeInstruction = `2. The instructor or source explicitly requires EXACTLY ${expectedLessons} lesson${expectedLessons === 1 ? '' : 's'}. The "lessons" array MUST contain exactly ${expectedLessons} item${expectedLessons === 1 ? '' : 's'}. Do not add an extra introduction, review, or capstone lesson; incorporate that work inside the requested scope.`;
   } else if (expectedLessons) {
     lessonScopeInstruction = `2. The syllabus appears to have around ${expectedLessons} lessons/weeks, but auto-detect the actual number from the syllabus structure. Note: modules or units may not equal the number of weekly sessions — a course with 7 modules might span 15 weeks. Count weekly sessions, not modules.`;
   } else {
