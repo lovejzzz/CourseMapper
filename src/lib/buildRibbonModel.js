@@ -169,14 +169,28 @@ const SCION_PASS_ACTIVITY = {
 
 export function latestKnowledgeActivity(events = []) {
   const recent = Array.isArray(events) ? events : [];
-  const pass = recent.find(
-    (event) => event?.type === 'pipelineDecision' && event?.label === 'Scion pass call' && event?.detail,
+  const activity = recent.find(
+    (event) =>
+      event?.type === 'blueprintEnrichmentCall' ||
+      (event?.type === 'pipelineDecision' &&
+        ['Scion pass call', 'Scion quality passes'].includes(event?.label) &&
+        event?.detail),
   );
-  if (pass) return SCION_PASS_ACTIVITY[String(pass.detail)] || 'Running a semantic quality check';
-  const repair = recent.find((event) => event?.type === 'pipelineDecision' && event?.label === 'Scion quality passes');
-  if (repair) return 'Applying source-grounded quality decisions';
-  const enrichment = recent.find((event) => event?.type === 'blueprintEnrichmentCall');
-  if (enrichment) return enrichmentLabelFromEvent(enrichment);
+  if (activity?.label === 'Scion pass call') {
+    return SCION_PASS_ACTIVITY[String(activity.detail)] || 'Running a semantic quality check';
+  }
+  if (activity?.label === 'Scion quality passes') {
+    const detail = String(activity.detail);
+    if (detail.includes('identityRepair:')) return 'Linking lesson to course map';
+    if (detail.includes('keyTermAdmission:')) return 'Key terms checked';
+    if (detail.includes('appliedDepth:')) return 'Applied questions checked';
+    if (detail.includes('topicGate:')) return 'Lesson focus checked';
+    if (detail.includes('admissionGate:')) return 'Quiz choices checked';
+    if (detail.includes('mcVerify:')) return 'Answer keys checked';
+    if (detail.includes('polish:')) return 'Lesson language polished';
+    return 'Applying source-grounded quality decisions';
+  }
+  if (activity?.type === 'blueprintEnrichmentCall') return enrichmentLabelFromEvent(activity);
   return 'Building lesson knowledge';
 }
 

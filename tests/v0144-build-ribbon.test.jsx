@@ -332,6 +332,31 @@ describe('B1 — buildRibbonModel selector', () => {
         { type: 'pipelineDecision', label: 'Scion pass call', detail: 'key_term_admission_batch' },
       ]),
     ).toBe('Checking key terms');
+    expect(
+      latestKnowledgeActivity([
+        {
+          type: 'pipelineDecision',
+          label: 'Scion quality passes',
+          detail: 'identityRepair:lesson-7 inferred [single-lesson-call]',
+        },
+        { type: 'pipelineDecision', label: 'Scion pass call', detail: 'blind_solve' },
+      ]),
+    ).toBe('Linking lesson to course map');
+    expect(
+      latestKnowledgeActivity([
+        {
+          type: 'pipelineDecision',
+          label: 'Scion quality passes',
+          detail: 'keyTermAdmission:lesson-7 regenerated',
+        },
+      ]),
+    ).toBe('Key terms checked');
+    expect(
+      latestKnowledgeActivity([
+        ENRICH_CHUNK_EVENT,
+        { type: 'pipelineDecision', label: 'Scion quality passes', detail: 'keyTermAdmission:lesson-8 regenerated' },
+      ]),
+    ).toBe('Enriching lessons 9–12');
     expect(latestKnowledgeActivity([ENRICH_CHUNK_EVENT])).toBe('Enriching lessons 9–12');
     expect(latestKnowledgeActivity([])).toBe('Building lesson knowledge');
   });
