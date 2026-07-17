@@ -433,6 +433,18 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(latestKnowledgeActivity([])).toBe('Building lesson knowledge');
   });
 
+  it('narrates a language-identity rejection as a calm safety decision', () => {
+    expect(
+      latestKnowledgeActivity([
+        {
+          type: 'pipelineDecision',
+          label: 'Language identity firewall',
+          detail: 'Lessons 2, 4 — rejected korean teaching content that conflicts with Elementary Mandarin Chinese I',
+        },
+      ]),
+    ).toBe('Protecting course identity · lessons 2, 4');
+  });
+
   it('makes the final grading stage visible before the meter reaches ready', () => {
     const budget = applyEvents(createApiCallBudget(), [
       { type: 'reset', runId: 'run-scion-grade' },

@@ -174,7 +174,7 @@ function isKnowledgeProgressEvent(event) {
   if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type)) return true;
   return (
     event?.type === 'pipelineDecision' &&
-    ['Scion pass call', 'Scion quality passes'].includes(event?.label) &&
+    ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
     latestLessonNumber(event) > 0
   );
 }
@@ -204,9 +204,15 @@ export function latestKnowledgeActivity(events = []) {
     (event) =>
       ['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type) ||
       (event?.type === 'pipelineDecision' &&
-        ['Scion pass call', 'Scion quality passes'].includes(event?.label) &&
+        ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
         event?.detail),
   );
+  if (activity?.label === 'Language identity firewall') {
+    const range = formatLessonRange(lessonNumbersFromEvent(activity).join(','));
+    return `Protecting course identity${
+      range ? ` · lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}` : ''
+    }`;
+  }
   if (activity?.label === 'Scion pass call') {
     const label = SCION_PASS_ACTIVITY[String(activity.detail)] || 'Running a semantic quality check';
     const lessonIds = [...String(activity.chunkLabel || '').matchAll(/lesson-(\d+)/g)].map((match) => match[1]);

@@ -1215,6 +1215,41 @@ export default function useDeliverables({
           };
         };
 
+        const recordLanguageIdentityFirewall = (issues = []) => {
+          const languageIssues = issues.filter((issue) =>
+            issue?.problems?.some((problem) => String(problem).startsWith('foreign-language-contamination:')),
+          );
+          if (languageIssues.length === 0) return;
+          const lessonNumbers = [
+            ...new Set(
+              languageIssues
+                .map((issue) => Number(String(issue.lessonId || '').replace('lesson-', '')))
+                .filter((value) => Number.isInteger(value) && value > 0),
+            ),
+          ].sort((left, right) => left - right);
+          const languageIds = [
+            ...new Set(
+              languageIssues.flatMap((issue) =>
+                issue.problems
+                  .filter((problem) => String(problem).startsWith('foreign-language-contamination:'))
+                  .map((problem) => String(problem).split(':')[1])
+                  .filter(Boolean),
+              ),
+            ),
+          ];
+          recordGenerationApiCallEvent({
+            type: 'pipelineDecision',
+            label: 'Language identity firewall',
+            detail: `Lessons ${lessonNumbers.join(', ')} — rejected ${languageIds.join(', ')} teaching content that conflicts with ${blueprintCourseMap?.courseName || 'the course'}`,
+            featureId: 'blueprintEnrichment',
+            task: 'scionPass',
+          });
+          appendLog(
+            `Course identity protected: rejected off-course language content in lesson${lessonNumbers.length === 1 ? '' : 's'} ${lessonNumbers.join(', ')}`,
+            'progress',
+          );
+        };
+
         // ── v0.14.5 WS-B (B2): native Pass B — replaces the model stage ──
         // Pass B is NOT optional enrichment on the native path: it replaces
         // both the course-map call's authorship and the enrichment calls, so
@@ -1379,6 +1414,7 @@ export default function useDeliverables({
                 );
               }
               if (parsed.issues.length > 0) {
+                recordLanguageIdentityFirewall(parsed.issues);
                 appendLog(`Native Pass B dropped ${parsed.issues.length} atom(s) that failed admission`, 'progress');
               }
             };
@@ -1734,6 +1770,7 @@ export default function useDeliverables({
                   }
                 }
                 if (parsedKernels.issues.length > 0) {
+                  recordLanguageIdentityFirewall(parsedKernels.issues);
                   appendLog(
                     `Content enrichment dropped ${parsedKernels.issues.length} atom(s) that failed item-writing or grounding checks`,
                     'progress',
