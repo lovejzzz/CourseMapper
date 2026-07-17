@@ -68,6 +68,18 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
   });
 
+  it('keeps the first Scion deliverable frame in Enrich before its budget event lands', () => {
+    const p = derivePipelineState({
+      budget: { recentEvents: [] },
+      generation: { ...GEN_DONE, isScion: true },
+      deliverables: { isGenerating: true, doneCount: 0, totalCount: 9 },
+      packageQualityPass: { status: 'running', phase: 'generation' },
+    });
+    expect(p.state).toBe('enriching');
+    expect(p.activity).toBeNull();
+    expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
+  });
+
   it('keeps a real lesson-kernel recovery in Enrich instead of mislabeling it Compile', () => {
     const p = derivePipelineState({
       budget: { recentEvents: [RECOVERY_EVENT, ENRICH_EVENT] },

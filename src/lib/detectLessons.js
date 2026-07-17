@@ -2,6 +2,37 @@ import { supportsCustomTemperature } from './agentProviders';
 import { getGoogleModelBaseUrl } from './googleProvider';
 import { buildOpenAIResponsesBody, extractOpenAIResponsesText, prefersOpenAIResponsesApi } from './openaiProvider';
 
+const SMALL_COUNT_WORDS = Object.freeze({
+  single: 1,
+  one: 1,
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
+  thirteen: 13,
+  fourteen: 14,
+  fifteen: 15,
+  sixteen: 16,
+  seventeen: 17,
+  eighteen: 18,
+  nineteen: 19,
+  twenty: 20,
+});
+
+const SMALL_COUNT_TOKEN = `(?:\\d{1,2}|${Object.keys(SMALL_COUNT_WORDS).join('|')})`;
+
+function parseSmallCount(value) {
+  const normalized = String(value || '').toLowerCase();
+  return SMALL_COUNT_WORDS[normalized] || Number.parseInt(normalized, 10) || 0;
+}
+
 /**
  * Detect the expected number of lessons/weeks from syllabus text.
  * Scans for common patterns like "Week 1-15", "Module 12", schedule tables, etc.
@@ -24,10 +55,10 @@ export function detectExpectedLessons(text) {
 
   // Pattern 1a.2: "X-lesson/module/session <anything>" — hyphenated adjective form,
   // e.g. "8-lesson Spanish course" or "6-module training".
-  const unitAdjPat = /(\d{1,2})-(lesson|module|session)\b/i;
+  const unitAdjPat = new RegExp(`(${SMALL_COUNT_TOKEN})-(lesson|module|session)\\b`, 'i');
   const m1unit = text.match(unitAdjPat);
   if (m1unit) {
-    const n = parseInt(m1unit[1], 10);
+    const n = parseSmallCount(m1unit[1]);
     if (n >= 1 && n <= 52) return { expected: n, confidence: 'high', source: `"${m1unit[0]}"` };
   }
 
@@ -41,11 +72,13 @@ export function detectExpectedLessons(text) {
   }
 
   // Pattern 1b.2: "X lesson/module/session course/sequence/training"
-  const unitCoursePat =
-    /(\d{1,2})\s*(?:lesson|module|session)s?\s*(?:course|semester|seminar|program|class|workshop|curriculum|sequence|series|training|bootcamp)/i;
+  const unitCoursePat = new RegExp(
+    `(${SMALL_COUNT_TOKEN})\\s*(?:lesson|module|session)s?\\s*(?:course|semester|seminar|program|class|workshop|curriculum|sequence|series|training|bootcamp)`,
+    'i',
+  );
   const m1unitCourse = text.match(unitCoursePat);
   if (m1unitCourse) {
-    const n = parseInt(m1unitCourse[1], 10);
+    const n = parseSmallCount(m1unitCourse[1]);
     if (n >= 1 && n <= 52) return { expected: n, confidence: 'high', source: `"${m1unitCourse[0]}"` };
   }
 

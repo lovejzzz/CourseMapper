@@ -121,6 +121,18 @@ export function assertExpectedLessonCount(courseMap, expectedCount) {
   return courseMap;
 }
 
+export function constrainHighConfidenceLessonCount(courseMap, expectedInfo) {
+  const expected = Number(expectedInfo?.expected) || 0;
+  const lessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
+  if (expectedInfo?.confidence !== 'high' || expected <= 0 || lessons.length <= expected) {
+    return { courseMap, removedCount: 0 };
+  }
+  return {
+    courseMap: { ...courseMap, lessons: lessons.slice(0, expected) },
+    removedCount: lessons.length - expected,
+  };
+}
+
 function recordClassifiedFailedCall(recordApiCallEvent, err, event = {}, context = {}) {
   if (err?.apiCallBudgetRecorded) return;
   recordApiCallEvent({
@@ -1057,6 +1069,22 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
           // technologyNeeded) were not requested in lean mode — derive them
           // before validation so the examine scan never flags them as gaps.
           if (leanCourseMap) finalResult = deriveCompilerOwnedColumns(finalResult);
+
+          // A high-confidence scope is a user contract, not a suggestion.
+          // Small models sometimes append a generic review or capstone even
+          // after being told the exact count; discard only that unrequested
+          // tail before it can expand into every downstream deliverable.
+          const constrainedLessonCount = constrainHighConfidenceLessonCount(finalResult, expectedLessonsRef.current);
+          finalResult = constrainedLessonCount.courseMap;
+          if (constrainedLessonCount.removedCount > 0) {
+            addLog(
+              usedModelName,
+              `Removed ${constrainedLessonCount.removedCount} unrequested lesson${
+                constrainedLessonCount.removedCount === 1 ? '' : 's'
+              } to honor the explicit ${expectedLessonsRef.current.expected}-lesson scope`,
+              'warning',
+            );
+          }
 
           // Post-generation structural validation — auto-fix missing titles, sections, column keys
           const { warnings: validationWarnings } = validateCourseMap(finalResult, columns);

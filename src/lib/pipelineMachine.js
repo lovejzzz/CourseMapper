@@ -48,17 +48,13 @@ function latestActivityEvent(budget) {
       ['blueprintEnrichmentCall', 'deliverableChunkCall', 'compiledDeliverable', 'repairRetryCall'].includes(
         event?.type,
       ) ||
-      (event?.type === 'pipelineDecision' &&
-        ['Scion pass call', 'Scion quality passes'].includes(event?.label)),
+      (event?.type === 'pipelineDecision' && ['Scion pass call', 'Scion quality passes'].includes(event?.label)),
   );
 }
 
 function isEnrichmentActivity(event) {
   if (event?.type === 'blueprintEnrichmentCall') return true;
-  if (
-    event?.type === 'pipelineDecision' &&
-    ['Scion pass call', 'Scion quality passes'].includes(event?.label)
-  ) {
+  if (event?.type === 'pipelineDecision' && ['Scion pass call', 'Scion quality passes'].includes(event?.label)) {
     return event?.featureId === 'blueprintEnrichment' || event?.task === 'scionPass';
   }
   if (event?.type !== 'repairRetryCall') return false;
@@ -120,6 +116,13 @@ export function derivePipelineState({
   if (delivRunning) {
     const activity = latestActivityEvent(budget);
     if (isEnrichmentActivity(activity)) return { ...base, state: 'enriching', activity };
+    // The public Scion path always starts deliverable work with lesson-kernel
+    // enrichment. React can expose isGenerating one frame before the first
+    // budget event lands; keep that handoff in Enrich instead of flashing
+    // Compile and then moving backward a frame later.
+    if (generation.isScion && !activity && !budget.enrichmentOutcome && doneCount === 0) {
+      return { ...base, state: 'enriching', activity: null };
+    }
     return { ...base, state: 'compiling', activity: activity || null };
   }
   if (finishRunning) return { ...base, state: grading ? 'grading' : 'verifying' };

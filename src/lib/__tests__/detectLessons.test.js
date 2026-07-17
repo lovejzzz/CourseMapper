@@ -34,6 +34,21 @@ describe('detectExpectedLessons', () => {
     expect(result.confidence).toBe('high');
   });
 
+  it('detects number-word mini-course scopes without asking the model to guess', () => {
+    expect(detectExpectedLessons('A one-lesson workshop on usability findings.')).toMatchObject({
+      expected: 1,
+      confidence: 'high',
+    });
+    expect(detectExpectedLessons('Build a two-session course on keyboard access.')).toMatchObject({
+      expected: 2,
+      confidence: 'high',
+    });
+    expect(detectExpectedLessons('Create a single-module training.')).toMatchObject({
+      expected: 1,
+      confidence: 'high',
+    });
+  });
+
   // ── Pattern 1b: "X week course" ──
   it('detects "14 week semester"', () => {
     const result = detectExpectedLessons('This is a 14 week semester.');
