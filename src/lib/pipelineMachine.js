@@ -43,13 +43,24 @@ export const STEP_ORDER = [
 // deliverables generate. recentEvents is newest-first.
 function latestActivityEvent(budget) {
   const events = Array.isArray(budget?.recentEvents) ? budget.recentEvents : [];
-  return events.find((event) =>
-    ['blueprintEnrichmentCall', 'deliverableChunkCall', 'compiledDeliverable', 'repairRetryCall'].includes(event?.type),
+  return events.find(
+    (event) =>
+      ['blueprintEnrichmentCall', 'deliverableChunkCall', 'compiledDeliverable', 'repairRetryCall'].includes(
+        event?.type,
+      ) ||
+      (event?.type === 'pipelineDecision' &&
+        ['Scion pass call', 'Scion quality passes'].includes(event?.label)),
   );
 }
 
 function isEnrichmentActivity(event) {
   if (event?.type === 'blueprintEnrichmentCall') return true;
+  if (
+    event?.type === 'pipelineDecision' &&
+    ['Scion pass call', 'Scion quality passes'].includes(event?.label)
+  ) {
+    return event?.featureId === 'blueprintEnrichment' || event?.task === 'scionPass';
+  }
   if (event?.type !== 'repairRetryCall') return false;
   return (
     event?.featureId === 'blueprintEnrichment' ||

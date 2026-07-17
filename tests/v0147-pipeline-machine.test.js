@@ -26,6 +26,14 @@ const RECOVERY_EVENT = {
   featureId: 'blueprintEnrichment',
   task: 'blueprintEnrichment',
 };
+const SCION_PASS_EVENT = {
+  type: 'pipelineDecision',
+  label: 'Scion pass call',
+  detail: 'blind_solve',
+  chunkLabel: 'lesson-7',
+  featureId: 'blueprintEnrichment',
+  task: 'scionPass',
+};
 const COMPILE_EVENT = { type: 'compiledDeliverable', label: 'Enriched blueprint compiler' };
 
 const statuses = (pipeline) => deriveStepStatuses(pipeline).map((step) => step.status);
@@ -70,6 +78,16 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     expect(p.state).toBe('enriching');
     expect(p.activity).toBe(RECOVERY_EVENT);
     expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
+  });
+
+  it('keeps live Scion semantic checks in Enrich and exposes the newest check as its activity', () => {
+    const p = derivePipelineState({
+      budget: { recentEvents: [SCION_PASS_EVENT, ENRICH_EVENT] },
+      generation: GEN_DONE,
+      deliverables: DELIV_RUNNING,
+    });
+    expect(p.state).toBe('enriching');
+    expect(p.activity).toBe(SCION_PASS_EVENT);
   });
 
   it('compiling: deliverables generating with compiler activity', () => {

@@ -323,10 +323,15 @@ describe('B1 — buildRibbonModel selector', () => {
   it('translates real semantic-pass events into calm live language', () => {
     expect(
       latestKnowledgeActivity([
-        { type: 'pipelineDecision', label: 'Scion pass call', detail: 'blind_solve' },
+        {
+          type: 'pipelineDecision',
+          label: 'Scion pass call',
+          detail: 'blind_solve',
+          chunkLabel: 'lesson-7',
+        },
         ENRICH_CHUNK_EVENT,
       ]),
-    ).toBe('Checking answer keys');
+    ).toBe('Checking answer keys · lesson 7');
     expect(
       latestKnowledgeActivity([
         { type: 'pipelineDecision', label: 'Scion pass call', detail: 'key_term_admission_batch' },

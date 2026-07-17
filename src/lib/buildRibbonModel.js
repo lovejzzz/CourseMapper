@@ -141,7 +141,7 @@ function buildPipelineChips(budget) {
 }
 
 function latestLessonNumber(event) {
-  const numbers = String(event?.detail || '')
+  const numbers = `${String(event?.detail || '')} ${String(event?.chunkLabel || '')}`
     .match(/\d+/g)
     ?.map(Number)
     .filter((value) => Number.isInteger(value) && value > 0);
@@ -171,13 +171,16 @@ export function latestKnowledgeActivity(events = []) {
   const recent = Array.isArray(events) ? events : [];
   const activity = recent.find(
     (event) =>
-      event?.type === 'blueprintEnrichmentCall' ||
+      ['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type) ||
       (event?.type === 'pipelineDecision' &&
         ['Scion pass call', 'Scion quality passes'].includes(event?.label) &&
         event?.detail),
   );
   if (activity?.label === 'Scion pass call') {
-    return SCION_PASS_ACTIVITY[String(activity.detail)] || 'Running a semantic quality check';
+    const label = SCION_PASS_ACTIVITY[String(activity.detail)] || 'Running a semantic quality check';
+    const lessonIds = [...String(activity.chunkLabel || '').matchAll(/lesson-(\d+)/g)].map((match) => match[1]);
+    const range = formatLessonRange(lessonIds.join(','));
+    return range ? `${label} · lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}` : label;
   }
   if (activity?.label === 'Scion quality passes') {
     const detail = String(activity.detail);
@@ -190,7 +193,9 @@ export function latestKnowledgeActivity(events = []) {
     if (detail.includes('polish:')) return 'Lesson language polished';
     return 'Applying source-grounded quality decisions';
   }
-  if (activity?.type === 'blueprintEnrichmentCall') return enrichmentLabelFromEvent(activity);
+  if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(activity?.type)) {
+    return enrichmentLabelFromEvent(activity);
+  }
   return 'Building lesson knowledge';
 }
 
@@ -361,7 +366,7 @@ export function buildBuildRibbonModel({
       break;
     case 'enriching':
       stage = 'enrich';
-      stageLabel = enrichmentLabelFromEvent(pipeline.activity);
+      stageLabel = latestKnowledgeActivity(budget?.recentEvents);
       break;
     case 'compiling':
       stage = 'compile';
