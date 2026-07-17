@@ -42,6 +42,14 @@ export function formatLessonRange(listText = '') {
 // the event label.
 function enrichmentLabelFromEvent(event) {
   const detail = String(event?.detail || '');
+  const recoveryLabel = String(event?.label || '').match(/recovery\s+(\d+)\/(\d+)/i);
+  if (recoveryLabel) {
+    const lessons = detail.match(/^Lessons?\s+([\d,\s]+)/i);
+    const range = formatLessonRange(lessons?.[1] || '');
+    return `Recovery ${recoveryLabel[1]}/${recoveryLabel[2]}${
+      range ? ` — lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}` : ''
+    }`;
+  }
   const recovery = detail.match(/^Recovery (\d+)\/(\d+) for .*?lessons? ([\d,\s]+?)(?:\s*[—+-].*)?$/);
   if (recovery) {
     const range = formatLessonRange(recovery[3]);
@@ -140,13 +148,134 @@ function latestLessonNumber(event) {
   return numbers?.length ? Math.max(...numbers) : 0;
 }
 
+function artifactStatus({ active = false, done = false, settled = false, warn = false } = {}) {
+  if (warn) return 'warn';
+  if (active) return 'active';
+  if (done) return 'done';
+  if (settled) return 'settled';
+  return 'pending';
+}
+
+const SCION_PASS_ACTIVITY = {
+  applied_mc_batch: 'Checking applied questions',
+  blind_solve: 'Checking answer keys',
+  key_term_admission_batch: 'Checking key terms',
+  mc_admission_batch: 'Checking quiz choices',
+  mc_item: 'Repairing a quiz item',
+  misconception_item: 'Checking misconceptions',
+  prose_polish: 'Polishing lesson language',
+  topic_repair_batch: 'Repairing lesson focus',
+};
+
+export function latestKnowledgeActivity(events = []) {
+  const recent = Array.isArray(events) ? events : [];
+  const pass = recent.find(
+    (event) => event?.type === 'pipelineDecision' && event?.label === 'Scion pass call' && event?.detail,
+  );
+  if (pass) return SCION_PASS_ACTIVITY[String(pass.detail)] || 'Running a semantic quality check';
+  const repair = recent.find((event) => event?.type === 'pipelineDecision' && event?.label === 'Scion quality passes');
+  if (repair) return 'Applying source-grounded quality decisions';
+  const enrichment = recent.find((event) => event?.type === 'blueprintEnrichmentCall');
+  if (enrichment) return enrichmentLabelFromEvent(enrichment);
+  return 'Building lesson knowledge';
+}
+
+/**
+ * The user-facing artifact ledger for the Living Course Compiler. Every value
+ * comes from state the pipeline already records; an unavailable count stays
+ * "Waiting" instead of being estimated or animated into existence.
+ */
+export function buildLivingCompilerArtifacts({
+  pipeline,
+  budget = {},
+  generation = {},
+  deliverables = {},
+  packageQualityPass = null,
+} = {}) {
+  const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
+  const doneCount = Math.max(0, Number(deliverables.doneCount) || 0);
+  const totalCount = Math.max(0, Number(deliverables.totalCount) || 0);
+  const outcome = budget?.enrichmentOutcome || null;
+  const enriched = Math.max(0, Number(outcome?.enrichedLessons) || 0);
+  const requested = Math.max(0, Number(outcome?.requestedLessons) || 0);
+  const partialKnowledge = outcome?.modelStage === 'ran' && requested > 0 && enriched < requested;
+  const genome = parseGenomeLinkerDetail(budget?.pipeline?.genomeLinker);
+  const finishStatus = packageQualityPass?.status || 'idle';
+  const terminalReady = pipeline?.state === 'ready' && finishStatus === 'ready';
+  const blockers = Math.max(0, Number(packageQualityPass?.blockers) || 0);
+  const grade = String(packageQualityPass?.quality?.grade || '').trim();
+
+  const knowledgeParts = [];
+  if (requested > 0 || enriched > 0) knowledgeParts.push(`${enriched}/${requested || enriched} lesson kernels`);
+  if (genome && genome.linked > 0) knowledgeParts.push(`${genome.linked}/${genome.total} source-linked`);
+  const knowledgeValue =
+    pipeline?.state === 'enriching'
+      ? [latestKnowledgeActivity(budget?.recentEvents), ...knowledgeParts].join(' · ')
+      : knowledgeParts.join(' · ') || (pipeline?.done?.enrich ? 'Knowledge pass complete' : 'Waiting');
+
+  let checksValue = 'Waiting';
+  if (finishStatus === 'blocked') checksValue = `${blockers || 1} blocker${blockers === 1 ? '' : 's'} to review`;
+  else if (finishStatus === 'ready') checksValue = grade ? `Verified · Grade ${grade}` : 'Verified';
+  else if (pipeline?.state === 'grading') checksValue = 'Grading package';
+  else if (pipeline?.state === 'verifying') checksValue = 'Checking and repairing';
+
+  return [
+    {
+      id: 'map',
+      label: 'Course map',
+      value:
+        lessonCount > 0
+          ? `${lessonCount} lesson${lessonCount === 1 ? '' : 's'} mapped`
+          : pipeline?.done?.map
+            ? 'Mapped'
+            : 'Waiting',
+      status: artifactStatus({
+        active: pipeline?.state === 'mapping',
+        done: terminalReady && pipeline?.done?.map,
+        settled: pipeline?.done?.map,
+      }),
+    },
+    {
+      id: 'knowledge',
+      label: 'Knowledge',
+      value: knowledgeValue,
+      status: artifactStatus({
+        active: pipeline?.state === 'enriching',
+        done: terminalReady && pipeline?.done?.enrich,
+        settled: pipeline?.done?.enrich,
+        warn: partialKnowledge,
+      }),
+    },
+    {
+      id: 'materials',
+      label: 'Materials',
+      value: totalCount > 0 ? `${doneCount}/${totalCount} ready` : pipeline?.done?.compile ? 'Compiled' : 'Waiting',
+      status: artifactStatus({
+        active: pipeline?.state === 'compiling',
+        done: terminalReady && pipeline?.done?.compile,
+        settled: pipeline?.done?.compile,
+      }),
+    },
+    {
+      id: 'checks',
+      label: 'Checks',
+      value: checksValue,
+      status: artifactStatus({
+        active: ['verifying', 'grading'].includes(pipeline?.state),
+        done: finishStatus === 'ready',
+        warn: finishStatus === 'blocked',
+      }),
+    },
+  ];
+}
+
 /**
  * A transparent build-completion meter. Percentages are derived only from
  * observable work: streamed map completion, the current enrichment lesson,
  * compiled deliverable counts, and terminal finish state. This is progress,
  * not a quality score.
  */
-export function deriveRibbonProgress({ pipeline, generation = {}, deliverables = {} } = {}) {
+export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, deliverables = {} } = {}) {
   const scionRuntime = generation.scionRuntimeStatus || {};
   const scionPreparing =
     generation.isScion && ['loading-runtime', 'loading-model'].includes(String(scionRuntime.phase || ''));
@@ -162,7 +291,14 @@ export function deriveRibbonProgress({ pipeline, generation = {}, deliverables =
   }
   if (state === 'enriching') {
     const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
-    const currentLesson = latestLessonNumber(pipeline.activity);
+    const recentLesson = Math.max(
+      0,
+      ...(Array.isArray(budget?.recentEvents) ? budget.recentEvents.map(latestLessonNumber) : []),
+    );
+    const attemptedLessons = Math.min(lessonCount, Math.max(0, Number(budget?.blueprintEnrichmentCalls) || 0));
+    // Recovery can return to lesson 1 after lesson 15. Progress represents
+    // completed build work, so it must not jump backward with that cursor.
+    const currentLesson = Math.max(latestLessonNumber(pipeline.activity), recentLesson, attemptedLessons);
     const fraction = lessonCount > 0 && currentLesson > 0 ? Math.min(1, currentLesson / lessonCount) : 0.25;
     return Math.round(30 + fraction * 20);
   }
@@ -270,7 +406,14 @@ export function buildBuildRibbonModel({
 
   const costUsd = budget.tokenUsage?.costUsd || 0;
   const spendDisplay = costUsd > 0 ? formatUsd(costUsd) : '';
-  const progressPct = deriveRibbonProgress({ pipeline, generation, deliverables });
+  const progressPct = deriveRibbonProgress({ pipeline, budget, generation, deliverables });
+  const compilerArtifacts = buildLivingCompilerArtifacts({
+    pipeline,
+    budget,
+    generation,
+    deliverables,
+    packageQualityPass,
+  });
 
   let elapsedDisplay = '';
   if (stage === 'ready' && finishStatus === 'ready' && getApiCallBudgetTotal(budget) > 0) {
@@ -287,6 +430,7 @@ export function buildBuildRibbonModel({
     steps,
     done,
     progressPct,
+    compilerArtifacts,
     pipelineChips: stage === 'ready' ? allPipelineChips : allPipelineChips.filter((chip) => chip.warn),
   };
 }

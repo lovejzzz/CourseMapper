@@ -19,6 +19,13 @@ const DELIV_IDLE = { isGenerating: false, doneCount: 0, totalCount: 0 };
 const DELIV_RUNNING = { isGenerating: true, doneCount: 3, totalCount: 9 };
 const DELIV_DONE = { isGenerating: false, doneCount: 9, totalCount: 9 };
 const ENRICH_EVENT = { type: 'blueprintEnrichmentCall', label: 'Enrich lesson kernels', detail: 'Lessons 1, 2' };
+const RECOVERY_EVENT = {
+  type: 'repairRetryCall',
+  label: 'Author lesson batch (native recovery 1/2)',
+  detail: 'Lessons 1 — 1620 input tokens estimated',
+  featureId: 'blueprintEnrichment',
+  task: 'blueprintEnrichment',
+};
 const COMPILE_EVENT = { type: 'compiledDeliverable', label: 'Enriched blueprint compiler' };
 
 const statuses = (pipeline) => deriveStepStatuses(pipeline).map((step) => step.status);
@@ -50,6 +57,18 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     });
     expect(p.state).toBe('enriching');
     expect(p.activity).toBe(ENRICH_EVENT);
+    expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
+  });
+
+  it('keeps a real lesson-kernel recovery in Enrich instead of mislabeling it Compile', () => {
+    const p = derivePipelineState({
+      budget: { recentEvents: [RECOVERY_EVENT, ENRICH_EVENT] },
+      generation: GEN_DONE,
+      deliverables: DELIV_RUNNING,
+      packageQualityPass: { status: 'running', phase: 'generation' },
+    });
+    expect(p.state).toBe('enriching');
+    expect(p.activity).toBe(RECOVERY_EVENT);
     expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
   });
 

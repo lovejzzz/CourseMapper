@@ -31,8 +31,10 @@ import { fileURLToPath } from 'node:url';
 import BuildRibbon, { TabReadyTick } from '../src/components/BuildRibbon.jsx';
 import {
   buildBuildRibbonModel,
+  buildLivingCompilerArtifacts,
   deriveRibbonProgress,
   formatLessonRange,
+  latestKnowledgeActivity,
   parseGenomeLinkerDetail,
   parseJudgmentDetail,
 } from '../src/lib/buildRibbonModel.js';
@@ -97,6 +99,14 @@ const RECOVERY_EVENT = {
   label: 'Enrich lesson kernels (recovery)',
   detail: 'Recovery 1/2 for dropped lessons 1, 2, 3 — 4031 input tokens estimated',
   featureId: 'blueprintEnrichment',
+};
+
+const REAL_RECOVERY_EVENT = {
+  type: 'repairRetryCall',
+  label: 'Author lesson batch (native recovery 1/2)',
+  detail: 'Lessons 1 — 1620 input tokens estimated',
+  featureId: 'blueprintEnrichment',
+  task: 'blueprintEnrichment',
 };
 
 const COMPILE_EVENTS = [
@@ -230,6 +240,13 @@ describe('B1 — buildRibbonModel selector', () => {
     ).toBe(48);
     expect(
       deriveRibbonProgress({
+        pipeline: { state: 'enriching', activity: REAL_RECOVERY_EVENT },
+        budget: { blueprintEnrichmentCalls: 15, recentEvents: [REAL_RECOVERY_EVENT] },
+        generation: { lessonCount: 15 },
+      }),
+    ).toBe(50);
+    expect(
+      deriveRibbonProgress({
         pipeline: { state: 'compiling' },
         deliverables: { doneCount: 3, totalCount: 9 },
       }),
@@ -237,6 +254,86 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(deriveRibbonProgress({ pipeline: { state: 'verifying' } })).toBe(85);
     expect(deriveRibbonProgress({ pipeline: { state: 'grading' } })).toBe(95);
     expect(deriveRibbonProgress({ pipeline: { state: 'ready' } })).toBe(100);
+  });
+
+  it('builds a truthful live artifact ledger from observed pipeline state', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-living-compiler' },
+      ...MAP_EVENTS,
+      ...GENOME_EVENTS,
+      ENRICH_CHUNK_EVENT,
+      ...COMPILE_EVENTS,
+    ]);
+    const pipeline = {
+      state: 'compiling',
+      done: { map: true, enrich: true, compile: false, verify: false, grade: false },
+    };
+
+    expect(
+      buildLivingCompilerArtifacts({
+        pipeline,
+        budget,
+        generation: { lessonCount: 13 },
+        deliverables: { doneCount: 3, totalCount: 9 },
+        packageQualityPass: { status: 'idle' },
+      }),
+    ).toEqual([
+      { id: 'map', label: 'Course map', value: '13 lessons mapped', status: 'settled' },
+      {
+        id: 'knowledge',
+        label: 'Knowledge',
+        value: '13/13 lesson kernels · 6/13 source-linked',
+        status: 'settled',
+      },
+      { id: 'materials', label: 'Materials', value: '3/9 ready', status: 'active' },
+      { id: 'checks', label: 'Checks', value: 'Waiting', status: 'pending' },
+    ]);
+  });
+
+  it('shows observed repairs, blockers, and grades without turning readiness into a warning', () => {
+    const base = {
+      pipeline: { state: 'ready', done: { map: true, enrich: true, compile: true, verify: true, grade: true } },
+      generation: { lessonCount: 15 },
+      deliverables: { doneCount: 10, totalCount: 10 },
+    };
+    const ready = buildLivingCompilerArtifacts({
+      ...base,
+      packageQualityPass: { status: 'ready', blockers: 0, quality: { grade: 'A' } },
+    });
+    expect(ready.find((artifact) => artifact.id === 'checks')).toEqual({
+      id: 'checks',
+      label: 'Checks',
+      value: 'Verified · Grade A',
+      status: 'done',
+    });
+
+    const blocked = buildLivingCompilerArtifacts({
+      ...base,
+      pipeline: { ...base.pipeline, state: 'blocked' },
+      packageQualityPass: { status: 'blocked', blockers: 2 },
+    });
+    expect(blocked.find((artifact) => artifact.id === 'checks')).toEqual({
+      id: 'checks',
+      label: 'Checks',
+      value: '2 blockers to review',
+      status: 'warn',
+    });
+  });
+
+  it('translates real semantic-pass events into calm live language', () => {
+    expect(
+      latestKnowledgeActivity([
+        { type: 'pipelineDecision', label: 'Scion pass call', detail: 'blind_solve' },
+        ENRICH_CHUNK_EVENT,
+      ]),
+    ).toBe('Checking answer keys');
+    expect(
+      latestKnowledgeActivity([
+        { type: 'pipelineDecision', label: 'Scion pass call', detail: 'key_term_admission_batch' },
+      ]),
+    ).toBe('Checking key terms');
+    expect(latestKnowledgeActivity([ENRICH_CHUNK_EVENT])).toBe('Enriching lessons 9–12');
+    expect(latestKnowledgeActivity([])).toBe('Building lesson knowledge');
   });
 
   it('makes the final grading stage visible before the meter reaches ready', () => {
@@ -320,6 +417,12 @@ describe('B1 — buildRibbonModel selector', () => {
     });
     expect(model.stage).toBe('enrich');
     expect(model.stageLabel).toBe('Enriching lessons 9–12');
+    expect(model.compilerArtifacts.find((artifact) => artifact.id === 'knowledge')).toEqual({
+      id: 'knowledge',
+      label: 'Knowledge',
+      value: 'Enriching lessons 9–12 · 6/13 source-linked',
+      status: 'active',
+    });
     expect(model.steps.map((step) => step.status)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
   });
 
@@ -338,6 +441,23 @@ describe('B1 — buildRibbonModel selector', () => {
     });
     expect(model.stage).toBe('enrich');
     expect(model.stageLabel).toBe('Recovery 1/2 — lessons 1–3');
+  });
+
+  it('narrates the real repairRetryCall recovery event as Enrich work', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-ribbon-real-recovery' },
+      ...MAP_EVENTS,
+      ENRICH_CHUNK_EVENT,
+      REAL_RECOVERY_EVENT,
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: true, doneCount: 0, totalCount: 9 },
+      packageQualityPass: { status: 'idle' },
+    });
+    expect(model.stage).toBe('enrich');
+    expect(model.stageLabel).toBe('Recovery 1/2 — lesson 1');
   });
 
   it('compile stage: compiler events flip the sub-label to the per-feature counter', () => {
@@ -553,6 +673,11 @@ describe('B1 — BuildRibbon render', () => {
       }),
     );
     expect(html).toContain('data-testid="build-ribbon"');
+    expect(html).toContain('Living Course Compiler');
+    expect(html).toContain('data-testid="living-compiler-signal"');
+    expect(html).toContain('data-state="live"');
+    expect(html).toContain('data-testid="living-compiler-artifacts"');
+    expect(html).toContain('data-testid="living-artifact-knowledge"');
     expect(html).toContain('aria-live="polite"');
     expect(html).toContain('Enriching lessons 9–12');
     expect(html).toContain('animate-pulse');
@@ -581,12 +706,14 @@ describe('B1 — BuildRibbon render', () => {
       }),
     );
     expect(html).toContain('Genome 6/13');
+    expect(html).toContain('data-state="complete"');
+    expect(html).toContain('Verified · Grade A');
     expect(html).toContain('Judgment clean');
     expect(html).toContain('Materials 13/13');
     expect(html).toMatch(/Ready in \d+s/);
     expect(html).not.toContain('animate-pulse');
-    // Five stage checks (one per step) — the genome chip is indigo-tinted.
-    expect(html.match(/M5 13l4 4L19 7/g)?.length).toBe(5);
+    // Five stage checks plus four confirmed artifact checks.
+    expect(html.match(/M5 13l4 4L19 7/g)?.length).toBe(9);
     expect(html).toContain('data-testid="ribbon-chip-genome"');
     expect(html.split('data-testid="ribbon-chip-genome"')[1].split('>')[0]).toContain('ribbon-chip-emphasis');
   });

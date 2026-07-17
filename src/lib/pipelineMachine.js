@@ -48,6 +48,16 @@ function latestActivityEvent(budget) {
   );
 }
 
+function isEnrichmentActivity(event) {
+  if (event?.type === 'blueprintEnrichmentCall') return true;
+  if (event?.type !== 'repairRetryCall') return false;
+  return (
+    event?.featureId === 'blueprintEnrichment' ||
+    event?.task === 'blueprintEnrichment' ||
+    /lesson batch/i.test(String(event?.label || ''))
+  );
+}
+
 /**
  * The selector. Inputs are the raw stores AppFlow already holds; output is
  * the ONE pipeline truth every surface renders.
@@ -98,7 +108,7 @@ export function derivePipelineState({
   if (mapRunning) return { ...base, state: 'mapping' };
   if (delivRunning) {
     const activity = latestActivityEvent(budget);
-    if (activity?.type === 'blueprintEnrichmentCall') return { ...base, state: 'enriching', activity };
+    if (isEnrichmentActivity(activity)) return { ...base, state: 'enriching', activity };
     return { ...base, state: 'compiling', activity: activity || null };
   }
   if (finishRunning) return { ...base, state: grading ? 'grading' : 'verifying' };
