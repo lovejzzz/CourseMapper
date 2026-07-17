@@ -305,6 +305,47 @@ describe('B1 — buildRibbonModel selector', () => {
         }),
       ),
     ).toEqual([38, 42, 46, 50]);
+    const oneLessonRetryFrame = (recentEvents) =>
+      deriveRibbonProgress({
+        pipeline: {
+          state: 'enriching',
+          activity: recentEvents.find((event) => event.type === 'repairRetryCall') || {
+            type: 'blueprintEnrichmentCall',
+            detail: 'Lessons 1 — 1159 input tokens estimated',
+          },
+        },
+        budget: {
+          costPlan: { blueprintEnrichmentRecoveryReserve: 1 },
+          recentEvents,
+        },
+        generation: { lessonCount: 1 },
+      });
+    const initialRetryOne = {
+      type: 'streamRetryCall',
+      featureId: 'blueprintEnrichment',
+      task: 'blueprintEnrichment',
+      attempt: 1,
+      maxRetries: 2,
+      at: 10,
+    };
+    const initialRetryTwo = { ...initialRetryOne, attempt: 2, at: 20 };
+    const outerRecovery = {
+      type: 'repairRetryCall',
+      featureId: 'blueprintEnrichment',
+      task: 'blueprintEnrichment',
+      label: 'Enrich lesson kernels (recovery)',
+      detail: 'Recovery 1/1 for dropped lesson 1 — 1159 input tokens estimated',
+      at: 30,
+    };
+    const recoveryRetryOne = { ...initialRetryOne, attempt: 1, at: 40 };
+    const recoveryRetryTwo = { ...initialRetryOne, attempt: 2, at: 50 };
+    expect([
+      oneLessonRetryFrame([initialRetryOne]),
+      oneLessonRetryFrame([initialRetryTwo, initialRetryOne]),
+      oneLessonRetryFrame([outerRecovery, initialRetryTwo, initialRetryOne]),
+      oneLessonRetryFrame([recoveryRetryOne, outerRecovery, initialRetryTwo]),
+      oneLessonRetryFrame([recoveryRetryTwo, recoveryRetryOne, outerRecovery]),
+    ]).toEqual([38, 41, 43, 46, 49]);
     expect(
       deriveRibbonProgress({
         pipeline: { state: 'enriching', activity: REAL_RECOVERY_EVENT },
@@ -490,6 +531,18 @@ describe('B1 — buildRibbonModel selector', () => {
         { type: 'pipelineDecision', label: 'Scion quality passes', detail: 'keyTermAdmission:lesson-8 regenerated' },
       ]),
     ).toBe('Enriching lessons 9–12');
+    expect(
+      latestKnowledgeActivity([
+        {
+          type: 'streamRetryCall',
+          featureId: 'blueprintEnrichment',
+          task: 'blueprintEnrichment',
+          attempt: 1,
+          maxRetries: 2,
+        },
+        ENRICH_CHUNK_EVENT,
+      ]),
+    ).toBe('Retrying local lesson kernel · attempt 2/3');
     expect(latestKnowledgeActivity([ENRICH_CHUNK_EVENT])).toBe('Enriching lessons 9–12');
     expect(latestKnowledgeActivity([])).toBe('Building lesson knowledge');
   });

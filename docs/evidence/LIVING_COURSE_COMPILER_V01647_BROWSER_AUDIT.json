@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.47",
+  "capturedAt": "2026-07-17",
+  "browser": "Google Chrome via the installed Codex browser extension",
+  "scenario": {
+    "prompt": "A one-lesson undergraduate workshop on usability-test findings. Students distinguish observation from interpretation, write one evidence-backed finding, and prioritize one revision. Include one objective, practice, rubric, and answer key.",
+    "requestedLessons": 1,
+    "generatedMaterialTypes": 9
+  },
+  "baseline": {
+    "readySeconds": 329,
+    "outerRecoveryLimit": 4,
+    "failedEnrichmentCalls": 5,
+    "maximumEnrichmentCompletions": 15
+  },
+  "optimized": {
+    "readySeconds": [143, 147],
+    "medianReadySeconds": 145,
+    "reductionFromBaselinePercent": 55.9,
+    "outerRecoveryLimit": 1,
+    "failedEnrichmentCalls": 2,
+    "observedStreamRetries": 4,
+    "maximumEnrichmentCompletions": 6,
+    "quality": { "score": 89, "grade": "B", "texture": 91 },
+    "materialsReady": "9/9",
+    "exportChecks": { "passed": 38, "failed": 0, "warnings": 0 },
+    "runtimeErrors": 0,
+    "downloadZipButtons": 1,
+    "horizontalOverflow": false
+  },
+  "observedProgress": [
+    { "event": "enrichment-start", "percent": 35 },
+    { "event": "initial-local-retry-1", "percent": 38 },
+    { "event": "initial-local-retry-2", "percent": 41, "label": "Retrying local lesson kernel · attempt 3/3" },
+    { "event": "outer-recovery-start", "percent": 43, "label": "Recovery 1/1 — lesson 1" },
+    { "event": "recovery-local-retry-1", "percent": 46 },
+    { "event": "recovery-local-retry-2", "percent": 49, "label": "Retrying local lesson kernel · attempt 3/3" },
+    { "event": "compile-start", "percent": 50 },
+    { "event": "verify", "percent": 85 },
+    { "event": "grade", "percent": 95 },
+    { "event": "ready", "percent": 100 }
+  ],
+  "motion": {
+    "transitionMs": 500,
+    "timing": "ease-out",
+    "reducedMotionDisablesTransitionAndPulse": true,
+    "monotonic": true
+  },
+  "bundle": {
+    "before": {
+      "appFlowRawKiB": 269.4,
+      "appFlowGzipKiB": 81.0,
+      "initialLandingRawKiB": 334.5,
+      "initialLandingGzipKiB": 108.2
+    },
+    "after": {
+      "appFlowRawKiB": 251.6,
+      "appFlowGzipKiB": 75.9,
+      "livingCompilerRibbonRawKiB": 63.1,
+      "livingCompilerRibbonGzipKiB": 19.7,
+      "initialLandingRawKiB": 327.5,
+      "initialLandingGzipKiB": 105.8,
+      "livingCompilerRibbonPreloadedOnLanding": false
+    },
+    "budgets": {
+      "appFlowRawKiB": 258.75,
+      "appFlowGzipKiB": 78,
+      "livingCompilerRibbonRawKiB": 65,
+      "livingCompilerRibbonGzipKiB": 21
+    }
+  },
+  "limitations": [
+    "The speed result covers this exact one-lesson browser-local scenario and is not a universal throughput claim.",
+    "Expected incomplete local lesson-kernel responses were deliberately exercised; bounded recovery and deterministic compilation produced the final package.",
+    "Frame PNGs remain local verification artifacts under verification-output and are intentionally excluded from Git."
+  ]
+}

@@ -77,10 +77,10 @@ import {
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
 import {
-  PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS,
   PUBLIC_SCION_KERNEL_CONCURRENCY,
   PUBLIC_SCION_KERNEL_LESSONS_PER_CALL,
   PUBLIC_SCION_PROVIDER_ID,
+  publicScionEnrichmentRecoveryCallLimit,
 } from '../lib/publicScionProvider';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
@@ -638,9 +638,9 @@ export default function useDeliverables({
           ? Math.max(1, Math.ceil(enrichmentLessonCount / Math.max(1, plannedEnrichmentBatchSize)))
           : 1;
       const enrichmentRecoveryCallLimit =
-        provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS : 2;
+        provider === PUBLIC_SCION_PROVIDER_ID ? publicScionEnrichmentRecoveryCallLimit(enrichmentLessonCount) : 2;
       const plannedEnrichmentRecoveryReserve =
-        blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false && enrichmentLessonCount > 1
+        blueprintEnrichmentRequested && generationOptions.lessonContentEnrichment !== false
           ? enrichmentRecoveryCallLimit
           : 0;
       const costPlan = buildApiCostPlan({
@@ -1220,9 +1220,7 @@ export default function useDeliverables({
             ['foreign-language-contamination:', 'target-language-missing:'].some((prefix) =>
               String(problem).startsWith(prefix),
             );
-          const languageIssues = issues.filter((issue) =>
-            issue?.problems?.some(isLanguageIdentityProblem),
-          );
+          const languageIssues = issues.filter((issue) => issue?.problems?.some(isLanguageIdentityProblem));
           if (languageIssues.length === 0) return;
           const lessonNumbers = [
             ...new Set(

@@ -216,14 +216,7 @@ async function readJsonIfExists(filePath) {
   }
 }
 
-async function loadResumableCourseEntry({
-  courseDir,
-  course,
-  provider,
-  modelId,
-  localModel,
-  expectedComparison,
-}) {
+async function loadResumableCourseEntry({ courseDir, course, provider, modelId, localModel, expectedComparison }) {
   const [storedCourse, report, zipStat, manifestStat] = await Promise.all([
     readJsonIfExists(path.join(courseDir, 'course.json')),
     readJsonIfExists(path.join(courseDir, 'report.json')),

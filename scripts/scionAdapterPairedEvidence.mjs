@@ -82,7 +82,10 @@ export function validateScionHeldoutBenchmark(manifest, { courseResolver = getCo
   if (!SHA256.test(clean(manifest?.grader?.sha256))) issues.push('grader-sha256');
   if (manifest?.schemaVersion >= 2) {
     if (!SHA256.test(clean(manifest?.grader?.implementationSha256))) issues.push('grader-implementation-sha256');
-    if (!Number.isSafeInteger(manifest?.grader?.implementationFileCount) || manifest.grader.implementationFileCount < 2) {
+    if (
+      !Number.isSafeInteger(manifest?.grader?.implementationFileCount) ||
+      manifest.grader.implementationFileCount < 2
+    ) {
       issues.push('grader-implementation-file-count');
     }
   }

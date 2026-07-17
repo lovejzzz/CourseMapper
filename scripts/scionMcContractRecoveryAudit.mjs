@@ -154,6 +154,10 @@ export async function buildScionMcContractRecoveryReport({ cwd = process.cwd(), 
           itemIndex,
           recoverIncompleteExplanation: false,
           keyConflictOptions: { allowExplicitCues: false, rejectNegativeEvidence: false },
+          // v0.16.47 production correctly refuses lexical-only key mutation.
+          // This immutable v0.16.22 replay must opt into the historical rule
+          // explicitly so its old receipt remains reproducible, never active.
+          allowUnverifiedLexicalRepair: true,
         });
         if (assessHistoricalItem(keyOnly.item, sourceClaimCount).eligible) {
           metrics.afterConservativeKeyAlignment += 1;
@@ -163,6 +167,7 @@ export async function buildScionMcContractRecoveryReport({ cwd = process.cwd(), 
           lessonId: call.promptId,
           itemIndex,
           keyConflictOptions: { allowExplicitCues: false, rejectNegativeEvidence: false },
+          allowUnverifiedLexicalRepair: true,
         });
         for (const repair of recovered.repairs) {
           repairHistogram[repair.pass] = (repairHistogram[repair.pass] || 0) + 1;

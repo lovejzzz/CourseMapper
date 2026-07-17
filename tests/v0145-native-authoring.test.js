@@ -383,6 +383,98 @@ describe('Pass A skeleton contract (B1)', () => {
     ]);
   });
 
+  it('splits fused weighted assessment lists, rejects unsupported parts, and restores the registered midterm exam', () => {
+    const sourceText =
+      'Human Nutrition, a 14-lesson introductory college course with weekly diet-analysis labs and a midterm. Lessons cover nutrient functions and a final diet-analysis project.';
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Human Nutrition', term: 'FA26' },
+        sessions: Array.from({ length: 14 }, (_, index) => ({
+          order: index + 1,
+          title: `Nutrition topic ${index + 1}`,
+        })),
+        assessments: [
+          {
+            id: 'a1',
+            title: 'weekly diet-analysis labs (20%) 2. weekly autograded quizzes (10%)',
+            kind: 'graded-artifact',
+            dueSession: 1,
+            weightPct: 20,
+          },
+          {
+            id: 'a7',
+            title: 'midterm (20%) 2. weekly reading responses (10%)',
+            kind: 'graded-artifact',
+            dueSession: 7,
+            weightPct: 20,
+          },
+          {
+            id: 'a14',
+            title: 'final diet-analysis project (30%)',
+            kind: 'graded-artifact',
+            dueSession: 14,
+            weightPct: 30,
+          },
+        ],
+      }),
+      { expectedLessons: 14, sourceText },
+    );
+
+    expect(
+      skeleton.assessments.map(({ title, kind, dueSession, weightPct }) => ({
+        title,
+        kind,
+        dueSession,
+        weightPct,
+      })),
+    ).toEqual([
+      { title: 'weekly diet-analysis labs (20%)', kind: 'graded-artifact', dueSession: 1, weightPct: 20 },
+      { title: 'midterm (20%)', kind: 'exam', dueSession: 7, weightPct: 20 },
+      { title: 'final diet-analysis project (30%)', kind: 'graded-artifact', dueSession: 14, weightPct: 30 },
+    ]);
+    expect(skeleton.assessmentListRecovery).toEqual({
+      fusedEntryCount: 2,
+      recoveredItemCount: 2,
+      unsupportedItemCount: 2,
+    });
+
+    const graph = deriveCourseGraphFromCourseMap(buildNativeWireMap(skeleton));
+    expect(graph.assessments.map(({ title, kind, dueSession }) => ({ title, kind, dueSession }))).toEqual([
+      { title: 'weekly diet-analysis labs (20%)', kind: 'graded-artifact', dueSession: 1 },
+      { title: 'midterm (20%)', kind: 'exam', dueSession: 7 },
+      { title: 'final diet-analysis project (30%)', kind: 'graded-artifact', dueSession: 14 },
+    ]);
+    const compiled = compileBlueprintDeliverables(buildBlueprintFromGraph(graph), ['quizBank'], {
+      enforceCompilerContract: false,
+    });
+    const exams = (compiled.quizBank.quizzes || []).filter((entry) => entry.kind === 'exam');
+    expect(exams).toHaveLength(1);
+    expect(exams[0].lessonTitle).toContain('midterm (20%)');
+    expect(exams[0].questions.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('does not split an ordinary numbered project phase that is not a weighted list', () => {
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Design Studio', term: 'FA26' },
+        sessions: [{ order: 1, title: 'Capstone delivery' }],
+        assessments: [
+          {
+            id: 'a1',
+            title: 'Final project phase 2. Analysis and handoff (30%)',
+            kind: 'graded-artifact',
+            dueSession: 1,
+            weightPct: 30,
+          },
+        ],
+      }),
+    );
+
+    expect(skeleton.assessments).toHaveLength(1);
+    expect(skeleton.assessments[0].title).toBe('Final project phase 2. Analysis and handoff (30%)');
+    expect(skeleton.assessmentListRecovery).toBeUndefined();
+  });
+
   it('tolerates code fences and surrounding prose', () => {
     const fenced = '```json\n' + SKELETON_RESPONSE + '\n```\nDone.';
     expect(parseNativeSkeletonResponse(fenced).sessions).toHaveLength(3);
@@ -1042,6 +1134,8 @@ describe('Pass A recurring-cadence contract (defect 1, contract side)', () => {
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/RECURRING ASSESSMENTS/);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/one assessments\[\] entry PER SESSION/);
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/fewer entries than sessions/);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/Never copy an assessment genre or cadence from these instructions/i);
+    expect(NATIVE_SKELETON_SYSTEM_PROMPT).not.toMatch(/weekly autograded quizzes|weekly reading responses/i);
     // The cadence expansion must not weaken verbatim traceability for
     // one-off named titles.
     expect(NATIVE_SKELETON_SYSTEM_PROMPT).toMatch(/one-off named titles stay verbatim/i);

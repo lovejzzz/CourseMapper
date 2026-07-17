@@ -871,7 +871,8 @@ function hasInterpretiveHumanitiesEvidence(text = '') {
     hasHumanitiesDomain &&
     (/\b(close[-\s]?reading|interpretive claim|interpretive argument|passage evidence|textual evidence|historical context|translation choice|critical lens|genre convention|visual analysis|scene analysis|primary source analysis|historiography|archive note|reception context|source integrity)\b/.test(
       text,
-    ) || /\b(world literature|comparative literature|literary studies|english literature)\b/.test(text))
+    ) ||
+      /\b(world literature|comparative literature|literary studies|english literature)\b/.test(text))
   );
 }
 
@@ -1603,9 +1604,10 @@ function normalizeBlueprintEnrichment({
   const signatureTerms = unique([...providedTerms, ...courseConcepts], 12);
   const inferredLens = inferDisciplineLens(courseName, signatureTerms);
   const providedLens = provided.lens && typeof provided.lens === 'object' ? provided.lens : {};
-  const providedLensIsGeneric = /\b(?:applied course practice|professional decision|course practitioner|applied case)\b/i.test(
-    Object.values(providedLens).join(' '),
-  );
+  const providedLensIsGeneric =
+    /\b(?:applied course practice|professional decision|course practitioner|applied case)\b/i.test(
+      Object.values(providedLens).join(' '),
+    );
   const rawLens = alignLensToCourseModality(
     {
       ...inferredLens,

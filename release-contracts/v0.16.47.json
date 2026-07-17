@@ -1,7 +1,7 @@
 {
   "version": "0.16.47",
   "date": "July 17, 2026",
-  "title": "Open the Lab, Not Production: authorize one evidence-bound Scion adapter experiment",
+  "title": "Let the Non-Promotable Adapter Teach the Compiler: make Scion faster, clearer, and more source-bound",
   "status": "verified-current",
   "proofSummary": {
     "local": [
@@ -37,6 +37,10 @@
     "manualHuman": {
       "status": "not-applicable",
       "note": "No human, instructor, classroom, or independent multi-judge preference is claimed; the paired readings use one identified Codex judge profile."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "note": "Real Chrome exercised cold model handoff, warm browser-local generation, nested retry narration, final compilation, responsive layout, export readiness, and repeatability. The tracked audit records 143s and 147s optimized replays against the 329s baseline, 38/38 export checks, 89/B, texture 91, and zero runtime errors."
     },
     "strictLayeredEvaluation": {
       "status": "success",
@@ -140,7 +144,7 @@
       "id": "v01647-honest-research-boundary",
       "status": "verified-current",
       "changelogHighlightIndex": 5,
-      "summary": "No quality adapter is active or promoted, production training remains license-blocked, and the single-model paired-order evidence is not represented as human preference, classroom value, or paid-reference parity.",
+      "summary": "The reproducible run produced a research-only candidate, but diagnostic held-out evidence blocks activation; production training remains license-blocked, and the single-model paired-order evidence is not represented as human preference, classroom value, or paid-reference parity.",
       "anchors": [
         "README.md",
         "docs/SCION_ADAPTER_ROADMAP.md",
@@ -148,6 +152,52 @@
       ],
       "proofCommands": ["npm run audit:scion:adapter:corpus-readiness:v0.16.47", "npm run audit:release-history"],
       "proofScopes": ["static-audit", "doc"]
+    },
+    {
+      "id": "v01647-living-compiler-browser-speed",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Two real Chrome release replays complete the same difficult one-lesson browser-local Scion package in 143 and 147 seconds instead of 329 seconds while retaining 89/B, texture 91, 9/9 material types, 38/38 export checks, and zero runtime errors.",
+      "anchors": [
+        "src/lib/publicScionProvider.js",
+        "src/hooks/useDeliverables.js",
+        "vite.config.js",
+        "scripts/checkBundleBudgets.mjs",
+        "tests/public-scion-provider.test.js",
+        "docs/evidence/LIVING_COURSE_COMPILER_V01647_BROWSER_AUDIT.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/public-scion-provider.test.js tests/v0141-round2-fixes.test.js",
+        "npm run build",
+        "npm run bundle:check"
+      ],
+      "proofScopes": ["unit", "browser-live", "build"]
+    },
+    {
+      "id": "v01647-nested-retry-progress",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "The Living Course Compiler derives 35, 38, 41, 43, 46, 49, and 50 percent from the real nested retry trace and narrates both local attempts and the outer recovery without a decorative timer.",
+      "anchors": [
+        "src/lib/buildRibbonModel.js",
+        "tests/v0144-build-ribbon.test.jsx",
+        "docs/evidence/LIVING_COURSE_COMPILER_V01647_BROWSER_AUDIT.json"
+      ],
+      "proofCommands": ["npx vitest run tests/v0144-build-ribbon.test.jsx"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01647-source-bound-assessment-list-recovery",
+      "status": "verified-current",
+      "changelogHighlightIndex": 8,
+      "summary": "Native graph assembly recovers only high-confidence weighted assessment lists, source-checks every recovered genre, rejects prompt-leaked cadences, and restores the real Nutrition midterm exam without splitting ordinary phase-number titles.",
+      "anchors": [
+        "src/lib/nativeGraphAuthoring.js",
+        "src/lib/nativeSkeletonPrompts.js",
+        "tests/v0145-native-authoring.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v0145-native-authoring.test.js"],
+      "proofScopes": ["unit", "stress-fixture", "course-graph", "compiled-output"]
     }
   ]
 }

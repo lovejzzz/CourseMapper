@@ -1354,12 +1354,12 @@ describe('round-3 polish 1 — romanization recovery shares the kernel recovery 
     // The recovery loop lives inside the useDeliverables hook (not importable
     // without a React harness) — this contract pins the wiring: the gap scan
     // is language-gated, paid routes stay at 2 calls while the anonymous
-    // public route can reserve 4, romanization lessons only fill batch slots
+    // public route scales from 1 to its 4-call ceiling, romanization lessons only fill batch slots
     // missing lessons leave open, and returns merge instead of overwriting.
     const source = fs.readFileSync(path.join(TEST_DIR, '../src/hooks/useDeliverables.js'), 'utf8');
     expect(source).toContain('const languageCourse = courseUsesNonLatinScript(blueprintCourseMap);');
     expect(source).toMatch(/listRomanizationGapIndices = \(\) =>\s*\n\s*languageCourse\s*\n?\s*\?/);
-    expect(source).toContain('provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS : 2');
+    expect(source).toContain('publicScionEnrichmentRecoveryCallLimit(enrichmentLessonCount)');
     expect(source).toContain('enrichmentRecoveryCalls < enrichmentRecoveryCallLimit &&');
     expect(source).toContain('(listMissingLessonIndices().length > 0 || listRomanizationGapIndices().length > 0)');
     expect(source).toMatch(

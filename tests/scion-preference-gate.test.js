@@ -253,9 +253,7 @@ describe('Scion preference admission gate', () => {
     expect(graph.enrichmentOverlay.lessonContent['lesson-1'].quizItems[0].answerIndex).toBe(0);
     expect(graph.concepts[0].kernel.quizItems[0].answerIndex).toBe(0);
     expect(graph.enrichmentOverlay.semanticRepairs || []).toHaveLength(0);
-    expect(assessScionMcItem(graph.concepts[0].kernel.quizItems[0]).issues).toContain(
-      'explanation-key-conflict',
-    );
+    expect(assessScionMcItem(graph.concepts[0].kernel.quizItems[0]).issues).toContain('explanation-key-conflict');
   });
 
   it('requires the complete kernel contract including study-guide strategy', () => {

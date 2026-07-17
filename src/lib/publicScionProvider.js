@@ -21,6 +21,16 @@ export const PUBLIC_SCION_KERNEL_CONCURRENCY = 1;
 export const PUBLIC_SCION_MIN_RETRIES = 2;
 export const PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS = 4;
 
+// Each provider call already performs the initial completion plus two
+// internal retries. Scale the OUTER lesson-recovery budget to the amount of
+// work that can actually be restored instead of spending four more calls on
+// one missing lesson (fifteen near-identical completions in the browser).
+// Larger courses retain the calibrated four-call ceiling.
+export function publicScionEnrichmentRecoveryCallLimit(lessonCount) {
+  const lessons = Math.max(1, Math.ceil(Number(lessonCount) || 1));
+  return Math.min(PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS, lessons);
+}
+
 export function publicScionRetryDelay(attempt) {
   const retryNumber = Math.max(1, Number(attempt) || 1);
   return Math.min(250 * 2 ** (retryNumber - 1), 2000);

@@ -483,7 +483,10 @@ describe('Crucible grader — seeded defects each produce their exact P0 finding
       const finding = result.findings.find(
         (entry) => entry.dimension === 'consistency' && /starts with a Lesson 15 payload/i.test(entry.detail),
       );
-      expect(finding, JSON.stringify(result.findings.filter((entry) => entry.dimension === 'consistency'))).toBeTruthy();
+      expect(
+        finding,
+        JSON.stringify(result.findings.filter((entry) => entry.dimension === 'consistency')),
+      ).toBeTruthy();
       expect(finding.severity).toBe('P0');
       expect(finding.evidence).toBe('Lesson 15: Course conclusion');
     } finally {

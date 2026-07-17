@@ -332,10 +332,7 @@ async function verifyMcAnswers(lesson, promptLesson, generateJson, events) {
       prompt,
       trainingEligible: true,
       preferenceEvidence: {
-        kind:
-          first[index] === INVALID_MC_ANSWER_INDEX
-            ? 'double-blind-validity-repair'
-            : 'double-blind-key-repair',
+        kind: first[index] === INVALID_MC_ANSWER_INDEX ? 'double-blind-validity-repair' : 'double-blind-key-repair',
         verified: true,
         rejectedAnswers: [first[index], second[index]],
         chosenAnswers: keyVerification.answers,

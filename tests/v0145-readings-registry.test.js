@@ -291,10 +291,11 @@ describe('A2 inheritance — verbatim on every surface', () => {
     });
     expect(bridges.readingsRegistry).toEqual(graph.readings);
 
-    const bridged = compileBlueprintDeliverables(
-      buildBlueprintFromGraph(nativeGraphWithoutReadings, bridges),
-      ['lessonPlans', 'discussions', 'assignments'],
-    );
+    const bridged = compileBlueprintDeliverables(buildBlueprintFromGraph(nativeGraphWithoutReadings, bridges), [
+      'lessonPlans',
+      'discussions',
+      'assignments',
+    ]);
     expect(bridged.lessonPlans.lessonPlans[7].materials[0]).toBe(NAMED_TITLE);
     expect(bridged.discussions.discussions[7].prompt).toContain(`Anchor your post in ${NAMED_TITLE}.`);
     expect(JSON.stringify(bridged.assignments)).toContain(NAMED_TITLE);
@@ -646,9 +647,7 @@ describe('A5 receipts — manifest readings[] and grader checks', () => {
       }),
       course: { id: 'psych-101', title: 'Introduction to Psychology' },
     });
-    expect(
-      result.findings.filter((finding) => /primary text|named reading/i.test(finding.detail)),
-    ).toEqual([]);
+    expect(result.findings.filter((finding) => /primary text|named reading/i.test(finding.detail))).toEqual([]);
   });
 
   it('fires P1 per missing surface on the missing-penetration fixture', async () => {

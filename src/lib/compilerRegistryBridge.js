@@ -6,13 +6,7 @@ import { deriveCourseGraphFromCourseMap, selectCompilerRegistryBridges } from '.
  * generation hook. Kept behind a dynamic import so this rare recovery path
  * does not grow AppFlow's initial workspace chunk.
  */
-export function bridgeCompilerRegistries({
-  courseGraph,
-  courseMap,
-  runId,
-  trace,
-  recordEvent,
-} = {}) {
+export function bridgeCompilerRegistries({ courseGraph, courseMap, runId, trace, recordEvent } = {}) {
   const mapDerivedGraph = deriveCourseGraphFromCourseMap(courseMap);
   const bridges = selectCompilerRegistryBridges(courseGraph, mapDerivedGraph);
   const stats = bridges.stats;

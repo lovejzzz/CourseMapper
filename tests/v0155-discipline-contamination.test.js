@@ -195,7 +195,9 @@ describe('foreign-domain contamination quality gate', () => {
         expect.objectContaining({
           severity: 'P0',
           dimension: 'discipline',
-          detail: expect.stringMatching(/coverage reaches 1\/4 lessons; 3 lesson\(s\) lack hanzi with tone-marked pinyin/),
+          detail: expect.stringMatching(
+            /coverage reaches 1\/4 lessons; 3 lesson\(s\) lack hanzi with tone-marked pinyin/,
+          ),
         }),
         expect.objectContaining({
           severity: 'P1',

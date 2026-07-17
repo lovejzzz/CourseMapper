@@ -131,13 +131,15 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       }
       if (schemaProfile.name === 'mc_verify_repair_batch') {
         return JSON.stringify({
-          repairs: [{
-            index: 0,
-            q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
-            op: ['A. Perfect fourth', 'B. Perfect fifth', 'C. Major third', 'D. Octave'],
-            ai: 1,
-            ex: 'Seven semitones with the 3:2 just ratio defines the perfect fifth interval.',
-          }],
+          repairs: [
+            {
+              index: 0,
+              q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
+              op: ['A. Perfect fourth', 'B. Perfect fifth', 'C. Major third', 'D. Octave'],
+              ai: 1,
+              ex: 'Seven semitones with the 3:2 just ratio defines the perfect fifth interval.',
+            },
+          ],
         });
       }
       return JSON.stringify({
@@ -209,7 +211,9 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(calls.filter((name) => name === 'mc_verify_repair_batch')).toHaveLength(1);
     expect(calls.filter((name) => name === 'blind_solve')).toHaveLength(4);
     expect(patched.mc.map((item) => item.ai)).toEqual([1, 1]);
-    expect(result.events.filter((event) => event.pass === 'mcVerify' && event.action === 'regenerated')).toHaveLength(2);
+    expect(result.events.filter((event) => event.pass === 'mcVerify' && event.action === 'regenerated')).toHaveLength(
+      2,
+    );
   });
 
   it('D3: repairs a keyed item when two cold validators find the stem invalid', async () => {
@@ -230,22 +234,29 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       }
       if (schemaProfile.name === 'mc_verify_repair_batch') {
         return JSON.stringify({
-          repairs: [{
-            index: 0,
-            q: 'After a bell is repeatedly paired with a startling noise, which stimulus can elicit the learned response on its own?',
-            op: ['A blue light', 'A bell', 'The startling noise', 'The researcher'],
-            ai: 1,
-            ex: 'The bell becomes the conditioned stimulus because the stem explicitly pairs it with the startling unconditioned stimulus.',
-          }],
+          repairs: [
+            {
+              index: 0,
+              q: 'After a bell is repeatedly paired with a startling noise, which stimulus can elicit the learned response on its own?',
+              op: ['A blue light', 'A bell', 'The startling noise', 'The researcher'],
+              ai: 1,
+              ex: 'The bell becomes the conditioned stimulus because the stem explicitly pairs it with the startling unconditioned stimulus.',
+            },
+          ],
         });
       }
       return JSON.stringify({});
     };
 
-    const result = await applyScionKernelPasses(JSON.stringify({ lessons: [{ lessonId: 'lesson-1', mc: [original] }] }), {
-      promptLessons: [{ lessonId: 'lesson-1', title: 'Classical conditioning', topics: 'conditioning learned response' }],
-      generateJson,
-    });
+    const result = await applyScionKernelPasses(
+      JSON.stringify({ lessons: [{ lessonId: 'lesson-1', mc: [original] }] }),
+      {
+        promptLessons: [
+          { lessonId: 'lesson-1', title: 'Classical conditioning', topics: 'conditioning learned response' },
+        ],
+        generateJson,
+      },
+    );
     const repaired = JSON.parse(result.text).lessons[0].mc[0];
     expect(repaired.q).toContain('repeatedly paired');
     expect(repaired.ai).toBe(1);
@@ -311,13 +322,15 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     const generateJson = async ({ schemaProfile }) => {
       if (schemaProfile.name === 'blind_solve') return JSON.stringify({ answers: [2] });
       return JSON.stringify({
-        repairs: [{
-          index: 0,
-          q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
-          op: ['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave'],
-          ai: 1,
-          ex: 'This explanation claims the answer is correct but the cold solver rejects that key.',
-        }],
+        repairs: [
+          {
+            index: 0,
+            q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
+            op: ['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave'],
+            ai: 1,
+            ex: 'This explanation claims the answer is correct but the cold solver rejects that key.',
+          },
+        ],
       });
     };
     const result = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
@@ -325,13 +338,15 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       generateJson,
     });
     expect(JSON.parse(result.text).lessons[0].mc[0]).toBeNull();
-    expect(result.events).toContainEqual(expect.objectContaining({
-      pass: 'mcVerify',
-      action: 'quarantined',
-      reason: 'double-blind-key-disagreement',
-      rejected: original,
-      trainingEligible: false,
-    }));
+    expect(result.events).toContainEqual(
+      expect.objectContaining({
+        pass: 'mcVerify',
+        action: 'quarantined',
+        reason: 'double-blind-key-disagreement',
+        rejected: original,
+        trainingEligible: false,
+      }),
+    );
     expect(result.events.some((event) => event.trainingEligible)).toBe(false);
   });
 

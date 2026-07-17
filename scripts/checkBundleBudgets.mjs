@@ -58,6 +58,11 @@ const lazyChunkBudgets = [
   // in full project snapshots after map/finalizer re-derivation. This is the
   // source-of-truth fix behind non-stale paired evaluation, not UI growth.
   { prefix: 'AppFlow-', rawKiB: 258.75, gzipKiB: 78, gzipSlackBytes: 256 },
+  // v0.16.47: the Living Course Compiler component and pure selector gained
+  // an independently cacheable route boundary instead of raising AppFlow's
+  // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
+  // 63.1/19.7. Keep a narrow 65/21 ceiling on the new chunk.
+  { prefix: 'livingCompilerRibbon-', rawKiB: 65, gzipKiB: 21 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
@@ -118,6 +123,10 @@ const lazyChunkBudgets = [
 ];
 
 const forbiddenInitialChunks = [
+  // v0.16.47: route-only progress UI. The Vite HTML preload resolver keeps
+  // this off landing; lock that behavior so a bundler change cannot silently
+  // restore the extra startup download.
+  /livingCompilerRibbon/i,
   /webllm/i,
   /deepQualityGrader/i,
   /finalizeQualityGate/i,

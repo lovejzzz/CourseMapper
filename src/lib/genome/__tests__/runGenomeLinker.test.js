@@ -185,12 +185,14 @@ describe('runGenomeLinker', () => {
       },
       facts: [{ text: 'Korean greetings often change between formal, neutral, and casual settings.', tier: 1 }],
       misconceptions: [{ text: 'One greeting works in every Korean setting.', tier: 1 }],
-      mcBank: [{
-        stem: 'Which feature changes a Korean greeting across social settings?',
-        options: ['Politeness level', 'Ink color', 'Page number', 'Weather'],
-        answerIndex: 0,
-        explanationFactRef: 0,
-      }],
+      mcBank: [
+        {
+          stem: 'Which feature changes a Korean greeting across social settings?',
+          options: ['Politeness level', 'Ink color', 'Page number', 'Weather'],
+          answerIndex: 0,
+          explanationFactRef: 0,
+        },
+      ],
     });
     const mandarinCourse = {
       courseName: 'Elementary Mandarin Chinese I',

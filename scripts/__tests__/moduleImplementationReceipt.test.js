@@ -18,18 +18,16 @@ describe('moduleImplementationReceipt', () => {
     await fs.mkdir(path.join(root, 'nested'));
     await Promise.all([
       fs.writeFile(path.join(root, 'entry.js'), "export { value } from './nested/value.js';\nimport('./lazy.js');\n"),
-      fs.writeFile(path.join(root, 'nested', 'value.js'), "import helper from '../helper';\nexport const value = helper;\n"),
+      fs.writeFile(
+        path.join(root, 'nested', 'value.js'),
+        "import helper from '../helper';\nexport const value = helper;\n",
+      ),
       fs.writeFile(path.join(root, 'helper.js'), 'export default 1;\n'),
       fs.writeFile(path.join(root, 'lazy.js'), 'export const lazy = true;\n'),
     ]);
 
     const first = await captureModuleImplementationReceipt({ root, entryPath: 'entry.js' });
-    expect(first.files.map((entry) => entry.path)).toEqual([
-      'entry.js',
-      'helper.js',
-      'lazy.js',
-      'nested/value.js',
-    ]);
+    expect(first.files.map((entry) => entry.path)).toEqual(['entry.js', 'helper.js', 'lazy.js', 'nested/value.js']);
     expect(first).toMatchObject({ fileCount: 4, implementationSha256: expect.stringMatching(/^[a-f0-9]{64}$/) });
 
     await fs.writeFile(path.join(root, 'helper.js'), 'export default 2;\n');

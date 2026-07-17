@@ -29,21 +29,23 @@ const GENERIC_TOPIC_WORDS = new Set([
 ]);
 
 function topicTokens(value) {
-  return clean(value)
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[’']/g, '')
-    .match(/[a-z0-9]+/g)
-    ?.map((token) => {
-      if (/^(?:stellar|stars?)$/.test(token)) return 'star';
-      if (/^(?:spectra|spectral|spectrum)$/.test(token)) return 'spectr';
-      if (token.length > 5 && token.endsWith('ies')) return `${token.slice(0, -3)}y`;
-      if (token.length > 5 && token.endsWith('es')) return token.slice(0, -2);
-      if (token.length > 4 && token.endsWith('s')) return token.slice(0, -1);
-      return token;
-    })
-    .filter((token) => token.length >= 3 && !GENERIC_TOPIC_WORDS.has(token)) || [];
+  return (
+    clean(value)
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[’']/g, '')
+      .match(/[a-z0-9]+/g)
+      ?.map((token) => {
+        if (/^(?:stellar|stars?)$/.test(token)) return 'star';
+        if (/^(?:spectra|spectral|spectrum)$/.test(token)) return 'spectr';
+        if (token.length > 5 && token.endsWith('ies')) return `${token.slice(0, -3)}y`;
+        if (token.length > 5 && token.endsWith('es')) return token.slice(0, -2);
+        if (token.length > 4 && token.endsWith('s')) return token.slice(0, -1);
+        return token;
+      })
+      .filter((token) => token.length >= 3 && !GENERIC_TOPIC_WORDS.has(token)) || []
+  );
 }
 
 function explicitLessonTopics(source) {
@@ -99,7 +101,10 @@ export function checkExplicitLessonSequenceReuse(findings, byLesson, course = {}
   if (repeatedSequence) return;
 
   const topics = explicitLessonTopics(source);
-  const lessonNumbers = [...byLesson.keys()].map(Number).filter(Number.isFinite).sort((a, b) => a - b);
+  const lessonNumbers = [...byLesson.keys()]
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
   if (topics.length !== lessonNumbers.length || lessonNumbers.some((number, index) => number !== index + 1)) return;
 
   const mismatches = lessonNumbers.flatMap((lessonNumber, index) => {

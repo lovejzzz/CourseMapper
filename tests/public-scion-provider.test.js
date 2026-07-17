@@ -12,6 +12,7 @@ import {
   PUBLIC_SCION_MODEL_ID,
   PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
+  publicScionEnrichmentRecoveryCallLimit,
   assessPublicScionKernelResponse,
   buildPublicScionRetryFeedback,
   buildPublicScionMessages,
@@ -39,6 +40,9 @@ describe('Scion Public provider', () => {
 
   it('reserves bounded compiler recovery calls for browser-local Scion', () => {
     expect(PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS).toBe(4);
+    expect(publicScionEnrichmentRecoveryCallLimit(1)).toBe(1);
+    expect(publicScionEnrichmentRecoveryCallLimit(2)).toBe(2);
+    expect(publicScionEnrichmentRecoveryCallLimit(10)).toBe(4);
   });
 
   it('uses a short bounded retry ladder for malformed local generations', () => {

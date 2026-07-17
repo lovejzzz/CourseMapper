@@ -170,8 +170,53 @@ function recoveryAttemptFromEvent(event) {
   return { attempt, total };
 }
 
+function isBlueprintEnrichmentRetry(event) {
+  if (!['streamRetryCall', 'repairRetryCall'].includes(event?.type)) return false;
+  if (event?.featureId === 'blueprintEnrichment' || event?.task === 'blueprintEnrichment') return true;
+  return event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event) !== null;
+}
+
+/**
+ * Turn the two nested retry loops into one observable checkpoint sequence.
+ *
+ * A public-Scion enrichment request already retries locally before the
+ * compiler starts an outer recovery call. Counting only the outer call made
+ * a one-lesson build sit at 35%, jump to 50%, then sit again. The trace tells
+ * us both limits, so the ribbon can instead move after each completed local
+ * attempt without inventing time-based progress:
+ *
+ *   initial retry 1, initial retry 2, recovery 1 starts,
+ *   recovery retry 1, recovery retry 2
+ *
+ * The returned denominator is the real maximum for the current nested loop.
+ */
+function enrichmentRetryCheckpoint(events = [], plannedOuterRecoveries = 0) {
+  const recent = Array.isArray(events) ? events : [];
+  const relevant = recent.filter(isBlueprintEnrichmentRetry);
+  const recoveryEvent = relevant.find((event) => event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event));
+  const recovery = recoveryAttemptFromEvent(recoveryEvent);
+  const streamEvent = relevant.find((event) => event?.type === 'streamRetryCall');
+  const innerRetryLimit = Math.max(0, Number(streamEvent?.maxRetries) || 0);
+  if (innerRetryLimit <= 0) return null;
+
+  const outerTotal = Math.max(recovery?.total || 0, Math.max(0, Number(plannedOuterRecoveries) || 0));
+  const outerAttempt = Math.min(outerTotal, Math.max(0, recovery?.attempt || 0));
+  const recoveryIndex = recoveryEvent ? recent.indexOf(recoveryEvent) : -1;
+  const streamIndex = streamEvent ? recent.indexOf(streamEvent) : -1;
+  const streamBelongsToCurrentOuter =
+    streamEvent && (!recoveryEvent || (streamIndex >= 0 && recoveryIndex >= 0 && streamIndex < recoveryIndex));
+  const innerAttempt = streamBelongsToCurrentOuter
+    ? Math.min(innerRetryLimit, Math.max(0, Number(streamEvent.attempt) || 0))
+    : 0;
+  const checkpoint = outerAttempt * (innerRetryLimit + 1) + innerAttempt;
+  const total = outerTotal * (innerRetryLimit + 1) + innerRetryLimit;
+  if (checkpoint <= 0 || total <= 0) return null;
+  return { checkpoint: Math.min(checkpoint, total), total };
+}
+
 function isKnowledgeProgressEvent(event) {
   if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type)) return true;
+  if (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) return true;
   return (
     event?.type === 'pipelineDecision' &&
     ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
@@ -203,6 +248,7 @@ export function latestKnowledgeActivity(events = []) {
   const activity = recent.find(
     (event) =>
       ['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type) ||
+      (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) ||
       (event?.type === 'pipelineDecision' &&
         ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
         event?.detail),
@@ -229,6 +275,12 @@ export function latestKnowledgeActivity(events = []) {
     if (detail.includes('mcVerify:')) return 'Answer keys checked';
     if (detail.includes('polish:')) return 'Lesson language polished';
     return 'Applying source-grounded quality decisions';
+  }
+  if (activity?.type === 'streamRetryCall') {
+    const attempt = Math.max(0, Number(activity.attempt) || 0);
+    const total = Math.max(1, Number(activity.maxRetries) + 1 || 1);
+    const nextAttempt = Math.min(total, attempt + 1);
+    return `Retrying local lesson kernel · attempt ${nextAttempt}/${total}`;
   }
   if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(activity?.type)) {
     return enrichmentLabelFromEvent(activity);
@@ -372,6 +424,13 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
     // build from jumping straight to 50% and sitting there for several real
     // model calls while the ribbon says nothing changed.
     if (lessonCount > 0 && activityLessons.length >= lessonCount) {
+      const retryCheckpoint = enrichmentRetryCheckpoint(
+        budget?.recentEvents,
+        budget?.costPlan?.blueprintEnrichmentRecoveryReserve,
+      );
+      if (retryCheckpoint) {
+        return Math.round(35 + (retryCheckpoint.checkpoint / retryCheckpoint.total) * 14);
+      }
       if (recovery) {
         const attemptFraction = Math.min(1, (recovery.attempt + 1) / (recovery.total + 1));
         return Math.round(30 + attemptFraction * 20);

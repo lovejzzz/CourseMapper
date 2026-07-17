@@ -102,6 +102,7 @@ evaluation/scion-adapters/evidence/source-kernel-expansion-v0.16.47.json
 # Later v0.16.47 breadth, course-group, and readiness campaigns retain exact
 # generated packet, workbook, envelope, project, and receipt bytes. Their
 # dedicated auditors—not generic formatting—own canonical reconstruction.
+evaluation/scion-source-compiler-replay-v0.16.47
 evaluation/scion-adapters/evidence/*v0.16.47*
 evaluation/scion-adapters/handoffs/*v0.16.47
 evaluation/scion-adapters/source-snapshots

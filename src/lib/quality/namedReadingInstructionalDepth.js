@@ -12,7 +12,8 @@ const READING_EVIDENCE_ACTION_RE =
 const READING_RETRIEVED_RE = /open-access via/i;
 const MATERIALS_BLOCK_END_RE =
   /^(assessments this week|session outline|worked example|observation protocol|key terms|formative check|homework|closing activity)$/i;
-const PRIMARY_READING_KIND_RE = /^(?:article|book|chapter|essay|film|novel|play|poem|primary[- ]?text|short[- ]?story)$/i;
+const PRIMARY_READING_KIND_RE =
+  /^(?:article|book|chapter|essay|film|novel|play|poem|primary[- ]?text|short[- ]?story)$/i;
 const GENERIC_MATERIALS_TITLE_RE =
   /^(?:(?:course|class|lesson|assigned|supplemental)\s+)?(?:materials?|resources?|readings?)\s*:/i;
 const TITLE_FUNCTION_WORDS = new Set([
@@ -104,11 +105,7 @@ export function addReadingInstructionalDepthFindings(findings, { files, manifest
 
   const availableFeatures = new Set(
     files
-      .filter(
-        (file) =>
-          Number.isFinite(file.lessonNumber) &&
-          READING_INSTRUCTIONAL_FEATURES.has(file.featureId),
-      )
+      .filter((file) => Number.isFinite(file.lessonNumber) && READING_INSTRUCTIONAL_FEATURES.has(file.featureId))
       .map((file) => file.featureId),
   );
   // A small/partial export cannot prove cross-surface penetration. Arm only
@@ -123,16 +120,10 @@ export function addReadingInstructionalDepthFindings(findings, { files, manifest
     const variants = readingTitleVariants(entry.title);
     if (!Number.isFinite(lessonNumber) || variants.length === 0) continue;
     const lessonFiles = files.filter(
-      (file) =>
-        file.lessonNumber === lessonNumber &&
-        READING_INSTRUCTIONAL_FEATURES.has(file.featureId),
+      (file) => file.lessonNumber === lessonNumber && READING_INSTRUCTIONAL_FEATURES.has(file.featureId),
     );
     const mentionedFeatures = [
-      ...new Set(
-        lessonFiles
-          .filter((file) => fileMentionsReading(file, variants))
-          .map((file) => file.featureId),
-      ),
+      ...new Set(lessonFiles.filter((file) => fileMentionsReading(file, variants)).map((file) => file.featureId)),
     ];
     const hasEvidenceTask = lessonFiles.some(
       (file) =>

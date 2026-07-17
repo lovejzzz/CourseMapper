@@ -3,15 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { checkNamedReadings } from '../namedReadingInstructionalDepth.js';
 
 function representativeLessonFiles(lessonNumber = 4) {
-  return ['lessonPlans', 'slideDecks', 'assignments', 'discussions', 'quizBank', 'studyGuides'].map(
-    (featureId) => ({
-      featureId,
-      lessonNumber,
-      path: `${featureId}/lesson-${lessonNumber}`,
-      text: 'A lesson surface with no named work title.',
-      paragraphs: [],
-    }),
-  );
+  return ['lessonPlans', 'slideDecks', 'assignments', 'discussions', 'quizBank', 'studyGuides'].map((featureId) => ({
+    featureId,
+    lessonNumber,
+    path: `${featureId}/lesson-${lessonNumber}`,
+    text: 'A lesson surface with no named work title.',
+    paragraphs: [],
+  }));
 }
 
 describe('namedReadingInstructionalDepth', () => {

@@ -52,7 +52,8 @@ async function resolveRelativeModule(importerPath, specifier) {
 
 function assertInsideRoot(root, filePath) {
   const relative = path.relative(root, filePath);
-  if (!relative || (!relative.startsWith('..') && !path.isAbsolute(relative))) return relative || path.basename(filePath);
+  if (!relative || (!relative.startsWith('..') && !path.isAbsolute(relative)))
+    return relative || path.basename(filePath);
   throw new Error(`Implementation dependency escapes receipt root: ${filePath}`);
 }
 

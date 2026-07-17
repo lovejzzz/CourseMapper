@@ -43,7 +43,7 @@ import {
 } from './blueprintEnrichmentPass';
 // Specific courseGraph modules (not the index) so this module never drags
 // blueprintFromGraph→courseBlueprintCompiler into a chunk that lacks it.
-import { deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMap.js';
+import { classifyAssessmentKind, deriveCourseGraphFromCourseMap } from './courseGraph/deriveFromCourseMap.js';
 import { renderCourseMapFromGraph } from './courseGraph/renderCourseMap.js';
 import { validateCourseGraph } from './courseGraph/schema.js';
 import { attachEnrichmentToGraph } from './courseGraph/blueprintFromGraph.js';
@@ -367,21 +367,23 @@ const LESSON_SEQUENCE_GENERIC_WORDS = new Set([
 ]);
 
 function lessonSequenceTokens(value) {
-  return cleanText(value, 300)
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[’']/g, '')
-    .match(/[a-z0-9]+/g)
-    ?.map((token) => {
-      if (/^(?:stellar|stars?)$/.test(token)) return 'star';
-      if (/^(?:spectra|spectral|spectrum)$/.test(token)) return 'spectr';
-      if (token.length > 5 && token.endsWith('ies')) return `${token.slice(0, -3)}y`;
-      if (token.length > 5 && token.endsWith('es')) return token.slice(0, -2);
-      if (token.length > 4 && token.endsWith('s')) return token.slice(0, -1);
-      return token;
-    })
-    .filter((token) => token.length >= 3 && !LESSON_SEQUENCE_GENERIC_WORDS.has(token)) || [];
+  return (
+    cleanText(value, 300)
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[’']/g, '')
+      .match(/[a-z0-9]+/g)
+      ?.map((token) => {
+        if (/^(?:stellar|stars?)$/.test(token)) return 'star';
+        if (/^(?:spectra|spectral|spectrum)$/.test(token)) return 'spectr';
+        if (token.length > 5 && token.endsWith('ies')) return `${token.slice(0, -3)}y`;
+        if (token.length > 5 && token.endsWith('es')) return token.slice(0, -2);
+        if (token.length > 4 && token.endsWith('s')) return token.slice(0, -1);
+        return token;
+      })
+      .filter((token) => token.length >= 3 && !LESSON_SEQUENCE_GENERIC_WORDS.has(token)) || []
+  );
 }
 
 function explicitLessonSequenceMisalignments(sessions, topics) {
@@ -475,6 +477,75 @@ export function recoverTruncatedSkeletonObject(text) {
 }
 
 const SKELETON_ASSESSMENT_KINDS = new Set(['graded-artifact', 'in-class', 'exam', 'oral']);
+
+// Weak local models occasionally serialize two weighted list items into one
+// assessment title, for example:
+//   "midterm (20%) 2. weekly reading responses (10%)"
+// Leaving that string fused is not cosmetic: the trailing "responses" noun
+// makes the whole row look like a graded artifact, so the real midterm never
+// receives an exam document. Split only a very narrow, high-confidence shape:
+// sequential embedded list markers, an explicit percentage on every part,
+// and an assessment-identity noun on every part. Ordinary titles such as
+// "Project phase 2. Analysis" remain untouched.
+const WEIGHTED_ASSESSMENT_IDENTITY_RE =
+  /\b(?:assignments?|briefs?|case stud(?:y|ies)|discussions?|exams?|final|journals?|labs?|laborator(?:y|ies)|midterms?|oral|papers?|performances?|portfolios?|problem sets?|projects?|quiz(?:zes)?|reflections?|reports?|responses?|tests?|worksheets?)\b/i;
+const EXPLICIT_ASSESSMENT_PERCENT_RE = /\(\s*(\d{1,3}(?:\.\d+)?)\s*%\s*\)/;
+
+function splitFusedWeightedAssessmentTitle(value) {
+  let text = cleanText(value, 500);
+  const hasLeadingOne = /^1[.)]\s+/.test(text);
+  if (hasLeadingOne) text = text.replace(/^1[.)]\s+/, '');
+  const matches = [...text.matchAll(/\s+(\d{1,2})[.)]\s+/g)];
+  if (matches.length === 0 || matches.some((match, index) => Number(match[1]) !== index + 2)) return [text];
+
+  const parts = [];
+  let cursor = 0;
+  for (const match of matches) {
+    parts.push(cleanText(text.slice(cursor, match.index), 240));
+    cursor = match.index + match[0].length;
+  }
+  parts.push(cleanText(text.slice(cursor), 240));
+  if (
+    parts.length < 2 ||
+    parts.some((part) => !EXPLICIT_ASSESSMENT_PERCENT_RE.test(part) || !WEIGHTED_ASSESSMENT_IDENTITY_RE.test(part))
+  ) {
+    return [hasLeadingOne ? `1. ${text}` : text];
+  }
+  return parts;
+}
+
+const SPLIT_ASSESSMENT_SOURCE_SIGNALS = [
+  { title: /\bmidterm\b/i, source: /\bmidterm\b/i },
+  { title: /\bfinal\s+(?:exam|examination|test)\b/i, source: /\bfinal\s+(?:exam|examination|test)\b/i },
+  { title: /\bexam(?:ination)?s?\b/i, source: /\bexam(?:ination)?s?\b/i },
+  { title: /\bquiz(?:zes)?\b/i, source: /\bquiz(?:zes)?\b/i },
+  { title: /\blabs?\b|\blaborator(?:y|ies)\b/i, source: /\blabs?\b|\blaborator(?:y|ies)\b/i },
+  { title: /\bresponses?\b/i, source: /\bresponses?\b/i },
+  { title: /\bprojects?\b/i, source: /\bprojects?\b/i },
+  { title: /\breflections?\b/i, source: /\breflections?\b/i },
+  { title: /\b(?:papers?|essays?)\b/i, source: /\b(?:papers?|essays?)\b/i },
+  { title: /\breports?\b/i, source: /\breports?\b/i },
+  { title: /\bportfolios?\b/i, source: /\bportfolios?\b/i },
+  { title: /\bpresentations?\b|\boral\b|\bperformances?\b/i, source: /\bpresentations?\b|\boral\b|\bperformances?\b/i },
+  { title: /\bproblem sets?\b/i, source: /\bproblem sets?\b/i },
+  {
+    title: /\b(?:journals?|worksheets?|assignments?|briefs?)\b/i,
+    source: /\b(?:journals?|worksheets?|assignments?|briefs?)\b/i,
+  },
+];
+
+function sourceSupportsSplitAssessment(title, sourceText) {
+  if (typeof sourceText !== 'string' || !sourceText.trim()) return true;
+  const signals = SPLIT_ASSESSMENT_SOURCE_SIGNALS.filter((signal) => signal.title.test(title));
+  return signals.length === 0 || signals.some((signal) => signal.source.test(sourceText));
+}
+
+function explicitAssessmentWeight(title, fallback) {
+  const matched = cleanText(title, 240).match(EXPLICIT_ASSESSMENT_PERCENT_RE);
+  const value = Number(matched?.[1]);
+  if (Number.isFinite(value) && value > 0 && value <= 100) return Math.round(value);
+  return Number.isFinite(fallback) && fallback > 0 && fallback <= 100 ? Math.round(fallback) : null;
+}
 
 function distributeWeightPercent(count) {
   const safeCount = Math.max(1, count);
@@ -607,10 +678,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     sourceLessonSequence.length === sessions.length
       ? explicitLessonSequenceMisalignments(sessions, sourceLessonSequence)
       : [];
-  if (
-    sourceLessonSequence.length === sessions.length &&
-    (repeatedSessionTitles || misalignedOrders.length >= 2)
-  ) {
+  if (sourceLessonSequence.length === sessions.length && (repeatedSessionTitles || misalignedOrders.length >= 2)) {
     const authoredTitles = sessions.map((session) => session.title);
     sessions = sessions.map((session, index) => ({
       ...session,
@@ -632,21 +700,49 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     return Math.max(1, Math.min(sessions.length, Math.round(due)));
   };
 
+  const assessmentListRecovery = {
+    fusedEntryCount: 0,
+    recoveredItemCount: 0,
+    unsupportedItemCount: 0,
+  };
   const parsedAssessments = asArray(parsed.assessments)
-    .map((entry, index) => {
+    .flatMap((entry, index) => {
       // v0.15.187: Pass A transcribes assessments from numbered prose, so
       // titles arrive as "Title: 1. Title" echoes — dedupe at birth (the
       // registry title is the package-wide identity).
-      const title = dedupeNumberedAssessmentEcho(cleanText(entry?.title, 200));
-      if (!title) return null;
-      const weight = Number(entry?.weightPct);
-      return {
-        id: cleanText(entry?.id, 24) || `a${index + 1}`,
-        title,
-        ...(SKELETON_ASSESSMENT_KINDS.has(entry?.kind) ? { kind: entry.kind } : {}),
-        dueSession: clampDue(entry?.dueSession),
-        ...(Number.isFinite(weight) && weight > 0 && weight <= 100 ? { weightPct: Math.round(weight) } : {}),
-      };
+      const rawTitle = cleanText(entry?.title, 500);
+      if (!rawTitle) return [];
+      const titleParts = splitFusedWeightedAssessmentTitle(rawTitle);
+      const wasFused = titleParts.length > 1;
+      if (wasFused) assessmentListRecovery.fusedEntryCount += 1;
+      const supportedParts = wasFused
+        ? titleParts.filter((title) => {
+            const supported = sourceSupportsSplitAssessment(title, sourceText);
+            if (!supported) assessmentListRecovery.unsupportedItemCount += 1;
+            return supported;
+          })
+        : titleParts;
+      if (wasFused) assessmentListRecovery.recoveredItemCount += supportedParts.length;
+      const entryWeight = Number(entry?.weightPct);
+      const baseId = cleanText(entry?.id, 18) || `a${index + 1}`;
+      return supportedParts.flatMap((part, partIndex) => {
+        const title = dedupeNumberedAssessmentEcho(part);
+        if (!title) return [];
+        const weight = explicitAssessmentWeight(title, entryWeight);
+        return [
+          {
+            id: wasFused ? `${baseId}.${partIndex + 1}` : baseId,
+            title,
+            ...(wasFused
+              ? { kind: classifyAssessmentKind(title) }
+              : SKELETON_ASSESSMENT_KINDS.has(entry?.kind)
+                ? { kind: entry.kind }
+                : {}),
+            dueSession: clampDue(entry?.dueSession),
+            ...(weight !== null ? { weightPct: weight } : {}),
+          },
+        ];
+      });
     })
     .filter(Boolean);
   // A recovered response has an incomplete assessment registry by
@@ -698,6 +794,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
         }
       : {}),
     ...(sessionSequenceRecovery ? { sessionSequenceRecovery } : {}),
+    ...(assessmentListRecovery.fusedEntryCount > 0 ? { assessmentListRecovery } : {}),
     // Only stamped when the caller supplied the brief text — absent means
     // "signal unknown" and the missing-resources lint stays un-armed (old
     // call sites and stashed skeletons keep today's behavior exactly).
