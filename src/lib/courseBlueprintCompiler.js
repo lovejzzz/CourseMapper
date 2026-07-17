@@ -12242,7 +12242,7 @@ function assertBlueprintCompilerContract(blueprint, options = {}) {
   const contract = blueprintContractForCompilation(blueprint);
   if (options.enforceCompilerContract === false) return contract;
   if (contract.status === 'blocked') {
-    throw new Error(`Blueprint compiler contract blocked compilation: ${formatContractFailure(contract)}.`);
+    throw new Error(`Blueprint failed: ${formatContractFailure(contract)}`);
   }
   return contract;
 }
@@ -19364,6 +19364,12 @@ function compileQuizBank(blueprint, config = {}) {
       ? `Autograding: ${questions.length} multiple-choice items, one correct letter each, ${questions[0].points || 2} points per item, no partial credit — ${totalPoints} points total. Machine-scorable against the answer key on the instructor page; no manual grading required.`
       : '';
     return {
+      // Weekly entries used to rely on array position for lesson scoping.
+      // Once exam-day quizzes are omitted, that array is sparse relative to
+      // the course (for example L1-L12, then L15); the L15 quiz was therefore
+      // exported inside the L13 midterm file. Carry canonical identity just
+      // like registry exam entries so filtering never guesses by position.
+      lessonNumber: lesson.lessonNumber,
       lessonTitle: lesson.title,
       totalQuestions: questions.length,
       totalPoints,

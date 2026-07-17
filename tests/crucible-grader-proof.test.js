@@ -466,6 +466,31 @@ describe('Crucible grader — seeded defects each produce their exact P0 finding
     }
   }, 120000);
 
+  it('flags a foreign lesson payload inserted beside the document cover', async () => {
+    const dir = await freshDir('crucible-foreign-cover-payload-');
+    try {
+      const docx = findDocx(dir, 'Quiz & Exam Bank');
+      await injectParagraphsIntoDocx(docx, [
+        'Lesson 15: Course conclusion',
+        'Q1 (Multiple choice): Which statement best summarizes the conclusion?',
+      ]);
+      const result = await grade({
+        extractedDir: dir,
+        consoleLogText: healthyConsoleLog(),
+        digest: healthyDigest(),
+        course: GEO_COURSE,
+      });
+      const finding = result.findings.find(
+        (entry) => entry.dimension === 'consistency' && /starts with a Lesson 15 payload/i.test(entry.detail),
+      );
+      expect(finding, JSON.stringify(result.findings.filter((entry) => entry.dimension === 'consistency'))).toBeTruthy();
+      expect(finding.severity).toBe('P0');
+      expect(finding.evidence).toBe('Lesson 15: Course conclusion');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  }, 120000);
+
   // ── Round-2 grader gap: registered exam CONTENT must be inside the file ──
   // The Round-1 live geology/cs-python packages registered midterms/finals
   // whose artifact files existed but contained ONLY the weekly quiz (the

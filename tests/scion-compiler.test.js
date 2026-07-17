@@ -165,6 +165,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       'Major second',
       'Perfect fifth',
       'Minor seventh',
+      '__INVALID_OR_AMBIGUOUS__',
     ]);
     expect(blindSchemas[0].properties.answers.items).toBe(false);
     const event = events.find((entry) => entry.pass === 'mcVerify' && entry.action === 'regenerated');
@@ -211,6 +212,51 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(result.events.filter((event) => event.pass === 'mcVerify' && event.action === 'regenerated')).toHaveLength(2);
   });
 
+  it('D3: repairs a keyed item when two cold validators find the stem invalid', async () => {
+    const original = {
+      q: 'A sudden loud noise makes a participant startle. Which neutral stimulus has now been classically conditioned?',
+      op: ['A blue light', 'A bell', 'The loud noise', 'A researcher'],
+      ai: 1,
+      ex: 'The bell is supposedly conditioned even though the stem never says it appeared or was paired with the noise.',
+    };
+    const calls = [];
+    const generateJson = async ({ schemaProfile }) => {
+      calls.push(schemaProfile.name);
+      if (schemaProfile.name === 'blind_solve') {
+        const solveNumber = calls.filter((name) => name === 'blind_solve').length;
+        return JSON.stringify({
+          answers: [solveNumber <= 2 ? '__INVALID_OR_AMBIGUOUS__' : 'A bell'],
+        });
+      }
+      if (schemaProfile.name === 'mc_verify_repair_batch') {
+        return JSON.stringify({
+          repairs: [{
+            index: 0,
+            q: 'After a bell is repeatedly paired with a startling noise, which stimulus can elicit the learned response on its own?',
+            op: ['A blue light', 'A bell', 'The startling noise', 'The researcher'],
+            ai: 1,
+            ex: 'The bell becomes the conditioned stimulus because the stem explicitly pairs it with the startling unconditioned stimulus.',
+          }],
+        });
+      }
+      return JSON.stringify({});
+    };
+
+    const result = await applyScionKernelPasses(JSON.stringify({ lessons: [{ lessonId: 'lesson-1', mc: [original] }] }), {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Classical conditioning', topics: 'conditioning learned response' }],
+      generateJson,
+    });
+    const repaired = JSON.parse(result.text).lessons[0].mc[0];
+    expect(repaired.q).toContain('repeatedly paired');
+    expect(repaired.ai).toBe(1);
+    const event = result.events.find((entry) => entry.pass === 'mcVerify' && entry.action === 'regenerated');
+    expect(event.preferenceEvidence).toMatchObject({
+      kind: 'double-blind-validity-repair',
+      rejectedAnswers: [-1, -1],
+      chosenAnswers: [1, 1],
+    });
+  });
+
   it('D3: safely restores a missing lesson id for an unambiguous single-lesson call', async () => {
     const raw = JSON.stringify({ lessons: [{ goal: 'Interpret one supplied source.' }] });
     const result = await applyScionKernelPasses(raw, {
@@ -247,7 +293,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(result.events.some((event) => event.pass === 'identityRepair')).toBe(false);
   });
 
-  it('D3: never ships or banks a regenerated item whose new key fails verification', async () => {
+  it('D3: quarantines an item when its replacement cannot pass verification', async () => {
     const original = {
       q: 'Which interval has a 3:2 frequency ratio in just intonation today?',
       op: ['Minor third', 'Major second', 'Perfect fifth', 'Minor seventh'],
@@ -278,7 +324,14 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       promptLessons: [{ lessonId: 'lesson-1', title: 'Intervals', topics: 'intervals consonance' }],
       generateJson,
     });
-    expect(JSON.parse(result.text).lessons[0].mc[0]).toEqual(original);
+    expect(JSON.parse(result.text).lessons[0].mc[0]).toBeNull();
+    expect(result.events).toContainEqual(expect.objectContaining({
+      pass: 'mcVerify',
+      action: 'quarantined',
+      reason: 'double-blind-key-disagreement',
+      rejected: original,
+      trainingEligible: false,
+    }));
     expect(result.events.some((event) => event.trainingEligible)).toBe(false);
   });
 

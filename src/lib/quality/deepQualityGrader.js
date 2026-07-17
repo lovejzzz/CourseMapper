@@ -127,7 +127,9 @@ import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.j
 // syllabus/materials list no longer counts as a grounded literature lesson.
 // 1.10.5 — the primary-text depth gate distinguishes explicit/credible works
 // from sentence-case lesson topics stored in the graph's broad readings slot.
-export const GRADER_VERSION = '1.10.5';
+// 1.10.6 — a foreign `Lesson N:` payload beside a lesson document's cover is
+// a consistency P0; sparse quiz arrays can no longer hide cross-lesson export.
+export const GRADER_VERSION = '1.10.6';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -905,6 +907,25 @@ function checkConsistency(findings, { files }) {
   const byLesson = new Map();
   for (const file of files) {
     if (file.lessonNumber == null || file.featureId === 'courseMap') continue;
+    // A lesson-aware array can become positionally sparse when exam-day
+    // weekly quizzes are omitted. The live Psychology package then exported
+    // an entire "Lesson 15: Course conclusion" quiz at the start of the
+    // Lesson 13 midterm file. Inspect only the cover window: later references
+    // to other lessons are legitimate in review/exam bodies, but a canonical
+    // `Lesson N:` heading beside the cover must own the enclosing file.
+    const foreignCoverHeading = (file.paragraphs || [])
+      .slice(0, 6)
+      .map((line) => ({ line, match: /^Lesson\s+(\d{1,3})\s*:/i.exec(String(line).trim()) }))
+      .find(({ match }) => match && Number(match[1]) !== file.lessonNumber);
+    if (foreignCoverHeading) {
+      findings.add({
+        severity: 'P0',
+        dimension: 'consistency',
+        file: file.path,
+        detail: `Lesson ${file.lessonNumber} document starts with a Lesson ${foreignCoverHeading.match[1]} payload`,
+        evidence: foreignCoverHeading.line,
+      });
+    }
     const title = inferDocumentLessonTitle(file);
     if (!title) continue;
     if (!byLesson.has(file.lessonNumber)) byLesson.set(file.lessonNumber, []);

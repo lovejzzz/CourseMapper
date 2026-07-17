@@ -944,6 +944,54 @@ describe('fix 7 — review-week weekly quizzes draw from PRIOR lessons, not the 
   });
 });
 
+describe('quiz scoping remains lesson-bound after exam-day omissions', () => {
+  function examGapCourseMap() {
+    const lesson = (number, title, weeklyAssessments) => ({
+      title: `Lesson ${number}: ${title}`,
+      sections: [
+        {
+          topicSection: `${number}.1: ${title}`,
+          learningGoals: `1. Build working command of ${title}.`,
+          learningObjectives: `Apply ${title} to a course example.`,
+          weeklyAssessments,
+          asyncActivities: `Prepare for ${title}.`,
+          syncActivities: `Practice ${title}.`,
+          supportingResources: `${title} course materials`,
+        },
+      ],
+    });
+    return {
+      courseName: 'Assessment Sequence Seminar',
+      semester: 'Fall 2026',
+      lessons: [
+        lesson(1, 'Foundations', 'Quiz: foundations check'),
+        lesson(2, 'Midterm exam', 'Midterm exam (30%)'),
+        lesson(3, 'Final exam', 'Final exam (40%)'),
+        lesson(4, 'Course conclusion', 'Course review quiz (30%)'),
+      ],
+    };
+  }
+
+  it('never exports the later weekly quiz inside an earlier exam document', () => {
+    const courseMap = examGapCourseMap();
+    const graph = deriveCourseGraphFromCourseMap(courseMap);
+    const blueprint = buildBlueprintFromGraph(graph);
+    const bank = compileBlueprintDeliverables(blueprint, ['quizBank']).quizBank;
+    const weekly = bank.quizzes.filter((quiz) => quiz.kind !== 'exam');
+
+    expect(weekly.map((quiz) => quiz.lessonNumber)).toEqual([1, 4]);
+    expect(weekly.map((quiz) => quiz.lessonTitle)).toEqual(['Lesson 1: Foundations', 'Lesson 4: Course conclusion']);
+
+    const midtermFile = scopeDeliverableDataToLessons('quizBank', bank, [1]);
+    expect(midtermFile.quizzes).toHaveLength(1);
+    expect(midtermFile.quizzes[0]).toMatchObject({ kind: 'exam', lessonNumber: 2 });
+    expect(JSON.stringify(midtermFile.quizzes)).not.toContain('Lesson 4: Course conclusion');
+
+    const conclusionFile = scopeDeliverableDataToLessons('quizBank', bank, [3]);
+    expect(conclusionFile.quizzes.some((quiz) => quiz.lessonTitle === 'Lesson 4: Course conclusion')).toBe(true);
+  });
+});
+
 // ── (8 + 9) Crucible Round-2 LIVE bugs: all-D review keys + regen nuking ────
 // the compiled bank (verification-output/crucible/round-2026-06-11T16-11-11-692Z/cs-python).
 
