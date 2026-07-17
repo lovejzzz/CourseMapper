@@ -33,6 +33,7 @@ import {
   collectPronunciationRows,
 } from '../src/lib/requiredLabAssets.js';
 import { buildCourseBlueprint, compileBlueprintDeliverable } from '../src/lib/courseBlueprintCompiler.js';
+import { detectForeignLanguageTeachingContent } from '../src/lib/languageIdentityGuard.js';
 
 // ── fixtures ────────────────────────────────────────────────────────────────
 
@@ -254,6 +255,54 @@ describe('F2 — kernel dialogue contract (language-gated, lint-tolerant)', () =
       // no dialogue at all
     };
     expect(listLessonRomanizationGaps(payload)).toEqual([]);
+  });
+});
+
+describe('language identity firewall', () => {
+  it('distinguishes foreign teaching content from a legitimate learner-population citation', () => {
+    expect(
+      detectForeignLanguageTeachingContent({
+        courseIdentity: 'Elementary Mandarin Chinese I',
+        text: 'The Second Language Acquisition of Mandarin Tones by English, Japanese and Korean Speakers.',
+      }),
+    ).toBeNull();
+
+    expect(
+      detectForeignLanguageTeachingContent({
+        courseIdentity: 'Elementary Mandarin Chinese I',
+        text: 'Korean commonly uses native Korean and Sino-Korean number systems. Review Hangul counters.',
+      }),
+    ).toMatchObject({ languageId: 'korean', languageLabel: 'Korean' });
+  });
+
+  it('rejects a Korean lesson kernel inside Mandarin but permits an explicitly comparative course', () => {
+    const contaminatedResponse = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          facts: ['Korean commonly uses native Korean and Sino-Korean number systems for different contexts.'],
+          keyTerms: [
+            {
+              tr: 'Hangul counters',
+              df: 'Hangul is the Korean writing system used to represent the language in syllable blocks.',
+              eg: 'Learners combine a native Korean number with the counter practiced in the dialogue.',
+              mi: 'One Korean number system works in every context.',
+              cx: 'The grammatical context determines which Korean number system and counter to use.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const mandarinPrompt = buildLessonKernelPrompt(mandarinCourseMap(), [0]);
+    expect(mandarinPrompt.courseName).toBe('Elementary Mandarin Chinese I');
+    expect(parseLessonKernelResponse(contaminatedResponse, { prompt: mandarinPrompt })).toBeNull();
+
+    const comparativePrompt = buildLessonKernelPrompt(
+      { ...mandarinCourseMap(), courseName: 'Comparative Mandarin and Korean Language Pedagogy' },
+      [0],
+    );
+    expect(parseLessonKernelResponse(contaminatedResponse, { prompt: comparativePrompt })).toBeTruthy();
   });
 });
 

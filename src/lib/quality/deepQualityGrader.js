@@ -75,6 +75,7 @@ import {
 // V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
 import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 import { addPackageQuizDepthFindings } from './quizItemDepth.js';
+import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -117,7 +118,9 @@ import { addPackageQuizDepthFindings } from './quizItemDepth.js';
 // contain a concrete case or evidence to reason from, rather than trusting tags.
 // 1.10.1 — offline package grading now falls back to the manifest course name
 // for discipline checks, matching the course identity used by in-app grading.
-export const GRADER_VERSION = '1.10.1';
+// 1.10.2 — named foreign-language teaching leakage is a discipline P0 (for
+// example, Hangul or Korean number systems inside a Mandarin package).
+export const GRADER_VERSION = '1.10.2';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -2842,6 +2845,22 @@ function quoteAroundMatch(text, regex, limit = 200) {
 function checkForeignDomainContamination(findings, { files }, probe, course) {
   const courseTitle = String(course?.title || course?.courseName || course?.id || '');
   for (const file of files.filter((entry) => entry.featureId && entry.text)) {
+    const languageContamination = detectForeignLanguageTeachingContent({
+      courseIdentity: courseTitle,
+      text: file.text,
+    });
+    if (languageContamination) {
+      findings.add({
+        severity: 'P0',
+        dimension: 'discipline',
+        file: file.path,
+        detail: `foreign ${languageContamination.languageLabel}-language teaching content appears in ${
+          probe || 'another language'
+        } package (${languageContamination.markerLabels.join(', ')})`,
+        evidence: quoteAroundMatch(file.text, languageContamination.evidencePattern),
+      });
+      return;
+    }
     if (probe !== 'astro') {
       const hits = ASTRO_OBSERVING_CONTAMINATION_TERMS.filter((term) => term.re.test(file.text));
       const headerHit = /\bOBSERVATION PROTOCOL THIS WEEK\b/i.test(file.text);

@@ -141,6 +141,36 @@ describe('foreign-domain contamination quality gate', () => {
     expect(music.findings.some((finding) => /foreign music-theory content/i.test(finding.detail))).toBe(false);
   });
 
+  it('grades Korean teaching content as a P0 in Mandarin without rejecting a Korean-speakers citation', async () => {
+    const contaminated = await grade({
+      fileProvider: createMemoryFileProvider({
+        'Lesson Plans/Lesson 04 - Numbers - Lesson Plans.txt':
+          'Korean commonly uses two number systems: native Korean and Sino-Korean. Students review Hangul counters before stating age.',
+      }),
+      course: { title: 'Elementary Mandarin Chinese I' },
+    });
+    expect(contaminated.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          dimension: 'discipline',
+          detail: expect.stringMatching(/foreign Korean-language teaching content/i),
+        }),
+      ]),
+    );
+
+    const citationOnly = await grade({
+      fileProvider: createMemoryFileProvider({
+        'Syllabus/Elementary Mandarin Chinese I - Syllabus.txt':
+          'The Second Language Acquisition of Mandarin Chinese Tones by English, Japanese and Korean Speakers.',
+      }),
+      course: { title: 'Elementary Mandarin Chinese I' },
+    });
+    expect(
+      citationOnly.findings.some((finding) => /foreign Korean-language teaching content/i.test(finding.detail)),
+    ).toBe(false);
+  });
+
   it('uses manifest course identity when offline grading has no explicit course object', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

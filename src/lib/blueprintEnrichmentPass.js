@@ -2,6 +2,7 @@ import { cleanText, stripLessonPrefix } from './compilerText';
 import { expandKeys } from './keyMaps';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
+import { detectForeignLanguageTeachingContent } from './languageIdentityGuard';
 import { lintDecisionScenario } from './scenarioContract';
 import { normalizeScionOptionIdentity, repairScionMcItem } from './scionAnswerKeyAlignment';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
@@ -917,6 +918,7 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
   return {
     systemPrompt: LESSON_CONTENT_SYSTEM_PROMPT,
     userPrompt,
+    courseName: truncateText(courseMap?.courseName || 'Untitled Course', 120),
     lessons,
     itemPlan,
     approxInputTokens: Math.ceil((LESSON_CONTENT_SYSTEM_PROMPT.length + userPrompt.length) / 4),
@@ -1022,6 +1024,21 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
   for (const entry of parsed.lessons) {
     const lessonId = cleanText(entry?.lessonId);
     if (!lessonId) continue;
+    const languageContamination = detectForeignLanguageTeachingContent({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (languageContamination) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: 0,
+        reason: 'foreign-language-contamination',
+        atomIssueCount: 0,
+        problems: [`foreign-language-contamination:${languageContamination.languageId}`],
+      });
+      continue;
+    }
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
     const quizItems = [];
     asArray(entry?.quizItems).forEach((item, index) => {
@@ -1280,6 +1297,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
   return {
     systemPrompt,
     userPrompt,
+    courseName: truncateText(courseMap?.courseName || 'Untitled Course', 120),
     lessons,
     itemPlan,
     includeCourseLevel,
@@ -1416,6 +1434,21 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     }
     const issueCountAtEntryStart = issues.length;
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
+    const languageContamination = detectForeignLanguageTeachingContent({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (languageContamination) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'foreign-language-contamination',
+        atomIssueCount: 0,
+        problems: [`foreign-language-contamination:${languageContamination.languageId}`],
+      });
+      continue;
+    }
 
     const facts = [];
     const sourceFactsByIndex = asArray(entry?.facts).map((fact, index) => {
