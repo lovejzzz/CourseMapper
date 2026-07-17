@@ -104,6 +104,10 @@ describe('local provider — the house model surface', () => {
     expect(crucible).toContain('await page.waitForTimeout(3500)');
     expect(crucible).toContain('llmShimUrl || localEndpoint ? () => remaining() : remaining');
     expect(crucible).not.toContain('(cap) => remaining(cap ? cap * 3 : cap)');
+    expect(crucible).toContain("localStorage.setItem('coursemapper-scion-flywheel', 'off')");
+    const crucibleDriver = fs.readFileSync('scripts/crucible.mjs', 'utf8');
+    expect(crucibleDriver).toContain("flywheelCapture: 'disabled-for-heldout-benchmark'");
+    expect(crucibleDriver).toContain('disableScionFlywheel: Boolean(scionBenchmarkRun)');
 
     const landing = fs.readFileSync('src/screens/Landing.jsx', 'utf8');
     expect(landing).toContain("if (provider === 'local') return `Scion Local ·");

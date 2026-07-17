@@ -1719,6 +1719,7 @@ async function runLiveRounds(options) {
         concurrency,
         rounds,
         maxSpendUsd,
+        flywheelCapture: 'disabled-for-heldout-benchmark',
       },
     });
     log(
@@ -1805,6 +1806,7 @@ async function runLiveRounds(options) {
           ...(scionBenchmarkRun
             ? {
                 comparison: expectedComparison,
+                evaluationFlywheelCapture: 'off',
               }
             : {}),
           ...(localServerUrl
@@ -1875,6 +1877,7 @@ async function runLiveRounds(options) {
             // uses the real Local provider and endpoint so SSE heartbeats flow.
             llmShimUrl,
             localEndpoint: options.llm === 'local' ? localServerUrl : null,
+            disableScionFlywheel: Boolean(scionBenchmarkRun),
             ...(localServerUrl ? { overallTimeoutMs: 45 * 60_000 } : {}),
           });
           attempts.push(runResult);
