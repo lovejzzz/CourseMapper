@@ -12,6 +12,25 @@ const READING_EVIDENCE_ACTION_RE =
 const READING_RETRIEVED_RE = /open-access via/i;
 const MATERIALS_BLOCK_END_RE =
   /^(assessments this week|session outline|worked example|observation protocol|key terms|formative check|homework|closing activity)$/i;
+const PRIMARY_READING_KIND_RE = /^(?:article|book|chapter|essay|film|novel|play|poem|primary[- ]?text|short[- ]?story)$/i;
+const TITLE_FUNCTION_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'as',
+  'at',
+  'by',
+  'for',
+  'from',
+  'in',
+  'into',
+  'of',
+  'on',
+  'or',
+  'the',
+  'to',
+  'with',
+]);
 
 function normalizeReadingMatchText(text) {
   return String(text || '')
@@ -36,8 +55,42 @@ function fileMentionsReading(file, variants) {
   return variants.some((variant) => variant && text.includes(variant));
 }
 
-export function addReadingInstructionalDepthFindings(findings, { files, manifest }) {
-  const readings = Array.isArray(manifest?.readings) ? manifest.readings : [];
+function titleHasWorkIdentity(title) {
+  const words = String(title || '').match(/[\p{L}\p{N}][\p{L}\p{N}'’:-]*/gu) || [];
+  const contentWords = words.filter((word) => !TITLE_FUNCTION_WORDS.has(word.toLowerCase()));
+  // A lone capitalized word is too ambiguous to self-arm this severe gate:
+  // both canonical works ("Inferno") and ordinary lesson topics ("Memory")
+  // have that shape. Explicit course/reading metadata handles the former.
+  if (contentWords.length < 2) return false;
+  const identityWords = contentWords.filter((word) => {
+    const first = Array.from(word)[0] || '';
+    return first === first.toLocaleUpperCase() && first !== first.toLocaleLowerCase();
+  });
+  return identityWords.length >= 2 && identityWords.length / contentWords.length >= 0.6;
+}
+
+function isCrediblePrimaryReading(entry, course) {
+  if (!entry || typeof entry !== 'object') return false;
+  // Frozen/reference courses can declare the contract explicitly. Uploaded
+  // reading-list items and typed primary works carry equivalent provenance.
+  if (course?.expectReadings === true) return true;
+  if (entry.provenance === 'instructor-provided') return true;
+  if (String(entry.author || '').trim()) return true;
+  if (PRIMARY_READING_KIND_RE.test(String(entry.kind || '').trim())) return true;
+  // The graph's broad `readings` slot can also contain lesson-topic labels.
+  // Only strong title identity may self-arm the work-depth rule without an
+  // explicit reading contract; sentence-case topical phrases stay out.
+  return titleHasWorkIdentity(entry.title);
+}
+
+function namedPrimaryReadings(manifest, course) {
+  return (Array.isArray(manifest?.readings) ? manifest.readings : []).filter((entry) =>
+    isCrediblePrimaryReading(entry, course),
+  );
+}
+
+export function addReadingInstructionalDepthFindings(findings, { files, manifest }, course = {}) {
+  const readings = namedPrimaryReadings(manifest, course);
   if (readings.length === 0) return;
 
   const availableFeatures = new Set(
@@ -116,8 +169,8 @@ export function addReadingInstructionalDepthFindings(findings, { files, manifest
 }
 
 function addReadingRegistryFindings(findings, { files, manifest }, course) {
-  const readings = Array.isArray(manifest?.readings) ? manifest.readings : [];
-  if (readings.length === 0) {
+  const registry = Array.isArray(manifest?.readings) ? manifest.readings : [];
+  if (registry.length === 0) {
     if (course?.expectReadings) {
       findings.add({
         severity: 'P1',
@@ -130,6 +183,8 @@ function addReadingRegistryFindings(findings, { files, manifest }, course) {
     }
     return;
   }
+  const readings = namedPrimaryReadings(manifest, course);
+  if (readings.length === 0) return;
 
   const syllabusFile = files.find((file) => file.featureId === 'syllabus');
   const lessonPlanFiles = files.filter((file) => file.featureId === 'lessonPlans');
@@ -213,5 +268,5 @@ function addReadingRegistryFindings(findings, { files, manifest }, course) {
 
 export function checkNamedReadings(findings, pkg, course) {
   addReadingRegistryFindings(findings, pkg, course);
-  addReadingInstructionalDepthFindings(findings, pkg);
+  addReadingInstructionalDepthFindings(findings, pkg, course);
 }

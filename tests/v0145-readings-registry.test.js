@@ -613,6 +613,44 @@ describe('A5 receipts — manifest readings[] and grader checks', () => {
     expect(result.findings.filter((finding) => /primary text/i.test(finding.detail))).toEqual([]);
   });
 
+  it('does not relabel sentence-case lesson topics as instructor-named primary texts', async () => {
+    const topicManifest = {
+      ...MANIFEST,
+      courseName: 'Introduction to Psychology',
+      readings: [
+        {
+          id: 'R4.1',
+          title: 'Memory encoding, storage, and retrieval',
+          lesson: 4,
+          kind: 'other',
+          provenance: 'instructor-named',
+        },
+        {
+          id: 'R9.1',
+          title: 'Piaget’s stages of cognitive development',
+          lesson: 9,
+          kind: 'other',
+          provenance: 'instructor-named',
+        },
+      ],
+    };
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify(topicManifest),
+        'Lesson Plans/Lesson 04 - Memory encoding.md': 'Teach encoding, storage, and retrieval.',
+        'Slide Decks/Lesson 04 - Memory encoding.md': 'Encoding practice',
+        'Assignment Briefs/Lesson 04 - Memory encoding.md': 'Apply an encoding strategy.',
+        'Discussion Prompts/Lesson 04 - Memory encoding.md': 'Discuss retrieval failure.',
+        'Quiz & Exam Bank/Lesson 04 - Memory encoding.md': 'Which strategy improves retrieval?',
+        'Study Guides/Lesson 04 - Memory encoding.md': 'Review encoding and retrieval.',
+      }),
+      course: { id: 'psych-101', title: 'Introduction to Psychology' },
+    });
+    expect(
+      result.findings.filter((finding) => /primary text|named reading/i.test(finding.detail)),
+    ).toEqual([]);
+  });
+
   it('fires P1 per missing surface on the missing-penetration fixture', async () => {
     const planWithoutTitle = GOOD_PLAN.replace(`${NAMED_TITLE}\n`, '');
     const result = await gradeFixture({

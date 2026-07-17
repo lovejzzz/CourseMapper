@@ -4715,18 +4715,17 @@ function buildCourseThroughlineContext({
     version: 1,
     source: 'course-throughline',
     resourceCounts,
-    registryReadingTitles: readingsRegistry
-      .map((entry) => cleanText(entry?.title).toLowerCase())
-      .filter(Boolean),
+    // normalizeReadingsRegistry already guarantees a clean, non-empty title.
+    registryReadingTitles: (readingsRegistry || []).map((entry) => entry.title.toLowerCase()),
     ...profile,
-    recurringQuestion: `What should ${profile.clientName} do next in ${profile.setting}, and what evidence makes that decision defensible?`,
+    recurringQuestion: `What should ${profile.clientName} do next in ${profile.setting}, and what evidence makes it defensible?`,
     sequenceSummary:
       first && last
         ? `${profile.projectName} starts with ${firstFocus} and returns through ${lastFocus} as students revise evidence, tradeoffs, and recommendations.`
         : `${profile.projectName} gives the course a recurring evidence case across lessons.`,
     evidenceBoundary:
       profile.sourceMode === 'data-science-lab'
-        ? 'This is a fictional course-created case for classroom practice; replace it with official local sources when the instructor has a required case, dataset, or policy document.'
+        ? 'This fictional course-created case is for practice; replace it with official sources when the instructor requires a case, dataset, or policy document.'
         : 'Use instructor-provided readings, examples, cases, media, notes, or local materials. Do not invent source titles, datasets, authors, URLs, or official facts.',
   };
 }

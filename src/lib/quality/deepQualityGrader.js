@@ -125,7 +125,9 @@ import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.j
 // 1.10.4 — instructor-named primary texts must reach multiple instructional
 // surfaces and at least one evidence task; a title copied only into the
 // syllabus/materials list no longer counts as a grounded literature lesson.
-export const GRADER_VERSION = '1.10.4';
+// 1.10.5 — the primary-text depth gate distinguishes explicit/credible works
+// from sentence-case lesson topics stored in the graph's broad readings slot.
+export const GRADER_VERSION = '1.10.5';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
