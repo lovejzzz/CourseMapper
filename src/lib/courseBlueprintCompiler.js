@@ -4689,6 +4689,7 @@ function buildCourseThroughlineContext({
   courseConcepts = [],
   lens = {},
   courseModalityProfile,
+  readingsRegistry = [],
 }) {
   const profile = selectThroughlineProfile({ courseName, courseConcepts, lens, courseModalityProfile });
   const first = lessons[0];
@@ -4714,6 +4715,9 @@ function buildCourseThroughlineContext({
     version: 1,
     source: 'course-throughline',
     resourceCounts,
+    registryReadingTitles: readingsRegistry
+      .map((entry) => cleanText(entry?.title).toLowerCase())
+      .filter(Boolean),
     ...profile,
     recurringQuestion: `What should ${profile.clientName} do next in ${profile.setting}, and what evidence makes that decision defensible?`,
     sequenceSummary:
@@ -4739,6 +4743,7 @@ function buildLessonThroughlineCase(context, lesson) {
   // course-wide packet verbatim in every lesson would trade the placeholder
   // for boilerplate repetition.
   const resourceCounts = context.resourceCounts || {};
+  const registryReadingTitles = new Set(context.registryReadingTitles || []);
   const isLessonSpecific = (reading) => (resourceCounts[cleanText(reading).toLowerCase()] ?? 1) <= 2;
   // v0.14.1 round-2 (fix 3): never elect the lesson's SUBJECT as its evidence
   // packet. World Lit Lesson 5 read "The Thousand and One Nights" — the same
@@ -4758,7 +4763,7 @@ function buildLessonThroughlineCase(context, lesson) {
           .find(
             (reading) =>
               reading &&
-              reading.length >= 8 &&
+              (reading.length >= 8 || registryReadingTitles.has(reading.toLowerCase())) &&
               reading.length <= 90 &&
               !/instructor-provided course/i.test(reading) &&
               !isPromptArtifactEvidenceCue(reading) &&
@@ -11684,6 +11689,7 @@ function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
       courseConcepts,
       lens: enrichment.lens,
       courseModalityProfile,
+      readingsRegistry: blueprint.readingsRegistry,
     });
 
   let lessons = normalizeLessonsForCompiler(blueprint, {
@@ -14612,6 +14618,7 @@ export function buildCourseBlueprint(courseMap, options = {}) {
     courseConcepts,
     lens: normalizedEnrichment.lens,
     courseModalityProfile,
+    readingsRegistry,
   });
   const baseLessons = sequencedLessons.map((lesson) => {
     const modalityDecode = buildLessonModalityDecode(courseModalityProfile, lesson);

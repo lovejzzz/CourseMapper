@@ -300,6 +300,29 @@ describe('A2 inheritance — verbatim on every surface', () => {
     expect(JSON.stringify(bridged.assignments)).toContain(NAMED_TITLE);
   });
 
+  it('keeps a short canonical title as the lesson evidence source', () => {
+    const shortTitle = 'Inferno';
+    const shortGraph = deriveCourseGraphFromCourseMap(repairedWorldLitMap({ lesson8Readings: [shortTitle] }));
+    const shortBlueprint = buildBlueprintFromGraph(shortGraph);
+    const lesson = shortBlueprint.lessons[7];
+    expect(lesson.readings[0]).toBe(shortTitle);
+    expect(lesson.evidencePlan.sourceCue).toBe(shortTitle);
+    expect(lesson.throughlineCase.evidencePacket).toBe(shortTitle);
+
+    const shortCompiled = compileBlueprintDeliverables(shortBlueprint, [
+      'lessonPlans',
+      'discussions',
+      'assignments',
+      'quizBank',
+      'studyGuides',
+    ]);
+    for (const featureId of ['lessonPlans', 'discussions', 'assignments', 'quizBank', 'studyGuides']) {
+      expect(JSON.stringify(shortCompiled[featureId]), `${featureId} dropped the short registry title`).toContain(
+        shortTitle,
+      );
+    }
+  });
+
   it('course-map supportingResources cell leads with the verbatim title', () => {
     const cell = rendered.lessons[7].sections[0].supportingResources;
     expect(cell.split('\n')[0]).toBe(`1. ${NAMED_TITLE}`);
