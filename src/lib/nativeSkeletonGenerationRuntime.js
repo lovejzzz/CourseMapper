@@ -92,6 +92,18 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
         'warning',
       );
     }
+    if (skeleton.sessionSequenceRecovery) {
+      recordApiCallEvent?.({
+        type: 'nativeSkeletonRecovered',
+        label: 'Recovered repeated native skeleton sessions',
+        detail: `${skeleton.sessionSequenceRecovery.recoveredCount} instructor-listed session topics restored in source order`,
+      });
+      addLog?.(
+        currentModelName,
+        `Restored ${skeleton.sessionSequenceRecovery.recoveredCount} distinct session topics from the instructor's explicit lesson sequence`,
+        'warning',
+      );
+    }
     const nativeMap = nativeAuthoring.buildNativeWireMap(skeleton);
     nativeAuthoring.stashNativeSkeleton(skeleton);
     return completeCourseMapGeneration(

@@ -12242,7 +12242,7 @@ function assertBlueprintCompilerContract(blueprint, options = {}) {
   const contract = blueprintContractForCompilation(blueprint);
   if (options.enforceCompilerContract === false) return contract;
   if (contract.status === 'blocked') {
-    throw new Error(`Blueprint failed: ${formatContractFailure(contract)}`);
+    throw new Error(`Contract blocked compilation: ${formatContractFailure(contract)}`);
   }
   return contract;
 }
@@ -23603,7 +23603,7 @@ function compileFeatureInto(result, compileErrors, featureId, compilerBlueprint,
     if (data) result[featureId] = data;
   } catch (error) {
     const message = error?.message || String(error);
-    console.error(`[CM] Blueprint compile failed for ${featureId}: ${message}`, error);
+    console.error(`[CM] ${featureId} compile failed: ${message}`, error);
     compileErrors.push({ featureId, message });
     if (typeof options.onFeatureCompileError === 'function') {
       options.onFeatureCompileError(featureId, error);

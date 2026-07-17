@@ -338,6 +338,28 @@ function uniqueStrings(values = [], limit = Infinity) {
   return result;
 }
 
+function recoverExplicitLessonSequence(sourceText, expectedCount) {
+  if (!Number.isInteger(expectedCount) || expectedCount < 2) return [];
+  const match = /\blessons?\s+cover\s*:\s*([\s\S]+?)(?:\.(?:\s|$)|$)/i.exec(String(sourceText || ''));
+  if (!match) return [];
+  const topics = match[1]
+    .split(/\s*;\s*/)
+    .map((value) => cleanText(value.replace(/^(?:and\s+)?(?:an?|the)\s+/i, ''), 120))
+    .filter(Boolean);
+  return topics.length === expectedCount ? topics : [];
+}
+
+function hasExcessiveSessionTitleReuse(sessions = []) {
+  const counts = new Map();
+  for (const session of sessions) {
+    const key = cleanText(session?.title, 160)
+      .replace(/^lesson\s+\d+\s*[:.-]?\s*/i, '')
+      .toLowerCase();
+    if (key) counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return [...counts.values()].some((count) => count >= 3);
+}
+
 /** Tolerant outer-object JSON extraction (code fences / surrounding prose). */
 function extractJsonObject(text) {
   const raw = String(text || '').trim();
@@ -507,7 +529,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     throw new NativeAuthoringError('skeleton-no-sessions', 'Pass A skeleton has no sessions array');
   }
 
-  const sessions = parsed.sessions
+  let sessions = parsed.sessions
     .map((entry, index) => ({
       order: Number.isInteger(entry?.order) && entry.order > 0 ? entry.order : index + 1,
       title: cleanText(entry?.title, 160),
@@ -533,6 +555,21 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       'skeleton-incomplete',
       `Pass A skeleton has ${sessions.length} of ${expectedLessons} expected sessions`,
     );
+  }
+  let sessionSequenceRecovery = null;
+  const sourceLessonSequence = recoverExplicitLessonSequence(sourceText, sessions.length);
+  if (sourceLessonSequence.length === sessions.length && hasExcessiveSessionTitleReuse(sessions)) {
+    const repeatedTitles = sessions.map((session) => session.title);
+    sessions = sessions.map((session, index) => ({
+      ...session,
+      title: sourceLessonSequence[index],
+      sectionTitles: [sourceLessonSequence[index]],
+    }));
+    sessionSequenceRecovery = {
+      kind: 'explicit-source-lesson-sequence',
+      recoveredCount: sessions.length,
+      repeatedTitles,
+    };
   }
 
   const clampDue = (value) => {
@@ -606,6 +643,7 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
           },
         }
       : {}),
+    ...(sessionSequenceRecovery ? { sessionSequenceRecovery } : {}),
     // Only stamped when the caller supplied the brief text — absent means
     // "signal unknown" and the missing-resources lint stays un-armed (old
     // call sites and stashed skeletons keep today's behavior exactly).

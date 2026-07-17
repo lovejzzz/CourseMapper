@@ -129,7 +129,9 @@ import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.j
 // from sentence-case lesson topics stored in the graph's broad readings slot.
 // 1.10.6 — a foreign `Lesson N:` payload beside a lesson document's cover is
 // a consistency P0; sparse quiz arrays can no longer hide cross-lesson export.
-export const GRADER_VERSION = '1.10.6';
+// 1.10.7 — an explicit source lesson sequence cannot collapse into three or
+// more same-titled sessions while still receiving a superficially clean B.
+export const GRADER_VERSION = '1.10.7';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -952,6 +954,7 @@ function checkConsistency(findings, { files }) {
       });
     }
   }
+  return byLesson;
 }
 
 function contextAround(text, index, span = 90) {
@@ -3336,7 +3339,11 @@ export async function grade({
       checkSourceLedger(findings, pkg);
     }
   }
-  checkConsistency(findings, pkg);
+  const lessonTitles = checkConsistency(findings, pkg);
+  {
+    const { checkExplicitLessonSequenceReuse } = await import('./lessonSequenceQualityChecks.js');
+    checkExplicitLessonSequenceReuse(findings, lessonTitles, course);
+  }
   // Honesty source: the Crucible passes console text; the in-app finalize
   // path passes honestyFromDigest(budget, digest) (v0.14.3 WS-A A2).
   if (honesty) checkHonestyFromDigest(findings, pkg, honesty);

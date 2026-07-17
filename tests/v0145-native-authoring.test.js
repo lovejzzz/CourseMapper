@@ -269,6 +269,50 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(skeleton.sessions.map((session) => session.id)).toEqual(['s1', 's2', 's3']);
   });
 
+  it('restores an explicit source lesson sequence when Pass A repeats a capstone title', () => {
+    const sourceText =
+      'Human Nutrition, a 14-lesson course. Lessons cover: the six classes of nutrients; carbohydrates, simple and complex; dietary fiber, soluble and insoluble; proteins and amino acids; lipids including saturated, unsaturated, and trans fats; fat-soluble and water-soluble vitamins; major minerals and electrolytes; water and hydration; digestion and absorption in the GI tract; energy balance and metabolism; healthy eating patterns and MyPlate; reading a Nutrition Facts label and percent daily value; a review of nutrient functions; and a final diet-analysis project.';
+    const modelTitles = [
+      'Nutrient classes',
+      'Carbohydrates',
+      'Proteins',
+      'Lipids',
+      'Minerals and water',
+      'Digestion',
+      'Energy balance',
+      'Healthy eating',
+      'Label reading',
+      'Nutrient review',
+      'Final project',
+      'Midterm review',
+      'Final project',
+      'Final project',
+    ];
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Human Nutrition', term: 'FA26' },
+        sessions: modelTitles.map((title, index) => ({
+          id: `s${index + 1}`,
+          order: index + 1,
+          title,
+          sectionTitles: [title],
+        })),
+      }),
+      { expectedLessons: 14, sourceText },
+    );
+
+    expect(skeleton.sessions[2].title).toBe('dietary fiber, soluble and insoluble');
+    expect(skeleton.sessions[5].title).toBe('fat-soluble and water-soluble vitamins');
+    expect(skeleton.sessions[12].title).toBe('review of nutrient functions');
+    expect(skeleton.sessions[13].title).toBe('final diet-analysis project');
+    expect(skeleton.sessions.filter((session) => /final project/i.test(session.title))).toHaveLength(0);
+    expect(skeleton.sessionSequenceRecovery).toMatchObject({
+      kind: 'explicit-source-lesson-sequence',
+      recoveredCount: 14,
+      repeatedTitles: expect.arrayContaining(['Final project']),
+    });
+  });
+
   it('synthesizes one weighted assessment per session when Pass A omits assessments', () => {
     const skeleton = parseNativeSkeletonResponse(
       JSON.stringify({

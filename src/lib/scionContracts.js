@@ -263,7 +263,7 @@ export function skeletonSchemaProfile({ sessionCount }) {
 // into every compiled template slot. Scion gets an explicit concision rule
 // (the grammar backstop alone CLIPS mid-word — round 12).
 export const SCION_SKELETON_DIRECTIVE =
-  '\n\nSCION ADDITION: session titles are concise 2-4 word topic names that keep the discipline nouns (e.g. "Pitch Notation", "Triads and Sevenths") — never the full syllabus phrase.';
+  '\n\nSCION ADDITION: session titles are concise 2-4 word topic names that keep the discipline nouns (e.g. "Pitch Notation", "Triads and Sevenths") — never the full syllabus phrase. If the source gives an ordered lesson-topic list, map every listed topic exactly once in that order; do not replace later topics with repeated review or capstone sessions unless the source itself repeats them.';
 
 // D3 pass gating: on by default for Scion; explicit opt-out only.
 export function scionPassesEnabled() {
