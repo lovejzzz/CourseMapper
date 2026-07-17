@@ -124,7 +124,7 @@ export function buildCompiledLessonPatchData(featureId, compiledData, courseMap,
  * (survives reloads; an edited lesson's changed fingerprint MISSES, which is
  * the correct invalidation — the caller may then refresh that one kernel).
  *
- * Returns { data, lessonEnriched, enrichedLessonCount } — `data` is the
+ * Returns { data, lessonEnriched, enrichedLessonCount, enrichedLessonIds } — `data` is the
  * per-lesson patch; `lessonEnriched` says whether THIS lesson compiled with
  * its kernel (the G1 honesty gate reads it; a false is loud, never silent).
  */
@@ -149,7 +149,8 @@ export function compileBlueprintLessonPatch({
       if (cached) lessonContent[lessonId] = cached;
     });
   }
-  const enrichedLessonCount = Object.keys(lessonContent).length;
+  const enrichedLessonIds = Object.keys(lessonContent).sort();
+  const enrichedLessonCount = enrichedLessonIds.length;
   const lessonEnriched = Boolean(lessonContent[`lesson-${lessonIndex + 1}`]);
 
   let blueprint;
@@ -172,5 +173,5 @@ export function compileBlueprintLessonPatch({
     onTextTierMatch,
   });
   if (!data) return null;
-  return { data, lessonEnriched, enrichedLessonCount };
+  return { data, lessonEnriched, enrichedLessonCount, enrichedLessonIds };
 }

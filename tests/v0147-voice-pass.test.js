@@ -144,7 +144,7 @@ describe('flag off — the default path never voices anything', () => {
     // v2 integration upgrades: kernels ride the grounding, and the output
     // cap is FIXED per batch (v1 inherited the ambient budget — truncation
     // read as 38 silent 'no rewrite returned' fallbacks in the failed round).
-    expect(source).toMatch(/kernels:\s*blueprintEnrichment\?\.lessonContent/);
+    expect(source).toMatch(/admittedCompilerBlueprint\?\.enrichment\?\.lessonContent/);
     expect(source).toContain('maxOutputTokens: 4000');
   });
 });
@@ -208,6 +208,43 @@ describe('selectVoiceSurfaces — asymmetric, capped, kernel-aware', () => {
     expect(lessonTwo).toBeTruthy();
     expect(lessonTwo.grounding.kernel).toBeTruthy();
     expect(lessonTwo.grounding.kernel.terms[0].term).toBe('Bowen Reaction Series');
+  });
+
+  it('keeps verified music-interval surfaces compiler-owned instead of re-voicing them', () => {
+    const musicCourseMap = {
+      courseName: 'Interval Evidence Studio',
+      lessons: [
+        {
+          title: 'Lesson 1: Inclusive Interval Counting',
+          sections: [
+            {
+              topicSection: 'Generic interval number and semitone verification',
+              learningObjectives: 'Count intervals inclusively and verify quality from pitch spelling.',
+              weeklyAssessments: 'Notation Drill L classification check',
+              supportingResources: 'Notation Drill L',
+            },
+          ],
+        },
+      ],
+    };
+    const musicDeliverables = {
+      assignments: {
+        assignments: [{ lessonNumber: 1, overview: 'Classify the notated intervals and show the pitch evidence.' }],
+      },
+      discussions: {
+        discussions: [
+          {
+            lessonNumber: 1,
+            prompt:
+              'A student labels C4–E-flat4 an augmented second. Use inclusive letter-name counting and semitone evidence to correct or defend the label.',
+          },
+        ],
+      },
+      studyGuides: {
+        studyGuides: [{ lessonNumber: 1, summary: 'Count letter names first, then verify interval quality.' }],
+      },
+    };
+    expect(selectVoiceSurfaces({ deliverables: musicDeliverables, courseMap: musicCourseMap })).toEqual([]);
   });
 });
 
@@ -329,6 +366,45 @@ describe('lintVoiceResult — never-rename, kernel-aware, no padding floor', () 
 
   it('rejects markdown headers', () => {
     expect(lintVoiceResult(surface, `## Discussion\n${honest}`).ok).toBe(false);
+  });
+
+  it('rejects mathematical-interval drift when the surface grounding is unmistakably music theory', () => {
+    const musicSurface = {
+      ...surface,
+      originalText:
+        'Which interval label should students defend, and how does the semitone evidence support the answer? Anchor your post in Audio Set M.',
+      grounding: {
+        lessonTitle: 'Lesson 2: Simple and Compound Intervals',
+        keyConcepts: ['Classify notated intervals from pitch and semitone evidence.'],
+        readings: ['Audio Set M'],
+        assessmentTitle: 'Interval Classification and Inversion Analysis',
+      },
+    };
+    const drift =
+      'Analyze how the classification system used to categorize mathematical sets based on fundamental structural composition strengthens your decision. ' +
+      'Use the continuous segment on the number line as the main evidence, then explain the limitation before you submit. ' +
+      'Anchor your post in Audio Set M.';
+    const verdict = lintVoiceResult(musicSurface, drift);
+    expect(verdict.ok).toBe(false);
+    expect(verdict.reason).toMatch(/semantic drift.*music-theory/i);
+  });
+
+  it('does not reject legitimate mathematical-interval language without music grounding', () => {
+    const mathSurface = {
+      ...surface,
+      originalText:
+        'Compare an open interval with a closed interval on the real number line, then justify which set notation matches each endpoint rule.',
+      grounding: {
+        lessonTitle: 'Lesson 2: Open and Closed Intervals',
+        keyConcepts: ['real number line', 'set notation', 'endpoint inclusion'],
+        readings: ['Calculus Notes M'],
+        assessmentTitle: 'Interval notation proof',
+      },
+    };
+    const legitimate =
+      'Start with the real number line and compare each continuous segment carefully. Explain whether the mathematical interval includes either endpoint, ' +
+      'then write the matching set notation and justify the choice from the stated endpoint rule before submitting the proof.';
+    expect(lintVoiceResult(mathSurface, legitimate)).toEqual({ ok: true, reason: '' });
   });
 });
 

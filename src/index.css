@@ -388,6 +388,16 @@ body {
   -webkit-backdrop-filter: none !important;
 }
 
+/* The fixed SVG turbulence layer is another GPU-composited full-viewport
+   surface. Chromium can briefly present one of its tiles as opaque black
+   while the workspace replaces large React subtrees during generation.
+   Dark mode already has visible depth from the mesh gradients, so the
+   imperceptible 1.5% noise is not worth a single corrupt progress frame. */
+.dark .noise-overlay::after {
+  display: none;
+  content: none;
+}
+
 /* Header — only apply dark background to sticky/bordered workspace headers */
 .dark header[class*='border-b'],
 .dark header[class*='sticky'] {

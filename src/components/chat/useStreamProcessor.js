@@ -29,6 +29,7 @@ import {
 } from '../../lib/agentSourceContext';
 import { resolveLabel } from './constants';
 import { runScionLocalCompletion } from '../../lib/scionLocalProvider';
+import { getLocalEndpoint } from '../../lib/localProvider';
 // webllm is dynamically imported only by legacy compatibility paths.
 
 // ── System prompt for Help / Tutor mode (extracted from FaqChatbot) ─────────
@@ -95,7 +96,9 @@ A free, browser-based tool that transforms syllabi into complete teaching materi
 
 // ── Streaming call to user's configured provider ────────────────────────────
 export async function streamChat(messages, systemPrompt, signal, apiKey, provider, modelId, maxTokens = 2048) {
-  if (provider !== 'webllm' && provider !== 'public' && !apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && provider !== 'public' && provider !== 'local' && !apiKey) {
+    throw new Error('NO_API_KEY');
+  }
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   const chatModel = modelId;
@@ -132,6 +135,36 @@ export async function streamChat(messages, systemPrompt, signal, apiKey, provide
     });
     return {
       reader: stream.getReader(),
+      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+    };
+  }
+
+  // Development/local Scion uses the same keyless OpenAI-compatible server
+  // as course generation. Keeping this explicit prevents the Agent from
+  // claiming that Scion is disconnected while the compiler is actively using
+  // it in Crucible and local browser runs.
+  if (provider === 'local') {
+    const response = await fetch(`${getLocalEndpoint()}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: modelId,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messages.map((message) => ({ role: message.role, content: message.content })),
+        ],
+        max_tokens: Math.min(900, maxTokens),
+        temperature: 0.25,
+        stream: true,
+      }),
+      signal,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error?.message || `Local Scion error: ${response.status}`);
+    }
+    return {
+      reader: response.body.getReader(),
       parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
     };
   }
@@ -306,7 +339,9 @@ export async function fetchAgentResponseNative(
   nativeTools,
   { temperature: tempOverride, onThinkingText } = {},
 ) {
-  if (provider !== 'webllm' && provider !== 'public' && !apiKey) throw new Error('NO_API_KEY');
+  if (provider !== 'webllm' && provider !== 'public' && provider !== 'local' && !apiKey) {
+    throw new Error('NO_API_KEY');
+  }
   if (!modelId) throw new Error('NO_MODEL_SELECTED');
 
   // WebLLM: local inference without tool calling — return text-only response
@@ -319,6 +354,39 @@ export async function fetchAgentResponseNative(
     );
     const text = response.choices?.[0]?.message?.content || '';
     return { toolCalls: null, textContent: text, stopReason: 'stop' };
+  }
+
+  // The local Scion server does not expose native tools. Return one honest
+  // advisory turn, matching browser-local Scion's behavior, while keeping the
+  // workspace command layer responsible for deterministic edits and audits.
+  if (provider === 'local') {
+    const flattenedSystem =
+      systemPrompt && typeof systemPrompt === 'object'
+        ? [systemPrompt.staticPart, systemPrompt.dynamicPart].filter(Boolean).join('\n\n')
+        : String(systemPrompt || '');
+    const response = await fetch(`${getLocalEndpoint()}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: modelId,
+        messages: [
+          { role: 'system', content: flattenedSystem },
+          ...loopMessages.map((message) => ({ role: message.role, content: message.content || '' })),
+        ],
+        max_tokens: 900,
+        temperature: tempOverride ?? 0.25,
+        stream: false,
+      }),
+      signal,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error?.message || `Local Scion error: ${response.status}`);
+    }
+    const result = await response.json();
+    const textContent = result.choices?.[0]?.message?.content || '';
+    onThinkingText?.(textContent);
+    return { toolCalls: null, textContent, stopReason: result.choices?.[0]?.finish_reason || 'stop' };
   }
 
   // Scion does not advertise native tool calling yet. It still participates

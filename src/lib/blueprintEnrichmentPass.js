@@ -817,7 +817,9 @@ export function buildQuizItemPlan(questionsPerLesson) {
  */
 export function assessProjectedKernelCoverage(payload, { requiredMcCount = 4 } = {}) {
   const quizItems = asArray(payload?.quizItems);
+  const quizItemCount = quizItems.length;
   const mcCount = quizItems.filter((item) => item?.type === 'multiple_choice').length;
+  const factCount = asArray(payload?.kernel?.facts).length;
   const keyTermCount = asArray(payload?.keyTerms).length;
   const slideCount = asArray(payload?.slideContent).length;
   const discussionPositionCount = asArray(payload?.discussionPrompt?.positions).length;
@@ -833,10 +835,33 @@ export function assessProjectedKernelCoverage(payload, { requiredMcCount = 4 } =
   if (!cleanText(scenario.setup) || !cleanText(scenario.materials)) issues.push('scenario-coverage');
   if (!cleanText(studyGuide.summary) || !cleanText(studyGuide.reviewStrategy)) issues.push('study-guide-coverage');
   const passedChecks = 7 - issues.length;
+  // `complete` measures the full requested surface contract. It is useful for
+  // quality diagnostics, but it is deliberately stricter than the boundary
+  // between a real lesson kernel and a structural template. A lesson with an
+  // admitted semantic backbone, assessments, and every core teaching surface
+  // is instructionally usable even when it has fewer optional MC or slide
+  // variants than requested. Keeping these states separate prevents the
+  // compiler from calling rich content "fallback" and repeatedly buying the
+  // same model repair without weakening any atomic semantic lint.
+  const usabilityIssues = [];
+  if (factCount + keyTermCount < 4) usabilityIssues.push(`semantic-backbone:${factCount + keyTermCount}/4`);
+  if (keyTermCount < 1) usabilityIssues.push(`key-term-core:${keyTermCount}/1`);
+  if (quizItemCount < 2) usabilityIssues.push(`quiz-core:${quizItemCount}/2`);
+  if (slideCount < 1) usabilityIssues.push(`slide-core:${slideCount}/1`);
+  if (discussionPositionCount !== 3) usabilityIssues.push(`discussion-positions:${discussionPositionCount}/3`);
+  if (assignmentParameterCount !== 4) usabilityIssues.push(`assignment-parameters:${assignmentParameterCount}/4`);
+  if (!cleanText(scenario.setup) || !cleanText(scenario.materials)) usabilityIssues.push('scenario-coverage');
+  if (!cleanText(studyGuide.summary) || !cleanText(studyGuide.reviewStrategy)) {
+    usabilityIssues.push('study-guide-coverage');
+  }
   return {
     complete: issues.length === 0,
+    usable: usabilityIssues.length === 0,
     issues,
+    usabilityIssues,
     score: passedChecks,
+    factCount,
+    quizItemCount,
     mcCount,
     keyTermCount,
     slideCount,
@@ -1180,7 +1205,7 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
 // ════════════════════════════════════════════════════════════════════════════
 
 const KERNEL_KEY_LEGEND =
-  'Abbreviated JSON keys: q=question, op=options, ai=answerIndex, ex=explanation, tr=term, df=definition, eg=example, mi=misconception, cx=correction, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters, su=setup, ma=materials, wp=problem, ws=steps, wr=result, sm=summary, rs=reviewStrategy.';
+  'Abbreviated JSON keys: q=question, op=options, ai=answerIndex, fi=sourceFactIndexes, ex=explanation, tr=term, df=definition, eg=example, mi=misconception, cx=correction, pr=prompt, tn=tension, po=positions, td=taskDescription, pa=parameters, su=setup, ma=materials, wp=problem, ws=steps, wr=result, sm=summary, rs=reviewStrategy.';
 
 function buildKernelSchema() {
   return {
@@ -1226,6 +1251,7 @@ function buildKernelSchema() {
             q: 'content-bearing multiple-choice stem about the subject',
             op: ['exactly 4 options, homogeneous in length and grammar'],
             ai: 0,
+            fi: ['1-2 zero-based indexes into this lesson facts array that directly support the keyed option'],
             ex: 'why the key is correct, in subject terms',
           },
         ],
@@ -1276,6 +1302,7 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
       .filter((slot) => slot.type === 'multiple_choice')
       .map((slot) => `${slot.bloom} (${slot.note})`)
       .join('; ')}.`,
+    'Every mc item must include fi with 1-2 valid zero-based indexes into that lesson facts array. The cited facts must directly support exactly one option and the explanation must state that support.',
     'Scenario contract: setup gives a concrete context, an actionable decision or problem, inspectable evidence, and a real tension or constraint; materials names the specific evidence packet. Do not use generic labels such as "scenario evidence" or "course materials".',
     'Surface depth contract: discussionPrompt has exactly three defensible positions (main, contrast, conditional or synthesis); assignmentCore has exactly four distinct parameters (scope, format, required evidence/source, length or time).',
     KERNEL_KEY_LEGEND,

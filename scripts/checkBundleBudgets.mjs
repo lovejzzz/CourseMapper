@@ -62,11 +62,16 @@ const lazyChunkBudgets = [
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
   // 63.1/19.7. Keep a narrow 65/21 ceiling on the new chunk.
-  { prefix: 'livingCompilerRibbon-', rawKiB: 65, gzipKiB: 21 },
+  // v0.16.49: +0.9 KiB raw for terminal review/ready semantics and exact
+  // enrichment coverage. The chunk remains workspace-only and gzip remains
+  // below the existing ceiling (measured 65.9/20.4).
+  { prefix: 'livingCompilerRibbon-', rawKiB: 66, gzipKiB: 21 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
-  { prefix: 'ChatPanel-', rawKiB: 350, gzipKiB: 105 },
+  // v0.16.49: +0.9 KiB raw for Scion direct-action receipts and raw
+  // pseudo-tool suppression (measured 350.9/96.5). No gzip increase.
+  { prefix: 'ChatPanel-', rawKiB: 352, gzipKiB: 105 },
   // v0.15.187: the compiler chunk was the LARGEST in dist (measured 711 KiB
   // raw / 192 KiB gzip on July 1) and the only large chunk with no ratchet —
   // which is how it grew 31× in 5.5 weeks unnoticed. Budget set just above
@@ -83,13 +88,24 @@ const lazyChunkBudgets = [
   // locators and model enum tokens. The shared parsing bodies live in the
   // compilerText chunk; this allowance covers the compiler's quiz-field
   // applications while gzip remains below the existing 206 KiB ceiling.
-  // v0.16.48 keeps raw code below the existing ratchet; allow only the same
-  // 256-byte cross-runtime gzip variance already granted to AppFlow.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 753, gzipKiB: 206, gzipSlackBytes: 256 },
-  // v0.16.48: deterministic subject fallback data is workspace-only and
-  // independently cacheable. Keep it out of both the landing path and the
-  // compiler's ratcheted implementation chunk.
-  { prefix: 'compilerFrames-', rawKiB: 9, gzipKiB: 4 },
+  // v0.16.49 isolates the verified Bayesian/music domain frames in their own
+  // workspace-only chunk and keeps that chunk off landing. The core compiler
+  // measures 763.7/209.6 after adding fail-closed semantic admission and is
+  // smaller than the 771.2/212.0 pre-isolation build. This narrow exception
+  // records the new behavior without hiding it inside an unbounded ceiling;
+  // the longer-term compiler-data split still owns the next ratchet down.
+  // The completed frame-by-frame pass then added source-trace recovery, exact
+  // enriched-ID restoration, observable music rubrics, course-map/study/FAQ
+  // repairs, and copied-template defenses. These are contract behavior, not
+  // decorative variants; measured 785.8/216.5 in the lazy workspace chunk.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 790, gzipKiB: 218 },
+  // v0.16.49: Bayesian and music-interval assessment frames are workspace-only
+  // data and independently cacheable. The same boundary now owns the music
+  // interval admission, discussion, FAQ, quiz, and study-guide rules so the
+  // core compiler does not own their full data. The final disciplinary pass
+  // adds classification/inversion facilitation, criteria, response stems,
+  // and verified frames; measured 39.5/12.7. It remains workspace-only.
+  { prefix: 'compilerFrames-', rawKiB: 41, gzipKiB: 14 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +
@@ -120,7 +136,10 @@ const lazyChunkBudgets = [
   // boundary add 1.4 KiB to this lazy-only audit chunk. The production proof
   // uses both checks to reject recall-heavy banks without misclassifying
   // classroom activity cues as off-discipline readings.
-  { prefix: 'deepQualityGrader-', rawKiB: 59, gzipKiB: 21 },
+  // v0.16.49 adds fail-closed process-glossary, copied-template, and
+  // cross-discipline interval checks. The lazy grader measures 61.3/21.2,
+  // remains near its original 40–60 KiB design band, and stays off landing.
+  { prefix: 'deepQualityGrader-', rawKiB: 62, gzipKiB: 22 },
   // The finalize-time grading seam AppFlow lazy-imports (assembles the file
   // map via packageZipExporter and returns the badge data; measured at
   // 1.1 KiB raw / 0.6 gzip).

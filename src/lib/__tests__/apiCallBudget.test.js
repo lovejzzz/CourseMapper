@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   applyApiCallBudgetEvent,
+  buildApiCallBudgetReceipt,
   createApiCallBudget,
+  createApiCallBudgetFromReceipt,
   getApiCallBudgetTotal,
   recordPendingApiCallEvent,
 } from '../apiCallBudget';
@@ -27,6 +29,49 @@ function ensureSessionStorage() {
 describe('apiCallBudget', () => {
   beforeEach(() => {
     ensureSessionStorage();
+  });
+
+  it('preserves the compiler judgment and enrichment evidence across a privacy-safe project receipt', () => {
+    let budget = createApiCallBudget({ runId: 'run-resume-proof', startedAt: 100, buildUpdatedAt: 180 });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'enrichmentModelStage',
+      detail: 'ran (2 lessons enriched)',
+      outcome: { modelStage: 'ran', requestedLessons: 2, enrichedLessons: 2, missingLessons: [] },
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'judgment',
+      detail: 'not evaluated (0 genome-linked lessons)',
+    });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'compiledDeliverable',
+      featureIds: ['lessonPlans', 'slideDecks'],
+      compiledFeatureCount: 2,
+    });
+    budget.recentEvents.unshift({ detail: 'Never persist provider response text' });
+    budget.usageLedger.push({ modelId: 'private-model-row' });
+
+    const receipt = buildApiCallBudgetReceipt(budget);
+    const restored = createApiCallBudgetFromReceipt(JSON.parse(JSON.stringify(receipt)));
+
+    expect(restored.runId).toBe('run-resume-proof');
+    expect(restored.pipeline).toMatchObject({
+      enrichmentModelStage: 'ran (2 lessons enriched)',
+      judgment: 'not evaluated (0 genome-linked lessons)',
+    });
+    expect(restored.enrichmentOutcome).toEqual({
+      modelStage: 'ran',
+      requestedLessons: 2,
+      enrichedLessons: 2,
+      missingLessons: [],
+    });
+    expect(restored.compilerSavings).toMatchObject({ compiledFeatureCount: 2 });
+    expect(restored.buildUpdatedAt - restored.startedAt).toBe(receipt.buildElapsedMs);
+    expect(receipt).not.toHaveProperty('recentEvents');
+    expect(receipt).not.toHaveProperty('usageLedger');
+    expect(JSON.stringify(receipt)).not.toContain('provider response text');
+    expect(JSON.stringify(receipt)).not.toContain('private-model-row');
   });
 
   it('counts actual provider attempts across the expanded schema', () => {
@@ -90,6 +135,21 @@ describe('apiCallBudget', () => {
       retryable: true,
       provider: 'openai',
       modelId: 'gpt-test',
+    });
+  });
+
+  it('preserves bounded semantic-admission diagnostics for browser-run inspection', () => {
+    const budget = applyApiCallBudgetEvent(createApiCallBudget(), {
+      type: 'streamRetryCall',
+      label: 'Scion semantic admission deferred',
+      admissionIssues: ['lesson-2:key-terms-count:1/3'],
+      kernelShape: [{ lessonId: 'lesson-2', facts: 5, keyTerms: 1, mc: 0 }],
+    });
+
+    expect(budget.recentEvents[0]).toMatchObject({
+      type: 'streamRetryCall',
+      admissionIssues: ['lesson-2:key-terms-count:1/3'],
+      kernelShape: [{ lessonId: 'lesson-2', facts: 5, keyTerms: 1, mc: 0 }],
     });
   });
 

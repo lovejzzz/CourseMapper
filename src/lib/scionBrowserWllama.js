@@ -168,7 +168,11 @@ export async function loadScionBrowserWllama({
             phase: 'loading-model',
             progress,
             message:
-              total > 0 ? `Downloading the public Gemma 4 base (${Math.floor(progress * 100)}%)…` : status.message,
+              total > 0
+                ? progress >= 1
+                  ? 'Public Gemma 4 base ready · loading Scion…'
+                  : `Downloading the public Gemma 4 base (${Math.floor(progress * 100)}%)…`
+                : status.message,
           },
           onProgress,
         );

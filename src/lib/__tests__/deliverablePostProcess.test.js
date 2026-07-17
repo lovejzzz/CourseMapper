@@ -305,6 +305,118 @@ describe('Course FAQ post-processing', () => {
     expect(repairedText).not.toMatch(/as a checklist/i);
   });
 
+  it('uses admitted assignment titles and discipline-neutral help language when repairing music FAQs', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 1: Inclusive Interval Counting and Quality',
+          qs: [
+            {
+              q: 'What should I do if I get stuck during interval counting?',
+              an: 'Bring one specific question about the topic or assessment to class, office hours, or a study group.',
+              ca: 'Technical Help',
+            },
+          ],
+        },
+        {
+          lt: 'Lesson 2: Simple Compound Intervals and Inversions',
+          qs: [
+            {
+              q: 'How should I report a blocker during interval inversion?',
+              an: 'Bring one specific question about the topic or assessment to class, office hours, or a study group.',
+              ca: 'Technical Help',
+            },
+          ],
+        },
+      ],
+    };
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Inclusive Interval Counting and Quality',
+          sections: [
+            {
+              topicSection: 'Generic interval number and semitone verification',
+              learningObjectives: 'Classify notated intervals from pitch evidence.',
+              weeklyAssessments: 'Task: verify semitone quality.',
+              supportingResources: 'Notation Drill L',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Simple Compound Intervals and Inversions',
+          sections: [
+            {
+              topicSection: 'Simple and compound intervals; inversion number pairs',
+              learningObjectives: 'Classify heard intervals and justify inversion changes.',
+              weeklyAssessments:
+                'Interval Types transfer task: explain one example, one source detail, and one limitation.',
+              supportingResources: 'Audio Set M',
+            },
+          ],
+        },
+      ],
+    };
+    const deliverables = {
+      assignments: {
+        status: 'done',
+        data: {
+          assignments: [
+            { lessonNumber: 1, title: 'Notation Drill L Interval Classification and Semitone Verification' },
+            { lessonNumber: 2, title: 'Audio Set M Interval Classification and Inversion Analysis' },
+          ],
+        },
+      },
+    };
+
+    const result = normalizeCourseFaqQuestionVariety(data, courseMap, deliverables);
+    const text = JSON.stringify(result.data);
+
+    expect(result.rewrittenQuestions).toBe(2);
+    expect(text).toContain('Audio Set M Interval Classification and Inversion Analysis');
+    expect(text).not.toMatch(/one example, one source detail, and one limitation/i);
+    expect(text).not.toMatch(/platform|command|screen|file version|required tool/i);
+    expect(text).toMatch(/source or example|assigned source/i);
+  });
+
+  it('uses the concise assessment label before a colon instead of clipping directions mid-sentence', () => {
+    const data = {
+      faqs: [
+        {
+          lt: 'Lesson 1: Interval Classification',
+          qs: [
+            {
+              q: 'What should I do if I get stuck?',
+              an: 'Bring one specific question about the topic or assessment to class, office hours, or a study group.',
+              ca: 'Technical Help',
+            },
+          ],
+        },
+      ],
+    };
+    const courseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Interval Classification',
+          sections: [
+            {
+              topicSection: 'Generic interval number and quality',
+              learningObjectives: 'Classify intervals with letter names.',
+              weeklyAssessments:
+                'Interval classification check: classify each interval and justify the answer with inspectable pitch evidence that another musician can verify.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const result = normalizeCourseFaqQuestionVariety(data, courseMap);
+    const answer = result.data.faqs[0].qs[0].an;
+
+    expect(answer).toContain('Interval classification check');
+    expect(answer).not.toMatch(/classify each|:\s*[.]|inspectable pitch evidence that another/);
+  });
+
   it('does not double-punctuate repaired FAQ objective answers', () => {
     const data = {
       faqs: [
@@ -1783,6 +1895,24 @@ describe('Study guide post-processing', () => {
     expect(result.data.guides[0].rq).toHaveLength(3);
     expect(result.data.guides[0].kt.length).toBeGreaterThanOrEqual(3);
     expect(result.data.guides[0].rp).toContain('Retrieval practice');
+  });
+
+  it('does not append string terms to rich compiled glossary objects', () => {
+    const data = {
+      studyGuides: [
+        {
+          lessonTitle: 'Lesson 1: Interval Classification',
+          reviewQuestions: [{ question: 'How is the interval verified?' }],
+          keyTerms: [{ term: 'Semitone', definition: 'The smallest pitch step.' }],
+        },
+      ],
+    };
+
+    const result = normalizeStudyGuideQuestions(data);
+
+    expect(result.addedKeyTerms).toBe(0);
+    expect(result.data.studyGuides[0].keyTerms).toEqual(data.studyGuides[0].keyTerms);
+    expect(result.data.studyGuides[0].keyTerms.every((term) => typeof term === 'object')).toBe(true);
   });
 
   it('expands bare resource fragments into complete study support guidance', () => {

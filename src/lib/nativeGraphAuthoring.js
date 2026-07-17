@@ -74,11 +74,14 @@ function cleanText(value, max = 300) {
 }
 
 export function isNativeContentSourcedKernel(payload, partialOverlay) {
-  return Boolean(
-    payload &&
-    !partialOverlay &&
-    (payload.enrichmentSource === 'genome-linked' || assessProjectedKernelCoverage(payload).complete),
-  );
+  if (!payload) return false;
+  const coverage = assessProjectedKernelCoverage(payload);
+  // A usable partial genome composition already contains a real semantic
+  // lesson, so Pass B should preserve it as content-sourced instead of
+  // re-authoring it merely to reach optional MC/slide saturation. Thin
+  // partials still go to the model; legacy fully linked genome payloads keep
+  // their historical displacement behavior.
+  return coverage.complete || coverage.usable || (!partialOverlay && payload.enrichmentSource === 'genome-linked');
 }
 
 export function selectNativeContentSources(lessonIndices, lessonContent = {}, partialOverlays = {}) {

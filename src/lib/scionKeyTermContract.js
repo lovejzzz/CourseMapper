@@ -264,6 +264,10 @@ export function assessScionKeyTermContract(
   if (
     strictSemanticAdmission &&
     knownFacts.length > 0 &&
+    !(
+      NON_LATIN_SCRIPT_RE.test(normalized.example) &&
+      (normalized.example.match(/[^\u0000-\u024f\u1e00-\u1eff\s\p{P}\p{S}]/gu) || []).length >= 4
+    ) &&
     (normalized.example.length < 24 || normalized.example.split(/\s+/).length < 4)
   ) {
     issues.push('example-underdeveloped');

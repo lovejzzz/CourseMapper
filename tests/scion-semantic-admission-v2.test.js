@@ -10,6 +10,23 @@ const LIST_CLAIMS = [
 ];
 
 describe('Scion strict semantic admission', () => {
+  it('rejects copied compact-prompt stems and options before they reach the course', () => {
+    const item = {
+      q: 'Which option correctly distinguishes the two lesson concepts?',
+      op: [
+        'Plausible methodological claim or action A',
+        'Plausible methodological claim or action B',
+        'Plausible methodological claim or action C',
+        'Plausible methodological claim or action D',
+      ],
+      ai: 0,
+      ex: 'The first option wins because it states the intended distinction while the second option does not.',
+    };
+
+    expect(assessScionMcItem(item).issues).not.toContain('template-residue');
+    expect(assessScionMcItem(item, { semanticProfile: 'source-strict-v3' }).issues).toContain('template-residue');
+  });
+
   it('rejects a schema-ceiling option ending in a hard-truncated word fragment', () => {
     const item = {
       q: 'Which situation best fits a natural experiment?',

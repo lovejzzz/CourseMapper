@@ -877,6 +877,41 @@ describe('repairCourseMapReadiness', () => {
     expect(repaired).not.toMatch(/course task or example/i);
     expect(repaired).toMatch(/historical|primary-source|source|map|timeline/i);
   });
+
+  it('replaces generic Scion scaffolds and a course-title pseudo-resource in a music map', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Interval Evidence Studio',
+        lessons: [
+          {
+            title: 'Lesson 1: Written and Heard Interval Classification',
+            sections: [
+              {
+                topicSection: 'Classification',
+                learningObjectives: 'Classify intervals with letter names; verify quality with semitones.',
+                asyncActivities: 'Practice: classify intervals with letter names\nDraft: verify quality with semitones',
+                syncActivities:
+                  'Workshop: classify intervals with letter names\nPeer review: verify quality with semitones',
+                technologyNeeded:
+                  'LMS (readings, submissions, announcements); Video conferencing (synchronous session); Shared documents (group work)',
+                presentationFormat: 'Workshop + guided practice',
+                supportingResources: '1. Interval Evidence Studio',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    const section = result.courseMap.lessons[0].sections[0];
+    expect(result.changed).toBe(true);
+    expect(section.supportingResources).toBe('assigned notation drill');
+    expect(section.technologyNeeded).toMatch(/notation|audio playback/i);
+    expect(section.asyncActivities).toMatch(/Annotate examples/i);
+    expect(section.syncActivities).toMatch(/Classify notated and heard intervals in pairs/i);
+    expect(section.presentationFormat).toMatch(/semitone verification|classification/i);
+    expect(JSON.stringify(section)).not.toMatch(/Interval Evidence Studio|Video conferencing|Shared documents/i);
+  });
 });
 
 describe('repairWorkspaceReadiness', () => {

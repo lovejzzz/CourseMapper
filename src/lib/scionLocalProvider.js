@@ -4,6 +4,7 @@ import {
   assessPublicScionKernelResponse,
   buildPublicScionMessages,
   buildPublicScionRetryFeedback,
+  extractPublicScionKernelLessons,
   mergePublicScionKernelAttempts,
   publicScionRetryDelay,
   repairPublicScionJson,
@@ -29,6 +30,69 @@ async function defaultRuntimeLoader() {
 function completionTemperature(attempt, requested) {
   const initial = Number.isFinite(Number(requested)) ? Math.max(0, Number(requested)) : 0;
   return Math.min(0.45, initial + Math.max(0, attempt) * 0.15);
+}
+
+function summarizeKernelShape(text, userPrompt) {
+  try {
+    const parsed = JSON.parse(text);
+    const byId = new Map(
+      (Array.isArray(parsed?.lessons) ? parsed.lessons : [])
+        .filter((lesson) => lesson?.lessonId)
+        .map((lesson) => [lesson.lessonId, lesson]),
+    );
+    return extractPublicScionKernelLessons(userPrompt)
+      .filter((lesson) => lesson?.lessonId)
+      .map((row) => {
+        const lesson = byId.get(row.lessonId) || {};
+        return {
+          lessonId: row.lessonId,
+          facts: Array.isArray(lesson.facts) ? lesson.facts.length : 0,
+          keyTerms: Array.isArray(lesson.keyTerms) ? lesson.keyTerms.length : 0,
+          mc: Array.isArray(lesson.mc) ? lesson.mc.length : 0,
+          hasScenario: Boolean(lesson.scenario),
+          hasDiscussion: Boolean(lesson.discussionPrompt),
+          hasAssignment: Boolean(lesson.assignmentCore),
+          hasStudyGuide: Boolean(lesson.studyGuide),
+        };
+      });
+  } catch {
+    return [];
+  }
+}
+
+function canDeferKernelAdmission(text, userPrompt, task, assessment = {}) {
+  if (task !== 'blueprintEnrichment') return false;
+  if (
+    (assessment.issues || []).some((issue) =>
+      ['invalid-json', 'empty-response', ':missing-lesson'].some((marker) => String(issue).includes(marker)),
+    )
+  ) {
+    return false;
+  }
+  try {
+    const parsed = JSON.parse(text);
+    const byId = new Map(
+      (Array.isArray(parsed?.lessons) ? parsed.lessons : [])
+        .filter((lesson) => lesson?.lessonId)
+        .map((lesson) => [lesson.lessonId, lesson]),
+    );
+    const expected = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
+    return (
+      expected.length > 0 &&
+      expected.every((row) => {
+        const lesson = byId.get(row.lessonId);
+        return (
+          lesson &&
+          Array.isArray(lesson.facts) &&
+          lesson.facts.length >= 4 &&
+          ((Array.isArray(lesson.keyTerms) && lesson.keyTerms.length >= 1) ||
+            (Array.isArray(lesson.mc) && lesson.mc.length >= 2))
+        );
+      })
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -137,6 +201,28 @@ export async function runScionLocalCompletion({
       : localError('SCION_LOCAL_INCOMPLETE', 'Scion produced an incomplete local lesson-kernel response.', {
           retryable: true,
         });
+    failure.admissionIssues = assessment.issues || [];
+    failure.kernelShape = summarizeKernelShape(fullText, userPrompt);
+    // The browser transport owns syntax and envelope integrity. The canonical
+    // compiler owns per-atom semantic admission. After one real corrective
+    // retry, forward a structurally usable kernel with its unresolved issue
+    // receipt instead of regenerating the whole lesson repeatedly; the parser
+    // can then keep safe facts/items and reject only the defective atoms.
+    if (attempt >= Math.min(1, retryLimit) && canDeferKernelAdmission(fullText, userPrompt, task, assessment)) {
+      return {
+        fullText,
+        rawText,
+        repairs: [...repaired.repairs, ...merged.repairs],
+        messages: attemptMessages,
+        attempt: attempt + 1,
+        retryCount: attempt,
+        maxRetries: retryLimit,
+        tokenCount,
+        contractIncomplete: true,
+        admissionIssues: assessment.issues || [],
+        kernelShape: failure.kernelShape,
+      };
+    }
     if (attempt >= retryLimit) throw failure;
     for (const issue of assessment.issues || []) observedRetryIssues.add(issue);
     retryAssessment = { needsRetry: true, issues: [...observedRetryIssues] };

@@ -1,5 +1,5 @@
 export function isAgentProviderReady({ provider, apiKey = '', apiStatus = 'idle', modelId = '' } = {}) {
-  if (provider === 'webllm' || provider === 'public') return Boolean(modelId);
+  if (provider === 'webllm' || provider === 'public' || provider === 'local') return Boolean(modelId);
   const hasConfig = Boolean(String(apiKey || '').trim()) && Boolean(modelId);
   if (!hasConfig) return false;
   return apiStatus !== 'validating' && apiStatus !== 'error' && apiStatus !== 'no_funds';
@@ -11,6 +11,9 @@ export function getAgentUnavailableMessage({ provider, modelId, apiStatus } = {}
   }
   if (provider === 'webllm' && !modelId) {
     return 'To use the agent with Local AI, select a local model first.';
+  }
+  if (provider === 'local' && !modelId) {
+    return 'Scion is not selected. Select the local Scion model to use the Agent.';
   }
   if (apiStatus === 'validating') {
     return 'I am checking the saved model connection. Local Audit and Plan still work while this finishes.';

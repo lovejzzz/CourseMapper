@@ -137,7 +137,18 @@ import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.j
 // and Dates” no longer masquerade as instructor-named primary works.
 // 1.10.10 — concrete classification cases written as legitimate MC sentence
 // completions count as applied reasoning without admitting bare recall stems.
-export const GRADER_VERSION = '1.10.10';
+// 1.10.11 — deterministic course-process glossary prose is a substance P1;
+// an attractive package can no longer retain an A while its "key terms" teach
+// evidence moves, self-checks, and weekly artifacts instead of the subject.
+// 1.10.12 — copied compact-prompt stems/options are a substance P1; valid JSON
+// and plausible-looking choices no longer hide an unfilled authoring template.
+// 1.10.13 — overloaded-domain collisions are a discipline P0: music interval
+// packages cannot define intervals as continuous segments on a number line,
+// even when an abstract course title omits the word "music".
+// 1.10.14 — concrete pitch pairs and named interval transformations count as
+// applied MC cases; the depth gate no longer demotes a rigorous notation bank
+// merely because its evidence is musical rather than prose/data.
+export const GRADER_VERSION = '1.10.15';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -1561,12 +1572,16 @@ function checkUnevaluatedCourseJudgment(findings, pkg, course, consoleLogText, h
 // medical/business course never trips on its own subject matter.
 const OFF_DISCIPLINE_SUBJECT_MARKERS = [
   { re: /\bcardiovascular\b/i, domain: 'medicine' },
+  { re: /\b(?:vaccine|immunogenicity|mRNA|dosing intervals?)\b/i, domain: 'medicine' },
+  { re: /\bpremature rupture of membranes\b|\btypes of labor\b/i, domain: 'medicine' },
   { re: /\bdiabetes\b/i, domain: 'medicine' },
   { re: /\bprevalence\b/i, domain: 'medicine' },
   { re: /\bepidemiolog/i, domain: 'medicine' },
   { re: /\bcomorbid/i, domain: 'medicine' },
   { re: /\bautism\b/i, domain: 'disability' },
   { re: /\bintellectual disabilit/i, domain: 'disability' },
+  { re: /\bmeasures? of disability\b|\bfederal surveys\b/i, domain: 'disability' },
+  { re: /\bCIDER assumption elicitation\b|\bteaching inclusive design skills\b/i, domain: 'design' },
   { re: /\bspectrum disorder\b/i, domain: 'disability' },
   { re: /\bdestination marketing\b/i, domain: 'business' },
   { re: /\bmarketing organi[sz]ations?\b/i, domain: 'business' },
@@ -1609,6 +1624,7 @@ const COURSE_DOMAIN_RE = {
   chemistry: /\b(chemistry|chemical|biochem|organic|inorganic)\b/i,
   audio: /\b(music|audio|sound|acoustic|sonification|auditory)\b/i,
   architecture: /\b(architecture|architectural|built environment)\b/i,
+  design: /\b(design|design research|user experience|human-computer interaction|HCI)\b/i,
 };
 // v0.14.3 (FP-3 discipline-breadth calibration): four disciplines legitimately
 // cite the medical / clinical-methods literature even though they are not
@@ -2029,6 +2045,10 @@ const SAMPLE_ANSWER_ENGAGEMENT_FLOOR = 0.6; // v0.14.3 D4 (was 0.50)
 // "~3 content slides in a 12-slide frame" state. Measured 11.8–13.6 live; the
 // bar sits well below the floor so the depth content and the bar move together.
 const CONTENT_SLIDE_MIN = 5;
+const PROCESS_GLOSSARY_PATTERN =
+  /names the evidence focus|helps students separate description from evidence-backed reasoning|as a self-check|is the part of the lesson students must apply to the weekly artifact/gi;
+const TEMPLATE_QUIZ_RESIDUE_PATTERN =
+  /two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action/gi;
 
 function checkSubstance(findings, { files }, course = {}) {
   // (1) cross-lesson boilerplate ratio per deliverable type.
@@ -2055,10 +2075,36 @@ function checkSubstance(findings, { files }, course = {}) {
     }
   }
 
+  // (1b) A deterministic term frame once made a package look complete while
+  // every glossary definition described coursework instead of disciplinary
+  // knowledge. These phrases are unique to that frame and are never valid
+  // subject definitions, so two hits in one guide are enough for a P1.
+  for (const guide of files.filter((file) => file.featureId === 'studyGuides')) {
+    const hits = String(guide.text || '').match(PROCESS_GLOSSARY_PATTERN) || [];
+    if (hits.length < 2) continue;
+    findings.add({
+      severity: 'P1',
+      dimension: 'substance',
+      file: guide.path,
+      detail: `${hits.length} key-term definitions describe the course process instead of subject knowledge`,
+      evidence: hits[0],
+    });
+  }
+
   // (2) meta-MCQ share in quiz banks.
   const quizFiles = files.filter((file) => file.featureId === 'quizBank');
   if (quizFiles.length > 0) {
     const allText = quizFiles.map((file) => file.text).join(' ');
+    const residue = allText.match(TEMPLATE_QUIZ_RESIDUE_PATTERN) || [];
+    if (residue.length > 0) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'substance',
+        file: 'quizBank',
+        detail: `${residue.length} quiz surface${residue.length === 1 ? '' : 's'} retain unfilled authoring-template language`,
+        evidence: residue[0],
+      });
+    }
     const stems = allText.match(/[^.?!]*\?/g) || [];
     if (stems.length >= 5) {
       const META_RE =
@@ -2632,6 +2678,29 @@ const MUSIC_CONTAMINATION_TERMS = [
 ];
 const MUSIC_COURSE_RE =
   /\b(?:music|musical|composition|harmony|counterpoint|orchestration|musicology|aural skills?)\b/i;
+const MUSIC_IDENTITY_TERMS = [
+  /\bsemitones?\b/i,
+  /\bpitch(?:es)?\b/i,
+  /\boctaves?\b/i,
+  /\bstaff notation\b/i,
+  /\binterval quality\b/i,
+  /\b(?:major|minor|perfect|augmented|diminished) (?:second|third|fourth|fifth|sixth|seventh|octave)\b/i,
+  /\b(?:melodic|harmonic|compound|simple) intervals?\b/i,
+  /\binterval inversion\b/i,
+];
+const MUSIC_INTERVAL_MATH_CONTAMINATION_TERMS = [
+  { label: 'number-line interval', re: /\b(?:real )?number line\b/i },
+  { label: 'continuous segment', re: /\b(?:single )?continuous (?:segment|span)\b/i },
+  { label: 'endpoint set', re: /\bunbroken set of endpoints?\b/i },
+  { label: 'mathematical interval', re: /\bmathematical (?:set|sets|interval)\b/i },
+  { label: 'single-unit classification', re: /\bsingle unit or a combination\b/i },
+  { label: 'start-end-point structure', re: /\brelationship between start and end points?\b/i },
+  {
+    label: 'simple-interval combination',
+    re: /\bcombination of two or more simple intervals?\b/i,
+  },
+  { label: 'numeric endpoints', re: /\bstart point of \d+[^.?!]{0,80}end point of \d+\b/i },
+];
 
 // Citation-relevance vocabulary only. Business Ethics is intentionally not a
 // genome-density probe: unfamiliar disciplines should not inherit a coverage
@@ -2750,6 +2819,9 @@ function quoteAroundMatch(text, regex, limit = 200) {
 
 function checkForeignDomainContamination(findings, { files }, probe, course) {
   const courseTitle = String(course?.title || course?.courseName || course?.id || '');
+  const packageText = files.map((entry) => entry.text || '').join('\n');
+  const musicIdentityHits = MUSIC_IDENTITY_TERMS.filter((pattern) => pattern.test(packageText));
+  const packageIsMusic = MUSIC_COURSE_RE.test(courseTitle) || musicIdentityHits.length >= 3;
   for (const file of files.filter((entry) => entry.featureId && entry.text)) {
     const languageContamination = detectForeignLanguageTeachingContent({
       courseIdentity: courseTitle,
@@ -2783,7 +2855,22 @@ function checkForeignDomainContamination(findings, { files }, probe, course) {
         return;
       }
     }
-    if (!MUSIC_COURSE_RE.test(courseTitle)) {
+    if (packageIsMusic && /\bintervals?\b/i.test(file.text)) {
+      const mathIntervalHits = MUSIC_INTERVAL_MATH_CONTAMINATION_TERMS.filter((term) => term.re.test(file.text));
+      if (mathIntervalHits.length > 0) {
+        findings.add({
+          severity: 'P0',
+          dimension: 'discipline',
+          file: file.path,
+          detail: `foreign mathematical-interval definition appears in a music-theory package (${mathIntervalHits
+            .map((hit) => hit.label)
+            .join(', ')})`,
+          evidence: quoteAroundMatch(file.text, mathIntervalHits[0].re),
+        });
+        return;
+      }
+    }
+    if (!packageIsMusic) {
       const musicHits = MUSIC_CONTAMINATION_TERMS.filter((term) => term.re.test(file.text));
       if (musicHits.length >= 2) {
         findings.add({

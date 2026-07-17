@@ -84,6 +84,36 @@ describe('chat system prompt', () => {
     );
   });
 
+  it('streams keyless chat through the local Scion server', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode('data: {"choices":[{"delta":{"content":"Local answer."}}]}\n\n'));
+          controller.close();
+        },
+      }),
+      json: async () => ({}),
+    });
+
+    const { reader, parseChunk } = await streamChat(
+      [{ role: 'user', content: 'Review Lesson 2' }],
+      'Course context',
+      null,
+      '',
+      'local',
+      'scion-1',
+    );
+    const { value } = await reader.read();
+    const parsed = JSON.parse(new TextDecoder().decode(value).trim().slice('data: '.length));
+    const [url, request] = fetchMock.mock.calls[0];
+
+    expect(url).toBe('http://127.0.0.1:8799/v1/chat/completions');
+    expect(request.headers).toEqual({ 'Content-Type': 'application/json' });
+    expect(JSON.parse(request.body)).toMatchObject({ model: 'scion-1', stream: true, max_tokens: 900 });
+    expect(parseChunk(parsed)).toBe('Local answer.');
+  });
+
   it('connects Agent advisory turns to Scion without pretending native tools exist', async () => {
     const result = await fetchAgentResponseNative(
       [{ role: 'user', content: 'Audit this course' }],
@@ -99,6 +129,35 @@ describe('chat system prompt', () => {
     expect(runScionLocalCompletion).toHaveBeenCalledWith(
       expect.objectContaining({ task: 'agent', systemPrompt: 'Workspace context', maxRetries: 0 }),
     );
+  });
+
+  it('connects Agent advisory turns to the local Scion server without a key', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        choices: [{ message: { content: 'Local Scion advice.' }, finish_reason: 'stop' }],
+      }),
+    });
+    const onThinkingText = vi.fn();
+
+    const result = await fetchAgentResponseNative(
+      [{ role: 'user', content: 'Audit this course' }],
+      { staticPart: 'Stable rules', dynamicPart: 'Workspace context' },
+      null,
+      '',
+      'local',
+      'scion-1',
+      [],
+      { onThinkingText },
+    );
+    const [url, request] = fetchMock.mock.calls[0];
+    const body = JSON.parse(request.body);
+
+    expect(url).toBe('http://127.0.0.1:8799/v1/chat/completions');
+    expect(body.messages[0].content).toContain('Stable rules\n\nWorkspace context');
+    expect(body).toMatchObject({ model: 'scion-1', stream: false, max_tokens: 900 });
+    expect(result).toEqual({ toolCalls: null, textContent: 'Local Scion advice.', stopReason: 'stop' });
+    expect(onThinkingText).toHaveBeenCalledWith('Local Scion advice.');
   });
 });
 

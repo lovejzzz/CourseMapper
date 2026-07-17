@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import EditProposalPanel from '../EditProposalPanel';
+import { getNativeConceptMap } from '../../lib/nativeConceptMapPreview';
 import {
   QualityBadge,
   updatePath,
@@ -278,6 +279,58 @@ function GeneratedVisualOnSlide({ visual, type, theme }) {
   );
 }
 
+function NativeConceptMapSlide({ slide, map, dataKey, deckIndex, slideIndex, onEdit, theme }) {
+  const mapCells = [
+    { kind: 'spoke', label: map.spokes[0] },
+    { kind: 'hub', label: map.hub },
+    { kind: 'spoke', label: map.spokes[1] },
+    ...map.spokes.slice(2).map((label) => ({ kind: 'spoke', label })),
+  ];
+  return (
+    <div
+      className="relative z-10 flex flex-col h-full px-8 py-5"
+      data-testid="native-concept-map-preview"
+      aria-label={`Concept map: ${map.hub}`}
+    >
+      <div className="flex items-baseline gap-3 min-w-0">
+        <p className="text-[7px] font-bold tracking-[0.18em] uppercase flex-shrink-0" style={{ color: theme.primary }}>
+          KEY CONCEPT · CONCEPT MAP
+        </p>
+        <h2 className="text-[13px] font-bold leading-tight min-w-0" style={{ color: theme.primary }}>
+          <E
+            value={slide.title}
+            path={[dataKey, deckIndex, 'slides', slideIndex, 'title']}
+            onEdit={onEdit}
+            className="text-[13px] font-bold leading-tight break-words"
+          />
+        </h2>
+      </div>
+      <div
+        className="relative flex-1 min-h-0 grid grid-cols-3 content-center gap-2 px-3 pt-2 pb-1 mt-1"
+        aria-hidden="true"
+      >
+        {mapCells.map((cell, index) => (
+          <div
+            key={`${cell.kind}-${cell.label}-${index}`}
+            className={
+              cell.kind === 'hub'
+                ? 'min-w-0 rounded-full border-2 px-2 py-1.5 text-center text-[8px] font-bold leading-tight shadow-md'
+                : 'min-w-0 rounded-lg border bg-white px-2 py-1.5 text-center text-[8px] font-semibold leading-tight shadow-sm'
+            }
+            style={
+              cell.kind === 'hub'
+                ? { background: theme.primary, borderColor: theme.accent, color: '#FFFFFF' }
+                : { borderColor: theme.secondary + '66', color: theme.primary }
+            }
+          >
+            {cell.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Individual slide renderer ───
 function SlideCanvas({
   slide,
@@ -300,6 +353,7 @@ function SlideCanvas({
       : SLIDE_THEMES[(deckIndex || 0) % SLIDE_THEMES.length];
   const useTwoCol = type === 'content' && bullets.length >= 4;
   const generatedVisual = getGeneratedSlideVisual(slide);
+  const nativeConceptMap = type === 'keyTerm' ? getNativeConceptMap(slide) : null;
 
   // Match the PPTX export pairing (Georgia + Trebuchet MS) so the in-app
   // preview is what the downloaded deck actually looks like.
@@ -746,51 +800,63 @@ function SlideCanvas({
         style={{ fontFamily: bodyFont }}
       >
         <SlideDecor type="keyTerm" theme={theme} />
-        <div className="relative z-10 flex flex-col h-full items-center justify-center px-10 py-6">
-          <p className="text-2xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: theme.primary }}>
-            KEY CONCEPT
-          </p>
-          {/* Central card */}
-          <div
-            className="bg-white rounded-xl border-2 shadow-lg px-8 py-5 max-w-[75%] text-center"
-            style={{ borderColor: theme.secondary + '60' }}
-          >
+        {nativeConceptMap ? (
+          <NativeConceptMapSlide
+            slide={slide}
+            map={nativeConceptMap}
+            dataKey={dataKey}
+            deckIndex={deckIndex}
+            slideIndex={slideIndex}
+            onEdit={onEdit}
+            theme={theme}
+          />
+        ) : (
+          <div className="relative z-10 flex flex-col h-full items-center justify-center px-10 py-6">
+            <p className="text-2xs font-bold tracking-[0.2em] uppercase mb-3" style={{ color: theme.primary }}>
+              KEY CONCEPT
+            </p>
+            {/* Central card */}
             <div
-              className="w-full h-1 rounded-full mb-4 mx-auto"
-              style={{ background: theme.accent, maxWidth: '60%' }}
-            />
-            <h2
-              className="text-[20px] font-bold leading-tight mb-2"
-              style={{ color: theme.primary, fontFamily: headingFont }}
+              className="bg-white rounded-xl border-2 shadow-lg px-8 py-5 max-w-[75%] text-center"
+              style={{ borderColor: theme.secondary + '60' }}
             >
-              <E
-                value={bullets[0] || slide.title}
-                path={
-                  bullets[0]
-                    ? [dataKey, deckIndex, 'slides', slideIndex, bulletsKey, 0]
-                    : [dataKey, deckIndex, 'slides', slideIndex, 'title']
-                }
-                onEdit={onEdit}
-                className="text-[20px] font-bold leading-tight"
+              <div
+                className="w-full h-1 rounded-full mb-4 mx-auto"
+                style={{ background: theme.accent, maxWidth: '60%' }}
               />
-            </h2>
-          </div>
-          {/* Explanatory text below */}
-          {bullets.length > 1 && (
-            <div className="mt-4 max-w-[70%] text-center">
-              {bullets.slice(1).map((b, k) => (
-                <p key={k} className="text-[12px] leading-relaxed mb-1" style={{ color: theme.bodyText }}>
-                  <E
-                    value={b}
-                    path={[dataKey, deckIndex, 'slides', slideIndex, bulletsKey, k + 1]}
-                    onEdit={onEdit}
-                    className="text-[12px] leading-relaxed"
-                  />
-                </p>
-              ))}
+              <h2
+                className="text-[20px] font-bold leading-tight mb-2"
+                style={{ color: theme.primary, fontFamily: headingFont }}
+              >
+                <E
+                  value={bullets[0] || slide.title}
+                  path={
+                    bullets[0]
+                      ? [dataKey, deckIndex, 'slides', slideIndex, bulletsKey, 0]
+                      : [dataKey, deckIndex, 'slides', slideIndex, 'title']
+                  }
+                  onEdit={onEdit}
+                  className="text-[20px] font-bold leading-tight"
+                />
+              </h2>
             </div>
-          )}
-        </div>
+            {/* Explanatory text below */}
+            {bullets.length > 1 && (
+              <div className="mt-4 max-w-[70%] text-center">
+                {bullets.slice(1).map((b, k) => (
+                  <p key={k} className="text-[12px] leading-relaxed mb-1" style={{ color: theme.bodyText }}>
+                    <E
+                      value={b}
+                      path={[dataKey, deckIndex, 'slides', slideIndex, bulletsKey, k + 1]}
+                      onEdit={onEdit}
+                      className="text-[12px] leading-relaxed"
+                    />
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <GeneratedVisualOnSlide visual={generatedVisual} type={type} theme={theme} />
         <ProgressDots slideIndex={slideIndex} totalSlides={totalSlides} theme={theme} />
         <div

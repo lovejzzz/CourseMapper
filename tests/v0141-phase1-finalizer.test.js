@@ -757,7 +757,7 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     expect(verification.checks.filter((check) => /Rendered text repeats/i.test(check.message))).toEqual([]);
   }, 15000);
 
-  it('repairs repeated Python rendered-text shingles that survive compilation', () => {
+  it('diagnoses repeated Python shingles without rewriting semantic prose', () => {
     const repeated = 'Analyze file processing code for line by line';
     const data = {
       assignments: [
@@ -776,11 +776,13 @@ describe('1.16 — prompt artifact labels never become course-map concepts', () 
     const text = JSON.stringify(result.data).toLowerCase();
     const remaining = (text.match(/analyze file processing code for line by line/g) || []).length;
 
-    expect(result.changed).toBe(true);
+    expect(result.changed).toBe(false);
+    expect(result.data).toBe(data);
     expect(result.repeatedPhrase).toBe(repeated.toLowerCase());
-    expect(result.repairedPhrases).toBeGreaterThan(0);
-    expect(remaining).toBeLessThan(12);
-    expect(text).toMatch(/file-processing code trace|debugging checkpoint|program-output check/);
+    expect(result.repairedPhrases).toBe(0);
+    expect(result.repeatedPhraseCount).toBeGreaterThanOrEqual(12);
+    expect(remaining).toBe(16);
+    expect(text).not.toMatch(/file-processing code trace|debugging checkpoint|program-output check/);
   });
 
   it('repairs assessment-label course-title identities before they seed filenames and source concepts', () => {

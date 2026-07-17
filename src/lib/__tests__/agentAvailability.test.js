@@ -81,10 +81,18 @@ describe('agentAvailability', () => {
     expect(isAgentProviderReady({ provider: 'public', apiStatus: 'connected', modelId: '' })).toBe(false);
   });
 
+  it('allows the keyless local Scion server when its model is selected', () => {
+    expect(isAgentProviderReady({ provider: 'local', apiKey: '', apiStatus: 'connected', modelId: 'scion-1' })).toBe(
+      true,
+    );
+    expect(isAgentProviderReady({ provider: 'local', apiStatus: 'connected', modelId: '' })).toBe(false);
+  });
+
   it('uses actionable unavailable copy', () => {
     expect(getAgentUnavailableMessage({ provider: 'openai' })).toContain('connected AI provider');
     expect(getAgentUnavailableMessage({ provider: 'webllm' })).toContain('select a local model');
     expect(getAgentUnavailableMessage({ provider: 'public' })).toContain('select Scion');
+    expect(getAgentUnavailableMessage({ provider: 'local' })).toContain('local Scion model');
     expect(getAgentUnavailableMessage({ provider: 'openai', apiStatus: 'validating' })).toContain('checking');
     expect(getAgentUnavailableMessage({ provider: 'openai', apiStatus: 'error' })).toContain('change the provider');
     expect(getAgentUnavailableMessage({ provider: 'openai', apiStatus: 'no_funds' })).toContain('no available credits');

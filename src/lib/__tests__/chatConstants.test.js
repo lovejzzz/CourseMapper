@@ -220,6 +220,10 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
 
     expect(texts).toContain('Improve slides');
     expect(texts.join(' ')).not.toContain("Review Bloom's alignment");
+    expect(result.starters.find((starter) => starter.text === 'Improve slides')).toMatchObject({
+      action: 'regenerate-active',
+      featureId: 'slideDecks',
+    });
   });
 
   it('provides tab-specific starters for discussions', () => {

@@ -86,6 +86,8 @@ export default function useProjectPersistence({
   modelId,
   modelName,
   restoreProjectAIConfig,
+  getApiCallBudgetReceipt,
+  restoreApiCallBudgetReceipt,
   // sibling hooks
   gen,
   deliv,
@@ -159,6 +161,7 @@ export default function useProjectPersistence({
         activeTab,
         deliverables: deliv.deliverables,
         slideTheme,
+        apiCallBudgetReceipt: getApiCallBudgetReceipt?.(),
         savedAt: Date.now(),
         ...extra,
       });
@@ -181,6 +184,7 @@ export default function useProjectPersistence({
       activeTab,
       deliv.deliverables,
       slideTheme,
+      getApiCallBudgetReceipt,
     ],
   );
 
@@ -276,6 +280,7 @@ export default function useProjectPersistence({
       setActiveTab(nextActive);
       setSlideTheme(restored.slideTheme ?? null);
       restoreProjectAIConfig(restored);
+      restoreApiCallBudgetReceipt?.(restored.apiCallBudgetReceipt);
       deliv.restoreDeliverables(
         restored.deliverables && typeof restored.deliverables === 'object' ? restored.deliverables : {},
       );
@@ -300,6 +305,7 @@ export default function useProjectPersistence({
       setOldCourseMap,
       setPromptText,
       restoreProjectAIConfig,
+      restoreApiCallBudgetReceipt,
       setScreen,
       setSelectedFeatures,
       setSlideTheme,
@@ -529,6 +535,7 @@ export default function useProjectPersistence({
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
       restoreProjectAIConfig(saved, { providerFallback: 'openai' });
+      restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
         setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
@@ -574,6 +581,7 @@ export default function useProjectPersistence({
         const saved = prepareProjectSnapshotForRestore(JSON.parse(text));
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
         restoreProjectAIConfig(saved);
+        restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
         setCourseMap(saved.courseMap);
         adoptCourseGraph(saved);
         setOldCourseMap(null);
@@ -657,6 +665,7 @@ export default function useProjectPersistence({
       setColumns(saved.columns || [...DEFAULT_COLUMNS]);
       setHasGenerated(true);
       restoreProjectAIConfig(saved, { providerFallback: 'openai' });
+      restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
         setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
@@ -758,6 +767,7 @@ export default function useProjectPersistence({
     setCloudSaveStatus('idle');
     setNewProjectError('');
     setNewProjectCloudSaveFailed(false);
+    restoreApiCallBudgetReceipt?.(null);
     setScreen('landing');
     onReturnToLanding?.();
   }

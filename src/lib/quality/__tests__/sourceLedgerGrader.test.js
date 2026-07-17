@@ -3,6 +3,61 @@ import { grade } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
 
 describe('source-ledger quality checks', () => {
+  it('flags biomedical and timing false friends trusted by a music-interval ledger', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Interval Evidence Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          assessments: [
+            {
+              title: 'Interval classification and inversion analysis with inspectable pitch and semitone evidence',
+            },
+          ],
+          sourceLedger: [
+            {
+              id: 'kr1',
+              title: 'Biochemistry Changes That Occur after Death: Post-Mortem Interval',
+              provider: 'openalex',
+              url: 'https://example.org/post-mortem-interval',
+              license: 'CC BY',
+              conceptLinks: [{ id: 'c2', label: 'Compound Intervals' }],
+            },
+            {
+              id: 'sf2',
+              title: 'Metronome',
+              evidence: 'A click at a uniform interval measured in beats per minute.',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Metronome',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c2', label: 'Compound Intervals' }],
+            },
+            {
+              id: 'good',
+              title: 'Interval (music)',
+              evidence: 'Music theory description of pitch distance, semitones, and interval quality.',
+              provider: 'wikipedia',
+              url: 'https://en.wikipedia.org/wiki/Interval_(music)',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [{ id: 'c2', label: 'Compound Intervals' }],
+            },
+          ],
+          sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 3 },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report',
+      }),
+      course: { title: 'Interval Evidence Studio', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).toContain('source ledger row kr1 is off-discipline for Music Theory intervals');
+    expect(details).toContain('source ledger row sf2 is off-discipline for Music Theory intervals');
+    expect(details).not.toContain('source ledger row good is off-discipline for Music Theory intervals');
+  });
+
   it('counts cached knowledge lessons when checking cross-surface honesty', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({
@@ -368,6 +423,64 @@ describe('source-ledger quality checks', () => {
     expect(details).not.toContain('source ledger row syllabus-src-3-3 is off-discipline for Computer Science/Python');
     expect(details).not.toContain('source ledger row syllabus-src-1-1 is off-discipline for Computer Science/Python');
     expect(details).not.toContain('source ledger row kr1 is off-discipline for Computer Science/Python');
+  });
+
+  it('accepts licensed Open Music Theory rows as trusted concept-linked source proof', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Interval Evidence Studio',
+          lessonScope: 'all',
+          requestedFeatures: [],
+          readiness: { status: 'ready', blockers: 0, warnings: 0, checkedSections: null },
+          sourceLedger: [
+            {
+              id: 'music-omt-intervals',
+              title: 'Open Music Theory: Intervals',
+              provider: 'open-music-theory',
+              url: 'https://viva.pressbooks.pub/openmusictheory/chapter/intervals/',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [
+                { id: 'c1', label: 'generic interval' },
+                { id: 'c2', label: 'interval quality' },
+              ],
+            },
+            {
+              id: 'music-omt-intervals-worksheet-e',
+              title: 'Open Music Theory: Intervals E worksheet',
+              provider: 'open-music-theory',
+              url: 'https://viva.pressbooks.pub/app/uploads/sites/12/2025/07/WK-Intervals-E.pdf',
+              license: 'CC BY-SA 4.0',
+              conceptLinks: [
+                { id: 'c3', label: 'compound interval' },
+                { id: 'c4', label: 'interval inversion' },
+              ],
+            },
+          ],
+          courseIR: {
+            sourceLedgerRows: 2,
+            sourceRefCoverage: {
+              sourceLedgerRows: 2,
+              totals: { total: 22, withRefs: 22, missing: 0, danglingRefs: 0 },
+            },
+          },
+          sourceReport: { path: 'SOURCE_REPORT.md', sourceCount: 2 },
+          files: [],
+        }),
+        'SOURCE_REPORT.md': '# Source Report\n\n## Source Ledger\n- Open Music Theory: Intervals\n',
+      }),
+      course: { title: 'Interval Evidence Studio', featureIds: [] },
+    });
+
+    const details = result.findings.map((finding) => finding.detail);
+    expect(details).not.toContain(
+      'sourceRef coverage is too thin: 22 atom(s) rely on 0 trusted concept-linked source row(s)',
+    );
+    expect(details).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/open-music-theory.*(?:ambiguous|off-discipline|no accessible URL)/i),
+      ]),
+    );
   });
 
   it('keeps quarantined review rows advisory when trusted concept-linked source rows cover the bibliography', async () => {

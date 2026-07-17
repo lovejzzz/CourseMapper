@@ -192,7 +192,9 @@ export async function buildScionSemanticAdmissionBurdenV01649({ cwd = process.cw
     .filter(([, passed]) => !passed)
     .map(([name]) => name);
   if (failures.length > 0) {
-    throw new Error(`Scion semantic-admission burden audit failed: ${failures.join(', ')}`);
+    throw new Error(
+      `Scion semantic-admission burden audit failed: ${failures.join(', ')}; observed=${JSON.stringify({ candidate, reference, retained: retained.deltas })}`,
+    );
   }
 
   return {

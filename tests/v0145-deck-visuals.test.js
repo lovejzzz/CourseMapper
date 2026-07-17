@@ -31,6 +31,7 @@ import { buildSlideDeckPptxBlob, CONCEPT_MAP_GEOMETRY, WE_PLOT_GEOMETRY } from '
 import { SLIDE_W, SLIDE_H } from '../src/lib/exporters/slideTextFit.js';
 import { grade } from '../src/lib/quality/deepQualityGrader.js';
 import { createMemoryFileProvider } from '../src/lib/quality/fileProviders.js';
+import { getNativeConceptMap } from '../src/lib/nativeConceptMapPreview.js';
 
 // happy-dom's canvas getContext('2d') returns null; stub the minimal 2D
 // context slideTextFit needs (same approach as pptxVisualExport.test.js).
@@ -293,6 +294,17 @@ describe('C1/C2 — compiler slide-visual descriptors', () => {
     expect(Array.isArray(keyTermSlide.visual.spokes)).toBe(true);
     expect(keyTermSlide.visual.spokes.length).toBeGreaterThanOrEqual(2);
     expect(keyTermSlide.visual.spokes.length).toBeLessThanOrEqual(6);
+    expect(getNativeConceptMap(keyTermSlide)).toEqual({
+      hub: keyTermSlide.visual.hub,
+      spokes: keyTermSlide.visual.spokes,
+    });
+  });
+
+  it('arms the in-app concept-map preview only for a complete descriptor', () => {
+    expect(getNativeConceptMap({ visual: { kind: 'concept map', hub: 'Discharge', spokes: ['Area'] } })).toBeNull();
+    expect(
+      getNativeConceptMap({ visual: { kind: 'table', hub: 'Discharge', spokes: ['Area', 'Velocity'] } }),
+    ).toBeNull();
   });
 
   it('caps derived spokes at six even when the lesson carries more short terms', () => {

@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 /**
  * BuildRibbon — v0.14.4 WS-B1: the ONE status spine under the workspace
  * header. Renders the model produced by src/lib/buildRibbonModel.js:
@@ -47,6 +49,19 @@ function ArtifactStatusMark({ status }) {
   );
 }
 
+function useActiveElapsed(startedAt) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!startedAt) return undefined;
+    setNow(Date.now());
+    const interval = globalThis.setInterval(() => setNow(Date.now()), 1000);
+    return () => globalThis.clearInterval(interval);
+  }, [startedAt]);
+  if (!startedAt) return '';
+  const seconds = Math.max(0, Math.floor((now - startedAt) / 1000));
+  return seconds >= 2 ? `${seconds}s` : '';
+}
+
 export function TabReadyTick({ status }) {
   if (status === 'done') {
     return (
@@ -80,6 +95,7 @@ export function TabReadyTick({ status }) {
 }
 
 export default function BuildRibbon({ model }) {
+  const activeElapsed = useActiveElapsed(model?.activeStartedAt || 0);
   if (!model) return null;
 
   const compilerState = model.compilerState || 'live';
@@ -121,6 +137,12 @@ export default function BuildRibbon({ model }) {
           className="ml-auto shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
         >
           {model.progressPct}%
+          {activeElapsed && (
+            <span data-testid="ribbon-active-elapsed" className="font-medium text-slate-400 dark:text-slate-500">
+              {' · '}
+              {activeElapsed}
+            </span>
+          )}
         </span>
       </div>
 
@@ -254,6 +276,7 @@ export default function BuildRibbon({ model }) {
         data-testid="build-progress-track"
         role="progressbar"
         aria-label={`Overall course build progress: ${model.progressPct}%`}
+        aria-valuetext={`${model.progressPct}% — ${model.stageLabel}`}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={model.progressPct}

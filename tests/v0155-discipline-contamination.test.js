@@ -141,6 +141,74 @@ describe('foreign-domain contamination quality gate', () => {
     expect(music.findings.some((finding) => /foreign music-theory content/i.test(finding.detail))).toBe(false);
   });
 
+  it('blocks mathematical interval definitions inside an abstractly titled music package', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'Study Guides/Lesson 02 - Simple Compound Intervals - Study Guides.txt':
+          'Pitch and semitone evidence distinguishes interval quality. A major third spans four semitones. A simple interval is represented by a single continuous segment on the real number line.',
+        'Course FAQ/Lesson 02 - Simple Compound Intervals - Course FAQ.txt':
+          'Simple intervals are defined by their basic structure and relationship between start and end points. Compound intervals require the combination of two or more simple intervals into a larger structure.',
+      }),
+      course: { title: 'Interval Evidence Studio' },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          dimension: 'discipline',
+          detail: expect.stringMatching(/foreign mathematical-interval definition/i),
+        }),
+      ]),
+    );
+    expect(result.overall.grade).not.toBe('A');
+  });
+
+  it('blocks subtler start/end-point and simple-combination definitions in a music FAQ', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'Course FAQ/Lesson 02 - Simple Compound Intervals - Course FAQ.txt':
+          'Pitch and semitone evidence distinguishes musical interval quality. Simple intervals are defined by their basic structure and relationship between start and end points. Compound intervals require the combination of two or more simple intervals into a larger structure.',
+      }),
+      course: { title: 'Interval Evidence Studio' },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          dimension: 'discipline',
+          evidence: expect.stringMatching(/start and end points|two or more simple intervals/i),
+        }),
+      ]),
+    );
+    expect(result.overall.grade).not.toBe('A');
+  });
+
+  it('does not award an A when abstract music lessons retain medical or design false-friend readings', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'Syllabus/Interval Evidence Studio - Syllabus.txt': [
+          'INTERVAL EVIDENCE STUDIO — SYLLABUS',
+          'WEEKLY READINGS',
+          'Week 1: Alannah Oleson et al. (2022). Teaching Inclusive Design Skills with the CIDER Assumption Elicitation Technique.',
+          'Week 2: Rebecca Payne et al. (2021). Immunogenicity of standard and extended dosing intervals of BNT162b2 mRNA vaccine.',
+          'Week 2: Dwi Agustini and Siti Cholifah (2026). Analysis of Premature Rupture of Membranes Interval on Types of Labor. https://doi.org/10.21070/ups.10391',
+        ].join('\n'),
+        'Study Guides/Lesson 01 - Interval Quality - Study Guides.txt':
+          'A semitone verifies the chromatic size of a notated musical interval.',
+      }),
+      course: { title: 'Interval Evidence Studio' },
+    });
+
+    const citationFindings = result.findings.filter((finding) => finding.dimension === 'citations');
+    expect(citationFindings.length).toBeGreaterThanOrEqual(3);
+    expect(citationFindings.map((finding) => finding.evidence).join(' ')).toMatch(
+      /CIDER Assumption|BNT162b2|Premature Rupture of Membranes/,
+    );
+    expect(result.overall.grade).not.toBe('A');
+  });
+
   it('grades Korean teaching content as a P0 in Mandarin without rejecting a Korean-speakers citation', async () => {
     const contaminated = await grade({
       fileProvider: createMemoryFileProvider({

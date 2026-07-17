@@ -64,6 +64,11 @@ const STRUCTURAL_REFERENCE_PATTERN = /\b(?:doi\b|et al\.?|https?:\/\/|isbn\b|ret
 const STRUCTURAL_LEDGER_REFERENCE_PATTERN = /\b(?:course\s+map\s+l\d+|a\d+\.\d+)\b/i;
 const STRUCTURAL_LEDGER_NUMERIC_PATTERN = /\b(?:week\s+\d+|\d+(?:\.\d+)?\s*(?:pts?|points|%|hours?|hrs?))\b/i;
 const STRUCTURAL_LEDGER_SEPARATOR_PATTERN = /[·|•]|\s+-\s+/;
+const STRUCTURAL_QUESTION_METADATA_PATTERN =
+  /^q\s*\d+\s*:\s*\((?:remember|understand|apply|analyze|evaluate|create)\s*,\s*(?:easy|medium|hard)\)\s*$/i;
+const STRUCTURAL_QUESTION_PREFIX_PATTERN = /^q\s*\d+\s*(?:\([^)]*\))?\s*:\s*/i;
+const STRUCTURAL_DOCUMENT_CHROME_PATTERN =
+  /^(?:.+?\s+-\s+)?lesson\s+\d{1,3}\s*(?::|-)\s*[^.!?]+(?:\s+—\s+.+\s+page\s+of)?$/i;
 
 // Internal mask tokens survive word tokenization as plain words; evidence
 // rendering maps them back to readable placeholders.
@@ -315,6 +320,12 @@ export function normalizeTextureText(text) {
     .split(/\n+/)
     .map((line) => {
       let cleaned = line.replace(/\s+/g, ' ').trim();
+      if (STRUCTURAL_DOCUMENT_CHROME_PATTERN.test(cleaned)) return '';
+      if (STRUCTURAL_QUESTION_METADATA_PATTERN.test(cleaned)) return '';
+      // Question numbers, type/point/time badges, and Bloom/difficulty rows
+      // are export structure. Strip them before measuring sentence openers so
+      // six genuinely different stems do not all look like “Q [n] multiple”.
+      cleaned = cleaned.replace(STRUCTURAL_QUESTION_PREFIX_PATTERN, '').trim();
       for (let index = 0; index < 3; index += 1) {
         const next = cleaned.replace(STRUCTURAL_PREFIX_PATTERN, '').trim();
         if (next === cleaned) break;

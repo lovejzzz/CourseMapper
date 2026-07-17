@@ -190,6 +190,37 @@ describe('D1(1) — synthetic calibration: slot-varied stamps vs varied prose', 
     expect(labeledStamp.evidence.some((item) => /full credit requires evidence/.test(item.shingle))).toBe(true);
   });
 
+  it('measures quiz stem openers after removing question badges and Bloom metadata', () => {
+    const normalized = normalizeTextureText(
+      [
+        'Q1 (Multiple choice, 2 pts, ~2 min): Classify C4–E♭4 from its spelling and semitone span.',
+        'Q1: (Apply, Easy)',
+        'Q2 (Multiple choice, 2 pts, ~2 min): Verify D4–F♯4 by counting semitones.',
+        'Q2: (Analyze, Medium)',
+        'Q3 (Multiple choice, 2 pts, ~2 min): Explain why the endpoint letters establish the generic number.',
+        'Q4 (Multiple choice, 2 pts, ~2 min): Compare a minor third with an augmented second.',
+      ].join('\n'),
+    );
+
+    expect(normalized).not.toMatch(/Q\d|Multiple choice|\(Apply, Easy\)|\(Analyze, Medium\)/i);
+    expect(normalized).toContain('Classify C4–E♭4');
+    expect(normalized).toContain('Verify D4–F♯4');
+    expect(computeTexture([{ id: 'quiz', feature: 'quizBank', text: normalized }]).subScores.openers).toBe(100);
+  });
+
+  it('ignores repeated lesson document titles and page footers as export chrome', () => {
+    const normalized = normalizeTextureText(
+      [
+        'Interval Evidence Studio - Lesson 01 - Written and Heard Interval Classification',
+        'Lesson 1: Written and Heard Interval Classification',
+        'Students compare the pitch spelling before they count semitones.',
+        'Interval Evidence Studio - Lesson 01 - Written and Heard Interval Classification — Lesson Plans Page of',
+      ].join('\n'),
+    );
+
+    expect(normalized).toBe('Students compare the pitch spelling before they count semitones.');
+  });
+
   it('ignores assignment ledger metadata while still catching repeated assignment body prose', () => {
     const ledgerOnly = computeTexture(
       Array.from({ length: 12 }, (_, index) => ({
@@ -627,7 +658,7 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
   });
 
   it('keeps every pre-texture weight and gives texture a score-bearing weight that can cost the A band', () => {
-    expect(GRADER_VERSION).toBe('1.10.10');
+    expect(GRADER_VERSION).toBe('1.10.15');
     expect(DIMENSION_WEIGHTS).toEqual({
       identity: 20,
       substance: 20,
@@ -648,7 +679,16 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     expect(result.findings.filter((finding) => finding.severity === 'P0')).toEqual([]);
     expect(result.overall.score, JSON.stringify(result.scores)).toBeGreaterThanOrEqual(85);
     expect(result.scores.identity).toBeGreaterThanOrEqual(85);
-    expect(result.scores.substance).toBe(100);
+    expect(result.scores.substance).toBeLessThan(100);
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          detail: expect.stringMatching(/course process instead of subject knowledge/i),
+        }),
+      ]),
+    );
 
     const entries = Object.entries(DIMENSION_WEIGHTS);
     const totalWeight = entries.reduce((sum, [, weight]) => sum + weight, 0);
@@ -656,7 +696,9 @@ describe('D1(3)+(4) — weight-0 invariance and the report row on a real package
     const recomputed = Math.round(
       entries.reduce((sum, [dimension, weight]) => sum + result.scores[dimension] * weight, 0) / totalWeight,
     );
-    expect(result.overall.score).toBe(recomputed);
+    // P1 substance findings apply the documented B-band cap after the
+    // weighted score is computed.
+    expect(result.overall.score).toBe(Math.min(recomputed, 89));
   });
 
   it('scores texture from the metric and reports low texture as a finding while keeping advisories separate', () => {

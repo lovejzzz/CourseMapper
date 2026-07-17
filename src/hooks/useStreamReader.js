@@ -265,6 +265,8 @@ export default function useStreamReader() {
               attempt,
               maxRetries: limit,
               delayMs: delay,
+              admissionIssues: error?.admissionIssues || [],
+              kernelShape: error?.kernelShape || [],
               execution: 'browser-local',
             });
           },
@@ -287,6 +289,20 @@ export default function useStreamReader() {
             retainedCharacters: repair.recoveryEvidence?.retainedCharacters,
             removedCharacters: repair.recoveryEvidence?.removedCharacters,
             removedTail: repair.recoveryEvidence?.removedTail,
+            execution: 'browser-local',
+          });
+        }
+        if (result.contractIncomplete) {
+          recordApiCallEvent({
+            type: 'pipelineDecision',
+            label: 'Scion semantic admission deferred',
+            detail: `${(result.admissionIssues || []).length} unresolved contract issue${
+              (result.admissionIssues || []).length === 1 ? '' : 's'
+            } forwarded to per-atom admission`,
+            stage: 'local-compiler',
+            ...buildProviderTraceBase(),
+            admissionIssues: result.admissionIssues || [],
+            kernelShape: result.kernelShape || [],
             execution: 'browser-local',
           });
         }
@@ -324,6 +340,8 @@ export default function useStreamReader() {
           stage: 'local-model',
           ...buildProviderTraceBase(),
           ...failureEventFields(error, { provider, modelId }),
+          admissionIssues: rawError?.admissionIssues || [],
+          kernelShape: rawError?.kernelShape || [],
           execution: 'browser-local',
         });
         error.apiCallBudgetRecorded = true;

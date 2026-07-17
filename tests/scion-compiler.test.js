@@ -731,9 +731,10 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
 
   it('D4: the flywheel and pass wiring exist in the compiler (source wiring)', () => {
     // The compiler lazy-loads the Scion orchestration (scionPassB) so the
-    // local-only wiring stays out of the main bundle chunk.
+    // public-browser and local-development wiring stay out of the main chunk.
     const deliverables = fs.readFileSync('src/hooks/useDeliverables.js', 'utf8');
     expect(deliverables).toContain("import('../lib/scionPassB')");
+    expect(deliverables).toContain("provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID");
     expect(deliverables).toContain('scionCallOpts');
     expect(deliverables).toContain('runScionPasses');
     const passB = fs.readFileSync('src/lib/scionPassB.js', 'utf8');

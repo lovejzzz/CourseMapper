@@ -40,6 +40,15 @@ const appliedDisciplineStems = [
   "Given the score excerpt showing the Treble Clef and ledger lines, evaluate: 'The staff lines define the absolute pitch of every note.'",
 ];
 
+const appliedMusicIntervalStems = [
+  'Apply inclusive letter-name counting to C4–E♭4. What are its generic number and interval quality?',
+  'Verify D4–F♯4 by semitone count. Which interval label is correct?',
+  'Analyze E4–F4. Why is this pair one semitone apart even though neither note has an accidental?',
+  'Reduce a compound tenth to its simple equivalent. Which interval number results?',
+  'Invert a major third by moving its lower pitch up an octave. Which interval results?',
+  'Analyze the inversion of an augmented fourth. Which quality change is required?',
+];
+
 const appliedOutcomeStems = [
   "A designer creates a persona for 'Frugal Traveler' but ignores evidence that the group prefers budget apps. What is the most likely outcome?",
   'A contrast checker reports a 2.5:1 ratio on the primary button against a light-red background. What is the likely impact on accessibility?',
@@ -83,10 +92,12 @@ describe('quiz item depth', () => {
     for (const stem of appliedLunaStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     for (const stem of appliedCompilerStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     for (const stem of appliedDisciplineStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
+    for (const stem of appliedMusicIntervalStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     for (const stem of appliedOutcomeStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     for (const stem of appliedFrameworkStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     for (const stem of appliedClassificationCompletions) expect(isAppliedQuizStem(stem), stem).toBe(true);
     expect(isAppliedQuizStem('Which clef establishes the pitch reference point for a staff?')).toBe(false);
+    expect(isAppliedQuizStem('Which interval numbers form inversion pairs?')).toBe(false);
     expect(isAppliedQuizStem('Which ethical framework focuses on duties rather than consequences?')).toBe(false);
     expect(isAppliedQuizStem("Bandura's four steps of successful modeling, in order, are")).toBe(false);
     expect(isAppliedQuizStem("In operant conditioning, 'positive' and 'negative' refer to")).toBe(false);

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
 import { estimateUsageCost } from '../src/lib/apiUsageCost';
 import { createBaseModelCapabilities, createGenerationPlan } from '../src/lib/modelCapabilities';
+import { buildLessonKernelPrompt } from '../src/lib/blueprintEnrichmentPass';
 import {
   PUBLIC_SCION_BACKING_MODEL,
   PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS,
@@ -283,21 +284,28 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(messages[0].content).toContain('subject-matter and assessment writer');
     expect(messages[1].content).toContain('LESSONS TO AUTHOR');
     expect(messages[1].content).toContain('Lesson 4: Affinity Mapping');
-    expect(messages[1].content).toContain('Write exactly 4 mc items');
-    expect(messages[1].content).toContain('Every mc item includes fi with 1-2 distinct zero-based indexes');
+    expect(messages[1].content).toContain('Write exactly 2 mc items');
+    expect(messages[1].content).toContain('Every mc item includes fi=sourceFactIndexes as exactly [n]');
     expect(messages[1].content).toContain('mi is a genuinely false learner belief');
     expect(messages[1].content).toContain('Never embed field labels or internal claim numbers');
-    expect(messages[1].content).toContain('one field-note evidence analysis');
-    expect(messages[1].content).toContain('At least 3 mc stems include specific observed behavior or evidence');
-    expect(messages[1].content).toContain('Never infer motive from one ambiguous behavior');
+    expect(messages[1].content).toContain('Never infer motive or cause from one ambiguous observation');
     expect(messages[1].content).toContain('one decision-ready scenario');
-    expect(messages[1].content).toContain('at least 2 inspectable observations');
-    expect(messages[1].content).toContain('focused on one construct or decision target');
-    expect(messages[1].content).toContain('po has exactly 3 defensible positions');
-    expect(messages[1].content).toContain('pa has exactly 4 distinct parameters');
-    expect(messages[1].content).toContain('conditional or synthesis position');
-    expect(messages[1].content).toContain('required evidence/source');
-    expect(messages[1].content).toContain('Also return one compact courseLevel object');
+    expect(messages[1].content).toContain('at least 2 inspectable details');
+    expect(messages[1].content).toContain(
+      'The local compiler will derive discussion, assignment, slides, and study-guide surfaces',
+    );
+    expect(messages[1].content).toContain('Return only lessonId, facts, keyTerms, scenario, and mc');
+    expect(messages[1].content).not.toContain('Also return one compact courseLevel object');
+    const templateJson = messages[1].content.split('TEMPLATE TO FILL:\n')[1];
+    const lessonTemplate = JSON.parse(templateJson).lessons[0];
+    expect(lessonTemplate.facts).toHaveLength(5);
+    expect(lessonTemplate.keyTerms).toHaveLength(3);
+    expect(lessonTemplate.mc).toHaveLength(2);
+    expect(messages[1].content).toContain('distinct 1-4 word subject term');
+    expect(messages[1].content).toContain('never copy the full lesson title');
+    expect(templateJson).not.toContain('discussionPrompt');
+    expect(templateJson).not.toContain('assignmentCore');
+    expect(templateJson).not.toContain('studyGuide');
     expect(messages[1].content).not.toContain('compact CourseMapper lessons');
 
     const recoveryMessages = buildPublicScionMessages(
@@ -308,6 +316,17 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(recoveryMessages[1].content).toContain('lesson-4');
     expect(recoveryMessages[1].content).toContain('RECOVERY 2');
     expect(recoveryMessages[1].content).toContain('Returning {"lessons":[]}');
+  });
+
+  it('tells the compact course-map pass to preserve exact named sources', () => {
+    const messages = buildPublicScionMessages(
+      'system',
+      'Create a two-lesson course that uses Notated Example A, Recording B, and Listening Pair C.',
+    );
+
+    expect(messages[1].content).toContain('copy its exact name into supportingResources');
+    expect(messages[1].content).toContain('Never replace a named source with a generic handout');
+    expect(messages[1].content).toContain('Exact named source from SOURCE');
   });
 
   it('preserves voice surfaces while shrinking the public rewrite contract', () => {
@@ -576,6 +595,43 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     expect(feedback).toContain('exactly one option is supported by the lesson facts');
   });
 
+  it('retries when the browser model copies an unfilled compact-prompt question', () => {
+    const prompt = `Course: Music Theory\nLessons:\n[{"lessonId":"lesson-intervals","title":"Interval quality"}]\nReturn ONLY valid JSON.`;
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-intervals',
+          facts: [
+            'Generic interval number counts both endpoint letter names.',
+            'Three semitones form a minor third when the spelling is C to E flat.',
+            'Four semitones form a major third when the spelling is C to E.',
+            'Accidentals change chromatic size without changing the generic number.',
+            'Semitone counting verifies the quality after the generic number is known.',
+          ],
+          keyTerms: completeTerms,
+          mc: [
+            {
+              q: 'Which option correctly distinguishes the two lesson concepts?',
+              op: [
+                'Plausible methodological claim or action A',
+                'Plausible methodological claim or action B',
+                'Plausible methodological claim or action C',
+                'Plausible methodological claim or action D',
+              ],
+              ai: 0,
+              fi: [0],
+              ex: 'The first option is keyed because it distinguishes the intended ideas and the second does not.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const assessment = assessPublicScionKernelResponse(JSON.stringify(response), prompt, 'blueprintEnrichment');
+    expect(assessment.issues).toContain('lesson-intervals:mc-0:template-residue');
+    expect(buildPublicScionRetryFeedback(assessment)).toContain('Each q must name exact lesson concepts');
+  });
+
   it('removes only an unfinished explanation tail before browser-local admission', () => {
     const response = {
       lessons: [
@@ -651,5 +707,29 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     expect(repaired.lessons[0].assignmentCore.td).toContain('supplied observation');
     expect(repaired.lessons[0].mc).toHaveLength(1);
     expect(repaired.lessons[0].studyGuide.rs).toContain('Compare every claim');
+  });
+
+  it('teaches the model the same fact-index citation contract the transport enforces', () => {
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Design',
+        lessons: [
+          {
+            title: 'Lesson 1: Affinity Mapping',
+            sections: [{ topicSection: 'Affinity Mapping', learningObjectives: 'Synthesize observations.' }],
+          },
+        ],
+      },
+      [0],
+      { questionsPerLesson: 6 },
+    );
+    const messages = buildPublicScionMessages(prompt.systemPrompt, prompt.userPrompt, {
+      task: 'blueprintEnrichment',
+    });
+    const text = messages.map((message) => message.content).join('\n');
+
+    expect(text).toMatch(/fi=sourceFactIndexes/);
+    expect(text).toMatch(/exactly \[n\]: one zero-based integer from 0 through 4/);
+    expect(text).toMatch(/appears verbatim in at least one of that lesson's facts/);
   });
 });

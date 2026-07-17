@@ -261,6 +261,86 @@ export function normalizeScionOptionIdentity(value) {
   return `${structuralDelimiters}|${words}`;
 }
 
+const NEAR_DUPLICATE_OPTION_STOP_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'because',
+  'by',
+  'for',
+  'from',
+  'in',
+  'is',
+  'of',
+  'on',
+  'the',
+  'to',
+  'with',
+]);
+const NEAR_DUPLICATE_POLARITY_GROUPS = [
+  ['not', 'never', 'no'],
+  ['major', 'minor'],
+  ['increase', 'decrease'],
+  ['before', 'after'],
+  ['same', 'different'],
+  ['true', 'false'],
+  ['always', 'never'],
+];
+
+function nearDuplicateOptionTokens(value) {
+  return new Set(
+    stripOptionLabel(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/[‘’']/g, '')
+      .replace(/[^a-z0-9♭♯#]+/g, ' ')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((token) => (token.length > 4 && token.endsWith('s') ? token.slice(0, -1) : token))
+      .filter((token) => !NEAR_DUPLICATE_OPTION_STOP_WORDS.has(token)),
+  );
+}
+
+function hasCriticalOptionContrast(left, right) {
+  // "Only" is semantic polarity, not filler. In the seismic-wave item,
+  // "travels through solids, liquids, and gases" and "travels only through
+  // solids" share most of their surface tokens but make opposite claims.
+  if (left.has('only') !== right.has('only')) return true;
+  return NEAR_DUPLICATE_POLARITY_GROUPS.some((group) => {
+    const leftHits = group.filter((token) => left.has(token));
+    const rightHits = group.filter((token) => right.has(token));
+    return leftHits.length > 0 && rightHits.length > 0 && leftHits.some((token) => !rightHits.includes(token));
+  });
+}
+
+/**
+ * Find choices that express the same answer with extra filler words. Exact
+ * normalization catches punctuation/article variants; this conservative
+ * containment check catches the live "C, D, and E" versus "C, D, and the
+ * next note is E" duplicate without collapsing major/minor or other critical
+ * contrasts. Returns null when the choices remain meaningfully distinct.
+ */
+export function findScionNearDuplicateOptionPair(options = []) {
+  const rows = (Array.isArray(options) ? options : []).map((option) => nearDuplicateOptionTokens(option));
+  for (let leftIndex = 0; leftIndex < rows.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < rows.length; rightIndex += 1) {
+      const left = rows[leftIndex];
+      const right = rows[rightIndex];
+      const smaller = Math.min(left.size, right.size);
+      // Equal-size token sets often encode deliberate minimal pairs or role
+      // swaps (positive/negative charge, junction/loop, supply/demand). The
+      // near-duplicate rule is for an answer repeated with extra filler, so
+      // require a strict superset instead of treating high overlap as enough.
+      if (smaller < 6 || left.size === right.size || hasCriticalOptionContrast(left, right)) continue;
+      const shared = [...left].filter((token) => right.has(token)).length;
+      if (shared === smaller) return { leftIndex, rightIndex, shared, smaller };
+    }
+  }
+  return null;
+}
+
 function optionLabelIndex(value) {
   const normalized = clean(value).toUpperCase();
   if (/^[A-D]$/.test(normalized)) return normalized.charCodeAt(0) - 65;

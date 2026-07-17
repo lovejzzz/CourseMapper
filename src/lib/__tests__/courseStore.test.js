@@ -5,6 +5,8 @@
  */
 import { describe, it, expect } from 'vitest';
 
+import { normalizeRestoredDeliverables } from '../../model/courseStore.jsx';
+
 // ── Re-implement reducer (pure function, no React dependency) ──
 function reducer(state, action) {
   switch (action.type) {
@@ -35,7 +37,7 @@ function reducer(state, action) {
     case 'RESET_DELIVERABLES':
       return { ...state, deliverables: {} };
     case 'RESTORE_DELIVERABLES':
-      return { ...state, deliverables: action.deliverables || {} };
+      return { ...state, deliverables: normalizeRestoredDeliverables(action.deliverables) };
     case 'REMOVE_DELIVERABLE': {
       if (!state.deliverables[action.featureId]) return state;
       const next = { ...state.deliverables };
@@ -137,6 +139,38 @@ describe('courseStore reducer', () => {
       expect(state.deliverables.quizBank.status).toBe('streaming');
       expect(state.deliverables.quizBank.data).toBeNull();
       expect(state.deliverables.quizBank.stale).toBe(false);
+    });
+  });
+
+  describe('RESTORE_DELIVERABLES', () => {
+    it('clears interrupted lesson regeneration state while preserving its last complete data', () => {
+      const savedDiscussion = { discussions: [{ lessonTitle: 'Lesson 1', prompt: 'Inspectable prompt' }] };
+      const result = reducer(initialState(), {
+        type: 'RESTORE_DELIVERABLES',
+        deliverables: {
+          discussions: {
+            status: 'streaming',
+            data: savedDiscussion,
+            error: null,
+            stale: false,
+            regeneratingIndex: 0,
+          },
+          quizBank: {
+            status: 'streaming',
+            data: null,
+            error: null,
+            stale: false,
+            regeneratingIndex: 1,
+          },
+        },
+      });
+
+      expect(result.deliverables.discussions).toMatchObject({
+        status: 'done',
+        data: savedDiscussion,
+        regeneratingIndex: null,
+      });
+      expect(result.deliverables.quizBank).toMatchObject({ status: 'idle', data: null, regeneratingIndex: null });
     });
   });
 

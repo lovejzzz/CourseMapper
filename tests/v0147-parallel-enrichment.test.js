@@ -102,6 +102,8 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
     expect(hookSource).toContain('await runEnrichmentChunk(enrichmentChunks[0]);');
     expect(hookSource).toContain('pLimit(enrichmentConcurrency)');
     expect(hookSource).toMatch(/enrichmentChunks\.slice\(1\)\.map\(\(chunk\) => enrichmentLimit/);
+    expect(hookSource).toMatch(/enrichmentChunks\.map\(\(chunk\) => enrichmentLimit/);
+    expect(hookSource).not.toContain('Promise.all(enrichmentChunks.map(runEnrichmentChunk))');
   });
 
   it('per-chunk budget check happens at launch, inside the chunk runner', () => {
@@ -144,8 +146,10 @@ describe('WS-A (2) — the rewritten loop keeps its contract (source pins)', () 
     expect(nativeRecoverySource).toContain('recoveryAttempt: nativeRecoveryCalls');
     expect(nativeRecoverySource).toContain('retrying with stricter instructions');
     expect(hookSource).toContain(
-      'allLessonIndices.filter((lessonIdx) => !kernelIsComplete(lessonContent[lessonIdOf(lessonIdx)]))',
+      'allLessonIndices.filter((lessonIdx) => !kernelIsUsable(lessonContent[lessonIdOf(lessonIdx)]))',
     );
+    expect(nativeRecoverySource).toContain('selectEnrichmentRecoveryChunk(');
+    expect(nativeRecoverySource).toContain('attemptedNativeRecoveryIndices');
     expect(nativeRecoverySource).not.toContain('let previousRecoverySignature');
   });
 

@@ -27,18 +27,18 @@
     "implementation": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 37772,
-        "sha256": "cb937b5ac5dbbcf1e28c8acc026664aefcd251f064601af836ddef92cfb78c35"
+        "bytes": 40688,
+        "sha256": "2c97a9b371b1c34e5946b5068ee5a5b46596d15039b359fb8f02e8e072833298"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 19476,
-        "sha256": "83a818fcdb467c12e0443f312816b0fb3422258f678283fa3e9f2de851f3e9b4"
+        "bytes": 20324,
+        "sha256": "e72418e3d1ab3789df40dbe8542619cff5109a56e271601b4ea5d2191394b4d8"
       },
       {
         "path": "src/lib/scionKeyTermContract.js",
-        "bytes": 18474,
-        "sha256": "f7e726283dbd8a3636b6a7a787e2a830f7ea23c0b594a1cf878bc0f88f0c927a"
+        "bytes": 18642,
+        "sha256": "784ad357d76c72b73c7a2621da3d776d2704b865d1f880d509d93c69891fa12f"
       },
       {
         "path": "src/lib/scionPasses.js",
@@ -47,13 +47,13 @@
       },
       {
         "path": "src/lib/publicScionProvider.js",
-        "bytes": 33816,
-        "sha256": "44c918423f113ffa2d23d60f6bf7fdbaa1088599e215c2d5d028e5ad5ee17de5"
+        "bytes": 34070,
+        "sha256": "64ec7c8fd5c5c6ac2f35d1ea57ddbd34f87e3f56be9c7040d5bdd8a0ba30038c"
       },
       {
         "path": "src/lib/blueprintEnrichmentPass.js",
-        "bytes": 74735,
-        "sha256": "3ceff60a41e22b9aef0ecf607856a6113d664b1ac711706b1507793e6a3b4c2d"
+        "bytes": 76720,
+        "sha256": "4d2dca7f2e40e9d419233fa881f3b0ca5d209a718e7ba57977a55b711d1c3b08"
       },
       {
         "path": "scripts/lib/scionSourceCapture.mjs",

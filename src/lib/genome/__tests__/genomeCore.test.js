@@ -152,6 +152,64 @@ describe('conceptResolver', () => {
     expect(result.hitRate).toBeGreaterThan(0);
   });
 
+  it('keeps an interval course on interval quality instead of weaker clef and scale neighbours', () => {
+    const musicIndex = buildConceptIndex([
+      {
+        id: 'music/intervals',
+        rev: 1,
+        term: 'Interval (music)',
+        aliases: ['interval hearing', 'musical intervals'],
+        level: 'intro',
+      },
+      {
+        id: 'music/staff-clefs-pitch-notation',
+        rev: 1,
+        term: 'Staff and clefs',
+        aliases: ['staff', 'pitch notation'],
+        level: 'intro',
+      },
+      {
+        id: 'music/scales-and-key-signatures',
+        rev: 1,
+        term: 'Scales and key signatures',
+        aliases: ['key signatures', 'major and minor scales', 'scales'],
+        level: 'intro',
+      },
+    ]);
+    const result = resolveCourseConcepts(
+      {
+        courseName: 'Introduction to Music Theory',
+        lessons: [
+          {
+            title: 'Lesson 1: Counting Staff Positions and Generic Interval Size',
+            sections: [
+              {
+                topicSection: 'Staff counting and generic interval size',
+                learningObjectives: 'Identify generic intervals from notated pitch pairs.',
+              },
+            ],
+          },
+          {
+            title: 'Lesson 2: Applying Major Minor Interval Qualities and Chromatic Alteration',
+            sections: [
+              {
+                topicSection: 'Major, minor, augmented, and diminished intervals',
+                learningObjectives: 'Classify interval quality and explain chromatic alteration.',
+              },
+            ],
+          },
+        ],
+      },
+      musicIndex,
+      { level: 'intro' },
+    );
+
+    expect(result.perLesson[0].conceptRefs[0].id).toBe('music/intervals');
+    expect(result.perLesson[0].conceptRefs.map((ref) => ref.id)).toContain('music/staff-clefs-pitch-notation');
+    expect(result.perLesson[1].conceptRefs.map((ref) => ref.id)).toEqual(['music/intervals']);
+    expect(result.perLesson[1].conceptRefs.map((ref) => ref.id)).not.toContain('music/scales-and-key-signatures');
+  });
+
   it('returns empty results against an empty index without throwing', () => {
     const empty = buildConceptIndex([]);
     const result = resolveLessonConcepts({ title: 'Lesson 1' }, empty);

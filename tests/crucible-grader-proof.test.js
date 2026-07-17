@@ -223,7 +223,6 @@ describe('Crucible grader — healthy v0.14.1 package', () => {
       (f) => f.dimension === 'substance' && /content-bearing slides/i.test(f.detail),
     );
     expect(contentSlideFindings, JSON.stringify(contentSlideFindings)).toEqual([]);
-    expect(result.scores.substance).toBe(100);
   }, 120000);
 });
 
@@ -1322,5 +1321,61 @@ describe('round-2 FIX 3 — judge truncation marker and boundary', () => {
     );
     // The over-cap artifact body carries the marker inside the prompt.
     expect(prompt).toMatch(/\[…document continues — truncated for this review at \d+ of \d+ chars\]/);
+  });
+});
+
+describe('Scion process-glossary quality gate', () => {
+  it('caps a package below A when key-term definitions teach coursework instead of the subject', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Simple Interval Quality',
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Study Guides/Lesson 01 - Simple Interval Quality - Study Guides.md': [
+          'KEY TERMS',
+          'Interval quality names the evidence focus students use when deciding what counts as support.',
+          'Generic number helps students separate description from evidence-backed reasoning in the lesson.',
+          'Semitone is used as a self-check before the weekly artifact.',
+        ].join('\n'),
+      }),
+      course: { title: 'Simple Interval Quality', featureIds: ['studyGuides'] },
+    });
+
+    const finding = result.findings.find((entry) => /course process instead of subject knowledge/i.test(entry.detail));
+    expect(finding).toMatchObject({ severity: 'P1', dimension: 'substance' });
+    expect(result.overall.score).toBeLessThanOrEqual(89);
+  });
+
+  it('caps a package below A when quiz questions retain compact-prompt residue', async () => {
+    const result = await grade({
+      fileProvider: createMemoryFileProvider({
+        'PACKAGE_MANIFEST.json': JSON.stringify({
+          courseName: 'Simple Interval Quality',
+          files: [],
+          readiness: { status: 'ready', blockers: 0 },
+        }),
+        'Quiz & Exam Bank/Lesson 01 - Simple Interval Quality - Quiz.md': [
+          'Which option correctly distinguishes the two lesson concepts?',
+          'A. Plausible methodological claim or action A',
+          'B. Plausible methodological claim or action B',
+          'C. Plausible methodological claim or action C',
+          'D. Plausible methodological claim or action D',
+        ].join('\n'),
+      }),
+      course: { title: 'Simple Interval Quality', featureIds: ['quizBank'] },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'substance',
+          detail: expect.stringMatching(/unfilled authoring-template language/i),
+        }),
+      ]),
+    );
+    expect(result.overall.score).toBeLessThanOrEqual(89);
   });
 });

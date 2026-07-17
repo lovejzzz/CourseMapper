@@ -1015,6 +1015,7 @@ const PROVIDER_LABELS = {
   google: 'Google',
   deepseek: 'DeepSeek',
   public: 'Scion',
+  local: 'Scion',
   webllm: 'Local AI',
 };
 
@@ -1077,7 +1078,7 @@ export function getWorkspaceModelStatus({
     };
   }
 
-  if (provider !== 'webllm' && provider !== 'public' && !hasKey) {
+  if (provider !== 'webllm' && provider !== 'public' && provider !== 'local' && !hasKey) {
     return {
       label: savedModelLabel || 'Configure model',
       tone: 'idle',
@@ -1196,6 +1197,7 @@ export default function ChatPanel({
   // v0.14.4 WS-C1: the observation card routes into the unified review queue
   onOpenReviewQueue,
   compactReadyMode = false,
+  ribbonModel = null,
 }) {
   const [workspaceModelConfigOpen, setWorkspaceModelConfigOpen] = useState(false);
   const openWorkspaceModelConfig = useCallback(() => {
@@ -1497,7 +1499,11 @@ export default function ChatPanel({
     isAgentMode && !chat.isAgentProviderReady
       ? { label: 'Configure', tone: 'amber', detail: 'Provider/key required' }
       : deriveAgentStatus(latestAgentProgress, chat.isStreaming, isAgentMode, chat.agentDryRun, isGeneratingWorkspace);
-  const headerAgentStatus = compactReady ? { label: 'Ready', tone: 'emerald', detail: 'Ready to export' } : agentStatus;
+  const compactReadyDetail =
+    ribbonModel?.stage === 'ready' && ribbonModel?.stageLabel ? ribbonModel.stageLabel : 'Ready to export';
+  const headerAgentStatus = compactReady
+    ? { label: 'Ready', tone: 'emerald', detail: compactReadyDetail }
+    : agentStatus;
   const landingContextSummary = useMemo(() => summarizeLandingAgentContext(chat.messages), [chat.messages]);
   const landingContextDetail = useMemo(
     () => formatLandingContextDetail(landingContextSummary),
@@ -2407,6 +2413,28 @@ export default function ChatPanel({
         );
         if (handled) return;
       }
+      if (item.id === 'improve-active' && activeTab && activeTab !== 'courseMap') {
+        const handled = chat.agentDryRun
+          ? await runDirectPackageAudit({
+              displayText: item.displayText,
+              selectedFeatureIds: ['courseMap', activeTab],
+              introText: `Checking ${activeTabLabel(activeTab)} before any changes.`,
+              agentPromptOverride: item.prompt,
+            })
+          : await handleWorkspacePlanAction(
+              {
+                title: `Regenerate ${activeTabLabel(activeTab)}`,
+                target: activeTabLabel(activeTab),
+                safeMode: 'requires-generation',
+                intent: { type: 'regenerate_failed_feature', featureIds: [activeTab] },
+              },
+              {
+                displayText: item.displayText,
+                sendOptions: { agentPromptOverride: item.prompt },
+              },
+            );
+        if (handled) return;
+      }
       if (item.id === 'plan-next') {
         const handled = await runDirectWorkspacePlan({
           displayText: item.displayText,
@@ -2544,6 +2572,36 @@ export default function ChatPanel({
   const handleAgentStarterAction = useCallback(
     (starter) => {
       if (!starter?.action) return false;
+      if (starter.action === 'regenerate-active') {
+        const featureId = starter.featureId || activeTab;
+        if (!featureId || featureId === 'courseMap') return false;
+        if (
+          notifyAgentCommandTemporarilyBlocked({
+            id: 'improve-active',
+            displayText: starter.text || `Improve ${activeTabLabel(featureId)}`,
+          })
+        ) {
+          return true;
+        }
+        if (chat.agentDryRun) {
+          runDirectPackageAudit({
+            displayText: starter.text || `Improve ${activeTabLabel(featureId)}`,
+            selectedFeatureIds: ['courseMap', featureId],
+            introText: `Checking ${activeTabLabel(featureId)} before any changes.`,
+          });
+          return true;
+        }
+        handleWorkspacePlanAction(
+          {
+            title: `Regenerate ${activeTabLabel(featureId)}`,
+            target: activeTabLabel(featureId),
+            safeMode: 'requires-generation',
+            intent: { type: 'regenerate_failed_feature', featureIds: [featureId] },
+          },
+          { displayText: starter.text || `Improve ${activeTabLabel(featureId)}` },
+        );
+        return true;
+      }
       if (starter.action === 'local-audit') {
         if (
           notifyAgentCommandTemporarilyBlocked({
@@ -2597,6 +2655,9 @@ export default function ChatPanel({
       return false;
     },
     [
+      activeTab,
+      chat.agentDryRun,
+      handleWorkspacePlanAction,
       notifyAgentCommandTemporarilyBlocked,
       runDirectPackageAudit,
       runDirectPackageFinish,

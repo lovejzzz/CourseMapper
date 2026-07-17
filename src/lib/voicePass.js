@@ -81,6 +81,10 @@ export const VOICE_ASSUMED_BATCH_COST_USD = 0.01;
 const REGISTRY_ID_RE = /\b[AR]\d+\.\d+\b/g;
 const FROZEN_LINE_MARKER = 'Anchor your post in';
 const EXAM_TITLE_RE = /\b(exam|midterm|final)\b/i;
+const MUSIC_INTERVAL_GROUNDING_RE =
+  /\b(?:semitone|half step|pitch(?:es)?|staff|notated|octave|aural|melodic|harmonic|audio|listening)\b/i;
+const MATHEMATICAL_INTERVAL_DRIFT_RE =
+  /\b(?:real number line|number line|continuous (?:segment|span)|unbroken set of endpoints?|mathematical (?:set|sets|interval)|structural composition|relationship between start and end points?|combination of two or more simple intervals?|start point of \d+[^.?!]{0,80}end point of \d+)\b/i;
 
 // Rotated per-surface directives — variety by construction, not by hope.
 export const VOICE_REGISTERS = [
@@ -177,6 +181,14 @@ export function selectVoiceSurfaces({
       const grounding = lessonGrounding(courseMap, lessonNumber, kernels);
       if (!grounding.lessonTitle && item?.lessonTitle) grounding.lessonTitle = String(item.lessonTitle);
       if (kind.featureId === 'assignments' && item?.title) grounding.assessmentTitle = String(item.title);
+      const groundingText = JSON.stringify(grounding);
+      // The compiler owns a verified, domain-specific interval frame. A
+      // general prose model can make that text more varied while silently
+      // weakening a pitch-spelling rule or producing grammar such as
+      // "Anchor your post in using…". Keep all such surfaces deterministic;
+      // voice remains available everywhere the compiler has not already
+      // supplied a stronger known-domain treatment.
+      if (/\bintervals?\b/i.test(groundingText) && MUSIC_INTERVAL_GROUNDING_RE.test(groundingText)) return;
 
       let priority = 0;
       if (kind.featureId === 'assignments' && lessonNumber === 1) priority += 5; // the door of the course
@@ -308,6 +320,14 @@ export function lintVoiceResult(surface, rewrittenText) {
   }
   if (wordCount > VOICE_REWRITE_MAX_WORDS) {
     return { ok: false, reason: `rewrite too long (${wordCount} words > ${VOICE_REWRITE_MAX_WORDS})` };
+  }
+  const groundingText = JSON.stringify(surface?.grounding || {});
+  if (
+    /\bintervals?\b/i.test(groundingText) &&
+    MUSIC_INTERVAL_GROUNDING_RE.test(groundingText) &&
+    MATHEMATICAL_INTERVAL_DRIFT_RE.test(text)
+  ) {
+    return { ok: false, reason: 'semantic drift: mathematical interval language in music-theory grounding' };
   }
   // v2 NEVER-RENAME: the rewrite may OMIT ids (identity lives in the
   // compiled header), but any id it carries must come from its own original
