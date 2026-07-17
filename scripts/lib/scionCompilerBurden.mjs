@@ -70,6 +70,10 @@ export function summarizeScionCompilerBurden(events, { lessonCount = 0 } = {}) {
     }
   }
   const lessons = Number(lessonCount) || 0;
+  const mcItemCalls = Number(byCallType.mc_item) || 0;
+  const verifiedMcRepairs = parsedActions.filter(
+    (action) => action.pass === 'mcVerify' && action.action === 'regenerated',
+  ).length;
   return {
     schemaVersion: 1,
     lessonCount: lessons,
@@ -93,6 +97,12 @@ export function summarizeScionCompilerBurden(events, { lessonCount = 0 } = {}) {
       byPass,
       byAction,
       rejectionReasons,
+      mcRepairEfficiency: {
+        calls: mcItemCalls,
+        verifiedRepairs: verifiedMcRepairs,
+        yield: mcItemCalls > 0 ? Number((verifiedMcRepairs / mcItemCalls).toFixed(3)) : null,
+        callsWithoutVerifiedRepair: Math.max(0, mcItemCalls - verifiedMcRepairs),
+      },
     },
   };
 }
@@ -128,6 +138,21 @@ export function compareScionCompilerBurden(candidate, control) {
       code: 'unattributed-scion-calls',
       detail: 'The retained logs predate per-schema Scion call attribution; new runs emit it.',
     });
+  }
+  for (const [side, burden] of [
+    ['candidate', candidate],
+    ['control', control],
+  ]) {
+    const efficiency = burden?.scion?.mcRepairEfficiency;
+    if (Number(efficiency?.calls) >= 5 && Number(efficiency?.yield) < 0.25) {
+      findings.push({
+        severity: 'P1',
+        code: `${side}-low-yield-mc-repair`,
+        detail:
+          `${side === 'candidate' ? 'Candidate' : 'Control'} admitted ${efficiency.verifiedRepairs} verified MC ` +
+          `repair(s) from ${efficiency.calls} individual repair calls (${(efficiency.yield * 100).toFixed(1)}% yield).`,
+      });
+    }
   }
   return {
     schemaVersion: 1,
