@@ -567,7 +567,7 @@ describe('Crucible grader — seeded defects each produce their exact P0 finding
     }
   }, 180000);
 
-  it('mandarin course with zero CJK/pinyin → discipline P0', async () => {
+  it('mandarin course with zero per-lesson CJK/pinyin coverage → discipline P0', async () => {
     // Reuse the same geology package text but grade it AS a mandarin course:
     // the language probe must fire because the materials contain no hanzi or
     // tone-marked pinyin (exactly the v0.14 Mandarin finding's structural
@@ -585,7 +585,7 @@ describe('Crucible grader — seeded defects each produce their exact P0 finding
         (f) => f.severity === 'P0' && f.dimension === 'discipline' && /CJK\/pinyin/i.test(f.detail),
       );
       expect(finding, JSON.stringify(result.findings.filter((f) => f.dimension === 'discipline'))).toBeTruthy();
-      expect(finding.detail).toMatch(/<5/);
+      expect(finding.detail).toMatch(/coverage reaches 0\/4 lessons/);
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }

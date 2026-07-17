@@ -1216,8 +1216,12 @@ export default function useDeliverables({
         };
 
         const recordLanguageIdentityFirewall = (issues = []) => {
+          const isLanguageIdentityProblem = (problem) =>
+            ['foreign-language-contamination:', 'target-language-missing:'].some((prefix) =>
+              String(problem).startsWith(prefix),
+            );
           const languageIssues = issues.filter((issue) =>
-            issue?.problems?.some((problem) => String(problem).startsWith('foreign-language-contamination:')),
+            issue?.problems?.some(isLanguageIdentityProblem),
           );
           if (languageIssues.length === 0) return;
           const lessonNumbers = [
@@ -1231,7 +1235,7 @@ export default function useDeliverables({
             ...new Set(
               languageIssues.flatMap((issue) =>
                 issue.problems
-                  .filter((problem) => String(problem).startsWith('foreign-language-contamination:'))
+                  .filter(isLanguageIdentityProblem)
                   .map((problem) => String(problem).split(':')[1])
                   .filter(Boolean),
               ),
@@ -1240,7 +1244,7 @@ export default function useDeliverables({
           recordGenerationApiCallEvent({
             type: 'pipelineDecision',
             label: 'Language identity firewall',
-            detail: `Lessons ${lessonNumbers.join(', ')} — rejected ${languageIds.join(', ')} teaching content that conflicts with ${blueprintCourseMap?.courseName || 'the course'}`,
+            detail: `Lessons ${lessonNumbers.join(', ')} — rejected content outside ${blueprintCourseMap?.courseName || 'the course'}'s ${languageIds.join(', ')} language contract`,
             featureId: 'blueprintEnrichment',
             task: 'scionPass',
           });

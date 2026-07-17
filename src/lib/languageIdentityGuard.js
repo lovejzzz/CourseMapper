@@ -54,6 +54,9 @@ const LANGUAGE_PROFILES = [
   },
 ];
 
+const CJK_RE = /[一-鿿㐀-䶿]/g;
+const TONE_MARKED_PINYIN_RE = /[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/gi;
+
 export function explicitCourseLanguageIds(courseIdentity) {
   const identity = clean(courseIdentity);
   return LANGUAGE_PROFILES.filter((profile) => profile.identity.test(identity)).map((profile) => profile.id);
@@ -88,3 +91,27 @@ export function detectForeignLanguageTeachingContent({ courseIdentity, text } = 
   return null;
 }
 
+/**
+ * A single-language Mandarin kernel must teach at least one visible target-
+ * language example and pair it with tone-marked pinyin. Comparative courses
+ * are exempt because an individual lesson may intentionally focus on the
+ * other declared language.
+ */
+export function assessTargetLanguagePresence({ courseIdentity, text } = {}) {
+  const intendedLanguageIds = explicitCourseLanguageIds(courseIdentity);
+  const content = clean(text);
+  if (intendedLanguageIds.length !== 1 || intendedLanguageIds[0] !== 'mandarin') {
+    return { required: false, complete: true, languageId: null, cjkCount: 0, pinyinCount: 0, missing: [] };
+  }
+  const cjkCount = (content.match(CJK_RE) || []).length;
+  const pinyinCount = (content.match(TONE_MARKED_PINYIN_RE) || []).length;
+  const missing = [...(cjkCount > 0 ? [] : ['hanzi']), ...(pinyinCount > 0 ? [] : ['tone-marked-pinyin'])];
+  return {
+    required: true,
+    complete: missing.length === 0,
+    languageId: 'mandarin',
+    cjkCount,
+    pinyinCount,
+    missing,
+  };
+}

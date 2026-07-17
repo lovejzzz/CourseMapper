@@ -171,6 +171,41 @@ describe('foreign-domain contamination quality gate', () => {
     ).toBe(false);
   });
 
+  it('measures Mandarin target-language depth per lesson instead of letting one dense file mask the course', async () => {
+    const files = {
+      'Lesson Plans/Lesson 01 - Greetings - Lesson Plans.txt': 'Practice 你好 (nǐ hǎo) in a short exchange.',
+      'Lesson Plans/Lesson 02 - Family - Lesson Plans.txt': 'Practice family vocabulary in pairs.',
+      'Lesson Plans/Lesson 03 - Time - Lesson Plans.txt': 'Practice telling time in pairs.',
+      'Lesson Plans/Lesson 04 - Food - Lesson Plans.txt': 'Practice ordering food in pairs.',
+      'Study Guides/Lesson 01 - Greetings - Study Guides.txt': '你好 (nǐ hǎo) means hello.',
+      'Study Guides/Lesson 02 - Family - Study Guides.txt': 'Review the family vocabulary list.',
+      'Study Guides/Lesson 03 - Time - Study Guides.txt': 'Review the time expressions.',
+      'Study Guides/Lesson 04 - Food - Study Guides.txt': 'Review the menu expressions.',
+    };
+    const result = await grade({
+      fileProvider: createMemoryFileProvider(files),
+      course: {
+        title: 'Elementary Mandarin Chinese I',
+        prompt: 'Use actual hanzi alongside tone-marked pinyin throughout.',
+      },
+    });
+
+    expect(result.findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          severity: 'P0',
+          dimension: 'discipline',
+          detail: expect.stringMatching(/coverage reaches 1\/4 lessons; 3 lesson\(s\) lack hanzi with tone-marked pinyin/),
+        }),
+        expect.objectContaining({
+          severity: 'P1',
+          dimension: 'discipline',
+          detail: '3/4 study guides do not pair hanzi with tone-marked pinyin',
+        }),
+      ]),
+    );
+  });
+
   it('uses manifest course identity when offline grading has no explicit course object', async () => {
     const result = await grade({
       fileProvider: createMemoryFileProvider({

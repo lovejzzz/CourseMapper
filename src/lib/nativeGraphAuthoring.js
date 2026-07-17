@@ -50,7 +50,7 @@ import { attachEnrichmentToGraph } from './courseGraph/blueprintFromGraph.js';
 import { buildCourseIRFromCourseMap, courseIRToCourseGraph, validateCourseIR } from './courseIR.js';
 import { repairNativeFallbackWithCurriculumV1 } from './curriculumV1Repair.js';
 import { dedupeNumberedAssessmentEcho } from './compilerText.js';
-import { detectForeignLanguageTeachingContent } from './languageIdentityGuard.js';
+import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from './languageIdentityGuard.js';
 import { NATIVE_PASS_B_AUTHORING_ADDITION } from './prompts';
 export { AUTHORING_MODE_STORAGE_KEY, readAuthoringMode, saveAuthoringMode } from './authoringMode.js';
 
@@ -830,6 +830,21 @@ export function parseNativePassBResponse(text, { prompt, expectedLessonIds, cont
         surface: 'authoring',
         reason: 'foreign-language-contamination',
         problems: [`foreign-language-contamination:${languageContamination.languageId}`],
+      });
+      continue;
+    }
+    const targetLanguagePresence = assessTargetLanguagePresence({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (!targetLanguagePresence.complete) {
+      issues.push({
+        lessonId,
+        surface: 'authoring',
+        reason: 'target-language-missing',
+        problems: targetLanguagePresence.missing.map(
+          (missing) => `target-language-missing:${targetLanguagePresence.languageId}:${missing}`,
+        ),
       });
       continue;
     }

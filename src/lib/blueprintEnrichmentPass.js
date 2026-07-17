@@ -2,7 +2,7 @@ import { cleanText, stripLessonPrefix } from './compilerText';
 import { expandKeys } from './keyMaps';
 import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
-import { detectForeignLanguageTeachingContent } from './languageIdentityGuard';
+import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from './languageIdentityGuard';
 import { lintDecisionScenario } from './scenarioContract';
 import { normalizeScionOptionIdentity, repairScionMcItem } from './scionAnswerKeyAlignment';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
@@ -1039,6 +1039,23 @@ export function parseLessonContentEnrichmentResponse(text, { prompt } = {}) {
       });
       continue;
     }
+    const targetLanguagePresence = assessTargetLanguagePresence({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (!targetLanguagePresence.complete) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: 0,
+        reason: 'target-language-missing',
+        atomIssueCount: 0,
+        problems: targetLanguagePresence.missing.map(
+          (missing) => `target-language-missing:${targetLanguagePresence.languageId}:${missing}`,
+        ),
+      });
+      continue;
+    }
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
     const quizItems = [];
     asArray(entry?.quizItems).forEach((item, index) => {
@@ -1446,6 +1463,23 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
         reason: 'foreign-language-contamination',
         atomIssueCount: 0,
         problems: [`foreign-language-contamination:${languageContamination.languageId}`],
+      });
+      continue;
+    }
+    const targetLanguagePresence = assessTargetLanguagePresence({
+      courseIdentity: prompt?.courseName,
+      text: JSON.stringify(entry),
+    });
+    if (!targetLanguagePresence.complete) {
+      issues.push({
+        lessonId,
+        surface: 'lesson',
+        index: entryIndex,
+        reason: 'target-language-missing',
+        atomIssueCount: 0,
+        problems: targetLanguagePresence.missing.map(
+          (missing) => `target-language-missing:${targetLanguagePresence.languageId}:${missing}`,
+        ),
       });
       continue;
     }
