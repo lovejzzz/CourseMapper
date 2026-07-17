@@ -21,6 +21,9 @@ export function assessResumableCourseEvidence({
 
   const mismatch = [];
   if (storedCourse?.id !== course?.id) mismatch.push('course id');
+  if (storedCourse?.prompt !== course?.prompt || Number(storedCourse?.lessonCount) !== Number(course?.lessonCount)) {
+    mismatch.push('course input');
+  }
   if (storedCourse?.provider !== provider) mismatch.push('provider');
   if (storedCourse?.modelId !== modelId) mismatch.push('model');
   if (expectedComparison && !isDeepStrictEqual(storedCourse?.comparison, expectedComparison)) {

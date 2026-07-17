@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { assessResumableCourseEvidence } from '../scripts/lib/crucibleResume.mjs';
 
-const course = { id: 'mandarin--native--local' };
+const course = { id: 'mandarin--native--local', prompt: 'Elementary Mandarin with hanzi and pinyin.', lessonCount: 15 };
 const comparison = {
   pairId: 'pair:world-languages',
   compilerCommit: 'e7d7e4e',
@@ -60,6 +60,14 @@ describe('Crucible hash-bound round resume', () => {
     expect(wrong.action).toBe('reject');
     expect(wrong.reason).toContain('paired-benchmark identity');
     expect(wrong.reason).toContain('local-model identity');
+  });
+
+  it('rejects a changed prompt or lesson count even when the course id is unchanged', () => {
+    const wrong = assess({
+      course: { ...course, prompt: 'A different course request.', lessonCount: 14 },
+    });
+    expect(wrong).toMatchObject({ action: 'reject' });
+    expect(wrong.reason).toContain('course input');
   });
 
   it('rejects a passed report whose ZIP or extracted manifest is missing', () => {
