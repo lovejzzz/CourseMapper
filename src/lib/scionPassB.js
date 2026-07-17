@@ -2,7 +2,8 @@
 // lazy-loaded so the local-provider-only wiring stays out of the main AppFlow
 // chunk (the bundle budget ratchets down; feature work code-splits).
 //
-// Two entry points the compiler calls only when provider === 'local':
+// Two entry points the compiler calls only for Scion (the public browser
+// provider and the local OpenAI-compatible development provider):
 //   scionKernelSchemaProfile — the declared json_schema contract for the call
 //   runScionPasses           — the D3 quality passes + D4 flywheel on the raw
 //                              batch JSON, returning the processed text

@@ -14,6 +14,57 @@ import { getArrayKey } from './syncDependencies';
 
 const LOWER_BLOOMS = new Set(['remember', 'understand']);
 const MAX_OBSERVATIONS = 3;
+const OBJECTIVE_ECHO_STOP_WORDS = new Set([
+  'able',
+  'about',
+  'after',
+  'before',
+  'course',
+  'from',
+  'into',
+  'lesson',
+  'student',
+  'students',
+  'their',
+  'through',
+  'using',
+  'with',
+]);
+
+function objectiveEchoStem(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length >= 4 && !OBJECTIVE_ECHO_STOP_WORDS.has(token))
+    .map((token) =>
+      token
+        .replace(/ies$/, 'y')
+        .replace(/(?:ing|ers?|ed|ly)$/, '')
+        .replace(/s$/, ''),
+    )
+    .filter((token) => token.length >= 3);
+}
+
+// Exact sentence search is intentionally the first signal, but objectives
+// and assessments often express the same act with different morphology:
+// "Count intervals inclusively" versus "inclusive letter-name counting."
+// A lesson-local stem overlap prevents that harmless rewrite from becoming a
+// false Agent warning while still requiring at least two substantive ideas.
+function hasLessonAssessmentEcho(objectiveText, deliverables, assessedFeatures, lessonIndex) {
+  const objectiveTokens = [...new Set(objectiveEchoStem(objectiveText))];
+  if (objectiveTokens.length < 2) return false;
+  const required = Math.max(2, Math.ceil(objectiveTokens.length * 0.6));
+  return assessedFeatures.some((featureId) => {
+    const items = firstArrayKeyItems(featureId, deliverables?.[featureId]);
+    const lessonItem = items[lessonIndex];
+    if (!lessonItem) return false;
+    const assessmentTokens = new Set(objectiveEchoStem(JSON.stringify(lessonItem)));
+    const overlap = objectiveTokens.filter((token) => assessmentTokens.has(token)).length;
+    return overlap >= required;
+  });
+}
 
 function firstArrayKeyItems(featureId, entry) {
   if (!entry?.data) return [];
@@ -125,7 +176,9 @@ function observeObjectiveCoverage(courseMap, deliverables, observations) {
     const hits = searchCourseContent(index, objectiveText, { limit: 6 }).filter(
       (hit) => assessedFeatures.includes(hit.anchor.featureId) && hit.anchor.itemIndex === lessonIndex,
     );
-    if (hits.length === 0) uncovered.push({ lessonNumber: lessonIndex + 1, objectiveText });
+    if (hits.length === 0 && !hasLessonAssessmentEcho(objectiveText, deliverables, assessedFeatures, lessonIndex)) {
+      uncovered.push({ lessonNumber: lessonIndex + 1, objectiveText });
+    }
   });
   if (uncovered.length === 0) return;
   const first = uncovered[0];

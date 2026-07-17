@@ -28,6 +28,13 @@ describe('auditDeliverableContentQuality', () => {
     expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(true);
   });
 
+  it('does not flag valid phrasal verbs that end in a preposition', () => {
+    const { findings } = auditDeliverableContentQuality('slideDecks', {
+      notes: ['Ask students which cue they should watch for.', 'Name the source they will work with.'],
+    });
+    expect(findings.some((finding) => finding.code === 'dangling-clause')).toBe(false);
+  });
+
   it('flags article disagreement like "a Energy decision"', () => {
     const { findings } = auditDeliverableContentQuality('syllabus', {
       syllabus: { description: 'Explains a Energy decision, implication, or next step.' },

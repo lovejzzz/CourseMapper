@@ -4,7 +4,9 @@ import {
   findScionAffirmativeOptionConflict,
   findScionExplanationKeyConflict,
   findScionExplicitNegativeKeyConflict,
+  findScionMissingKeyExplanationSupport,
   findScionMultipleSourceSupportedOptions,
+  findScionNearDuplicateOptionPair,
   findScionSourceAnswerConflict,
   normalizeScionMcItem,
   normalizeScionOptionIdentity,
@@ -29,6 +31,12 @@ const OPTION_LABEL_PREFIX_RE = /^(?:(?:option|choice|answer)\s*)?(?:[a-d]|[1-4])
 // such as scores[1] or map[key] out of this presentation-only check.
 const OPTION_LABEL_SUFFIX_RE = /\s\[(?:[a-d]|[0-4])\]$/i;
 const CLAIM_MARKER_RE = /(?:\(|\[)?\s*claims?\s*#?\s*\d+(?:\s*[,–-]\s*\d+)*\s*(?:\)|\])?/i;
+// The compact browser-model prompt deliberately includes impossible-to-ship
+// REPLACE instructions. Smaller models sometimes copy a template stem or
+// option verbatim while still producing valid JSON; structure-only checks
+// would otherwise admit that residue as lesson knowledge.
+const TEMPLATE_RESIDUE_RE =
+  /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
 const NON_DISTINCTIVE_GROUNDING = new Set([
   'and',
   'claim',
@@ -50,14 +58,14 @@ const TRAINABLE_PREFERENCE_EVIDENCE_KINDS = new Set([
   'blind-instructor-preference',
   'single-model-judge-preference',
 ]);
-export const SCION_PREFERENCE_GATE_VERSION = '1.0.0';
+export const SCION_PREFERENCE_GATE_VERSION = '1.0.1';
 
 // These checks describe form, contract completeness, or answer-cue hygiene.
 // They do not claim that either side is factually correct. A deterministic
 // training pair is admitted only when the chosen side clears the whole gate
 // and the rejected side fails exclusively inside this non-semantic set.
 const DETERMINISTIC_CONTRACT_ISSUE_RE =
-  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|truncated-option|option-label-suffixes|explanation-length|explanation-repeats-answer|truncated-explanation|process-leakage|meta-surface|all-none-of-above|longest-option-cue|clang-association-cue))$/;
+  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|truncated-option|option-label-suffixes|explanation-length|explanation-repeats-answer|truncated-explanation|process-leakage|meta-surface|template-residue|all-none-of-above|longest-option-cue|clang-association-cue))$/;
 
 function clean(value) {
   return String(value ?? '')
@@ -105,8 +113,10 @@ export function assessScionMcItem(
   // source-strict extends the complete strict profile; it only adds
   // source-grounded key-term rules and must never silently downgrade MC
   // admission to legacy behavior.
+  const judgeInformedSemanticAdmission = semanticProfile === 'strict-v3' || semanticProfile === 'source-strict-v3';
   const strictSemanticAdmission =
-    semanticAdmission && (semanticProfile === 'strict' || semanticProfile === 'source-strict');
+    semanticAdmission &&
+    (semanticProfile === 'strict' || semanticProfile === 'source-strict' || judgeInformedSemanticAdmission);
   const issues = [];
   if (!stringInBand(normalized.question, 25, 300)) issues.push('stem-length');
   if (normalized.options.length !== 4) issues.push('option-count');
@@ -125,7 +135,8 @@ export function assessScionMcItem(
   }
   if (
     normalized.options.length === 4 &&
-    !(semanticAdmission ? unique(normalized.options) : legacyDisplayUnique(normalized.options))
+    (!(semanticAdmission ? unique(normalized.options) : legacyDisplayUnique(normalized.options)) ||
+      (judgeInformedSemanticAdmission && findScionNearDuplicateOptionPair(normalized.options)))
   ) {
     issues.push('duplicate-options');
   }
@@ -160,21 +171,31 @@ export function assessScionMcItem(
   }
   if (normalized.explanation && !TERMINAL_PUNCT_RE.test(normalized.explanation)) issues.push('truncated-explanation');
   if (strictSemanticAdmission && CLAIM_MARKER_RE.test(normalized.explanation)) issues.push('claim-marker-residue');
-  if (PROCESS_LEAK_RE.test([normalized.question, ...normalized.options, normalized.explanation].join(' '))) {
+  const combinedSurface = [normalized.question, ...normalized.options, normalized.explanation].join(' ');
+  if (judgeInformedSemanticAdmission && TEMPLATE_RESIDUE_RE.test(combinedSurface)) issues.push('template-residue');
+  if (PROCESS_LEAK_RE.test(combinedSurface)) {
     issues.push('process-leakage');
   }
-  if (META_SURFACE_RE.test([normalized.question, ...normalized.options, normalized.explanation].join(' '))) {
+  if (META_SURFACE_RE.test(combinedSurface)) {
     issues.push('meta-surface');
   }
   if (/\b(?:all|none) of the above\b/i.test(normalized.options.join(' '))) issues.push('all-none-of-above');
   if (strictSemanticAdmission && findScionExplicitNegativeKeyConflict(normalized)) {
     issues.push('explanation-negates-key');
+  } else if (judgeInformedSemanticAdmission && findScionMissingKeyExplanationSupport(normalized)) {
+    issues.push('explanation-omits-key-support');
   } else if (
     semanticAdmission &&
     findScionSourceAnswerConflict(normalized, { sourceClaims, strict: strictSemanticAdmission })
   ) {
     issues.push('source-answer-conflict');
-  } else if (strictSemanticAdmission && findScionMultipleSourceSupportedOptions(normalized, { sourceClaims })) {
+  } else if (
+    strictSemanticAdmission &&
+    findScionMultipleSourceSupportedOptions(normalized, {
+      sourceClaims,
+      allowBroadSourceContext: judgeInformedSemanticAdmission,
+    })
+  ) {
     issues.push('multiple-source-supported-options');
   } else if (strictSemanticAdmission && findScionAffirmativeOptionConflict(normalized)) {
     issues.push('explanation-key-conflict');

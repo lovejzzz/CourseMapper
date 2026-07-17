@@ -565,6 +565,17 @@ describe('Pass B contract (B2)', () => {
       studyGuide: { summary: 'A substantive summary.', reviewStrategy: 'A specific review strategy.' },
     };
     expect(isNativeContentSourcedKernel(complete, null)).toBe(true);
+    const richPartial = {
+      ...complete,
+      quizItems: complete.quizItems.slice(0, 2),
+      keyTerms: complete.keyTerms.slice(0, 1),
+      slideContent: complete.slideContent.slice(0, 1),
+      kernel: {
+        ...complete.kernel,
+        facts: ['fact one', 'fact two', 'fact three'],
+      },
+    };
+    expect(isNativeContentSourcedKernel(richPartial, { cited: true })).toBe(true);
     expect(pickNativeKernel(complete, sparse)).toBe(complete);
     expect(pickNativeKernel(sparse, complete)).toBe(complete);
   });

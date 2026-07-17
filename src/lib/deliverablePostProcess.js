@@ -497,7 +497,51 @@ function pickFaqRepairTemplate(templates, lessonIndex = 0, questionIndex = 0) {
   return templates[index];
 }
 
-function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex, questionIndex = 0 }) {
+const UNSAFE_FAQ_ASSESSMENT_RE =
+  /\b(?:transfer task|lesson task|literature matrix|source synthesis|gap statement|annotated evidence table)\b|\bone example, one source detail, and one limitation\b/i;
+
+function faqAssignmentTitleFromDeliverables(deliverables = null, lessonIndex = 0) {
+  const entry = deliverables?.assignments;
+  const data = entry?.data || entry;
+  const assignments = Array.isArray(data?.assignments)
+    ? data.assignments
+    : Array.isArray(data?.assignmentBriefs)
+      ? data.assignmentBriefs
+      : [];
+  const lessonNumber = lessonIndex + 1;
+  const assignment =
+    assignments.find(
+      (item) =>
+        Number(item?.lessonNumber || item?.ln) === lessonNumber ||
+        (Array.isArray(item?.lessonNumbers) && item.lessonNumbers.includes(lessonNumber)),
+    ) || assignments[lessonIndex];
+  const raw = compactText(assignment?.title || assignment?.assignmentTitle || assignment?.at || assignment?.artifact);
+  if (!raw) return '';
+  const beforeDirections = raw.split(/\s*:\s*/)[0]?.trim();
+  return compactText(beforeDirections && beforeDirections.length >= 12 ? beforeDirections : raw, '', 120);
+}
+
+function faqCourseLooksTechnical(courseLesson = null) {
+  const text = [
+    getLessonField(courseLesson, 'topicSection'),
+    getLessonField(courseLesson, 'learningObjectives'),
+    getLessonField(courseLesson, 'asyncActivities'),
+    getLessonField(courseLesson, 'syncActivities'),
+    getLessonField(courseLesson, 'supportingResources'),
+  ].join(' ');
+  return /\b(?:code|coding|program|software|command|terminal|browser|file format|spreadsheet|dataset|database|notebook|api|lms|upload|download)\b/i.test(
+    text,
+  );
+}
+
+function buildFaqQuestionRepair({
+  question,
+  courseLesson,
+  lessonTitle,
+  lessonIndex,
+  questionIndex = 0,
+  deliverables = null,
+}) {
   const shortTitle = stripLessonPrefix(lessonTitle) || `Lesson ${lessonIndex + 1}`;
   const topic = compactText(getLessonField(courseLesson, 'topicSection'), shortTitle, 90);
   const assessmentText = getLessonField(courseLesson, 'weeklyAssessments');
@@ -507,12 +551,21 @@ function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonInd
     `apply ${shortTitle} concepts`,
     120,
   );
-  const assessmentLabel = compactText(
-    firstStructuredListItem(assessmentText, 'the lesson assessment'),
+  const structuredAssessmentLabel = firstStructuredListItem(assessmentText, 'the lesson assessment');
+  const assessmentPrefix = String(structuredAssessmentLabel || '')
+    .split(/\s*:\s*/)[0]
+    ?.trim();
+  const rawAssessmentLabel = compactText(
+    assessmentPrefix && assessmentPrefix.length >= 12 ? assessmentPrefix : structuredAssessmentLabel,
     'the lesson assessment',
     90,
   );
+  const compiledAssessmentLabel = faqAssignmentTitleFromDeliverables(deliverables, lessonIndex);
+  const assessmentLabel =
+    compiledAssessmentLabel ||
+    (UNSAFE_FAQ_ASSESSMENT_RE.test(rawAssessmentLabel) ? `${shortTitle} assessment` : rawAssessmentLabel);
   const category = getFaqQuestionCategory(question);
+  const technicalCourse = faqCourseLooksTechnical(courseLesson);
   const templates = {
     'Course Logistics': [
       {
@@ -556,20 +609,35 @@ function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonInd
         an: `${topic} matters because it turns the lesson from recall into judgment: students must connect the idea to ${assessmentLabel} and defend a course-specific choice.`,
       },
     ],
-    'Technical Help': [
-      {
-        q: `What should I do if the ${shortTitle} file, tool, or workflow step does not work?`,
-        an: `Write down the exact step that failed, the input you used, and what result you expected. Then retry the step with the course example before asking for help, so the instructor can see where the workflow broke.`,
-      },
-      {
-        q: `How should I report a blocker during ${shortTitle}?`,
-        an: `Share the platform, the command or screen you used, and the last successful step. Include how the blocker affects ${assessmentLabel} so support can focus on the right task.`,
-      },
-      {
-        q: `What should I check before asking for technical help on ${shortTitle}?`,
-        an: `Confirm the file version, the required tool, and the prompt or data you entered. If the issue remains, send the exact error plus the ${topic} task you were trying to complete.`,
-      },
-    ],
+    'Technical Help': technicalCourse
+      ? [
+          {
+            q: `What should I do if the ${shortTitle} file, tool, or workflow step does not work?`,
+            an: `Write down the exact step that failed, the input you used, and what result you expected. Then retry the step with the course example before asking for help, so the instructor can see where the workflow broke.`,
+          },
+          {
+            q: `How should I report a blocker during ${shortTitle}?`,
+            an: `Share the platform, the command or screen you used, and the last successful step. Include how the blocker affects ${assessmentLabel} so support can focus on the right task.`,
+          },
+          {
+            q: `What should I check before asking for technical help on ${shortTitle}?`,
+            an: `Confirm the file version, the required tool, and the prompt or data you entered. If the issue remains, send the exact error plus the ${topic} task you were trying to complete.`,
+          },
+        ]
+      : [
+          {
+            q: `What should I do if I cannot use the ${shortTitle} lesson materials?`,
+            an: `Name the exact reading, recording, example, or activity you cannot access, where the problem occurs, and what you already tried. Explain how it blocks ${assessmentLabel} so the instructor can give targeted help.`,
+          },
+          {
+            q: `How should I report a materials blocker during ${shortTitle}?`,
+            an: `Identify the exact source or example, the point where access or interpretation breaks down, and the last step you could complete. Connect the blocker to ${assessmentLabel} so support stays focused on the course task.`,
+          },
+          {
+            q: `What should I check before asking for help on ${shortTitle}?`,
+            an: `Reopen the assigned source, compare the directions with ${stripTerminalPunctuation(objective)}, and record the exact point that remains unclear. Send that evidence with your question about ${assessmentLabel}.`,
+          },
+        ],
     'Assessment Prep': [
       {
         q: `What evidence should I have ready for ${assessmentLabel}?`,
@@ -588,7 +656,7 @@ function buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonInd
   return pickFaqRepairTemplate(templates[category] || templates['Concept Explanation'], lessonIndex, questionIndex);
 }
 
-export function normalizeCourseFaqQuestionVariety(data, courseMap = null) {
+export function normalizeCourseFaqQuestionVariety(data, courseMap = null, deliverables = null) {
   const arrayKey = getArrayKey('courseFaq', data) || (data?.faqs ? 'faqs' : data?.courseFaq ? 'courseFaq' : null);
   const lessons = arrayKey ? data?.[arrayKey] : null;
   const courseLessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons : [];
@@ -637,7 +705,14 @@ export function normalizeCourseFaqQuestionVariety(data, courseMap = null) {
       );
       if (!repeated && !genericPrep && !repeatedBoilerplateAnswer && !repeatedTextureAnswer) return question;
 
-      const repair = buildFaqQuestionRepair({ question, courseLesson, lessonTitle, lessonIndex, questionIndex });
+      const repair = buildFaqQuestionRepair({
+        question,
+        courseLesson,
+        lessonTitle,
+        lessonIndex,
+        questionIndex,
+        deliverables,
+      });
       rewrittenQuestions++;
       changed = true;
       const nextQuestion = {
@@ -3381,7 +3456,13 @@ export function normalizeStudyGuideQuestions(data) {
           ? 'kt'
           : 'keyTerms';
     const existingTerms = Array.isArray(nextGuide?.[termKey]) ? nextGuide[termKey] : [];
-    if (existingTerms.length < 3) {
+    // Compact model responses use string `kt` arrays; rich compiled guides
+    // use `{term, definition, ...}` objects. Appending bare title words to
+    // the latter creates blank glossary cards because the UI reads `.term`
+    // and `.definition`. Never mix those schemas, and never invent terms for
+    // a guide that explicitly asks an instructor to verify definitions.
+    const usesRichTermSchema = termKey === 'keyTerms' || existingTerms.some((term) => term && typeof term === 'object');
+    if (existingTerms.length < 3 && !usesRichTermSchema && !nextGuide?.sourceReviewRequired) {
       const titleWords = String(nextGuide?.lessonTitle || nextGuide?.lt || 'lesson evidence transfer')
         .replace(/^Lesson\s+\d+:\s*/i, '')
         .replace(/[^A-Za-z0-9\s-]/g, ' ')

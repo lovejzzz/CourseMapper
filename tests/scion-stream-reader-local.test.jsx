@@ -123,4 +123,76 @@ describe('useStreamReader Scion boundary', () => {
       expect.objectContaining({ type: 'apiUsage', pricingSource: 'browser-local', costUsd: 0 }),
     );
   });
+
+  it('records semantic issue and kernel-shape evidence on a local retry', async () => {
+    mocks.runScionLocalCompletion.mockImplementation(async (options) => {
+      const error = Object.assign(new Error('Incomplete kernel'), {
+        code: 'SCION_LOCAL_INCOMPLETE',
+        retryable: true,
+        admissionIssues: ['lesson-2:key-terms-count:1/3'],
+        kernelShape: [{ lessonId: 'lesson-2', facts: 5, keyTerms: 1, mc: 0 }],
+      });
+      options.onRetry(1, 2, 250, error);
+      throw error;
+    });
+    const onApiCallEvent = vi.fn();
+
+    await expect(
+      act(async () => {
+        await reader.streamProvider('public', '', 'scion-public', 'System', 'Course: Design', {
+          task: 'blueprintEnrichment',
+          onApiCallEvent,
+        });
+      }),
+    ).rejects.toThrow('Incomplete kernel');
+
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'streamRetryCall',
+        admissionIssues: ['lesson-2:key-terms-count:1/3'],
+        kernelShape: [{ lessonId: 'lesson-2', facts: 5, keyTerms: 1, mc: 0 }],
+      }),
+    );
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'failedCall',
+        admissionIssues: ['lesson-2:key-terms-count:1/3'],
+      }),
+    );
+  });
+
+  it('forwards deferred kernel shape to the canonical admission receipt', async () => {
+    mocks.runScionLocalCompletion.mockResolvedValue({
+      fullText: '{"lessons":[]}',
+      tokenCount: 4,
+      attempt: 2,
+      retryCount: 1,
+      maxRetries: 2,
+      messages: [
+        { role: 'system', content: 'System' },
+        { role: 'user', content: 'Course: Design' },
+      ],
+      repairs: [],
+      contractIncomplete: true,
+      admissionIssues: ['lesson-2:key-terms-count:1/3'],
+      kernelShape: [{ lessonId: 'lesson-2', facts: 5, keyTerms: 1, mc: 2 }],
+    });
+    const onApiCallEvent = vi.fn();
+
+    await act(async () => {
+      await reader.streamProvider('public', '', 'scion-public', 'System', 'Course: Design', {
+        task: 'blueprintEnrichment',
+        onApiCallEvent,
+      });
+    });
+
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'pipelineDecision',
+        stage: 'local-compiler',
+        admissionIssues: ['lesson-2:key-terms-count:1/3'],
+        kernelShape: [{ lessonId: 'lesson-2', facts: 5, keyTerms: 1, mc: 2 }],
+      }),
+    );
+  });
 });

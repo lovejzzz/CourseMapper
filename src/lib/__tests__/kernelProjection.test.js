@@ -208,9 +208,27 @@ describe('native kernel coverage contract', () => {
     };
     expect(assessProjectedKernelCoverage(payload, { requiredMcCount: 4 })).toMatchObject({
       complete: true,
+      usable: true,
       issues: [],
+      usabilityIssues: [],
       mcCount: 4,
       keyTermCount: 3,
+    });
+
+    const richButUnsaturated = {
+      ...payload,
+      quizItems: payload.quizItems.slice(0, 2),
+      keyTerms: payload.keyTerms.slice(0, 1),
+      slideContent: payload.slideContent.slice(0, 1),
+    };
+    expect(assessProjectedKernelCoverage(richButUnsaturated, { requiredMcCount: 4 })).toMatchObject({
+      complete: false,
+      usable: true,
+      factCount: 7,
+      quizItemCount: 2,
+      keyTermCount: 1,
+      slideCount: 1,
+      usabilityIssues: [],
     });
 
     const partial = {
@@ -221,6 +239,7 @@ describe('native kernel coverage contract', () => {
     };
     const result = assessProjectedKernelCoverage(partial, { requiredMcCount: 4 });
     expect(result.complete).toBe(false);
+    expect(result.usable).toBe(false);
     expect(result.issues).toEqual(
       expect.arrayContaining(['mc-coverage:1/4', 'key-term-coverage:1/3', 'study-guide-coverage']),
     );

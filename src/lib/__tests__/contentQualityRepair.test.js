@@ -39,4 +39,12 @@ describe('contentQualityRepair (v0.12.1 P2)', () => {
     const { changed } = repairDeliverableContentQuality('studyGuides', data);
     expect(changed).toBe(false);
   });
+
+  it('preserves valid phrasal verbs that end in a preposition', () => {
+    const data = { notes: ['Ask students which cue they should watch for.', 'Name the source they will work with.'] };
+    const result = repairDeliverableContentQuality('slideDecks', data);
+
+    expect(result.changed).toBe(false);
+    expect(result.data).toBe(data);
+  });
 });

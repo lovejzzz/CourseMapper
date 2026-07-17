@@ -22,6 +22,10 @@ const REASONING_RE =
   /\b(?:based on (?:this|these|the) evidence|evaluate(?: the claim)?|why is (?:this|the\s+\w+)|what should|what concept (?:best )?(?:justifies|explains|applies)|what (?:ethical )?concept does (?:this|the)|what is (?:the )?(?:\w+\s+){0,4}(?:outcome|impact|risk|benefit|cause|response|purpose|flaw|issue|concern|way|violation|interpretation|course of action|regulatory action|immediate action)|which (?:(?:ethical|usability|accessibility|research|design|legal|economic)\s+)?(?:principle|heuristic|framework|theory|model|concept|virtue|classification|view|approach)(?:\s+(?:is|best|would|does|prioritizes?|applies?|supports?|justifies?|explains?|opposes?|describes?))?|which (?:(?:next|best|first|primary|most likely|likely|most appropriate|correct)\s+)?(?:response|interpretation|conclusion|action|step|change|claim|finding|inference|method|evidence|approach|choice|use|move|outcome|impact|risk|benefit|cause|principle|heuristic|purpose|course of action|legal theory|regulatory action)|aligns? with which|characterized as|exemplifies? which|under which|according to .{0,80}\b(?:is|would|should)\b|how should|what does this|best (?:reflects|explains|supports|addresses|describes|characterized|labeled|classified)|(?:is|are|was|were) (?:(?:an? )?example of|called)|acts? as|what (?:problem|issue|risk|impact)|what(?:\s+\w+){0,4}\s+(?:pitch|value|classification|category|diagnosis|pattern)|is (?:this|the) (?:claim|action|decision|conduct|conflict of interest)|who is (?:primarily )?liable|what is the severity|analy[sz]e the following|most (?:useful|relevant|clearly|evident)|reveals?|supports?|indicates?|suggests?)\b/i;
 const CLASSIFICATION_COMPLETION_RE =
   /\b(?:best (?:labeled|classified|described) (?:as\s+)?(?:the|a|an)?|(?:is|are|was|were) (?:an? )?example of(?: which)?|acts? as|(?:is|are|was|were) called)\s*$/i;
+const MUSICAL_INTERVAL_CASE_RE =
+  /\b(?:[A-G](?:[#♭♯b])?\d?\s*(?:[–—-]|to)\s*[A-G](?:[#♭♯b])?\d?|compound (?:ninth|tenth|eleventh|twelfth|thirteenth)|(?:major|minor|perfect|augmented|diminished) (?:unison|second|third|fourth|fifth|sixth|seventh|octave))\b/i;
+const MUSICAL_INTERVAL_REASONING_RE =
+  /\b(?:analy[sz]e|apply|classify|determine|distinguish|identify|invert|reduce|verify|which interval|which label|why)\b/i;
 
 function normalizeStem(value) {
   return String(value || '')
@@ -113,7 +117,9 @@ export function isAppliedQuizStem(stem) {
   const text = normalizeStem(stem);
   const wordCount = text.match(/[A-Za-z0-9]+(?:['’-][A-Za-z0-9]+)*/g)?.length || 0;
   const completePrompt = /[.?!:]['’”")\]]?\s*$/.test(text) || CLASSIFICATION_COMPLETION_RE.test(text);
-  if (wordCount < 12 || !completePrompt || !REASONING_RE.test(text)) return false;
+  if (wordCount < 12 || !completePrompt) return false;
+  if (MUSICAL_INTERVAL_CASE_RE.test(text) && MUSICAL_INTERVAL_REASONING_RE.test(text)) return true;
+  if (!REASONING_RE.test(text)) return false;
   return (ACTOR_RE.test(text) && ACTION_RE.test(text)) || EVIDENCE_RE.test(text);
 }
 

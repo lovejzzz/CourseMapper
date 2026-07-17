@@ -133,6 +133,10 @@ export function buildApiTraceSummary(event = {}, budget = {}, { verbose = false 
     savedProviderCalls: Number.isFinite(event.savedProviderCalls) ? event.savedProviderCalls : undefined,
     compiledFeatureCount: Number.isFinite(event.compiledFeatureCount) ? event.compiledFeatureCount : undefined,
     compilerSource: event.compilerSource || '',
+    // Bounded issue codes and atom counts make a real browser run auditable
+    // without retaining prompts or generated prose.
+    admissionIssues: Array.isArray(event.admissionIssues) ? event.admissionIssues.slice(0, 16) : undefined,
+    kernelShape: Array.isArray(event.kernelShape) ? event.kernelShape.slice(0, 8) : undefined,
     failureClass: event.failureClass || '',
     statusCode: event.statusCode || '',
     retryable: event.retryable,

@@ -50,6 +50,19 @@ describe('Prof catch #1 — autograded quizzes are machine-scorable', () => {
     expect(weeklyQuizItems('Weekly AUTOGRADED check').types.essay || 0).toBe(0);
   });
 
+  it('states an auditable scoring rule without stamping one identical sentence across lessons', () => {
+    const { compiled } = weeklyQuizItems('Autograded quiz');
+    const specs = compiled.quizBank.quizzes.filter((quiz) => quiz.kind !== 'exam').map((quiz) => quiz.gradingSpec);
+
+    expect(specs).toHaveLength(3);
+    expect(new Set(specs).size).toBeGreaterThan(1);
+    for (const spec of specs) {
+      expect(spec).toMatch(/(?:answer|key)/i);
+      expect(spec).toMatch(/(?:machine|auto-score|manual grading|hand scoring)/i);
+      expect(spec).toMatch(/partial credit|zero otherwise/i);
+    }
+  });
+
   it('lesson-plan routines use a lesson-scoped quiz noun instead of the generic registry label', () => {
     const blueprint = buildCourseBlueprint(course('Weekly autograded quizzes'));
     const compiled = compileBlueprintDeliverables(blueprint, ['lessonPlans']);

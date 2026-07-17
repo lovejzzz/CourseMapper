@@ -52,7 +52,16 @@ function buildActiveTabSecondaryStarter(activeTab, tabLabel) {
     courseFaq: { text: 'Improve student FAQ', icon: 'edit' },
     syllabus: { text: 'Check syllabus policies', icon: 'search' },
   };
-  return starters[activeTab] || { text: `Review ${tabLabel} for completeness`, icon: 'search' };
+  const starter = starters[activeTab] || { text: `Review ${tabLabel} for completeness`, icon: 'search' };
+  return {
+    ...starter,
+    // This chip promises an action, so route it through the same deterministic
+    // generation callback as workspace-plan regeneration. Browser-local Scion
+    // is still useful for conversation, but it must not be asked to simulate a
+    // tool call in plain text when the app already owns the safe operation.
+    action: starter.icon === 'edit' ? 'regenerate-active' : 'local-audit',
+    featureId: activeTab,
+  };
 }
 
 function buildAdaptiveStarters(courseMap, activeTab, deliverables) {

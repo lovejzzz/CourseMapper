@@ -1342,6 +1342,155 @@ describe('packageZipExporter', () => {
     expect(sourceReport).not.toContain('Existing course map fields');
   });
 
+  it('recovers music-interval source proof with licensed Open Music Theory materials and drops search false friends', async () => {
+    const courseMap = {
+      courseName: 'Interval Evidence Studio',
+      lessons: [
+        {
+          title: 'Lesson 1: Classifying Written and Heard Intervals',
+          sections: [
+            {
+              topicSection: 'generic interval number, interval quality, and semitone evidence',
+              learningObjectives: 'Classify written and heard musical intervals from pitch spelling and semitones.',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Compound Intervals and Inversions',
+          sections: [
+            {
+              topicSection: 'compound reduction, sum-to-nine inversions, and quality exchange',
+              learningObjectives: 'Reduce compound intervals and verify interval inversions.',
+            },
+          ],
+        },
+      ],
+    };
+    const result = await buildCourseMaterialsZip({
+      courseMap,
+      deliverables: {},
+      featureIds: ['courseMap'],
+      courseGraph: {
+        course: { name: 'Interval Evidence Studio: Music Theory and Aural Skills' },
+        concepts: [
+          { id: 'c1', term: 'generic interval' },
+          { id: 'c2', term: 'interval quality' },
+          { id: 'c3', term: 'compound interval' },
+          { id: 'c4', term: 'interval inversion' },
+        ],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Classifying written and heard musical intervals',
+            sections: [
+              {
+                id: 'sec1',
+                topic: 'generic interval, interval quality, and semitone evidence',
+                conceptRefs: ['c1', 'c2'],
+                resourceRefs: [],
+              },
+            ],
+          },
+          {
+            id: 's2',
+            number: 2,
+            title: 'Compound intervals and inversions',
+            sections: [
+              {
+                id: 'sec2',
+                topic: 'compound interval reduction and interval inversion',
+                conceptRefs: ['c3', 'c4'],
+                resourceRefs: [],
+              },
+            ],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'musical interval classification',
+              sources: [
+                {
+                  provider: 'openalex',
+                  kind: 'journal article',
+                  title: 'Classification of Multivariate Objects Using Interval Quantile Classes',
+                  url: 'https://doi.org/10.0000/statistics-interval-classes',
+                  license: 'CC BY 4.0',
+                  snippet: 'A statistics paper about interval quantile classes.',
+                },
+              ],
+            },
+          ],
+        },
+        courseIR: {
+          version: 'courseir.v1',
+          lessonIds: ['L1', 'L2'],
+          conceptIds: ['c1', 'c2', 'c3', 'c4'],
+          assessmentIds: ['A1', 'A2'],
+          sourceLedger: [
+            {
+              id: 'SL1',
+              scope: 'course',
+              status: 'source-provided',
+              evidence: 'Existing course map fields.',
+              provider: 'courseir',
+            },
+          ],
+          sourceRefCoverage: {
+            sourceLedgerRows: 1,
+            categories: {
+              outcomes: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+              activities: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+              factualClaims: { total: 4, withRefs: 4, missing: 0, danglingRefs: 0, missingIds: [] },
+            },
+            totals: { total: 12, withRefs: 12, missing: 0, danglingRefs: 0 },
+          },
+        },
+      },
+      pipelineState: {
+        knowledgeBackbone: '0/2 lessons genome-linked · 1 open resource (source-finder: 1)',
+      },
+      quality: false,
+    });
+
+    const zip = await JSZip.loadAsync(await result.blob.arrayBuffer());
+    const manifest = JSON.parse(await zip.file('PACKAGE_MANIFEST.json').async('string'));
+    const sourceReport = await zip.file('SOURCE_REPORT.md').async('string');
+
+    expect(manifest.sourceLedger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'music-omt-intervals',
+          provider: 'open-music-theory',
+          license: 'CC BY-SA 4.0',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'generic interval' })]),
+        }),
+        expect.objectContaining({
+          id: 'music-omt-intervals-worksheet-e',
+          provider: 'open-music-theory',
+          license: 'CC BY-SA 4.0',
+          conceptLinks: expect.arrayContaining([expect.objectContaining({ label: 'interval inversion' })]),
+        }),
+      ]),
+    );
+    expect(manifest.sourceReviewRows).toBeUndefined();
+    expect(JSON.stringify(manifest)).not.toContain('Classification of Multivariate Objects');
+    expect(manifest.sourceLedgerSummary).toMatchObject({
+      sourceCount: 2,
+      trustedCount: 2,
+      trustedConceptLinkedCount: 2,
+      providers: ['open-music-theory'],
+    });
+    expect(sourceReport).toContain('Open Music Theory: Intervals');
+    expect(sourceReport).toContain('CC BY-SA 4.0');
+    expect(sourceReport).not.toContain('Source Review Notes');
+  });
+
   it('does not inflate CourseIR sourceRef coverage with trusted but unlinked source rows', async () => {
     const result = await buildCourseMaterialsZip({
       courseMap: makeCourseMap('Trusted Unlinked SourceRef Bridge'),

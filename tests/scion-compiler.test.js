@@ -216,6 +216,53 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     );
   });
 
+  it('D3: routes incomplete keyed feedback through the live admission retry path', async () => {
+    const lesson = {
+      lessonId: 'lesson-1',
+      facts: [
+        'Task flow analysis validates user goals, common scenarios, and tasks.',
+        'Task flow diagrams show steps and decision points used to reach a goal.',
+      ],
+      mc: [
+        {
+          q: 'What is the primary function of a task flow analysis?',
+          op: [
+            'To illustrate a user emotional response',
+            'To validate user goals, scenarios, and tasks',
+            'To show the final interface visual style',
+            'To document the history of the software',
+          ],
+          ai: 1,
+          ex: 'Option 1 is incorrect because it concerns emotion. Option 3 is incorrect because it concerns visual style. Option 4 is incorrect because it concerns history.',
+        },
+      ],
+    };
+    const calls = [];
+    const generateJson = async ({ schemaProfile }) => {
+      calls.push(schemaProfile.name);
+      if (schemaProfile.name === 'blind_solve') {
+        return JSON.stringify({ answers: ['To validate user goals, scenarios, and tasks'] });
+      }
+      if (schemaProfile.name === 'mc_admission_batch') return JSON.stringify({ repairs: [] });
+      return JSON.stringify({});
+    };
+
+    const result = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Task flow analysis', topics: 'task flow user goals' }],
+      generateJson,
+    });
+
+    expect(calls).toContain('mc_admission_batch');
+    expect(result.events).toContainEqual(
+      expect.objectContaining({
+        pass: 'admissionGate',
+        item: 0,
+        action: 'rejected',
+        reason: 'missing-repair',
+      }),
+    );
+  });
+
   it('D3: repairs a keyed item when two cold validators find the stem invalid', async () => {
     const original = {
       q: 'A sudden loud noise makes a participant startle. Which neutral stimulus has now been classically conditioned?',
@@ -684,9 +731,10 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
 
   it('D4: the flywheel and pass wiring exist in the compiler (source wiring)', () => {
     // The compiler lazy-loads the Scion orchestration (scionPassB) so the
-    // local-only wiring stays out of the main bundle chunk.
+    // public-browser and local-development wiring stay out of the main chunk.
     const deliverables = fs.readFileSync('src/hooks/useDeliverables.js', 'utf8');
     expect(deliverables).toContain("import('../lib/scionPassB')");
+    expect(deliverables).toContain("provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID");
     expect(deliverables).toContain('scionCallOpts');
     expect(deliverables).toContain('runScionPasses');
     const passB = fs.readFileSync('src/lib/scionPassB.js', 'utf8');

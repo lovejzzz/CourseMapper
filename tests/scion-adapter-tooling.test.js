@@ -369,6 +369,10 @@ describe('Scion adapter tooling', () => {
     expect(result.manifest).toMatchObject({
       status: 'research-ready',
       promotable: false,
+      admissionPolicy: {
+        protocol: 'scion-adapter-semantic-admission-v1',
+        semanticProfile: 'legacy',
+      },
       counts: {
         total: 108,
         domains: 4,
@@ -466,7 +470,7 @@ describe('Scion adapter tooling', () => {
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v1.json', 'utf8'),
     );
     const transitivelyBoundBenchmark = JSON.parse(
-      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v2.json', 'utf8'),
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v3.json', 'utf8'),
     );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
@@ -515,7 +519,7 @@ describe('Scion adapter tooling', () => {
 
   it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
-    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v2.json');
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v3.json');
     const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
     const benchmarkSha256 = await sha256File(benchmarkPath);
     const datasetDir = path.join(root, 'dataset');

@@ -59,6 +59,48 @@ describe('trusted source ledger', () => {
     });
   });
 
+  it('quarantines music-interval false friends even when an abstract course title omits music', () => {
+    const graph = {
+      course: { name: 'Interval Evidence Studio' },
+      concepts: [{ id: 'c2', term: 'Compound Intervals' }],
+      sessions: [
+        {
+          id: 's2',
+          number: 2,
+          title: 'Simple and Compound Intervals and Inversion',
+          sections: [{ topic: 'Compound Intervals', conceptRefs: ['c2'], resourceRefs: ['bad', 'good'] }],
+        },
+      ],
+      edges: { teaches: [{ from: 's2', to: 'c2' }] },
+      resources: [
+        {
+          id: 'bad',
+          origin: 'source-finder',
+          provider: 'openalex',
+          title: 'Biochemistry Changes That Occur after Death: Post-Mortem Interval',
+          url: 'https://example.org/post-mortem-interval',
+          license: 'CC BY',
+          snippet: 'Forensic pathology and biochemistry markers for time since death.',
+          sessionRefs: ['s2'],
+        },
+        {
+          id: 'good',
+          origin: 'source-finder',
+          provider: 'wikipedia',
+          title: 'Interval (music)',
+          url: 'https://en.wikipedia.org/wiki/Interval_(music)',
+          license: 'CC BY-SA 4.0',
+          snippet: 'Music theory description of pitch distance, semitones, and interval quality.',
+          sessionRefs: ['s2'],
+        },
+      ],
+    };
+
+    const ledger = buildSourceLedgerFromCourseGraph(graph, { checkedAt: '2026-07-17T00:00:00.000Z' });
+    expect(ledger.rows.map((row) => row.title)).toEqual(['Interval (music)']);
+    expect(ledger.reviewRows || []).toHaveLength(0);
+  });
+
   it('treats in-copyright rights statements as review-only license proof', () => {
     const source = sourceLedgerFromOpenAlex(
       {
@@ -2098,7 +2140,7 @@ describe('trusted source ledger', () => {
     expect(ledger.reviewRows || []).toHaveLength(0);
   });
 
-  it('quarantines artifact-only CS source-finder rows instead of trusting them as Python proof', () => {
+  it('omits domain-rejected artifact-only source-finder rows from both proof and review exports', () => {
     const ledger = buildSourceLedgerFromCourseGraph(
       {
         course: { name: 'Introduction to Computer Science with Python' },
@@ -2146,17 +2188,56 @@ describe('trusted source ledger', () => {
       { checkedAt: '2026-07-01T00:00:00.000Z' },
     );
 
-    expect(ledger.rows).toHaveLength(0);
-    expect(ledger.reviewRows).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          provider: 'wikipedia',
-          title: 'Session (software)',
-          status: 'review-required: off-topic or weak for course',
-          conceptLinks: [{ id: 'c1', label: 'Quiz,Assignment' }],
-        }),
-      ]),
+    expect(ledger).toBeNull();
+  });
+
+  it('omits music-interval classification false friends from the exported source review queue', () => {
+    const ledger = buildSourceLedgerFromCourseGraph(
+      {
+        course: { name: 'Interval Evidence Studio: Music Theory and Aural Skills' },
+        concepts: [{ id: 'c1', term: 'musical interval classification' }],
+        sessions: [
+          {
+            id: 's1',
+            number: 1,
+            title: 'Classifying written and heard musical intervals',
+            sections: [{ id: 'sec1', topic: 'interval quality and semitone evidence', conceptRefs: ['c1'] }],
+          },
+        ],
+        resources: [],
+        readings: [],
+        sourceFinderMiniShard: {
+          topics: [
+            {
+              sessionId: 's1',
+              lessonNumber: 1,
+              topic: 'musical interval classification',
+              sources: [
+                {
+                  provider: 'openalex',
+                  kind: 'journal article',
+                  title: 'Classification of Multivariate Objects Using Interval Quantile Classes',
+                  url: 'https://doi.org/10.0000/statistics-interval-classes',
+                  license: 'CC BY 4.0',
+                  snippet: 'A statistical method for multivariate objects and interval quantile classes.',
+                },
+                {
+                  provider: 'openlibrary',
+                  kind: 'book metadata',
+                  title:
+                    'Preliminary class specifications of positions in the field service. Field Survey Division, Personnel Classification Board',
+                  url: 'https://openlibrary.org/works/OL123W',
+                  license: 'Open Library public metadata',
+                  snippet: 'Personnel classification records for field-service positions.',
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { checkedAt: '2026-07-17T00:00:00.000Z' },
     );
-    expect(ledger.summary).toMatchObject({ sourceCount: 0, reviewRequiredCount: 1 });
+
+    expect(ledger).toBeNull();
   });
 });

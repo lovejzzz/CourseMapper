@@ -59,7 +59,7 @@ describe('Scion browser-local provider', () => {
     expect(runtime.completeScionBrowserWllama).toHaveBeenCalledWith(
       result.messages,
       expect.objectContaining({
-        maxNewTokens: 1500,
+        maxNewTokens: 2400,
         temperature: 0,
         topK: 1,
         topP: 1,
@@ -165,6 +165,108 @@ describe('Scion browser-local provider', () => {
     expect(result.repairs).toEqual([
       expect.objectContaining({ pass: 'crossAttemptContractMerge', field: 'term', trainingEligible: false }),
     ]);
+  });
+
+  it('defers structurally usable residual defects to canonical per-atom admission after one corrective retry', async () => {
+    const partial = {
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          facts: [
+            'Affinity mapping groups related observations into visible patterns.',
+            'Labels summarize a cluster without replacing the underlying notes.',
+            'Outliers remain visible so teams do not erase conflicting evidence.',
+            'Teams revisit cluster boundaries when new observations change the pattern.',
+          ],
+          keyTerms: [
+            {
+              tr: 'Affinity mapping',
+              df: 'A synthesis method that groups observations by a meaningful relationship.',
+              eg: 'A team clusters checkout notes around navigation, trust, and error recovery.',
+              mi: 'Every note must fit the first cluster chosen by the facilitator.',
+              cx: 'Notes can move or remain as outliers when the evidence does not support that cluster.',
+            },
+          ],
+          mc: [
+            {
+              q: 'Which action best preserves conflicting observations during affinity mapping?',
+              op: ['Keep an outlier visible', 'Delete the note', 'Rename every cluster', 'Average all comments'],
+              ai: 0,
+              fi: [2],
+              ex: 'Keeping the outlier visible preserves conflicting evidence; deleting it erases that evidence.',
+            },
+            {
+              q: 'When should a team revisit an affinity-map cluster boundary?',
+              op: [
+                'When new observations change the pattern',
+                'After deleting outliers',
+                'Before reading notes',
+                'Never',
+              ],
+              ai: 0,
+              fi: [3],
+              ex: 'New observations can change the pattern, so the cluster boundary should be reconsidered.',
+            },
+          ],
+        },
+      ],
+    };
+    const response = JSON.stringify(partial);
+    const runtime = runtimeWith([response, response]);
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result).toMatchObject({ attempt: 2, retryCount: 1, contractIncomplete: true });
+    expect(result.admissionIssues).toContain('lesson-4:key-terms-count:1/3');
+    expect(result.kernelShape).toEqual([
+      expect.objectContaining({ lessonId: 'lesson-4', facts: 4, keyTerms: 1, mc: 2, hasScenario: false }),
+    ]);
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(2);
+  });
+
+  it('preserves a grounded facts-plus-key-terms kernel when the model omits the trailing quiz surface', async () => {
+    const partial = {
+      lessons: [
+        {
+          lessonId: 'lesson-4',
+          facts: [
+            'Affinity mapping groups related observations into visible patterns.',
+            'Labels summarize a cluster without replacing the underlying notes.',
+            'Outliers remain visible so teams do not erase conflicting evidence.',
+            'Teams revisit cluster boundaries when new observations change the pattern.',
+          ],
+          keyTerms: [
+            {
+              tr: 'Affinity mapping',
+              df: 'A synthesis method that groups observations by a meaningful relationship.',
+              eg: 'A team clusters checkout notes around navigation, trust, and error recovery.',
+              mi: 'Every note must fit the first cluster chosen by the facilitator.',
+              cx: 'Notes can move or remain as outliers when the evidence does not support that cluster.',
+            },
+          ],
+        },
+      ],
+    };
+    const response = JSON.stringify(partial);
+    const runtime = runtimeWith([response, response]);
+    const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result).toMatchObject({ attempt: 2, retryCount: 1, contractIncomplete: true });
+    expect(result.admissionIssues).toContain('lesson-4:key-terms-count:1/3');
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(2);
   });
 
   it('returns compiler repair provenance with the repaired browser-local text', async () => {

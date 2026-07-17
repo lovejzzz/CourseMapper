@@ -129,10 +129,10 @@ function buildPipelineChips(budget) {
   const enriched = Number(outcome?.enrichedLessons) || 0;
   const requested = Number(outcome?.requestedLessons) || 0;
   if (enriched > 0 || requested > 0) {
-    const isPartial = requested > 0 && enriched < requested && outcome?.modelStage === 'ran';
+    const isPartial = requested > 0 && enriched < requested;
     const chip = {
       id: 'coverage',
-      label: `Materials ${enriched}/${requested || enriched}${isPartial ? ' · repair needed' : ''}`,
+      label: `Knowledge ${enriched}/${requested || enriched}${isPartial ? ' · review needed' : ''}`,
     };
     if (isPartial) chip.warn = true;
     chips.push(chip);
@@ -177,41 +177,33 @@ function isBlueprintEnrichmentRetry(event) {
 }
 
 /**
- * Turn the two nested retry loops into one observable checkpoint sequence.
- *
- * A public-Scion enrichment request already retries locally before the
- * compiler starts an outer recovery call. Counting only the outer call made
- * a one-lesson build sit at 35%, jump to 50%, then sit again. The trace tells
- * us both limits, so the ribbon can instead move after each completed local
- * attempt without inventing time-based progress:
- *
- *   initial retry 1, initial retry 2, recovery 1 starts,
- *   recovery retry 1, recovery retry 2
- *
- * The returned denominator is the real maximum for the current nested loop.
+ * Map the real outer recovery + current inner retry onto the final 45–49%
+ * of enrichment. Initial lesson attempts own 30–45%; compile owns 50%.
+ * Keeping those ranges disjoint makes the meter monotonic when a completed
+ * first pass returns to lesson 1 for repair.
  */
-function enrichmentRetryCheckpoint(events = [], plannedOuterRecoveries = 0) {
-  const recent = Array.isArray(events) ? events : [];
-  const relevant = recent.filter(isBlueprintEnrichmentRetry);
-  const recoveryEvent = relevant.find((event) => event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event));
+function enrichmentRecoveryProgress(events = [], activity = null) {
+  const recent = [activity, ...(Array.isArray(events) ? events : [])].filter(Boolean);
+  const ordered = [...recent].sort((a, b) => (Number(b?.at) || 0) - (Number(a?.at) || 0));
+  const recoveryEvent = ordered.find((event) => event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event));
   const recovery = recoveryAttemptFromEvent(recoveryEvent);
-  const streamEvent = relevant.find((event) => event?.type === 'streamRetryCall');
-  const innerRetryLimit = Math.max(0, Number(streamEvent?.maxRetries) || 0);
-  if (innerRetryLimit <= 0) return null;
+  if (!recovery) return null;
 
-  const outerTotal = Math.max(recovery?.total || 0, Math.max(0, Number(plannedOuterRecoveries) || 0));
-  const outerAttempt = Math.min(outerTotal, Math.max(0, recovery?.attempt || 0));
-  const recoveryIndex = recoveryEvent ? recent.indexOf(recoveryEvent) : -1;
-  const streamIndex = streamEvent ? recent.indexOf(streamEvent) : -1;
-  const streamBelongsToCurrentOuter =
-    streamEvent && (!recoveryEvent || (streamIndex >= 0 && recoveryIndex >= 0 && streamIndex < recoveryIndex));
-  const innerAttempt = streamBelongsToCurrentOuter
-    ? Math.min(innerRetryLimit, Math.max(0, Number(streamEvent.attempt) || 0))
-    : 0;
-  const checkpoint = outerAttempt * (innerRetryLimit + 1) + innerAttempt;
-  const total = outerTotal * (innerRetryLimit + 1) + innerRetryLimit;
-  if (checkpoint <= 0 || total <= 0) return null;
-  return { checkpoint: Math.min(checkpoint, total), total };
+  const recoveryAt = Number(recoveryEvent?.at) || 0;
+  const currentInnerRetry = ordered.find(
+    (event) =>
+      event?.type === 'streamRetryCall' &&
+      isBlueprintEnrichmentRetry(event) &&
+      (!recoveryAt || !Number(event?.at) || Number(event.at) > recoveryAt),
+  );
+  const innerAttempt = Math.max(0, Number(currentInnerRetry?.attempt) || 0);
+  const innerTotal =
+    innerAttempt > 0 ? Math.max(innerAttempt + 1, (Number(currentInnerRetry?.maxRetries) || 0) + 1) : 1;
+  const outerFraction = Math.min(
+    1,
+    (Math.max(0, recovery.attempt - 1) + Math.min(1, innerAttempt / innerTotal)) / recovery.total,
+  );
+  return Math.min(49, Math.round(45 + outerFraction * 5));
 }
 
 function isKnowledgeProgressEvent(event) {
@@ -242,6 +234,28 @@ const SCION_PASS_ACTIVITY = {
   prose_polish: 'Polishing lesson language',
   topic_repair_batch: 'Repairing lesson focus',
 };
+
+// Fractional checkpoints within the current lesson/batch. They describe the
+// real semantic pass that has begun, not elapsed time. Reserving this final
+// fraction prevents the meter from claiming the enrichment phase is complete
+// merely because the last lesson number appeared in an event.
+const SCION_PASS_CHECKPOINT = {
+  topic_repair_batch: 0.15,
+  key_term_admission_batch: 0.3,
+  mc_admission_batch: 0.45,
+  blind_solve: 0.6,
+  mc_item: 0.65,
+  misconception_item: 0.72,
+  applied_mc_batch: 0.82,
+  prose_polish: 0.92,
+};
+
+function semanticPassCheckpoint(event) {
+  if (event?.type !== 'pipelineDecision') return null;
+  if (event.label === 'Scion quality passes') return 1;
+  if (event.label !== 'Scion pass call') return null;
+  return SCION_PASS_CHECKPOINT[String(event.detail)] || 0.1;
+}
 
 export function latestKnowledgeActivity(events = []) {
   const recent = Array.isArray(events) ? events : [];
@@ -311,7 +325,7 @@ export function buildLivingCompilerArtifacts({
   const outcome = budget?.enrichmentOutcome || null;
   const enriched = Math.max(0, Number(outcome?.enrichedLessons) || 0);
   const requested = Math.max(0, Number(outcome?.requestedLessons) || 0);
-  const partialKnowledge = outcome?.modelStage === 'ran' && requested > 0 && enriched < requested;
+  const partialKnowledge = requested > 0 && enriched < requested;
   const genome = parseGenomeLinkerDetail(budget?.pipeline?.genomeLinker);
   const finishStatus = packageQualityPass?.status || 'idle';
   const terminalReady = pipeline?.state === 'ready' && finishStatus === 'ready';
@@ -329,7 +343,9 @@ export function buildLivingCompilerArtifacts({
   if (scionPreparing) mapValue = 'Waiting for Scion';
   else if (pipeline?.state === 'mapping') {
     mapValue =
-      mappingLesson > 0 && lessonCount > 0 ? `Mapping lesson ${mappingLesson}/${lessonCount}` : 'Mapping in progress';
+      mappingLesson > 0
+        ? `Mapping lesson ${mappingLesson} · ${Math.max(mappedLessonCount, mappingLesson)} mapped so far`
+        : 'Mapping in progress';
   } else if (mappedLessonCount > 0) {
     mapValue = `${mappedLessonCount} lesson${mappedLessonCount === 1 ? '' : 's'} mapped`;
   } else if (pipeline?.done?.map) mapValue = 'Mapped';
@@ -416,37 +432,39 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
   if (state === 'enriching') {
     const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
     const activityLessons = lessonNumbersFromEvent(pipeline.activity);
-    const recovery = recoveryAttemptFromEvent(pipeline.activity);
-    // A single batch can cover the whole course. Its event means the work
-    // STARTED, not that every lesson kernel is complete. Give that in-flight
-    // batch one quarter of the enrichment phase, then let each observed
-    // recovery attempt advance the same phase. This prevents a one-lesson
-    // build from jumping straight to 50% and sitting there for several real
-    // model calls while the ribbon says nothing changed.
-    if (lessonCount > 0 && activityLessons.length >= lessonCount) {
-      const retryCheckpoint = enrichmentRetryCheckpoint(
-        budget?.recentEvents,
-        budget?.costPlan?.blueprintEnrichmentRecoveryReserve,
+    const semanticCheckpoint = semanticPassCheckpoint(pipeline.activity);
+    if (lessonCount > 0 && activityLessons.length > 0 && semanticCheckpoint !== null) {
+      const currentLesson = Math.min(lessonCount, Math.max(...activityLessons));
+      const enrichmentFraction = Math.min(
+        1,
+        (Math.max(0, currentLesson - 1) + Math.max(0.25, semanticCheckpoint)) / lessonCount,
       );
-      if (retryCheckpoint) {
-        return Math.round(35 + (retryCheckpoint.checkpoint / retryCheckpoint.total) * 14);
-      }
-      if (recovery) {
-        const attemptFraction = Math.min(1, (recovery.attempt + 1) / (recovery.total + 1));
-        return Math.round(30 + attemptFraction * 20);
-      }
-      return 35;
+      if (semanticCheckpoint >= 1 && currentLesson >= lessonCount) return 50;
+      return Math.max(30, Math.floor(30 + enrichmentFraction * 20));
     }
+    const recoveryProgress = enrichmentRecoveryProgress(budget?.recentEvents, pipeline.activity);
+    if (recoveryProgress !== null) return recoveryProgress;
     const knowledgeEvents = Array.isArray(budget?.recentEvents)
       ? budget.recentEvents.filter(isKnowledgeProgressEvent)
       : [];
-    const recentLesson = Math.max(0, ...knowledgeEvents.map(latestLessonNumber));
-    const attemptedLessons = Math.min(lessonCount, Math.max(0, Number(budget?.blueprintEnrichmentCalls) || 0));
-    // Recovery can return to lesson 1 after lesson 15. Progress represents
-    // completed build work, so it must not jump backward with that cursor.
-    const currentLesson = Math.max(latestLessonNumber(pipeline.activity), recentLesson, attemptedLessons);
-    const fraction = lessonCount > 0 && currentLesson > 0 ? Math.min(1, currentLesson / lessonCount) : 0.25;
-    return Math.round(30 + fraction * 20);
+    const initialEvents = knowledgeEvents.filter((event) => event?.type === 'blueprintEnrichmentCall');
+    const currentLesson = Math.min(
+      lessonCount,
+      Math.max(latestLessonNumber(pipeline.activity), ...initialEvents.map(latestLessonNumber), 1),
+    );
+    const activeInnerRetry =
+      pipeline.activity?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(pipeline.activity)
+        ? Math.min(
+            0.9,
+            Math.max(
+              0.25,
+              (Number(pipeline.activity.attempt) || 0) / ((Number(pipeline.activity.maxRetries) || 0) + 1),
+            ),
+          )
+        : 0.25;
+    const fraction =
+      lessonCount > 0 ? Math.min(1, (Math.max(0, currentLesson - 1) + activeInnerRetry) / lessonCount) : 0.25;
+    return Math.round(30 + fraction * 15);
   }
   if (state === 'compiling') {
     const done = Math.max(0, Number(deliverables.doneCount) || 0);
@@ -486,6 +504,10 @@ export function buildBuildRibbonModel({
   let stage;
   let stageLabel = '';
   let running = pipeline.running;
+  const enrichmentOutcome = budget?.enrichmentOutcome || null;
+  const knowledgeRequested = Math.max(0, Number(enrichmentOutcome?.requestedLessons) || 0);
+  const knowledgeEnriched = Math.max(0, Number(enrichmentOutcome?.enrichedLessons) || 0);
+  const knowledgeReviewNeeded = knowledgeRequested > 0 && knowledgeEnriched < knowledgeRequested;
   switch (pipeline.state) {
     case 'mapping':
       stage = 'map';
@@ -524,7 +546,7 @@ export function buildBuildRibbonModel({
     }
     case 'ready':
       stage = 'ready';
-      stageLabel = 'Ready to export';
+      stageLabel = knowledgeReviewNeeded ? 'Ready with review notes' : 'Ready to export';
       break;
     default:
       // lull (and the unreachable idle-with-activity) — show progress so
@@ -574,6 +596,7 @@ export function buildBuildRibbonModel({
     stageLabel,
     spendDisplay,
     elapsedDisplay,
+    activeStartedAt: running && Number(budget.startedAt) > 0 ? Number(budget.startedAt) : 0,
     steps,
     done,
     progressPct,

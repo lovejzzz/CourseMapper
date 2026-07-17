@@ -13,6 +13,10 @@ import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
 
 const DANGLING_CLAUSE_RE = /\b(?:and|or|for|in|of|to|the|with|before|after|around|aligned to|into|from)\s*[.]\s*$/i;
 const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
+// Terminal prepositions can be legitimate particles. These pairs are common
+// in instructor prose and must not be diagnosed as missing-object seams.
+const VALID_TERMINAL_PARTICLE_RE =
+  /\b(?:watch for|look for|listen for|account for|prepare for|plan for|wait for|care for|ask for|search for|pay for|hope for|wish for|settle for|stand for|call for|aim for|work with|start with|begin with|end with|follow with|connect with|engage with|align with|agree with|meet with|share with|come from|result from|learn from|benefit from|move into|fit into|enter into|look into|go into|check in|turn in|hand in|participate in|belong to|lead to|refer to|listen to|respond to|contribute to|talk to|look around|move around)[.]\s*$/i;
 const LEADING_COLON_RE = /^\s*:/;
 const ARTICLE_A_VOWEL_RE = /\ba\s+[AEIOU][a-z]{3,}/;
 const DOUBLE_PERIOD_RE = /[a-z]\.\.(?!\.)/;
@@ -40,12 +44,17 @@ function pushFinding(findings, code, path, sample) {
   findings.push({ code, path, sample: String(sample).slice(0, 140) });
 }
 
+export function hasDanglingClauseSeam(value) {
+  const text = String(value || '').trim();
+  return DANGLING_CLAUSE_RE.test(text) && !DANGLING_EXEMPT_RE.test(text) && !VALID_TERMINAL_PARTICLE_RE.test(text);
+}
+
 function checkSentenceIntegrity(findings, featureId, data) {
   for (const [path, value] of walkStrings(data)) {
     const trimmed = value.trim();
     if (!trimmed) continue;
     if (LEADING_COLON_RE.test(trimmed)) pushFinding(findings, 'leading-colon-label', path, trimmed);
-    if (DANGLING_CLAUSE_RE.test(trimmed) && !DANGLING_EXEMPT_RE.test(trimmed)) {
+    if (hasDanglingClauseSeam(trimmed)) {
       pushFinding(findings, 'dangling-clause', path, trimmed);
     }
     if (ARTICLE_A_VOWEL_RE.test(trimmed)) pushFinding(findings, 'article-agreement', path, trimmed);

@@ -297,20 +297,23 @@ describe('ChatPanel agent command strip', () => {
     container.remove();
   });
 
-  it('sends input-resolved quick commands with a short display label and internal prompt override', () => {
-    root = renderChatPanel(container);
+  it('runs input-resolved Improve commands through deterministic regeneration', async () => {
+    const onGenerateFeatures = vi.fn(() =>
+      Promise.resolve({ status: 'generated', completedFeatureIds: ['lessonPlans'], failedFeatureIds: [] }),
+    );
+    root = renderChatPanel(container, { onGenerateFeatures });
 
-    act(() => {
+    await act(async () => {
       runInputAgentCommand('improve-active');
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(chatRouterMock.send).toHaveBeenCalledWith(
-      'Improve Lesson Plans',
-      expect.objectContaining({
-        displayText: 'Improve Lesson Plans',
-        agentPromptOverride: expect.stringContaining('Apply safe changes directly'),
-      }),
-    );
+    expect(onGenerateFeatures).toHaveBeenCalledWith({
+      featureIds: ['lessonPlans'],
+      lessonFilter: null,
+      source: 'agent-plan',
+    });
+    expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 
   it('hides the custom-tools header affordance when no custom tools exist', () => {
@@ -823,6 +826,48 @@ describe('ChatPanel agent command strip', () => {
         }),
       }),
     ]);
+    expect(chatRouterMock.send).not.toHaveBeenCalled();
+  });
+
+  it('runs the Improve slides starter through deterministic regeneration without model tool-call prose', async () => {
+    const onGenerateFeatures = vi.fn(() =>
+      Promise.resolve({
+        status: 'generated',
+        completedFeatureIds: ['slideDecks'],
+        failedFeatureIds: [],
+      }),
+    );
+    root = renderChatPanel(container, {
+      activeTab: 'slideDecks',
+      selectedFeatures: ['courseMap', 'slideDecks'],
+      deliverables: {
+        ...baseDeliverables,
+        slideDecks: { status: 'done', data: { decks: [{ lessonTitle: 'Foundations', slides: [] }] } },
+      },
+      onGenerateFeatures,
+    });
+
+    let handled;
+    await act(async () => {
+      handled = messageListMock.props.onStarterAction({
+        text: 'Improve slides',
+        action: 'regenerate-active',
+        featureId: 'slideDecks',
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(handled).toBe(true);
+    expect(onGenerateFeatures).toHaveBeenCalledWith({
+      featureIds: ['slideDecks'],
+      lessonFilter: null,
+      source: 'agent-plan',
+    });
+    expectInitialLocalTurn({
+      text: 'Improve slides',
+      assistantText: 'Regenerating Slide Decks from the workspace plan.',
+      progressTool: 'edit_deliverables',
+    });
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
 

@@ -119,6 +119,12 @@ describe('Scion WebGPU GGUF runtime', () => {
       adapter: { mode: 'base-only', active: false },
     });
     expect(progress.some((entry) => entry.phase === 'loading-model' && entry.progress === 0.5)).toBe(true);
+    expect(
+      progress.some(
+        (entry) =>
+          entry.phase === 'loading-model' && entry.progress === 1 && /base ready · loading Scion/.test(entry.message),
+      ),
+    ).toBe(true);
     expect(published.map((entry) => entry.phase)).toContain('loading-runtime');
     expect(published.some((entry) => entry.phase === 'loading-model' && entry.progress === 0.5)).toBe(true);
     expect(published.at(-1).phase).toBe('ready');

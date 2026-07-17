@@ -354,6 +354,46 @@ describe('reading-list engine (P2)', () => {
     expect(citations).not.toContain('Sonification');
   });
 
+  it('rejects post-mortem interval research on the OpenAlex reading-list path for music theory', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Interval Evidence Studio' });
+    graph.sessions = [
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Simple and Compound Intervals and Inversion',
+        sections: [{ topic: '2.1: Compound Intervals', resourceRefs: [] }],
+      },
+    ];
+    graph.concepts = [{ id: 'c2', term: 'Compound Intervals' }];
+    graph.edges.teaches = [{ from: 's2', to: 'c2' }];
+    const providers = {
+      searchScholarlyReadings: vi.fn(async () => [
+        {
+          title: 'Biochemistry Changes That Occur after Death: Post-Mortem Interval',
+          abstract: 'Forensic pathology and biochemistry markers for the post-mortem interval and time since death.',
+          authors: 'A. Pathologist',
+          year: 2013,
+          url: 'https://example.org/post-mortem-interval',
+          license: 'cc-by',
+        },
+        {
+          title: 'Open Music Theory: Compound Intervals and Inversion',
+          abstract: 'Music theory instruction on pitch, semitones, compound intervals, and interval inversion.',
+          authors: 'A. Musician',
+          year: 2024,
+          url: 'https://example.org/music-intervals',
+          license: 'cc-by',
+        },
+      ]),
+      searchBookMetadata: vi.fn(async () => []),
+    };
+
+    expect(await attachOpenReadings(graph, { providers })).toBe(1);
+    const citations = graph.resources.map((resource) => resource.citation).join('\n');
+    expect(citations).toContain('Open Music Theory: Compound Intervals and Inversion');
+    expect(citations).not.toContain('Post-Mortem Interval');
+  });
+
   it('records a decision instead of trusting metadata-only open readings', async () => {
     const graph = genomeLinkedGraph();
     const providers = {

@@ -278,8 +278,52 @@ function isReadOnlyQuizCountRequest(message = '') {
   );
 }
 
-function buildLocalReadOnlyFallback(fullMessage = '', { courseMap = null, deliverables = null } = {}) {
+function verifiedMusicIntervalWorkspace(courseMap = null) {
+  const text = [
+    courseMap?.courseName,
+    ...(Array.isArray(courseMap?.lessons)
+      ? courseMap.lessons.flatMap((lesson) => [
+          lesson?.title,
+          ...(Array.isArray(lesson?.sections)
+            ? lesson.sections.flatMap((section) => [
+                section?.topicSection,
+                section?.learningObjectives,
+                section?.supportingResources,
+              ])
+            : []),
+        ])
+      : []),
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return (
+    /\bintervals?\b/i.test(text) &&
+    /\b(?:music theory|semitone|pitch|notated|notation|aural|audio|inversion)\b/i.test(text)
+  );
+}
+
+function verifiedMusicIntervalAgentReply(message = '', courseMap = null) {
+  if (!verifiedMusicIntervalWorkspace(courseMap)) return '';
+  const text = String(message || '');
+  if (/\bmajor third\b/i.test(text) && /\b(?:invert|inversion)\b/i.test(text)) {
+    return 'No. A major third inverts to a minor sixth: the interval numbers sum to nine (3 + 6 = 9), and major quality changes to minor. The inverted span is eight semitones, not four.';
+  }
+  if (/\bcompound tenth\b/i.test(text) && /\b(?:simple|reduce|equivalent)\b/i.test(text)) {
+    return 'A compound tenth reduces to a simple third because subtracting seven from a compound interval number removes one octave while preserving its letter-name relationship.';
+  }
+  if (/\b(?:inversion|invert)\b/i.test(text) && /\b(?:rule|quality|number)\b/i.test(text)) {
+    return 'For a simple interval inversion, the two numbers sum to nine; major exchanges with minor, augmented exchanges with diminished, and perfect remains perfect.';
+  }
+  if (/\b(?:inclusive|generic number|letter[- ]name count)\b/i.test(text) && /\bintervals?\b/i.test(text)) {
+    return 'Find an interval’s generic number by counting both endpoint letter names inclusively; then use semitone distance to verify quality without letting semitone count override the written spelling.';
+  }
+  return '';
+}
+
+export function buildLocalReadOnlyFallback(fullMessage = '', { courseMap = null, deliverables = null } = {}) {
   const text = String(fullMessage || '');
+  const verifiedMusicReply = verifiedMusicIntervalAgentReply(text, courseMap);
+  if (verifiedMusicReply) return verifiedMusicReply;
   if (isReadOnlyQuizCountRequest(text)) {
     const quizCount = countQuizQuestions(deliverables);
     if (quizCount) {
@@ -550,7 +594,12 @@ function isContradictoryFailureText(value = '') {
 
 export function isToolTraceOnlyText(value = '') {
   const text = String(value || '').trim();
-  return /^\[Agent used\s+\d+\s+tools?:[\s\S]*\]$/i.test(text) || /^\[Tool Result:[\s\S]*\]$/i.test(text);
+  return (
+    /^\[Agent used\s+\d+\s+tools?:[\s\S]*\]$/i.test(text) ||
+    /^\[Tool Result:[\s\S]*\]$/i.test(text) ||
+    /\b(?:plan_workspace_next_step|inspect_workspace|edit_deliverables|regenerate_slide_decks)\b/i.test(text) ||
+    /["']?tool[_ ]?name["']?\s*:/i.test(text)
+  );
 }
 
 function mutationArgsForToolResult(item = {}) {
@@ -608,9 +657,19 @@ function inferReadOnlyTargetFromMessage(message = '') {
 
 function parseNestedResponsePayload(value = '') {
   const text = String(value || '').trim();
-  if (!text.startsWith('{') || !text.endsWith('}')) return null;
+  if (!((text.startsWith('{') && text.endsWith('}')) || (text.startsWith('[') && text.endsWith(']')))) return null;
   try {
     const parsed = JSON.parse(text);
+    // Browser-local models occasionally serialize one sentence as a JSON
+    // array of fragments. Treat that as transport noise, not UI content.
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((part) => typeof part === 'string')) {
+      return {
+        chatReply: parsed
+          .map((part) => part.trim())
+          .filter(Boolean)
+          .join(', '),
+      };
+    }
     if (
       parsed &&
       typeof parsed === 'object' &&
@@ -682,9 +741,32 @@ export function chooseAgentFallbackText(
   // Unwrap that envelope before the text-only branch paints the message; the
   // normal tool-calling branch already performs the same normalization.
   const nested = parseNestedResponsePayload(rawText);
-  const text = String(nested?.chatReply || nested?.text || rawText).trim();
+  const text = stripInternalAgentMarkers(nested?.chatReply || nested?.text || rawText);
+  if (isToolTraceOnlyText(text)) {
+    const userMessage = String(options.userMessage || '');
+    if (/\bslides?|slide decks?\b/i.test(userMessage)) {
+      return (
+        fallbackText ||
+        'I could not safely apply those slide changes from this chat reply. Use Improve slides so the app regenerates the decks directly and records a visible receipt.'
+      );
+    }
+    return (
+      fallbackText ||
+      'I could not safely apply that workspace change from this chat reply. Use the matching Agent action so the app runs it directly and records the result.'
+    );
+  }
   if (text && !isToolTraceOnlyText(text) && !isGenericCompletionText(text)) return text;
-  return fallbackText || (isToolTraceOnlyText(text) ? '' : text) || defaultText;
+  return fallbackText || text || defaultText;
+}
+
+/** Remove prompt-only routing annotations that a small local model may echo. */
+export function stripInternalAgentMarkers(value = '') {
+  return String(value || '')
+    .replace(/^[\s)\]},;:]+/, '')
+    .replace(/\s*\(?\btool(?:Index|_index)\s*=\s*\d+\)?/gi, '')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
 }
 
 export function ensureFinalResponseHasChatReply(response, toolResults = []) {
@@ -1966,7 +2048,7 @@ export async function runAgentLoop(fullMessage, { silent = false, dryRun = false
 
     // ── Thinking text callback for streaming progress ──
     const onThinkingText = (text) => {
-      updateProgress((card) => ({ ...card, thinkingText: text }));
+      updateProgress((card) => ({ ...card, thinkingText: stripInternalAgentMarkers(text) }));
     };
 
     // ── AGENTIC LOOP (native tool calling) ───────────────────────────────

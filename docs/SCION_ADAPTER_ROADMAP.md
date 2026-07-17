@@ -2,9 +2,27 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 turns its observed losses and a real browser fallback into stricter admission, subject-safe deterministic recovery, and a more trustworthy Living Course Compiler. A quality adapter, held-out adapter win, production-compatible corpus, native Scion Agent tool calling, the remaining three device profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 turned its observed losses and a browser fallback into stricter admission and a more trustworthy Living Course Compiler; v0.16.49 uses a frame-by-frame music-course audit to strengthen source trust, disciplinary compilation, interruption recovery, workspace actions, grading, and exact-package verification. A quality adapter, held-out adapter win, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
 
 **Release boundary:** no current public Scion request claims to use trained weights
+
+## v0.16.49 — Make the Course Earn Ready, Frame by Frame
+
+**Goal:** audit one bounded course from live workspace state through every selected deliverable and the exact exported ZIP, then repair any frame where progress, content, provenance, recovery, grading, or action semantics could mislead the user.
+
+**Living workflow:** Model, Map, Enrich, Compile, Verify, and Grade remain one monotonic evidence-backed surface. The workspace separates active, successful, review, and blocking states; keeps one package-owned ZIP action; renders native slide and concept-map visuals; and lets the Scion Agent execute a bounded slide improvement without exposing pseudo-tool syntax.
+
+**Interruption recovery:** a real reload during lesson regeneration exposed a persisted streaming state that could survive after content was saved. Restore now normalizes saved entries to done, empty interrupted entries to idle, clears the abandoned regeneration marker, and restores the exact enriched lesson IDs used by the compiler and grader. Manual Scion regeneration stays on the compiler path rather than entering a redundant provider stream.
+
+**Source and subject boundary:** title-level source resemblance is no longer sufficient for music compilation. Known classification false friends are quarantined, while two exact Open Music Theory interval resources retain provider, license, URL, concept, and sourceRef identity through the final manifest. Interval classification and inversion now compile distinct discussions, FAQs, slides, practice, assessment, study, rubric, and course-map evidence. Judge-informed source-strict V3 detects 68/78 frozen stable losses, four more than V0.16.48, with zero preferred regressions and no added retry burden on the retained 192-seat local replay or either ninety-one-row comparison arm.
+
+**Exact package proof:** after excluding only structural export chrome from texture measurement, the live two-lesson package scored 100/A with texture 98 and zero findings. Its twenty-one ZIP entries passed integrity and folder checks, and nineteen extracted learner-facing files independently regraded at 100/A with zero P0, P1, or P2 findings. The repeatable UI replay used a local provider-compatible deterministic transport fixture; it is not a public-Gemma speed benchmark or a universal-output claim.
+
+**Lane:** v0.16.49 is compiler-and-workflow improvement. The immutable public Gemma base remains unchanged and no adapter is active. User-selected paid providers inherit shared source, compilation, repair, grading, and export improvements, while Scion additionally uses its local compact-kernel, retry, recovery, and product-runtime path.
+
+**Release Boundary:** no adapter promotion, new weight, paid-reference parity, human preference, instructor approval, classroom validation, or guarantee that every course reaches 100/A is claimed.
+
+**Next gates:** keep the v3 held-out ruler frozen, convert the remaining measured losses into source-bound training evidence, and activate an adapter only after it beats exact base-only Scion on the complete implementation-bound holdout without adding compiler burden or weakening package quality.
 
 ## v0.16.48 — Make the Living Compiler Earn Trust Frame by Frame
 

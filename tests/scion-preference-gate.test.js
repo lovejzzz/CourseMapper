@@ -93,9 +93,47 @@ describe('Scion preference admission gate', () => {
         ai: 1,
         ex: 'Pitch difference is the music-theory definition, while a frequency ratio is a physical description.',
       }),
+      { semanticProfile: 'source-strict-v3' },
     );
     expect(result).toMatchObject({ eligible: false });
     expect(result.issues).toContain('duplicate-options');
+  });
+
+  it('rejects answer choices that repeat the same pitch-count answer with filler words', () => {
+    const result = assessScionMcItem(
+      goodMc({
+        q: 'When counting the notated interval from C to E inclusively, which answer is correct?',
+        op: [
+          'The inclusive count is 3 because the notes counted are C, D, and E.',
+          'The inclusive count is 4 because four distinct pitch steps are present.',
+          'The inclusive count is 2 because only C and E should be counted.',
+          'The inclusive count is 3 because the notes counted are C, D, and the next note is E.',
+        ],
+        ai: 0,
+        ex: 'Counting both endpoints gives C, D, and E, so the notated interval has a generic number of three.',
+      }),
+      { semanticProfile: 'source-strict-v3' },
+    );
+    expect(result.issues).toContain('duplicate-options');
+  });
+
+  it('keeps high-overlap options distinct when only changes the factual claim', () => {
+    const result = assessScionMcItem(
+      goodMc({
+        q: 'Which interpretation best fits the first seismic body wave to arrive?',
+        op: [
+          'It is a P wave, because compressional waves travel fastest through solids, liquids, and gases.',
+          'It is an S wave, because shear waves arrive first after moving through any material.',
+          'It is a surface wave, because surface waves always outrun body waves.',
+          'It is a P wave, because compressional waves travel only through solids.',
+        ],
+        ai: 0,
+        ex: 'The first arrival is a P wave because it is fastest and can travel through solids, liquids, and gases.',
+      }),
+      { semanticProfile: 'source-strict-v3' },
+    );
+
+    expect(result.issues).not.toContain('duplicate-options');
   });
 
   it('can reconstruct the frozen pre-semantic review-candidate ledger without weakening current admission', () => {

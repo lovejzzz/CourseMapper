@@ -52,6 +52,10 @@ describe('buildLocalAutosavePayload', () => {
     };
     const compactSnapshot = {
       courseMap: { lessons: [{ lessonNumber: 1, title: 'Foundations' }] },
+      apiCallBudgetReceipt: {
+        pipeline: { judgment: 'not evaluated (0 genome-linked lessons)' },
+        enrichmentOutcome: { modelStage: 'ran', requestedLessons: 1, enrichedLessons: 1 },
+      },
       deliverableSaveMode: 'recompile-on-open',
       deliverableManifest: { rubrics: { status: 'done' } },
       deliverables: {},
@@ -67,6 +71,8 @@ describe('buildLocalAutosavePayload', () => {
     expect(result.mode).toBe('compact');
     expect(saved.deliverableSaveMode).toBe('recompile-on-open');
     expect(saved.deliverableManifest.rubrics.status).toBe('done');
+    expect(saved.apiCallBudgetReceipt.pipeline.judgment).toBe('not evaluated (0 genome-linked lessons)');
+    expect(saved.apiCallBudgetReceipt.enrichmentOutcome.enrichedLessons).toBe(1);
     expect(saved.deliverables).toEqual({});
     expect(result.payload).not.toContain(largeBody);
   });

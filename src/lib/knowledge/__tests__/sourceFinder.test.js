@@ -101,7 +101,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v3');
+    expect(first.id).toContain('source-finder-v4');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);
@@ -566,6 +566,102 @@ describe('source finder mini-shard', () => {
     expect(titles).toContain('Risk management in software projects: registers, controls, and stakeholder review');
     expect(titles).not.toContain('Global Burden of Cardiovascular Diseases and Risk Factors, 1990-2019');
   }, 15000);
+
+  it('rejects temporal and biomedical interval false friends for an abstractly titled music course', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Interval Evidence Studio' });
+    graph.sessions = [
+      {
+        id: 's1',
+        number: 1,
+        title: 'Lesson 1: Written and Heard Interval Classification',
+        sections: [{ topic: '1.1: interval classification and semitone verification' }],
+      },
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Simple and Compound Intervals and Inversion',
+        sections: [{ topic: '2.1: Compound Intervals' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c2', term: 'Compound Intervals' }];
+    graph.edges.teaches = [{ from: 's2', to: 'c2' }];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 3,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async (query) =>
+          /compound/i.test(query)
+            ? [
+                source('openalex', 'Biochemistry Changes That Occur after Death: Post-Mortem Interval', {
+                  abstract:
+                    'Forensic pathology and biochemistry markers for determining the post-mortem interval and time since death.',
+                }),
+                source('openalex', 'Open Music Theory: Compound Intervals and Inversion', {
+                  abstract:
+                    'Music theory instruction on pitch, semitones, compound intervals, octave reduction, and interval inversion.',
+                }),
+              ]
+            : [],
+        ),
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async (query) =>
+          /compound/i.test(query)
+            ? [
+                source('wikipedia', 'Metronome', {
+                  abstract: 'A metronome produces an audible click at a uniform interval measured in beats per minute.',
+                }),
+              ]
+            : [],
+        ),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Open Music Theory: Compound Intervals and Inversion');
+    expect(titles).not.toContain('Biochemistry Changes That Occur after Death: Post-Mortem Interval');
+    expect(titles).not.toContain('Metronome');
+  }, 15000);
+
+  it('refuses cached music-interval false friends again at graph attachment', () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Interval Evidence Studio' });
+    graph.sessions = [
+      {
+        id: 's2',
+        number: 2,
+        title: 'Lesson 2: Simple and Compound Intervals and Inversion',
+        sections: [{ topic: 'Compound Intervals', resourceRefs: [] }],
+      },
+    ];
+    graph.concepts = [{ id: 'c2', term: 'Compound Intervals' }];
+    graph.edges.teaches = [{ from: 's2', to: 'c2' }];
+
+    const attached = attachSourceFinderResources(graph, {
+      courseName: 'Interval Evidence Studio',
+      topics: [
+        {
+          sessionId: 's2',
+          lessonNumber: 2,
+          topic: 'Compound Intervals',
+          sources: [
+            source('openalex', 'Biochemistry Changes That Occur after Death: Post-Mortem Interval', {
+              abstract: 'Forensic biochemistry markers for the post-mortem interval and time since death.',
+            }),
+            source('wikipedia', 'Open Music Theory: Compound Intervals and Inversion', {
+              abstract: 'Music theory guide to pitch, semitones, compound intervals, and interval inversion.',
+            }),
+          ],
+        },
+      ],
+    });
+
+    expect(attached).toBe(1);
+    expect(graph.resources.map((resource) => resource.title)).toEqual([
+      'Open Music Theory: Compound Intervals and Inversion',
+    ]);
+  });
 
   it('prefers explicit reuse licenses and searches secondary providers when primary hits are license-ambiguous', async () => {
     const graph = createEmptyCourseGraph({ courseName: 'Genetics and Society' });

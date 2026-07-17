@@ -6,8 +6,18 @@ import {
   compileBlueprintDeliverables,
   buildQuizAtomsForLesson,
   bloomLevelFromStemVerb,
+  compactBlueprintForStorage,
+  hydrateBlueprintForCompilation,
 } from '../src/lib/courseBlueprintCompiler';
 import { auditSubstance } from '../src/lib/contentQualityChecks';
+import { repairDeliverableContentQuality } from '../src/lib/contentQualityRepair';
+import { buildPostGenerationDigest } from '../src/lib/agentDigest';
+import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
+import {
+  disciplineSafeReadingsForLesson,
+  hasMusicIntervalSemanticContradiction,
+  isMusicIntervalLesson,
+} from '../src/lib/musicTheoryQuizFrames';
 
 const LESSON_COUNT = 15;
 const QUIZ_ANSWER_LETTERS_FOR_TEST = ['A', 'B', 'C', 'D'];
@@ -176,6 +186,556 @@ describe('A1 — subject-safe deterministic fallback', () => {
     const answerIndex = QUIZ_ANSWER_LETTERS_FOR_TEST.indexOf(oddsItem.answer);
     expect(oddsItem.options[answerIndex]).toContain('3:1 in favor');
     expect(oddsItem.explanation).toMatch(/1 × 3 = 3/);
+  });
+
+  it('uses verified interval frames instead of fake keys when Scion kernel admission fails', () => {
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'Musical Intervals and Ear Training',
+        lessons: [
+          {
+            title: 'Lesson 1: Melodic and Harmonic Intervals',
+            sections: [
+              {
+                topicSection: 'Melodic versus harmonic intervals',
+                learningGoals: 'Recognize interval presentation and quality.',
+                learningObjectives:
+                  'Distinguish melodic from harmonic intervals. Count semitones between two notes. Explain interval quality from notation and listening evidence.',
+                weeklyAssessments: 'Listening comparison and notation exercise',
+                asyncActivities: 'Compare Notated Example A with Recording B.',
+                syncActivities: 'Diagnose a misconception in Listening Pair C.',
+                supportingResources: 'Notated Example A, Recording B, and Listening Pair C',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        enrichment: {
+          source: 'browser-scion',
+          quality: { source: 'deterministic-fallback' },
+          stageDecisions: { genomeLinker: 'ran', modelStage: 'failed: no usable kernels parsed' },
+          coverage: { requestedLessons: 1, enrichedLessons: 0, missingLessons: [1] },
+        },
+      },
+    );
+    const atoms = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    const compiled = compileBlueprintDeliverables(blueprint, ['studyGuides'], {});
+    const guide = compiled.studyGuides.studyGuides[0];
+    const audit = auditSubstance('quizBank', { quizzes: [{ questions: atoms }] });
+    const text = atoms.map((item) => item.question).join(' ');
+
+    expect(blueprint.enrichment.stageDecisions.modelStage).toMatch(/^failed:/);
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'music theory and aural skills',
+      evidenceNoun: 'notated and listening evidence',
+      decisionNoun: 'interval identification',
+      learnerRole: 'musician',
+      exampleNoun: 'notated or recorded excerpt',
+    });
+    expect(atoms).toHaveLength(6);
+    expect(atoms.every((item) => item.type === 'multiple_choice')).toBe(true);
+    expect(atoms.every((item) => item.enrichmentSource === 'compiler-domain-fallback')).toBe(true);
+    expect(atoms.every((item) => item.fallbackSource === 'discipline-verified-music-theory-frame')).toBe(true);
+    expect(audit).toMatchObject({ meta: 0, metaShare: 0 });
+    expect(text).toMatch(/melodic|harmonic/i);
+    expect(text).toMatch(/semitone|C4–E♭4|D4–F♯4/i);
+    expect(text).not.toMatch(/professional decision|evidence move|lesson artifact/i);
+    expect(guide.keyTerms.map((term) => term.term)).toEqual([
+      'Generic interval number',
+      'Interval quality',
+      'Semitone',
+    ]);
+    expect(JSON.stringify(guide.keyTerms)).not.toMatch(/evidence focus|weekly artifact|as a self-check/i);
+  });
+
+  it('rejects explicit same-domain interval contradictions without rejecting a correct label', () => {
+    expect(hasMusicIntervalSemanticContradiction('The interval F♯–A is a major sixth.')).toBe(true);
+    expect(hasMusicIntervalSemanticContradiction('The interval F♯–A is a minor third.')).toBe(false);
+    expect(hasMusicIntervalSemanticContradiction('C4–E♭4 is a minor third.')).toBe(false);
+  });
+
+  it('carries a music-theory course identity into an inversion-only lesson title', () => {
+    const lesson = {
+      title: 'Lesson 2: Simple Compound Intervals and Inversion',
+      outcomes: ['Apply number pairs for simple intervals', 'Determine quality changes via inversion'],
+      learnerContextCue:
+        'Students connect interval evidence from notated and listening evidence to an interval-identification task.',
+    };
+    expect(isMusicIntervalLesson(lesson)).toBe(true);
+    expect(
+      disciplineSafeReadingsForLesson(lesson, ['number pairs that sum to nine and the correct quality changes']),
+    ).toEqual(['number pairs that sum to nine and the correct quality changes']);
+    expect(
+      disciplineSafeReadingsForLesson(lesson, [
+        'Immunogenicity of standard and extended dosing intervals of BNT162b2 mRNA vaccine',
+      ]),
+    ).toEqual(['Class notes and assigned source materials']);
+  });
+
+  it('keeps admitted atoms but source-binds every empty quiz slot and missing lesson in a partial run', () => {
+    const courseMap = {
+      courseName: 'Musical Intervals and Ear Training',
+      lessons: [1, 2].map((number) => ({
+        title:
+          number === 1 ? 'Lesson 1: Melodic and Harmonic Intervals' : 'Lesson 2: Interval Recognition and Application',
+        sections: [
+          {
+            topicSection: number === 1 ? 'Melodic versus harmonic intervals' : 'Recognizing intervals',
+            learningGoals: 'Recognize interval presentation and quality.',
+            learningObjectives:
+              number === 1
+                ? 'Distinguish melodic from harmonic intervals. Count semitones accurately.'
+                : 'Identify intervals from notation. Recognize intervals from a recording.',
+            weeklyAssessments: 'Listening comparison and notation exercise',
+            asyncActivities: 'Compare Notated Example A with Recording B.',
+            syncActivities: 'Diagnose a misconception in Listening Pair C.',
+            supportingResources: 'Notated Example A, Recording B, and Listening Pair C',
+          },
+        ],
+      })),
+    };
+    const blueprint = buildCourseBlueprint(courseMap, {
+      enrichment: {
+        source: 'browser-scion',
+        stageDecisions: { genomeLinker: 'ran', modelStage: 'ran' },
+        coverage: { requestedLessons: 2, enrichedLessons: 1, missingLessons: [2] },
+        lessonContent: {
+          'lesson-1': {
+            quizItems: [
+              {
+                index: 0,
+                type: 'multiple_choice',
+                question: 'Which pair is presented harmonically?',
+                options: ['Two pitches together', 'Two pitches in sequence', 'One silent rest', 'One repeated pitch'],
+                answerIndex: 0,
+                explanation: 'A harmonic interval presents two pitches at the same time.',
+              },
+            ],
+            keyTerms: [
+              {
+                term: 'Harmonic interval',
+                definition: 'A relationship between two pitches sounded at the same time.',
+                example: 'A notated dyad played together forms a harmonic interval.',
+                misconception: 'Any two adjacent notes form a harmonic interval.',
+                correction: 'Adjacent notes are harmonic only when they sound simultaneously.',
+              },
+            ],
+            kernel: { facts: ['Harmonic intervals sound two pitches simultaneously.'] },
+          },
+        },
+      },
+    });
+    const lessonOne = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    const lessonTwo = buildQuizAtomsForLesson(blueprint.lessons[1], blueprint, { assessment: {} });
+    const allText = [...lessonOne, ...lessonTwo].map((item) => item.question).join(' ');
+
+    expect(lessonOne[0]).toMatchObject({
+      question: 'Which pair is presented harmonically?',
+      enrichmentSource: 'lesson-content-enrichment',
+    });
+    expect(lessonOne.slice(1).every((item) => item.enrichmentSource === 'compiler-domain-fallback')).toBe(true);
+    expect(lessonTwo.every((item) => item.enrichmentSource === 'compiler-domain-fallback')).toBe(true);
+    expect(allText).not.toMatch(/professional decision|evidence move|weekly artifact/i);
+  });
+
+  it('replaces an admitted math-interval collision with verified music-theory terms and questions', () => {
+    const courseMap = {
+      courseName: 'Simple Interval Quality and Compound Interval Inversion',
+      lessons: [
+        {
+          title: 'Lesson 1: Simple Interval Quality and Semitone Verification',
+          sections: [
+            {
+              topicSection: 'Generic interval number; major, minor, and perfect quality; semitone verification',
+              learningGoals: 'Classify simple intervals accurately.',
+              learningObjectives:
+                'Identify generic interval number. Verify interval quality with semitone evidence from Notation Sheet J.',
+              weeklyAssessments: 'Notation classification check',
+              asyncActivities: 'Analyze Notation Sheet J.',
+              syncActivities: 'Compare interval labels.',
+              supportingResources:
+                'Notation Sheet J; Teaching Inclusive Design Skills with the CIDER Assumption Elicitation Technique; Counting everyone: evidence for inclusive measures of disability in federal surveys',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Simple Versus Compound Intervals and Inversion',
+          sections: [
+            {
+              topicSection: 'Simple and compound intervals; inversion number pairs; inversion quality changes',
+              learningGoals: 'Invert and reduce intervals accurately.',
+              learningObjectives:
+                'Distinguish simple from compound intervals. Explain inversion number and quality changes from Listening Set K.',
+              weeklyAssessments:
+                'Interval Types transfer task: explain one example, one source detail, and one limitation.',
+              asyncActivities: 'Analyze Listening Set K.',
+              syncActivities: 'Invert notated intervals.',
+              supportingResources:
+                'Listening Set K; Immunogenicity of standard and extended dosing intervals of BNT162b2 mRNA vaccine; Analysis of Premature Rupture of Membranes Interval on Types of Labor',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(courseMap, {
+      knowledgeResources: [
+        {
+          citation:
+            'Alannah Oleson et al. (2022). Teaching Inclusive Design Skills with the CIDER Assumption Elicitation Technique.',
+          kind: 'article',
+          origin: 'openalex',
+        },
+        {
+          citation:
+            'Rebecca Payne et al. (2021). Immunogenicity of standard and extended dosing intervals of BNT162b2 mRNA vaccine.',
+          kind: 'article',
+          origin: 'openalex',
+        },
+        {
+          citation: 'Open Music Theory: Intervals and Inversion.',
+          kind: 'reference',
+          origin: 'openalex',
+        },
+      ],
+      enrichment: {
+        source: 'browser-scion',
+        stageDecisions: { genomeLinker: 'ran', modelStage: 'ran' },
+        coverage: { requestedLessons: 2, enrichedLessons: 2, missingLessons: [] },
+        lessonContent: {
+          'lesson-1': {
+            keyTerms: [],
+            quizItems: [],
+            kernel: {
+              facts: [
+                'Generic interval number counts both endpoint letter names.',
+                'Semitone distance distinguishes major and minor intervals with the same generic number.',
+              ],
+            },
+          },
+          'lesson-2': {
+            keyTerms: [
+              {
+                term: 'Simple intervals',
+                definition:
+                  'A basic mathematical interval structure consisting of a single, continuous segment on the real number line.',
+                example: 'A simple interval is represented by a single continuous segment on the number line.',
+                misconception: 'Simple intervals are always defined by a single, unbroken set of endpoints.',
+                correction: 'A simple interval has one start point and one end point.',
+              },
+            ],
+            quizItems: [
+              {
+                index: 0,
+                type: 'multiple_choice',
+                question: 'Given a start point of 2 and an end point of 7, how is this interval classified?',
+                options: ['Compound', 'Simple', 'Perfect', 'Inverted'],
+                answerIndex: 1,
+                explanation: 'It is a simple interval because it is a single continuous span.',
+              },
+              {
+                index: 1,
+                type: 'multiple_choice',
+                question: 'How should F♯–A be classified?',
+                options: ['A major sixth', 'A minor third', 'A perfect fourth', 'An augmented second'],
+                answerIndex: 0,
+                explanation: 'F♯–A is a major sixth.',
+              },
+            ],
+            kernel: {
+              facts: [
+                'A simple interval is represented by a single continuous segment on the number line.',
+                'The classification depends on whether the interval is a single unit or a combination.',
+                'Simple intervals are defined by their basic structure and relationship between start and end points.',
+                'Compound intervals require the combination of two or more simple intervals into a larger structure.',
+                'Classifying the interval between F♯ and A as a major sixth uses letter names.',
+              ],
+            },
+            slideContent: [
+              {
+                title: 'The process of verifying intervals requires careful counting',
+                bullets: ['Classifying the interval between F♯ and A as a major sixth using letter names.'],
+              },
+            ],
+            discussionPrompt: {
+              prompt:
+                'Analyze how the classification system used to categorize mathematical sets based on fundamental structural composition strengthens or complicates your decision.',
+              tension: 'A continuous number-line segment may be simple or compound depending on its endpoints.',
+              positions: ['Use structural composition.', 'Use the number line.'],
+            },
+          },
+        },
+      },
+    });
+    const guides = compileBlueprintDeliverables(blueprint, ['studyGuides'], {}).studyGuides.studyGuides;
+    const packageOutputs = compileBlueprintDeliverables(
+      compactBlueprintForStorage(blueprint),
+      ['syllabus', 'lessonPlans', 'slideDecks', 'assignments', 'rubrics', 'discussions', 'courseFaq'],
+      {},
+    );
+    const lessonOneQuiz = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    const lessonTwoQuiz = buildQuizAtomsForLesson(blueprint.lessons[1], blueprint, { assessment: {} });
+    const lessonOneText = JSON.stringify(guides[0]);
+    const lessonTwoText = JSON.stringify(guides[1]);
+
+    expect(guides[0].keyTerms.map((term) => term.term)).toEqual([
+      'Generic interval number',
+      'Interval quality',
+      'Semitone',
+    ]);
+    expect(guides[1].keyTerms.map((term) => term.term)).toEqual([
+      'Simple interval',
+      'Compound interval',
+      'Interval inversion',
+      'Inversion number pair',
+      'Inversion quality change',
+    ]);
+    expect(`${lessonOneText} ${lessonTwoText}`).toMatch(/3 \+ 6 = 9|major third|minor sixth/i);
+    expect(`${lessonOneText} ${lessonTwoText}`).not.toMatch(
+      /names the evidence focus|weekly artifact|helps students separate description|as a self-check/i,
+    );
+    expect(guides[0].reviewQuestions.map((item) => item.question).join(' ')).toMatch(/C4–E♭4|C–D♯/);
+    expect(guides[1].reviewQuestions.map((item) => item.question).join(' ')).toMatch(
+      /major tenth|augmented fourth|major third inverts/i,
+    );
+    expect(guides.flatMap((guide) => guide.practiceActivities).join(' ')).not.toMatch(
+      /evidence card|three-column note|source-to-decision/i,
+    );
+    expect(`${lessonOneText} ${lessonTwoText}`).not.toMatch(
+      /number line|continuous segment|unbroken set of endpoints|single unit or a combination/i,
+    );
+    expect(JSON.stringify(guides)).not.toContain('"pattern":');
+    expect(lessonOneQuiz.map((item) => item.question).join(' ')).toMatch(/C4–E♭4|D4–F♯4|generic number/i);
+    expect(lessonTwoQuiz.map((item) => item.question).join(' ')).toMatch(/compound tenth|major third|sum to nine/i);
+    expect(`${JSON.stringify(lessonOneQuiz)} ${JSON.stringify(lessonTwoQuiz)}`).not.toMatch(
+      /two lesson concepts|relationships between points|methodological claim|start point of 2|continuous span|F♯ and A as a major sixth/i,
+    );
+    expect(new Set([...lessonOneQuiz, ...lessonTwoQuiz].map((item) => item.distractorRationale)).size).toBe(12);
+    const packageText = JSON.stringify(packageOutputs);
+    const lessonTwoDeck = packageOutputs.slideDecks.decks[1];
+    const lessonTwoConceptMap = lessonTwoDeck.slides.find(
+      (slide) => slide.type === 'keyTerm' && slide.visual?.kind === 'concept map',
+    );
+    const lessonTwoSlideText = JSON.stringify(lessonTwoDeck.slides);
+    const discussionClosures = packageOutputs.discussions.discussions.map(
+      (discussion) => discussion.facilitationTips.closure,
+    );
+    expect(lessonTwoConceptMap).toBeTruthy();
+    expect(lessonTwoConceptMap.visual.hub.length).toBeLessThanOrEqual(48);
+    expect(lessonTwoConceptMap.visual.spokes.length).toBeGreaterThanOrEqual(2);
+    expect(lessonTwoConceptMap.visual.spokes).toEqual(
+      expect.arrayContaining(['Simple interval', 'Compound interval', 'Interval inversion']),
+    );
+    expect(lessonTwoSlideText).toMatch(/Reduce, invert, then exchange quality/);
+    expect(lessonTwoSlideText).toMatch(/major tenth|major third/);
+    expect(lessonTwoSlideText).toMatch(/minor sixth/);
+    expect(lessonTwoSlideText).not.toMatch(/integer sets|mathematical procedure|necessary starting data/i);
+    expect(new Set(discussionClosures).size).toBe(2);
+    expect(discussionClosures[0]).toMatch(/pitch endpoints|inclusive count|semitone check/i);
+    expect(discussionClosures[1]).toMatch(/sum-to-nine partner|quality exchange/i);
+    expect(packageText).toMatch(/Notation classification check/);
+    expect(packageText).toMatch(/Listening Set K Interval Classification and Inversion Analysis/);
+    expect(packageText).toMatch(/Open Music Theory: Intervals and Inversion/);
+    expect(packageOutputs.syllabus.syllabus.requiredTexts.map((item) => item.title)).toEqual(
+      expect.arrayContaining(['Notation Sheet J', 'Listening Set K']),
+    );
+    expect(packageText).toMatch(/sum-to-nine rule|number pair and quality change/i);
+    const faqText = JSON.stringify(packageOutputs.courseFaq.faqs);
+    expect(faqText).toMatch(/Generic interval number/);
+    expect(faqText).toMatch(/Interval quality/);
+    expect(faqText).toMatch(/Simple interval/);
+    expect(faqText).toMatch(/Compound interval/);
+    expect(faqText).not.toMatch(/I thought count only|c–E counts/);
+    expect(packageText).not.toMatch(/source evidence source|notated and listening evidence source/i);
+    expect(packageText).not.toMatch(
+      /verifying semitone quality involves assessing|total number of notes within the defined span|F♯ and A as a major sixth/i,
+    );
+    const rubricText = JSON.stringify(packageOutputs.rubrics.rubrics);
+    expect(rubricText).toMatch(/inclusive letter-name counting/);
+    expect(rubricText).toMatch(/Interval quality from verified semitone distance/);
+    expect(rubricText).toMatch(/Inversion number pair sums to nine/);
+    expect(rubricText).toMatch(/perfect↔perfect, major↔minor, augmented↔diminished/);
+    expect(rubricText).not.toMatch(/Source-practice checkpoint|Professional communication organized/);
+    expect(
+      packageText.match(
+        /.{0,100}(?:CIDER Assumption|measures of disability|BNT162b2|Premature Rupture of Membranes|mathematical sets|number-line segment|structural composition|start and end points|two or more simple intervals|one example, one source detail, and one limitation|literature matrix|source synthesis|gap statement).{0,180}/gi,
+      ) || [],
+    ).toEqual([]);
+
+    const digest = buildPostGenerationDigest({
+      courseMap,
+      deliverables: Object.fromEntries(
+        Object.entries(packageOutputs).map(([featureId, data]) => [featureId, { status: 'done', data }]),
+      ),
+    });
+    expect(digest?.observations || []).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'coverage-l1' })]),
+    );
+  });
+
+  it('quarantines off-discipline interval sources without collapsing the provenance contract', () => {
+    const courseMap = {
+      courseName: 'Interval Evidence Studio',
+      lessons: [
+        {
+          title: 'Lesson 1: Written and Heard Interval Classification',
+          sections: [
+            {
+              topicSection: 'Generic interval number, interval quality, and semitone verification',
+              learningObjectives:
+                'Classify written and heard musical intervals with inclusive letter-name and semitone counting.',
+              weeklyAssessments: 'Interval classification evidence sheet',
+              syncActivities: 'Classify notated and heard musical intervals.',
+              supportingResources:
+                'Biochemistry Changes That Occur after Death: Potential Markers for Determining Post-Mortem Interval',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Simple and Compound Intervals and Inversion',
+          sections: [
+            {
+              topicSection: 'Simple intervals, compound intervals, and sum-to-nine inversion pairs',
+              learningObjectives:
+                'Distinguish simple and compound musical intervals and invert them with number and quality rules.',
+              weeklyAssessments: 'Interval inversion analysis',
+              syncActivities: 'Invert notated musical intervals and verify each label.',
+              supportingResources: 'Metronome',
+            },
+          ],
+        },
+      ],
+    };
+    const blueprint = buildCourseBlueprint(courseMap);
+    const prepared = hydrateBlueprintForCompilation(blueprint);
+    const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'lessonPlans', 'slideDecks']);
+    const packageText = JSON.stringify(compiled);
+
+    expect(compiled.syllabus).toBeTruthy();
+    expect(compiled.lessonPlans.lessonPlans).toHaveLength(2);
+    expect(compiled.slideDecks.decks).toHaveLength(2);
+    expect(prepared.lessons).toHaveLength(2);
+    for (const lesson of prepared.lessons) {
+      expect(lesson.sourceAnchors.length).toBeGreaterThan(0);
+      expect(lesson.sourceEvidenceTrace.sourceFields.length).toBeGreaterThanOrEqual(4);
+      expect(
+        lesson.sourceEvidenceTrace.sourceFields.every(
+          (field) => field.field && field.sourceColumn && field.source && field.compiledValue,
+        ),
+      ).toBe(true);
+      expect(lesson.sourceEvidenceTrace.domainAdmissionRepair).toMatchObject({
+        source: 'deterministic-compiler-domain-guard',
+      });
+    }
+    expect(packageText).not.toMatch(/post-mortem|biochemistry changes|metronome/i);
+    expect(compiled.syllabus.syllabus.courseDescription).toMatch(
+      /count letter names inclusively.+check semitone distance.+inversion pairs whose numbers sum to nine/i,
+    );
+    expect(compiled.syllabus.syllabus.courseDescription).not.toMatch(/course audience|applied decisions/i);
+    const classificationOutcome = compiled.syllabus.syllabus.outcomeAlignmentMatrix.find((row) =>
+      /classify.+interval/i.test(row.outcome),
+    );
+    expect(classificationOutcome?.bloomsLevel).toBe('Apply');
+    const boundarySlide = compiled.slideDecks.decks[0].slides.find((slide) =>
+      /classification check proves/i.test(slide.title),
+    );
+    expect(boundarySlide?.bullets).toEqual([
+      'Letter names determine the generic interval number; semitone count does not replace spelling.',
+      'Semitone distance distinguishes qualities only after the generic number is known.',
+      'A listening answer is provisional until its pitch endpoints can be checked.',
+    ]);
+    const classificationDeckText = JSON.stringify(compiled.slideDecks.decks[0]);
+    const inversionDeckText = JSON.stringify(compiled.slideDecks.decks[1]);
+    expect(classificationDeckText).toMatch(/Classification lab: spell, count, verify/);
+    expect(classificationDeckText).toMatch(/Which interval classification is defensible/);
+    expect(inversionDeckText).toMatch(/Inversion lab: reduce, pair, exchange/);
+    expect(inversionDeckText).toMatch(/Confirm that the inversion pair sums to nine/);
+    const visibleDeckText = compiled.slideDecks.decks
+      .flatMap((deck) => deck.slides.map((slide) => JSON.stringify([slide.title, slide.bullets])))
+      .join(' ');
+    expect(visibleDeckText).not.toMatch(
+      /weekly applied seminar|name the reading|source check|evidence choice holds up/i,
+    );
+    const repairResult = repairDeliverableContentQuality('slideDecks', compiled.slideDecks);
+    expect(repairResult.repeatedPhrase).toMatch(/pitch spelling accuracy inclusive counting semitone verification/i);
+    expect(repairResult.repairedPhrases).toBe(0);
+    expect(repairResult.data).toBe(compiled.slideDecks);
+    expect(JSON.stringify(repairResult.data)).not.toMatch(/(?:review note|evidence check)-and-quality agreement/i);
+
+    const missingTraceBlueprint = buildCourseBlueprint(courseMap);
+    missingTraceBlueprint.lessons[0].sourceEvidenceTrace = null;
+    expect(() => compileBlueprintDeliverables(missingTraceBlueprint, ['syllabus'])).toThrow(
+      /Contract blocked compilation: sourceTrace L1/,
+    );
+  });
+
+  it('repairs a generic music-interval Course Map assessment into a source-bound classification task', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Interval Evidence Studio',
+        lessons: [
+          {
+            title: 'Lesson 1: Simple Versus Compound Intervals and Inversion',
+            sections: [
+              {
+                topicSection: 'Simple and compound intervals; inversion number pairs; inversion quality changes',
+                learningObjectives:
+                  'Distinguish simple from compound intervals and apply inversion number and quality rules.',
+                weeklyAssessments:
+                  'Interval Types transfer task: explain one example, one source detail, and one limitation.',
+                supportingResources: 'Audio Set M',
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const assessment = result.courseMap.lessons[0].sections[0].weeklyAssessments;
+    expect(result.changed).toBe(true);
+    expect(assessment).toMatch(/Audio Set M interval-classification and inversion analysis/i);
+    expect(assessment).toMatch(/inspectable pitch evidence/i);
+    expect(assessment).not.toMatch(/transfer task|one source detail|one limitation/i);
+  });
+
+  it('leaves unknown definitions empty instead of inventing course-process glossary prose', () => {
+    const blueprint = buildCourseBlueprint(
+      {
+        courseName: 'Special Topics Seminar',
+        lessons: [
+          {
+            title: 'Lesson 1: Local Interpretive Framework',
+            sections: [
+              {
+                topicSection: 'Local interpretive framework',
+                learningObjectives: 'Evaluate a claim using the supplied local source.',
+                supportingResources: 'Instructor source packet',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        enrichment: {
+          source: 'browser-scion',
+          stageDecisions: { modelStage: 'ran' },
+          coverage: { requestedLessons: 1, enrichedLessons: 1, missingLessons: [] },
+          lessonContent: {
+            'lesson-1': {
+              keyTerms: [],
+              quizItems: [],
+              kernel: {
+                facts: ['The supplied local source defines the framework within its own institutional context.'],
+              },
+            },
+          },
+        },
+      },
+    );
+    const guide = compileBlueprintDeliverables(blueprint, ['studyGuides'], {}).studyGuides.studyGuides[0];
+
+    expect(guide.keyTerms).toEqual([]);
+    expect(guide.sourceReviewRequired).toMatch(/no definitions were invented/i);
+    expect(JSON.stringify(guide)).not.toMatch(/names the evidence focus|weekly artifact|as a self-check/i);
   });
 });
 

@@ -111,25 +111,45 @@ function lessonVocabulary(lesson) {
   return tokens(text);
 }
 
-function scoreCandidate(kernel, vocabSet, { level, priorIds }) {
+function scoreCandidate(kernel, vocabSet, { level, priorIds, lessonVocabSet = vocabSet }) {
   // Iteration-1 refinement: score each surface form (the term and each alias)
   // INDEPENDENTLY and take the best. Scoring the union punished multi-alias
   // kernels — "p-value" matched 1 of 4 union tokens and missed, while a
   // single-surface kernel with the same lesson would have resolved.
   const surfaces = [kernel.term, ...(kernel.aliases || [])];
   let best = 0;
-  for (const surface of surfaces) {
+  const termTokens = new Set(tokens(kernel.term));
+  for (const [surfaceIndex, surface] of surfaces.entries()) {
     const surfaceTokens = [...new Set(tokens(surface))];
     if (surfaceTokens.length === 0) continue;
+    // Course identity may complete a canonical qualifier ("Interval" in a
+    // Music Theory course → "Interval (music)"), but it cannot create a
+    // concept hit on its own or complete a broad alias ("experience" from
+    // the course title + "mapping" from an affinity-mapping lesson must not
+    // resolve Journey Mapping). Every surface needs lesson-local evidence;
+    // aliases are scored from the lesson vocabulary alone.
+    if (!surfaceTokens.some((token) => lessonVocabSet.has(token))) continue;
+    const surfaceVocabSet = surfaceIndex === 0 ? vocabSet : lessonVocabSet;
     // Guard: a single short token ("ped") is too weak to identify a concept
     // on its own; require either a multi-token surface or a long token.
     if (surfaceTokens.length === 1 && surfaceTokens[0].length < 5) continue;
     let matched = 0;
-    for (const token of surfaceTokens) if (vocabSet.has(token)) matched += 1;
+    for (const token of surfaceTokens) if (surfaceVocabSet.has(token)) matched += 1;
     if (matched === 0) continue;
 
     // Coverage: how much of THIS surface form the lesson vocabulary covers.
     const coverage = matched / surfaceTokens.length;
+    // A partial alias match must still contain an anchor from the canonical
+    // term. "major minor" alone is not enough evidence for the alias "major
+    // and minor scales" when neither scale nor key signature appears. Exact
+    // alternate names remain eligible even when they share no canonical word.
+    if (
+      surfaceIndex > 0 &&
+      coverage < 1 &&
+      !surfaceTokens.some((token) => termTokens.has(token) && lessonVocabSet.has(token))
+    ) {
+      continue;
+    }
     // Specificity: multi-word matches are stronger signals than single-token
     // hits; full single-token surfaces stay below the resolve threshold
     // without corroboration (level fit + coherence push true hits over).
@@ -155,12 +175,16 @@ function scoreCandidate(kernel, vocabSet, { level, priorIds }) {
  * status, plus runner-up suggestions.
  */
 export function resolveLessonConcepts(lesson, index, options = {}) {
-  const { level = null, priorIds = new Set(), maxConcepts = 4 } = options;
+  const { level = null, priorIds = new Set(), maxConcepts = 4, context = '' } = options;
   if (!index || index.kernels.size === 0) {
     return { conceptRefs: [], suggestions: [], unresolved: lessonVocabulary(lesson) };
   }
-  const vocab = lessonVocabulary(lesson);
+  // Course identity disambiguates parenthetical/kernel qualifiers that do not
+  // need repeating in every lesson (for example Interval (music)).
+  const lessonVocab = lessonVocabulary(lesson);
+  const vocab = [...lessonVocab, ...tokens(context)];
   const vocabSet = new Set(vocab);
+  const lessonVocabSet = new Set(lessonVocab);
 
   const candidateIds = new Set();
   for (const token of vocab) {
@@ -172,7 +196,7 @@ export function resolveLessonConcepts(lesson, index, options = {}) {
   for (const id of candidateIds) {
     const kernel = index.kernels.get(id);
     if (!kernel) continue;
-    const score = scoreCandidate(kernel, vocabSet, { level, priorIds });
+    const score = scoreCandidate(kernel, vocabSet, { level, priorIds, lessonVocabSet });
     if (score >= SUGGESTED_THRESHOLD) scored.push({ id, kernel, score: Number(score.toFixed(3)) });
   }
   scored.sort((a, b) => b.score - a.score);
@@ -211,7 +235,11 @@ export function resolveCourseConcepts(courseMap, index, options = {}) {
   const perLesson = [];
   let resolvedCount = 0;
   for (let lessonIndex = 0; lessonIndex < lessons.length; lessonIndex += 1) {
-    const result = resolveLessonConcepts(lessons[lessonIndex], index, { ...options, priorIds });
+    const result = resolveLessonConcepts(lessons[lessonIndex], index, {
+      ...options,
+      priorIds,
+      context: options.context || courseMap?.courseName || '',
+    });
     for (const ref of result.conceptRefs) priorIds.add(ref.id);
     resolvedCount += result.conceptRefs.length;
     perLesson.push({ lessonIndex, ...result });

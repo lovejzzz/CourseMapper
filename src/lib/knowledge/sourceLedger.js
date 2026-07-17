@@ -1,3 +1,5 @@
+import { isMusicIntervalWeakSource } from './musicSourceRelevance.js';
+
 const TRUSTED_PROVIDERS = new Set([
   'courseir',
   'genome',
@@ -5,6 +7,7 @@ const TRUSTED_PROVIDERS = new Set([
   'openalex',
   'openlibrary',
   'openstax',
+  'open-music-theory',
   'eric',
   'instructor',
   'instructor-provided',
@@ -12,7 +15,7 @@ const TRUSTED_PROVIDERS = new Set([
 ]);
 
 const ACADEMIC_PROVIDERS = new Set(['openalex', 'eric', 'crossref']);
-const OER_PROVIDERS = new Set(['openstax', 'genome', 'genome-prerequisite']);
+const OER_PROVIDERS = new Set(['openstax', 'open-music-theory', 'genome', 'genome-prerequisite']);
 const METADATA_ONLY_PROVIDERS = new Set(['openlibrary']);
 const LICENSED_BACKGROUND_PROVIDERS = new Set(['wikipedia']);
 const REVIEW_ONLY_PROVIDERS = new Set(['courseir', 'instructor', 'instructor-provided', 'openlibrary']);
@@ -719,11 +722,16 @@ export function isComputerScienceWeakSource(source, courseGraph) {
   return !COMPUTER_SCIENCE_SOURCE_ANCHOR_RE.test(text) && !hasComputerScienceTopicAnchor(source);
 }
 
+export function isMusicTheoryIntervalWeakSource(source, courseGraph) {
+  return isMusicIntervalWeakSource(sourceSearchText(source), courseText(courseGraph), sourceConceptText(source));
+}
+
 export function isCourseAwareWeakSource(source, courseGraph) {
   return (
     hasOnlyArtifactConceptLinks(source) ||
     isUserExperienceWeakSource(source, courseGraph) ||
-    isComputerScienceWeakSource(source, courseGraph)
+    isComputerScienceWeakSource(source, courseGraph) ||
+    isMusicTheoryIntervalWeakSource(source, courseGraph)
   );
 }
 
@@ -875,12 +883,16 @@ function sourceFinderTopicLedgerSources(courseGraph, topic, topicIndex, checkedA
   const trustedConceptLinked = [];
   const reviewRequired = [];
   for (const source of candidates) {
-    if (!isTrustedConceptLinkedSourceLedgerRow(source) || isCourseAwareWeakSource(source, courseGraph)) {
+    // A domain-rejected search result is not an unresolved citation. It is a
+    // false friend that the retrieval layer already knows not to use, so do
+    // not leak it into the exported review appendix. Keep only candidates
+    // that are relevant but still need metadata, license, access, or concept
+    // verification.
+    if (isCourseAwareWeakSource(source, courseGraph)) continue;
+    if (!isTrustedConceptLinkedSourceLedgerRow(source)) {
       appendUnique(reviewRequired, {
         ...source,
-        status: isCourseAwareWeakSource(source, courseGraph)
-          ? 'review-required: off-topic or weak for course'
-          : 'review-required: metadata-only, license, access, or concept-link gap',
+        status: 'review-required: metadata-only, license, access, or concept-link gap',
       });
       continue;
     }

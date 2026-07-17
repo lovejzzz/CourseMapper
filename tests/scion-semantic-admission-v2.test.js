@@ -10,6 +10,23 @@ const LIST_CLAIMS = [
 ];
 
 describe('Scion strict semantic admission', () => {
+  it('rejects copied compact-prompt stems and options before they reach the course', () => {
+    const item = {
+      q: 'Which option correctly distinguishes the two lesson concepts?',
+      op: [
+        'Plausible methodological claim or action A',
+        'Plausible methodological claim or action B',
+        'Plausible methodological claim or action C',
+        'Plausible methodological claim or action D',
+      ],
+      ai: 0,
+      ex: 'The first option wins because it states the intended distinction while the second option does not.',
+    };
+
+    expect(assessScionMcItem(item).issues).not.toContain('template-residue');
+    expect(assessScionMcItem(item, { semanticProfile: 'source-strict-v3' }).issues).toContain('template-residue');
+  });
+
   it('rejects a schema-ceiling option ending in a hard-truncated word fragment', () => {
     const item = {
       q: 'Which situation best fits a natural experiment?',
@@ -126,6 +143,78 @@ describe('Scion strict semantic admission', () => {
     expect(sourceStrict.issues).toEqual(expect.arrayContaining(strict.issues));
   });
 
+  it('rejects broad source-bound questions with more than one defensible answer', () => {
+    const taskFlow = {
+      q: 'What is the primary function of a task flow analysis?',
+      op: [
+        'To build testable interactions',
+        'To surface obstacles between users and goals',
+        'To diagram steps and decision points for reaching a goal',
+        'To combine conformance checks with observed user performance',
+      ],
+      ai: 2,
+      ex: 'The correct choice diagrams how a user progresses through tasks to accomplish a goal.',
+    };
+    const taskFlowClaims = [
+      'A task flow analysis diagrams the steps and decision points through which a user reaches a defined goal.',
+      'Task flow analysis can validate the team understanding of user goals, common scenarios, and tasks.',
+      'A task flow should show how a user progresses through tasks to accomplish a goal.',
+      'Task flow analysis should surface obstacles that stand between users and their goals.',
+      'The diagram may include multiple possible paths, task sequences, and decision points.',
+    ];
+    const list = {
+      q: 'How is a list fundamentally structured according to the source claims?',
+      op: [
+        'A list is an ordered collection of values written in square brackets; each element has an index',
+        'A list is written with square brackets holding comma-separated values',
+        'Individual elements are accessed directly using an index',
+        'A list is a mutable sequence where elements are accessed by their value',
+      ],
+      ai: 0,
+      ex: 'The keyed statement combines the list ordering, bracket notation, and index structure.',
+    };
+
+    expect(
+      assessScionMcItem(taskFlow, { sourceClaims: taskFlowClaims, semanticProfile: 'source-strict-v3' }).issues,
+    ).toContain('multiple-source-supported-options');
+    expect(
+      assessScionMcItem(list, { sourceClaims: LIST_CLAIMS, semanticProfile: 'source-strict-v3' }).issues,
+    ).toContain('multiple-source-supported-options');
+    expect(
+      assessScionMcItem(taskFlow, { sourceClaims: taskFlowClaims, semanticProfile: 'source-strict' }).issues,
+    ).not.toContain('multiple-source-supported-options');
+  });
+
+  it('requires an explanation to teach the key instead of only eliminating every distractor', () => {
+    const item = {
+      q: 'What is the primary function of a task flow analysis?',
+      op: [
+        'To illustrate the emotional response to the system',
+        'To validate understanding of user goals, scenarios, and tasks',
+        'To show the aesthetic design of the final interface',
+        'To document the historical development of the software',
+      ],
+      ai: 1,
+      ex: 'Option 1 is incorrect because it concerns emotion. Option 3 is incorrect because it concerns visual design. Option 4 is incorrect because it concerns history.',
+    };
+
+    expect(assessScionMcItem(item, { semanticProfile: 'source-strict-v3' }).issues).toContain(
+      'explanation-omits-key-support',
+    );
+    expect(
+      assessScionMcItem(
+        {
+          ...item,
+          ex: 'Option 2 is correct because task flow analysis validates user goals and common tasks. Option 1 is incorrect. Option 3 is incorrect. Option 4 is incorrect.',
+        },
+        { semanticProfile: 'source-strict-v3' },
+      ).issues,
+    ).not.toContain('explanation-omits-key-support');
+    expect(assessScionMcItem(item, { semanticProfile: 'source-strict' }).issues).not.toContain(
+      'explanation-omits-key-support',
+    );
+  });
+
   it('rejects source-grounded key terms with token examples or self-repeating corrections', () => {
     const terse = {
       tr: 'Lithification',
@@ -221,6 +310,35 @@ describe('Scion strict semantic admission', () => {
       ).issues,
     ).toContain('source-precision-overstatement');
     expect(assessScionKeyTerm(base, { knownFacts, semanticProfile: 'source-strict' }).eligible).toBe(true);
+  });
+
+  it('rejects a compact source fact mislabeled as a misconception', () => {
+    const knownFacts = [
+      'In music, a triad is a set of three notes that can be stacked vertically in thirds.',
+      'A seventh chord is a triad plus a note forming a seventh above the root.',
+    ];
+    const term = {
+      tr: 'Seventh chord',
+      df: 'A chord composed of a triad plus a note forming a seventh above the root.',
+      eg: 'A dominant seventh chord adds a seventh above its root to a triad.',
+      mi: 'A triad consists of three notes.',
+      cx: 'A seventh chord includes a triad plus one additional note above the root.',
+    };
+    const contrasted = {
+      ...term,
+      mi: 'A seventh chord must contain seven notes.',
+      cx: 'The name refers to the added seventh interval, not to seven total notes.',
+    };
+
+    expect(assessScionKeyTerm(term, { knownFacts, semanticProfile: 'source-strict-v3' }).issues).toContain(
+      'misconception-repeats-known-fact',
+    );
+    expect(assessScionKeyTerm(contrasted, { knownFacts, semanticProfile: 'source-strict-v3' }).issues).not.toContain(
+      'misconception-repeats-known-fact',
+    );
+    expect(assessScionKeyTerm(term, { knownFacts, semanticProfile: 'source-strict' }).issues).not.toContain(
+      'misconception-repeats-known-fact',
+    );
   });
 
   it('keeps a clean applied item eligible', () => {

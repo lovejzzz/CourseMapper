@@ -37,7 +37,7 @@ export default defineConfig({
           )
             return 'scionRuntime';
           if (/src\/lib\/quality\/quizItemDepth\.js$/.test(id)) return 'quizItemDepth';
-          if (/src\/lib\/bayesianQuizFrames\.js$/.test(id)) return 'compilerFrames';
+          if (/src\/lib\/(?:bayesianQuizFrames|musicTheoryQuizFrames)\.js$/.test(id)) return 'compilerFrames';
         },
       },
     },

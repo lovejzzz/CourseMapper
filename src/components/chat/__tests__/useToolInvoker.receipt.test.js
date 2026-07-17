@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   buildAgentStateDiffsFromToolResult,
+  buildLocalReadOnlyFallback,
   buildModelAgentReceiptFromProgress,
   buildToolResultFallbackChatReply,
   chooseAgentFallbackText,
@@ -12,6 +13,7 @@ import {
   findBroadDestructiveWorkspaceMutationRequest,
   inferAgentQualityExpectations,
   normalizeAgentFinalResponse,
+  stripInternalAgentMarkers,
   shouldRequirePlanningBeforeTool,
   shouldNotifyDirectDeliverableEdit,
   projectAgentDeliverableActionToCanonicalPatch,
@@ -263,12 +265,42 @@ describe('normalizeAgentFinalResponse', () => {
       chatReply: 'Rewriting everything needs a scoped direction first.',
     });
   });
+
+  it('unwraps a JSON array of sentence fragments returned by browser-local Scion', () => {
+    expect(
+      normalizeAgentFinalResponse({
+        chatReply:
+          '["A melodic interval is heard one note after another","whereas a harmonic interval is heard at the same time."]',
+      }),
+    ).toMatchObject({
+      chatReply:
+        'A melodic interval is heard one note after another, whereas a harmonic interval is heard at the same time.',
+    });
+  });
 });
 
 describe('chooseAgentFallbackText', () => {
   it('unwraps a browser-local Scion chatReply envelope before rendering it', () => {
     expect(chooseAgentFallbackText('{"chatReply":"Weak evidence should move a strong prior only modestly."}', [])).toBe(
       'Weak evidence should move a strong prior only modestly.',
+    );
+  });
+
+  it('unwraps browser-local Scion sentence arrays before rendering them', () => {
+    expect(chooseAgentFallbackText('["Check the named example","then explain the decisive feature."]', [])).toBe(
+      'Check the named example, then explain the decisive feature.',
+    );
+  });
+
+  it('removes prompt-only lesson routing markers from user-facing Agent prose', () => {
+    const raw = 'Inspect Lesson 1: Intervals (toolIndex=0), then compare its examples.';
+    expect(stripInternalAgentMarkers(raw)).toBe('Inspect Lesson 1: Intervals, then compare its examples.');
+    expect(chooseAgentFallbackText(raw, [])).toBe('Inspect Lesson 1: Intervals, then compare its examples.');
+  });
+
+  it('removes leading JSON punctuation fragments from a small-model reply', () => {
+    expect(stripInternalAgentMarkers('), A major third inverts to a minor sixth.')).toBe(
+      'A major third inverts to a minor sixth.',
     );
   });
 
@@ -304,6 +336,62 @@ describe('chooseAgentFallbackText', () => {
 
     expect(reply).toContain('Opening check');
     expect(reply).not.toContain('Agent used');
+  });
+
+  it('never renders a browser-local pseudo tool call as Agent prose', () => {
+    const raw =
+      'I will proceed by planning the regeneration. plan_workspace_next_step {"tool_name":"regenerate_slide_decks","parameters":{"lesson_ids":[0,1]}}';
+    expect(
+      chooseAgentFallbackText(raw, [], undefined, {
+        userMessage: 'Regenerate both lesson slide decks and improve the slides.',
+      }),
+    ).toBe(
+      'I could not safely apply those slide changes from this chat reply. Use Improve slides so the app regenerates the decks directly and records a visible receipt.',
+    );
+  });
+});
+
+describe('buildLocalReadOnlyFallback — verified course facts', () => {
+  it('answers the music-interval inversion rule from the compiler-owned frame', () => {
+    const reply = buildLocalReadOnlyFallback('In one sentence, why does a major third invert to a minor sixth?', {
+      courseMap: {
+        courseName: 'Interval Evidence Studio',
+        lessons: [
+          {
+            title: 'Lesson 2: Simple and Compound Intervals',
+            sections: [
+              {
+                learningObjectives: 'Apply inversion number and quality rules.',
+                supportingResources: 'Audio Set M',
+              },
+            ],
+          },
+        ],
+      },
+    });
+    expect(reply).toContain('3 + 6 = 9');
+    expect(reply).toContain('major quality changes to minor');
+    expect(reply).toContain('eight semitones, not four');
+  });
+
+  it('corrects a major-sixth inversion question directly without requiring the answer in the prompt', () => {
+    const reply = buildLocalReadOnlyFallback(
+      'Does a major third invert to a major sixth? Explain the number and quality rule in two sentences.',
+      {
+        courseMap: {
+          courseName: 'Interval Evidence Studio',
+          lessons: [
+            {
+              title: 'Lesson 2: Simple and Compound Intervals',
+              sections: [{ learningObjectives: 'Apply inversion number and quality rules.' }],
+            },
+          ],
+        },
+      },
+    );
+    expect(reply).toMatch(/^No\. A major third inverts to a minor sixth:/);
+    expect(reply).toContain('3 + 6 = 9');
+    expect(reply).toContain('major quality changes to minor');
   });
 });
 

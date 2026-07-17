@@ -12,20 +12,18 @@
  */
 
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer.js';
+import { hasDanglingClauseSeam } from './contentQualityChecks.js';
 
 // Mirrors of the detector regexes in contentQualityChecks.js — each fixer
 // must make its detector pass, never merely shuffle the defect.
 const DOUBLE_PERIOD_RE = /([a-z])\.\.(?!\.)/g;
 const ARTICLE_A_VOWEL_RE = /\ba(\s+)([AEIOU][a-z]{3,})/g;
 const LEADING_COLON_RE = /^\s*:\s*/;
-const DANGLING_CLAUSE_RE =
-  /\s*\b(?:and|or|for|in|of|to|the|with|before|after|around|aligned to|into|from)\s*([.])\s*$/i;
+const HIGH_CONFIDENCE_DANGLING_CLAUSE_RE =
+  /\s*(?:\b(?:and|or|the)\s*|\b(?:for|in|of|to|with|before|after|around|aligned to|into|from)\s+)([.])\s*$/i;
 const DANGLING_EXEMPT_RE = /\b(?:etc|e\.g|i\.e)[.]\s*$/i;
 const PHRASE_SHINGLE_SIZE = 8;
 const PHRASE_REPAIR_LIMIT = 10;
-const PHRASE_KEEP_COUNT = 2;
-const PROGRAMMING_SHINGLE_RE =
-  /\b(?:python|code|program|debug|trace|input|output|file|module|librar(?:y|ies)|loop|function|list|dictionary|variable|conditional|algorithm)\b/i;
 
 export const MECHANICAL_FINDING_CODES = [
   'double-period',
@@ -39,9 +37,9 @@ function repairString(value) {
   text = text.replace(DOUBLE_PERIOD_RE, '$1.');
   text = text.replace(ARTICLE_A_VOWEL_RE, 'an$1$2');
   text = text.replace(LEADING_COLON_RE, '');
-  if (!DANGLING_EXEMPT_RE.test(text)) {
+  if (!DANGLING_EXEMPT_RE.test(text) && hasDanglingClauseSeam(text)) {
     // "…aligned to ." → "…." — drop the stranded connective, keep the period.
-    text = text.replace(DANGLING_CLAUSE_RE, '$1');
+    text = text.replace(HIGH_CONFIDENCE_DANGLING_CLAUSE_RE, '$1');
   }
   return text;
 }
@@ -90,87 +88,6 @@ function worstRepeatedPhrase(node) {
   return worst.count >= PHRASE_REPAIR_LIMIT ? worst : null;
 }
 
-function phraseRegex(phrase) {
-  const words = phraseWords(phrase);
-  if (words.length !== PHRASE_SHINGLE_SIZE) return null;
-  return new RegExp(words.map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[^A-Za-z0-9]+'), 'gi');
-}
-
-// Raw-trim variant — compilerText.sentenceCase normalizes whitespace first;
-// this one must not, because repair operates on already-rendered text.
-function sentenceCase(value) {
-  const text = String(value || '').trim();
-  return text ? `${text.slice(0, 1).toUpperCase()}${text.slice(1)}` : text;
-}
-
-function replacementForRepeatedPhrase(phrase, index) {
-  const lower = String(phrase || '').toLowerCase();
-  if (PROGRAMMING_SHINGLE_RE.test(lower)) {
-    const variants = [
-      'file-processing code trace',
-      'debugging checkpoint',
-      'program-output check',
-      'implementation note',
-      'code review task',
-      'edge-case test',
-    ];
-    return variants[index % variants.length];
-  }
-  const variants = ['lesson task', 'practice checkpoint', 'applied response', 'review note', 'evidence check'];
-  return variants[index % variants.length];
-}
-
-function repairRepeatedPhraseNode(node, repeated, stats) {
-  if (!repeated?.phrase) return node;
-  const regex = phraseRegex(repeated.phrase);
-  if (!regex) return node;
-  const state = { seen: 0 };
-  const repairValue = (value) =>
-    String(value).replace(regex, (match, offset, full) => {
-      state.seen += 1;
-      if (state.seen <= PHRASE_KEEP_COUNT) return match;
-      stats.repairedPhrases += 1;
-      const replacement = replacementForRepeatedPhrase(repeated.phrase, state.seen);
-      if (offset === 0 || /[.!?]\s+$|\n\s*$/.test(full.slice(Math.max(0, offset - 3), offset))) {
-        return sentenceCase(replacement);
-      }
-      return replacement;
-    });
-
-  const walk = (value) => {
-    if (typeof value === 'string') {
-      const repaired = repairValue(value);
-      if (repaired !== value) stats.repairedStrings += 1;
-      return repaired;
-    }
-    if (Array.isArray(value)) {
-      let changed = false;
-      const next = value.map((item) => {
-        const repaired = walk(item);
-        if (repaired !== item) changed = true;
-        return repaired;
-      });
-      return changed ? next : value;
-    }
-    if (value && typeof value === 'object') {
-      let changed = false;
-      const next = {};
-      for (const [key, item] of Object.entries(value)) {
-        if (isProvenanceMirrorKey(key)) {
-          next[key] = item;
-          continue;
-        }
-        const repaired = walk(item);
-        if (repaired !== item) changed = true;
-        next[key] = repaired;
-      }
-      return changed ? next : value;
-    }
-    return value;
-  };
-  return walk(node);
-}
-
 function repairNode(node, stats) {
   if (typeof node === 'string') {
     const repaired = repairString(node);
@@ -214,12 +131,18 @@ export function repairDeliverableContentQuality(featureId, data) {
   const stats = { repairedStrings: 0, repairedPhrases: 0 };
   const seamRepaired = repairNode(data, stats);
   const repeated = worstRepeatedPhrase(seamRepaired);
-  const repaired = repeated ? repairRepeatedPhraseNode(seamRepaired, repeated, stats) : seamRepaired;
+  // Repetition is a diagnostic for the compiler or a targeted regeneration,
+  // not a safe string-rewrite target. Replacing an eight-word shingle inside
+  // arbitrary prose corrupted grammar and domain criteria (for example,
+  // "pitch-spelling accuracy … number-and-quality agreement" became
+  // "Review note-and-quality agreement"). Mechanical repair must be
+  // meaning-preserving, so report the phrase but leave semantic prose intact.
   return {
-    data: repaired,
-    changed: repaired !== data,
+    data: seamRepaired,
+    changed: seamRepaired !== data,
     repairedStrings: stats.repairedStrings,
-    repairedPhrases: stats.repairedPhrases,
+    repairedPhrases: 0,
     repeatedPhrase: repeated?.phrase || '',
+    repeatedPhraseCount: repeated?.count || 0,
   };
 }

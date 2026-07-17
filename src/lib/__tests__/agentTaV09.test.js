@@ -101,6 +101,43 @@ describe('buildPostGenerationDigest', () => {
     expect(digest).toBeNull();
   });
 
+  it('recognizes a lesson-local morphological objective echo instead of warning falsely', () => {
+    const digest = buildPostGenerationDigest({
+      courseMap: {
+        courseName: 'Interval Evidence Studio',
+        lessons: [
+          {
+            title: 'Lesson 1: Inclusive Counting',
+            sections: [{ learningObjectives: 'Count intervals inclusively.' }],
+          },
+        ],
+      },
+      deliverables: {
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              {
+                lessonTitle: 'Lesson 1: Inclusive Counting',
+                questions: [
+                  {
+                    type: 'multiple_choice',
+                    bloomsLevel: 'Apply',
+                    question: 'Apply inclusive letter-name counting to C4–E-flat4 and classify the interval.',
+                    answer: 'A minor third.',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+    expect(digest?.observations || []).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: 'coverage-l1' })]),
+    );
+  });
+
   it('caps observations at three', () => {
     const noisy = {
       status: 'done',

@@ -330,6 +330,7 @@ function ReadinessPanel({
   onOpenQuality = null,
   finishSummary = '',
   packageReceipt = null,
+  packageQualityPass = null,
 }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   if (!readiness || readiness.featureCount === 0) return null;
@@ -338,7 +339,7 @@ function ReadinessPanel({
     quality,
     receipt: packageReceipt,
     readiness,
-    packageQualityPass: { status: 'ready', quality, receipt: packageReceipt },
+    packageQualityPass: packageQualityPass || { status: 'ready', quality, receipt: packageReceipt },
     featureLabels: FEATURE_LABELS,
   });
   const packageReviewIssues = trustStatus.reviewIssues;
@@ -1253,18 +1254,26 @@ export default function ExportSidePanel({
   const selectedCount = selectedLessons === null ? allLessons.length : selectedLessons.length;
   const activeHasReadinessIssues = hasBlockingReadinessIssues(displayedReadiness);
   const zipHasExportFailure = scope === 'all' && hasPackageExportFailure(packageQualityPass);
+  const terminalPackageTrust = getPackageTrustStatus({
+    packageQualityPass,
+    quality: packageQualityPass?.quality || null,
+    receipt: packageQualityPass?.receipt || null,
+    featureLabels: FEATURE_LABELS,
+  });
+  const zipHasTerminalTrustBlocker = scope === 'all' && terminalPackageTrust.blocked;
   const zipPendingNeedsAttention = zipPendingReadiness && pendingReadinessExport?.canFinishPackageAgain === false;
   const zipCanFinishPackage =
     scope === 'all' &&
     activeHasReadinessIssues &&
     canFinishPackage &&
     !zipPendingNeedsAttention &&
-    !zipHasExportFailure;
+    !zipHasExportFailure &&
+    !zipHasTerminalTrustBlocker;
   const zipButtonLabel = finishPackageBusy
     ? 'Finishing package'
     : zipCanFinishPackage
       ? 'Finish package'
-      : zipPendingNeedsAttention || zipHasExportFailure
+      : zipPendingNeedsAttention || zipHasExportFailure || zipHasTerminalTrustBlocker
         ? 'Needs attention'
         : zipPendingReadiness
           ? 'Finish package'
@@ -1275,6 +1284,7 @@ export default function ExportSidePanel({
     isPackageQualityRunning ||
     finishPackageBusy ||
     zipHasExportFailure ||
+    zipHasTerminalTrustBlocker ||
     (zipPendingReadiness && !canFinishPackage) ||
     zipPendingNeedsAttention ||
     allReadyCount === 0 ||
@@ -1379,6 +1389,7 @@ export default function ExportSidePanel({
             onOpenQuality={() => setQualityModalOpen(true)}
             finishSummary={finishSummary}
             packageReceipt={packageQualityPass?.receipt || null}
+            packageQualityPass={packageQualityPass}
           />
         )}
 

@@ -78,7 +78,13 @@ import {
   repairWorkspaceReadiness,
 } from './lib/deliverableReadiness';
 import { evaluateClassroomReadiness } from './lib/classroomReadiness';
-import { applyApiCallBudgetEvent, createApiCallBudget, formatEnrichmentOutcomeLabel } from './lib/apiCallBudget';
+import {
+  applyApiCallBudgetEvent,
+  buildApiCallBudgetReceipt,
+  createApiCallBudget,
+  createApiCallBudgetFromReceipt,
+  formatEnrichmentOutcomeLabel,
+} from './lib/apiCallBudget';
 import { buildBuildRibbonModel } from './lib/buildRibbonModel';
 import useReviewQueueOwner from './hooks/useReviewQueueOwner';
 import useTabDrag from './hooks/useTabDrag';
@@ -695,6 +701,15 @@ export default function AppFlow({
   const [showDeveloperPanel, setShowDeveloperPanel] = useState(false);
   const [apiCallBudget, setApiCallBudget] = useState(() => createApiCallBudget());
   const apiCallBudgetRef = useRef(apiCallBudget);
+  const getApiCallBudgetReceipt = useCallback(
+    () => buildApiCallBudgetReceipt(apiCallBudgetRef.current || createApiCallBudget()),
+    [],
+  );
+  const restoreApiCallBudgetReceipt = useCallback((receipt) => {
+    const next = createApiCallBudgetFromReceipt(receipt);
+    apiCallBudgetRef.current = next;
+    setApiCallBudget(next);
+  }, []);
   const recordApiCallEvent = useCallback((event) => {
     const current = apiCallBudgetRef.current || createApiCallBudget();
     const next = applyApiCallBudgetEvent(current, event);
@@ -980,6 +995,7 @@ export default function AppFlow({
     pedagogicalMode: 'lecture',
     examChanges: gen.examChanges,
     columns,
+    courseGraph,
     onApiCallEvent: recordApiCallEvent,
     onCourseMapRepair: handleGeneratedCourseMapRepair,
     onCourseGraph: handleCourseGraph,
@@ -2161,6 +2177,8 @@ export default function AppFlow({
     modelId,
     modelName,
     restoreProjectAIConfig,
+    getApiCallBudgetReceipt,
+    restoreApiCallBudgetReceipt,
     gen,
     deliv,
     rev,
@@ -2832,6 +2850,12 @@ export default function AppFlow({
       .slice(0, 80) ||
     'Untitled course';
   const workspaceLessonCount = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
+  const workspaceMappingInProgress = buildRibbonModel?.steps?.some(
+    (step) => step.id === 'map' && step.status === 'active',
+  );
+  const workspaceLessonCountLabel = workspaceMappingInProgress
+    ? `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'} mapped so far`
+    : `${workspaceLessonCount} lesson${workspaceLessonCount === 1 ? '' : 's'}`;
   const workspaceSaveText =
     cloudSaveStatus === 'saving'
       ? 'Saving'
@@ -2922,11 +2946,7 @@ export default function AppFlow({
                     {workspaceCourseTitle}
                   </h1>
                   <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold text-slate-500">
-                    {workspaceLessonCount > 0 && (
-                      <span>
-                        {workspaceLessonCount} lesson{workspaceLessonCount === 1 ? '' : 's'}
-                      </span>
-                    )}
+                    {workspaceLessonCount > 0 && <span>{workspaceLessonCountLabel}</span>}
                     {workspaceModelLabel && (
                       <>
                         <span className="text-slate-300">·</span>
@@ -3701,6 +3721,7 @@ export default function AppFlow({
                   onApiCallEvent={recordApiCallEvent}
                   onOpenReviewQueue={handleOpenReviewQueueFromObservation}
                   compactReadyMode={packageReady}
+                  ribbonModel={buildRibbonModel}
                 />
               </ErrorBoundary>
             </div>

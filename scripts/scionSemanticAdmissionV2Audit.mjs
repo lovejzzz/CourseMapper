@@ -7,17 +7,19 @@ import { pathToFileURL } from 'node:url';
 
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
 
-const RELEASE = 'v0.16.48';
-const GENERATED_AT = '2026-07-17T09:10:00.000Z';
+const RELEASE = 'v0.16.49';
+const GENERATED_AT = '2026-07-17T11:15:00.000Z';
 const CORPUS = 'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47.jsonl';
 const JUDGE_CAMPAIGN = 'evaluation/scion-adapters/evidence/judge-campaign-v0.16.47.json';
-const RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.48.json';
-const PREVIOUS_RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.47.json';
+const RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.49.json';
+const PREVIOUS_RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.48.json';
 const IMPLEMENTATION = [
   'src/lib/scionAnswerKeyAlignment.js',
   'src/lib/scionPreferenceGate.js',
   'src/lib/scionKeyTermContract.js',
   'src/lib/scionPasses.js',
+  'src/lib/publicScionProvider.js',
+  'src/lib/blueprintEnrichmentPass.js',
   'scripts/lib/scionSourceCapture.mjs',
 ];
 
@@ -55,8 +57,8 @@ function summarize(rows) {
     row,
     legacyChosen: assess(row, 'chosen', 'legacy'),
     legacyRejected: assess(row, 'rejected', 'legacy'),
-    strictChosen: assess(row, 'chosen', 'source-strict'),
-    strictRejected: assess(row, 'rejected', 'source-strict'),
+    strictChosen: assess(row, 'chosen', 'source-strict-v3'),
+    strictRejected: assess(row, 'rejected', 'source-strict-v3'),
   }));
   const caught = evaluated.filter((entry) => !entry.strictRejected.eligible);
   const preferredRegressions = evaluated.filter((entry) => !entry.strictChosen.eligible);
@@ -140,18 +142,19 @@ export async function buildScionSemanticAdmissionV2Audit({ cwd = process.cwd() }
     exactCurrentCampaignRows: currentRows.length === 32,
     noPreferredArtifactRegression: all.strict.preferredRegressions === 0,
     stableLossDetectionLift:
-      previous.release === 'v0.16.47' &&
-      previous.allStablePreferences.strict.rejectedDetected === 50 &&
-      all.strict.rejectedDetected === 64 &&
-      all.strict.preferredOnlyMargins === 64 &&
-      all.strict.byKind['key-term'].rejectedDetected === 23 &&
-      detectionDelta === 14 &&
+      previous.release === 'v0.16.48' &&
+      previous.allStablePreferences.strict.rejectedDetected === 64 &&
+      all.strict.rejectedDetected === 68 &&
+      all.strict.preferredOnlyMargins === 68 &&
+      all.strict.byKind['key-term'].rejectedDetected === 24 &&
+      all.strict.byKind['mc-item'].rejectedDetected === 44 &&
+      detectionDelta === 4 &&
       all.strict.rejectedDetected > all.legacy.rejectedDetected,
     currentCampaignDetection:
-      currentCampaign.strict.rejectedDetected === 23 && currentCampaign.strict.preferredRegressions === 0,
+      currentCampaign.strict.rejectedDetected === 26 && currentCampaign.strict.preferredRegressions === 0,
     historicalCoreDetection:
       historicalCore.rows === 46 &&
-      historicalCore.strict.rejectedDetected === 41 &&
+      historicalCore.strict.rejectedDetected === 42 &&
       historicalCore.strict.preferredRegressions === 0,
   };
   const failures = Object.entries(assertions)
@@ -172,10 +175,10 @@ export async function buildScionSemanticAdmissionV2Audit({ cwd = process.cwd() }
 
   return {
     schemaVersion: 1,
-    protocol: 'scion-semantic-admission-v2-replay-v1',
+    protocol: 'scion-semantic-admission-v3-replay-v1',
     release: RELEASE,
     generatedAt: GENERATED_AT,
-    status: 'source-grounded-key-term-detection-improved',
+    status: 'judge-informed-semantic-admission-improved',
     evidence: {
       approvedCorpus: {
         path: CORPUS,
@@ -202,15 +205,18 @@ export async function buildScionSemanticAdmissionV2Audit({ cwd = process.cwd() }
       keyTermLossesDetected:
         all.strict.byKind['key-term'].rejectedDetected -
         previous.allStablePreferences.strict.byKind['key-term'].rejectedDetected,
+      mcItemLossesDetected:
+        all.strict.byKind['mc-item'].rejectedDetected -
+        previous.allStablePreferences.strict.byKind['mc-item'].rejectedDetected,
       stableLossesRemaining: rows.length - all.strict.rejectedDetected,
       historicalCoreLossesRemaining: historicalRows.length - historicalCore.strict.rejectedDetected,
       preferredRegressions: all.strict.preferredRegressions,
     },
     assertions,
     interpretation:
-      'The strict compiler now requires Latin-script key-term names to be traceable to terminology in the supplied source packet, rejects common placeholder examples and narrow circular corrections, and preserves approximate source qualifiers. On the frozen 78-loss replay this adds 14 detections, all in previously missed key-term failures, without rejecting a preferred artifact.',
+      'The judge-informed compiler profile now retries MC explanations that label every distractor but never teach the keyed answer, detects broad source-supported answer ambiguity, and rejects compact misconception text that merely repeats a known fact. On the frozen 78-loss replay this adds four detections—one key-term loss and three MC losses—without rejecting a preferred artifact.',
     claimBoundary:
-      'This retrospective replay proves deterministic detection lift on 78 already judged stable losses with zero rejection of their preferred counterparts. The source-term rule is skipped for non-Latin terms until the compiler has a trustworthy tokenizer. This is not an independent, human, held-out, classroom, adapter-quality, or unseen-output precision result; live retry burden and fresh-package behavior remain separate gates.',
+      'This retrospective replay proves deterministic detection lift on 78 already judged stable losses with zero rejection of their preferred counterparts. It does not rewrite response text or prove retry success. The evidence comes from one anonymous, hash-bound Codex judge campaign and is not independent human, held-out classroom, adapter-quality, or unseen-output precision evidence; burden and fresh-package behavior remain separate gates.',
   };
 }
 

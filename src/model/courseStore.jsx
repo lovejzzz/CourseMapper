@@ -94,6 +94,26 @@ function clearStaleState(existing, staleEdits) {
   return { ...existing, stale: false, staleConfidence: null, staleEdits: null };
 }
 
+export function normalizeRestoredDeliverables(deliverables) {
+  if (!deliverables || typeof deliverables !== 'object' || Array.isArray(deliverables)) return {};
+  return Object.fromEntries(
+    Object.entries(deliverables).map(([featureId, entry]) => {
+      const restored = entry && typeof entry === 'object' ? entry : {};
+      const interrupted = restored.status === 'streaming' || restored.regeneratingIndex != null;
+      if (!interrupted) return [featureId, restored];
+      return [
+        featureId,
+        {
+          ...restored,
+          status: restored.data ? 'done' : 'idle',
+          error: null,
+          regeneratingIndex: null,
+        },
+      ];
+    }),
+  );
+}
+
 function reducer(state, action) {
   switch (action.type) {
     case 'SET_DELIVERABLE_STREAMING':
@@ -123,7 +143,7 @@ function reducer(state, action) {
     case 'RESET_DELIVERABLES':
       return { ...state, deliverables: {} };
     case 'RESTORE_DELIVERABLES':
-      return { ...state, deliverables: action.deliverables || {} };
+      return { ...state, deliverables: normalizeRestoredDeliverables(action.deliverables) };
     case 'REMOVE_DELIVERABLE': {
       if (!state.deliverables[action.featureId]) return state;
       const next = { ...state.deliverables };

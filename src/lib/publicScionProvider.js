@@ -6,15 +6,28 @@
 
 import { jsonrepair } from 'jsonrepair';
 import { APP_VERSION } from './appVersion.js';
-import { repairScionMcItem } from './scionAnswerKeyAlignment.js';
+import {
+  findScionMissingKeyExplanationSupport,
+  findScionMultipleSourceSupportedOptions,
+  repairScionMcItem,
+} from './scionAnswerKeyAlignment.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 import { assessScionKeyTermContract, mergeScionKeyTermContractAttempts } from './scionKeyTermContract.js';
+
+const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
+  /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
 export const PUBLIC_SCION_MODEL_NAME = `Scion V${APP_VERSION}`;
 export const PUBLIC_SCION_BACKING_MODEL = SCION_BROWSER_GEMMA4_GGUF.runtimeArtifact.modelId;
-export const PUBLIC_SCION_MAX_COMPLETION_TOKENS = 1500;
+// A one-lesson kernel now carries only the validated knowledge core: facts,
+// key terms, a scenario, and two applied questions. The old 1,500-token clamp
+// silently overrode the 2,400-token budget requested by the compiler; real
+// WebGPU runs repeatedly ended at the same truncated tail and spent 12
+// completions recovering 0/2 lessons. Keep the cap below the 4,096-token
+// runtime ceiling while giving the compact contract enough room to close once.
+export const PUBLIC_SCION_MAX_COMPLETION_TOKENS = 2400;
 export const PUBLIC_SCION_MAX_LESSONS_PER_CALL = 3;
 export const PUBLIC_SCION_KERNEL_LESSONS_PER_CALL = 1;
 export const PUBLIC_SCION_KERNEL_CONCURRENCY = 1;
@@ -184,12 +197,22 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           lessonTitle: expected.title || '',
           definitionMin: 40,
           knownFacts: Array.isArray(lesson.facts) ? lesson.facts : [],
+          semanticProfile: 'source-strict-v3',
         });
         for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
       });
       const facts = Array.isArray(lesson.facts) ? lesson.facts : [];
       const mcItems = Array.isArray(lesson.mc) ? lesson.mc : [];
       mcItems.forEach((item, index) => {
+        if (
+          PUBLIC_SCION_TEMPLATE_RESIDUE_RE.test(
+            [item?.q ?? item?.question, ...(item?.op ?? item?.options ?? []), item?.ex ?? item?.explanation]
+              .filter(Boolean)
+              .join(' '),
+          )
+        ) {
+          issues.push(`${expected.lessonId}:mc-${index}:template-residue`);
+        }
         const sourceFactIndexes = item?.sourceFactIndexes ?? item?.fi;
         if (
           !Array.isArray(sourceFactIndexes) ||
@@ -201,6 +224,17 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           )
         ) {
           issues.push(`${expected.lessonId}:mc-${index}:source-fact-index`);
+        }
+        if (findScionMissingKeyExplanationSupport(item)) {
+          issues.push(`${expected.lessonId}:mc-${index}:explanation-omits-key-support`);
+        }
+        if (
+          findScionMultipleSourceSupportedOptions(item, {
+            sourceClaims: facts,
+            allowBroadSourceContext: true,
+          })
+        ) {
+          issues.push(`${expected.lessonId}:mc-${index}:multiple-source-supported-options`);
         }
       });
     }
@@ -284,6 +318,17 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
       : []),
     ...(issues.some((issue) => issue.includes('source-fact-index'))
       ? ['sourceFactIndexes is required and may cite only supplied zero-based claim indexes.']
+      : []),
+    ...(issues.some((issue) => issue.includes('explanation-omits-key-support'))
+      ? ['Every ex must state why the keyed option is correct; eliminating distractors alone is incomplete feedback.']
+      : []),
+    ...(issues.some((issue) => issue.includes('multiple-source-supported-options'))
+      ? ['Rewrite the stem or options so exactly one option is supported by the lesson facts.']
+      : []),
+    ...(issues.some((issue) => issue.includes('template-residue'))
+      ? [
+          'Replace every generic or copied template stem and option. Each q must name exact lesson concepts or concrete case evidence.',
+        ]
       : []),
   ];
   return [
@@ -393,7 +438,7 @@ function buildCompactPublicScionPrompt(userPrompt) {
         weeklyAssessments: ['Quiz: analyze source pattern', 'Task: create applied response'],
         asyncActivities: ['Practice: analyze source pattern', 'Draft: applied response'],
         syncActivities: ['Workshop: analyze source pattern', 'Peer review: applied response'],
-        supportingResources: ['Handout: topic guide'],
+        supportingResources: ['Exact named source from SOURCE'],
       },
     ],
   });
@@ -426,6 +471,7 @@ Rules:
 - learningGoals, learningObjectives, weeklyAssessments, asyncActivities, syncActivities, and supportingResources are arrays of compact atoms.
 - learningObjectives start with Bloom verbs and never include "Students will be able to".
 - Make every topic, assessment, and activity specific to the source.
+- If SOURCE names a reading, handout, example, recording, dataset, case, or evidence packet, copy its exact name into supportingResources. Never replace a named source with a generic handout.
 - Every new lesson must introduce a distinct topic not used in PRIOR LESSONS.
 - Advance through later source concepts; never recycle an earlier topic as a new lesson title.
 - Treat concepts joined by "and" inside one source outline item as one combined lesson and name both concepts in its title.
@@ -466,91 +512,81 @@ function buildPublicScionKernelPrompt(userPrompt) {
   const course = text.match(/^Course:\s*(.+)$/im)?.[1]?.trim() || 'Untitled Course';
   const recoveryAttempt = Math.max(0, Number(text.match(/Recovery attempt\s+(\d+)/i)?.[1]) || 0);
   const requiredLessonIds = lessons.map((lesson) => lesson.lessonId || 'lesson-1');
-  const includeCourseLevel = /Also include the courseLevel object once/i.test(text);
+  // Public Scion is a 2B browser model. Course-level voice and the remaining
+  // teaching surfaces are compiler work; asking for them here made one
+  // lesson response larger than the reliable decode band and repeatedly
+  // truncated the irreplaceable facts/terms/assessment atoms at the tail.
   const lessonTemplates = lessons.map((lesson) => ({
     lessonId: lesson.lessonId || 'lesson-1',
-    facts: ['A specific subject claim of twenty or more characters.'],
-    keyTerms: [
-      {
-        tr: 'disciplinary term',
-        df: 'A precise subject definition with at least forty characters.',
-        eg: 'A concrete example grounded in this lesson topic.',
-        mi: 'A plausible student misunderstanding about the term.',
-        cx: 'A direct correction that explains why that misunderstanding fails.',
-      },
+    facts: [
+      'First specific subject claim of twenty or more characters.',
+      'Second distinct subject claim of twenty or more characters.',
+      'Third distinct subject claim of twenty or more characters.',
+      'Fourth distinct subject claim of twenty or more characters.',
+      'Fifth distinct subject claim of twenty or more characters.',
     ],
-    scenario: {
-      su: 'A concrete two-sentence context with an actionable decision or problem and a real tension or constraint.',
-      ma: 'The specific records, observations, data, design, or passage students inspect to make the decision.',
-    },
-    discussionPrompt: {
-      pr: 'A genuinely debatable question grounded in the subject?',
-      tn: 'Why informed people can reasonably disagree.',
-      po: [
-        'One defensible position with a reason.',
-        'A contrasting defensible position with a reason.',
-        'A conditional or synthesis position with a reason.',
-      ],
-    },
-    assignmentCore: {
-      td: 'Two concrete sentences naming the case or material students analyze and the response they produce.',
-      pa: [
-        'A measurable scope constraint.',
-        'A specific submission format.',
-        'The evidence or source students must use.',
-        'A realistic length or time boundary.',
-      ],
-    },
     mc: [
       {
-        q: 'A concrete 25-50 word subject case asking which interpretation, diagnosis, or next action is best?',
+        q: 'REPLACE with one complete distinction question naming two exact lesson terms.',
         op: [
-          'Plausible methodological claim or action A',
-          'Plausible methodological claim or action B',
-          'Plausible methodological claim or action C',
-          'Plausible methodological claim or action D',
+          'REPLACE with a plausible subject-specific option A.',
+          'REPLACE with a plausible subject-specific option B.',
+          'REPLACE with a plausible subject-specific option C.',
+          'REPLACE with a plausible subject-specific option D.',
         ],
         ai: 0,
         fi: [0],
         ex: 'Why the key wins and the closest distractor fails in subject terms.',
       },
+      {
+        q: 'REPLACE with one concrete case question naming exact evidence and a decision.',
+        op: [
+          'REPLACE with a plausible case-specific option A.',
+          'REPLACE with a plausible case-specific option B.',
+          'REPLACE with a plausible case-specific option C.',
+          'REPLACE with a plausible case-specific option D.',
+        ],
+        ai: 1,
+        fi: [1],
+        ex: 'Why the key fits the case and the closest distractor does not.',
+      },
     ],
-    studyGuide: {
-      sm: 'A concise subject summary of at least sixty characters that connects the lesson concepts.',
-      rs: 'A concrete retrieval or comparison strategy students can use to review.',
+    keyTerms: [
+      {
+        tr: 'first source-anchored term',
+        df: 'A precise subject definition with at least forty characters.',
+        eg: 'A concrete example grounded in this lesson topic.',
+        mi: 'A plausible student misunderstanding about the term.',
+        cx: 'A direct correction that explains why that misunderstanding fails.',
+      },
+      {
+        tr: 'second distinct source term',
+        df: 'A different precise subject definition with at least forty characters.',
+        eg: 'A different concrete example grounded in this lesson topic.',
+        mi: 'A different plausible student misunderstanding about the term.',
+        cx: 'A different direct correction that refutes that misunderstanding.',
+      },
+      {
+        tr: 'third distinct source term',
+        df: 'A third precise subject definition with at least forty characters.',
+        eg: 'A third concrete example grounded in this lesson topic.',
+        mi: 'A third plausible student misunderstanding about the term.',
+        cx: 'A third direct correction that refutes that misunderstanding.',
+      },
+    ],
+    scenario: {
+      su: 'A concrete two-sentence subject context with an actionable problem and one real constraint.',
+      ma: 'The specific notation, recording, data, records, design, or passage students inspect.',
     },
   }));
-  const template = {
-    lessons: lessonTemplates,
-    ...(includeCourseLevel
-      ? {
-          courseLevel: {
-            signatureTerms: ['4-8 recurring disciplinary terms'],
-            lens: {
-              domain: 'course domain',
-              evidenceNoun: 'specific evidence noun',
-              decisionNoun: 'specific decision noun',
-              learnerRole: 'student role',
-              exampleNoun: 'specific example noun',
-            },
-            styleNotes: ['One short discipline-specific writing rule'],
-            discussionProtocol: {
-              format: 'A short named critique or discussion format',
-              participationPattern: 'inspect, interpret, challenge, revise',
-              artifactUse: 'What students examine or produce during the exchange.',
-              reviewFocus: 'Three discipline-specific qualities the instructor listens for.',
-            },
-          },
-        }
-      : {}),
-  };
+  const template = { lessons: lessonTemplates };
 
   return `COURSE: ${clip(course, 160)}
 LESSONS TO AUTHOR:
 ${JSON.stringify(lessons)}
 
 TASK:
-Write one compact university-level knowledge kernel for every listed lesson. Use the exact lessonId. Use only the listed title, topics, objectives, and readings; do not invent citations, URLs, page numbers, statistics, or named studies.
+Write the compact knowledge core for every listed lesson. Use the exact lessonId. Use only the listed title, topics, objectives, and readings; do not invent citations, URLs, page numbers, statistics, or named studies. The local compiler will derive discussion, assignment, slides, and study-guide surfaces after validating these atoms.
 
 Rules:
 - Return ONLY valid JSON. No Markdown, commentary, or trailing text.
@@ -561,25 +597,16 @@ ${
     ? `- RECOVERY ${recoveryAttempt}: a previous response was incomplete. Re-author the full requested lesson now; do not summarize, apologize, or repeat an empty response.\n`
     : ''
 }- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
-- Write 3 keyTerms per lesson. Every df is at least 40 characters; eg is concrete; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never embed field labels or internal claim numbers.
-- Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable decision or problem, at least 2 inspectable observations/results/records/artifacts, and a real tension or constraint. su has exactly 2 specific sentences; ma names the evidence packet rather than saying "scenario evidence" or "course materials". Evidence may live in ma instead of being repeated in su.
-- Keep each scenario focused on one construct or decision target. Do not mix accessibility, usability, preference, learning, or performance evidence unless the task explicitly asks students to compare those constructs.
-- Write one genuinely debatable discussionPrompt: pr is at least 25 characters and ends with ?, tn names the tension, and po has exactly 3 defensible positions — a main position, a contrast, and a conditional or synthesis position. The third position must add real reasoning, not split the difference mechanically.
-- Write one assignmentCore: td is at least 60 characters and names the actual case, data, design, or text plus what students produce; pa has exactly 4 distinct parameters covering scope, submission format, required evidence/source, and a realistic length or time boundary.
-- Write exactly 4 mc items: one concept distinction, one concrete case application, one field-note evidence analysis, and one flawed-method evaluation.
-- Every mc item includes fi with 1-2 distinct zero-based indexes into that lesson's facts. Cite only the facts that determine why the keyed option wins.
-- At least 3 mc stems include specific observed behavior or evidence. Options are parallel, plausible methodological claims or actions; distractors reflect real misconceptions. Every q is 25-50 words; op has exactly 4 options; ai is 0-3; ex explains why the key wins and the closest distractor fails.
-- Never infer motive from one ambiguous behavior. Pair behavior with context, a quote, a second observation, or an outcome so exactly one option is supported.
-- Forbidden after one behavior: "what does this suggest/indicate", "which interpretation", or "what likely explains". Instead ask which neutral follow-up or evidence-collection action comes next, or key an option saying the observation alone is insufficient.
-- Never ask students to guess a cause from outcome rates alone; include a study-setup detail that rules out competing explanations. Keep every option at the same decision stage (all diagnosis methods or all design changes, never a mix).
+- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is at least 40 characters and begins with a broader category or distinguishing property, not the tr term; eg is concrete; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never embed field labels or internal claim numbers.
+- Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences; ma names the evidence packet rather than saying "scenario evidence" or "course materials".
+- Write exactly 2 mc items: one concept distinction and one concrete case application.
+- Every mc item includes fi=sourceFactIndexes as exactly [n]: one zero-based integer from 0 through 4 pointing to the single fact that directly proves why the keyed option wins. Never write a string, more than one index, or an out-of-range index.
+- Options are parallel and plausible; distractors reflect real misconceptions. Every q is 20-45 words; op has exactly 4 options; ai is 0-3; ex explains why the key wins and the closest distractor fails.
+- Never infer motive or cause from one ambiguous observation. Include enough context that exactly one option is supported.
 - Never write pure vocabulary recall, tool trivia, NOT/EXCEPT questions, always/never options, or all/none of the above.
-- Write studyGuide.sm as a 60-300 character subject summary and studyGuide.rs as a 30-200 character concrete review strategy.
 - Never mention artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this lesson", or "this course".
-${
-  includeCourseLevel
-    ? '- Also return one compact courseLevel object with source-grounded signatureTerms, lens, styleNotes, and a complete discussionProtocol.\n'
-    : ''
-}- Preserve the exact nesting and abbreviated keys shown below.
+- Return only lessonId, facts, keyTerms, scenario, and mc inside each lesson object. Do not add courseLevel, discussionPrompt, assignmentCore, studyGuide, or workedExample.
+- Preserve the exact nesting and abbreviated keys shown below.
 
 TEMPLATE TO FILL:
 ${JSON.stringify(template)}`;

@@ -72,6 +72,7 @@ describe('G1 — the sync compile keeps its subject matter', () => {
     expect(result).toBeTruthy();
     expect(result.lessonEnriched).toBe(true);
     expect(result.enrichedLessonCount).toBe(1);
+    expect(result.enrichedLessonIds).toEqual(['lesson-2']);
     expect(JSON.stringify(result.data)).toContain(FIXTURE_TERM);
   });
 

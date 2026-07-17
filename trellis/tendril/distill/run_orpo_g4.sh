@@ -63,7 +63,7 @@ elif $RESEARCH; then
     --output "$DATASET_DIR" \
     --generated-at "$GENERATED_AT" \
     --research \
-    --semantic-profile strict
+    --semantic-profile strict-v3
 else
   node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --generated-at "$GENERATED_AT"
 fi

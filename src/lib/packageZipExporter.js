@@ -871,6 +871,8 @@ const UX_COURSE_CONTEXT_RE =
 // an unmistakable programming construct.
 const PYTHON_COURSE_CONTEXT_RE =
   /\b(?:python|computer\s+science|software\s+development|programming|coding|algorithms?|debugg(?:ing)?\s+(?:code|programs?)|data\s+types?|if[-\s]+else|for\s+loops?|while\s+loops?|recursive\s+functions?|object[-\s]?oriented\s+programming)\b/i;
+const MUSIC_INTERVAL_COURSE_CONTEXT_RE =
+  /(?=.*\b(?:music(?:al)?(?:\s+theory)?|aural\s+skills?|ear\s+training|pitch|semitones?|notation)\b)(?=.*\bintervals?\b)/i;
 
 const CURATED_UX_SOURCE_PROOF_ROWS = [
   {
@@ -994,6 +996,24 @@ const CURATED_PYTHON_SOURCE_PROOF_ROWS = [
     url: 'https://openstax.org/books/introduction-python-programming/pages/1-6-error-messages',
     concepts: ['debugging', 'error messages', 'testing'],
     trigger: /\b(?:debugg(?:ing)?|errors?|testing|trace)\b/i,
+  },
+];
+
+const CURATED_MUSIC_INTERVAL_SOURCE_PROOF_ROWS = [
+  {
+    id: 'music-omt-intervals',
+    title: 'Open Music Theory: Intervals',
+    url: 'https://viva.pressbooks.pub/openmusictheory/chapter/intervals/',
+    concepts: ['generic interval', 'interval quality', 'semitone', 'interval inversion'],
+    trigger:
+      /\b(?:generic\s+interval|interval\s+quality|semitone|inclusive\s+letter|written\s+interval|heard\s+interval)\b/i,
+  },
+  {
+    id: 'music-omt-intervals-worksheet-e',
+    title: 'Open Music Theory: Intervals E worksheet',
+    url: 'https://viva.pressbooks.pub/app/uploads/sites/12/2025/07/WK-Intervals-E.pdf',
+    concepts: ['compound interval', 'simple interval', 'interval inversion', 'quality exchange'],
+    trigger: /\b(?:compound\s+interval|simple\s+interval|interval\s+inversion|sum\s+to\s+nine|quality\s+exchange)\b/i,
   },
 ];
 
@@ -1121,6 +1141,61 @@ function buildCuratedPythonSourceProofGraph({ courseName, courseMap, courseGraph
     sections: [
       {
         id: `python-curated-source-section-${index + 1}`,
+        topic: row.concepts[0],
+        conceptRefs: row.concepts.map(conceptIdForTerm).filter(Boolean),
+        resourceRefs: [row.id],
+      },
+    ],
+  }));
+
+  return {
+    course: { name: courseName },
+    courseName,
+    concepts,
+    resources,
+    readings: [],
+    sessions,
+  };
+}
+
+function buildCuratedMusicIntervalSourceProofGraph({ courseName, courseMap, courseGraph, fallbackCourseGraph }) {
+  const context = collectCourseContextText({ courseName, courseMap, courseGraph, fallbackCourseGraph });
+  if (!MUSIC_INTERVAL_COURSE_CONTEXT_RE.test(context)) return null;
+  let selected = CURATED_MUSIC_INTERVAL_SOURCE_PROOF_ROWS.filter((row) => row.trigger.test(context));
+  if (selected.length < 2) selected = CURATED_MUSIC_INTERVAL_SOURCE_PROOF_ROWS;
+
+  const conceptIdByTerm = new Map();
+  const concepts = [];
+  const conceptIdForTerm = (term) => {
+    const key = cleanSourceText(term, 120).toLowerCase();
+    if (!key) return '';
+    if (conceptIdByTerm.has(key)) return conceptIdByTerm.get(key);
+    const id = `music-curated-concept-${concepts.length + 1}`;
+    conceptIdByTerm.set(key, id);
+    concepts.push({ id, term: cleanSourceText(term, 120) });
+    return id;
+  };
+
+  const resources = selected.map((row, index) => ({
+    id: row.id,
+    title: row.title,
+    provider: 'open-music-theory',
+    origin: 'open-music-theory',
+    kind: row.url.endsWith('.pdf') ? 'open worksheet' : 'open textbook chapter',
+    url: row.url,
+    license: 'CC BY-SA 4.0',
+    evidence: row.title,
+    attribution:
+      'Open Music Theory contributors: Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, and John Peterson',
+    sessionRefs: [`music-curated-source-proof-${index + 1}`],
+  }));
+  const sessions = selected.map((row, index) => ({
+    id: `music-curated-source-proof-${index + 1}`,
+    number: index + 1,
+    title: `Music interval source proof: ${row.concepts[0]}`,
+    sections: [
+      {
+        id: `music-curated-source-section-${index + 1}`,
         topic: row.concepts[0],
         conceptRefs: row.concepts.map(conceptIdForTerm).filter(Boolean),
         resourceRefs: [row.id],
@@ -1692,11 +1767,18 @@ export async function buildCourseMaterialsZip({
       courseGraph: sourceManifestGraph || courseGraph,
       fallbackCourseGraph,
     });
-    if (curatedUxSourceProofGraph || curatedPythonSourceProofGraph) {
+    const curatedMusicIntervalSourceProofGraph = buildCuratedMusicIntervalSourceProofGraph({
+      courseName: safeCourseName,
+      courseMap,
+      courseGraph: sourceManifestGraph || courseGraph,
+      fallbackCourseGraph,
+    });
+    if (curatedUxSourceProofGraph || curatedPythonSourceProofGraph || curatedMusicIntervalSourceProofGraph) {
       sourceLedgerBundle = mergeSourceLedgerBundles(
         sourceLedgerBundle,
         buildSourceLedgerFromCourseGraph(curatedUxSourceProofGraph, { checkedAt: generatedAt }),
         buildSourceLedgerFromCourseGraph(curatedPythonSourceProofGraph, { checkedAt: generatedAt }),
+        buildSourceLedgerFromCourseGraph(curatedMusicIntervalSourceProofGraph, { checkedAt: generatedAt }),
       );
     }
   }

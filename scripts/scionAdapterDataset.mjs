@@ -27,7 +27,7 @@ export const SCION_ADAPTER_DEFAULT_SOURCES = [
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
-export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v2.json';
+export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v3.json';
 const DEFAULT_SOURCES = SCION_ADAPTER_DEFAULT_SOURCES;
 const DEFAULT_HELDOUT_BENCHMARK = SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK;
 export const SCION_ORPO_TRAINING_FORMAT_V1 = Object.freeze({
@@ -101,6 +101,7 @@ export function computeScionAdapterDatasetIdentity(manifest) {
       trainingSourceKernelIdentity: manifest?.trainingSourceKernelIdentity,
       splitIdentity: manifest?.splitIdentity,
       trainingFormat: manifest?.trainingFormat,
+      admissionPolicy: manifest?.admissionPolicy,
       sourceGroundingPolicy: manifest?.sourceGroundingPolicy,
       sourceLicensePolicy: manifest?.sourceLicensePolicy,
       gate: manifest?.gate,
@@ -814,6 +815,12 @@ export async function buildScionAdapterDataset({
       domains: splitDomains,
     },
     trainingFormat: sourceBoundPrompt ? SCION_ORPO_TRAINING_FORMAT : SCION_ORPO_TRAINING_FORMAT_V1,
+    admissionPolicy: {
+      protocol: 'scion-adapter-semantic-admission-v1',
+      semanticAdmission,
+      semanticProfile,
+      allowFirstSentenceLexicalCue,
+    },
     ...(!legacyTrainingContract
       ? {
           sourceGroundingPolicy: {
@@ -931,7 +938,7 @@ function parseArgs(argv) {
     else if (arg === '--generated-at') args.generatedAt = argv[++index];
     else if (arg === '--semantic-profile') {
       args.semanticProfile = argv[++index];
-      if (!['legacy', 'strict'].includes(args.semanticProfile)) {
+      if (!['legacy', 'strict', 'strict-v3'].includes(args.semanticProfile)) {
         throw new Error(`Unknown semantic admission profile: ${args.semanticProfile}`);
       }
     } else if (arg === '--allow-smoke') args.allowSmoke = true;

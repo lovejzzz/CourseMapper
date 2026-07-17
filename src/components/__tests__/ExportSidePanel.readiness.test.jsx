@@ -252,7 +252,7 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 
-  it('downloads a reviewed package without rerunning finish after a terminal quality blocker receipt', async () => {
+  it('keeps a terminal quality blocker honest in both the card and ZIP action', async () => {
     const onFinishPackage = vi.fn(async () => {
       throw new Error('finish should not rerun for a terminal reviewed package');
     });
@@ -294,8 +294,9 @@ describe('ExportSidePanel readiness repair timing', () => {
     await act(async () => {});
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');
-    expect(zipButton?.textContent).toContain('Download ZIP');
-    expect(zipButton?.disabled).toBe(false);
+    expect(container.querySelector('[data-testid="readiness-panel"]')?.textContent).toContain('Finish package');
+    expect(zipButton?.textContent).toContain('Needs attention');
+    expect(zipButton?.disabled).toBe(true);
 
     await act(async () => {
       zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -303,13 +304,6 @@ describe('ExportSidePanel readiness repair timing', () => {
     await act(async () => {});
 
     expect(onFinishPackage).not.toHaveBeenCalled();
-    expect(downloadCourseMaterialsZip).toHaveBeenCalledTimes(1);
-    expect(downloadCourseMaterialsZip.mock.calls[0][0].quality.precomputed).toEqual(
-      expect.objectContaining({
-        status: 'graded',
-        score: 74,
-        grade: 'C',
-      }),
-    );
+    expect(downloadCourseMaterialsZip).not.toHaveBeenCalled();
   });
 });

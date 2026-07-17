@@ -1,0 +1,188 @@
+{
+  "version": "0.16.49",
+  "date": "July 17, 2026",
+  "title": "Make the Course Earn Ready, Frame by Frame",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:semantic-admission:v0.16.49",
+      "npm run audit:scion:semantic-admission-burden:v0.16.49",
+      "npx vitest run tests/v0144-build-ribbon.test.jsx tests/v0147-sync-star.test.js tests/v0147-texture-metric.test.js tests/v016-ready-to-teach.test.js src/lib/__tests__/courseStore.test.js src/lib/__tests__/musicTheoryDiscussionFrames.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/packageZipExporter.test.js src/components/chat/__tests__/useToolInvoker.receipt.test.js",
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run build"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rebuild the receipts, release ledger, test suite, and production bundle after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter-versus-base held-out win, public-Gemma runtime benchmark, or production adapter promotion is claimed."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of merge and required remote verification."
+    },
+    "liveProvider": {
+      "status": "not-used",
+      "note": "The frame-by-frame release replay used a local provider-compatible deterministic transport fixture so UI, interruption, compiler, finalizer, grader, and export behavior could be repeated exactly."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human, instructor, classroom, public-course-author, or independent multi-judge preference is claimed."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "note": "The in-app browser exercised resume, restore, regeneration, interruption recovery, all nine selected deliverables, visuals, Agent action, dark mode, finalization, and the single export action. The final bounded package scored 100/A with texture 98 and zero findings."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-and-workflow-improvement-only",
+      "note": "The independent extracted-file audit confirms the exact bounded package, not universal output quality or model-weight improvement."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01649-whole-build-living-compiler",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The Living Course Compiler tracks real Model, Map, Enrich, Compile, Verify, and Grade state and reserves 100% for a terminal outcome.",
+      "anchors": [
+        "src/components/BuildRibbon.jsx",
+        "src/lib/buildRibbonModel.js",
+        "src/hooks/useDeliverables.js",
+        "tests/v0144-build-ribbon.test.jsx",
+        "docs/evidence/SCION_V01649_FRAME_BY_FRAME_AUDIT.json"
+      ],
+      "proofCommands": ["npx vitest run tests/v0144-build-ribbon.test.jsx", "npm run build"],
+      "proofScopes": ["unit", "browser-live", "build"]
+    },
+    {
+      "id": "v01649-workspace-visual-language-and-agent-action",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The workspace has one export action, distinct success/review semantics, native visuals, and a bounded Scion slide-improvement action without raw pseudo-tool traces.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/components/ExportSidePanel.jsx",
+        "src/components/deliverables/SlideDecksView.jsx",
+        "src/components/chat/useToolInvoker.js",
+        "src/index.css",
+        "src/components/chat/__tests__/useToolInvoker.receipt.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/components/__tests__/ExportSidePanel.readiness.test.jsx src/components/chat/__tests__/useToolInvoker.receipt.test.js tests/v0145-deck-visuals.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01649-source-trust-and-complete-provenance",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "False-friend sources are quarantined and the audited interval package retains complete sourceRef coverage to two exact trusted Open Music Theory resources.",
+      "anchors": [
+        "src/lib/knowledge/musicSourceRelevance.js",
+        "src/lib/knowledge/sourceFinder.js",
+        "src/lib/knowledge/sourceLedger.js",
+        "src/lib/packageZipExporter.js",
+        "src/lib/knowledge/__tests__/sourceFinder.test.js",
+        "src/lib/quality/__tests__/sourceLedgerGrader.test.js",
+        "docs/evidence/SCION_V01649_FRAME_BY_FRAME_AUDIT.json"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/knowledge/__tests__/sourceFinder.test.js src/lib/knowledge/__tests__/sourceLedger.test.js src/lib/quality/__tests__/sourceLedgerGrader.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01649-disciplinary-music-course-frames",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Interval classification and inversion compile into distinct, observable disciplinary work across every selected course surface.",
+      "anchors": [
+        "src/lib/musicTheoryQuizFrames.js",
+        "src/lib/courseBlueprintCompiler.js",
+        "src/lib/nativeConceptMapPreview.js",
+        "src/lib/__tests__/musicTheoryDiscussionFrames.test.js",
+        "tests/v016-ready-to-teach.test.js",
+        "tests/v0155-discipline-contamination.test.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/musicTheoryDiscussionFrames.test.js tests/v016-ready-to-teach.test.js tests/v0155-discipline-contamination.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v01649-refresh-safe-scion-regeneration",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Manual Scion regeneration stays on the compiler path and reload recovery clears stale streaming state while preserving exact enriched-lesson provenance.",
+      "anchors": [
+        "src/hooks/useDeliverables.js",
+        "src/lib/compiledLessonSync.js",
+        "src/model/courseStore.jsx",
+        "src/lib/__tests__/courseStore.test.js",
+        "tests/v0147-sync-star.test.js",
+        "docs/evidence/SCION_V01649_FRAME_BY_FRAME_AUDIT.json"
+      ],
+      "proofCommands": ["npx vitest run tests/v0147-sync-star.test.js src/lib/__tests__/courseStore.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01649-learner-facing-texture-measurement",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Texture grading excludes structural export chrome while continuing to measure learner-facing prose; the audited live package reaches 100/A, texture 98, and zero findings.",
+      "anchors": [
+        "src/lib/quality/textureMetric.js",
+        "tests/v0147-texture-metric.test.js",
+        "src/lib/quality/deepQualityGrader.js",
+        "docs/evidence/SCION_V01649_FRAME_BY_FRAME_AUDIT.json"
+      ],
+      "proofCommands": ["npx vitest run tests/v0147-texture-metric.test.js", "npm run build"],
+      "proofScopes": ["unit", "browser-live", "compiled-output"]
+    },
+    {
+      "id": "v01649-independent-package-audit-and-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "The twenty-one-entry ZIP independently regrades at 100/A with zero severity findings while Scion remains the public Gemma base plus compiler and no active adapter.",
+      "anchors": [
+        "src/lib/packageZipExporter.js",
+        "src/lib/publicScionProvider.js",
+        "src/lib/scionBrowserConstants.js",
+        "src/lib/__tests__/packageZipExporter.test.js",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "docs/evidence/SCION_V01649_FRAME_BY_FRAME_AUDIT.json"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/packageZipExporter.test.js tests/public-scion-provider.test.js",
+        "npm run audit:release-history"
+      ],
+      "proofScopes": ["unit", "compiled-output", "doc", "static-audit"]
+    },
+    {
+      "id": "v01649-source-strict-v3-semantic-lift",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "Source-strict V3 detects sixty-eight of seventy-eight frozen stable losses with zero preferred regressions and no additional retry burden on the retained evaluation surfaces.",
+      "anchors": [
+        "src/lib/scionKeyTermContract.js",
+        "src/lib/scionPreferenceGate.js",
+        "evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.49.json",
+        "evaluation/scion-adapters/evidence/semantic-admission-burden-v0.16.49.json",
+        "tests/scion-semantic-admission-v2.test.js",
+        "tests/scion-preference-gate.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:semantic-admission:v0.16.49",
+        "npm run audit:scion:semantic-admission-burden:v0.16.49"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    }
+  ]
+}

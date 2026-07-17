@@ -255,7 +255,7 @@ describe('B1 — buildRibbonModel selector', () => {
       packageQualityPass: { status: 'idle' },
     });
     expect(streamingLesson.compilerArtifacts.find((artifact) => artifact.id === 'map')?.value).toBe(
-      'Mapping lesson 1/1',
+      'Mapping lesson 1 · 1 mapped so far',
     );
 
     expect(
@@ -263,7 +263,7 @@ describe('B1 — buildRibbonModel selector', () => {
         pipeline: { state: 'enriching', activity: { detail: 'Lessons 9, 10, 11, 12 — source-bound kernel' } },
         generation: { lessonCount: 13 },
       }),
-    ).toBe(48);
+    ).toBe(43);
     expect(
       deriveRibbonProgress({
         pipeline: { state: 'enriching', activity: { detail: 'Lessons 1 — source-bound kernel' } },
@@ -276,7 +276,7 @@ describe('B1 — buildRibbonModel selector', () => {
         },
         generation: { lessonCount: 4 },
       }),
-    ).toBe(35);
+    ).toBe(31);
     expect(
       deriveRibbonProgress({
         pipeline: {
@@ -289,7 +289,7 @@ describe('B1 — buildRibbonModel selector', () => {
         },
         generation: { lessonCount: 1 },
       }),
-    ).toBe(35);
+    ).toBe(34);
     expect(
       [1, 2, 3, 4].map((attempt) =>
         deriveRibbonProgress({
@@ -304,7 +304,7 @@ describe('B1 — buildRibbonModel selector', () => {
           generation: { lessonCount: 1 },
         }),
       ),
-    ).toEqual([38, 42, 46, 50]);
+    ).toEqual([45, 46, 48, 49]);
     const oneLessonRetryFrame = (recentEvents) =>
       deriveRibbonProgress({
         pipeline: {
@@ -345,12 +345,40 @@ describe('B1 — buildRibbonModel selector', () => {
       oneLessonRetryFrame([outerRecovery, initialRetryTwo, initialRetryOne]),
       oneLessonRetryFrame([recoveryRetryOne, outerRecovery, initialRetryTwo]),
       oneLessonRetryFrame([recoveryRetryTwo, recoveryRetryOne, outerRecovery]),
-    ]).toEqual([38, 41, 43, 46, 49]);
+    ]).toEqual([34, 34, 45, 47, 48]);
     expect(
       deriveRibbonProgress({
         pipeline: { state: 'enriching', activity: REAL_RECOVERY_EVENT },
         budget: { blueprintEnrichmentCalls: 15, recentEvents: [REAL_RECOVERY_EVENT] },
         generation: { lessonCount: 15 },
+      }),
+    ).toBe(45);
+    expect(
+      deriveRibbonProgress({
+        pipeline: {
+          state: 'enriching',
+          activity: {
+            type: 'pipelineDecision',
+            label: 'Scion pass call',
+            detail: 'prose_polish',
+            chunkLabel: 'lesson-14',
+          },
+        },
+        generation: { lessonCount: 14 },
+      }),
+    ).toBe(49);
+    expect(
+      deriveRibbonProgress({
+        pipeline: {
+          state: 'enriching',
+          activity: {
+            type: 'pipelineDecision',
+            label: 'Scion quality passes',
+            detail: 'polish:lesson-14 applied',
+            chunkLabel: 'lesson-14',
+          },
+        },
+        generation: { lessonCount: 14 },
       }),
     ).toBe(50);
     expect(
@@ -421,7 +449,7 @@ describe('B1 — buildRibbonModel selector', () => {
       deriveRibbonProgress({ pipeline: { state: 'ready' } }),
     ];
 
-    expect(frames).toEqual([0, 8, 15, 16, 23, 30, 35, 38, 42, 46, 50, 50, 53, 58, 75, 85, 95, 100]);
+    expect(frames).toEqual([0, 8, 15, 16, 23, 30, 34, 45, 46, 48, 49, 50, 53, 58, 75, 85, 95, 100]);
     expect(frames.every((value, index) => index === 0 || value >= frames[index - 1])).toBe(true);
   });
 
@@ -729,7 +757,7 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.stageLabel).toBe('Compiling deliverables · 3/9 ready');
     expect(model.pipelineChips.find((chip) => chip.id === 'coverage')).toEqual({
       id: 'coverage',
-      label: 'Materials 9/12 · repair needed',
+      label: 'Knowledge 9/12 · review needed',
       warn: true,
     });
   });
@@ -798,7 +826,7 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.pipelineChips).toEqual([
       { id: 'genome', label: 'Genome 6/13', emphasis: true },
       { id: 'judgment', label: 'Judgment clean' },
-      { id: 'coverage', label: 'Materials 13/13' },
+      { id: 'coverage', label: 'Knowledge 13/13' },
     ]);
     expect(model.spendDisplay).toBe('$0.13');
     const elapsed = Number((model.elapsedDisplay.match(/^Ready in (\d+)s$/) || [])[1]);
@@ -918,7 +946,10 @@ describe('B1 — BuildRibbon render', () => {
   });
 
   it('generating state: pulsing active step, aria-live sub-label, cost ticker', () => {
-    const budget = applyEvents(createApiCallBudget(), [...MAP_EVENTS, ENRICH_CHUNK_EVENT]);
+    const budget = applyEvents(createApiCallBudget({ startedAt: Date.now() - 5_000 }), [
+      ...MAP_EVENTS,
+      ENRICH_CHUNK_EVENT,
+    ]);
     const html = renderRibbon(
       buildBuildRibbonModel({
         budget,
@@ -942,6 +973,7 @@ describe('B1 — BuildRibbon render', () => {
     expect(html).toContain('data-testid="build-progress-track"');
     expect(html).toContain('role="progressbar"');
     expect(html).toContain('data-testid="ribbon-progress-label"');
+    expect(html).toContain('data-testid="ribbon-active-elapsed"');
     expect(html).toContain('ease-out');
     expect(html).toContain('motion-reduce:transition-none');
     expect(html).toContain('motion-reduce:animate-none');
@@ -968,13 +1000,48 @@ describe('B1 — BuildRibbon render', () => {
     expect(html).toContain('Ready to export');
     expect(html).toContain('Verified · Grade A');
     expect(html).toContain('Judgment clean');
-    expect(html).toContain('Materials 13/13');
+    expect(html).toContain('Knowledge 13/13');
     expect(html).toMatch(/Ready in \d+s/);
     expect(html).not.toContain('animate-pulse');
     // Five stage checks plus four confirmed artifact checks.
     expect(html.match(/M5 13l4 4L19 7/g)?.length).toBe(9);
     expect(html).toContain('data-testid="ribbon-chip-genome"');
     expect(html.split('data-testid="ribbon-chip-genome"')[1].split('>')[0]).toContain('ribbon-chip-emphasis');
+  });
+
+  it('ready state names missing knowledge as review work instead of a successful material count', () => {
+    const failedKnowledgeEvent = {
+      ...COMPILE_EVENTS[0],
+      detail: 'failed: no usable kernels parsed (0/2)',
+      outcome: {
+        modelStage: 'failed: no usable kernels parsed',
+        enrichedLessons: 0,
+        requestedLessons: 2,
+        missingLessons: [1, 2],
+      },
+    };
+    const budget = applyEvents(createApiCallBudget(), [
+      ...MAP_EVENTS,
+      ENRICH_CHUNK_EVENT,
+      failedKnowledgeEvent,
+      COMPILE_EVENTS[1],
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: { ...DONE_GENERATION, lessonCount: 2, mappedLessonCount: 2 },
+      deliverables: { isGenerating: false, doneCount: 9, totalCount: 9 },
+      packageQualityPass: readyPass({ grade: 'B' }),
+    });
+    const html = renderRibbon(model);
+
+    expect(model.stageLabel).toBe('Ready with review notes');
+    expect(model.compilerArtifacts.find((artifact) => artifact.id === 'knowledge')).toMatchObject({
+      label: 'Knowledge',
+      value: '0/2 lesson kernels',
+      status: 'warn',
+    });
+    expect(html).toContain('Knowledge 0/2 · review needed');
+    expect(html).not.toContain('Materials 0/2');
   });
 
   it('blocked state uses the amber review signal even after grading completed', () => {
@@ -1025,7 +1092,7 @@ describe('B1 — BuildRibbon render', () => {
       }),
     );
 
-    expect(html).toContain('Materials 9/12 · repair needed');
+    expect(html).toContain('Knowledge 9/12 · review needed');
     expect(html.split('data-testid="ribbon-chip-coverage"')[1].split('>')[0]).toContain('ribbon-chip-warning');
   });
 });

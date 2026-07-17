@@ -1,3 +1,5 @@
+import { isMusicIntervalWeakSource } from '../knowledge/musicSourceRelevance.js';
+
 function rows(manifest) {
   return Array.isArray(manifest?.sourceLedger) ? manifest.sourceLedger : [];
 }
@@ -25,6 +27,7 @@ const TRUST_ELIGIBLE_PROVIDERS = new Set([
   'genome-prerequisite',
   'openalex',
   'openstax',
+  'open-music-theory',
   'eric',
   'source-finder',
   'crossref',
@@ -236,6 +239,20 @@ function isComputerScienceManifest(manifest) {
   return COMPUTER_SCIENCE_COURSE_RE.test(courseText);
 }
 
+function musicIntervalManifestContext(manifest) {
+  return [
+    manifest?.courseName,
+    manifest?.title,
+    manifest?.packageTitle,
+    ...(manifest?.assessments || []).map((assessment) => assessment?.title || ''),
+    ...rows(manifest).flatMap((row) =>
+      (row?.conceptLinks || []).map((link) => (typeof link === 'string' ? link : link?.label || link?.id || '')),
+    ),
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
 function rowSearchText(row) {
   return [row?.title, row?.citation, row?.evidence, row?.sourceType, row?.scope].filter(Boolean).join(' ');
 }
@@ -290,6 +307,10 @@ function isComputerScienceWeakSource(row, manifest) {
   if (COMPUTER_SCIENCE_FALSE_FRIEND_RE.test(text)) return true;
   if (COMPUTER_SCIENCE_AMBIGUOUS_CONCEPT_RE.test(rowConceptText(row))) return !hasComputerScienceTopicAnchor(row);
   return !COMPUTER_SCIENCE_SOURCE_ANCHOR_RE.test(text) && !hasComputerScienceTopicAnchor(row);
+}
+
+function isMusicTheoryIntervalWeakSource(row, manifest) {
+  return isMusicIntervalWeakSource(rowSearchText(row), musicIntervalManifestContext(manifest), rowConceptText(row));
 }
 
 function sourceCoverageTotal(coverage) {
@@ -454,6 +475,15 @@ export function checkSourceLedger(findings, { files, manifest }) {
         dimension: 'citations',
         file: 'PACKAGE_MANIFEST.json',
         detail: `source ledger row ${id || '(missing id)'} is off-discipline for Computer Science/Python`,
+        evidence: row?.title || row?.citation || row?.evidence || id,
+      });
+    }
+    if (hasConceptLinks(row) && isMusicTheoryIntervalWeakSource(row, manifest)) {
+      findings.add({
+        severity: 'P1',
+        dimension: 'citations',
+        file: 'PACKAGE_MANIFEST.json',
+        detail: `source ledger row ${id || '(missing id)'} is off-discipline for Music Theory intervals`,
         evidence: row?.title || row?.citation || row?.evidence || id,
       });
     }

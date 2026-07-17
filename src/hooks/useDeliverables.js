@@ -425,6 +425,7 @@ export default function useDeliverables({
   columns,
   onApiCallEvent,
   onCourseMapRepair,
+  courseGraph,
   // v0.13: receives the derived CourseGraph after each generation so the
   // app can persist it as the project's source of truth.
   onCourseGraph,
@@ -459,6 +460,17 @@ export default function useDeliverables({
   // matter. Reload-survival comes from the fingerprint-keyed kernel cache;
   // this ref covers the common same-session edit path for free.
   const lastEnrichmentOverlayRef = useRef(null);
+
+  // A restored project already carries its accepted lesson kernels on the
+  // CourseGraph. Rehydrate the compiler ref before any manual Regen action;
+  // otherwise the first click after reload is incorrectly labeled as an
+  // unenriched template compile even though the saved graph has the proof.
+  useEffect(() => {
+    const restoredOverlay = courseGraph?.enrichmentOverlay;
+    if (restoredOverlay && typeof restoredOverlay === 'object') {
+      lastEnrichmentOverlayRef.current = restoredOverlay;
+    }
+  }, [courseGraph]);
 
   const deliverableConfigRef = useRef(deliverableConfig);
   deliverableConfigRef.current = deliverableConfig;
@@ -1202,15 +1214,26 @@ export default function useDeliverables({
         const genomeOnlyEnrichment = () => {
           abortMapRef.current.delete(abortKey);
           const linkedCount = genomeLink ? Object.keys(genomeLink.lessonContent).length : 0;
-          if (linkedCount === 0) return null;
+          const missingLessons = allLessonIndices
+            .filter((lessonIndex) => !genomeLink?.lessonContent?.[`lesson-${lessonIndex + 1}`])
+            .map((lessonIndex) => lessonIndex + 1);
           return {
             signatureTerms: [],
             lens: null,
             styleNotes: [],
-            quality: { source: 'genome-only' },
-            lessonContent: genomeLink.lessonContent,
-            genomeTelemetry: genomeLink.telemetry,
-            genomeLinkPowers: genomeLink.powers,
+            quality: { source: linkedCount > 0 ? 'genome-only' : 'deterministic-fallback' },
+            ...(linkedCount > 0
+              ? {
+                  lessonContent: genomeLink.lessonContent,
+                  genomeTelemetry: genomeLink.telemetry,
+                  genomeLinkPowers: genomeLink.powers,
+                }
+              : {}),
+            coverage: {
+              requestedLessons: allLessonIndices.length,
+              enrichedLessons: linkedCount,
+              missingLessons,
+            },
             stageDecisions,
           };
         };
@@ -1280,7 +1303,12 @@ export default function useDeliverables({
                 pickNativeKernel,
                 selectNativeContentSources,
               },
-              { assessProjectedKernelCoverage, buildBlueprintEnrichmentPayload, normalizeAbsorbedCourseLevel },
+              {
+                assessProjectedKernelCoverage,
+                buildBlueprintEnrichmentPayload,
+                normalizeAbsorbedCourseLevel,
+                selectEnrichmentRecoveryChunk,
+              },
               nativeBatching,
             ] = await Promise.all([
               import('../lib/nativeGraphAuthoring'),
@@ -1294,9 +1322,15 @@ export default function useDeliverables({
             const nativeAuthored = {};
             const lessonIdOf = (lessonIdx) => `lesson-${lessonIdx + 1}`;
             const kernelIsComplete = (payload) => assessProjectedKernelCoverage(payload).complete;
-            // Fully genome-resolved lessons skip kernel authorship (the
-            // augment/displace rules); partial overlays still buy the model
-            // kernel and merge the cited genome terms back in below.
+            const kernelIsUsable = (payload) => assessProjectedKernelCoverage(payload).usable;
+            // Fill safe, evidence-derived core surfaces before deciding
+            // whether a genome/cache kernel needs model authorship. This can
+            // make a rich partial usable, but never invents subject facts or
+            // upgrades it to the stricter full-saturation state.
+            completeNativeLessonSurfaces(lessonContent, blueprintCourseMap.lessons, allLessonIndices, appendLog);
+            // Usable genome-resolved lessons skip kernel re-authoring (the
+            // augment/displace rules); genuinely thin partial overlays still
+            // buy a model kernel and merge cited genome terms back in below.
             const contentSourcedSet = new Set(
               selectNativeContentSources(allLessonIndices, lessonContent, partialOverlays),
             );
@@ -1322,7 +1356,7 @@ export default function useDeliverables({
                 ? expectedLessonIds.filter(
                     (lessonId) =>
                       lessonContent[lessonId] &&
-                      (contentSourcedSet.has(lessonId) || kernelIsComplete(lessonContent[lessonId])),
+                      (contentSourcedSet.has(lessonId) || kernelIsUsable(lessonContent[lessonId])),
                   )
                 : expectedLessonIds.filter((lessonId) => contentSourcedSet.has(lessonId));
               const prompt = buildNativePassBPrompt(blueprintCourseMap, chunk, {
@@ -1343,13 +1377,16 @@ export default function useDeliverables({
               // response_format json_schema (decode-time enforcement replaces
               // server-side prompt sniffing), greedy first attempts, and a
               // sampled temperature only on recovery retries. The orchestration
-              // lives in a lazy chunk (scionPassB) so the local-only wiring
+              // lives in a lazy chunk (scionPassB) so the Scion-only wiring
               // never inflates the main AppFlow bundle.
-              // Scion (V2.1 D): all local-only compiler wiring lives in the
+              // Scion (V2.1 D): all Scion-only compiler wiring lives in the
               // lazy scionPassB chunk — the declared json_schema contract +
               // greedy-first temperature (D1/D2) and the judge-moving passes +
               // on-device flywheel (D3/D4). The main bundle carries none of it.
-              const scionMod = provider === 'local' ? await import('../lib/scionPassB') : null;
+              const scionMod =
+                provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID
+                  ? await import('../lib/scionPassB')
+                  : null;
               const result = await streamProvider(provider, apiKey, modelId, prompt.systemPrompt, prompt.userPrompt, {
                 modelCapabilities,
                 generationPlan,
@@ -1400,7 +1437,7 @@ export default function useDeliverables({
               });
               for (const [lessonId, payload] of Object.entries(parsed.kernels)) {
                 lessonContent[lessonId] = pickNativeKernel(lessonContent[lessonId], payload);
-                if (lessonKernelCache && kernelIsComplete(lessonContent[lessonId])) {
+                if (lessonKernelCache && kernelIsUsable(lessonContent[lessonId])) {
                   const lessonIdx = Number(String(lessonId).replace('lesson-', '')) - 1;
                   const lesson = blueprintCourseMap.lessons?.[lessonIdx];
                   if (lesson) lessonKernelCache.set(lesson, lessonContent[lessonId]);
@@ -1452,14 +1489,15 @@ export default function useDeliverables({
 
             // Recovery (same budget discipline as the prose kernel stage,
             // v0.14.1 P2.3): ≤2 extra sequential calls for lessons whose
-            // kernel is absent OR contract-incomplete, or whose authored
+            // kernel is absent OR instructionally unusable, or whose authored
             // outcomes never arrived. Deterministic fallbacks remain the
             // fail-closed last resort after the bounded repair budget.
             const listMissingKernelIndices = () =>
-              allLessonIndices.filter((lessonIdx) => !kernelIsComplete(lessonContent[lessonIdOf(lessonIdx)]));
+              allLessonIndices.filter((lessonIdx) => !kernelIsUsable(lessonContent[lessonIdOf(lessonIdx)]));
             const listMissingAuthoredIndices = () =>
               allLessonIndices.filter((lessonIdx) => !nativeAuthored[lessonIdOf(lessonIdx)]);
             let nativeRecoveryCalls = 0;
+            const attemptedNativeRecoveryIndices = [];
             while (
               nativeRecoveryCalls < 2 &&
               (listMissingKernelIndices().length > 0 || listMissingAuthoredIndices().length > 0) &&
@@ -1469,12 +1507,16 @@ export default function useDeliverables({
                 kernel: listMissingKernelIndices(),
                 authored: listMissingAuthoredIndices(),
               });
-              const kernelChunk = listMissingKernelIndices().slice(0, chunkSize);
-              const authoredChunk = listMissingAuthoredIndices()
-                .filter((lessonIdx) => !kernelChunk.includes(lessonIdx))
-                .slice(0, Math.max(0, chunkSize - kernelChunk.length));
-              const retryChunk = [...kernelChunk, ...authoredChunk].sort((a, b) => a - b);
+              const recoveryCandidates = [
+                ...new Set([...listMissingKernelIndices(), ...listMissingAuthoredIndices()]),
+              ].sort((a, b) => a - b);
+              const retryChunk = selectEnrichmentRecoveryChunk(
+                recoveryCandidates,
+                attemptedNativeRecoveryIndices,
+                chunkSize,
+              );
               if (retryChunk.length === 0) break;
+              attemptedNativeRecoveryIndices.push(...retryChunk);
               nativeRecoveryCalls += 1;
               try {
                 await runPassBBatch(retryChunk, {
@@ -1532,6 +1574,15 @@ export default function useDeliverables({
                 'warn',
               );
             }
+            const saturationMissingLessonNumbers = allLessonIndices
+              .filter((lessonIdx) => !kernelIsComplete(lessonContent[lessonIdOf(lessonIdx)]))
+              .map((lessonIdx) => lessonIdx + 1);
+            if (saturationMissingLessonNumbers.length > 0 && missingLessonNumbers.length === 0) {
+              appendLog(
+                `✓ ${allLessonIndices.length}/${allLessonIndices.length} lesson kernels are instructionally usable; ${saturationMissingLessonNumbers.length} retain optional surface gaps`,
+                'done',
+              );
+            }
             const missingAuthoredNumbers = listMissingAuthoredIndices().map((lessonIdx) => lessonIdx + 1);
             if (missingAuthoredNumbers.length > 0) {
               appendLog(
@@ -1572,6 +1623,8 @@ export default function useDeliverables({
                 requestedLessons: allLessonIndices.length,
                 enrichedLessons: enrichedLessonCount,
                 missingLessons: missingLessonNumbers,
+                saturatedLessons: allLessonIndices.length - saturationMissingLessonNumbers.length,
+                saturationMissingLessons: saturationMissingLessonNumbers,
               },
               ...(genomeTelemetry ? { genomeTelemetry } : {}),
               ...(genomeLinkPowers ? { genomeLinkPowers } : {}),
@@ -1795,14 +1848,19 @@ export default function useDeliverables({
           // native Pass B — complete chunk #1 alone so the shared prompt
           // prefix is cached before the fan-out.
           const enrichmentConcurrency = provider === PUBLIC_SCION_PROVIDER_ID ? PUBLIC_SCION_KERNEL_CONCURRENCY : 4;
+          const enrichmentLimit = pLimit(enrichmentConcurrency);
           if (enrichmentChunks.length >= 3) {
             await runEnrichmentChunk(enrichmentChunks[0]);
-            const enrichmentLimit = pLimit(enrichmentConcurrency);
             await Promise.all(
               enrichmentChunks.slice(1).map((chunk) => enrichmentLimit(() => runEnrichmentChunk(chunk))),
             );
           } else {
-            await Promise.all(enrichmentChunks.map(runEnrichmentChunk));
+            // The browser runtime is one model instance, not a concurrent
+            // server. Routing even a two-lesson run through the limiter keeps
+            // public Scion at its declared concurrency of one; direct
+            // Promise.all here caused simultaneous encode calls and a full
+            // retry storm while larger (warm-first) runs happened to work.
+            await Promise.all(enrichmentChunks.map((chunk) => enrichmentLimit(() => runEnrichmentChunk(chunk))));
           }
 
           // v0.14.1 P2.3: spend recovery budget on dropped lessons BEFORE
@@ -2402,7 +2460,9 @@ export default function useDeliverables({
                 ? 'Adaptive compiler used deterministic output without an enrichment call.'
                 : blueprintEnrichment.quality?.source === 'genome-only'
                   ? 'Curriculum library supplied source-cited lesson content with no AI cost.'
-                  : 'Adaptive compiler accepted source-grounded enrichment before deterministic output.',
+                  : blueprintEnrichment.quality?.source === 'deterministic-fallback'
+                    ? 'Scion could not admit a lesson kernel; the compiler preserved source-bound recovery work and review notes.'
+                    : 'Adaptive compiler accepted source-grounded enrichment before deterministic output.',
             },
             instructorPreferences: instructorPreferenceProfile,
           }),
@@ -2451,6 +2511,7 @@ export default function useDeliverables({
         const compiled = await compileBlueprintDeliverables(blueprint, blueprintCompiledFeatureIds, {
           configMap: compilerConfigMap,
         });
+        const admittedCompilerBlueprint = compiled[Symbol.for('coursemapper.blueprintCompileContext')] || blueprint;
         recordApiCallEvent({
           type: 'compiledDeliverable',
           label: blueprintEnrichment ? 'Enriched blueprint compiler' : 'Blueprint compiler',
@@ -2629,7 +2690,10 @@ export default function useDeliverables({
                 courseMap: blueprintCourseMap,
                 // Voice v2: kernels are the verified substance the rewrites
                 // may commit to (style without substance was v1's padding).
-                kernels: blueprintEnrichment?.lessonContent || lastEnrichmentOverlayRef.current?.lessonContent || null,
+                kernels:
+                  admittedCompilerBlueprint?.enrichment?.lessonContent ||
+                  lastEnrichmentOverlayRef.current?.lessonContent ||
+                  null,
                 callModel,
                 onEvent: (event) => {
                   if (event?.type === 'voicePassCall') {
@@ -4898,8 +4962,14 @@ export default function useDeliverables({
 
       let abortKey = null;
       try {
+        // Scion's lesson-level Regen button should take the same compiler path
+        // as smart sync. Sending an already-compiled lesson back through the
+        // browser model is slower, can erase the card while tokens stream, and
+        // makes an interrupted request look like missing content. Paid-model
+        // providers keep their existing model-regeneration behavior unless a
+        // smart-sync id explicitly opts them into the compiler path.
         const canCompileSyncLesson =
-          syncGenId !== null &&
+          (syncGenId !== null || provider === PUBLIC_SCION_PROVIDER_ID) &&
           regenerationOptions.mode !== 'finalizerRetry' &&
           regenerationOptions.useBlueprintCompiler !== false &&
           generationPlan?.blueprintCompiler !== false;
@@ -5007,6 +5077,29 @@ export default function useDeliverables({
                 nextData = { ...existingDataSnapshot, [existingKey]: merged };
               }
               dispatch(actions.setDeliverableDone(featureId, nextData));
+              if (compileResult.enrichedLessonCount > 0) {
+                const requestedLessons = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
+                const enrichedIdSet = new Set(compileResult.enrichedLessonIds || []);
+                const missingLessons = Array.from({ length: requestedLessons }, (_, index) => index + 1).filter(
+                  (lessonNumber) => !enrichedIdSet.has(`lesson-${lessonNumber}`),
+                );
+                const restoredOutcome = {
+                  modelStage: 'restored',
+                  requestedLessons,
+                  enrichedLessons: Math.min(
+                    requestedLessons || compileResult.enrichedLessonCount,
+                    compileResult.enrichedLessonCount,
+                  ),
+                  missingLessons,
+                };
+                recordApiCallEvent({
+                  type: 'pipelineDecision',
+                  stage: 'enrichmentModelStage',
+                  label: 'Enrichment decision',
+                  detail: `restored compiler kernels (${restoredOutcome.enrichedLessons}/${requestedLessons || restoredOutcome.enrichedLessons} lessons enriched)`,
+                  outcome: restoredOutcome,
+                });
+              }
               recordApiCallEvent({
                 type: 'compiledDeliverable',
                 label: 'Compiler sync',

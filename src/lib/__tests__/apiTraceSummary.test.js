@@ -75,4 +75,22 @@ describe('buildApiTraceSummary', () => {
       compilerSource: 'enriched-blueprint',
     });
   });
+
+  it('shows safe semantic-admission issue codes without generated content', () => {
+    const payload = buildApiTraceSummary(
+      {
+        type: 'pipelineDecision',
+        stage: 'local-compiler',
+        admissionIssues: ['lesson-2:key-term-1:embedded-field-label'],
+        kernelShape: [{ lessonId: 'lesson-2', facts: 5, keyTerms: 3, mc: 1 }],
+      },
+      { runId: 'run-scion', tokenUsage: {} },
+    );
+
+    expect(payload).toMatchObject({
+      admissionIssues: ['lesson-2:key-term-1:embedded-field-label'],
+      kernelShape: [{ lessonId: 'lesson-2', facts: 5, keyTerms: 3, mc: 1 }],
+    });
+    expect(JSON.stringify(payload)).not.toMatch(/prompt|generated prose/i);
+  });
 });

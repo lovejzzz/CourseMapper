@@ -88,28 +88,28 @@
     "implementation": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 34390,
-        "sha256": "f9a2d406b0ded6363384abe09afae2784d0e469556b598962ecac3e86827c434"
+        "bytes": 40355,
+        "sha256": "35bc646b31dd0fd57a17e4daba3cc37eeef8a0c2ec3c01808c39f706102c62b2"
       },
       {
         "path": "src/lib/scionKeyTermContract.js",
-        "bytes": 13595,
-        "sha256": "8b132dd79f950b45bf45ad344141576b52a1edc5f73dcc2e7615ffbbd3c572d6"
+        "bytes": 18642,
+        "sha256": "784ad357d76c72b73c7a2621da3d776d2704b865d1f880d509d93c69891fa12f"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 18719,
-        "sha256": "355f9bf6bca51af968ae47ef6a6f19021932ae1a06b5ee688e0d3b7932bd4c74"
+        "bytes": 20304,
+        "sha256": "145ab616a69b0917f8fbfb65c66222ad8dddda66ca97d4dcb39370a724ee602a"
       },
       {
         "path": "src/lib/blueprintEnrichmentPass.js",
-        "bytes": 74300,
-        "sha256": "bbe461378ca95ab0e48d9740acf987e3dddbe10bced984cd9d59bd6b1b5edcbb"
+        "bytes": 76720,
+        "sha256": "4d2dca7f2e40e9d419233fa881f3b0ca5d209a718e7ba57977a55b711d1c3b08"
       },
       {
         "path": "scripts/lib/scionSourceCapture.mjs",
-        "bytes": 50444,
-        "sha256": "a45b664d94d47afeccd69f46ddf0700ee890b7309f05bfb9c3d12e6099813871"
+        "bytes": 51075,
+        "sha256": "760e8fa464d874c1fd2de178396f8f266120bfbb14d2de8ebb91791dc0c50fa0"
       }
     ],
     "baseline": {
@@ -689,6 +689,6 @@
   "claimBoundary": "This replay measures interception of defects in stable paired-order losses from one Codex model. Five answer keys are conservatively repaired from explicit or source-bound evidence; three lexical-only conflicts are rejected for regeneration after a live Astronomy package proved that overlap can point at a false distractor. Three misconception failures align with retained judge defects; four directly visible internal claim markers are deterministic process residue, and one was explicitly named by the judge. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Twenty-six stable losses remain unresolved.",
   "identity": {
     "algorithm": "sha256-canonical-scion-semantic-admission-replay-v1",
-    "sha256": "781527065c112bde87c559c0a54fb854b2c2772cd9ff0edd21a71c821547e1c2"
+    "sha256": "99f8e411d9ab91e74112e41abb0fd70e4f08e20538d1f46fc2d26838d2cf76fa"
   }
 }

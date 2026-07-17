@@ -828,7 +828,7 @@ const COMPUTER_SCIENCE_COURSE_MAP_RE = {
 const GENERIC_COURSE_MAP_FALLBACK_RE =
   /\b(?:course problem|course applications|next assessment|quick evidence check|exit ticket using|practice response|review assigned materials|prepare notes|new example|observe, label, calculate, or decide|course task or example|course activities|evidence of learning|lab materials|discipline-specific tools)\b/i;
 const GENERIC_ASSESSMENT_SCAFFOLD_RE =
-  /\b(?:quick evidence check|exit ticket using|practice response(?:\s+that\s+names)?|prepared response)\b/i;
+  /\b(?:quick evidence check|evidence check|exit ticket using|practice response(?:\s+that\s+names)?|prepared response|applied response|practice checkpoint|review note|transfer task)\b/i;
 const GENERIC_ASSESSMENT_NEW_EXAMPLE_RE = /\bapply\b[^.?!\n]{0,120}\bto a new example\b/i;
 const GENERIC_ASSESSMENT_COURSE_DECISION_RE = /\busing\b[^.?!\n]{0,120}\bto justify one course-relevant decision\b/i;
 
@@ -848,6 +848,13 @@ function inferCourseMapFallbackProfile(courseMap, lesson, section) {
   if (PROJECT_MANAGEMENT_COURSE_RE.test(context)) return 'project-management';
   if (UX_DESIGN_COURSE_MAP_RE.test(context)) return 'ux-design';
   if (COMPUTER_SCIENCE_COURSE_MAP_RE.test(context)) return 'computer-science';
+  if (
+    /\b(?:music theory|aural skills?|ear training|interval quality|semitones?|pitch(?:es)?|notated|notation|inversion number|compound intervals?)\b/i.test(
+      context,
+    )
+  ) {
+    return 'music-theory';
+  }
   return HISTORY_COURSE_MAP_RE.test(context) ? 'history' : 'general';
 }
 
@@ -1030,6 +1037,46 @@ function getUxDesignCourseMapFallbacks(topic, pick) {
   };
 }
 
+function getMusicTheoryCourseMapFallbacks(topic, pick, lesson, section, courseMap = null) {
+  const lessonText = [lesson?.title, topic, section?.learningObjectives].map(text).join(' ');
+  const inversionLesson = /\b(?:simple|compound|invert|inversion|number pair|quality change)\b/i.test(lessonText);
+  const courseName = text(courseMap?.courseName).toLowerCase();
+  const rawSource = text(section?.supportingResources)
+    .split(/\n|;/)
+    .map((entry) => entry.replace(/^\s*\d+[.)]\s*/, '').trim())
+    .find(
+      (entry) =>
+        entry.length > 0 &&
+        entry.length <= 100 &&
+        entry.toLowerCase() !== courseName &&
+        !/\b(?:course site|course platform|instructor-provided materials?|supporting resources?)\b/i.test(entry),
+    );
+  const source = rawSource || (inversionLesson ? 'assigned notation or audio set' : 'assigned notation drill');
+  const artifact = inversionLesson
+    ? `${source} interval-classification and inversion analysis`
+    : `${source} interval-classification and semitone-verification check`;
+  return {
+    learningGoals: inversionLesson
+      ? `Use simple-interval reduction, inversion number pairs, and quality changes to classify notated and heard intervals.`
+      : `Use inclusive letter-name counting and semitone evidence to classify notated and heard intervals.`,
+    topicSection: topic,
+    learningObjectives: inversionLesson
+      ? `Reduce compound intervals, apply the sum-to-nine rule, and justify each inverted quality with pitch evidence.`
+      : `Count generic interval numbers inclusively, identify quality, and verify each label by semitone count.`,
+    weeklyAssessments: `${artifact}: classify each interval and justify the answer with inspectable pitch evidence.`,
+    asyncActivities: `Annotate examples from ${source} with the interval number, quality, and supporting pitch evidence.`,
+    syncActivities: inversionLesson
+      ? `Compare compound-interval reductions and inversion labels, then correct each number or quality mismatch aloud.`
+      : `Classify notated and heard intervals in pairs, then reconcile letter-name counts with semitone counts.`,
+    technologyNeeded: `Accessible notation or audio playback for ${source}, plus a response sheet or shared annotation workspace.`,
+    presentationFormat: inversionLesson
+      ? 'Rule demonstration, guided inversion analysis, listening or notation practice, and evidence-backed correction.'
+      : 'Inclusive-counting demonstration, semitone verification, guided classification, and a short listening or notation check.',
+    supportingResources: source,
+    evaluateDesign: `Confirm that instruction, practice, and ${artifact} require the same interval-classification rules and visible pitch evidence.`,
+  };
+}
+
 function getComputerScienceCourseMapFallbacks(topic, pick) {
   const displayTopic = displayCourseMapTopic(topic);
   return {
@@ -1203,61 +1250,63 @@ function getCourseMapFallbackValue(key, courseMap, lesson, section, lessonIndex)
           ? getUxDesignCourseMapFallbacks(topic, pick)
           : profile === 'computer-science'
             ? getComputerScienceCourseMapFallbacks(topic, pick)
-            : {
-                learningGoals: pick([
-                  `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
-                  `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
-                  `Develop an evidence-backed account of ${topic} for course applications.`,
-                ]),
-                topicSection: topic,
-                learningObjectives: pick([
-                  `Explain the key ideas in ${topic} and apply them in course activities.`,
-                  `Apply the main concepts from ${topic} to a course task or example.`,
-                  `Connect ${topic} to the week's work and explain one supporting evidence source.`,
-                  `Analyze an example using ${topic} and name one limitation or open question.`,
-                ]),
-                weeklyAssessments: pick([
-                  `${displayCourseMapTopic(topic)} application check: choose evidence that supports one course decision.`,
-                  `${displayCourseMapTopic(topic)} transfer task: explain one example, one source detail, and one limitation.`,
-                  `${displayCourseMapTopic(topic)} exit note connecting the activity to one visible product.`,
-                  `${displayCourseMapTopic(topic)} short response that names the claim, example, and next question.`,
-                ]),
-                asyncActivities: pick([
-                  `Annotate the instructor-provided resource for ${topic} and bring one usable example.`,
-                  `Prepare a source note that names one claim, example, or question about ${topic}.`,
-                  `Compare the lesson resource with a sample response and mark where ${topic} appears.`,
-                  `Draft one question about ${topic} that can be answered with course evidence.`,
-                ]),
-                syncActivities: pick([
-                  `Compare two examples of ${topic} and explain which evidence is stronger.`,
-                  `Practice applying ${topic} in pairs, then revise one response from feedback.`,
-                  `Use a guided case, text, dataset, or demonstration to test ${topic}.`,
-                  `Share one ${topic} claim and identify the evidence that would make it stronger.`,
-                ]),
-                technologyNeeded: pick([
-                  'Course site, instructor-provided resource, and the tool used for the lesson activity.',
-                  'Shared reading, example file, or activity handout plus a workspace for responses.',
-                  'Instructor-provided materials and the classroom tool named for the lesson task.',
-                  'Course platform, accessible resource file, and response workspace for the checkpoint.',
-                ]),
-                presentationFormat: pick([
-                  'Instructor framing, guided student work, and a short synthesis.',
-                  'Brief setup, worked example or demonstration, then student application.',
-                  'Opening question, structured practice, and a closing artifact review.',
-                ]),
-                supportingResources: pick([
-                  `Source excerpt, example, or activity prompt aligned to ${topic}.`,
-                  `Short resource excerpt, model response, or practice handout for ${topic}.`,
-                  `Course example and response guide students can use to explain ${topic}.`,
-                  `Activity prompt, reference note, and feedback guide connected to ${topic}.`,
-                ]),
-                evaluateDesign: pick([
-                  `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,
-                  `Confirm students use the same source detail or example for ${topic} practice and assessment.`,
-                  `Align the ${topic} activity with one observable response, artifact, or explanation.`,
-                  `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
-                ]),
-              };
+            : profile === 'music-theory'
+              ? getMusicTheoryCourseMapFallbacks(topic, pick, lesson, section, courseMap)
+              : {
+                  learningGoals: pick([
+                    `Use ${topic} to explain a course problem and prepare evidence for the next assessment.`,
+                    `Trace how ${topic} changes what students can observe, label, calculate, or decide.`,
+                    `Develop an evidence-backed account of ${topic} for course applications.`,
+                  ]),
+                  topicSection: topic,
+                  learningObjectives: pick([
+                    `Explain the key ideas in ${topic} and apply them in course activities.`,
+                    `Apply the main concepts from ${topic} to a course task or example.`,
+                    `Connect ${topic} to the week's work and explain one supporting evidence source.`,
+                    `Analyze an example using ${topic} and name one limitation or open question.`,
+                  ]),
+                  weeklyAssessments: pick([
+                    `${displayCourseMapTopic(topic)} application check: choose evidence that supports one course decision.`,
+                    `${displayCourseMapTopic(topic)} transfer task: explain one example, one source detail, and one limitation.`,
+                    `${displayCourseMapTopic(topic)} exit note connecting the activity to one visible product.`,
+                    `${displayCourseMapTopic(topic)} short response that names the claim, example, and next question.`,
+                  ]),
+                  asyncActivities: pick([
+                    `Annotate the instructor-provided resource for ${topic} and bring one usable example.`,
+                    `Prepare a source note that names one claim, example, or question about ${topic}.`,
+                    `Compare the lesson resource with a sample response and mark where ${topic} appears.`,
+                    `Draft one question about ${topic} that can be answered with course evidence.`,
+                  ]),
+                  syncActivities: pick([
+                    `Compare two examples of ${topic} and explain which evidence is stronger.`,
+                    `Practice applying ${topic} in pairs, then revise one response from feedback.`,
+                    `Use a guided case, text, dataset, or demonstration to test ${topic}.`,
+                    `Share one ${topic} claim and identify the evidence that would make it stronger.`,
+                  ]),
+                  technologyNeeded: pick([
+                    'Course site, instructor-provided resource, and the tool used for the lesson activity.',
+                    'Shared reading, example file, or activity handout plus a workspace for responses.',
+                    'Instructor-provided materials and the classroom tool named for the lesson task.',
+                    'Course platform, accessible resource file, and response workspace for the checkpoint.',
+                  ]),
+                  presentationFormat: pick([
+                    'Instructor framing, guided student work, and a short synthesis.',
+                    'Brief setup, worked example or demonstration, then student application.',
+                    'Opening question, structured practice, and a closing artifact review.',
+                  ]),
+                  supportingResources: pick([
+                    `Source excerpt, example, or activity prompt aligned to ${topic}.`,
+                    `Short resource excerpt, model response, or practice handout for ${topic}.`,
+                    `Course example and response guide students can use to explain ${topic}.`,
+                    `Activity prompt, reference note, and feedback guide connected to ${topic}.`,
+                  ]),
+                  evaluateDesign: pick([
+                    `Check that the ${topic} resource, activity, and assessment all ask for one visible product.`,
+                    `Confirm students use the same source detail or example for ${topic} practice and assessment.`,
+                    `Align the ${topic} activity with one observable response, artifact, or explanation.`,
+                    `Make the ${topic} practice task produce evidence students can reuse in the assessment.`,
+                  ]),
+                };
   const value = fieldFallbacks[key] || `Instructor-confirmed material for ${topic}.`;
   // Belt: no minted assessment title may register as an exam, whatever the
   // frame pool produced.
@@ -1296,6 +1345,29 @@ function needsCourseMapSemanticRepair(key, value, courseMap, lesson, section) {
   if (needsCourseTitleOnlyTopicRepair(raw, courseMap)) return true;
   if (hasRepeatedShortTopicReference(raw, courseMap)) return true;
   const profile = inferCourseMapFallbackProfile(courseMap, lesson, section);
+  if (profile === 'music-theory') {
+    const unnumbered = raw.replace(/^\s*\d+[.)]\s*/, '').trim();
+    const musicEvidenceCue = /\b(?:notation|notated|audio|listening|aural|pitch|semitone|staff|interval)\b/i;
+    if (key === 'supportingResources' && unnumbered.toLowerCase() === text(courseMap?.courseName).toLowerCase()) {
+      return true;
+    }
+    if (
+      key === 'technologyNeeded' &&
+      /\bLMS\b/i.test(raw) &&
+      /video conferencing/i.test(raw) &&
+      /shared documents?/i.test(raw) &&
+      !musicEvidenceCue.test(raw)
+    ) {
+      return true;
+    }
+    if (
+      ['asyncActivities', 'syncActivities'].includes(key) &&
+      /\b(?:Practice|Draft|Workshop|Peer review):/i.test(raw)
+    ) {
+      return true;
+    }
+    if (key === 'presentationFormat' && /^Workshop\s*\+\s*guided practice\.?$/i.test(raw)) return true;
+  }
   if (profile === 'history') {
     if (GENERIC_COURSE_MAP_FALLBACK_RE.test(raw)) return true;
     return key === 'weeklyAssessments' && isShortCourseMapListCell(raw);
@@ -1704,6 +1776,7 @@ function repairFeatureData(featureId, data, { courseMap, config, deliverables } 
         'tailored repeated FAQ questions',
         normalizeCourseFaqQuestionVariety,
         courseMap,
+        deliverables,
       );
       break;
     default:

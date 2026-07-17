@@ -261,6 +261,86 @@ export function normalizeScionOptionIdentity(value) {
   return `${structuralDelimiters}|${words}`;
 }
 
+const NEAR_DUPLICATE_OPTION_STOP_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'because',
+  'by',
+  'for',
+  'from',
+  'in',
+  'is',
+  'of',
+  'on',
+  'the',
+  'to',
+  'with',
+]);
+const NEAR_DUPLICATE_POLARITY_GROUPS = [
+  ['not', 'never', 'no'],
+  ['major', 'minor'],
+  ['increase', 'decrease'],
+  ['before', 'after'],
+  ['same', 'different'],
+  ['true', 'false'],
+  ['always', 'never'],
+];
+
+function nearDuplicateOptionTokens(value) {
+  return new Set(
+    stripOptionLabel(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .replace(/[‘’']/g, '')
+      .replace(/[^a-z0-9♭♯#]+/g, ' ')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((token) => (token.length > 4 && token.endsWith('s') ? token.slice(0, -1) : token))
+      .filter((token) => !NEAR_DUPLICATE_OPTION_STOP_WORDS.has(token)),
+  );
+}
+
+function hasCriticalOptionContrast(left, right) {
+  // "Only" is semantic polarity, not filler. In the seismic-wave item,
+  // "travels through solids, liquids, and gases" and "travels only through
+  // solids" share most of their surface tokens but make opposite claims.
+  if (left.has('only') !== right.has('only')) return true;
+  return NEAR_DUPLICATE_POLARITY_GROUPS.some((group) => {
+    const leftHits = group.filter((token) => left.has(token));
+    const rightHits = group.filter((token) => right.has(token));
+    return leftHits.length > 0 && rightHits.length > 0 && leftHits.some((token) => !rightHits.includes(token));
+  });
+}
+
+/**
+ * Find choices that express the same answer with extra filler words. Exact
+ * normalization catches punctuation/article variants; this conservative
+ * containment check catches the live "C, D, and E" versus "C, D, and the
+ * next note is E" duplicate without collapsing major/minor or other critical
+ * contrasts. Returns null when the choices remain meaningfully distinct.
+ */
+export function findScionNearDuplicateOptionPair(options = []) {
+  const rows = (Array.isArray(options) ? options : []).map((option) => nearDuplicateOptionTokens(option));
+  for (let leftIndex = 0; leftIndex < rows.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < rows.length; rightIndex += 1) {
+      const left = rows[leftIndex];
+      const right = rows[rightIndex];
+      const smaller = Math.min(left.size, right.size);
+      // Equal-size token sets often encode deliberate minimal pairs or role
+      // swaps (positive/negative charge, junction/loop, supply/demand). The
+      // near-duplicate rule is for an answer repeated with extra filler, so
+      // require a strict superset instead of treating high overlap as enough.
+      if (smaller < 6 || left.size === right.size || hasCriticalOptionContrast(left, right)) continue;
+      const shared = [...left].filter((token) => right.has(token)).length;
+      if (shared === smaller) return { leftIndex, rightIndex, shared, smaller };
+    }
+  }
+  return null;
+}
+
 function optionLabelIndex(value) {
   const normalized = clean(value).toUpperCase();
   if (/^[A-D]$/.test(normalized)) return normalized.charCodeAt(0) - 65;
@@ -495,11 +575,65 @@ export function findScionExplicitNegativeKeyConflict(item = {}) {
 }
 
 /**
+ * Detect feedback that proves only that the three distractors are wrong.
+ *
+ * Eliminating every distractor can identify a key, but it does not teach why
+ * that key is correct. Keep this deliberately narrow: all three non-key
+ * options must be explicitly labelled incorrect/wrong/distractor, the keyed
+ * option must not be labelled negative, and no explicit affirmative cue may
+ * support the key. The compiler can then retry the whole item without
+ * inventing a rationale on the model's behalf.
+ */
+export function findScionMissingKeyExplanationSupport(item = {}) {
+  const normalized = normalizeScionMcItem(item);
+  if (
+    normalized.options.length !== 4 ||
+    !Number.isInteger(normalized.answerIndex) ||
+    normalized.answerIndex < 0 ||
+    normalized.answerIndex > 3 ||
+    !normalized.explanation
+  ) {
+    return null;
+  }
+
+  const negativelyLabeled = [];
+  for (const match of normalized.explanation.matchAll(
+    /\b(?:option|choice|answer)\s*([A-D1-4])\s+(?:is|was)\s+(?:an?\s+)?(?:incorrect|wrong|distractor)\b/gi,
+  )) {
+    const index = optionLabelIndex(match[1]);
+    if (Number.isInteger(index)) negativelyLabeled.push(index);
+  }
+  const distinctNegativeIndexes = [...new Set(negativelyLabeled)].sort((left, right) => left - right);
+  const distractorIndexes = normalized.options
+    .map((_, index) => index)
+    .filter((index) => index !== normalized.answerIndex);
+  if (
+    distinctNegativeIndexes.includes(normalized.answerIndex) ||
+    !distractorIndexes.every((index) => distinctNegativeIndexes.includes(index))
+  ) {
+    return null;
+  }
+
+  const affirmativeCue = findExplicitExplanationAnswerCue(normalized);
+  if (affirmativeCue.status === 'supported' && affirmativeCue.supportedIndex === normalized.answerIndex) {
+    return null;
+  }
+  return {
+    declaredIndex: normalized.answerIndex,
+    negativelyLabeledIndexes: distinctNegativeIndexes,
+    supportMethod: 'all-distractors-negative-without-key-rationale',
+  };
+}
+
+/**
  * Find two or more options independently supported by supplied source claims.
  * The check is fail-closed and lexical: each option needs either an exact
  * phrase or at least three content-token matches with strong containment.
  */
-export function findScionMultipleSourceSupportedOptions(item = {}, { sourceClaims = [] } = {}) {
+export function findScionMultipleSourceSupportedOptions(
+  item = {},
+  { sourceClaims = [], allowBroadSourceContext = false } = {},
+) {
   const normalized = normalizeScionMcItem(item);
   const claims = (Array.isArray(sourceClaims) ? sourceClaims : []).map(sourceClaimText).filter(Boolean);
   if (normalized.options.length !== 4 || claims.length === 0) return null;
@@ -516,41 +650,71 @@ export function findScionMultipleSourceSupportedOptions(item = {}, { sourceClaim
     score: tokenOverlap(questionTokens, sourceAlignmentTokens(claim)),
   }));
   const bestQuestionScore = Math.max(0, ...claimScores.map(({ score }) => score));
-  if (bestQuestionScore < 2) return null;
-  const relevantClaimIndexes = claimScores
-    .filter(({ score }) => score >= Math.max(2, bestQuestionScore - 1))
-    .map(({ index }) => index);
-  if (relevantClaimIndexes.length === 0 || relevantClaimIndexes.length > 3) return null;
-  const claimTokens = claims.map(sourceAlignmentTokens);
-  const supported = normalized.options
-    .map((option, index) => {
-      const surface = stripOptionLabel(option).toLowerCase();
-      const tokens = semanticOptionTokens(option);
-      let best = { score: 0, containment: 0, claimIndex: -1, exactPhrase: false };
-      relevantClaimIndexes.forEach((claimIndex) => {
-        const claim = claims[claimIndex];
-        const claimSurface = claim.toLowerCase();
-        if (/\b(?:false|never|not|only)\b/i.test(surface) && !/\b(?:false|never|not|only)\b/i.test(claimSurface)) {
-          return;
+  if (!allowBroadSourceContext) {
+    if (bestQuestionScore < 2) return null;
+    const relevantClaimIndexes = claimScores
+      .filter(({ score }) => score >= Math.max(2, bestQuestionScore - 1))
+      .map(({ index }) => index);
+    if (relevantClaimIndexes.length === 0 || relevantClaimIndexes.length > 3) return null;
+    return findSupportedOptions(relevantClaimIndexes);
+  }
+  let relevantClaimIndexes;
+  if (bestQuestionScore >= 2) {
+    // Broad definition/function stems often name a source concept repeated in
+    // four or more claims. Limiting this set to three hid exactly the ambiguity
+    // the rule is meant to expose, so retain every near-best relevant claim.
+    relevantClaimIndexes = claimScores
+      .filter(({ score }) => score >= Math.max(2, bestQuestionScore - 1))
+      .map(({ index }) => index);
+  } else {
+    // A short subject anchor can still make a generic "how is X structured?"
+    // stem source-bound. Expand only when one question token recurs in at least
+    // two claims; otherwise lexical coincidence cannot open the whole packet.
+    const repeatedQuestionAnchors = [...questionTokens].filter(
+      (token) => claims.filter((claim) => sourceAlignmentTokens(claim).has(token)).length >= 2,
+    );
+    if (repeatedQuestionAnchors.length === 0) return null;
+    relevantClaimIndexes = claims.map((_, index) => index);
+  }
+  if (relevantClaimIndexes.length === 0) return null;
+  return findSupportedOptions(relevantClaimIndexes);
+
+  function findSupportedOptions(candidateClaimIndexes) {
+    const claimTokens = claims.map(sourceAlignmentTokens);
+    const supported = normalized.options
+      .map((option, index) => {
+        const surface = stripOptionLabel(option).toLowerCase();
+        const tokens = semanticOptionTokens(option);
+        let best = { score: 0, containment: 0, claimIndex: -1, exactPhrase: false };
+        candidateClaimIndexes.forEach((claimIndex) => {
+          const claim = claims[claimIndex];
+          const claimSurface = claim.toLowerCase();
+          if (/\b(?:false|never|not|only)\b/i.test(surface) && !/\b(?:false|never|not|only)\b/i.test(claimSurface)) {
+            return;
+          }
+          const score = tokenOverlap(tokens, claimTokens[claimIndex]);
+          const containment = score / Math.max(1, tokens.size);
+          const exactPhrase = surface.length >= 8 && claimSurface.includes(surface);
+          if (
+            Number(exactPhrase) > Number(best.exactPhrase) ||
+            (exactPhrase === best.exactPhrase &&
+              (containment > best.containment || (containment === best.containment && score > best.score)))
+          ) {
+            best = { score, containment, claimIndex, exactPhrase };
+          }
+        });
+        const eligible = best.exactPhrase || (best.score >= 3 && best.containment >= 0.72);
+        return { index, ...best, eligible };
+      })
+      .filter((entry) => entry.eligible);
+    return supported.length >= 2
+      ? {
+          supported,
+          relevantClaimIndexes: candidateClaimIndexes,
+          supportMethod: 'question-relevant-source-option-support',
         }
-        const score = tokenOverlap(tokens, claimTokens[claimIndex]);
-        const containment = score / Math.max(1, tokens.size);
-        const exactPhrase = surface.length >= 8 && claimSurface.includes(surface);
-        if (
-          Number(exactPhrase) > Number(best.exactPhrase) ||
-          (exactPhrase === best.exactPhrase &&
-            (containment > best.containment || (containment === best.containment && score > best.score)))
-        ) {
-          best = { score, containment, claimIndex, exactPhrase };
-        }
-      });
-      const eligible = best.exactPhrase || (best.score >= 3 && best.containment >= 0.72);
-      return { index, ...best, eligible };
-    })
-    .filter((entry) => entry.eligible);
-  return supported.length >= 2
-    ? { supported, relevantClaimIndexes, supportMethod: 'question-relevant-source-option-support' }
-    : null;
+      : null;
+  }
 }
 
 /**

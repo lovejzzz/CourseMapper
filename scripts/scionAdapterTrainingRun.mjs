@@ -804,6 +804,7 @@ async function main() {
       '--verify',
       '--training-plan',
       '--training-result',
+      '--semantic-profile strict-v3',
     ]) {
       if (!launcher.includes(required)) policyIssues.push(`launcher-missing:${required.replaceAll('\n', ' ')}`);
     }

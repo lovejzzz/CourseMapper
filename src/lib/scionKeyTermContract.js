@@ -60,7 +60,7 @@ function repeatsScionKeyTermField(left, right) {
   return containment >= 0.84 && intersection / Math.max(1, union) >= 0.66;
 }
 
-function misconceptionRestatesKnownFact(misconception, knownFacts, { strict = false } = {}) {
+function misconceptionRestatesKnownFact(misconception, knownFacts, { strict = false, compact = false } = {}) {
   const candidate = cleanScionKeyTermText(misconception).replace(MISCONCEPTION_CUE_RE, '');
   if (candidate.length < 24) return false;
   if (!strict && MISCONCEPTION_CONTRAST_RE.test(candidate)) return false;
@@ -83,7 +83,15 @@ function misconceptionRestatesKnownFact(misconception, knownFacts, { strict = fa
     // meaningful whole-sentence overlap. Explicit contrast language remains
     // admissible above, so "must include every detail" is not confused with a
     // source claim that a prototype works without every production detail.
-    return intersection >= 3 && containment >= 0.75 && intersection / Math.max(1, union) >= 0.35;
+    const wholeSentenceOverlap = intersection / Math.max(1, union);
+    // Compact factual statements naturally have lower Jaccard overlap with a
+    // longer explanatory source sentence. When a purported misconception has
+    // at most five content tokens, three source tokens covering at least 75%
+    // of it are still an affirmative restatement. This catches claims such as
+    // "a triad consists of three notes" without rejecting a polarity reversal
+    // or a longer, genuinely contrasting misconception.
+    const compactFactRestatement = compact && candidateTokens.size <= 5 && wholeSentenceOverlap >= 0.25;
+    return intersection >= 3 && containment >= 0.75 && (wholeSentenceOverlap >= 0.35 || compactFactRestatement);
   });
 }
 
@@ -193,8 +201,10 @@ export function assessScionKeyTermContract(
   } = {},
 ) {
   const normalized = normalizeScionKeyTerm(term);
-  const sourceGroundedSemanticAdmission = semanticProfile === 'source-strict';
-  const strictSemanticAdmission = semanticProfile === 'strict' || sourceGroundedSemanticAdmission;
+  const judgeInformedSemanticAdmission = semanticProfile === 'strict-v3' || semanticProfile === 'source-strict-v3';
+  const sourceGroundedSemanticAdmission = semanticProfile === 'source-strict' || semanticProfile === 'source-strict-v3';
+  const strictSemanticAdmission =
+    semanticProfile === 'strict' || semanticProfile === 'strict-v3' || sourceGroundedSemanticAdmission;
   const issues = [];
   const minTermLength = NON_LATIN_SCRIPT_RE.test(normalized.term) ? 1 : 3;
   const meaningfulMin = (value, latinMinimum) => (NON_LATIN_SCRIPT_RE.test(value) ? 4 : latinMinimum);
@@ -254,6 +264,10 @@ export function assessScionKeyTermContract(
   if (
     strictSemanticAdmission &&
     knownFacts.length > 0 &&
+    !(
+      NON_LATIN_SCRIPT_RE.test(normalized.example) &&
+      (normalized.example.match(/[^\u0000-\u024f\u1e00-\u1eff\s\p{P}\p{S}]/gu) || []).length >= 4
+    ) &&
     (normalized.example.length < 24 || normalized.example.split(/\s+/).length < 4)
   ) {
     issues.push('example-underdeveloped');
@@ -272,7 +286,7 @@ export function assessScionKeyTermContract(
     misconceptionRestatesKnownFact(
       normalized.misconception,
       (Array.isArray(knownFacts) ? knownFacts : []).map(cleanScionKeyTermText).filter(Boolean),
-      { strict: strictSemanticAdmission },
+      { strict: strictSemanticAdmission, compact: judgeInformedSemanticAdmission },
     )
   ) {
     issues.push('misconception-repeats-known-fact');

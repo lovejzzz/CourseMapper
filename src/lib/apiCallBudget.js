@@ -29,6 +29,14 @@ const PROVIDER_CALL_COUNTERS = [
   'imageGenerationCalls',
 ];
 
+const PERSISTED_BUDGET_COUNTERS = [
+  ...PROVIDER_CALL_COUNTERS,
+  'genomeLinkEvents',
+  'failedCalls',
+  'retriedCalls',
+  'skippedExamineCalls',
+];
+
 export { recordPendingApiCallEvent };
 
 function cloneUsageTotals(usage = {}) {
@@ -192,6 +200,70 @@ export function createApiCallBudget(overrides = {}) {
   };
 }
 
+/**
+ * Persist the evidence needed to explain and re-grade a generated package
+ * after autosave, file, or cloud restore. The free-form event and usage
+ * ledgers are deliberately excluded; aggregate facts and pipeline decisions
+ * are sufficient for the compiler UI, run digest, manifest, and quality gate.
+ */
+export function buildApiCallBudgetReceipt(budget = {}) {
+  const counters = Object.fromEntries(
+    PERSISTED_BUDGET_COUNTERS.map((key) => [key, Math.max(0, Number(budget?.[key]) || 0)]),
+  );
+  const pipeline = Object.fromEntries(
+    Object.entries(budget?.pipeline || {})
+      .filter(([key, value]) => key && typeof value === 'string')
+      .slice(0, 32)
+      .map(([key, value]) => [String(key).slice(0, 80), value.slice(0, 500)]),
+  );
+
+  return {
+    schemaVersion: 1,
+    runId: String(budget?.runId || '').slice(0, 120),
+    startedAt: Number(budget?.startedAt) || Date.now(),
+    updatedAt: Number(budget?.updatedAt) || Number(budget?.startedAt) || Date.now(),
+    buildUpdatedAt:
+      Number(budget?.buildUpdatedAt) || Number(budget?.updatedAt) || Number(budget?.startedAt) || Date.now(),
+    buildElapsedMs: Math.max(
+      0,
+      (Number(budget?.buildUpdatedAt) || Number(budget?.updatedAt) || Date.now()) -
+        (Number(budget?.startedAt) || Date.now()),
+    ),
+    ...counters,
+    failureClasses: { ...(budget?.failureClasses || {}) },
+    costPlan: { ...(budget?.costPlan || {}) },
+    tokenUsage: cloneUsageTotals(budget?.tokenUsage || {}),
+    featureUsage: cloneFeatureUsage(budget?.featureUsage || {}),
+    compilerSavings: {
+      ...(budget?.compilerSavings || {}),
+      featureIds: Array.isArray(budget?.compilerSavings?.featureIds)
+        ? budget.compilerSavings.featureIds.slice(0, 32)
+        : [],
+    },
+    pipeline,
+    ...(budget?.enrichmentOutcome ? { enrichmentOutcome: normalizeEnrichmentOutcome(budget.enrichmentOutcome) } : {}),
+  };
+}
+
+export function createApiCallBudgetFromReceipt(receipt = null) {
+  if (!receipt || typeof receipt !== 'object') return createApiCallBudget();
+  // Resume the work clock from its accumulated duration instead of its old
+  // wall-clock anchors. Otherwise time spent with the app closed is charged
+  // to the next verification and "Ready in 62s" can become "Ready in 3h".
+  const now = Date.now();
+  const elapsedMs = Math.max(
+    0,
+    Number(receipt.buildElapsedMs) ||
+      (Number(receipt.buildUpdatedAt) || Number(receipt.updatedAt) || now) - (Number(receipt.startedAt) || now),
+  );
+  return createApiCallBudget({
+    ...receipt,
+    startedAt: now - elapsedMs,
+    updatedAt: now,
+    buildUpdatedAt: now,
+  });
+}
+
 function counterForType(type) {
   switch (type) {
     case 'modelDiscoveryCall':
@@ -288,6 +360,10 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     'compiledFeatureCount',
     'compiledFeatureIds',
     'compilerSource',
+    // Safe semantic diagnostics: contract issue codes and aggregate atom
+    // counts only. No prompt text or generated response content is retained.
+    'admissionIssues',
+    'kernelShape',
   ].forEach((key) => {
     if (event[key] !== undefined && event[key] !== '') eventMetadata[key] = event[key];
   });
