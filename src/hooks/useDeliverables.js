@@ -72,6 +72,7 @@ import {
   buildJudgmentStageEvent,
   buildSourceBackedJudgmentStageEvent,
   formatEnrichmentOutcomeLabel,
+  normalizeEnrichmentOutcome,
 } from '../lib/apiCallBudget';
 import { classifyError } from '../lib/failureClassification';
 import { traceLog } from '../lib/traceLog';
@@ -1501,14 +1502,19 @@ export default function useDeliverables({
               );
             }
 
-            const enrichedLessonCount = Object.keys(lessonContent).length;
-            if (enrichedLessonCount === 0 && Object.keys(nativeAuthored).length === 0) {
+            const availablePayloadCount = Object.keys(lessonContent).length;
+            const enrichedLessonCount = normalizeEnrichmentOutcome({
+              requestedLessons: allLessonIndices.length,
+              enrichedLessons: availablePayloadCount,
+              missingLessons: missingLessonNumbers,
+            }).enrichedLessons;
+            if (availablePayloadCount === 0 && Object.keys(nativeAuthored).length === 0) {
               appendLog('⚠ Native Pass B produced no usable payloads', 'warn');
               stageDecisions.modelStage = 'failed: no usable Pass B payloads';
               return genomeOnlyEnrichment();
             }
             appendLog(
-              `✓ Native Pass B authored ${Object.keys(nativeAuthored).length} lesson(s) of outcomes + activities onto the skeleton (${enrichedLessonCount} lesson kernel${enrichedLessonCount === 1 ? '' : 's'} total)`,
+              `✓ Native Pass B authored ${Object.keys(nativeAuthored).length} lesson(s) of outcomes + activities onto the skeleton (${enrichedLessonCount}/${allLessonIndices.length} lesson kernel${allLessonIndices.length === 1 ? '' : 's'} admitted; ${availablePayloadCount} payload${availablePayloadCount === 1 ? '' : 's'} available)`,
               'done',
             );
             abortMapRef.current.delete(abortKey);
@@ -1942,8 +1948,13 @@ export default function useDeliverables({
             );
           }
 
-          const enrichedLessonCount = Object.keys(lessonContent).length;
-          if (enrichedLessonCount === 0) {
+          const availablePayloadCount = Object.keys(lessonContent).length;
+          const enrichedLessonCount = normalizeEnrichmentOutcome({
+            requestedLessons: allLessonIndices.length,
+            enrichedLessons: availablePayloadCount,
+            missingLessons: missingLessonNumbers,
+          }).enrichedLessons;
+          if (availablePayloadCount === 0) {
             appendLog('⚠ Blueprint enrichment produced no usable lesson kernels', 'warn');
             stageDecisions.modelStage = 'failed: no usable kernels parsed';
             return genomeOnlyEnrichment();
@@ -1965,7 +1976,7 @@ export default function useDeliverables({
             stageDecisions,
           };
           appendLog(
-            `✓ Knowledge kernels enriched for ${enrichedLessonCount} lesson${enrichedLessonCount === 1 ? '' : 's'} (quiz, slides, study guide, discussion, assignment from one payload)${absorbedCourseLevel ? ` + course lens (${absorbedCourseLevel.signatureTerms.length} terms)` : ''}`,
+            `✓ Knowledge kernels admitted for ${enrichedLessonCount}/${allLessonIndices.length} lesson${allLessonIndices.length === 1 ? '' : 's'} (${availablePayloadCount} payload${availablePayloadCount === 1 ? '' : 's'} available; quiz, slides, study guide, discussion, assignment from one payload)${absorbedCourseLevel ? ` + course lens (${absorbedCourseLevel.signatureTerms.length} terms)` : ''}`,
             'done',
           );
           return enrichment;
@@ -2075,9 +2086,9 @@ export default function useDeliverables({
         // (digest pipeline line, PACKAGE_MANIFEST, finalizer warning).
         const enrichmentOutcome = {
           modelStage: blueprintEnrichment?.stageDecisions?.modelStage || 'none',
-          enrichedLessons: blueprintEnrichment?.lessonContent
-            ? Object.keys(blueprintEnrichment.lessonContent).length
-            : 0,
+          enrichedLessons:
+            blueprintEnrichment?.coverage?.enrichedLessons ??
+            (blueprintEnrichment?.lessonContent ? Object.keys(blueprintEnrichment.lessonContent).length : 0),
           ...(blueprintEnrichment?.coverage
             ? {
                 requestedLessons: blueprintEnrichment.coverage.requestedLessons,
