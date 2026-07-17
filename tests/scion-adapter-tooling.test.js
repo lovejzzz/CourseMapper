@@ -465,11 +465,15 @@ describe('Scion adapter tooling', () => {
     const benchmark = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v1.json', 'utf8'),
     );
+    const transitivelyBoundBenchmark = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v2.json', 'utf8'),
+    );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
       issues: [],
       domains: expect.arrayContaining(['world-languages', 'world-literature', 'psychology', 'nutrition', 'astronomy']),
     });
+    expect(validateScionHeldoutBenchmark(transitivelyBoundBenchmark)).toMatchObject({ valid: true, issues: [] });
 
     const cleanDataset = {
       domains: ['computer-science', 'geology', 'business-ethics'],
@@ -511,7 +515,7 @@ describe('Scion adapter tooling', () => {
 
   it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
-    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v1.json');
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v2.json');
     const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
     const benchmarkSha256 = await sha256File(benchmarkPath);
     const datasetDir = path.join(root, 'dataset');
@@ -618,6 +622,7 @@ describe('Scion adapter tooling', () => {
         compilerConfigSha256: 'c'.repeat(64),
         graderVersion: benchmark.grader.id,
         graderSha256: benchmark.grader.sha256,
+        graderImplementationSha256: benchmark.grader.implementationSha256,
         baseContractSha256: benchmark.base.contractSha256,
         compilerTreeDirty: false,
         variant,
@@ -891,12 +896,20 @@ describe('Scion adapter tooling', () => {
       compilerConfigSha256: 'b'.repeat(64),
       graderVersion: 'deep-quality-v1',
       graderSha256: '8'.repeat(64),
+      graderImplementationSha256: '6'.repeat(64),
       baseContractSha256: 'c'.repeat(64),
       compilerTreeDirty: false,
       variant,
     });
     const candidateEvidence = [
       {
+        graderBinding: {
+          status: 'transitively-bound',
+          transitiveBound: true,
+          implementationSha256: '6'.repeat(64),
+          declaredImplementationSha256: '6'.repeat(64),
+          implementationFileCount: 10,
+        },
         fullCourses: domains.map((domain, index) => ({
           domain,
           courseId: `${domain}-course`,
@@ -920,6 +933,13 @@ describe('Scion adapter tooling', () => {
     ];
     const baseEvidence = [
       {
+        graderBinding: {
+          status: 'transitively-bound',
+          transitiveBound: true,
+          implementationSha256: '6'.repeat(64),
+          declaredImplementationSha256: '6'.repeat(64),
+          implementationFileCount: 10,
+        },
         fullCourses: domains.map((domain, index) => ({
           domain,
           courseId: `${domain}-course`,
@@ -955,6 +975,26 @@ describe('Scion adapter tooling', () => {
       ),
     });
     expect(report).toMatchObject({ status: 'pass', promotable: true, efficiency: { medianReduction: 0.25 } });
+
+    candidateEvidence[0].graderBinding.transitiveBound = false;
+    const unboundGrader = assessScionAdapterPromotion({
+      manifest,
+      adapterPackageIdentitySha256,
+      candidateEvidence,
+      baseEvidence,
+      verifiedExternalEvidence: Object.fromEntries(
+        ['factual-canaries', 'single-model-judge', 'browser-device-matrix', 'production-canaries'].map((type) => [
+          type,
+          true,
+        ]),
+      ),
+    });
+    expect(unboundGrader).toMatchObject({
+      status: 'blocked',
+      promotable: false,
+      gates: { graderBinding: false, pairedEvidence: false },
+    });
+    candidateEvidence[0].graderBinding.transitiveBound = true;
 
     baseEvidence[0].fullCourses[0].packageGrade = 100;
     const qualityRegression = assessScionAdapterPromotion({
@@ -1029,6 +1069,7 @@ describe('Scion adapter tooling', () => {
       compilerConfigSha256: 'b'.repeat(64),
       graderVersion: 'deep-quality-v1',
       graderSha256: '8'.repeat(64),
+      graderImplementationSha256: '6'.repeat(64),
       baseContractSha256: 'c'.repeat(64),
       compilerTreeDirty: false,
       variant,
@@ -1063,8 +1104,30 @@ describe('Scion adapter tooling', () => {
     const report = assessScionAdapterPromotion({
       manifest,
       adapterPackageIdentitySha256,
-      candidateEvidence: [{ fullCourses: candidateCourses }],
-      baseEvidence: [{ fullCourses: baseCourses }],
+      candidateEvidence: [
+        {
+          graderBinding: {
+            status: 'transitively-bound',
+            transitiveBound: true,
+            implementationSha256: '6'.repeat(64),
+            declaredImplementationSha256: '6'.repeat(64),
+            implementationFileCount: 10,
+          },
+          fullCourses: candidateCourses,
+        },
+      ],
+      baseEvidence: [
+        {
+          graderBinding: {
+            status: 'transitively-bound',
+            transitiveBound: true,
+            implementationSha256: '6'.repeat(64),
+            declaredImplementationSha256: '6'.repeat(64),
+            implementationFileCount: 10,
+          },
+          fullCourses: baseCourses,
+        },
+      ],
       verifiedExternalEvidence: Object.fromEntries(
         ['factual-canaries', 'single-model-judge', 'browser-device-matrix', 'production-canaries'].map((type) => [
           type,

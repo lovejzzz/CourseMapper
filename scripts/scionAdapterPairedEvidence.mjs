@@ -11,6 +11,7 @@ import JSZip from 'jszip';
 import { getCourseById } from './crucible/courses.mjs';
 import { computeScionAdapterPackageIdentity } from './lib/scionBrowserDeviceMatrix.mjs';
 import { summarizeScionCompilerBurden, parseScionConsoleEvents } from './lib/scionCompilerBurden.mjs';
+import { captureModuleImplementationReceipt } from './lib/moduleImplementationReceipt.mjs';
 import { sha256File } from './scionAdapterPackage.mjs';
 import { SCION_GEMMA4_E2B_BASE, validateScionAdapterManifest } from '../src/lib/scionAdapterManifest.js';
 
@@ -61,7 +62,7 @@ function clean(value) {
 
 export function validateScionHeldoutBenchmark(manifest, { courseResolver = getCourseById } = {}) {
   const issues = [];
-  if (manifest?.schemaVersion !== 1) issues.push('schema-version');
+  if (![1, 2].includes(manifest?.schemaVersion)) issues.push('schema-version');
   if (manifest?.protocolVersion !== 'scion-adapter-course-pair-v1') issues.push('protocol-version');
   if (!clean(manifest?.id)) issues.push('benchmark-id');
   if (manifest?.selectionPolicy?.domainDisjointFromTraining !== true) issues.push('domain-disjoint-policy');
@@ -79,6 +80,12 @@ export function validateScionHeldoutBenchmark(manifest, { courseResolver = getCo
   if (!clean(manifest?.grader?.id)) issues.push('grader-id');
   if (!clean(manifest?.grader?.path)) issues.push('grader-path');
   if (!SHA256.test(clean(manifest?.grader?.sha256))) issues.push('grader-sha256');
+  if (manifest?.schemaVersion >= 2) {
+    if (!SHA256.test(clean(manifest?.grader?.implementationSha256))) issues.push('grader-implementation-sha256');
+    if (!Number.isSafeInteger(manifest?.grader?.implementationFileCount) || manifest.grader.implementationFileCount < 2) {
+      issues.push('grader-implementation-file-count');
+    }
+  }
 
   const courses = Array.isArray(manifest?.courses) ? manifest.courses : [];
   const minimumDomains = Number(manifest?.minimumDomains) || 5;
@@ -211,6 +218,30 @@ async function verifyBenchmarkFiles({ benchmarkPath, datasetPath, adapterManifes
   const graderPath = path.resolve(path.dirname(path.resolve(benchmarkPath)), '..', '..', benchmark.grader.path);
   const actualGraderSha256 = await sha256File(graderPath);
   if (actualGraderSha256 !== benchmark.grader.sha256) throw new Error('Held-out benchmark grader SHA-256 mismatch.');
+  const graderRoot = path.resolve(path.dirname(path.resolve(benchmarkPath)), '..', '..');
+  const graderImplementation = await captureModuleImplementationReceipt({
+    root: graderRoot,
+    entryPath: benchmark.grader.path,
+  });
+  const declaredImplementationSha256 = clean(benchmark.grader.implementationSha256);
+  const declaredImplementationFileCount = Number(benchmark.grader.implementationFileCount) || null;
+  const transitiveBound =
+    SHA256.test(declaredImplementationSha256) &&
+    declaredImplementationSha256 === graderImplementation.implementationSha256 &&
+    declaredImplementationFileCount === graderImplementation.fileCount;
+  if (declaredImplementationSha256 && !transitiveBound) {
+    throw new Error('Held-out benchmark grader implementation receipt mismatch.');
+  }
+  const graderBinding = {
+    status: transitiveBound ? 'transitively-bound' : 'legacy-entry-only',
+    transitiveBound,
+    entrySha256: actualGraderSha256,
+    implementationSha256: graderImplementation.implementationSha256,
+    implementationFileCount: graderImplementation.fileCount,
+    declaredImplementationSha256: declaredImplementationSha256 || null,
+    declaredImplementationFileCount,
+    implementationFiles: graderImplementation.files,
+  };
   const adapterValidation = validateScionAdapterManifest(adapterManifest);
   if (!adapterValidation.valid) throw new Error(`Invalid adapter manifest: ${adapterValidation.issues.join(', ')}`);
   const datasetSha256 = await sha256File(datasetPath);
@@ -238,6 +269,7 @@ async function verifyBenchmarkFiles({ benchmarkPath, datasetPath, adapterManifes
     adapterManifestSha256: await sha256File(adapterManifestPath),
     adapterPackageIdentitySha256: computeScionAdapterPackageIdentity(adapterManifest).sha256,
     heldoutBoundary,
+    graderBinding,
   };
 }
 
@@ -263,6 +295,11 @@ export async function prepareScionBenchmarkRun({
     throw new Error('--scion-benchmark, --scion-dataset-manifest, and --scion-adapter-manifest are required together.');
   }
   const verified = await verifyBenchmarkFiles({ benchmarkPath, datasetPath, adapterManifestPath, allowSmoke });
+  if (!allowSmoke && !verified.graderBinding.transitiveBound) {
+    throw new Error(
+      'Production paired runs require a transitive grader implementation receipt; the benchmark binds only its wrapper entry.',
+    );
+  }
   const expectedIds = verified.benchmark.courses.map((course) => course.courseId).sort();
   const selectedIds = selectedBaseCourseIds(courses).sort();
   if (stableJson(selectedIds) !== stableJson(expectedIds)) {
@@ -299,6 +336,7 @@ export async function prepareScionBenchmarkRun({
     benchmarkSha256: verified.benchmarkSha256,
     packageLockSha256: await sha256File(path.join(cwd, 'package-lock.json')),
     graderSha256: verified.benchmark.grader.sha256,
+    graderImplementationSha256: verified.graderBinding.implementationSha256,
     options: compilerOptions,
   };
   const compilerConfigSha256 = sha256Value(compilerConfig);
@@ -316,6 +354,7 @@ export async function prepareScionBenchmarkRun({
       compilerConfigSha256,
       graderVersion: verified.benchmark.grader.id,
       graderSha256: verified.benchmark.grader.sha256,
+      graderImplementationSha256: verified.graderBinding.implementationSha256,
       baseContractSha256: verified.benchmark.base.contractSha256,
       compilerTreeDirty: false,
       variant: arm,
@@ -369,6 +408,7 @@ async function buildCourseEvidence({
   expectedArm,
   adapterManifest,
   adapterPackageIdentitySha256,
+  graderImplementationSha256,
 }) {
   const [report, digest, packageManifest, packageManifestText, project, consoleText, fileNames] = await Promise.all([
     readJson(path.join(courseDir, 'report.json')),
@@ -428,6 +468,12 @@ async function buildCourseEvidence({
     comparison.sourcePacketSha256 !== benchmarkCourse.sourcePacketSha256
   ) {
     throw new Error(`Course ${benchmarkCourse.courseId} does not carry the frozen paired-run identity.`);
+  }
+  if (
+    graderImplementationSha256 &&
+    clean(comparison.graderImplementationSha256) !== clean(graderImplementationSha256)
+  ) {
+    throw new Error(`Course ${benchmarkCourse.courseId} does not carry the bound grader implementation identity.`);
   }
   const localModel = course.localModel || {};
   const isAdapter = expectedArm === 'adapter';
@@ -511,6 +557,7 @@ function assertPairs(candidateCourses, baseCourses, benchmarkSha256) {
       'compilerConfigSha256',
       'graderVersion',
       'graderSha256',
+      'graderImplementationSha256',
       'baseContractSha256',
     ];
     if (shared.some((field) => candidate.comparison?.[field] !== base.comparison?.[field])) {
@@ -544,6 +591,9 @@ export async function produceScionPairedEvidence({
           expectedArm: 'adapter',
           adapterManifest: verified.adapterManifest,
           adapterPackageIdentitySha256: verified.adapterPackageIdentitySha256,
+          graderImplementationSha256: verified.graderBinding.transitiveBound
+            ? verified.graderBinding.implementationSha256
+            : null,
         }),
       ),
     ),
@@ -554,6 +604,9 @@ export async function produceScionPairedEvidence({
           expectedArm: 'base-only',
           adapterManifest: verified.adapterManifest,
           adapterPackageIdentitySha256: verified.adapterPackageIdentitySha256,
+          graderImplementationSha256: verified.graderBinding.transitiveBound
+            ? verified.graderBinding.implementationSha256
+            : null,
         }),
       ),
     ),
@@ -568,6 +621,7 @@ export async function produceScionPairedEvidence({
     datasetManifestSha256: verified.datasetSha256,
     adapterManifestSha256: verified.adapterManifestSha256,
     adapterPackageIdentitySha256: verified.adapterPackageIdentitySha256,
+    graderBinding: verified.graderBinding,
     observedAt: new Date().toISOString(),
   };
   const candidateEvidence = {
@@ -587,7 +641,7 @@ export async function produceScionPairedEvidence({
   const receipt = {
     ...shared,
     status: 'captured',
-    promotionEligible: !allowSmoke,
+    promotionEligible: !allowSmoke && verified.graderBinding.transitiveBound,
     domains: verified.benchmark.courses.map((course) => course.domain),
     pairIds: candidateCourses.map((course) => course.comparison.pairId),
     candidateEvidenceCanonicalSha256: sha256Value(candidateEvidence),
