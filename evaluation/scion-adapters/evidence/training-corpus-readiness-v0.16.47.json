@@ -19,7 +19,7 @@
   "dataset": {
     "identity": {
       "protocol": "scion-adapter-dataset-identity-v2",
-      "sha256": "4dd927d850312303c30ccaa9a4789ca9f69df6a1b92bbf4cc7d6bfa6a4c20e85"
+      "sha256": "3ecfc935c148548d30ba93edc671cb5569dfcbf8fe483804b522c53ab2ee60e0"
     },
     "status": "research-ready",
     "promotable": false,
@@ -351,6 +351,6 @@
   "claimBoundary": "Passing the 100-row count is necessary but not sufficient. This receipt enforces strict semantic admission, source binding, task and kernel diversity, license disclosure, and a frozen holdout firewall. It is single-model-judge evidence and proves no adapter win or production readiness.",
   "identity": {
     "algorithm": "sha256-canonical-scion-adapter-corpus-readiness-v2",
-    "sha256": "60e40678f70098f8c379a2d884d2540eabc48ea177a8784d6aebaf40bc555dc2"
+    "sha256": "ca8b888a05a7bafded1a77b6a8a603925559a83ff1daebf6e1c673c269d41eab"
   }
 }
