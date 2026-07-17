@@ -120,7 +120,7 @@
     "audit:scion:authoring-v2-comparison:v0.16.47": "node scripts/scionAuthoringV2ComparisonAudit.mjs",
     "build:scion:novel-breadth-evidence:v0.16.47": "node scripts/scionNovelBreadthEvidenceAudit.mjs --write",
     "audit:scion:novel-breadth-evidence:v0.16.47": "node scripts/scionNovelBreadthEvidenceAudit.mjs",
-    "build:scion:source-compiler-replay": "node scripts/scionSourceCompilerReplay.mjs --write --generated-at 2026-07-16T18:40:00.000Z",
+    "build:scion:source-compiler-replay": "node scripts/scionSourceCompilerReplay.mjs --write --generated-at 2026-07-17T05:53:23Z",
     "audit:scion:source-compiler-replay": "node scripts/scionSourceCompilerReplay.mjs --verify",
     "build:scion:semantic-admission": "node scripts/scionSemanticAdmissionAudit.mjs --write --generated-at 2026-07-16T18:45:00.000Z",
     "audit:scion:semantic-admission": "node scripts/scionSemanticAdmissionAudit.mjs --verify",

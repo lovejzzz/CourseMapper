@@ -44,6 +44,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'The new source-strict key-term profile checks whether Latin-script term names are anchored in the cited source term or lesson claims, rejects placeholder examples, rejects circular corrections, and catches precision overstatements. Non-Latin term naming remains untouched until a trustworthy tokenizer exists.',
         'The frozen seventy-eight-loss replay moves from fifty to sixty-four caught failures. Key-term interception moves from nine of thirty-four to twenty-three of thirty-four; multiple-choice interception remains forty-one of forty-four. Every preferred counterpart still passes.',
         'Historical strict receipts retain their original behavior. Production opts into source-strict explicitly, so a stronger current rule does not rewrite the meaning of older evidence.',
+        'The implementation-bound V0.16.47 source-compiler replay was regenerated against the current gate without changing its measured outcome: 121 admitted atoms, 71 retry seats, 10 source-grounded answer repairs, and zero response-text mutations. Only the implementation and artifact identity hashes advance.',
         'Across ninety-one unjudged cross-domain pairs, the new rule adds eight retry seats to local Scion and two to GPT-5.4-mini. The asymmetry is measured, not hidden: every model benefits from the compiler, but outputs with more source-grounding defects benefit more.',
       ],
     },

@@ -55,10 +55,12 @@
         "src/lib/scionPreferenceGate.js",
         "src/lib/scionPasses.js",
         "evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.48.json",
+        "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.47.json",
         "tests/scion-semantic-admission-v2.test.js"
       ],
       "proofCommands": [
         "npm run audit:scion:semantic-admission:v0.16.48",
+        "npm run audit:scion:source-compiler-replay",
         "npx vitest run tests/scion-semantic-admission-v2.test.js tests/scion-compiler.test.js"
       ],
       "proofScopes": ["unit", "static-audit"]
