@@ -150,6 +150,12 @@ describe('Scion adapter training receipts', () => {
     expect(first.manifest.generatedAt).not.toBe(second.manifest.generatedAt);
     expect(first.manifest.identity).toEqual(second.manifest.identity);
     expect(first.manifest.identity.sha256).toBe(computeScionAdapterDatasetIdentity(first.manifest));
+    expect(first.manifest.admissionPolicy).toEqual({
+      protocol: 'scion-adapter-semantic-admission-v1',
+      semanticAdmission: true,
+      semanticProfile: 'legacy',
+      allowFirstSentenceLexicalCue: true,
+    });
     expect(first.manifest.sourceReceipts).toEqual([
       expect.objectContaining({
         status: 'verified',

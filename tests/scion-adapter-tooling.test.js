@@ -369,6 +369,10 @@ describe('Scion adapter tooling', () => {
     expect(result.manifest).toMatchObject({
       status: 'research-ready',
       promotable: false,
+      admissionPolicy: {
+        protocol: 'scion-adapter-semantic-admission-v1',
+        semanticProfile: 'legacy',
+      },
       counts: {
         total: 108,
         domains: 4,
