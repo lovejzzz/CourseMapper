@@ -323,6 +323,67 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(deriveRibbonProgress({ pipeline: { state: 'ready' } })).toBe(100);
   });
 
+  it('keeps every observable frame target monotonic across the full Scion journey', () => {
+    const modelFrame = (progress) =>
+      deriveRibbonProgress({
+        pipeline: { state: 'mapping' },
+        generation: {
+          isScion: true,
+          scionRuntimeStatus: { phase: 'loading-model', progress },
+        },
+      });
+    const mapFrame = (streamProgress) =>
+      deriveRibbonProgress({ pipeline: { state: 'mapping' }, generation: { streamProgress } });
+    const recoveryFrame = (attempt) =>
+      deriveRibbonProgress({
+        pipeline: {
+          state: 'enriching',
+          activity: {
+            type: 'repairRetryCall',
+            label: `Author lesson batch (native recovery ${attempt}/4)`,
+            detail: 'Lessons 1 — source-bound kernel',
+          },
+        },
+        generation: { lessonCount: 1 },
+      });
+    const compileFrame = (doneCount) =>
+      deriveRibbonProgress({
+        pipeline: { state: 'compiling' },
+        deliverables: { doneCount, totalCount: 9 },
+      });
+
+    const frames = [
+      modelFrame(0),
+      modelFrame(0.5),
+      modelFrame(1),
+      mapFrame(0),
+      mapFrame(50),
+      mapFrame(100),
+      deriveRibbonProgress({
+        pipeline: {
+          state: 'enriching',
+          activity: {
+            type: 'blueprintEnrichmentCall',
+            label: 'Author lesson batch (native Pass B)',
+            detail: 'Lessons 1 — source-bound kernel',
+          },
+        },
+        generation: { lessonCount: 1 },
+      }),
+      ...[1, 2, 3, 4].map(recoveryFrame),
+      compileFrame(0),
+      compileFrame(1),
+      compileFrame(3),
+      compileFrame(9),
+      deriveRibbonProgress({ pipeline: { state: 'verifying' } }),
+      deriveRibbonProgress({ pipeline: { state: 'grading' } }),
+      deriveRibbonProgress({ pipeline: { state: 'ready' } }),
+    ];
+
+    expect(frames).toEqual([0, 8, 15, 16, 23, 30, 35, 38, 42, 46, 50, 50, 53, 58, 75, 85, 95, 100]);
+    expect(frames.every((value, index) => index === 0 || value >= frames[index - 1])).toBe(true);
+  });
+
   it('builds a truthful live artifact ledger from observed pipeline state', () => {
     const budget = applyEvents(createApiCallBudget(), [
       { type: 'reset', runId: 'run-living-compiler' },
