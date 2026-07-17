@@ -266,6 +266,12 @@ describe('normalizeAgentFinalResponse', () => {
 });
 
 describe('chooseAgentFallbackText', () => {
+  it('unwraps a browser-local Scion chatReply envelope before rendering it', () => {
+    expect(chooseAgentFallbackText('{"chatReply":"Weak evidence should move a strong prior only modestly."}', [])).toBe(
+      'Weak evidence should move a strong prior only modestly.',
+    );
+  });
+
   it('replaces raw tool trace text with a concise user-facing receipt', () => {
     const reply = chooseAgentFallbackText(
       '[Agent used 2 tools: readdeliverable: Data loaded, editdeliverables: 1 applied, 0 failed]',

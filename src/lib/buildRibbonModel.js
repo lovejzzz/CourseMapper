@@ -564,7 +564,7 @@ export function buildBuildRibbonModel({
 
   let elapsedDisplay = '';
   if (stage === 'ready' && finishStatus === 'ready' && getApiCallBudgetTotal(budget) > 0) {
-    const elapsedMs = (budget.updatedAt || 0) - (budget.startedAt || 0);
+    const elapsedMs = (budget.buildUpdatedAt || budget.updatedAt || 0) - (budget.startedAt || 0);
     if (elapsedMs > 1000) elapsedDisplay = `Ready in ${Math.round(elapsedMs / 1000)}s`;
   }
 

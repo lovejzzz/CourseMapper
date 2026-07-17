@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-grounded-key-term-burden-replay-v1",
+  "release": "v0.16.48",
+  "generatedAt": "2026-07-17T09:20:00.000Z",
+  "status": "measured-retry-burden",
+  "evidence": {
+    "candidates": {
+      "path": "evaluation/scion-review-candidates-course-group-breadth-v0.16.47.jsonl",
+      "bytes": 270234,
+      "sha256": "abec0bd65777d4f20679a5eb9c0631c0f97a2d75883a86c8d31521fbc9f657e7",
+      "rows": 91
+    },
+    "orientation": {
+      "left": "Scion base plus compiler recovery (Gemma 4 E2B)",
+      "right": "GPT-5.4-mini",
+      "boundBy": "pairSource model labels retained on every row"
+    },
+    "implementation": [
+      {
+        "path": "src/lib/scionKeyTermContract.js",
+        "bytes": 17582,
+        "sha256": "4037d02e21906783585cd2f2b44ed4cd1afa4f8ffa7d6d78f93999f1b8dfc2d9"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 19045,
+        "sha256": "596bb33c235e5d9cf9326fb7bfd06f5d87d1fe7da6bc40a8ec305863f4a1a329"
+      },
+      {
+        "path": "src/lib/scionPasses.js",
+        "bytes": 39887,
+        "sha256": "1edfa49b82e60ff5298c87cbb4c9fd221144a3080f41448b288f478326d01e80"
+      }
+    ]
+  },
+  "candidate": {
+    "rows": 91,
+    "previousEligible": 88,
+    "currentEligible": 80,
+    "additionalRetrySeats": 8,
+    "newIssueHistogram": {
+      "correction-circular-term": 1,
+      "term-not-source-anchored": 8
+    },
+    "additionalRetrySeatsByDomain": {
+      "anatomy": 2,
+      "economics": 4,
+      "physics": 2
+    },
+    "additionalRetrySeatsByKind": {
+      "key-term": 8
+    },
+    "newlyRejected": [
+      {
+        "candidateSha256": "f9e319381eafb0a6962943d45196bdc9b4beb7422ea846d20b8a59eed12cdb5b",
+        "sourceContextSha256": "b47f69941f61f5e7d4c60cefbb54d60eda26ee078f741893c9877f6ef1e8439e",
+        "domain": "anatomy",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored"
+        ]
+      },
+      {
+        "candidateSha256": "d6f8953d281f6d201edbe01705d31f4a419e2655c0489a27283b8bf487b0e9b4",
+        "sourceContextSha256": "eca23bab65b39f7895db0bfc6e99847a5a1bf9c84873d62c967a654915a05440",
+        "domain": "anatomy",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored"
+        ]
+      },
+      {
+        "candidateSha256": "b8b14b27405cfa2c1f0221fc3d6061e9b7a85e5420eb1549f098ed8858237ac0",
+        "sourceContextSha256": "15bde448dc51628f8b0057df980a4d1dbbe46c787bdbfabb4952b36b23ef0c0a",
+        "domain": "economics",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored"
+        ]
+      },
+      {
+        "candidateSha256": "6b195ec732700a6a9d3f265eaa1f9b1b4e631f267a9baf9d818fcbaa1e4ddfb9",
+        "sourceContextSha256": "f5a602133a446d192908c0913fcfcc58e9de0e954e88da628c0a8d56e43c681b",
+        "domain": "economics",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored"
+        ]
+      },
+      {
+        "candidateSha256": "15ff14a5b1256c84ae2f0de7b3dc52085deba983aa8d14a24f084196e3b4ec1b",
+        "sourceContextSha256": "2e0dc8fd0aacec5990c479b42e559b2cb3d37f301443eac218fdc9fdffa015aa",
+        "domain": "economics",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored"
+        ]
+      },
+      {
+        "candidateSha256": "ca2f3670ff970c3c48751250a15eccc69cec2cb1a3c64eb8184a6d23786fc3c1",
+        "sourceContextSha256": "2e0dc8fd0aacec5990c479b42e559b2cb3d37f301443eac218fdc9fdffa015aa",
+        "domain": "economics",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored"
+        ]
+      },
+      {
+        "candidateSha256": "7522addbc6d845e3695821a3466361ff51469914707813dfe410f8c2d0a5e2e4",
+        "sourceContextSha256": "4b27554338b417ca0324601462d31f6adaa719499ece55e5b2a9e9c3ed37aca1",
+        "domain": "physics",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored",
+          "correction-circular-term"
+        ]
+      },
+      {
+        "candidateSha256": "b9613f419b7ead5ee1112653e4053594a80091b3a22ebe55c445ed37a78cd81b",
+        "sourceContextSha256": "5a206696d9b433a01d8317759edabb2e1520f76eda283dccaba762e0441f1e9b",
+        "domain": "physics",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored"
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "rows": 91,
+    "previousEligible": 85,
+    "currentEligible": 83,
+    "additionalRetrySeats": 2,
+    "newIssueHistogram": {
+      "term-not-source-anchored": 2
+    },
+    "additionalRetrySeatsByDomain": {
+      "anatomy": 1,
+      "economics": 1
+    },
+    "additionalRetrySeatsByKind": {
+      "key-term": 2
+    },
+    "newlyRejected": [
+      {
+        "candidateSha256": "df4031603b8201cc7de977a7118467e336bfd63e8a0d2652cd506be3a1bafb00",
+        "sourceContextSha256": "eca23bab65b39f7895db0bfc6e99847a5a1bf9c84873d62c967a654915a05440",
+        "domain": "anatomy",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored"
+        ]
+      },
+      {
+        "candidateSha256": "a1ae324ded45344801f53abcb2daa0d7de301a495458bc40364bd5f4f45d0be4",
+        "sourceContextSha256": "f31534456a06ad64dc1ba94cf336d3ff42dbed98d7add44c63e42b06ae991ac4",
+        "domain": "economics",
+        "kind": "key-term",
+        "issues": [
+          "term-not-source-anchored"
+        ]
+      }
+    ]
+  },
+  "assertions": {
+    "exactFrozenSurface": true,
+    "exactPreviousReplay": true,
+    "measuredCompilerBurden": true,
+    "sourceGroundingTargetsOnlyKeyTerms": true
+  },
+  "interpretation": "On 91 retained cross-domain candidate pairs, the new source-grounding layer sends 8 additional Scion key-term seats and 2 additional GPT-5.4-mini key-term seats to regeneration. This is the expected quality cost of refusing generic or source-untraceable terminology; the shared compiler benefits both model routes, while the smaller local model receives more corrective work.",
+  "claimBoundary": "This is deterministic replay on previously sampled, unjudged candidate atoms. It measures admission and estimated retry-seat burden, not actual retry success, model-call count, latency, blind preference, factual correctness, classroom outcomes, or adapter quality. Fresh browser compilation is required before release."
+}

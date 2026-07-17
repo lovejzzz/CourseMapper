@@ -102,7 +102,11 @@ export function assessScionMcItem(
   } = {},
 ) {
   const normalized = normalizeScionMcItem(item);
-  const strictSemanticAdmission = semanticAdmission && semanticProfile === 'strict';
+  // source-strict extends the complete strict profile; it only adds
+  // source-grounded key-term rules and must never silently downgrade MC
+  // admission to legacy behavior.
+  const strictSemanticAdmission =
+    semanticAdmission && (semanticProfile === 'strict' || semanticProfile === 'source-strict');
   const issues = [];
   if (!stringInBand(normalized.question, 25, 300)) issues.push('stem-length');
   if (normalized.options.length !== 4) issues.push('option-count');
@@ -198,8 +202,17 @@ export function assessScionMcItem(
   };
 }
 
-export function assessScionKeyTerm(term = {}, { lessonTitle = '', knownFacts = [], semanticProfile = 'legacy' } = {}) {
-  const result = assessScionKeyTermContract(term, { lessonTitle, knownFacts, definitionMin: 45, semanticProfile });
+export function assessScionKeyTerm(
+  term = {},
+  { lessonTitle = '', knownFacts = [], sourceTerm = '', semanticProfile = 'legacy' } = {},
+) {
+  const result = assessScionKeyTermContract(term, {
+    lessonTitle,
+    knownFacts,
+    sourceTerm,
+    definitionMin: 45,
+    semanticProfile,
+  });
   return { eligible: result.eligible, issues: result.issues, score: result.score };
 }
 
@@ -308,6 +321,7 @@ export function assessScionPreferencePair(
     semanticAdmission = true,
     semanticProfile = 'legacy',
     sourceClaims = [],
+    sourceTerm = '',
     knownFacts = sourceClaims,
     allowFirstSentenceLexicalCue = semanticAdmission,
   } = {},
@@ -328,8 +342,8 @@ export function assessScionPreferencePair(
       allowFirstSentenceLexicalCue,
     });
   } else if (kind === 'key-term') {
-    chosenResult = assessScionKeyTerm(chosen, { knownFacts, semanticProfile });
-    rejectedResult = assessScionKeyTerm(rejected, { knownFacts, semanticProfile });
+    chosenResult = assessScionKeyTerm(chosen, { knownFacts, sourceTerm, semanticProfile });
+    rejectedResult = assessScionKeyTerm(rejected, { knownFacts, sourceTerm, semanticProfile });
   } else if (kind === 'lesson') {
     chosenResult = assessScionKernelLesson(chosen);
     rejectedResult = assessScionKernelLesson(rejected);

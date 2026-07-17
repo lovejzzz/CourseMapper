@@ -128,6 +128,10 @@ export function createApiCallBudget(overrides = {}) {
     runId: overrides.runId || `run-${now}`,
     startedAt: overrides.startedAt || now,
     updatedAt: overrides.updatedAt || now,
+    // The shared budget also records post-build Agent and image calls. Keep a
+    // separate build clock so those later workspace actions cannot make the
+    // completed Living Course Compiler duration grow after it says "Ready".
+    buildUpdatedAt: overrides.buildUpdatedAt || overrides.updatedAt || now,
     modelDiscoveryCalls: overrides.modelDiscoveryCalls || 0,
     creditCheckCalls: overrides.creditCheckCalls || 0,
     capabilityProbeCalls: overrides.capabilityProbeCalls || 0,
@@ -300,9 +304,14 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     eventMetadata.costUsd = eventMetadata.costUsd ?? usage.costUsd;
     eventMetadata.usageEstimated = eventMetadata.usageEstimated ?? Boolean(usage.estimated);
   }
+  const postBuildActivity =
+    event.type === 'agentLoopCall' ||
+    event.type === 'imageGenerationCall' ||
+    (event.type === 'apiUsage' && /^(?:agent|chat|research|image)/i.test(String(event.task || event.featureId || '')));
   const next = {
     ...budget,
     updatedAt: at,
+    buildUpdatedAt: postBuildActivity ? budget.buildUpdatedAt : at,
     recentEvents: [
       {
         type: event.type || 'event',

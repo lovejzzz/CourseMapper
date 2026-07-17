@@ -347,6 +347,7 @@ export function assessSourceAtomResponse(
   {
     sourceClaimCount,
     sourceClaims = [],
+    sourceTerm = '',
     semanticAdmission = true,
     semanticProfile = 'legacy',
     allowFirstSentenceLexicalCue = semanticAdmission,
@@ -379,7 +380,15 @@ export function assessSourceAtomResponse(
     return { eligible: itemIssues.length === 0, issues: itemIssues };
   });
   const keyTermAssessments = keyTermCandidates.map((term, index) => {
-    const assessment = assessScionKeyTerm(term, { knownFacts: sourceClaims, semanticProfile });
+    const citedSourceClaims = validFactIndexes(term?.sourceFactIndexes, sourceClaimCount)
+      ? [...new Set(term.sourceFactIndexes)].map((factIndex) => sourceClaims[factIndex]).filter(Boolean)
+      : [];
+    const assessment = assessScionKeyTerm(term, {
+      knownFacts:
+        semanticProfile === 'source-strict' && citedSourceClaims.length > 0 ? citedSourceClaims : sourceClaims,
+      sourceTerm,
+      semanticProfile,
+    });
     const itemIssues = [...assessment.issues];
     if (!validFactIndexes(term?.sourceFactIndexes, sourceClaimCount)) itemIssues.push('source-fact-index');
     issues.push(...itemIssues.map((issue) => `key-term-${index}-${issue}`));
@@ -415,6 +424,7 @@ export function mergeSourceRecoveryCall({ rawCall, recoveryCall, prompt }) {
   const assessment = assessSourceAtomResponse(response, {
     sourceClaimCount: prompt.sourceClaims.length,
     sourceClaims: prompt.sourceClaims,
+    sourceTerm: prompt.sourceTerm || prompt.lessonTitle,
   });
   return {
     promptId: rawCall.promptId,
@@ -450,6 +460,7 @@ export function compileSourceAtomResponse(
   {
     sourceClaimCount,
     sourceClaims = [],
+    sourceTerm = '',
     lessonId = '',
     semanticAdmission = true,
     semanticProfile = 'legacy',
@@ -477,6 +488,7 @@ export function compileSourceAtomResponse(
     keyTerms: (Array.isArray(response?.keyTerms) ? response.keyTerms : []).map((term, termIndex) => {
       const compiled = repairScionKeyTermContract(term, {
         knownFacts: sourceClaims,
+        sourceTerm,
         semanticProfile,
       });
       repairs.push(
@@ -492,6 +504,7 @@ export function compileSourceAtomResponse(
   const assessment = assessSourceAtomResponse(compiledResponse, {
     sourceClaimCount,
     sourceClaims,
+    sourceTerm,
     semanticAdmission,
     semanticProfile,
     allowFirstSentenceLexicalCue,
@@ -829,6 +842,7 @@ function verifyCapturedCall(call, prompt, generationPrompt = prompt, { admission
   const assessment = assessSourceAtomResponse(call.response, {
     sourceClaimCount: prompt.sourceClaims.length,
     sourceClaims: prompt.sourceClaims,
+    sourceTerm: prompt.sourceTerm || prompt.lessonTitle,
     ...(call.assessmentContract === SOURCE_TARGETED_ASSESSMENT_CONTRACT && call.recoveryTarget
       ? { expectedCounts: call.recoveryTarget }
       : {}),

@@ -83,7 +83,13 @@ const lazyChunkBudgets = [
   // locators and model enum tokens. The shared parsing bodies live in the
   // compilerText chunk; this allowance covers the compiler's quiz-field
   // applications while gzip remains below the existing 206 KiB ceiling.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 753, gzipKiB: 206 },
+  // v0.16.48 keeps raw code below the existing ratchet; allow only the same
+  // 256-byte cross-runtime gzip variance already granted to AppFlow.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 753, gzipKiB: 206, gzipSlackBytes: 256 },
+  // v0.16.48: deterministic subject fallback data is workspace-only and
+  // independently cacheable. Keep it out of both the landing path and the
+  // compiler's ratcheted implementation chunk.
+  { prefix: 'compilerFrames-', rawKiB: 9, gzipKiB: 4 },
   { prefix: 'DeliverableView-', rawKiB: 170, gzipKiB: 35 },
   { prefix: 'DeveloperModePanel-', rawKiB: 130, gzipKiB: 35 },
   // v0.9.1: +3 KiB raw for the pre-export checklist (localization gaps +
@@ -127,6 +133,7 @@ const forbiddenInitialChunks = [
   // this off landing; lock that behavior so a bundler change cannot silently
   // restore the extra startup download.
   /livingCompilerRibbon/i,
+  /compilerFrames/i,
   /webllm/i,
   /deepQualityGrader/i,
   /finalizeQualityGate/i,

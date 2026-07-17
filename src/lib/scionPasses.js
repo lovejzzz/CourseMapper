@@ -619,10 +619,17 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
 async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, minimumKeyTermCount = 0) {
   if (!Array.isArray(lesson?.keyTerms)) return;
   const terms = lesson.keyTerms;
+  const knownFacts = (Array.isArray(lesson?.facts) ? lesson.facts : [])
+    .map((fact) => (typeof fact === 'string' ? fact : fact?.text || fact?.tx || ''))
+    .filter(Boolean);
   const assessed = terms.map((term, index) => ({
     term,
     index,
-    result: assessScionKeyTerm(term, { lessonTitle: promptLesson?.title, semanticProfile: 'strict' }),
+    result: assessScionKeyTerm(term, {
+      lessonTitle: promptLesson?.title,
+      knownFacts,
+      semanticProfile: 'source-strict',
+    }),
   }));
   const targets = assessed.filter(({ result }) => !result.eligible);
   for (let index = terms.length; index < minimumKeyTermCount; index += 1) {
@@ -656,7 +663,7 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
     required: ['repairs'],
   };
   const system =
-    'You repair or backfill key-term atoms for the listed lesson. Preserve an existing valid concept name; invent a distinct lesson-specific concept only when the term is missing or its name is invalid. For each term, write a precise disciplinary definition, concrete example, plausible misconception, and correction that directly resolves that misconception. Do not repeat the term name in the first six words of its definition. Use complete concise sentences and return only JSON.';
+    'You repair or backfill key-term atoms for the listed lesson. Preserve an existing source-grounded disciplinary concept name; when the term is missing, invalid, or absent from the supplied facts, replace it with a precise concept explicitly named by those facts. For each term, write a precise disciplinary definition, concrete example, plausible misconception, and correction that directly resolves that misconception. Do not repeat the term name in the first six words of its definition. Use complete concise sentences and return only JSON.';
   const user = JSON.stringify({
     lesson: promptLesson || null,
     facts: lesson.facts || [],
@@ -686,7 +693,11 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
         });
         return;
       }
-      const mayRename = !term || result.issues.some((issue) => ['tr-length', 'term-is-lesson-title'].includes(issue));
+      const mayRename =
+        !term ||
+        result.issues.some((issue) =>
+          ['tr-length', 'term-is-lesson-title', 'term-not-source-anchored'].includes(issue),
+        );
       const fresh = {
         ...term,
         tr: mayRename ? repair.tr : term.tr,
@@ -697,7 +708,8 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
       };
       const admission = assessScionKeyTerm(fresh, {
         lessonTitle: promptLesson?.title,
-        semanticProfile: 'strict',
+        knownFacts,
+        semanticProfile: 'source-strict',
       });
       const duplicate = terms.some(
         (other, otherIndex) =>

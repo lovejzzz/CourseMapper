@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-semantic-admission-v2-replay-v1",
+  "release": "v0.16.48",
+  "generatedAt": "2026-07-17T09:10:00.000Z",
+  "status": "source-grounded-key-term-detection-improved",
+  "evidence": {
+    "approvedCorpus": {
+      "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47.jsonl",
+      "bytes": 392679,
+      "sha256": "ce042d3631638229a1f63c4ba0d54d5439249d9f703e1d01e5af2acbbef32402",
+      "rows": 78
+    },
+    "judgeCampaign": {
+      "path": "evaluation/scion-adapters/evidence/judge-campaign-v0.16.47.json",
+      "bytes": 7686,
+      "sha256": "2cb01d46f19d5cf502683ff8ff5694020b77b23e58845955f8a17b0569b13705"
+    },
+    "currentPacketId": "scion-review-1c6adccdcb9edfab7231",
+    "previousRelease": {
+      "path": "evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.47.json",
+      "bytes": 5303,
+      "sha256": "80e13d58f8bc534e7a69623cfef0daf54101f7d2cd5fe584c479335c52259f38",
+      "release": "v0.16.47",
+      "rejectedDetected": 50
+    },
+    "implementation": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 34390,
+        "sha256": "f9a2d406b0ded6363384abe09afae2784d0e469556b598962ecac3e86827c434"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 19045,
+        "sha256": "596bb33c235e5d9cf9326fb7bfd06f5d87d1fe7da6bc40a8ec305863f4a1a329"
+      },
+      {
+        "path": "src/lib/scionKeyTermContract.js",
+        "bytes": 17582,
+        "sha256": "4037d02e21906783585cd2f2b44ed4cd1afa4f8ffa7d6d78f93999f1b8dfc2d9"
+      },
+      {
+        "path": "src/lib/scionPasses.js",
+        "bytes": 39887,
+        "sha256": "1edfa49b82e60ff5298c87cbb4c9fd221144a3080f41448b288f478326d01e80"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 50976,
+        "sha256": "5c8b47930a3df4bf68bdb7f81c6370e8eb10c1b06410c15438dccd77239710a4"
+      }
+    ]
+  },
+  "allStablePreferences": {
+    "rows": 78,
+    "legacy": {
+      "preferredEligible": 78,
+      "rejectedDetected": 21
+    },
+    "strict": {
+      "preferredEligible": 78,
+      "preferredRegressions": 0,
+      "rejectedDetected": 64,
+      "preferredOnlyMargins": 64,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 15,
+        "correction-circular-term": 1,
+        "cx-repeats-itself": 1,
+        "duplicate-options": 2,
+        "example-placeholder": 1,
+        "example-underdeveloped": 3,
+        "explanation-key-conflict": 11,
+        "explanation-negates-key": 1,
+        "explanation-repeats-answer": 4,
+        "misconception-repeats-known-fact": 3,
+        "multiple-source-supported-options": 9,
+        "option-label-prefixes": 16,
+        "option-label-suffixes": 1,
+        "source-answer-conflict": 4,
+        "source-precision-overstatement": 1,
+        "term-not-source-anchored": 16,
+        "truncated-option": 1
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 20,
+          "rejectedDetected": 16,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 10,
+          "rejectedDetected": 10,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 29,
+          "rejectedDetected": 25,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 19,
+          "rejectedDetected": 13,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 34,
+          "rejectedDetected": 23,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 44,
+          "rejectedDetected": 41,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "currentCampaign": {
+    "rows": 32,
+    "legacy": {
+      "preferredEligible": 32,
+      "rejectedDetected": 1
+    },
+    "strict": {
+      "preferredEligible": 32,
+      "preferredRegressions": 0,
+      "rejectedDetected": 23,
+      "preferredOnlyMargins": 23,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 5,
+        "cx-repeats-itself": 1,
+        "example-underdeveloped": 2,
+        "explanation-key-conflict": 4,
+        "explanation-negates-key": 1,
+        "multiple-source-supported-options": 3,
+        "option-label-prefixes": 7,
+        "source-answer-conflict": 2,
+        "term-not-source-anchored": 4,
+        "truncated-option": 1
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 10,
+          "rejectedDetected": 8,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 4,
+          "rejectedDetected": 4,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 10,
+          "rejectedDetected": 7,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 8,
+          "rejectedDetected": 4,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 13,
+          "rejectedDetected": 6,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 19,
+          "rejectedDetected": 17,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "historicalCore": {
+    "rows": 46,
+    "legacy": {
+      "preferredEligible": 46,
+      "rejectedDetected": 20
+    },
+    "strict": {
+      "preferredEligible": 46,
+      "preferredRegressions": 0,
+      "rejectedDetected": 41,
+      "preferredOnlyMargins": 41,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 10,
+        "correction-circular-term": 1,
+        "duplicate-options": 2,
+        "example-placeholder": 1,
+        "example-underdeveloped": 1,
+        "explanation-key-conflict": 7,
+        "explanation-repeats-answer": 4,
+        "misconception-repeats-known-fact": 3,
+        "multiple-source-supported-options": 6,
+        "option-label-prefixes": 9,
+        "option-label-suffixes": 1,
+        "source-answer-conflict": 2,
+        "source-precision-overstatement": 1,
+        "term-not-source-anchored": 12
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 10,
+          "rejectedDetected": 8,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 6,
+          "rejectedDetected": 6,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 19,
+          "rejectedDetected": 18,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 11,
+          "rejectedDetected": 9,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 21,
+          "rejectedDetected": 17,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 25,
+          "rejectedDetected": 24,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "deltas": {
+    "stableLossesDetected": 14,
+    "keyTermLossesDetected": 14,
+    "stableLossesRemaining": 14,
+    "historicalCoreLossesRemaining": 5,
+    "preferredRegressions": 0
+  },
+  "assertions": {
+    "corpusBound": true,
+    "exactStableLossCorpus": true,
+    "exactCurrentCampaignRows": true,
+    "noPreferredArtifactRegression": true,
+    "stableLossDetectionLift": true,
+    "currentCampaignDetection": true,
+    "historicalCoreDetection": true
+  },
+  "interpretation": "The strict compiler now requires Latin-script key-term names to be traceable to terminology in the supplied source packet, rejects common placeholder examples and narrow circular corrections, and preserves approximate source qualifiers. On the frozen 78-loss replay this adds 14 detections, all in previously missed key-term failures, without rejecting a preferred artifact.",
+  "claimBoundary": "This retrospective replay proves deterministic detection lift on 78 already judged stable losses with zero rejection of their preferred counterparts. The source-term rule is skipped for non-Latin terms until the compiler has a trustworthy tokenizer. This is not an independent, human, held-out, classroom, adapter-quality, or unseen-output precision result; live retry burden and fresh-package behavior remain separate gates."
+}

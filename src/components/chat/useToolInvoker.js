@@ -676,7 +676,13 @@ export function chooseAgentFallbackText(
   options = {},
 ) {
   const fallbackText = buildToolResultFallbackChatReply(toolResults, options);
-  const text = String(textContent || '').trim();
+  const rawText = String(textContent || '').trim();
+  // Browser-local Scion has no native tool channel yet, so it may honor the
+  // shared Agent contract by returning {"chatReply":"…"} as plain text.
+  // Unwrap that envelope before the text-only branch paints the message; the
+  // normal tool-calling branch already performs the same normalization.
+  const nested = parseNestedResponsePayload(rawText);
+  const text = String(nested?.chatReply || nested?.text || rawText).trim();
   if (text && !isToolTraceOnlyText(text) && !isGenericCompletionText(text)) return text;
   return fallbackText || (isToolTraceOnlyText(text) ? '' : text) || defaultText;
 }

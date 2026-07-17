@@ -2,9 +2,25 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus now admits 143 strict source-bound preferences across seven domains and thirty-two course groups, so one non-promotable research training run is authorized. A quality adapter, held-out adapter win, production-compatible corpus, native Scion Agent tool calling, the remaining three device profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 turns its observed losses and a real browser fallback into stricter admission, subject-safe deterministic recovery, and a more trustworthy Living Course Compiler. A quality adapter, held-out adapter win, production-compatible corpus, native Scion Agent tool calling, the remaining three device profiles, and any production promotion still do not exist.
 
 **Release boundary:** no current public Scion request claims to use trained weights
+
+## v0.16.48 — Make the Living Compiler Earn Trust Frame by Frame
+
+**Goal:** test the difficult browser path as a moving product, turn every observed failure into a conservative compiler or UI repair, and improve semantic admission without changing model weights or weakening historical evidence.
+
+**Source-strict admission:** the production key-term path now requires Latin-script term names to be anchored in the supplied source term or claims, rejects placeholder examples, circular corrections, and precision overstatements, and leaves non-Latin naming unchanged until a trustworthy tokenizer exists. The frozen seventy-eight-loss replay moves from fifty to sixty-four caught failures; key-term interception moves from 9/34 to 23/34, MC remains 41/44, and all seventy-eight preferred counterparts still pass. Historical strict receipts retain their original rule profile.
+
+**Cross-model burden:** on ninety-one unjudged cross-domain pairs, the stronger gate adds eight retry seats to local Scion and two to GPT-5.4-mini. Every added seat is a source-grounding key-term failure. This is the intended model-neutral architecture: paid models inherit the same safer compiler, but the measured gain depends on which defects each model emits.
+
+**Living browser proof:** a fresh warm browser-local Bayesian build completed five selected materials in 109 seconds at 89/B and texture 90 after bounded local-kernel retries. Observed progress was monotonic and named the real attempt. Frame sampling also exposed intermittent black Chromium GPU tiles caused by nested dark-mode backdrop filters; the stable dark paint path produced six byte-identical captures at 250 ms intervals.
+
+**Subject-safe fallback:** the failed local kernel previously compiled a quiz whose stems and options were 64% course-process language. The Bayesian fallback now assesses prior beliefs, likelihood ratios, posterior odds, diagnostic evidence, and product experiments with 0% process-language share. Answer keys rotate, explanations diagnose subject misconceptions, and the Bloom labels state the actual demand instead of inheriting a generic frame plan.
+
+**Agent and time honesty:** the browser-local Scion Agent now unwraps the shared `chatReply` envelope before painting advisory prose. Agent and image calls still enter the usage ledger, but they no longer advance the completed course-build clock. Native local tool calling remains unimplemented, so Scion continues to describe recommendations without claiming it changed the workspace.
+
+**Next gates:** broaden source-strict semantic coverage beyond the remaining fourteen key-term and three MC losses, use those measured families to design the next adapter dataset, and require a complete implementation-bound v2 adapter-versus-base-versus-reference win before any activation. Device coverage, production-compatible licensing, and native local Agent actions remain separate promotion requirements.
 
 ## v0.16.47 — Open the Lab, Not Production
 

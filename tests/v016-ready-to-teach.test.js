@@ -7,8 +7,10 @@ import {
   buildQuizAtomsForLesson,
   bloomLevelFromStemVerb,
 } from '../src/lib/courseBlueprintCompiler';
+import { auditSubstance } from '../src/lib/contentQualityChecks';
 
 const LESSON_COUNT = 15;
+const QUIZ_ANSWER_LETTERS_FOR_TEST = ['A', 'B', 'C', 'D'];
 
 function bigCourse() {
   return {
@@ -124,6 +126,56 @@ describe('A1 — unit-integrity, authored-first quiz overlay', () => {
     for (const atom of atoms.filter((item) => item.enrichmentSource !== 'lesson-content-enrichment')) {
       expect(JSON.stringify([atom.question, atom.options])).not.toMatch(/Autograded quiz|Week\s*1 quiz/i);
     }
+  });
+});
+
+describe('A1 — subject-safe deterministic fallback', () => {
+  it('keeps a Bayesian quiz disciplinary when the local lesson kernel is unavailable', () => {
+    const blueprint = buildCourseBlueprint({
+      courseName: 'Bayesian Reasoning for Product Decisions',
+      lessons: [
+        {
+          title: 'Lesson 1: Prior Beliefs and Evidence',
+          sections: [
+            {
+              topicSection: 'Priors, likelihoods, and posteriors',
+              learningGoals: 'Update beliefs with evidence.',
+              learningObjectives:
+                'Calculate a simple posterior. Explain why weak evidence should not overturn a strong prior.',
+              weeklyAssessments: 'Quiz: Bayesian product decision.',
+              asyncActivities: 'Analyze a product experiment.',
+              syncActivities: 'Compare prior beliefs with new evidence.',
+              supportingResources: 'Prior belief guide.',
+            },
+          ],
+        },
+      ],
+    });
+    const atoms = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, { assessment: {} });
+    const audit = auditSubstance('quizBank', { quizzes: [{ questions: atoms }] });
+
+    expect(blueprint.enrichment.lens).toMatchObject({
+      domain: 'Bayesian inference and decision analysis',
+      decisionNoun: 'posterior decision',
+      learnerRole: 'Bayesian decision analyst',
+    });
+    expect(atoms).toHaveLength(6);
+    expect(audit).toMatchObject({ meta: 0, metaShare: 0 });
+    expect(atoms.map((item) => item.question).join(' ')).toMatch(/prior odds|likelihood ratio|weak evidence/i);
+    expect(atoms.map((item) => item.question).join(' ')).not.toMatch(/lesson|artifact|professional decision/i);
+    expect(atoms.map((item) => item.bloomsLevel)).toEqual([
+      'Apply',
+      'Apply',
+      'Understand',
+      'Understand',
+      'Evaluate',
+      'Analyze',
+    ]);
+
+    const oddsItem = atoms.find((item) => /posterior odds when prior odds are 1:1/i.test(item.question));
+    const answerIndex = QUIZ_ANSWER_LETTERS_FOR_TEST.indexOf(oddsItem.answer);
+    expect(oddsItem.options[answerIndex]).toContain('3:1 in favor');
+    expect(oddsItem.explanation).toMatch(/1 × 3 = 3/);
   });
 });
 
