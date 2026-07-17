@@ -27,6 +27,7 @@ import {
   deriveCourseGraphFromCourseMap,
   parseReadingAuthor,
   renderCourseMapFromGraph,
+  selectCompilerRegistryBridges,
   validateCourseGraph,
 } from '../src/lib/courseGraph';
 import { repairCourseMapReadiness } from '../src/lib/deliverableReadiness';
@@ -272,6 +273,32 @@ describe('A2 inheritance — verbatim on every surface', () => {
   const rendered = renderCourseMapFromGraph(graph);
   const blueprint = buildBlueprintFromGraph(graph);
   const compiled = compileBlueprintDeliverables(blueprint, ['syllabus', 'lessonPlans', 'discussions', 'assignments']);
+
+  it('bridges a Course Map reading that native assembly omitted', () => {
+    const nativeGraphWithoutReadings = {
+      ...graph,
+      readings: [],
+      sessions: graph.sessions.map((session) => ({
+        ...session,
+        sections: session.sections.map((section) => ({ ...section, readingRefs: [] })),
+      })),
+    };
+    const bridges = selectCompilerRegistryBridges(nativeGraphWithoutReadings, graph);
+    expect(bridges.stats).toMatchObject({
+      graphReadingCount: 0,
+      mapReadingCount: 1,
+      missingReadingCount: 1,
+    });
+    expect(bridges.readingsRegistry).toEqual(graph.readings);
+
+    const bridged = compileBlueprintDeliverables(
+      buildBlueprintFromGraph(nativeGraphWithoutReadings, bridges),
+      ['lessonPlans', 'discussions', 'assignments'],
+    );
+    expect(bridged.lessonPlans.lessonPlans[7].materials[0]).toBe(NAMED_TITLE);
+    expect(bridged.discussions.discussions[7].prompt).toContain(`Anchor your post in ${NAMED_TITLE}.`);
+    expect(JSON.stringify(bridged.assignments)).toContain(NAMED_TITLE);
+  });
 
   it('course-map supportingResources cell leads with the verbatim title', () => {
     const cell = rendered.lessons[7].sections[0].supportingResources;
@@ -528,6 +555,39 @@ describe('A5 receipts — manifest readings[] and grader checks', () => {
     );
     expect(readingsFindings).toEqual([]);
     expect(result.stats.readingsCount).toBe(1);
+  });
+
+  it('rejects a named primary text copied only into the materials list', async () => {
+    const result = await gradeFixture({
+      'PACKAGE_MANIFEST.json': JSON.stringify(MANIFEST),
+      'Lesson Plans/Lesson 08 - Postcolonial Literature.md': GOOD_PLAN,
+      'Slide Decks/Lesson 08 - Postcolonial Literature.md': 'Postcolonial perspective\nGeneric concept review',
+      'Assignment Briefs/Lesson 08 - Postcolonial Literature.md': 'Write a generic professional decision.',
+      'Discussion Prompts/Lesson 08 - Postcolonial Literature.md': 'Discuss the lesson concept.',
+      'Quiz & Exam Bank/Lesson 08 - Postcolonial Literature.md': 'Q1. Define postcolonial perspective.',
+      'Study Guides/Lesson 08 - Postcolonial Literature.md': 'Review the lesson vocabulary.',
+      'Syllabus/World Literature - Syllabus.md': GOOD_SYLLABUS,
+    });
+    const depthFindings = result.findings.filter((finding) => /primary text/i.test(finding.detail));
+    expect(depthFindings).toHaveLength(2);
+    expect(depthFindings.map((finding) => finding.severity)).toEqual(['P0', 'P0']);
+    expect(depthFindings[0].dimension).toBe('substance');
+    expect(depthFindings[0].evidence).toContain('1/6 surfaces');
+    expect(depthFindings[1].detail).toMatch(/no assessed or discussed evidence task/i);
+  });
+
+  it('accepts a primary text that reaches instruction and an evidence task', async () => {
+    const result = await gradeFixture({
+      'PACKAGE_MANIFEST.json': JSON.stringify(MANIFEST),
+      'Lesson Plans/Lesson 08 - Postcolonial Literature.md': GOOD_PLAN,
+      'Slide Decks/Lesson 08 - Postcolonial Literature.md': `${NAMED_TITLE}\nTrace the novel's narrative perspective.`,
+      'Assignment Briefs/Lesson 08 - Postcolonial Literature.md': `Close-read one passage from ${NAMED_TITLE} and cite two details.`,
+      'Discussion Prompts/Lesson 08 - Postcolonial Literature.md': `Compare two interpretations of ${NAMED_TITLE}.`,
+      'Quiz & Exam Bank/Lesson 08 - Postcolonial Literature.md': 'Q1. Define postcolonial perspective.',
+      'Study Guides/Lesson 08 - Postcolonial Literature.md': 'Review the lesson vocabulary.',
+      'Syllabus/World Literature - Syllabus.md': GOOD_SYLLABUS,
+    });
+    expect(result.findings.filter((finding) => /primary text/i.test(finding.detail))).toEqual([]);
   });
 
   it('fires P1 per missing surface on the missing-penetration fixture', async () => {

@@ -2376,32 +2376,28 @@ export default function useDeliverables({
           appendLog(`⚠ Alignment: ${finding.message}`, 'warn');
         }
         let courseMapAssessmentRegistry = null;
+        let courseMapReadingsRegistry = null;
         try {
-          const mapDerivedGraph = courseGraphLib.deriveCourseGraphFromCourseMap(blueprintCourseMap);
-          const mapAssessments = Array.isArray(mapDerivedGraph?.assessments) ? mapDerivedGraph.assessments : [];
-          const graphAssessmentCount = Array.isArray(courseGraph?.assessments) ? courseGraph.assessments.length : 0;
-          if (mapAssessments.length > graphAssessmentCount) {
-            courseMapAssessmentRegistry = mapAssessments;
-            traceGeneration(generationRunId, 'compiler_assessment_registry_bridge', {
-              source: 'course-map-derived-registry',
-              nativeAssessmentCount: graphAssessmentCount,
-              courseMapAssessmentCount: mapAssessments.length,
-            });
-            recordGenerationApiCallEvent({
-              type: 'pipelineDecision',
-              stage: 'blueprintCompiler',
-              label: 'Assessment registry bridge',
-              detail: `Compiler using ${mapAssessments.length} Course Map assessment row(s) instead of ${graphAssessmentCount} native graph row(s) so promised assessments get downstream artifacts.`,
-            });
-          }
+          const { bridgeCompilerRegistries } = await import('../lib/compilerRegistryBridge');
+          const registryBridges = bridgeCompilerRegistries({
+            courseGraph,
+            courseMap: blueprintCourseMap,
+            runId: generationRunId,
+            trace: traceGeneration,
+            recordEvent: recordGenerationApiCallEvent,
+          });
+          courseMapAssessmentRegistry = registryBridges.assessmentRegistry || null;
+          courseMapReadingsRegistry = registryBridges.readingsRegistry || null;
         } catch {
           courseMapAssessmentRegistry = null;
+          courseMapReadingsRegistry = null;
         }
         const blueprint = compactBlueprintForStorage(
           courseGraphLib.buildBlueprintFromGraph(courseGraph, {
             scopeIndices,
             localization: (await import('../lib/professorProfile')).getProfile(),
             ...(courseMapAssessmentRegistry ? { assessmentRegistry: courseMapAssessmentRegistry } : {}),
+            ...(courseMapReadingsRegistry ? { readingsRegistry: courseMapReadingsRegistry } : {}),
             compilerPath: {
               mode: blueprintEnrichment ? 'enriched' : 'deterministic',
               reason: !blueprintEnrichment

@@ -122,7 +122,10 @@ import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.j
 // example, Hangul or Korean number systems inside a Mandarin package).
 // 1.10.3 — Mandarin depth is measured per lesson; a few dense files can no
 // longer hide target-language-empty lesson plans, decks, or study guides.
-export const GRADER_VERSION = '1.10.3';
+// 1.10.4 — instructor-named primary texts must reach multiple instructional
+// surfaces and at least one evidence task; a title copied only into the
+// syllabus/materials list no longer counts as a grounded literature lesson.
+export const GRADER_VERSION = '1.10.4';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -867,137 +870,6 @@ function collectDownstreamTitleTokenSets(files) {
     if (set.size > 0) sets.push(set);
   }
   return sets;
-}
-
-// ── v0.14.5 WS-A (A5): the readings registry receipts ───────────────────────
-// (1) Named-reading penetration: every manifest readings[] entry appears
-//     VERBATIM (whitespace-normalized, case-insensitive — never shortened,
-//     never fused) in its week's lesson plan AND in the syllabus schedule.
-//     P1 per missing surface.
-// (2) Provenance order: in a week's rendered materials, no retrieved-tier
-//     item (an "Open-access via …" OpenAlex citation) lists ABOVE an
-//     instructor-named reading. P1. Checked inside the lesson plan's
-//     "Materials & Resources" block and inside each syllabus schedule row.
-// Self-arming: the checks run whenever manifest.readings is populated; a
-// course fixture with expectReadings: true additionally fails the round when
-// the registry never materialized at all.
-
-const READING_RETRIEVED_RE = /open-access via/i;
-// Lesson-plan sub-headings that terminate the materials block (docxExporter
-// rendering order: Materials & Resources → Assessments This Week → Session
-// Outline → …).
-const MATERIALS_BLOCK_END_RE =
-  /^(assessments this week|session outline|worked example|observation protocol|key terms|formative check|homework|closing activity)$/i;
-
-function normalizeReadingMatchText(text) {
-  return String(text || '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
-}
-
-function checkReadings(findings, { files, manifest }, course) {
-  const readings = Array.isArray(manifest?.readings) ? manifest.readings : [];
-  if (readings.length === 0) {
-    if (course?.expectReadings) {
-      findings.add({
-        severity: 'P1',
-        dimension: 'identity',
-        file: 'PACKAGE_MANIFEST.json',
-        detail:
-          'course names per-week readings (expectReadings) but the manifest carries no readings registry — extraction or inheritance dropped the instructor readings',
-        evidence: 'manifest.readings missing or empty',
-      });
-    }
-    return;
-  }
-
-  // Any extracted syllabus file qualifies (docx in production packages;
-  // text fixtures in synthetic grader tests read identically).
-  const syllabusFile = files.find((file) => file.featureId === 'syllabus');
-  const lessonPlanFiles = files.filter((file) => file.featureId === 'lessonPlans');
-  const syllabusText = syllabusFile ? normalizeReadingMatchText(syllabusFile.text) : '';
-
-  // (1) Penetration — each registry title must reach both surfaces verbatim.
-  for (const entry of readings) {
-    const title = normalizeReadingMatchText(entry.title);
-    if (!title) continue;
-    const plan = lessonPlanFiles.find((file) => file.lessonNumber === entry.lesson);
-    if (plan && !normalizeReadingMatchText(plan.text).includes(title)) {
-      findings.add({
-        severity: 'P1',
-        dimension: 'identity',
-        file: plan.path,
-        detail: `named reading ${entry.id || ''} "${entry.title}" (L${entry.lesson}) does not appear verbatim in its week's lesson plan materials`,
-        evidence: entry.title,
-      });
-    }
-    if (syllabusFile && !syllabusText.includes(title)) {
-      findings.add({
-        severity: 'P1',
-        dimension: 'identity',
-        file: syllabusFile.path,
-        detail: `named reading ${entry.id || ''} "${entry.title}" (L${entry.lesson}) does not appear verbatim in the syllabus schedule`,
-        evidence: entry.title,
-      });
-    }
-  }
-
-  // (2) Provenance order — lesson-plan materials block.
-  for (const plan of lessonPlanFiles) {
-    const lessonTitles = readings
-      .filter((entry) => entry.lesson === plan.lessonNumber)
-      .map((entry) => normalizeReadingMatchText(entry.title))
-      .filter(Boolean);
-    if (lessonTitles.length === 0) continue;
-    const lines = (plan.paragraphs || []).map((line) => normalizeReadingMatchText(line));
-    const start = lines.findIndex((line) => line === 'materials & resources');
-    if (start === -1) continue;
-    let firstInstructor = -1;
-    let firstRetrieved = -1;
-    for (let index = start + 1; index < lines.length; index += 1) {
-      const line = lines[index];
-      if (MATERIALS_BLOCK_END_RE.test(line)) break;
-      if (firstRetrieved === -1 && READING_RETRIEVED_RE.test(line)) firstRetrieved = index;
-      if (firstInstructor === -1 && lessonTitles.some((title) => line.includes(title))) firstInstructor = index;
-    }
-    if (firstRetrieved !== -1 && firstInstructor !== -1 && firstRetrieved < firstInstructor) {
-      findings.add({
-        severity: 'P1',
-        dimension: 'citations',
-        file: plan.path,
-        detail: `provenance order violated in L${plan.lessonNumber} materials: a retrieved open reading lists above the instructor-named reading`,
-        evidence: (plan.paragraphs || [])[firstRetrieved] || 'retrieved item listed first',
-      });
-    }
-  }
-
-  // (2b) Provenance order — syllabus schedule rows (one extracted line per
-  // cell, so a retrieved citation and a registry title on the same line
-  // belong to the same week's readings cell).
-  if (syllabusFile) {
-    for (const rawLine of syllabusFile.paragraphs || []) {
-      const line = normalizeReadingMatchText(rawLine);
-      const retrievedMatch = line.match(READING_RETRIEVED_RE);
-      if (!retrievedMatch) continue;
-      const retrievedIndex = line.search(READING_RETRIEVED_RE);
-      for (const entry of readings) {
-        const title = normalizeReadingMatchText(entry.title);
-        if (!title) continue;
-        const titleIndex = line.indexOf(title);
-        if (titleIndex !== -1 && retrievedIndex < titleIndex) {
-          findings.add({
-            severity: 'P1',
-            dimension: 'citations',
-            file: syllabusFile.path,
-            detail: `provenance order violated in the syllabus schedule: a retrieved open reading lists above instructor-named "${entry.title}"`,
-            evidence: rawLine,
-          });
-          break;
-        }
-      }
-    }
-  }
 }
 
 // CONSISTENCY — week labels, lesson-title cross-deliverable, objectives match.
@@ -3431,7 +3303,10 @@ export async function grade({
   // v0.14.5 (A5): named-reading penetration + provenance order. Self-arming
   // on manifest.readings; expectReadings courses also fail on an absent
   // registry.
-  checkReadings(findings, pkg, course);
+  {
+    const { checkNamedReadings } = await import('./namedReadingInstructionalDepth.js');
+    checkNamedReadings(findings, pkg, course);
+  }
   {
     const { checkSourceLedger, shouldCheckSourceLedger } = await import('./sourceLedgerQualityChecks.js');
     if (shouldCheckSourceLedger(pkg.manifest)) {

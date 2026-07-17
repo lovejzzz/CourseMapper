@@ -16,5 +16,10 @@ export {
   parseReadingAuthor,
 } from './deriveFromCourseMap.js';
 export { renderCourseMapFromGraph } from './renderCourseMap.js';
-export { attachEnrichmentToGraph, buildBlueprintFromGraph, enrichmentFromGraph } from './blueprintFromGraph.js';
+export {
+  attachEnrichmentToGraph,
+  buildBlueprintFromGraph,
+  enrichmentFromGraph,
+  selectCompilerRegistryBridges,
+} from './blueprintFromGraph.js';
 export { lintCourseGraphAlignment } from './alignmentLint.js';
