@@ -1,0 +1,299 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-semantic-admission-v3-burden-replay-v1",
+  "release": "v0.16.49",
+  "generatedAt": "2026-07-17T11:25:00.000Z",
+  "status": "no-additional-retry-burden-observed",
+  "evidence": {
+    "candidateSurface": {
+      "path": "evaluation/scion-review-candidates-course-group-breadth-v0.16.47.jsonl",
+      "bytes": 270234,
+      "sha256": "abec0bd65777d4f20679a5eb9c0631c0f97a2d75883a86c8d31521fbc9f657e7",
+      "rows": 91
+    },
+    "retainedLocalReplay": {
+      "directory": "evaluation/scion-source-compiler-replay-v0.16.47",
+      "campaigns": [
+        "evaluation/scion-source-capture-campaign.json",
+        "evaluation/scion-source-capture-expansion-v0.16.17.json"
+      ],
+      "projects": [
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-control-flow-workshop-local.json",
+          "bytes": 76765,
+          "sha256": "7f48ff586e85cefc513f19eb919916b31abf39109bc4fbed44909c62a41af90d",
+          "courseGroupId": "python-control-flow-workshop",
+          "domain": "computer-science"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-data-structures-lab-local.json",
+          "bytes": 73354,
+          "sha256": "486702d599f64bf62fc8780f23f8c4dbdd0d966e660ceb65b29b235e230781a4",
+          "courseGroupId": "python-data-structures-lab",
+          "domain": "computer-science"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/igneous-volcanic-processes-local.json",
+          "bytes": 46619,
+          "sha256": "946097728e06f0430e2b324b79ee6e32c56c9634b09d50f111bbfbfe45e188f0",
+          "courseGroupId": "igneous-volcanic-processes",
+          "domain": "geology"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/tectonics-seismology-field-lab-local.json",
+          "bytes": 85118,
+          "sha256": "721571a199ab40fd086b4401ee4e15bf5599229b1e4813a3d3882100de8d8e04",
+          "courseGroupId": "tectonics-seismology-field-lab",
+          "domain": "geology"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/music-notation-ear-training-local.json",
+          "bytes": 53563,
+          "sha256": "547c8a70aa933b1fae2839922eb805fe3e9c38eab71f42fadc81c1c88885dad5",
+          "courseGroupId": "music-notation-ear-training",
+          "domain": "music-theory"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/harmony-form-analysis-local.json",
+          "bytes": 82397,
+          "sha256": "fbd324ec4d3f2cbb4b343742e16e27246743a9bf1dae1b2ea366849ad18c77e2",
+          "courseGroupId": "harmony-form-analysis",
+          "domain": "music-theory"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-research-synthesis-studio-local.json",
+          "bytes": 72065,
+          "sha256": "5024faa46b0364387e36f92014e2282448a6122ac8925b819a61a770bf066df7",
+          "courseGroupId": "ux-research-synthesis-studio",
+          "domain": "user-experience-design"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-prototyping-accessibility-lab-local.json",
+          "bytes": 62280,
+          "sha256": "a3beeabdc593be98d161194b7af782a4a05bd1f99d054f5f49af9ac3fe131eb7",
+          "courseGroupId": "ux-prototyping-accessibility-lab",
+          "domain": "user-experience-design"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-program-architecture-studio-local.json",
+          "bytes": 136462,
+          "sha256": "7c32065370489026b2813ddc8f0e7ebf205e10152f85e561fc8d578f3d946e31",
+          "courseGroupId": "python-program-architecture-studio",
+          "domain": "computer-science"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/earth-materials-history-lab-local.json",
+          "bytes": 138166,
+          "sha256": "93581a332d856b30e06ed56e8f061c7a5dca184ad312fa4b7b2858ac0d8c4c2f",
+          "courseGroupId": "earth-materials-history-lab",
+          "domain": "geology"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/tonal-analysis-integration-studio-local.json",
+          "bytes": 139227,
+          "sha256": "f555e1e8e47818c346d8a3673e514d6be56b9bc966688995567cc2d8d0c9ac7d",
+          "courseGroupId": "tonal-analysis-integration-studio",
+          "domain": "music-theory"
+        },
+        {
+          "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-evidence-to-prototype-capstone-local.json",
+          "bytes": 164155,
+          "sha256": "cdbbc8e9bd62ea612fe1c0ec2c310791482de409bcadcdb036f7c05bd0367b07",
+          "courseGroupId": "ux-evidence-to-prototype-capstone",
+          "domain": "user-experience-design"
+        }
+      ]
+    },
+    "implementation": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 37772,
+        "sha256": "cb937b5ac5dbbcf1e28c8acc026664aefcd251f064601af836ddef92cfb78c35"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 19476,
+        "sha256": "83a818fcdb467c12e0443f312816b0fb3422258f678283fa3e9f2de851f3e9b4"
+      },
+      {
+        "path": "src/lib/scionKeyTermContract.js",
+        "bytes": 18474,
+        "sha256": "f7e726283dbd8a3636b6a7a787e2a830f7ea23c0b594a1cf878bc0f88f0c927a"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 51075,
+        "sha256": "760e8fa464d874c1fd2de178396f8f266120bfbb14d2de8ebb91791dc0c50fa0"
+      }
+    ]
+  },
+  "candidate": {
+    "rows": 91,
+    "previousEligible": 80,
+    "currentEligible": 80,
+    "additionalRetrySeats": 0,
+    "removedRetrySeats": 0,
+    "additionalRetrySeatsByDomain": {},
+    "additionalRetrySeatsByKind": {}
+  },
+  "reference": {
+    "rows": 91,
+    "previousEligible": 83,
+    "currentEligible": 83,
+    "additionalRetrySeats": 0,
+    "removedRetrySeats": 0,
+    "additionalRetrySeatsByDomain": {},
+    "additionalRetrySeatsByKind": {}
+  },
+  "retainedLocalReplay": {
+    "previousProfile": "source-strict",
+    "currentProfile": "source-strict-v3",
+    "previous": {
+      "expectedCalls": 48,
+      "capturedCalls": 48,
+      "eligibleCalls": 27,
+      "fullPassCalls": 1,
+      "partialCalls": 26,
+      "rejectedCalls": 21,
+      "expectedAtoms": 192,
+      "generatedAtoms": 190,
+      "admittedAtoms": 49,
+      "discardedGeneratedAtoms": 141,
+      "missingExpectedAtoms": 2,
+      "burdenAtoms": 143,
+      "burdenRate": 0.744792,
+      "admissionRate": 0.255208,
+      "issueHistogram": {
+        "key-term-0-claim-marker-residue": 7,
+        "key-term-0-correction-circular-term": 1,
+        "key-term-0-correction-repeats-definition": 8,
+        "key-term-0-correction-repeats-example": 1,
+        "key-term-0-correction-repeats-misconception": 3,
+        "key-term-0-embedded-field-label": 5,
+        "key-term-0-example-underdeveloped": 5,
+        "key-term-0-misconception-repeats-definition": 1,
+        "key-term-0-misconception-repeats-known-fact": 4,
+        "key-term-0-term-not-source-anchored": 26,
+        "key-term-1-claim-marker-residue": 7,
+        "key-term-1-correction-repeats-definition": 11,
+        "key-term-1-correction-repeats-example": 3,
+        "key-term-1-correction-repeats-misconception": 2,
+        "key-term-1-embedded-field-label": 5,
+        "key-term-1-example-placeholder": 1,
+        "key-term-1-example-repeats-definition": 1,
+        "key-term-1-example-underdeveloped": 3,
+        "key-term-1-misconception-repeats-definition": 2,
+        "key-term-1-misconception-repeats-known-fact": 3,
+        "key-term-1-source-fact-index": 1,
+        "key-term-1-source-precision-overstatement": 1,
+        "key-term-1-term-not-source-anchored": 23,
+        "key-term-count": 1,
+        "mc-0-claim-marker-residue": 8,
+        "mc-0-duplicate-options": 3,
+        "mc-0-explanation-key-conflict": 6,
+        "mc-0-explanation-repeats-answer": 1,
+        "mc-0-longest-option-cue": 3,
+        "mc-0-multiple-source-supported-options": 7,
+        "mc-0-option-label-prefixes": 16,
+        "mc-0-option-label-suffixes": 1,
+        "mc-0-placeholder-options": 1,
+        "mc-0-truncated-explanation": 1,
+        "mc-1-claim-marker-residue": 8,
+        "mc-1-explanation-key-conflict": 8,
+        "mc-1-explanation-repeats-answer": 1,
+        "mc-1-longest-option-cue": 2,
+        "mc-1-multiple-source-supported-options": 3,
+        "mc-1-option-label-prefixes": 16,
+        "mc-1-placeholder-options": 1,
+        "mc-1-source-answer-conflict": 1,
+        "mc-1-truncated-option": 2,
+        "mc-count": 1,
+        "no-admitted-key-terms": 34,
+        "no-admitted-mc-items": 29
+      }
+    },
+    "current": {
+      "expectedCalls": 48,
+      "capturedCalls": 48,
+      "eligibleCalls": 27,
+      "fullPassCalls": 1,
+      "partialCalls": 26,
+      "rejectedCalls": 21,
+      "expectedAtoms": 192,
+      "generatedAtoms": 190,
+      "admittedAtoms": 49,
+      "discardedGeneratedAtoms": 141,
+      "missingExpectedAtoms": 2,
+      "burdenAtoms": 143,
+      "burdenRate": 0.744792,
+      "admissionRate": 0.255208,
+      "issueHistogram": {
+        "key-term-0-claim-marker-residue": 7,
+        "key-term-0-correction-circular-term": 1,
+        "key-term-0-correction-repeats-definition": 8,
+        "key-term-0-correction-repeats-example": 1,
+        "key-term-0-correction-repeats-misconception": 3,
+        "key-term-0-embedded-field-label": 5,
+        "key-term-0-example-underdeveloped": 5,
+        "key-term-0-misconception-repeats-definition": 1,
+        "key-term-0-misconception-repeats-known-fact": 4,
+        "key-term-0-term-not-source-anchored": 26,
+        "key-term-1-claim-marker-residue": 7,
+        "key-term-1-correction-repeats-definition": 11,
+        "key-term-1-correction-repeats-example": 3,
+        "key-term-1-correction-repeats-misconception": 2,
+        "key-term-1-embedded-field-label": 5,
+        "key-term-1-example-placeholder": 1,
+        "key-term-1-example-repeats-definition": 1,
+        "key-term-1-example-underdeveloped": 3,
+        "key-term-1-misconception-repeats-definition": 2,
+        "key-term-1-misconception-repeats-known-fact": 4,
+        "key-term-1-source-fact-index": 1,
+        "key-term-1-source-precision-overstatement": 1,
+        "key-term-1-term-not-source-anchored": 23,
+        "key-term-count": 1,
+        "mc-0-claim-marker-residue": 8,
+        "mc-0-duplicate-options": 3,
+        "mc-0-explanation-key-conflict": 6,
+        "mc-0-explanation-repeats-answer": 1,
+        "mc-0-longest-option-cue": 3,
+        "mc-0-multiple-source-supported-options": 7,
+        "mc-0-option-label-prefixes": 16,
+        "mc-0-option-label-suffixes": 1,
+        "mc-0-placeholder-options": 1,
+        "mc-0-truncated-explanation": 1,
+        "mc-1-claim-marker-residue": 8,
+        "mc-1-explanation-key-conflict": 8,
+        "mc-1-explanation-repeats-answer": 1,
+        "mc-1-longest-option-cue": 2,
+        "mc-1-multiple-source-supported-options": 4,
+        "mc-1-option-label-prefixes": 16,
+        "mc-1-placeholder-options": 1,
+        "mc-1-source-answer-conflict": 1,
+        "mc-1-truncated-option": 2,
+        "mc-count": 1,
+        "no-admitted-key-terms": 34,
+        "no-admitted-mc-items": 29
+      }
+    },
+    "deltas": {
+      "additionalBurdenAtoms": 0,
+      "admittedAtoms": 0,
+      "eligibleCalls": 0,
+      "newIssueIncidence": {
+        "key-term-1-misconception-repeats-known-fact": 1,
+        "mc-1-multiple-source-supported-options": 1
+      }
+    }
+  },
+  "assertions": {
+    "exactFrozenCandidateSurface": true,
+    "frozenCandidateEligibilityUnchanged": true,
+    "noAdditionalCandidateRetrySeats": true,
+    "exactRetainedReplay": true,
+    "retainedAdmissionBurdenUnchanged": true,
+    "citedSourceRulesObserved": true
+  },
+  "interpretation": "Across 91 frozen cross-arm candidate pairs, the judge-informed profile changes no eligibility decision. Across 192 retained local response seats, it records two additional semantic issue incidences but both overlap artifacts already rejected by older rules, so observed admitted atoms, rejected calls, and retry burden remain unchanged.",
+  "claimBoundary": "This is deterministic replay of retained response bytes. It measures admission overlap, not fresh model retry success, browser latency, unseen-output precision, blind preference, classroom outcomes, paid-reference quality, or adapter quality. No response text is mutated and no model call is made."
+}

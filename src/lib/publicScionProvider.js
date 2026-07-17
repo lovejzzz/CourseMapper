@@ -6,7 +6,11 @@
 
 import { jsonrepair } from 'jsonrepair';
 import { APP_VERSION } from './appVersion.js';
-import { repairScionMcItem } from './scionAnswerKeyAlignment.js';
+import {
+  findScionMissingKeyExplanationSupport,
+  findScionMultipleSourceSupportedOptions,
+  repairScionMcItem,
+} from './scionAnswerKeyAlignment.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
 import { assessScionKeyTermContract, mergeScionKeyTermContractAttempts } from './scionKeyTermContract.js';
 
@@ -184,6 +188,7 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           lessonTitle: expected.title || '',
           definitionMin: 40,
           knownFacts: Array.isArray(lesson.facts) ? lesson.facts : [],
+          semanticProfile: 'source-strict-v3',
         });
         for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
       });
@@ -201,6 +206,17 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           )
         ) {
           issues.push(`${expected.lessonId}:mc-${index}:source-fact-index`);
+        }
+        if (findScionMissingKeyExplanationSupport(item)) {
+          issues.push(`${expected.lessonId}:mc-${index}:explanation-omits-key-support`);
+        }
+        if (
+          findScionMultipleSourceSupportedOptions(item, {
+            sourceClaims: facts,
+            allowBroadSourceContext: true,
+          })
+        ) {
+          issues.push(`${expected.lessonId}:mc-${index}:multiple-source-supported-options`);
         }
       });
     }
@@ -284,6 +300,12 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
       : []),
     ...(issues.some((issue) => issue.includes('source-fact-index'))
       ? ['sourceFactIndexes is required and may cite only supplied zero-based claim indexes.']
+      : []),
+    ...(issues.some((issue) => issue.includes('explanation-omits-key-support'))
+      ? ['Every ex must state why the keyed option is correct; eliminating distractors alone is incomplete feedback.']
+      : []),
+    ...(issues.some((issue) => issue.includes('multiple-source-supported-options'))
+      ? ['Rewrite the stem or options so exactly one option is supported by the lesson facts.']
       : []),
   ];
   return [

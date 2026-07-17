@@ -6,6 +6,8 @@ import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } fr
 import { lintDecisionScenario } from './scenarioContract';
 import {
   findScionExplanationKeyConflict,
+  findScionMissingKeyExplanationSupport,
+  findScionMultipleSourceSupportedOptions,
   findScionSourceAnswerSupport,
   normalizeScionOptionIdentity,
   repairScionMcItem,
@@ -958,6 +960,15 @@ export function lintEnrichedQuizItem(item, { groundingText = '', sourceClaims = 
     }
     const sourceSupport = findScionSourceAnswerSupport(item, { sourceClaims });
     if (!sourceSupport && findScionExplanationKeyConflict(item)) issues.push('explanation-key-conflict');
+    if (findScionMissingKeyExplanationSupport(item)) issues.push('explanation-omits-key-support');
+    if (
+      findScionMultipleSourceSupportedOptions(item, {
+        sourceClaims,
+        allowBroadSourceContext: true,
+      })
+    ) {
+      issues.push('multiple-source-supported-options');
+    }
     // CurriculumOS V1 Phase A: test-wiseness battery shared with the foundry
     // admission gate — cues that reveal the key without knowing the content.
     issues.push(...lintItemAdmission({ ...item, options }));
@@ -976,7 +987,12 @@ export function lintEnrichedQuizItem(item, { groundingText = '', sourceClaims = 
 export function lintEnrichedKeyTerm(term, { lessonTitle = '', knownFacts = [] } = {}) {
   // `rm` remains optional and is sanitized at parse time. All substantive
   // fields share the same compact/full-key contract used by Scion admission.
-  const result = assessScionKeyTermContract(term, { lessonTitle, knownFacts, definitionMin: 40 });
+  const result = assessScionKeyTermContract(term, {
+    lessonTitle,
+    knownFacts,
+    definitionMin: 40,
+    semanticProfile: 'strict-v3',
+  });
   const labels = {
     'tr-length': 'term-missing',
     'df-length': 'definition-too-short',

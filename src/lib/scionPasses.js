@@ -102,6 +102,20 @@ function matchingGroundingWords(stem, words) {
   return words.filter((word) => new RegExp(`\\b${word}\\b`, 'i').test(value));
 }
 
+function lessonSourceClaims(lesson = {}) {
+  return (Array.isArray(lesson?.facts) ? lesson.facts : [])
+    .map((fact) => (typeof fact === 'string' ? fact : fact?.text || fact?.tx || ''))
+    .filter(Boolean);
+}
+
+function assessLessonMcItem(item, { lesson, topicTokens = [], sourceClaims = lessonSourceClaims(lesson) } = {}) {
+  return assessScionMcItem(item, {
+    topicWords: topicTokens,
+    sourceClaims,
+    semanticProfile: 'source-strict-v3',
+  });
+}
+
 function normalizeRepairedStem(value) {
   return String(value || '')
     .replace(/\s+/g, ' ')
@@ -191,7 +205,13 @@ async function blindSolve(items, generateJson) {
     : null;
 }
 
-async function generateVerifiedReplacementBatch({ targets, promptLesson, topicTokens = [], generateJson }) {
+async function generateVerifiedReplacementBatch({
+  targets,
+  promptLesson,
+  topicTokens = [],
+  sourceClaims = [],
+  generateJson,
+}) {
   const accepted = new Map();
   let pending = [...targets];
   for (let attempt = 1; attempt <= 2 && pending.length > 0; attempt += 1) {
@@ -242,7 +262,7 @@ async function generateVerifiedReplacementBatch({ targets, promptLesson, topicTo
             ai: repair.ai,
             ex: completeSentencePrefix(repair.ex),
           };
-          const admission = assessScionMcItem(fresh, { topicWords: topicTokens, semanticProfile: 'strict' });
+          const admission = assessLessonMcItem(fresh, { topicTokens, sourceClaims });
           return admission.eligible ? { ...target, fresh, admission } : null;
         })
         .filter(Boolean);
@@ -297,6 +317,7 @@ async function verifyMcAnswers(lesson, promptLesson, generateJson, events) {
   const replacements = await generateVerifiedReplacementBatch({
     targets,
     promptLesson,
+    sourceClaims: lessonSourceClaims(lesson),
     generateJson,
   });
   for (const { item, index } of targets) {
@@ -406,7 +427,7 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
           ai: repair.ai,
           ex: completeSentencePrefix(repair.ex),
         };
-        const admission = assessScionMcItem(fresh, { topicWords: words, semanticProfile: 'strict' });
+        const admission = assessLessonMcItem(fresh, { lesson, topicTokens: words });
         if (!admission.eligible || !onTopic(fresh, words)) {
           events.push({
             pass: 'topicGate',
@@ -480,7 +501,7 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
       item,
       index,
       admission: item
-        ? assessScionMcItem(item, { topicWords: topicTokens, semanticProfile: 'strict' })
+        ? assessLessonMcItem(item, { lesson, topicTokens })
         : { eligible: false, issues: ['missing-item'], score: 0 },
     }))
     .filter(({ admission }) => !admission.eligible);
@@ -546,7 +567,7 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
           ai: repair.ai,
           ex: completeSentencePrefix(repair.ex),
         };
-        const admission = assessScionMcItem(fresh, { topicWords: topicTokens, semanticProfile: 'strict' });
+        const admission = assessLessonMcItem(fresh, { lesson, topicTokens });
         if (!admission.eligible) {
           events.push({
             pass: 'admissionGate',
@@ -628,7 +649,7 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
     result: assessScionKeyTerm(term, {
       lessonTitle: promptLesson?.title,
       knownFacts,
-      semanticProfile: 'source-strict',
+      semanticProfile: 'source-strict-v3',
     }),
   }));
   const targets = assessed.filter(({ result }) => !result.eligible);
@@ -709,7 +730,7 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
       const admission = assessScionKeyTerm(fresh, {
         lessonTitle: promptLesson?.title,
         knownFacts,
-        semanticProfile: 'source-strict',
+        semanticProfile: 'source-strict-v3',
       });
       const duplicate = terms.some(
         (other, otherIndex) =>
@@ -777,10 +798,7 @@ async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
     .map((item, index) => ({ item, index }))
     .filter(
       ({ item, index }) =>
-        item &&
-        index > 0 &&
-        !isAppliedQuizStem(item?.q) &&
-        assessScionMcItem(item, { topicWords: topicTokens, semanticProfile: 'strict' }).eligible,
+        item && index > 0 && !isAppliedQuizStem(item?.q) && assessLessonMcItem(item, { lesson, topicTokens }).eligible,
     )
     .slice(0, neededRepairs);
   const grounding = groundingWords(lesson);
@@ -839,7 +857,7 @@ async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
           return null;
         }
         const fresh = { ...item, q: normalizeRepairedStem(repair.q) };
-        const admission = assessScionMcItem(fresh, { topicWords: topicTokens, semanticProfile: 'strict' });
+        const admission = assessLessonMcItem(fresh, { lesson, topicTokens });
         const matchedGrounding = matchingGroundingWords(fresh.q, grounding);
         const reasons = [
           ...admission.issues,

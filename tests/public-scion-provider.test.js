@@ -537,6 +537,45 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     );
   });
 
+  it('retries browser-local questions with incomplete feedback or multiple source-supported answers', () => {
+    const prompt = `Course: UX Design\nLessons:\n[{"lessonId":"lesson-task-flow","title":"Task flow analysis"}]\nReturn ONLY valid JSON.`;
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-task-flow',
+          facts: [
+            'Task flow analysis diagrams the steps and decision points used to reach a goal.',
+            'Task flow analysis validates user goals, common scenarios, and tasks.',
+            'Task flow diagrams show how a user progresses through tasks.',
+            'Task flow analysis surfaces obstacles between users and their goals.',
+          ],
+          keyTerms: completeTerms,
+          mc: [
+            {
+              q: 'What is the primary function of a task flow analysis?',
+              op: [
+                'To build a polished production interface',
+                'To surface obstacles between users and goals',
+                'To diagram steps and decision points for reaching a goal',
+                'To document the historical development of software',
+              ],
+              ai: 2,
+              fi: [0, 3],
+              ex: 'Option 1 is incorrect because it concerns production. Option 2 is incorrect because it concerns obstacles. Option 4 is incorrect because it concerns history.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const assessment = assessPublicScionKernelResponse(JSON.stringify(response), prompt, 'blueprintEnrichment');
+    expect(assessment.issues).toContain('lesson-task-flow:mc-0:explanation-omits-key-support');
+    expect(assessment.issues).toContain('lesson-task-flow:mc-0:multiple-source-supported-options');
+    const feedback = buildPublicScionRetryFeedback(assessment);
+    expect(feedback).toContain('eliminating distractors alone is incomplete feedback');
+    expect(feedback).toContain('exactly one option is supported by the lesson facts');
+  });
+
   it('removes only an unfinished explanation tail before browser-local admission', () => {
     const response = {
       lessons: [

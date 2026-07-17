@@ -4,6 +4,7 @@ import {
   findScionAffirmativeOptionConflict,
   findScionExplanationKeyConflict,
   findScionExplicitNegativeKeyConflict,
+  findScionMissingKeyExplanationSupport,
   findScionMultipleSourceSupportedOptions,
   findScionSourceAnswerConflict,
   normalizeScionMcItem,
@@ -105,8 +106,10 @@ export function assessScionMcItem(
   // source-strict extends the complete strict profile; it only adds
   // source-grounded key-term rules and must never silently downgrade MC
   // admission to legacy behavior.
+  const judgeInformedSemanticAdmission = semanticProfile === 'strict-v3' || semanticProfile === 'source-strict-v3';
   const strictSemanticAdmission =
-    semanticAdmission && (semanticProfile === 'strict' || semanticProfile === 'source-strict');
+    semanticAdmission &&
+    (semanticProfile === 'strict' || semanticProfile === 'source-strict' || judgeInformedSemanticAdmission);
   const issues = [];
   if (!stringInBand(normalized.question, 25, 300)) issues.push('stem-length');
   if (normalized.options.length !== 4) issues.push('option-count');
@@ -169,12 +172,20 @@ export function assessScionMcItem(
   if (/\b(?:all|none) of the above\b/i.test(normalized.options.join(' '))) issues.push('all-none-of-above');
   if (strictSemanticAdmission && findScionExplicitNegativeKeyConflict(normalized)) {
     issues.push('explanation-negates-key');
+  } else if (judgeInformedSemanticAdmission && findScionMissingKeyExplanationSupport(normalized)) {
+    issues.push('explanation-omits-key-support');
   } else if (
     semanticAdmission &&
     findScionSourceAnswerConflict(normalized, { sourceClaims, strict: strictSemanticAdmission })
   ) {
     issues.push('source-answer-conflict');
-  } else if (strictSemanticAdmission && findScionMultipleSourceSupportedOptions(normalized, { sourceClaims })) {
+  } else if (
+    strictSemanticAdmission &&
+    findScionMultipleSourceSupportedOptions(normalized, {
+      sourceClaims,
+      allowBroadSourceContext: judgeInformedSemanticAdmission,
+    })
+  ) {
     issues.push('multiple-source-supported-options');
   } else if (strictSemanticAdmission && findScionAffirmativeOptionConflict(normalized)) {
     issues.push('explanation-key-conflict');

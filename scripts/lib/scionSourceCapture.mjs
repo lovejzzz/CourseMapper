@@ -355,6 +355,7 @@ export function assessSourceAtomResponse(
   },
 ) {
   const response = parseSourceAtomResponse(value);
+  const sourceBoundSemanticProfile = semanticProfile === 'source-strict' || semanticProfile === 'source-strict-v3';
   const mcItems = Array.isArray(response?.mcItems) ? response.mcItems : [];
   const keyTerms = Array.isArray(response?.keyTerms) ? response.keyTerms : [];
   const expectedMcItems = expectedCounts ? boundedAtomCount(expectedCounts.mcItems) : 2;
@@ -384,8 +385,7 @@ export function assessSourceAtomResponse(
       ? [...new Set(term.sourceFactIndexes)].map((factIndex) => sourceClaims[factIndex]).filter(Boolean)
       : [];
     const assessment = assessScionKeyTerm(term, {
-      knownFacts:
-        semanticProfile === 'source-strict' && citedSourceClaims.length > 0 ? citedSourceClaims : sourceClaims,
+      knownFacts: sourceBoundSemanticProfile && citedSourceClaims.length > 0 ? citedSourceClaims : sourceClaims,
       sourceTerm,
       semanticProfile,
     });

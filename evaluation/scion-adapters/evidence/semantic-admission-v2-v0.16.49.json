@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-semantic-admission-v3-replay-v1",
+  "release": "v0.16.49",
+  "generatedAt": "2026-07-17T11:15:00.000Z",
+  "status": "judge-informed-semantic-admission-improved",
+  "evidence": {
+    "approvedCorpus": {
+      "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47.jsonl",
+      "bytes": 392679,
+      "sha256": "ce042d3631638229a1f63c4ba0d54d5439249d9f703e1d01e5af2acbbef32402",
+      "rows": 78
+    },
+    "judgeCampaign": {
+      "path": "evaluation/scion-adapters/evidence/judge-campaign-v0.16.47.json",
+      "bytes": 7686,
+      "sha256": "2cb01d46f19d5cf502683ff8ff5694020b77b23e58845955f8a17b0569b13705"
+    },
+    "currentPacketId": "scion-review-1c6adccdcb9edfab7231",
+    "previousRelease": {
+      "path": "evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.48.json",
+      "bytes": 8254,
+      "sha256": "5ecca598049186c12b6bfe688c9aeeeb93a39c6414402326c7d68448693f0d57",
+      "release": "v0.16.48",
+      "rejectedDetected": 64
+    },
+    "implementation": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 37772,
+        "sha256": "cb937b5ac5dbbcf1e28c8acc026664aefcd251f064601af836ddef92cfb78c35"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 19476,
+        "sha256": "83a818fcdb467c12e0443f312816b0fb3422258f678283fa3e9f2de851f3e9b4"
+      },
+      {
+        "path": "src/lib/scionKeyTermContract.js",
+        "bytes": 18474,
+        "sha256": "f7e726283dbd8a3636b6a7a787e2a830f7ea23c0b594a1cf878bc0f88f0c927a"
+      },
+      {
+        "path": "src/lib/scionPasses.js",
+        "bytes": 40243,
+        "sha256": "ff0009fa49b17e15a3aee009136723de0ce3e0fddd20262217a8d5a173964c00"
+      },
+      {
+        "path": "src/lib/publicScionProvider.js",
+        "bytes": 33816,
+        "sha256": "44c918423f113ffa2d23d60f6bf7fdbaa1088599e215c2d5d028e5ad5ee17de5"
+      },
+      {
+        "path": "src/lib/blueprintEnrichmentPass.js",
+        "bytes": 74735,
+        "sha256": "3ceff60a41e22b9aef0ecf607856a6113d664b1ac711706b1507793e6a3b4c2d"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 51075,
+        "sha256": "760e8fa464d874c1fd2de178396f8f266120bfbb14d2de8ebb91791dc0c50fa0"
+      }
+    ]
+  },
+  "allStablePreferences": {
+    "rows": 78,
+    "legacy": {
+      "preferredEligible": 78,
+      "rejectedDetected": 21
+    },
+    "strict": {
+      "preferredEligible": 78,
+      "preferredRegressions": 0,
+      "rejectedDetected": 68,
+      "preferredOnlyMargins": 68,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 15,
+        "correction-circular-term": 1,
+        "cx-repeats-itself": 1,
+        "duplicate-options": 2,
+        "example-placeholder": 1,
+        "example-underdeveloped": 3,
+        "explanation-key-conflict": 10,
+        "explanation-negates-key": 1,
+        "explanation-omits-key-support": 1,
+        "explanation-repeats-answer": 4,
+        "misconception-repeats-known-fact": 4,
+        "multiple-source-supported-options": 12,
+        "option-label-prefixes": 16,
+        "option-label-suffixes": 1,
+        "source-answer-conflict": 4,
+        "source-precision-overstatement": 1,
+        "term-not-source-anchored": 16,
+        "truncated-option": 1
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 20,
+          "rejectedDetected": 17,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 10,
+          "rejectedDetected": 10,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 29,
+          "rejectedDetected": 26,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 19,
+          "rejectedDetected": 15,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 34,
+          "rejectedDetected": 24,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 44,
+          "rejectedDetected": 44,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "currentCampaign": {
+    "rows": 32,
+    "legacy": {
+      "preferredEligible": 32,
+      "rejectedDetected": 1
+    },
+    "strict": {
+      "preferredEligible": 32,
+      "preferredRegressions": 0,
+      "rejectedDetected": 26,
+      "preferredOnlyMargins": 26,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 5,
+        "cx-repeats-itself": 1,
+        "example-underdeveloped": 2,
+        "explanation-key-conflict": 3,
+        "explanation-negates-key": 1,
+        "explanation-omits-key-support": 1,
+        "misconception-repeats-known-fact": 1,
+        "multiple-source-supported-options": 5,
+        "option-label-prefixes": 7,
+        "source-answer-conflict": 2,
+        "term-not-source-anchored": 4,
+        "truncated-option": 1
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 10,
+          "rejectedDetected": 9,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 4,
+          "rejectedDetected": 4,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 10,
+          "rejectedDetected": 8,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 8,
+          "rejectedDetected": 5,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 13,
+          "rejectedDetected": 7,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 19,
+          "rejectedDetected": 19,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "historicalCore": {
+    "rows": 46,
+    "legacy": {
+      "preferredEligible": 46,
+      "rejectedDetected": 20
+    },
+    "strict": {
+      "preferredEligible": 46,
+      "preferredRegressions": 0,
+      "rejectedDetected": 42,
+      "preferredOnlyMargins": 42,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 10,
+        "correction-circular-term": 1,
+        "duplicate-options": 2,
+        "example-placeholder": 1,
+        "example-underdeveloped": 1,
+        "explanation-key-conflict": 7,
+        "explanation-repeats-answer": 4,
+        "misconception-repeats-known-fact": 3,
+        "multiple-source-supported-options": 7,
+        "option-label-prefixes": 9,
+        "option-label-suffixes": 1,
+        "source-answer-conflict": 2,
+        "source-precision-overstatement": 1,
+        "term-not-source-anchored": 12
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 10,
+          "rejectedDetected": 8,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 6,
+          "rejectedDetected": 6,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 19,
+          "rejectedDetected": 18,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 11,
+          "rejectedDetected": 10,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 21,
+          "rejectedDetected": 17,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 25,
+          "rejectedDetected": 25,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "deltas": {
+    "stableLossesDetected": 4,
+    "keyTermLossesDetected": 1,
+    "mcItemLossesDetected": 3,
+    "stableLossesRemaining": 10,
+    "historicalCoreLossesRemaining": 4,
+    "preferredRegressions": 0
+  },
+  "assertions": {
+    "corpusBound": true,
+    "exactStableLossCorpus": true,
+    "exactCurrentCampaignRows": true,
+    "noPreferredArtifactRegression": true,
+    "stableLossDetectionLift": true,
+    "currentCampaignDetection": true,
+    "historicalCoreDetection": true
+  },
+  "interpretation": "The judge-informed compiler profile now retries MC explanations that label every distractor but never teach the keyed answer, detects broad source-supported answer ambiguity, and rejects compact misconception text that merely repeats a known fact. On the frozen 78-loss replay this adds four detections—one key-term loss and three MC losses—without rejecting a preferred artifact.",
+  "claimBoundary": "This retrospective replay proves deterministic detection lift on 78 already judged stable losses with zero rejection of their preferred counterparts. It does not rewrite response text or prove retry success. The evidence comes from one anonymous, hash-bound Codex judge campaign and is not independent human, held-out classroom, adapter-quality, or unseen-output precision evidence; burden and fresh-package behavior remain separate gates."
+}
