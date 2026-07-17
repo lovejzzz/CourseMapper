@@ -135,7 +135,9 @@ import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.j
 // multiple ordered topics even when every resulting session title is unique.
 // 1.10.9 — generic resource labels such as “Course materials: Numbers, Age,
 // and Dates” no longer masquerade as instructor-named primary works.
-export const GRADER_VERSION = '1.10.9';
+// 1.10.10 — concrete classification cases written as legitimate MC sentence
+// completions count as applied reasoning without admitting bare recall stems.
+export const GRADER_VERSION = '1.10.10';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package

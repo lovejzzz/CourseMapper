@@ -57,6 +57,14 @@ const appliedFrameworkStems = [
   'A board member owns stock in a supplier but refuses to disclose it. What is the primary ethical issue?',
 ];
 
+const appliedClassificationCompletions = [
+  "In Pavlov's studies, the tone triggered salivation after repeated pairing with meat powder. At that point the tone is best labeled the",
+  'Taking aspirin removes a headache, making a person more likely to take aspirin next time. Removing the headache acts as',
+  'A trainer rewards a puppy immediately after it sits, and the puppy sits more often. This is an example of which conditioning process?',
+  'A dog stops salivating after the bell sounds many times without food. This decline is called',
+  'A trainer rewards a dolphin for closer approximations of a flip. This technique is called',
+];
+
 describe('quiz item depth', () => {
   it('extracts only multiple-choice stems from rendered quiz paragraphs', () => {
     const paragraphs = [
@@ -77,8 +85,11 @@ describe('quiz item depth', () => {
     for (const stem of appliedDisciplineStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     for (const stem of appliedOutcomeStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
     for (const stem of appliedFrameworkStems) expect(isAppliedQuizStem(stem), stem).toBe(true);
+    for (const stem of appliedClassificationCompletions) expect(isAppliedQuizStem(stem), stem).toBe(true);
     expect(isAppliedQuizStem('Which clef establishes the pitch reference point for a staff?')).toBe(false);
     expect(isAppliedQuizStem('Which ethical framework focuses on duties rather than consequences?')).toBe(false);
+    expect(isAppliedQuizStem("Bandura's four steps of successful modeling, in order, are")).toBe(false);
+    expect(isAppliedQuizStem("In operant conditioning, 'positive' and 'negative' refer to")).toBe(false);
     expect(
       isAppliedQuizStem(
         'A manager discovers falsified records and must choose whether to report them. Which ethical framework applies',
