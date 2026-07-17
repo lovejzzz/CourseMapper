@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { runGenomeLinker } from '../runGenomeLinker.js';
+import { describeGenomeLinkTelemetry, runGenomeLinker } from '../runGenomeLinker.js';
 import { createKernelLibrary } from '../kernelLibrary.js';
 import {
   LESSON_KERNEL_CACHE_KEY,
@@ -170,6 +170,47 @@ describe('runGenomeLinker', () => {
     expect(result.missingIndices).toEqual([0, 1]);
     expect(result.telemetry.resolvedFromGenome).toBe(0);
     expect(Object.keys(result.lessonContent)).toHaveLength(0);
+  });
+
+  it('rejects a Korean genome kernel from a Mandarin course before any surface is composed', () => {
+    const library = createKernelLibrary({ storage: memoryStorage() });
+    library.addKernel({
+      id: 'lang/greetings-and-introductions',
+      term: 'Greetings and Introductions',
+      aliases: ['say hello', 'introduce self'],
+      level: 'intro',
+      definition: {
+        text: 'Korean greetings use politeness levels and sentence endings that change with the social setting.',
+        tier: 1,
+      },
+      facts: [{ text: 'Korean greetings often change between formal, neutral, and casual settings.', tier: 1 }],
+      misconceptions: [{ text: 'One greeting works in every Korean setting.', tier: 1 }],
+      mcBank: [{
+        stem: 'Which feature changes a Korean greeting across social settings?',
+        options: ['Politeness level', 'Ink color', 'Page number', 'Weather'],
+        answerIndex: 0,
+        explanationFactRef: 0,
+      }],
+    });
+    const mandarinCourse = {
+      courseName: 'Elementary Mandarin Chinese I',
+      lessons: [{ title: 'Lesson 1: Greetings', sections: [{ topicSection: 'Say hello and introduce self' }] }],
+    };
+
+    const result = runGenomeLinker({
+      courseMap: mandarinCourse,
+      lessonIndices: [0],
+      library,
+      itemPlan,
+    });
+
+    expect(result.lessonContent).toEqual({});
+    expect(result.missingIndices).toEqual([0]);
+    expect(result.telemetry.languageIdentityRejects).toBe(1);
+    expect(result.glossary.some((entry) => entry.id === 'lang/greetings-and-introductions')).toBe(false);
+    expect(describeGenomeLinkTelemetry(result.telemetry, 1, ['lang-intro'])).toContain(
+      '1 cross-language link rejected',
+    );
   });
 });
 

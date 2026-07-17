@@ -19,6 +19,7 @@ import { composeLessonFromConcepts } from './composeLessonFromConcepts';
 import { auditPrerequisites, buildPrerequisiteJudgment } from './prerequisiteAudit';
 import { buildGlossaryGraph } from './glossaryGraph';
 import { buildArchetypeBridges } from './archetypeBridges';
+import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from '../languageIdentityGuard';
 
 function lessonIdFor(lessonIndex) {
   return `lesson-${lessonIndex + 1}`;
@@ -27,6 +28,14 @@ function lessonIdFor(lessonIndex) {
 function isGenomeBackedPayload(payload) {
   const source = String(payload?.conceptProvenance?.source || payload?.enrichmentSource || '').toLowerCase();
   return source.includes('genome');
+}
+
+function respectsCourseLanguage(courseIdentity, payload) {
+  const text = JSON.stringify(payload || {});
+  return (
+    !detectForeignLanguageTeachingContent({ courseIdentity, text }) &&
+    assessTargetLanguagePresence({ courseIdentity, text }).complete
+  );
 }
 
 export function describeGenomeLinkTelemetry(telemetry = {}, lessonCount = 0, shardIds = []) {
@@ -43,7 +52,10 @@ export function describeGenomeLinkTelemetry(telemetry = {}, lessonCount = 0, sha
       .map((id) => `'${id}'`)
       .join(', ')} loaded but 0 lesson-concept overlap — likely a subfield not yet covered)`;
   }
-  return `${telemetry.resolvedFromGenome || 0} genome + ${telemetry.resolvedFromCache || 0} cached (${telemetry.cachedGenomeBacked || 0} genome-backed) of ${lessonCount} lessons (${telemetry.conceptHits || 0} concepts, ${telemetry.citationsRendered || 0} citations, ${telemetry.bridgeCount || 0} bridges)${coverageNote}`;
+  const languageNote = telemetry.languageIdentityRejects
+    ? ` · ${telemetry.languageIdentityRejects} cross-language link${telemetry.languageIdentityRejects === 1 ? '' : 's'} rejected`
+    : '';
+  return `${telemetry.resolvedFromGenome || 0} genome + ${telemetry.resolvedFromCache || 0} cached (${telemetry.cachedGenomeBacked || 0} genome-backed) of ${lessonCount} lessons (${telemetry.conceptHits || 0} concepts, ${telemetry.citationsRendered || 0} citations, ${telemetry.bridgeCount || 0} bridges)${coverageNote}${languageNote}`;
 }
 
 // v0.14.1 (4.5): below this floor a genome match AUGMENTS the model instead
@@ -92,8 +104,35 @@ export function runGenomeLinker({
   };
 
   const index = library?.getIndex ? library.getIndex() : null;
-  const resolution = index ? resolveCourseConcepts(courseMap, index, { level }) : { perLesson: [] };
+  const rawResolution = index ? resolveCourseConcepts(courseMap, index, { level }) : { perLesson: [] };
+  const rejectedLanguageConceptIds = new Set();
+  // The model boundary already rejects cross-language teaching content, but
+  // the trusted genome used to bypass that firewall. Generic labels such as
+  // "Say hello" then matched Korean kernels inside a Mandarin course. Filter
+  // resolved references before composition AND before prerequisite/glossary
+  // projection so no secondary surface can reintroduce the rejected concept.
+  const perLesson = rawResolution.perLesson.map((entry) => {
+    const conceptRefs = (entry.conceptRefs || []).filter((ref) => {
+      const allowed = respectsCourseLanguage(courseMap?.courseName, library.getKernel(ref.id));
+      if (!allowed) rejectedLanguageConceptIds.add(ref.id);
+      return allowed;
+    });
+    return {
+      ...entry,
+      conceptRefs,
+      unresolved: conceptRefs.length === 0 ? entry.unresolved : [],
+    };
+  });
+  const lessonsWithHits = perLesson.filter((entry) => entry.conceptRefs.length > 0).length;
+  const resolution = {
+    ...rawResolution,
+    perLesson,
+    resolvedConceptCount: perLesson.reduce((sum, entry) => sum + entry.conceptRefs.length, 0),
+    lessonsWithHits,
+    hitRate: perLesson.length > 0 ? Number((lessonsWithHits / perLesson.length).toFixed(2)) : 0,
+  };
   const byLesson = new Map(resolution.perLesson.map((entry) => [entry.lessonIndex, entry]));
+  telemetry.languageIdentityRejects = rejectedLanguageConceptIds.size;
 
   // v0.14.1 (4.6): cross-lesson quiz dedupe. conceptResolver deliberately
   // allows the same concept in multiple lessons (coherence boost), but the
@@ -113,12 +152,13 @@ export function runGenomeLinker({
 
     // Tier 1 — own-kernel cache (same course regenerated/revised).
     const cached = cache?.get ? cache.get(lesson) : null;
-    if (cached) {
+    if (cached && respectsCourseLanguage(courseMap?.courseName, cached)) {
       lessonContent[lessonId] = { ...cached, enrichmentSource: cached.enrichmentSource || 'own-kernel-cache' };
       telemetry.resolvedFromCache += 1;
       if (isGenomeBackedPayload(cached)) telemetry.cachedGenomeBacked += 1;
       continue;
     }
+    if (cached) telemetry.languageIdentityRejects += 1;
 
     // Tier 2 — genome concept composition.
     const refs = byLesson.get(lessonIndex)?.conceptRefs || [];
