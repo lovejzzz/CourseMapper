@@ -1,0 +1,362 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-codex-training-decisions-v1",
+  "templateSha256": "80a999617c70a96505c1ce850912a272669159ca363fab363d0405956608abc0",
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "decisions": [
+    {
+      "pairId": "scion-0e7138dc9de8868f113d",
+      "scorecards": [
+        {
+          "position": 1,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2306d1b9141ce2b6cdc0",
+      "scorecards": [
+        {
+          "position": 1,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-39e553dbb451a5d0dd2d",
+      "scorecards": [
+        {
+          "position": 1,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-626f3d29147d92c1873f",
+      "scorecards": [
+        {
+          "position": 1,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-93756d0152e65bb889da",
+      "scorecards": [
+        {
+          "position": 1,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e4d36a735e3770349f40",
+      "scorecards": [
+        {
+          "position": 1,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-b1a4826f169b69cb36f1",
+      "scorecards": [
+        {
+          "position": 1,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-eb9c3e3578342afdf59d",
+      "scorecards": [
+        {
+          "position": 1,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-c43eeab2fcb1c71036b5",
+      "scorecards": [
+        {
+          "position": 1,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

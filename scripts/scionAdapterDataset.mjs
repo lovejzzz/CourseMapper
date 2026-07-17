@@ -10,23 +10,37 @@ import { sha256File } from './scionAdapterPackage.mjs';
 import { validateScionHeldoutBenchmark } from './scionAdapterPairedEvidence.mjs';
 import { deriveDeterministicContractEvidence } from '../src/lib/scionPreferenceGate.js';
 import { validateScionCodexTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
+import { scionSourceKernelSha256, scionSourceTaskSha256 } from './lib/scionSourceTaskIdentity.mjs';
 
-export const SCION_ADAPTER_DEFAULT_SOURCES = [
+const SCION_ADAPTER_NON_JUDGE_SOURCES = [
   'trellis/tendril/distill/data-g4-orpo/train.jsonl',
   'trellis/tendril/distill/data-g4-orpo/app-flywheel.jsonl',
   'evaluation/scion-reviewed-preferences.jsonl',
+];
+export const SCION_ADAPTER_LEGACY_SOURCES = [
+  ...SCION_ADAPTER_NON_JUDGE_SOURCES,
   'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl',
+];
+export const SCION_ADAPTER_DEFAULT_SOURCES = [
+  ...SCION_ADAPTER_NON_JUDGE_SOURCES,
+  'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47.jsonl',
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
 export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v1.json';
 const DEFAULT_SOURCES = SCION_ADAPTER_DEFAULT_SOURCES;
 const DEFAULT_HELDOUT_BENCHMARK = SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK;
-export const SCION_ORPO_TRAINING_FORMAT = Object.freeze({
+export const SCION_ORPO_TRAINING_FORMAT_V1 = Object.freeze({
   protocol: 'scion-orpo-conversations-v1',
   columns: Object.freeze(['chosen', 'rejected', 'provenance']),
   sequence: Object.freeze(['user', 'assistant']),
   promptIncludedInBothSequences: true,
+});
+export const SCION_ORPO_TRAINING_FORMAT = Object.freeze({
+  ...SCION_ORPO_TRAINING_FORMAT_V1,
+  protocol: 'scion-orpo-conversations-v2',
+  sourceGrounding: 'semantic-source-context-in-user-turn',
+  legacyFallback: 'row-prompt-only-for-non-source-grounded-evidence',
 });
 
 function normalize(value) {
@@ -80,9 +94,15 @@ export function computeScionAdapterDatasetIdentity(manifest) {
       instructorDomainCounts: manifest?.instructorDomainCounts,
       modelJudgeDomainCounts: manifest?.modelJudgeDomainCounts,
       domainGroupCounts: manifest?.domainGroupCounts,
+      domainTaskGroupCounts: manifest?.domainTaskGroupCounts,
+      domainSourceKernelCounts: manifest?.domainSourceKernelCounts,
       groupIdentity: manifest?.groupIdentity,
+      trainingTaskIdentity: manifest?.trainingTaskIdentity,
+      trainingSourceKernelIdentity: manifest?.trainingSourceKernelIdentity,
       splitIdentity: manifest?.splitIdentity,
       trainingFormat: manifest?.trainingFormat,
+      sourceGroundingPolicy: manifest?.sourceGroundingPolicy,
+      sourceLicensePolicy: manifest?.sourceLicensePolicy,
       gate: manifest?.gate,
       leakage: manifest?.leakage,
       files: manifest?.files,
@@ -131,6 +151,33 @@ function explicitGroupIdentity(row) {
   ).toLowerCase();
 }
 
+function trainingTaskGroup(row, domain, courseGroup) {
+  if (
+    normalize(row?.preferenceEvidence?.kind) !== 'single-model-judge-preference' ||
+    !row?.sourceContext ||
+    typeof row.sourceContext !== 'object' ||
+    Array.isArray(row.sourceContext)
+  ) {
+    return { value: `${domain}:${courseGroup}`, source: 'course-group' };
+  }
+  return {
+    value: `source-task:${scionSourceTaskSha256({ ...row, domain })}`,
+    source: 'source-task',
+  };
+}
+
+function trainingSourceKernel(row, domain) {
+  if (
+    normalize(row?.preferenceEvidence?.kind) !== 'single-model-judge-preference' ||
+    !row?.sourceContext ||
+    typeof row.sourceContext !== 'object' ||
+    Array.isArray(row.sourceContext)
+  ) {
+    return null;
+  }
+  return `source-kernel:${scionSourceKernelSha256({ ...row, domain })}`;
+}
+
 function splitForGroup(group) {
   const bucket = Number.parseInt(stableHash(group).slice(0, 8), 16) % 100;
   if (bucket < 10) return 'test';
@@ -151,9 +198,10 @@ function assignGroupSplits(entries) {
       return hashOrder || left.localeCompare(right);
     });
     if (groups.length >= 3) {
-      assignments.set(groups[0], 'test');
-      assignments.set(groups[1], 'valid');
-      for (const group of groups.slice(2)) assignments.set(group, 'train');
+      const heldoutGroups = groups.length >= 10 ? Math.max(1, Math.round(groups.length * 0.1)) : 1;
+      for (const group of groups.slice(0, heldoutGroups)) assignments.set(group, 'test');
+      for (const group of groups.slice(heldoutGroups, heldoutGroups * 2)) assignments.set(group, 'valid');
+      for (const group of groups.slice(heldoutGroups * 2)) assignments.set(group, 'train');
     } else {
       for (const group of groups) assignments.set(group, splitForGroup(group));
     }
@@ -199,6 +247,27 @@ function pairKind(row) {
   return '';
 }
 
+function sourceContextBindingIssues(row) {
+  if (normalize(row?.preferenceEvidence?.kind) !== 'single-model-judge-preference') return [];
+  const sourceContext = row?.sourceContext;
+  if (!sourceContext || typeof sourceContext !== 'object' || Array.isArray(sourceContext)) {
+    return ['missing-source-context'];
+  }
+  if (!normalize(sourceContext.kernelId)) return ['missing-source-kernel-id'];
+  if (!Array.isArray(sourceContext.claims) || sourceContext.claims.length === 0) {
+    return ['missing-source-claims'];
+  }
+  if (!Array.isArray(sourceContext.attribution) || sourceContext.attribution.length === 0) {
+    return ['missing-source-attribution'];
+  }
+  if (!normalize(sourceContext.license)) return ['missing-source-license'];
+  const expected = normalize(row?.preferenceEvidence?.sourceContextSha256);
+  if (!expected || expected !== stableHash(JSON.stringify(sourceContext))) {
+    return ['source-context-binding'];
+  }
+  return [];
+}
+
 function lessonValue(value) {
   const object = parsed(value);
   return object?.lessons?.[0] ?? object;
@@ -209,9 +278,28 @@ function trainingText(value) {
   return stableJson(value);
 }
 
-export function toScionOrpoTrainingRow(entry) {
+function sourceBoundTrainingPrompt(row) {
+  const sourceContext = row?.sourceContext;
+  const claims = Array.isArray(sourceContext?.claims) ? sourceContext.claims.filter((claim) => normalize(claim)) : [];
+  if (claims.length === 0) return null;
+  const semanticSourceContext = {
+    kernelId: sourceContext.kernelId,
+    term: sourceContext.term,
+    claims: sourceContext.claims,
+    attribution: sourceContext.attribution,
+    license: sourceContext.license,
+  };
+  return [
+    'Use only the supplied source context for factual content. Return only the requested JSON atom.',
+    trainingText(row?.prompt),
+    `Source context: ${JSON.stringify(semanticSourceContext)}`,
+  ].join('\n\n');
+}
+
+export function toScionOrpoTrainingRow(entry, { sourceBoundPrompt = true } = {}) {
   const row = entry?.row || entry;
-  const prompt = trainingText(row?.prompt);
+  const boundPrompt = sourceBoundPrompt ? sourceBoundTrainingPrompt(row) : null;
+  const prompt = boundPrompt || trainingText(row?.prompt);
   const sequence = (response) => [
     { role: 'user', content: prompt },
     { role: 'assistant', content: trainingText(response) },
@@ -230,6 +318,12 @@ export function toScionOrpoTrainingRow(entry) {
       pairKind: pairKind(row),
       preferenceEvidenceKind: normalize(row?.preferenceEvidence?.kind),
       preferenceEvidenceScope: normalize(row?.preferenceEvidence?.scope),
+      ...(boundPrompt
+        ? {
+            promptProtocol: 'source-bound-row-prompt-v1',
+            sourceContextSha256: stableHash(JSON.stringify(row.sourceContext)),
+          }
+        : {}),
     },
   };
 }
@@ -330,6 +424,10 @@ export async function buildScionAdapterDataset({
   researchMinimumPairs = 100,
   researchMinimumDomains = 4,
   researchMinimumGroupsPerDomain = 3,
+  minimumTaskGroupsPerDomain = 20,
+  minimumSourceKernelsPerDomain = 10,
+  researchMinimumTaskGroupsPerDomain = 10,
+  researchMinimumSourceKernelsPerDomain = 10,
   researchMinimumModelJudgePairs = 100,
   researchMinimumModelJudgeDomains = 4,
   researchMinimumModelJudgePairsPerDomain = 20,
@@ -337,7 +435,11 @@ export async function buildScionAdapterDataset({
   heldoutBenchmarkPath = DEFAULT_HELDOUT_BENCHMARK,
   generatedAt = new Date().toISOString(),
   semanticAdmission = true,
+  semanticProfile = 'legacy',
   allowFirstSentenceLexicalCue = semanticAdmission,
+  sourceBoundPrompt = true,
+  requireSourceBoundModelJudge = true,
+  legacyTrainingContract = false,
 } = {}) {
   const sourceReceipts = await Promise.all(sources.map(inspectDatasetSource));
   const loaded = (await Promise.all(sources.map(readJsonl))).flat();
@@ -347,11 +449,16 @@ export async function buildScionAdapterDataset({
   const quarantine = [];
   const seen = new Set();
   for (const entry of loaded) {
-    const admissionOptions = { semanticAdmission, allowFirstSentenceLexicalCue };
+    const admissionOptions = { semanticAdmission, semanticProfile, allowFirstSentenceLexicalCue };
     const auditedRow = withDerivedContractEvidence(entry.row, admissionOptions);
     const assessment = assessCorpusRow(auditedRow, entry.source, admissionOptions);
-    if (!assessment.eligible) {
-      quarantine.push({ source: entry.source, line: entry.line, issues: assessment.issues });
+    const sourceContextIssues = requireSourceBoundModelJudge ? sourceContextBindingIssues(auditedRow) : [];
+    if (!assessment.eligible || sourceContextIssues.length > 0) {
+      quarantine.push({
+        source: entry.source,
+        line: entry.line,
+        issues: [...assessment.issues, ...sourceContextIssues],
+      });
       continue;
     }
     const { domain, source: domainSource } = inferDomain(auditedRow, domainMap);
@@ -381,7 +488,11 @@ export async function buildScionAdapterDataset({
       continue;
     }
     seen.add(fingerprint);
-    const group = `${domain}:${groupIdentity}`;
+    const courseGroup = `${domain}:${groupIdentity}`;
+    const taskGroup = legacyTrainingContract
+      ? { value: courseGroup, source: 'legacy-course-group' }
+      : trainingTaskGroup(auditedRow, domain, groupIdentity);
+    const sourceKernel = legacyTrainingContract ? null : trainingSourceKernel(auditedRow, domain);
     const curatedRow = {
       ...auditedRow,
       context: {
@@ -396,7 +507,10 @@ export async function buildScionAdapterDataset({
       sourceIndex: sources.indexOf(entry.source),
       row: curatedRow,
       fingerprint,
-      group,
+      group: taskGroup.value,
+      taskGroupSource: taskGroup.source,
+      sourceKernel,
+      courseGroup,
       domain,
     });
   }
@@ -404,7 +518,7 @@ export async function buildScionAdapterDataset({
   const groupSplits = assignGroupSplits(eligible);
   for (const entry of eligible) entry.split = groupSplits.get(entry.group);
   const splitRows = { train: [], valid: [], test: [] };
-  for (const entry of eligible) splitRows[entry.split].push(toScionOrpoTrainingRow(entry));
+  for (const entry of eligible) splitRows[entry.split].push(toScionOrpoTrainingRow(entry, { sourceBoundPrompt }));
   const domains = [...new Set(eligible.map((entry) => entry.domain).filter((domain) => domain !== 'unknown'))].sort();
   const evidenceCounts = Object.fromEntries(
     [...new Set(eligible.map((entry) => normalize(entry.row?.preferenceEvidence?.kind) || 'missing'))]
@@ -416,6 +530,37 @@ export async function buildScionAdapterDataset({
   );
   const blindInstructorPairs = Number(evidenceCounts['blind-instructor-preference'] || 0);
   const singleModelJudgePairs = Number(evidenceCounts['single-model-judge-preference'] || 0);
+  const sourceBoundModelJudgePairs = eligible.filter(
+    (entry) =>
+      normalize(entry.row?.preferenceEvidence?.kind) === 'single-model-judge-preference' &&
+      sourceContextBindingIssues(entry.row).length === 0,
+  ).length;
+  const modelJudgeLicenses = eligible
+    .filter((entry) => normalize(entry.row?.preferenceEvidence?.kind) === 'single-model-judge-preference')
+    .map((entry) => normalize(entry.row?.sourceContext?.license) || 'missing');
+  const sourceLicenseCounts = Object.fromEntries(
+    [...new Set(modelJudgeLicenses)]
+      .sort()
+      .map((license) => [license, modelJudgeLicenses.filter((value) => value === license).length]),
+  );
+  const nonCommercialRows = modelJudgeLicenses.filter((license) =>
+    /(?:^|[-\s])NC(?:[-\s]|$)|noncommercial/i.test(license),
+  ).length;
+  const shareAlikeRows = modelJudgeLicenses.filter((license) =>
+    /(?:^|[-\s])SA(?:[-\s]|$)|share[-\s]?alike/i.test(license),
+  ).length;
+  const missingLicenseRows = Number(sourceLicenseCounts.missing || 0);
+  const sourceLicensePolicy = {
+    protocol: 'scion-source-license-policy-v1',
+    declaredRows: modelJudgeLicenses.length - missingLicenseRows,
+    missingRows: missingLicenseRows,
+    licenses: sourceLicenseCounts,
+    nonCommercialRows,
+    shareAlikeRows,
+    researchCompatible: missingLicenseRows === 0,
+    productionCompatible: missingLicenseRows === 0 && nonCommercialRows === 0 && shareAlikeRows === 0,
+    productionRule: 'noncommercial and share-alike source rows require replacement or explicit legal clearance',
+  };
   const instructorDomainCounts = Object.fromEntries(
     domains.map((domain) => [
       domain,
@@ -436,8 +581,12 @@ export async function buildScionAdapterDataset({
     ]),
   );
   const singleModelJudgeDomains = Object.values(modelJudgeDomainCounts).filter((count) => count > 0).length;
-  const groups = [...new Set(eligible.map((entry) => entry.group))];
+  const groups = [...new Set(eligible.map((entry) => entry.courseGroup))];
   const groupHashes = groups.map(stableHash).sort();
+  const taskGroups = [...new Set(eligible.map((entry) => entry.group))];
+  const taskGroupHashes = taskGroups.map(stableHash).sort();
+  const sourceKernels = [...new Set(eligible.map((entry) => entry.sourceKernel).filter(Boolean))];
+  const sourceKernelHashes = sourceKernels.map(stableHash).sort();
   const courseIdHashes = [...new Set(eligible.map((entry) => explicitGroupIdentity(entry.row)))].map(stableHash).sort();
   const splitGroups = Object.fromEntries(
     Object.keys(splitRows).map((split) => [
@@ -448,7 +597,21 @@ export async function buildScionAdapterDataset({
   const domainGroupCounts = Object.fromEntries(
     domains.map((domain) => [
       domain,
+      new Set(eligible.filter((entry) => entry.domain === domain).map((entry) => entry.courseGroup)).size,
+    ]),
+  );
+  const domainTaskGroupCounts = Object.fromEntries(
+    domains.map((domain) => [
+      domain,
       new Set(eligible.filter((entry) => entry.domain === domain).map((entry) => entry.group)).size,
+    ]),
+  );
+  const domainSourceKernelCounts = Object.fromEntries(
+    domains.map((domain) => [
+      domain,
+      new Set(
+        eligible.filter((entry) => entry.domain === domain && entry.sourceKernel).map((entry) => entry.sourceKernel),
+      ).size,
     ]),
   );
   const splitDomains = Object.fromEntries(
@@ -473,6 +636,8 @@ export async function buildScionAdapterDataset({
     pairs,
     domainCount,
     groupsPerDomain,
+    taskGroupsPerDomain,
+    sourceKernelsPerDomain,
     modelJudgePairs,
     modelJudgeDomains,
     modelJudgePairsPerDomain,
@@ -492,12 +657,29 @@ export async function buildScionAdapterDataset({
     for (const [domain, count] of Object.entries(domainGroupCounts)) {
       if (count < groupsPerDomain) issues.push(`domain-groups:${domain}:${count}<${groupsPerDomain}`);
     }
+    if (!legacyTrainingContract) {
+      const qualifiedDomains = Object.entries(modelJudgeDomainCounts)
+        .filter(([, count]) => count >= modelJudgePairsPerDomain)
+        .map(([domain]) => domain);
+      for (const domain of qualifiedDomains) {
+        const count = domainTaskGroupCounts[domain] || 0;
+        if (count < taskGroupsPerDomain) {
+          issues.push(`domain-task-groups:${domain}:${count}<${taskGroupsPerDomain}`);
+        }
+        const sourceKernelCount = domainSourceKernelCounts[domain] || 0;
+        if (sourceKernelCount < sourceKernelsPerDomain) {
+          issues.push(`domain-source-kernels:${domain}:${sourceKernelCount}<${sourceKernelsPerDomain}`);
+        }
+      }
+    }
     return { issues, qualifiedModelJudgeDomains };
   };
   const productionGate = profileGate({
     pairs: minimumPairs,
     domainCount: minimumDomains,
     groupsPerDomain: minimumGroupsPerDomain,
+    taskGroupsPerDomain: minimumTaskGroupsPerDomain,
+    sourceKernelsPerDomain: minimumSourceKernelsPerDomain,
     modelJudgePairs: minimumModelJudgePairs,
     modelJudgeDomains: minimumModelJudgeDomains,
     modelJudgePairsPerDomain: minimumModelJudgePairsPerDomain,
@@ -506,12 +688,26 @@ export async function buildScionAdapterDataset({
     pairs: researchMinimumPairs,
     domainCount: researchMinimumDomains,
     groupsPerDomain: researchMinimumGroupsPerDomain,
+    taskGroupsPerDomain: researchMinimumTaskGroupsPerDomain,
+    sourceKernelsPerDomain: researchMinimumSourceKernelsPerDomain,
     modelJudgePairs: researchMinimumModelJudgePairs,
     modelJudgeDomains: researchMinimumModelJudgeDomains,
     modelJudgePairsPerDomain: researchMinimumModelJudgePairsPerDomain,
   });
   const productionIssues = productionGate.issues;
   const researchIssues = researchGate.issues;
+  if (!legacyTrainingContract) {
+    if (sourceLicensePolicy.missingRows > 0) {
+      productionIssues.push(`source-license-missing:${sourceLicensePolicy.missingRows}`);
+      researchIssues.push(`source-license-missing:${sourceLicensePolicy.missingRows}`);
+    }
+    if (sourceLicensePolicy.nonCommercialRows > 0) {
+      productionIssues.push(`source-license-noncommercial:${sourceLicensePolicy.nonCommercialRows}`);
+    }
+    if (sourceLicensePolicy.shareAlikeRows > 0) {
+      productionIssues.push(`source-license-sharealike-review:${sourceLicensePolicy.shareAlikeRows}`);
+    }
+  }
   const status =
     productionIssues.length === 0
       ? 'ready'
@@ -560,6 +756,8 @@ export async function buildScionAdapterDataset({
       quarantined: quarantine.length,
       domains: domains.length,
       groups: groups.length,
+      ...(!legacyTrainingContract ? { trainingTaskGroups: taskGroups.length } : {}),
+      ...(!legacyTrainingContract ? { trainingSourceKernels: sourceKernels.length } : {}),
       train: splitRows.train.length,
       valid: splitRows.valid.length,
       test: splitRows.test.length,
@@ -570,20 +768,43 @@ export async function buildScionAdapterDataset({
       blindInstructorDomains,
       singleModelJudgePairs,
       singleModelJudgeDomains,
+      ...(!legacyTrainingContract ? { sourceBoundModelJudgePairs } : {}),
     },
     domains,
     evidenceCounts,
     instructorDomainCounts,
     modelJudgeDomainCounts,
     domainGroupCounts,
+    ...(!legacyTrainingContract ? { domainTaskGroupCounts } : {}),
+    ...(!legacyTrainingContract ? { domainSourceKernelCounts } : {}),
     groupIdentity: {
       algorithm: 'sha256-domain-colon-course-id',
       hashes: groupHashes,
       courseIdAlgorithm: 'sha256-course-id',
       courseIdHashes,
     },
+    ...(!legacyTrainingContract
+      ? {
+          trainingTaskIdentity: {
+            algorithm: 'sha256-source-task-or-course-group-v2',
+            hashes: taskGroupHashes,
+            sourceBoundGroups: new Set(
+              eligible.filter((entry) => entry.taskGroupSource === 'source-task').map((entry) => entry.group),
+            ).size,
+            courseFallbackGroups: new Set(
+              eligible.filter((entry) => entry.taskGroupSource === 'course-group').map((entry) => entry.group),
+            ).size,
+          },
+          trainingSourceKernelIdentity: {
+            algorithm: 'sha256-semantic-source-kernel-v1',
+            hashes: sourceKernelHashes,
+            groups: sourceKernels.length,
+          },
+        }
+      : {}),
+    ...(!legacyTrainingContract ? { sourceLicensePolicy } : {}),
     splitIdentity: {
-      strategy: 'domain-stratified-hash-v1',
+      strategy: legacyTrainingContract ? 'domain-stratified-hash-v1' : 'domain-stratified-source-task-hash-v2',
       groups: Object.fromEntries(
         Object.entries(splitGroups).map(([split, splitGroupValues]) => [
           split,
@@ -592,11 +813,23 @@ export async function buildScionAdapterDataset({
       ),
       domains: splitDomains,
     },
-    trainingFormat: SCION_ORPO_TRAINING_FORMAT,
+    trainingFormat: sourceBoundPrompt ? SCION_ORPO_TRAINING_FORMAT : SCION_ORPO_TRAINING_FORMAT_V1,
+    ...(!legacyTrainingContract
+      ? {
+          sourceGroundingPolicy: {
+            requiredForModelJudge: requireSourceBoundModelJudge,
+            promptEmbeddingEnabled: sourceBoundPrompt,
+            sourceBoundModelJudgePairs,
+            unboundAdmittedModelJudgePairs: singleModelJudgePairs - sourceBoundModelJudgePairs,
+          },
+        }
+      : {}),
     gate: {
       minimumPairs,
       minimumDomains,
       minimumGroupsPerDomain,
+      ...(!legacyTrainingContract ? { minimumTaskGroupsPerDomain } : {}),
+      ...(!legacyTrainingContract ? { minimumSourceKernelsPerDomain } : {}),
       primaryPreferenceEvidence: 'single-model-judge',
       minimumModelJudgePairs,
       minimumModelJudgeDomains,
@@ -607,6 +840,8 @@ export async function buildScionAdapterDataset({
           minimumPairs,
           minimumDomains,
           minimumGroupsPerDomain,
+          ...(!legacyTrainingContract ? { minimumTaskGroupsPerDomain } : {}),
+          ...(!legacyTrainingContract ? { minimumSourceKernelsPerDomain } : {}),
           minimumModelJudgePairs,
           minimumModelJudgeDomains,
           minimumModelJudgePairsPerDomain,
@@ -617,6 +852,8 @@ export async function buildScionAdapterDataset({
           minimumPairs: researchMinimumPairs,
           minimumDomains: researchMinimumDomains,
           minimumGroupsPerDomain: researchMinimumGroupsPerDomain,
+          ...(!legacyTrainingContract ? { minimumTaskGroupsPerDomain: researchMinimumTaskGroupsPerDomain } : {}),
+          ...(!legacyTrainingContract ? { minimumSourceKernelsPerDomain: researchMinimumSourceKernelsPerDomain } : {}),
           minimumModelJudgePairs: researchMinimumModelJudgePairs,
           minimumModelJudgeDomains: researchMinimumModelJudgeDomains,
           minimumModelJudgePairsPerDomain: researchMinimumModelJudgePairsPerDomain,
@@ -645,12 +882,16 @@ function parseArgs(argv) {
     minimumPairs: 3000,
     minimumDomains: 5,
     minimumGroupsPerDomain: 3,
+    minimumTaskGroupsPerDomain: 20,
+    minimumSourceKernelsPerDomain: 10,
     minimumModelJudgePairs: 100,
     minimumModelJudgeDomains: 5,
     minimumModelJudgePairsPerDomain: 20,
     researchMinimumPairs: 100,
     researchMinimumDomains: 4,
     researchMinimumGroupsPerDomain: 3,
+    researchMinimumTaskGroupsPerDomain: 10,
+    researchMinimumSourceKernelsPerDomain: 10,
     researchMinimumModelJudgePairs: 100,
     researchMinimumModelJudgeDomains: 4,
     researchMinimumModelJudgePairsPerDomain: 20,
@@ -664,7 +905,10 @@ function parseArgs(argv) {
     else if (arg === '--minimum-pairs') args.minimumPairs = Number(argv[++index]);
     else if (arg === '--minimum-domains') args.minimumDomains = Number(argv[++index]);
     else if (arg === '--minimum-groups-per-domain') args.minimumGroupsPerDomain = Number(argv[++index]);
-    else if (arg === '--minimum-model-judge-pairs') args.minimumModelJudgePairs = Number(argv[++index]);
+    else if (arg === '--minimum-task-groups-per-domain') args.minimumTaskGroupsPerDomain = Number(argv[++index]);
+    else if (arg === '--minimum-source-kernels-per-domain') {
+      args.minimumSourceKernelsPerDomain = Number(argv[++index]);
+    } else if (arg === '--minimum-model-judge-pairs') args.minimumModelJudgePairs = Number(argv[++index]);
     else if (arg === '--minimum-model-judge-domains') args.minimumModelJudgeDomains = Number(argv[++index]);
     else if (arg === '--minimum-model-judge-pairs-per-domain') {
       args.minimumModelJudgePairsPerDomain = Number(argv[++index]);
@@ -672,6 +916,10 @@ function parseArgs(argv) {
     else if (arg === '--research-minimum-domains') args.researchMinimumDomains = Number(argv[++index]);
     else if (arg === '--research-minimum-groups-per-domain') {
       args.researchMinimumGroupsPerDomain = Number(argv[++index]);
+    } else if (arg === '--research-minimum-task-groups-per-domain') {
+      args.researchMinimumTaskGroupsPerDomain = Number(argv[++index]);
+    } else if (arg === '--research-minimum-source-kernels-per-domain') {
+      args.researchMinimumSourceKernelsPerDomain = Number(argv[++index]);
     } else if (arg === '--research-minimum-model-judge-pairs') {
       args.researchMinimumModelJudgePairs = Number(argv[++index]);
     } else if (arg === '--research-minimum-model-judge-domains') {
@@ -681,8 +929,15 @@ function parseArgs(argv) {
     } else if (arg === '--domain-map') args.domainMapPath = argv[++index];
     else if (arg === '--heldout-benchmark') args.heldoutBenchmarkPath = argv[++index];
     else if (arg === '--generated-at') args.generatedAt = argv[++index];
-    else if (arg === '--allow-smoke') args.allowSmoke = true;
+    else if (arg === '--semantic-profile') {
+      args.semanticProfile = argv[++index];
+      if (!['legacy', 'strict'].includes(args.semanticProfile)) {
+        throw new Error(`Unknown semantic admission profile: ${args.semanticProfile}`);
+      }
+    } else if (arg === '--allow-smoke') args.allowSmoke = true;
     else if (arg === '--research') args.allowResearch = true;
+    else if (arg === '--legacy-source-prompt') args.sourceBoundPrompt = false;
+    else if (arg === '--allow-unbound-model-judge') args.requireSourceBoundModelJudge = false;
   }
   if (args.sources.length === 0) args.sources = DEFAULT_SOURCES;
   return args;

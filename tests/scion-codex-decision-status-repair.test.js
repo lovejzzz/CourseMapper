@@ -105,4 +105,26 @@ describe('Scion Codex decision status repair', () => {
       }),
     ).rejects.toThrow('without five complete numeric scores');
   });
+
+  it('records an already-canonical scored file without rewriting judgments', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-status-repair-test-'));
+    const decisionsDir = path.join(root, 'decisions');
+    await fs.mkdir(decisionsDir);
+    const before = scoredDecision();
+    before.decisions[0].scorecards.forEach((card) => {
+      card.evaluationStatus = 'scored';
+    });
+    const decisionFile = path.join(decisionsDir, 'chunk-01-decisions-a-b.json');
+    const beforeRaw = `${JSON.stringify(before, null, 2)}\n`;
+    await fs.writeFile(decisionFile, beforeRaw);
+
+    const { receipt } = await normalizeScionCodexDecisionStatuses({
+      decisionsDir,
+      receiptOutput: path.join(root, 'receipt.json'),
+      generatedAt: '2026-07-16T12:40:00.000Z',
+    });
+
+    expect(receipt).toMatchObject({ scorecardsVisited: 2, repairsApplied: 0 });
+    expect(await fs.readFile(decisionFile, 'utf8')).toBe(beforeRaw);
+  });
 });

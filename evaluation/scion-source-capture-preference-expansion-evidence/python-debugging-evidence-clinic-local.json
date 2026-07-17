@@ -1,0 +1,2136 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-python-debugging-evidence-clinic-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "Python Debugging Evidence Clinic, a six-session course in which students trace state changes, compare competing bug hypotheses, and choose the smallest diagnostic action justified by program evidence.",
+  "fileNames": [
+    "source-packet-5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90.json"
+  ],
+  "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Python Debugging Evidence Clinic\",\"sessions\":[{\"number\":1,\"title\":\"Variables and assignment\"},{\"number\":2,\"title\":\"Expressions and data types\"},{\"number\":3,\"title\":\"Conditionals and boolean logic\"},{\"number\":4,\"title\":\"While loops\"},{\"number\":5,\"title\":\"For loops and range\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"If `x = 10` is executed, what is the relationship between the variable `x` and the value `10`?\",\"op\":[\"A: `x` is a copy of `10`.\",\"B: `x` is a reference to the value `10`.\",\"C: `x` is mathematically equal to `10`.\",\"D: `x` is a name that refers to a stored value.\"],\"ai\":1,\"ex\":\"Option B is correct because the assignment operator binds the name on the left to the value produced on the right, and for objects, it binds the reference, meaning no copy is made. Option A is incorrect because assignment is not mathematical equality; it copies a value into a variable rather than a.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"If a statement sets a variable to a value using the assignment operator, what is the relationship between the name on the left and the value on the right?\",\"op\":[\"The name on the left is mathematically equal to the value on the right\",\"The name on the left is bound to the value on the right\",\"The name on the left is copied to the value on the right\",\"The name on the left is asserted to be equal to the value on the right\"],\"ai\":1,\"ex\":\"The name on the left is bound to the value on the right. Assignment is not mathematical equality; it copies a value into a variable rather than asserting two sides are equal.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Name referring to stored data\",\"df\":\"A label used to access a stored value in memory, such as `count` in a loop.\",\"eg\":\"If `data = [1, 2, 3]`, `data` is the name referring to the list stored in memory.\",\"mi\":\"Thinking the name itself is the stored value.\",\"cx\":\"The name is a reference to the stored value.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Operator binding mechanism\",\"df\":\"The symbol used to link a variable name to a value during assignment.\",\"eg\":\"The `=` symbol in `y = 5` is the operator binding mechanism.\",\"mi\":\"Thinking the operator performs mathematical equality.\",\"cx\":\"The assignment operator binds the name on the left to the value on the right.\",\"sourceFactIndexes\":[1,2]}]},\"lesson-2\":{\"quizItems\":[],\"keyTerms\":[{\"tr\":\"Type promotion\",\"df\":\"The automatic process where the interpreter changes a value's data type to a more general type within a mixed expression.\",\"eg\":\"In the expression `5 + 3.1`, the integer 5 is implicitly converted to a float to allow addition.\",\"mi\":\"Believing that all operations maintain the original data type of the operands.\",\"cx\":\"The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.\",\"sourceFactIndexes\":[1]},{\"tr\":\"Integer truncation\",\"df\":\"The action taken by the `int()` function to convert a value by removing its fractional part.\",\"eg\":\"Applying `int(3.9)` yields 3, discarding the .9.\",\"mi\":\"Assuming that casting a float to an integer always rounds the number to the nearest whole number.\",\"cx\":\"int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.\",\"sourceFactIndexes\":[2]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"Which statement describes the behavior of an if statement?\",\"op\":[\"An if statement runs its body only when the condition is true\",\"An if statement runs its body only when the condition is false\",\"An if statement runs its body when the condition is true or false\",\"An if statement skips its body when the condition is true\"],\"ai\":1,\"ex\":\"An if statement runs its body only when the condition is true. This is because the if statement runs its body only when the condition is true.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Control structure for conditional execution\",\"df\":\"A block of code executed based on a boolean test.\",\"eg\":\"An if statement executes code only if a variable is greater than ten.\",\"mi\":\"Thinking the code always runs the 'if' block regardless of the test result.\",\"cx\":\"The block runs only when the test evaluates to true.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Compound logical expression\",\"df\":\"A combination of multiple conditions linked by operators.\",\"eg\":\"Using 'and' to check if a user is logged in AND has admin rights.\",\"mi\":\"Treating each condition as an independent statement rather than a single compound test.\",\"cx\":\"It evaluates the combined truth value of all linked conditions.\",\"sourceFactIndexes\":[0,3]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"If the loop expression is false, what occurs?\",\"op\":[\"The loop body runs again\",\"The loop runs forever\",\"The loop terminates\",\"The loop condition is re-checked before the body runs\"],\"ai\":2,\"ex\":\"If the loop expression is false, the loop terminates. This is the condition for loop termination.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"While loops\",\"df\":\"A control structure that repeats a block of code based on a condition.\",\"eg\":\"while x < 10: print(x)\",\"mi\":\"A loop that only checks the condition once before starting.\",\"cx\":\"A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Infinite loop\",\"df\":\"A while loop whose condition never becomes false.\",\"eg\":\"while True: pass\",\"mi\":\"A loop that always terminates after one iteration.\",\"cx\":\"A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition.\",\"sourceFactIndexes\":[3]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"If a range function is used with a for loop, what is the resulting sequence of integers?\",\"op\":[\"It yields 0 through n.\",\"It yields 1 through n.\",\"It yields 0 through n-1.\",\"It yields n through 2n.\"],\"ai\":3,\"ex\":\"The correct choice is that it yields 0 through n-1. The most plausible misconception is that it yields 0 through n, which is incorrect because the range function excludes the upper bound.\",\"sourceFactIndexes\":[3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Container iteration mechanism\",\"df\":\"The process where a loop variable is assigned an individual item from a collection.\",\"eg\":\"Iterating over a list to access each name.\",\"mi\":\"Assuming the loop variable holds the entire list structure.\",\"cx\":\"The loop variable is bound to one element at a time.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Range function output\",\"df\":\"The sequence of integers generated by the range function used in conjunction with a loop.\",\"eg\":\"Using range(5) to loop five times.\",\"mi\":\"Believing the range function includes the final number.\",\"cx\":\"range(n) yields 0 through n-1.\",\"sourceFactIndexes\":[3]}]}}}}",
+  "savedAt": "2026-07-16T20:01:26.989Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-preference-expansion-v0.16.47.json",
+    "campaignManifestSha256": "77cd0f41c9af2be733d987e0d429720e28aec3ca931ce4902ea9d700fbd44e70",
+    "promptSetSha256": "4377647464125077c70edf29659853b6faaf0e3efad4d2b6b0a051fe0cd4a975",
+    "courseInputSha256": "845468d93e2fb1bdfd2ac7c5d5b685ddb522145a1ac313fc2cbd63d28070204b",
+    "courseGroupId": "python-debugging-evidence-clinic",
+    "courseGroupSha256": "a57b8b121bb7e6a648ad18f451be33b8830a4062aecaa167f52ddc58adc0e987",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/cs-intro.json",
+      "sourceArtifactSha256": "fbfb087cd78092d0a6869b28435a2eebb5bebc809a1cb38bfcfccfe971310acd",
+      "kernels": [
+        {
+          "id": "cs/variables",
+          "term": "Variables and assignment",
+          "definition": "A variable is a name that refers to a stored value; the assignment operator = binds the name on the left to the value produced on the right (for objects it binds the reference, so no copy is made).",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#1.3",
+            "loc": "1.3",
+            "quote": "Variables allow programs to refer to values using names rather than memory locations"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A statement sets a variable to a value using the assignment operator (=), with the name on the left and the value on the right.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#1.3",
+                "loc": "1.3",
+                "quote": "A statement can set a variable to a value using the assignment operator (=)"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Assignment is not mathematical equality — = copies a value into a variable rather than asserting two sides are equal.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#1.3",
+                "loc": "1.3",
+                "quote": "Note that this is different from the equal sign of mathematics"
+              }
+            },
+            {
+              "index": 2,
+              "text": "A variable name may contain letters, digits, and underscores and be any length, but cannot start with a digit.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#1.3",
+                "loc": "1.3",
+                "quote": "A variable name can consist of letters, digits, and underscores and be of any length"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Variable names are case-sensitive, so total and Total are two different variables.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#1.3",
+                "loc": "1.3",
+                "quote": "Also, letter case matters"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §1.3 Variables"
+          ]
+        },
+        {
+          "id": "cs/expressions-and-types",
+          "term": "Expressions and data types",
+          "definition": "Every Python value has a data type (such as int, float, or str); expressions combine values, and conversion functions move a value from one type to another.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#2.2",
+            "loc": "2.2",
+            "quote": "explicit type conversion to convert one data type to another"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#2.2",
+                "loc": "2.2",
+                "quote": "The Python interpreter uses implicit type conversion to automatically convert one data type to another"
+              }
+            },
+            {
+              "index": 1,
+              "text": "int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#2.2",
+                "loc": "2.2",
+                "quote": "int() converts a data type to an integer. Any fractional part is removed"
+              }
+            },
+            {
+              "index": 2,
+              "text": "True division (/) converts numbers to floats before dividing and always returns a float.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#2.5",
+                "loc": "2.5",
+                "quote": "True division (/) converts numbers to floats before dividing"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Floor division (//) computes the whole-number quotient, discarding the remainder.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#2.5",
+                "loc": "2.5",
+                "quote": "Floor division (//) computes the quotient, or the number of times divided"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §2.2 Type conversion; §2.5 Dividing integers"
+          ]
+        },
+        {
+          "id": "cs/conditionals",
+          "term": "Conditionals and boolean logic",
+          "definition": "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#4.2",
+            "loc": "4.2",
+            "quote": "When an if-else statement is executed, one and only one of the branches is taken"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#4.2",
+                "loc": "4.2",
+                "quote": "If the condition is true, the body is executed. If the condition is false, the body is not executed"
+              }
+            },
+            {
+              "index": 1,
+              "text": "An else clause holds statements that run when the if condition is false.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#4.2",
+                "loc": "4.2",
+                "quote": "An else statement is used with an if statement and contains a body of statements that is executed when the if statement's condition is false"
+              }
+            },
+            {
+              "index": 2,
+              "text": "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#4.3",
+                "loc": "4.3",
+                "quote": "The and operator takes two condition operands and returns True if both conditions are true"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+          ]
+        },
+        {
+          "id": "cs/while-loops",
+          "term": "While loops",
+          "definition": "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#5.1",
+            "loc": "5.1",
+            "quote": "A while loop is a code construct that runs a set of statements, known as the loop body, while a given condition, known as the loop expression, is true"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "After each pass through the body, the loop expression is evaluated again to decide whether to continue.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.1",
+                "loc": "5.1",
+                "quote": "At each iteration, once the loop statement is executed, the loop expression is evaluated again"
+              }
+            },
+            {
+              "index": 1,
+              "text": "If the loop expression is true, the body runs again; if it is false, the loop terminates.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.1",
+                "loc": "5.1",
+                "quote": "If true, the loop body will execute at least one more time. If false, the loop's execution will terminate"
+              }
+            },
+            {
+              "index": 2,
+              "text": "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.1",
+                "loc": "5.1",
+                "quote": "the loop body must make progress toward ending the condition"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §5.1 While loop"
+          ]
+        },
+        {
+          "id": "cs/for-loops",
+          "term": "For loops and range",
+          "definition": "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#5.2",
+            "loc": "5.2",
+            "quote": "A for loop iterates over all elements in a container"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A container can be a range of numbers, a string of characters, or a list of values.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.2",
+                "loc": "5.2",
+                "quote": "In Python, a container can be a range of numbers, a string of characters, or a list of values"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The loop retrieves the objects of a container one at a time.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.2",
+                "loc": "5.2",
+                "quote": "an iterative loop can be designed to retrieve objects one at a time"
+              }
+            },
+            {
+              "index": 2,
+              "text": "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#5.2",
+                "loc": "5.2",
+                "quote": "The range() function produces a sequence of integers"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §5.2 For loop"
+          ]
+        },
+        {
+          "id": "cs/functions",
+          "term": "Functions and scope",
+          "definition": "A function is a named, reusable block of code defined with def that runs only when it is called; variables created inside it are local to that call.",
+          "definitionAnchor": {
+            "src": "openstax:introduction-python-programming#6.1",
+            "loc": "6.1",
+            "quote": "A function is a named, reusable block of code that performs a task when called"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A function is defined with the def keyword, a name, parentheses, and a colon, with an indented body.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#6.1",
+                "loc": "6.1",
+                "quote": "A function is defined using the def keyword"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A variable's scope is the part of the program where it can be accessed.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#6.3",
+                "loc": "6.3",
+                "quote": "A variable's scope is the part of a program where the variable can be accessed"
+              }
+            },
+            {
+              "index": 2,
+              "text": "A variable created inside a function has local scope and cannot be accessed outside the function.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#6.3",
+                "loc": "6.3",
+                "quote": "A variable created within a function has local scope and only exists within the function"
+              }
+            },
+            {
+              "index": 3,
+              "text": "A variable created outside any function has global scope and can be accessed anywhere in the program.",
+              "anchor": {
+                "src": "openstax:introduction-python-programming#6.3",
+                "loc": "6.3",
+                "quote": "A variable created outside of a function has global scope and can be accessed anywhere in the program"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Introduction to Python Programming, §6.1 Defining functions; §6.3 Variable scope"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-16T20:01:26.989Z",
+    "admittedPromptIds": [
+      "python-debugging-evidence-clinic:cs/variables",
+      "python-debugging-evidence-clinic:cs/expressions-and-types",
+      "python-debugging-evidence-clinic:cs/conditionals",
+      "python-debugging-evidence-clinic:cs/while-loops",
+      "python-debugging-evidence-clinic:cs/for-loops"
+    ],
+    "rejectedPromptIds": [
+      "python-debugging-evidence-clinic:cs/functions"
+    ],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/variables",
+          "kernelId": "cs/variables",
+          "promptSha256": "a51661600c8559039be3b23ad8a2e94fd9effd92042934f1b28a83e57c3a5da2",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If `x = 10` is executed, what is the relationship between the variable `x` and the value `10`?",
+                "op": [
+                  "A: `x` is a copy of `10`.",
+                  "B: `x` is a reference to the value `10`.",
+                  "C: `x` is mathematically equal to `10`.",
+                  "D: `x` is a name that refers to a stored value."
+                ],
+                "ai": 1,
+                "ex": "Option B is correct because the assignment operator binds the name on the left to the value produced on the right, and for objects, it binds the reference, meaning no copy is made. Option A is incorrect because assignment is not mathematical equality; it copies a value into a variable rather than a.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "Which statement accurately describes the naming convention for a variable?",
+                "op": [
+                  "A: Variable names must start with a letter.",
+                  "B: Variable names are case-sensitive.",
+                  "C: Variable names cannot contain underscores.",
+                  "D: Variable names must be the same length as the value."
+                ],
+                "ai": 3,
+                "ex": "Option B is correct because variable names are case-sensitive. Option A is incorrect because a variable name cannot start with a digit. Option C is incorrect because variable names can contain underscores. Option D is incorrect because variable names can be any length.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Name referring to stored data",
+                "df": "A label used to access a stored value in memory, such as `count` in a loop.",
+                "eg": "If `data = [1, 2, 3]`, `data` is the name referring to the list stored in memory.",
+                "mi": "Thinking the name itself is the stored value.",
+                "cx": "The name is a reference to the stored value.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Operator binding mechanism",
+                "df": "The symbol used to link a variable name to a value during assignment.",
+                "eg": "The `=` symbol in `y = 5` is the operator binding mechanism.",
+                "mi": "Thinking the operator performs mathematical equality.",
+                "cx": "The assignment operator binds the name on the left to the value on the right.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "a9b7903175d7b43773cbb84c2509514435886bd26b15f3092b555ff115d4e3af",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If `x = 10` is executed, what is the relationship between the variable `x` and the value `10`?",
+                "op": [
+                  "A: `x` is a copy of `10`.",
+                  "B: `x` is a reference to the value `10`.",
+                  "C: `x` is mathematically equal to `10`.",
+                  "D: `x` is a name that refers to a stored value."
+                ],
+                "ai": 1,
+                "ex": "Option B is correct because the assignment operator binds the name on the left to the value produced on the right, and for objects, it binds the reference, meaning no copy is made. Option A is incorrect because assignment is not mathematical equality; it copies a value into a variable rather than a.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Name referring to stored data",
+                "df": "A label used to access a stored value in memory, such as `count` in a loop.",
+                "eg": "If `data = [1, 2, 3]`, `data` is the name referring to the list stored in memory.",
+                "mi": "Thinking the name itself is the stored value.",
+                "cx": "The name is a reference to the stored value.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Operator binding mechanism",
+                "df": "The symbol used to link a variable name to a value during assignment.",
+                "eg": "The `=` symbol in `y = 5` is the operator binding mechanism.",
+                "mi": "Thinking the operator performs mathematical equality.",
+                "cx": "The assignment operator binds the name on the left to the value on the right.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "e9dfd57087bdb4f4d9d4b1575a78ee72fc474f6521d2e8aca077d4b84174824b",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-explanation-key-conflict"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:51:28.343Z",
+          "durationMs": 15771
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/expressions-and-types",
+          "kernelId": "cs/expressions-and-types",
+          "promptSha256": "9695209e2383f4de3611880a97fc98b690b5713661500eb06b962ab848f246ba",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the result of the expression `int(3.9)`?",
+                "op": [
+                  "3.9 (Claim 0)",
+                  "3 (Claim 2)",
+                  "3.9 (Claim 3)",
+                  "3.9 (Claim 1)"
+                ],
+                "ai": 0,
+                "ex": "The correct answer is 3 because the `int()` function converts the value to an integer and removes any fractional part (Claim 2). The most plausible misconception is choosing 3.9, which ignores the explicit type conversion performed by the function. Claim 0 states that expressions combine values and ",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "If you perform the division `5 / 2` in Python, what data type is the result?",
+                "op": [
+                  "int (Claim 4)",
+                  "float (Claim 3)",
+                  "int (Claim 2)",
+                  "str (Claim 0)"
+                ],
+                "ai": 1,
+                "ex": "The correct answer is float because true division (/) converts numbers to floats before dividing and always returns a float (Claim 3). The most plausible misconception is choosing int, which would be the result of floor division (//) (Claim 4). Claim 4 specifies that floor division computes the ",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Type promotion",
+                "df": "The automatic process where the interpreter changes a value's data type to a more general type within a mixed expression.",
+                "eg": "In the expression `5 + 3.1`, the integer 5 is implicitly converted to a float to allow addition.",
+                "mi": "Believing that all operations maintain the original data type of the operands.",
+                "cx": "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Integer truncation",
+                "df": "The action taken by the `int()` function to convert a value by removing its fractional part.",
+                "eg": "Applying `int(3.9)` yields 3, discarding the .9.",
+                "mi": "Assuming that casting a float to an integer always rounds the number to the nearest whole number.",
+                "cx": "int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "1e96727430fc436e69e25d62760ae7eb93420457542815b5928090e7e50e428b",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Type promotion",
+                "df": "The automatic process where the interpreter changes a value's data type to a more general type within a mixed expression.",
+                "eg": "In the expression `5 + 3.1`, the integer 5 is implicitly converted to a float to allow addition.",
+                "mi": "Believing that all operations maintain the original data type of the operands.",
+                "cx": "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Integer truncation",
+                "df": "The action taken by the `int()` function to convert a value by removing its fractional part.",
+                "eg": "Applying `int(3.9)` yields 3, discarding the .9.",
+                "mi": "Assuming that casting a float to an integer always rounds the number to the nearest whole number.",
+                "cx": "int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "161339d795a4ae41b185533995f78f8cfa68eafe200f0f81bf261d95c6681e40",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-0-explanation-key-conflict",
+              "mc-1-truncated-explanation",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:51:44.115Z",
+          "durationMs": 9595
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/conditionals",
+          "kernelId": "cs/conditionals",
+          "promptSha256": "e026b75f77f99d8d66e7382448ff10acdfb8a1a28f2d120ba72468ced33470b1",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Given an if-else structure, which statement describes the execution flow when the condition is false?",
+                "op": [
+                  "index: 1",
+                  "index: 2",
+                  "index: 0",
+                  "index: 3"
+                ],
+                "ai": 0,
+                "ex": "The if statement runs its body only when the condition is true, and skips it when the condition is false. The most plausible misconception is selecting the 'if' block as the execution path when the condition is false, which contradicts the rule that the body is skipped when the condition is false.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "When using boolean operators, what is the result of an 'or' operation on two conditions?",
+                "op": [
+                  "index: 3",
+                  "index: 0",
+                  "index: 2",
+                  "index: 1"
+                ],
+                "ai": 3,
+                "ex": "and returns True if either is true; or returns True if either is true; not inverts a single condition. The most plausible misconception is selecting the result of an 'and' operation, which requires both conditions to be true, rather than the inclusive nature of the 'or' operator.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Control structure for conditional execution",
+                "df": "A block of code executed based on a boolean test.",
+                "eg": "An if statement executes code only if a variable is greater than ten.",
+                "mi": "Thinking the code always runs the 'if' block regardless of the test result.",
+                "cx": "The block runs only when the test evaluates to true.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Compound logical expression",
+                "df": "A combination of multiple conditions linked by operators.",
+                "eg": "Using 'and' to check if a user is logged in AND has admin rights.",
+                "mi": "Treating each condition as an independent statement rather than a single compound test.",
+                "cx": "It evaluates the combined truth value of all linked conditions.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "a49c943a5816551558dbe3322044e3a0298beebc51134f7cc48878c8ccf00de5",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Control structure for conditional execution",
+                "df": "A block of code executed based on a boolean test.",
+                "eg": "An if statement executes code only if a variable is greater than ten.",
+                "mi": "Thinking the code always runs the 'if' block regardless of the test result.",
+                "cx": "The block runs only when the test evaluates to true.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Compound logical expression",
+                "df": "A combination of multiple conditions linked by operators.",
+                "eg": "Using 'and' to check if a user is logged in AND has admin rights.",
+                "mi": "Treating each condition as an independent statement rather than a single compound test.",
+                "cx": "It evaluates the combined truth value of all linked conditions.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "7a3bca97c4399531ac2bc01f1c389548a680ea7ad352222871bc48b358154add",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-placeholder-options",
+              "mc-1-placeholder-options",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:51:53.715Z",
+          "durationMs": 8818
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/while-loops",
+          "kernelId": "cs/while-loops",
+          "promptSha256": "ac5682d6f5cc6a1c2d8ba9a9afe5171da6a2489342998cbb0817257079774365",
+          "response": {
+            "mcItems": [
+              {
+                "q": "When analyzing a while loop, which claim describes the process of determining whether to continue the loop's execution?",
+                "op": [
+                  "A. The loop body executes until the condition becomes false.",
+                  "B. The loop condition is re-evaluated after each pass through the body.",
+                  "C. The loop terminates immediately if the condition is false.",
+                  "D. The body runs repeatedly as long as the condition remains true."
+                ],
+                "ai": 1,
+                "ex": "Option B is correct because claim 1 states that after each pass through the body, the loop expression is evaluated again to decide whether to continue. Option D is a misconception because it implies the condition is only checked once per iteration, whereas claim 1 specifies re-checking before each *",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "If a while loop condition never becomes false, what must be true about the loop's body execution?",
+                "op": [
+                  "A. The loop terminates because the condition is always true.",
+                  "B. The body must make progress toward ending the condition.",
+                  "C. The loop runs forever because the condition is always true.",
+                  "D. The loop condition is re-evaluated before every single iteration."
+                ],
+                "ai": 3,
+                "ex": "Option B is correct because claim 3 states that a loop whose condition never becomes false runs forever, and the body must make progress toward ending the condition. Option C is a misconception because it incorrectly states the loop runs forever simply because the condition is true; claim 3 requires",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Loop control mechanism",
+                "df": "The structure that dictates the repetition of a block of code.",
+                "eg": "A while loop that continues as long as a counter is less than ten.",
+                "mi": "Thinking the loop only checks the condition once at the very beginning.",
+                "cx": "The structure that dictates the repetition of a block of code.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Loop termination criteria",
+                "df": "The specific state of the loop expression that causes it to stop.",
+                "eg": "A while loop stops when the variable reaches its maximum allowed value.",
+                "mi": "Assuming the loop stops only when the body executes a specific command.",
+                "cx": "The specific state of the loop expression that causes it to stop.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "e9a9d24cc3864ff102b5ca6d8cc5143041dabf3898bd67b8355ca5b07a97ed47",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-1-truncated-explanation",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:52:02.533Z",
+          "durationMs": 9616
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/for-loops",
+          "kernelId": "cs/for-loops",
+          "promptSha256": "58d42f4535d4c9234cf8e0480f24d97ab52111c59b97f1f64f674328b4f27fbf",
+          "response": {
+            "mcItems": [
+              {
+                "q": "When a for loop iterates over a list, what is the fundamental action performed by the loop variable?",
+                "op": [
+                  "It binds the variable to the entire list at once.",
+                  "It retrieves the objects of the container one at a time.",
+                  "It produces a sequence of integers.",
+                  "It repeats the body a fixed number of times."
+                ],
+                "ai": 2,
+                "ex": "The correct choice is that the loop retrieves the objects of a container one at a time. The most plausible misconception is that the loop binds the variable to the entire list at once, which is incorrect because the loop operates element by element.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "If a range function is used with a for loop, what is the resulting sequence of integers?",
+                "op": [
+                  "It yields 0 through n.",
+                  "It yields 1 through n.",
+                  "It yields 0 through n-1.",
+                  "It yields n through 2n."
+                ],
+                "ai": 3,
+                "ex": "The correct choice is that it yields 0 through n-1. The most plausible misconception is that it yields 0 through n, which is incorrect because the range function excludes the upper bound.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Container iteration mechanism",
+                "df": "The process where a loop variable is assigned an individual item from a collection.",
+                "eg": "Iterating over a list to access each name.",
+                "mi": "Assuming the loop variable holds the entire list structure.",
+                "cx": "The loop variable is bound to one element at a time.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Range function output",
+                "df": "The sequence of integers generated by the range function used in conjunction with a loop.",
+                "eg": "Using range(5) to loop five times.",
+                "mi": "Believing the range function includes the final number.",
+                "cx": "range(n) yields 0 through n-1.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "47c147d305e52b6b8876009104b4cf28d170b7d5c285c673b37080dcff777a21",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If a range function is used with a for loop, what is the resulting sequence of integers?",
+                "op": [
+                  "It yields 0 through n.",
+                  "It yields 1 through n.",
+                  "It yields 0 through n-1.",
+                  "It yields n through 2n."
+                ],
+                "ai": 3,
+                "ex": "The correct choice is that it yields 0 through n-1. The most plausible misconception is that it yields 0 through n, which is incorrect because the range function excludes the upper bound.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Container iteration mechanism",
+                "df": "The process where a loop variable is assigned an individual item from a collection.",
+                "eg": "Iterating over a list to access each name.",
+                "mi": "Assuming the loop variable holds the entire list structure.",
+                "cx": "The loop variable is bound to one element at a time.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Range function output",
+                "df": "The sequence of integers generated by the range function used in conjunction with a loop.",
+                "eg": "Using range(5) to loop five times.",
+                "mi": "Believing the range function includes the final number.",
+                "cx": "range(n) yields 0 through n-1.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "88ecff718fe8869b97b7098391264661b93c2ab50fc9d752ac35ab6f477a3013",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-explanation-key-conflict"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:52:12.150Z",
+          "durationMs": 6980
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/functions",
+          "kernelId": "cs/functions",
+          "promptSha256": "91020399bdac25aa35f353dfee01fe63427eed044f4848bc85fd7e2a265c4a05",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If a variable is created inside a function, where is its scope?",
+                "op": [
+                  "Global scope",
+                  "Local scope",
+                  "Program scope",
+                  "Module scope"
+                ],
+                "ai": 3,
+                "ex": "The correct choice is local scope because variables created inside a function have local scope and cannot be accessed outside the function. The most plausible misconception is choosing global scope, which is incorrect because variables created inside a function are local to that call.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "q": "Where can a variable created outside any function be accessed?",
+                "op": [
+                  "Only within the function",
+                  "Anywhere in the program",
+                  "Only in the module",
+                  "Only in the current call"
+                ],
+                "ai": 2,
+                "ex": "The correct choice is anywhere in the program because a variable created outside any function has global scope and can be accessed anywhere in the program. The most plausible misconception is choosing only within the function, which is incorrect because variables outside functions have global scope.",
+                "sourceFactIndexes": [
+                  2,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Named code block execution",
+                "df": "A named, reusable block of code defined with def that runs only when it is called.",
+                "eg": "Defining a function using def.",
+                "mi": "Thinking a function runs automatically upon definition.",
+                "cx": "A function is a named, reusable block of code defined with def that runs only when it is called.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Variable accessibility region",
+                "df": "The part of the program where a variable can be accessed.",
+                "eg": "Checking if a variable is accessible inside or outside a function.",
+                "mi": "Assuming all variables are accessible everywhere in the program.",
+                "cx": "A variable's scope is the part of the program where it can be accessed.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "d4e5708632c525d1792eb015f54afb27ce816c9a068677e649f5661db021419b",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-explanation-key-conflict",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T19:52:19.131Z",
+          "durationMs": 6545
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/variables",
+          "kernelId": "cs/variables",
+          "promptSha256": "a51661600c8559039be3b23ad8a2e94fd9effd92042934f1b28a83e57c3a5da2",
+          "generationPromptSha256": "b97d0dbfe6629278d2f404796de057e9f94a3487df458a3d6f3a78105d514826",
+          "rawCallSha256": "0ae07f3952cfda43a9921dab55b476d33ff232934018ef6f15d59b1e8a906a78",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If a statement sets a variable to a value using the assignment operator, what is the relationship between the name on the left and the value on the right?",
+                "op": [
+                  "The name on the left is mathematically equal to the value on the right",
+                  "The name on the left is bound to the value on the right",
+                  "The name on the left is copied to the value on the right",
+                  "The name on the left is asserted to be equal to the value on the right"
+                ],
+                "ai": 1,
+                "ex": "The name on the left is bound to the value on the right. Assignment is not mathematical equality; it copies a value into a variable rather than asserting two sides are equal.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "d6a28c8bd6341dd703bd0f0b043f0729029ad69982ff09fbc1c8f9a42b4cee55",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If a statement sets a variable to a value using the assignment operator, what is the relationship between the name on the left and the value on the right?",
+                "op": [
+                  "The name on the left is mathematically equal to the value on the right",
+                  "The name on the left is bound to the value on the right",
+                  "The name on the left is copied to the value on the right",
+                  "The name on the left is asserted to be equal to the value on the right"
+                ],
+                "ai": 1,
+                "ex": "The name on the left is bound to the value on the right. Assignment is not mathematical equality; it copies a value into a variable rather than asserting two sides are equal.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "d6a28c8bd6341dd703bd0f0b043f0729029ad69982ff09fbc1c8f9a42b4cee55",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:00:55.240Z",
+          "durationMs": 8747,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/expressions-and-types",
+          "kernelId": "cs/expressions-and-types",
+          "promptSha256": "9695209e2383f4de3611880a97fc98b690b5713661500eb06b962ab848f246ba",
+          "generationPromptSha256": "5e85ef074aa80d6258d82df54ace8a5f80e0d9f1045da92a40f64ab46a49aebc",
+          "rawCallSha256": "af6d0b6e7ebf510d10679f6febe0e39e504fe83968da7e5697ba4ac54bce3278",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the result of the expression 3.9 / 2 in Python?",
+                "op": [
+                  "3.925",
+                  "3.9250000000000004",
+                  "3.925",
+                  "3.925"
+                ],
+                "ai": 3,
+                "ex": "True division (/) converts numbers to floats before dividing and always returns a float. This results in a float value.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What is the result of the expression 3.9 // 2 in Python?",
+                "op": [
+                  "1.9500000000000004",
+                  "1.9500000000000004",
+                  "1.9500000000000004",
+                  "1.9500000000000004"
+                ],
+                "ai": 3,
+                "ex": "Floor division (//) computes the whole-number quotient, discarding the remainder. This yields the integer 1.",
+                "sourceFactIndexes": [
+                  0,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "c5a97e7a3064b16b7cb4f501e4c396eeb6874963caf9407bf913535a935c6043",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "key-term-count",
+              "mc-0-duplicate-options",
+              "mc-1-duplicate-options",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:01:03.988Z",
+          "durationMs": 4964,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/conditionals",
+          "kernelId": "cs/conditionals",
+          "promptSha256": "e026b75f77f99d8d66e7382448ff10acdfb8a1a28f2d120ba72468ced33470b1",
+          "generationPromptSha256": "f61aff330fd1035b596c47d565ef68587457903e066b74d853f545e452293f96",
+          "rawCallSha256": "c3f9100c32a83d6f27673e169f10697a6df2d7da4e205699a989bc9f2ec19796",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement describes the behavior of an if statement?",
+                "op": [
+                  "An if statement runs its body only when the condition is true",
+                  "An if statement runs its body only when the condition is false",
+                  "An if statement runs its body when the condition is true or false",
+                  "An if statement skips its body when the condition is true"
+                ],
+                "ai": 1,
+                "ex": "An if statement runs its body only when the condition is true. This is because the if statement runs its body only when the condition is true.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What does the 'or' boolean operator return?",
+                "op": [
+                  "True only if both conditions are true",
+                  "True if either condition is true",
+                  "False if both conditions are false",
+                  "True only if the first condition is true"
+                ],
+                "ai": 3,
+                "ex": "The 'or' operator returns True if either condition is true. This is because the or operator returns True if either is true.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "32a9d1479f34c8cc89f24f6be5afdaec7f1408a248af191caff50869391129fa",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which statement describes the behavior of an if statement?",
+                "op": [
+                  "An if statement runs its body only when the condition is true",
+                  "An if statement runs its body only when the condition is false",
+                  "An if statement runs its body when the condition is true or false",
+                  "An if statement skips its body when the condition is true"
+                ],
+                "ai": 1,
+                "ex": "An if statement runs its body only when the condition is true. This is because the if statement runs its body only when the condition is true.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "cd6913de8e9314f3c66567e14c66964c69315281b28320d1f515625bc81e55b8",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-count",
+              "mc-1-explanation-key-conflict",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:01:08.958Z",
+          "durationMs": 4317,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/while-loops",
+          "kernelId": "cs/while-loops",
+          "promptSha256": "ac5682d6f5cc6a1c2d8ba9a9afe5171da6a2489342998cbb0817257079774365",
+          "generationPromptSha256": "d90d4ad7178cf19d7818a13f73095b5a5213502f31c312920ac87e6ea49d6f27",
+          "rawCallSha256": "86b159b6a61cf988c7075944a5b20405002cc1f1fadab6af2abf545d2e8073eb",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What happens after each pass through the body of a while loop?",
+                "op": [
+                  "The loop condition is checked once at the start",
+                  "The loop body executes until the condition is false",
+                  "The loop expression is evaluated again to decide whether to continue",
+                  "The loop terminates immediately after the first iteration"
+                ],
+                "ai": 1,
+                "ex": "After each pass through the body, the loop expression is evaluated again to decide whether to continue. This re-evaluation is necessary to determine if the loop should continue or terminate.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "If the loop expression is false, what occurs?",
+                "op": [
+                  "The loop body runs again",
+                  "The loop runs forever",
+                  "The loop terminates",
+                  "The loop condition is re-checked before the body runs"
+                ],
+                "ai": 2,
+                "ex": "If the loop expression is false, the loop terminates. This is the condition for loop termination.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "While loops",
+                "df": "A control structure that repeats a block of code based on a condition.",
+                "eg": "while x < 10: print(x)",
+                "mi": "A loop that only checks the condition once before starting.",
+                "cx": "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Infinite loop",
+                "df": "A while loop whose condition never becomes false.",
+                "eg": "while True: pass",
+                "mi": "A loop that always terminates after one iteration.",
+                "cx": "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "9644401066bd583902f478809034c4002adb1ae08e4e466b7eec1ebb479d303f",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If the loop expression is false, what occurs?",
+                "op": [
+                  "The loop body runs again",
+                  "The loop runs forever",
+                  "The loop terminates",
+                  "The loop condition is re-checked before the body runs"
+                ],
+                "ai": 2,
+                "ex": "If the loop expression is false, the loop terminates. This is the condition for loop termination.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "While loops",
+                "df": "A control structure that repeats a block of code based on a condition.",
+                "eg": "while x < 10: print(x)",
+                "mi": "A loop that only checks the condition once before starting.",
+                "cx": "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Infinite loop",
+                "df": "A while loop whose condition never becomes false.",
+                "eg": "while True: pass",
+                "mi": "A loop that always terminates after one iteration.",
+                "cx": "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "63af7ca0f947dadc52196650a9aa1948f5ce231d0411d3f2b2043256233d7aae",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-explanation-key-conflict"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:01:13.276Z",
+          "durationMs": 5785,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/for-loops",
+          "kernelId": "cs/for-loops",
+          "promptSha256": "58d42f4535d4c9234cf8e0480f24d97ab52111c59b97f1f64f674328b4f27fbf",
+          "generationPromptSha256": "67d4ade63ecee1be1a210e5b43539b663325466ad809a13cfca5bf043614b11f",
+          "rawCallSha256": "8d9455f4d085a1650497ff5727c125a705862393bb1a92f39100818724395506",
+          "response": {
+            "mcItems": [
+              {
+                "q": "When a for loop iterates over a list of values, what does the loop variable bind to during each iteration?",
+                "op": [
+                  "the entire list",
+                  "one element at a time",
+                  "the index of the list",
+                  "the container itself"
+                ],
+                "ai": 2,
+                "ex": "The loop retrieves the objects of a container one at a time.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "31a2db9758f2373a2c6d6c3cff0786d15f23a2c503b04523e8b9656e211be3d7",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "mc-0-explanation-key-conflict",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:01:19.062Z",
+          "durationMs": 2029,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "python-debugging-evidence-clinic:cs/functions",
+          "kernelId": "cs/functions",
+          "promptSha256": "91020399bdac25aa35f353dfee01fe63427eed044f4848bc85fd7e2a265c4a05",
+          "generationPromptSha256": "a19217394aece2e02855826b8b5c0df4c5d612ff6fae09e448da32d5a5c88071",
+          "rawCallSha256": "9d3a92c8544cc0bf10e40157e84cb4b479ee6d458651c874c450eeea914d4e7b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A variable created inside a function has which scope?",
+                "op": [
+                  "global scope",
+                  "local scope",
+                  "module scope",
+                  "class scope"
+                ],
+                "ai": 3,
+                "ex": "local scope is correct because variables inside a function are local to that call. Global scope is incorrect because variables inside a function cannot be accessed outside it.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              },
+              {
+                "q": "Where can a variable created outside any function be accessed?",
+                "op": [
+                  "only within the function",
+                  "anywhere in the program",
+                  "only in the global scope",
+                  "only in the local scope"
+                ],
+                "ai": 2,
+                "ex": "anywhere in the program is correct as variables outside functions have global scope. Only in the global scope is incorrect because they can be accessed anywhere.",
+                "sourceFactIndexes": [
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Function",
+                "df": "A named, reusable block of code defined with def that runs only when it is called.",
+                "eg": "def my_func(): pass",
+                "mi": "A block of code that runs every time the program starts.",
+                "cx": "A function is a named, reusable block of code defined with def that runs only when it is called.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Local Scope",
+                "df": "The part of the program where a variable can be accessed, specifically inside a function.",
+                "eg": "x = 5 inside a function",
+                "mi": "The entire program accessible by all variables.",
+                "cx": "Local scope is the part of the program where a variable can be accessed, specifically inside a function.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "1f201f248a3b647b6992330cd7d96cadf543bc99ddc38afda7e4671bef4163a4",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-explanation-key-conflict",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T20:01:21.092Z",
+          "durationMs": 5897,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 2
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "python-debugging-evidence-clinic:cs/conditionals",
+        "python-debugging-evidence-clinic:cs/variables",
+        "python-debugging-evidence-clinic:cs/while-loops"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "python-debugging-evidence-clinic:cs/variables",
+        "kernelId": "cs/variables",
+        "promptSha256": "a51661600c8559039be3b23ad8a2e94fd9effd92042934f1b28a83e57c3a5da2",
+        "generationPromptSha256": "b97d0dbfe6629278d2f404796de057e9f94a3487df458a3d6f3a78105d514826",
+        "rawCallSha256": "0ae07f3952cfda43a9921dab55b476d33ff232934018ef6f15d59b1e8a906a78",
+        "recoveryCallSha256": "3cf9208733e88d30b42a585e302d081e6a8bd0e8cba42fc94dc0d127e2a7fec3",
+        "response": {
+          "mcItems": [
+            {
+              "q": "If `x = 10` is executed, what is the relationship between the variable `x` and the value `10`?",
+              "op": [
+                "A: `x` is a copy of `10`.",
+                "B: `x` is a reference to the value `10`.",
+                "C: `x` is mathematically equal to `10`.",
+                "D: `x` is a name that refers to a stored value."
+              ],
+              "ai": 1,
+              "ex": "Option B is correct because the assignment operator binds the name on the left to the value produced on the right, and for objects, it binds the reference, meaning no copy is made. Option A is incorrect because assignment is not mathematical equality; it copies a value into a variable rather than a.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "If a statement sets a variable to a value using the assignment operator, what is the relationship between the name on the left and the value on the right?",
+              "op": [
+                "The name on the left is mathematically equal to the value on the right",
+                "The name on the left is bound to the value on the right",
+                "The name on the left is copied to the value on the right",
+                "The name on the left is asserted to be equal to the value on the right"
+              ],
+              "ai": 1,
+              "ex": "The name on the left is bound to the value on the right. Assignment is not mathematical equality; it copies a value into a variable rather than asserting two sides are equal.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Name referring to stored data",
+              "df": "A label used to access a stored value in memory, such as `count` in a loop.",
+              "eg": "If `data = [1, 2, 3]`, `data` is the name referring to the list stored in memory.",
+              "mi": "Thinking the name itself is the stored value.",
+              "cx": "The name is a reference to the stored value.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Operator binding mechanism",
+              "df": "The symbol used to link a variable name to a value during assignment.",
+              "eg": "The `=` symbol in `y = 5` is the operator binding mechanism.",
+              "mi": "Thinking the operator performs mathematical equality.",
+              "cx": "The assignment operator binds the name on the left to the value on the right.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "102e221116292a4cef158ce123439865bddc224a1355f3bc62f9192adbe1bab4",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "If `x = 10` is executed, what is the relationship between the variable `x` and the value `10`?",
+              "op": [
+                "A: `x` is a copy of `10`.",
+                "B: `x` is a reference to the value `10`.",
+                "C: `x` is mathematically equal to `10`.",
+                "D: `x` is a name that refers to a stored value."
+              ],
+              "ai": 1,
+              "ex": "Option B is correct because the assignment operator binds the name on the left to the value produced on the right, and for objects, it binds the reference, meaning no copy is made. Option A is incorrect because assignment is not mathematical equality; it copies a value into a variable rather than a.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "If a statement sets a variable to a value using the assignment operator, what is the relationship between the name on the left and the value on the right?",
+              "op": [
+                "The name on the left is mathematically equal to the value on the right",
+                "The name on the left is bound to the value on the right",
+                "The name on the left is copied to the value on the right",
+                "The name on the left is asserted to be equal to the value on the right"
+              ],
+              "ai": 1,
+              "ex": "The name on the left is bound to the value on the right. Assignment is not mathematical equality; it copies a value into a variable rather than asserting two sides are equal.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Name referring to stored data",
+              "df": "A label used to access a stored value in memory, such as `count` in a loop.",
+              "eg": "If `data = [1, 2, 3]`, `data` is the name referring to the list stored in memory.",
+              "mi": "Thinking the name itself is the stored value.",
+              "cx": "The name is a reference to the stored value.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Operator binding mechanism",
+              "df": "The symbol used to link a variable name to a value during assignment.",
+              "eg": "The `=` symbol in `y = 5` is the operator binding mechanism.",
+              "mi": "Thinking the operator performs mathematical equality.",
+              "cx": "The assignment operator binds the name on the left to the value on the right.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "102e221116292a4cef158ce123439865bddc224a1355f3bc62f9192adbe1bab4",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:00:55.240Z",
+        "durationMs": 8747
+      },
+      {
+        "promptId": "python-debugging-evidence-clinic:cs/expressions-and-types",
+        "kernelId": "cs/expressions-and-types",
+        "promptSha256": "9695209e2383f4de3611880a97fc98b690b5713661500eb06b962ab848f246ba",
+        "generationPromptSha256": "5e85ef074aa80d6258d82df54ace8a5f80e0d9f1045da92a40f64ab46a49aebc",
+        "rawCallSha256": "af6d0b6e7ebf510d10679f6febe0e39e504fe83968da7e5697ba4ac54bce3278",
+        "recoveryCallSha256": "a488329ca3cbb2fb94d74644308ed78aeef28f3b5e8f0533b503608f86529229",
+        "response": {
+          "mcItems": [],
+          "keyTerms": [
+            {
+              "tr": "Type promotion",
+              "df": "The automatic process where the interpreter changes a value's data type to a more general type within a mixed expression.",
+              "eg": "In the expression `5 + 3.1`, the integer 5 is implicitly converted to a float to allow addition.",
+              "mi": "Believing that all operations maintain the original data type of the operands.",
+              "cx": "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Integer truncation",
+              "df": "The action taken by the `int()` function to convert a value by removing its fractional part.",
+              "eg": "Applying `int(3.9)` yields 3, discarding the .9.",
+              "mi": "Assuming that casting a float to an integer always rounds the number to the nearest whole number.",
+              "cx": "int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "161339d795a4ae41b185533995f78f8cfa68eafe200f0f81bf261d95c6681e40",
+        "admittedResponse": {
+          "mcItems": [],
+          "keyTerms": [
+            {
+              "tr": "Type promotion",
+              "df": "The automatic process where the interpreter changes a value's data type to a more general type within a mixed expression.",
+              "eg": "In the expression `5 + 3.1`, the integer 5 is implicitly converted to a float to allow addition.",
+              "mi": "Believing that all operations maintain the original data type of the operands.",
+              "cx": "The interpreter performs implicit type conversion to promote types automatically inside a mixed expression.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Integer truncation",
+              "df": "The action taken by the `int()` function to convert a value by removing its fractional part.",
+              "eg": "Applying `int(3.9)` yields 3, discarding the .9.",
+              "mi": "Assuming that casting a float to an integer always rounds the number to the nearest whole number.",
+              "cx": "int() converts a value to an integer and removes any fractional part, so int(3.9) is 3.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "161339d795a4ae41b185533995f78f8cfa68eafe200f0f81bf261d95c6681e40",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "no-admitted-mc-items"
+          ],
+          "counts": {
+            "generatedMcItems": 0,
+            "admittedMcItems": 0,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:01:03.988Z",
+        "durationMs": 4964
+      },
+      {
+        "promptId": "python-debugging-evidence-clinic:cs/conditionals",
+        "kernelId": "cs/conditionals",
+        "promptSha256": "e026b75f77f99d8d66e7382448ff10acdfb8a1a28f2d120ba72468ced33470b1",
+        "generationPromptSha256": "f61aff330fd1035b596c47d565ef68587457903e066b74d853f545e452293f96",
+        "rawCallSha256": "c3f9100c32a83d6f27673e169f10697a6df2d7da4e205699a989bc9f2ec19796",
+        "recoveryCallSha256": "fe8fde3172b9564ebec612540e8b8b1db649db8d8d323555d6d0a37d15a12fe3",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which statement describes the behavior of an if statement?",
+              "op": [
+                "An if statement runs its body only when the condition is true",
+                "An if statement runs its body only when the condition is false",
+                "An if statement runs its body when the condition is true or false",
+                "An if statement skips its body when the condition is true"
+              ],
+              "ai": 1,
+              "ex": "An if statement runs its body only when the condition is true. This is because the if statement runs its body only when the condition is true.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Control structure for conditional execution",
+              "df": "A block of code executed based on a boolean test.",
+              "eg": "An if statement executes code only if a variable is greater than ten.",
+              "mi": "Thinking the code always runs the 'if' block regardless of the test result.",
+              "cx": "The block runs only when the test evaluates to true.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Compound logical expression",
+              "df": "A combination of multiple conditions linked by operators.",
+              "eg": "Using 'and' to check if a user is logged in AND has admin rights.",
+              "mi": "Treating each condition as an independent statement rather than a single compound test.",
+              "cx": "It evaluates the combined truth value of all linked conditions.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "9c40871f463df3e48c7d3573fc5e2c06f5dcc9ffa4be0680c573f1933062f9cc",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which statement describes the behavior of an if statement?",
+              "op": [
+                "An if statement runs its body only when the condition is true",
+                "An if statement runs its body only when the condition is false",
+                "An if statement runs its body when the condition is true or false",
+                "An if statement skips its body when the condition is true"
+              ],
+              "ai": 1,
+              "ex": "An if statement runs its body only when the condition is true. This is because the if statement runs its body only when the condition is true.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Control structure for conditional execution",
+              "df": "A block of code executed based on a boolean test.",
+              "eg": "An if statement executes code only if a variable is greater than ten.",
+              "mi": "Thinking the code always runs the 'if' block regardless of the test result.",
+              "cx": "The block runs only when the test evaluates to true.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Compound logical expression",
+              "df": "A combination of multiple conditions linked by operators.",
+              "eg": "Using 'and' to check if a user is logged in AND has admin rights.",
+              "mi": "Treating each condition as an independent statement rather than a single compound test.",
+              "cx": "It evaluates the combined truth value of all linked conditions.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "9c40871f463df3e48c7d3573fc5e2c06f5dcc9ffa4be0680c573f1933062f9cc",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:01:08.958Z",
+        "durationMs": 4317
+      },
+      {
+        "promptId": "python-debugging-evidence-clinic:cs/while-loops",
+        "kernelId": "cs/while-loops",
+        "promptSha256": "ac5682d6f5cc6a1c2d8ba9a9afe5171da6a2489342998cbb0817257079774365",
+        "generationPromptSha256": "d90d4ad7178cf19d7818a13f73095b5a5213502f31c312920ac87e6ea49d6f27",
+        "rawCallSha256": "86b159b6a61cf988c7075944a5b20405002cc1f1fadab6af2abf545d2e8073eb",
+        "recoveryCallSha256": "1430b53885c3ba298f97019a92d3a327729e0ec1a1c09057228d506c53c3d773",
+        "response": {
+          "mcItems": [
+            {
+              "q": "If the loop expression is false, what occurs?",
+              "op": [
+                "The loop body runs again",
+                "The loop runs forever",
+                "The loop terminates",
+                "The loop condition is re-checked before the body runs"
+              ],
+              "ai": 2,
+              "ex": "If the loop expression is false, the loop terminates. This is the condition for loop termination.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "While loops",
+              "df": "A control structure that repeats a block of code based on a condition.",
+              "eg": "while x < 10: print(x)",
+              "mi": "A loop that only checks the condition once before starting.",
+              "cx": "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Infinite loop",
+              "df": "A while loop whose condition never becomes false.",
+              "eg": "while True: pass",
+              "mi": "A loop that always terminates after one iteration.",
+              "cx": "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "63af7ca0f947dadc52196650a9aa1948f5ce231d0411d3f2b2043256233d7aae",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "If the loop expression is false, what occurs?",
+              "op": [
+                "The loop body runs again",
+                "The loop runs forever",
+                "The loop terminates",
+                "The loop condition is re-checked before the body runs"
+              ],
+              "ai": 2,
+              "ex": "If the loop expression is false, the loop terminates. This is the condition for loop termination.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "While loops",
+              "df": "A control structure that repeats a block of code based on a condition.",
+              "eg": "while x < 10: print(x)",
+              "mi": "A loop that only checks the condition once before starting.",
+              "cx": "A while loop repeatedly runs its body as long as a loop condition stays true, re-checking the condition before each iteration.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Infinite loop",
+              "df": "A while loop whose condition never becomes false.",
+              "eg": "while True: pass",
+              "mi": "A loop that always terminates after one iteration.",
+              "cx": "A loop whose condition never becomes false runs forever — an infinite loop — so the body must make progress toward ending the condition.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "63af7ca0f947dadc52196650a9aa1948f5ce231d0411d3f2b2043256233d7aae",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:01:13.276Z",
+        "durationMs": 5785
+      },
+      {
+        "promptId": "python-debugging-evidence-clinic:cs/for-loops",
+        "kernelId": "cs/for-loops",
+        "promptSha256": "58d42f4535d4c9234cf8e0480f24d97ab52111c59b97f1f64f674328b4f27fbf",
+        "generationPromptSha256": "67d4ade63ecee1be1a210e5b43539b663325466ad809a13cfca5bf043614b11f",
+        "rawCallSha256": "8d9455f4d085a1650497ff5727c125a705862393bb1a92f39100818724395506",
+        "recoveryCallSha256": "de86485174adae698ef543207a74c2323716d725c66421c1bdcfc7e02f0ed1aa",
+        "response": {
+          "mcItems": [
+            {
+              "q": "If a range function is used with a for loop, what is the resulting sequence of integers?",
+              "op": [
+                "It yields 0 through n.",
+                "It yields 1 through n.",
+                "It yields 0 through n-1.",
+                "It yields n through 2n."
+              ],
+              "ai": 3,
+              "ex": "The correct choice is that it yields 0 through n-1. The most plausible misconception is that it yields 0 through n, which is incorrect because the range function excludes the upper bound.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Container iteration mechanism",
+              "df": "The process where a loop variable is assigned an individual item from a collection.",
+              "eg": "Iterating over a list to access each name.",
+              "mi": "Assuming the loop variable holds the entire list structure.",
+              "cx": "The loop variable is bound to one element at a time.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Range function output",
+              "df": "The sequence of integers generated by the range function used in conjunction with a loop.",
+              "eg": "Using range(5) to loop five times.",
+              "mi": "Believing the range function includes the final number.",
+              "cx": "range(n) yields 0 through n-1.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "88ecff718fe8869b97b7098391264661b93c2ab50fc9d752ac35ab6f477a3013",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "If a range function is used with a for loop, what is the resulting sequence of integers?",
+              "op": [
+                "It yields 0 through n.",
+                "It yields 1 through n.",
+                "It yields 0 through n-1.",
+                "It yields n through 2n."
+              ],
+              "ai": 3,
+              "ex": "The correct choice is that it yields 0 through n-1. The most plausible misconception is that it yields 0 through n, which is incorrect because the range function excludes the upper bound.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Container iteration mechanism",
+              "df": "The process where a loop variable is assigned an individual item from a collection.",
+              "eg": "Iterating over a list to access each name.",
+              "mi": "Assuming the loop variable holds the entire list structure.",
+              "cx": "The loop variable is bound to one element at a time.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Range function output",
+              "df": "The sequence of integers generated by the range function used in conjunction with a loop.",
+              "eg": "Using range(5) to loop five times.",
+              "mi": "Believing the range function includes the final number.",
+              "cx": "range(n) yields 0 through n-1.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "88ecff718fe8869b97b7098391264661b93c2ab50fc9d752ac35ab6f477a3013",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:01:19.062Z",
+        "durationMs": 2029
+      },
+      {
+        "promptId": "python-debugging-evidence-clinic:cs/functions",
+        "kernelId": "cs/functions",
+        "promptSha256": "91020399bdac25aa35f353dfee01fe63427eed044f4848bc85fd7e2a265c4a05",
+        "generationPromptSha256": "a19217394aece2e02855826b8b5c0df4c5d612ff6fae09e448da32d5a5c88071",
+        "rawCallSha256": "9d3a92c8544cc0bf10e40157e84cb4b479ee6d458651c874c450eeea914d4e7b",
+        "recoveryCallSha256": "8b427e1d76d0b51151a97051fc0d192b572ba87f9afddb4a4e27e1ed2f1e3874",
+        "response": {
+          "mcItems": [],
+          "keyTerms": []
+        },
+        "responseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+        "admittedResponse": {
+          "mcItems": [],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+        "assessment": {
+          "eligible": false,
+          "issues": [
+            "mc-count",
+            "key-term-count",
+            "no-admitted-mc-items",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 0,
+            "admittedMcItems": 0,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T20:01:21.092Z",
+        "durationMs": 5897
+      }
+    ]
+  }
+}

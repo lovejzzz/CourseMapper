@@ -1,0 +1,2303 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-form-harmony-evidence-seminar-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Form and Harmony Evidence Seminar, a six-session course in which students compare rhythmic, intervallic, scalar, chordal, harmonic, and formal evidence before defending an analysis.",
+  "fileNames": [
+    "source-packet-e38bfea2b79bdd4b3cfff63de22c63df96e995c7028500ab2b803ee35f367642.json"
+  ],
+  "sourcePacketSha256": "e38bfea2b79bdd4b3cfff63de22c63df96e995c7028500ab2b803ee35f367642",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Form and Harmony Evidence Seminar\",\"sessions\":[{\"number\":1,\"title\":\"Rhythm and meter\"},{\"number\":2,\"title\":\"Musical form\"},{\"number\":3,\"title\":\"Harmony and chord progressions\"},{\"number\":4,\"title\":\"Triads and seventh chords\"},{\"number\":5,\"title\":\"Interval (music)\"},{\"number\":6,\"title\":\"Scales and key signatures\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"A score is organized so each bar is divided into three beats. Which analysis term is directly supported by that fact?\",\"op\":[\"Rhythm\",\"Meter\",\"Triple metre\",\"Weak beat\"],\"ai\":2,\"ex\":\"Triple metre is directly supported because the defining feature is a bar divided into three beats, or a multiple thereof. The plausible misconception is to stop at meter, since meter also involves regular strong and weak beats, but that is less specific than the three-beat bar division stated here.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"},{\"q\":\"Which description best fits meter?\",\"op\":[\"A movement marked by regulated strong and weak elements\",\"A pattern of chord functions in a progression\",\"A scale pattern built from whole and half steps\",\"A formal scheme of sections and reprises\"],\"ai\":0,\"ex\":\"Meter is a regular, recurring pattern of strong and weak beats. It is not a harmonic, scalar, or formal pattern.\",\"sourceFactIndexes\":[1,0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Triple metre\",\"df\":\"A meter whose bar division groups beats in threes.\",\"eg\":\"In a passage counted 1-2-3 per bar, the organization is triple metre.\",\"mi\":\"Any music with three notes is triple metre.\",\"cx\":\"The evidence must show the bar is divided into three beats, or a multiple of three, not merely that three notes happen to occur.\",\"sourceFactIndexes\":[2]},{\"tr\":\"Triple metre\",\"df\":\"A meter in which each bar is divided into three beats, or a multiple of three.\",\"eg\":\"A bar grouped as three beats, or six beats as a multiple thereof.\",\"mi\":\"It means any music that feels fast or has three-note figures.\",\"cx\":\"Triple metre is about beat grouping per bar, not tempo or surface note groups.\",\"sourceFactIndexes\":[2]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Which choice best matches what musical form describes in a composition?\",\"op\":[\"The overall structure of the piece\",\"The number of chords in a phrase\",\"The exact pitch pattern of a scale\",\"The loudness level of each section\"],\"ai\":0,\"ex\":\"The correct choice is the overall structure of the piece. A common misconception is to treat form as the chord count or another single surface feature, but form is the larger organization that unfolds over time; it results from the interaction of the musical elements, not just one of them.\",\"sourceFactIndexes\":[0,2,3],\"type\":\"multiple_choice\"},{\"q\":\"In notation for a musical form, what do lowercase letters such as a and b usually indicate?\",\"op\":[\"Subdivisions of a larger unit\",\"Two sections of equal length\",\"A harmonic cadence pattern\",\"A repeated rhythmic ratio\"],\"ai\":0,\"ex\":\"Lowercase letters mark subdivisions of each large musical unit. The tempting mistake is to read them as naming the piece’s two main parts, but two sections of about equal length describes binary form, not the lettering used for subdivisions.\",\"sourceFactIndexes\":[1,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Musical form\",\"df\":\"The overall structure of a musical composition or performance.\",\"eg\":\"A movement can be analyzed by how its sections are arranged and developed over time.\",\"mi\":\"It is the same thing as a chord progression.\",\"cx\":\"Chord progression is only one kind of evidence; form is the larger structural organization that can include harmony, melody, and rhythm.\",\"sourceFactIndexes\":[0,2,3]},{\"tr\":\"Binary form\",\"df\":\"A design with two sections that are about equal in length.\",\"eg\":\"A short piece divided into two balanced parts can be described this way.\",\"mi\":\"Any time a score uses lowercase letters, it must be binary form.\",\"cx\":\"Lowercase letters can mark subdivisions within a larger unit; they do not by themselves prove a two-section design.\",\"sourceFactIndexes\":[1,4]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"Which choice best matches the role of harmony in this source packet?\",\"op\":[\"Combining different sounds to create new, distinct musical ideas\",\"A named sequence of chords that supports melody and rhythm\",\"A scale pattern that fixes the pitches of a key\",\"A ratio pattern that measures the length of notes\"],\"ai\":0,\"ex\":\"Correct: harmony is described as combining different sounds to create new, distinct musical ideas. The common mistake is to treat harmony as the same thing as a chord progression; the packet instead says chord progressions are a foundation of harmony, not its whole definition.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"In many styles of popular and traditional music, how are chord progressions often expressed?\",\"op\":[\"By the name and quality of the chords\",\"By the meter and accent pattern of the bar\",\"By the order of scale degrees in a mode\",\"By the timbre and register of the instruments\"],\"ai\":0,\"ex\":\"Correct: the packet says these progressions are often written with the chord name and quality. A plausible confusion is to substitute scale or rhythmic evidence, but those describe other kinds of musical structure rather than how these progressions are labeled in the source.\",\"sourceFactIndexes\":[5],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Harmony\",\"df\":\"A way of combining different sounds so they form a new musical idea.\",\"eg\":\"A passage that layers notes into a sonorous texture rather than leaving a single line alone.\",\"mi\":\"It means only the written chord symbols on a page.\",\"cx\":\"The source treats chord progressions as part of harmony, so harmony is broader than chord labels alone.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Chord progression\",\"df\":\"A sequence in which one chord leads to another and then to another.\",\"eg\":\"A move from one chord to a second, then a third, as the source describes.\",\"mi\":\"It is the same thing as melody or rhythm.\",\"cx\":\"The packet says progressions are a foundation for harmony, while melody and rhythm are built on them in some genres; that keeps the roles distinct.\",\"sourceFactIndexes\":[1,2,3]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"A student labels a sonority built from three notes stacked in thirds as a seventh chord because it sounds harmonically complete. What is the best correction?\",\"op\":[\"It is a triad, since three notes can be stacked vertically in thirds.\",\"It is a seventh chord, since every stacked sonority contains a seventh.\",\"It is an inversion of a seventh chord, since it has three notes.\",\"It is not a chord, since thirds only describe melody.\"],\"ai\":0,\"ex\":\"The best correction is that three notes stacked in thirds form a triad. The tempting misconception is to treat any harmonically full-sounding sonority as a seventh chord, but a seventh chord requires a triad plus an added note a seventh above the root.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"Which statement best describes a seventh chord?\",\"op\":[\"A triad plus a note forming a seventh above the root.\",\"Three notes stacked vertically in thirds.\",\"Four different inversions of a seventh chord.\",\"A triad that always moves in one direction.\"],\"ai\":0,\"ex\":\"It adds a seventh above the root to a triad. The four inversions belong to the seventh chord, not the triad.\",\"sourceFactIndexes\":[1,3,0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Triad\",\"df\":\"A three-note chord built by stacking pitches in thirds.\",\"eg\":\"A student hears three pitches arranged in thirds and identifies the sonority as a triad.\",\"mi\":\"Thinking any three-note texture is automatically a triad.\",\"cx\":\"The correction is that the notes must be a vertical stack in thirds, not just any three simultaneous notes.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Seventh chord\",\"df\":\"A chord made by adding a note a seventh above the root to a triad.\",\"eg\":\"In analysis, a student spots a triad with an added seventh and labels it a seventh chord.\",\"mi\":\"Assuming a seventh chord is just a louder triad or any four-note sonority.\",\"cx\":\"The correction is that the seventh relation to the root is what defines the chord type.\",\"sourceFactIndexes\":[1,2,3]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"A student hears two notes and asks for the interval in the most basic music-theory sense. Which description fits best?\",\"op\":[\"The difference in pitch between the two sounds\",\"The chord built from those two notes\",\"The pattern made by repeating the notes in order\",\"The overall form of the passage\"],\"ai\":0,\"ex\":\"Correct: an interval is the pitch difference between two sounds. The most plausible misconception is to treat the interval as a chord or a larger formal pattern, but those describe harmony or form, not the relation between just two pitches.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"In a tuning lesson, the teacher describes one interval using numbers from acoustics rather than note names. What is being described?\",\"op\":[\"The ratio between two sonic frequencies\",\"The distance between successive scale degrees\",\"The function of a chord in a cadence\",\"The length of a phrase in a movement\"],\"ai\":0,\"ex\":\"Correct: in physical terms, an interval can be expressed as the ratio of two sonic frequencies. A likely misconception is to confuse this with a scale step, which is the interval between successive notes of a scale, not the frequency ratio itself.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Interval\",\"df\":\"A pitch relation measured between two sounds; in acoustics, it can also be stated as a frequency ratio.\",\"eg\":\"The span from one sung note to the next in a melody can be named as an interval.\",\"mi\":\"It is just another word for a chord or harmony.\",\"cx\":\"An interval concerns the relation between two pitches, while a chord combines multiple pitches at once.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Scale step\",\"df\":\"The interval formed by moving from one note of a scale to the next note.\",\"eg\":\"Going from one adjacent note in a major scale to the next is a scale step.\",\"mi\":\"It means any melodic leap or any change in rhythm.\",\"cx\":\"Only adjacent notes within a scale are scale steps; wider skips or nonpitch changes are different kinds of evidence.\",\"sourceFactIndexes\":[2]}]},\"lesson-6\":{\"quizItems\":[{\"q\":\"A student hears the same notes arranged in a different order and asks what feature still lets theorists identify the underlying scale. Which evidence is most decisive?\",\"op\":[\"The pattern of step sizes between adjacent notes\",\"The total number of notes in the melody\",\"The loudest note in the performance\",\"The meter of the surrounding passage\"],\"ai\":0,\"ex\":\"The correct choice is the step-size pattern, because a scale is identified by its characteristic interval pattern. The number of notes, loudness, and meter may matter for other analyses, but they do not by themselves classify the scale.\",\"sourceFactIndexes\":[1,3,4],\"type\":\"multiple_choice\"},{\"q\":\"In a class discussion, a student labels the first note of a scale and then assigns numbers to the remaining notes. What is that numbering system called?\",\"op\":[\"Scale degree labels\",\"Chord inversion labels\",\"Rhythmic beat counts\",\"Form section names\"],\"ai\":0,\"ex\":\"The correct choice is scale degree labels, because scale degree refers to the numerical labels given to notes in a scale. Chord inversions, beat counts, and section names describe different kinds of musical evidence, not the numbering of scale notes.\",\"sourceFactIndexes\":[5,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Scale\",\"df\":\"A consecutive note series that progresses from one pitch to its octave.\",\"eg\":\"A major or minor collection heard as an ordered rise through the notes to the octave.\",\"mi\":\"Any group of notes in a song is a scale.\",\"cx\":\"That is too broad: a scale is defined by ordered progression and octave span, not just any note collection.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Tonic\",\"df\":\"The special first degree that defines a specific scale.\",\"eg\":\"When a class identifies the home note of a scale, that note is the tonic.\",\"mi\":\"The tonic is the loudest note in the passage.\",\"cx\":\"Loudness is not the defining feature here; the tonic is the first degree tied to the scale's identity.\",\"sourceFactIndexes\":[4,5]}]}}}}",
+  "savedAt": "2026-07-16T20:01:27.932Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-preference-expansion-v0.16.47.json",
+    "campaignManifestSha256": "77cd0f41c9af2be733d987e0d429720e28aec3ca931ce4902ea9d700fbd44e70",
+    "promptSetSha256": "4377647464125077c70edf29659853b6faaf0e3efad4d2b6b0a051fe0cd4a975",
+    "courseInputSha256": "694eceb94d9f0608f017496ee378c727743829e6488d83da4ca558ccc08ea942",
+    "courseGroupId": "form-harmony-evidence-seminar",
+    "courseGroupSha256": "bdc5f740594dfde48fe072660a390e7dd5892b4d5aba2b6d961980baad4899ae",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/music-intro.json",
+      "sourceArtifactSha256": "0acd827673397b7109c92cbfdd732d3c5be0051e946bb6278935121055c80989",
+      "kernels": [
+        {
+          "id": "music/rhythm-and-meter",
+          "term": "Rhythm and meter",
+          "definition": "Rhythm (from Greek ῥυθμός, rhythmos, \"any regular recurring motion, symmetry\") generally means a \"movement marked by the regulated succession of strong and weak elements, or of opposite or different conditions\".",
+          "definitionAnchor": null,
+          "facts": [
+            {
+              "index": 0,
+              "text": "\"Meter may be defined as a regular, recurring pattern of strong and weak beats.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Metre_(music)",
+                "loc": "extract",
+                "quote": "\"Meter may be defined as a regular, recurring pattern of strong and weak beats."
+              }
+            },
+            {
+              "index": 4,
+              "text": "Triple metre is a metre in which each bar is divided into three beats, or a multiple thereof.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Metre_(music)",
+                "loc": "extract",
+                "quote": "Triple metre is a metre in which each bar is divided into three beats, or a multiple thereof."
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Wikipedia (see fact anchors)"
+          ]
+        },
+        {
+          "id": "music/musical-form",
+          "term": "Musical form",
+          "definition": "In music, form refers to the structure of a musical composition or performance.",
+          "definitionAnchor": null,
+          "facts": [
+            {
+              "index": 1,
+              "text": "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Musical form unfolds over time through the expansion and development of these ideas.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "Musical form unfolds over time through the expansion and development of these ideas."
+              }
+            },
+            {
+              "index": 3,
+              "text": "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm]."
+              }
+            },
+            {
+              "index": 4,
+              "text": "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on)."
+              }
+            },
+            {
+              "index": 5,
+              "text": "The next level concerns the entire structure of any single self-contained musical piece or movement.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Musical_form",
+                "loc": "extract",
+                "quote": "The next level concerns the entire structure of any single self-contained musical piece or movement."
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Wikipedia (see fact anchors)"
+          ]
+        },
+        {
+          "id": "music/harmony-and-progressions",
+          "term": "Harmony and chord progressions",
+          "definition": "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "definitionAnchor": null,
+          "facts": [
+            {
+              "index": 0,
+              "text": "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Chord_progression",
+                "loc": "extract",
+                "quote": "In these genres, chord progressions are the defining feature on which melody and rhythm are built."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Chord_progression",
+                "loc": "extract",
+                "quote": "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century."
+              }
+            },
+            {
+              "index": 3,
+              "text": "A first chord forms a 'progression' with a second chord, and a second with a third.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Harmony",
+                "loc": "extract",
+                "quote": "A first chord forms a 'progression' with a second chord, and a second with a third."
+              }
+            },
+            {
+              "index": 4,
+              "text": "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Chord_progression",
+                "loc": "extract",
+                "quote": "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor."
+              }
+            },
+            {
+              "index": 5,
+              "text": "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Chord_progression",
+                "loc": "extract",
+                "quote": "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Wikipedia (see fact anchors)"
+          ]
+        },
+        {
+          "id": "music/triads-and-seventh-chords",
+          "term": "Triads and seventh chords",
+          "definition": "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "definitionAnchor": null,
+          "facts": [
+            {
+              "index": 0,
+              "text": "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Seventh_chord",
+                "loc": "extract",
+                "quote": "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root."
+              }
+            },
+            {
+              "index": 2,
+              "text": "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Seventh_chord",
+                "loc": "extract",
+                "quote": "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction."
+              }
+            },
+            {
+              "index": 3,
+              "text": "There are four different inversions of a seventh chord.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Seventh_chord",
+                "loc": "extract",
+                "quote": "There are four different inversions of a seventh chord."
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Wikipedia (see fact anchors)"
+          ]
+        },
+        {
+          "id": "music/intervals",
+          "term": "Interval (music)",
+          "definition": "In music theory, an interval is a difference in pitch between two sounds.",
+          "definitionAnchor": null,
+          "facts": [
+            {
+              "index": 1,
+              "text": "In physical terms, an interval is the ratio between two sonic frequencies.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Interval_(music)",
+                "loc": "extract",
+                "quote": "In physical terms, an interval is the ratio between two sonic frequencies."
+              }
+            },
+            {
+              "index": 4,
+              "text": "Intervals between successive notes of a scale are also known as scale steps.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Interval_(music)",
+                "loc": "extract",
+                "quote": "Intervals between successive notes of a scale are also known as scale steps."
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Wikipedia (see fact anchors)"
+          ]
+        },
+        {
+          "id": "music/scales-and-key-signatures",
+          "term": "Scales and key signatures",
+          "definition": "In music theory, a scale is \"any consecutive series of notes that form a progression between one note and its octave\", typically by order of pitch or fundamental frequency.",
+          "definitionAnchor": null,
+          "facts": [
+            {
+              "index": 0,
+              "text": "A measure of the width of each scale step provides a method to classify scales.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Scale_(music)",
+                "loc": "extract",
+                "quote": "A measure of the width of each scale step provides a method to classify scales."
+              }
+            },
+            {
+              "index": 1,
+              "text": "Scales can be abstracted from performance or composition.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Scale_(music)",
+                "loc": "extract",
+                "quote": "Scales can be abstracted from performance or composition."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Therefore, any scale is distinguishable by its \"step-pattern\", or how its intervals interact with each other.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Scale_(music)",
+                "loc": "extract",
+                "quote": "Therefore, any scale is distinguishable by its \"step-pattern\", or how its intervals interact with each other."
+              }
+            },
+            {
+              "index": 4,
+              "text": "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic).",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Scale_(music)",
+                "loc": "extract",
+                "quote": "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic)."
+              }
+            },
+            {
+              "index": 5,
+              "text": "The expression scale degree refers to these numerical labels.",
+              "anchor": {
+                "src": "https://en.wikipedia.org/wiki/Scale_(music)",
+                "loc": "extract",
+                "quote": "The expression scale degree refers to these numerical labels."
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Wikipedia (see fact anchors)"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "e38bfea2b79bdd4b3cfff63de22c63df96e995c7028500ab2b803ee35f367642",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-16T20:01:27.932Z",
+    "admittedPromptIds": [
+      "form-harmony-evidence-seminar:music/rhythm-and-meter",
+      "form-harmony-evidence-seminar:music/musical-form",
+      "form-harmony-evidence-seminar:music/harmony-and-progressions",
+      "form-harmony-evidence-seminar:music/triads-and-seventh-chords",
+      "form-harmony-evidence-seminar:music/intervals",
+      "form-harmony-evidence-seminar:music/scales-and-key-signatures"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "form-harmony-evidence-seminar:music/rhythm-and-meter",
+          "kernelId": "music/rhythm-and-meter",
+          "promptSha256": "aac9eda32b16e0a39fd78b82fddea73f36db86cf9323c6ad3a1f17943107c2c0",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A listening notebook describes a passage as having a regular, recurring pattern of strong and weak beats. Which label fits that evidence best?",
+                "op": [
+                  "Rhythm",
+                  "Meter",
+                  "Triple metre",
+                  "Syncopation"
+                ],
+                "ai": 1,
+                "ex": "Meter fits best because the claim identifies a regular recurring pattern of strong and weak beats. Rhythm is broader movement marked by regular succession, while triple metre is specifically a bar division into three beats or a multiple thereof. The common mistake is choosing rhythm just because the",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "A score is organized so each bar is divided into three beats. Which analysis term is directly supported by that fact?",
+                "op": [
+                  "Rhythm",
+                  "Meter",
+                  "Triple metre",
+                  "Weak beat"
+                ],
+                "ai": 2,
+                "ex": "Triple metre is directly supported because the defining feature is a bar divided into three beats, or a multiple thereof. The plausible misconception is to stop at meter, since meter also involves regular strong and weak beats, but that is less specific than the three-beat bar division stated here.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Meter",
+                "df": "A recurring beat pattern with strong and weak pulses.",
+                "eg": "A class notes example: the beat grid stays regular across measures.",
+                "mi": "It is the same thing as any rhythm.",
+                "cx": "Rhythm is the broader idea of regulated motion; meter is the recurring strong-weak beat pattern.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Triple metre",
+                "df": "A meter whose bar division groups beats in threes.",
+                "eg": "In a passage counted 1-2-3 per bar, the organization is triple metre.",
+                "mi": "Any music with three notes is triple metre.",
+                "cx": "The evidence must show the bar is divided into three beats, or a multiple of three, not merely that three notes happen to occur.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "b0642786133e325f3515c19c36c9b3615fa9873e49f4a30e5abdbe27a1bab40d",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A score is organized so each bar is divided into three beats. Which analysis term is directly supported by that fact?",
+                "op": [
+                  "Rhythm",
+                  "Meter",
+                  "Triple metre",
+                  "Weak beat"
+                ],
+                "ai": 2,
+                "ex": "Triple metre is directly supported because the defining feature is a bar divided into three beats, or a multiple thereof. The plausible misconception is to stop at meter, since meter also involves regular strong and weak beats, but that is less specific than the three-beat bar division stated here.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Triple metre",
+                "df": "A meter whose bar division groups beats in threes.",
+                "eg": "In a passage counted 1-2-3 per bar, the organization is triple metre.",
+                "mi": "Any music with three notes is triple metre.",
+                "cx": "The evidence must show the bar is divided into three beats, or a multiple of three, not merely that three notes happen to occur.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "c211853338cc286af2891421ca692d1a4be51b8f5803ab996cc5834eccb852d7",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "key-term-0-embedded-field-label"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0c3f5d01e23d5b67006a593266bab081a2a898814b291a3d82",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 654,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 545,
+              "output_tokens_details": {
+                "reasoning_tokens": 140
+              },
+              "total_tokens": 1199
+            }
+          },
+          "startedAt": "2026-07-16T19:35:02.646Z",
+          "durationMs": 5199
+        },
+        {
+          "promptId": "form-harmony-evidence-seminar:music/musical-form",
+          "kernelId": "music/musical-form",
+          "promptSha256": "07c01cc3795f10d1eb4c87e2114327b4b5e5ea81b9f5f89b974a179c710dd73e",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which choice best matches what musical form describes in a composition?",
+                "op": [
+                  "The overall structure of the piece",
+                  "The number of chords in a phrase",
+                  "The exact pitch pattern of a scale",
+                  "The loudness level of each section"
+                ],
+                "ai": 0,
+                "ex": "The correct choice is the overall structure of the piece. A common misconception is to treat form as the chord count or another single surface feature, but form is the larger organization that unfolds over time; it results from the interaction of the musical elements, not just one of them.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              },
+              {
+                "q": "In notation for a musical form, what do lowercase letters such as a and b usually indicate?",
+                "op": [
+                  "Subdivisions of a larger unit",
+                  "Two sections of equal length",
+                  "A harmonic cadence pattern",
+                  "A repeated rhythmic ratio"
+                ],
+                "ai": 0,
+                "ex": "Lowercase letters mark subdivisions of each large musical unit. The tempting mistake is to read them as naming the piece’s two main parts, but two sections of about equal length describes binary form, not the lettering used for subdivisions.",
+                "sourceFactIndexes": [
+                  1,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Musical form",
+                "df": "The overall structure of a musical composition or performance.",
+                "eg": "A movement can be analyzed by how its sections are arranged and developed over time.",
+                "mi": "It is the same thing as a chord progression.",
+                "cx": "Chord progression is only one kind of evidence; form is the larger structural organization that can include harmony, melody, and rhythm.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              },
+              {
+                "tr": "Binary form",
+                "df": "A design with two sections that are about equal in length.",
+                "eg": "A short piece divided into two balanced parts can be described this way.",
+                "mi": "Any time a score uses lowercase letters, it must be binary form.",
+                "cx": "Lowercase letters can mark subdivisions within a larger unit; they do not by themselves prove a two-section design.",
+                "sourceFactIndexes": [
+                  1,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "f884fbd7d3c345e7dda320f6d48c6be89701db08e5ef595e6c38a65d6365de40",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which choice best matches what musical form describes in a composition?",
+                "op": [
+                  "The overall structure of the piece",
+                  "The number of chords in a phrase",
+                  "The exact pitch pattern of a scale",
+                  "The loudness level of each section"
+                ],
+                "ai": 0,
+                "ex": "The correct choice is the overall structure of the piece. A common misconception is to treat form as the chord count or another single surface feature, but form is the larger organization that unfolds over time; it results from the interaction of the musical elements, not just one of them.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              },
+              {
+                "q": "In notation for a musical form, what do lowercase letters such as a and b usually indicate?",
+                "op": [
+                  "Subdivisions of a larger unit",
+                  "Two sections of equal length",
+                  "A harmonic cadence pattern",
+                  "A repeated rhythmic ratio"
+                ],
+                "ai": 0,
+                "ex": "Lowercase letters mark subdivisions of each large musical unit. The tempting mistake is to read them as naming the piece’s two main parts, but two sections of about equal length describes binary form, not the lettering used for subdivisions.",
+                "sourceFactIndexes": [
+                  1,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Musical form",
+                "df": "The overall structure of a musical composition or performance.",
+                "eg": "A movement can be analyzed by how its sections are arranged and developed over time.",
+                "mi": "It is the same thing as a chord progression.",
+                "cx": "Chord progression is only one kind of evidence; form is the larger structural organization that can include harmony, melody, and rhythm.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              },
+              {
+                "tr": "Binary form",
+                "df": "A design with two sections that are about equal in length.",
+                "eg": "A short piece divided into two balanced parts can be described this way.",
+                "mi": "Any time a score uses lowercase letters, it must be binary form.",
+                "cx": "Lowercase letters can mark subdivisions within a larger unit; they do not by themselves prove a two-section design.",
+                "sourceFactIndexes": [
+                  1,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "f884fbd7d3c345e7dda320f6d48c6be89701db08e5ef595e6c38a65d6365de40",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0d4bb6290ca768ae006a59326be954819f9bcd8914bbb24d6e",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 707,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 543,
+              "output_tokens_details": {
+                "reasoning_tokens": 121
+              },
+              "total_tokens": 1250
+            }
+          },
+          "startedAt": "2026-07-16T19:35:07.849Z",
+          "durationMs": 4951
+        },
+        {
+          "promptId": "form-harmony-evidence-seminar:music/harmony-and-progressions",
+          "kernelId": "music/harmony-and-progressions",
+          "promptSha256": "22111f7a15986bde13b2c422455c600efc989e6bbebd748bc65ba3fd8d466657",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which choice best matches the role of harmony in this source packet?",
+                "op": [
+                  "Combining different sounds to create new, distinct musical ideas",
+                  "A named sequence of chords that supports melody and rhythm",
+                  "A scale pattern that fixes the pitches of a key",
+                  "A ratio pattern that measures the length of notes"
+                ],
+                "ai": 0,
+                "ex": "Correct: harmony is described as combining different sounds to create new, distinct musical ideas. The common mistake is to treat harmony as the same thing as a chord progression; the packet instead says chord progressions are a foundation of harmony, not its whole definition.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "In many styles of popular and traditional music, how are chord progressions often expressed?",
+                "op": [
+                  "By the name and quality of the chords",
+                  "By the meter and accent pattern of the bar",
+                  "By the order of scale degrees in a mode",
+                  "By the timbre and register of the instruments"
+                ],
+                "ai": 0,
+                "ex": "Correct: the packet says these progressions are often written with the chord name and quality. A plausible confusion is to substitute scale or rhythmic evidence, but those describe other kinds of musical structure rather than how these progressions are labeled in the source.",
+                "sourceFactIndexes": [
+                  5
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Harmony",
+                "df": "A way of combining different sounds so they form a new musical idea.",
+                "eg": "A passage that layers notes into a sonorous texture rather than leaving a single line alone.",
+                "mi": "It means only the written chord symbols on a page.",
+                "cx": "The source treats chord progressions as part of harmony, so harmony is broader than chord labels alone.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Chord progression",
+                "df": "A sequence in which one chord leads to another and then to another.",
+                "eg": "A move from one chord to a second, then a third, as the source describes.",
+                "mi": "It is the same thing as melody or rhythm.",
+                "cx": "The packet says progressions are a foundation for harmony, while melody and rhythm are built on them in some genres; that keeps the roles distinct.",
+                "sourceFactIndexes": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "a1742e743da1bef794003e176fcd0f4eaf0c5166a01a2f1ded4b4220e495d2fd",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which choice best matches the role of harmony in this source packet?",
+                "op": [
+                  "Combining different sounds to create new, distinct musical ideas",
+                  "A named sequence of chords that supports melody and rhythm",
+                  "A scale pattern that fixes the pitches of a key",
+                  "A ratio pattern that measures the length of notes"
+                ],
+                "ai": 0,
+                "ex": "Correct: harmony is described as combining different sounds to create new, distinct musical ideas. The common mistake is to treat harmony as the same thing as a chord progression; the packet instead says chord progressions are a foundation of harmony, not its whole definition.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "In many styles of popular and traditional music, how are chord progressions often expressed?",
+                "op": [
+                  "By the name and quality of the chords",
+                  "By the meter and accent pattern of the bar",
+                  "By the order of scale degrees in a mode",
+                  "By the timbre and register of the instruments"
+                ],
+                "ai": 0,
+                "ex": "Correct: the packet says these progressions are often written with the chord name and quality. A plausible confusion is to substitute scale or rhythmic evidence, but those describe other kinds of musical structure rather than how these progressions are labeled in the source.",
+                "sourceFactIndexes": [
+                  5
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Harmony",
+                "df": "A way of combining different sounds so they form a new musical idea.",
+                "eg": "A passage that layers notes into a sonorous texture rather than leaving a single line alone.",
+                "mi": "It means only the written chord symbols on a page.",
+                "cx": "The source treats chord progressions as part of harmony, so harmony is broader than chord labels alone.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Chord progression",
+                "df": "A sequence in which one chord leads to another and then to another.",
+                "eg": "A move from one chord to a second, then a third, as the source describes.",
+                "mi": "It is the same thing as melody or rhythm.",
+                "cx": "The packet says progressions are a foundation for harmony, while melody and rhythm are built on them in some genres; that keeps the roles distinct.",
+                "sourceFactIndexes": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "a1742e743da1bef794003e176fcd0f4eaf0c5166a01a2f1ded4b4220e495d2fd",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_04b3ec8ae809df78006a593270df3c819282fb9d365f5d48e6",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 744,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 573,
+              "output_tokens_details": {
+                "reasoning_tokens": 120
+              },
+              "total_tokens": 1317
+            }
+          },
+          "startedAt": "2026-07-16T19:35:12.802Z",
+          "durationMs": 5309
+        },
+        {
+          "promptId": "form-harmony-evidence-seminar:music/triads-and-seventh-chords",
+          "kernelId": "music/triads-and-seventh-chords",
+          "promptSha256": "22ed5519401d24755cc1f1725cbd3daccc04ac6a603a50368a533db5eb3d8453",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student labels a sonority built from three notes stacked in thirds as a seventh chord because it sounds harmonically complete. What is the best correction?",
+                "op": [
+                  "It is a triad, since three notes can be stacked vertically in thirds.",
+                  "It is a seventh chord, since every stacked sonority contains a seventh.",
+                  "It is an inversion of a seventh chord, since it has three notes.",
+                  "It is not a chord, since thirds only describe melody."
+                ],
+                "ai": 0,
+                "ex": "The best correction is that three notes stacked in thirds form a triad. The tempting misconception is to treat any harmonically full-sounding sonority as a seventh chord, but a seventh chord requires a triad plus an added note a seventh above the root.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "A composer wants a sonority that adds instability and can push the music toward motion in a specific direction. Which chord type best matches that description?",
+                "op": [
+                  "A triad, because three notes stacked in thirds are the most directional.",
+                  "A seventh chord, because the added seventh can destabilize the triad.",
+                  "A unison, because one pitch can imply any harmonic goal.",
+                  "A scale, because stepwise order creates chordal tension."
+                ],
+                "ai": 1,
+                "ex": "A seventh chord best matches that description because the added seventh can destabilize the triad and help emphasize motion in a chosen direction. The likely misconception is to confuse chordal tension with the mere presence of three notes; a triad is the simpler three-note stack, while the seventh‑",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Triad",
+                "df": "A three-note chord built by stacking pitches in thirds.",
+                "eg": "A student hears three pitches arranged in thirds and identifies the sonority as a triad.",
+                "mi": "Thinking any three-note texture is automatically a triad.",
+                "cx": "The correction is that the notes must be a vertical stack in thirds, not just any three simultaneous notes.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Seventh chord",
+                "df": "A chord made by adding a note a seventh above the root to a triad.",
+                "eg": "In analysis, a student spots a triad with an added seventh and labels it a seventh chord.",
+                "mi": "Assuming a seventh chord is just a louder triad or any four-note sonority.",
+                "cx": "The correction is that the seventh relation to the root is what defines the chord type.",
+                "sourceFactIndexes": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "c99e5f7fbc03b253ea31855ab20f2052153298c3096622459ec87ea6eddc8267",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student labels a sonority built from three notes stacked in thirds as a seventh chord because it sounds harmonically complete. What is the best correction?",
+                "op": [
+                  "It is a triad, since three notes can be stacked vertically in thirds.",
+                  "It is a seventh chord, since every stacked sonority contains a seventh.",
+                  "It is an inversion of a seventh chord, since it has three notes.",
+                  "It is not a chord, since thirds only describe melody."
+                ],
+                "ai": 0,
+                "ex": "The best correction is that three notes stacked in thirds form a triad. The tempting misconception is to treat any harmonically full-sounding sonority as a seventh chord, but a seventh chord requires a triad plus an added note a seventh above the root.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Triad",
+                "df": "A three-note chord built by stacking pitches in thirds.",
+                "eg": "A student hears three pitches arranged in thirds and identifies the sonority as a triad.",
+                "mi": "Thinking any three-note texture is automatically a triad.",
+                "cx": "The correction is that the notes must be a vertical stack in thirds, not just any three simultaneous notes.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Seventh chord",
+                "df": "A chord made by adding a note a seventh above the root to a triad.",
+                "eg": "In analysis, a student spots a triad with an added seventh and labels it a seventh chord.",
+                "mi": "Assuming a seventh chord is just a louder triad or any four-note sonority.",
+                "cx": "The correction is that the seventh relation to the root is what defines the chord type.",
+                "sourceFactIndexes": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "cac6b35c1cf7f3f58324346448e89b477f5bdea7950434a4318be239287b7493",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-truncated-explanation"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_00ae151d251d2349006a5932762c9c81a1b20311e08f90a689",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 665,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 681,
+              "output_tokens_details": {
+                "reasoning_tokens": 154
+              },
+              "total_tokens": 1346
+            }
+          },
+          "startedAt": "2026-07-16T19:35:18.114Z",
+          "durationMs": 7037
+        },
+        {
+          "promptId": "form-harmony-evidence-seminar:music/intervals",
+          "kernelId": "music/intervals",
+          "promptSha256": "7c4fa10dda9339cd0a24b50fe83b1c92a270b8469c99e6e68e9fe8aa611f6fc8",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student hears two notes and asks for the interval in the most basic music-theory sense. Which description fits best?",
+                "op": [
+                  "The difference in pitch between the two sounds",
+                  "The chord built from those two notes",
+                  "The pattern made by repeating the notes in order",
+                  "The overall form of the passage"
+                ],
+                "ai": 0,
+                "ex": "Correct: an interval is the pitch difference between two sounds. The most plausible misconception is to treat the interval as a chord or a larger formal pattern, but those describe harmony or form, not the relation between just two pitches.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "In a tuning lesson, the teacher describes one interval using numbers from acoustics rather than note names. What is being described?",
+                "op": [
+                  "The ratio between two sonic frequencies",
+                  "The distance between successive scale degrees",
+                  "The function of a chord in a cadence",
+                  "The length of a phrase in a movement"
+                ],
+                "ai": 0,
+                "ex": "Correct: in physical terms, an interval can be expressed as the ratio of two sonic frequencies. A likely misconception is to confuse this with a scale step, which is the interval between successive notes of a scale, not the frequency ratio itself.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Interval",
+                "df": "A pitch relation measured between two sounds; in acoustics, it can also be stated as a frequency ratio.",
+                "eg": "The span from one sung note to the next in a melody can be named as an interval.",
+                "mi": "It is just another word for a chord or harmony.",
+                "cx": "An interval concerns the relation between two pitches, while a chord combines multiple pitches at once.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Scale step",
+                "df": "The interval formed by moving from one note of a scale to the next note.",
+                "eg": "Going from one adjacent note in a major scale to the next is a scale step.",
+                "mi": "It means any melodic leap or any change in rhythm.",
+                "cx": "Only adjacent notes within a scale are scale steps; wider skips or nonpitch changes are different kinds of evidence.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "5264def8d51bad6ce0b51389696198aac22fbd01a6da7178c14b97111a4c9845",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student hears two notes and asks for the interval in the most basic music-theory sense. Which description fits best?",
+                "op": [
+                  "The difference in pitch between the two sounds",
+                  "The chord built from those two notes",
+                  "The pattern made by repeating the notes in order",
+                  "The overall form of the passage"
+                ],
+                "ai": 0,
+                "ex": "Correct: an interval is the pitch difference between two sounds. The most plausible misconception is to treat the interval as a chord or a larger formal pattern, but those describe harmony or form, not the relation between just two pitches.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "In a tuning lesson, the teacher describes one interval using numbers from acoustics rather than note names. What is being described?",
+                "op": [
+                  "The ratio between two sonic frequencies",
+                  "The distance between successive scale degrees",
+                  "The function of a chord in a cadence",
+                  "The length of a phrase in a movement"
+                ],
+                "ai": 0,
+                "ex": "Correct: in physical terms, an interval can be expressed as the ratio of two sonic frequencies. A likely misconception is to confuse this with a scale step, which is the interval between successive notes of a scale, not the frequency ratio itself.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Interval",
+                "df": "A pitch relation measured between two sounds; in acoustics, it can also be stated as a frequency ratio.",
+                "eg": "The span from one sung note to the next in a melody can be named as an interval.",
+                "mi": "It is just another word for a chord or harmony.",
+                "cx": "An interval concerns the relation between two pitches, while a chord combines multiple pitches at once.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Scale step",
+                "df": "The interval formed by moving from one note of a scale to the next note.",
+                "eg": "Going from one adjacent note in a major scale to the next is a scale step.",
+                "mi": "It means any melodic leap or any change in rhythm.",
+                "cx": "Only adjacent notes within a scale are scale steps; wider skips or nonpitch changes are different kinds of evidence.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "5264def8d51bad6ce0b51389696198aac22fbd01a6da7178c14b97111a4c9845",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0926d96a2aaa963b006a59327d383481a09468959ee4f46dc4",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 612,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 515,
+              "output_tokens_details": {
+                "reasoning_tokens": 69
+              },
+              "total_tokens": 1127
+            }
+          },
+          "startedAt": "2026-07-16T19:35:25.154Z",
+          "durationMs": 4804
+        },
+        {
+          "promptId": "form-harmony-evidence-seminar:music/scales-and-key-signatures",
+          "kernelId": "music/scales-and-key-signatures",
+          "promptSha256": "d298c32c7299fc64a57344d21e64fec30f073a274db7a5c43f2266c853a96da2",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student hears the same notes arranged in a different order and asks what feature still lets theorists identify the underlying scale. Which evidence is most decisive?",
+                "op": [
+                  "The pattern of step sizes between adjacent notes",
+                  "The total number of notes in the melody",
+                  "The loudest note in the performance",
+                  "The meter of the surrounding passage"
+                ],
+                "ai": 0,
+                "ex": "The correct choice is the step-size pattern, because a scale is identified by its characteristic interval pattern. The number of notes, loudness, and meter may matter for other analyses, but they do not by themselves classify the scale.",
+                "sourceFactIndexes": [
+                  1,
+                  3,
+                  4
+                ]
+              },
+              {
+                "q": "In a class discussion, a student labels the first note of a scale and then assigns numbers to the remaining notes. What is that numbering system called?",
+                "op": [
+                  "Scale degree labels",
+                  "Chord inversion labels",
+                  "Rhythmic beat counts",
+                  "Form section names"
+                ],
+                "ai": 0,
+                "ex": "The correct choice is scale degree labels, because scale degree refers to the numerical labels given to notes in a scale. Chord inversions, beat counts, and section names describe different kinds of musical evidence, not the numbering of scale notes.",
+                "sourceFactIndexes": [
+                  5,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Scale",
+                "df": "A consecutive note series that progresses from one pitch to its octave.",
+                "eg": "A major or minor collection heard as an ordered rise through the notes to the octave.",
+                "mi": "Any group of notes in a song is a scale.",
+                "cx": "That is too broad: a scale is defined by ordered progression and octave span, not just any note collection.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Tonic",
+                "df": "The special first degree that defines a specific scale.",
+                "eg": "When a class identifies the home note of a scale, that note is the tonic.",
+                "mi": "The tonic is the loudest note in the passage.",
+                "cx": "Loudness is not the defining feature here; the tonic is the first degree tied to the scale's identity.",
+                "sourceFactIndexes": [
+                  4,
+                  5
+                ]
+              }
+            ]
+          },
+          "responseSha256": "8b8bb249a0775956a600c765ee57436743d24a67be78d828bd82dc3703104c83",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student hears the same notes arranged in a different order and asks what feature still lets theorists identify the underlying scale. Which evidence is most decisive?",
+                "op": [
+                  "The pattern of step sizes between adjacent notes",
+                  "The total number of notes in the melody",
+                  "The loudest note in the performance",
+                  "The meter of the surrounding passage"
+                ],
+                "ai": 0,
+                "ex": "The correct choice is the step-size pattern, because a scale is identified by its characteristic interval pattern. The number of notes, loudness, and meter may matter for other analyses, but they do not by themselves classify the scale.",
+                "sourceFactIndexes": [
+                  1,
+                  3,
+                  4
+                ]
+              },
+              {
+                "q": "In a class discussion, a student labels the first note of a scale and then assigns numbers to the remaining notes. What is that numbering system called?",
+                "op": [
+                  "Scale degree labels",
+                  "Chord inversion labels",
+                  "Rhythmic beat counts",
+                  "Form section names"
+                ],
+                "ai": 0,
+                "ex": "The correct choice is scale degree labels, because scale degree refers to the numerical labels given to notes in a scale. Chord inversions, beat counts, and section names describe different kinds of musical evidence, not the numbering of scale notes.",
+                "sourceFactIndexes": [
+                  5,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Scale",
+                "df": "A consecutive note series that progresses from one pitch to its octave.",
+                "eg": "A major or minor collection heard as an ordered rise through the notes to the octave.",
+                "mi": "Any group of notes in a song is a scale.",
+                "cx": "That is too broad: a scale is defined by ordered progression and octave span, not just any note collection.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Tonic",
+                "df": "The special first degree that defines a specific scale.",
+                "eg": "When a class identifies the home note of a scale, that note is the tonic.",
+                "mi": "The tonic is the loudest note in the passage.",
+                "cx": "Loudness is not the defining feature here; the tonic is the first degree tied to the scale's identity.",
+                "sourceFactIndexes": [
+                  4,
+                  5
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "8b8bb249a0775956a600c765ee57436743d24a67be78d828bd82dc3703104c83",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0e95dbe615305621006a593282052081a2bbb679b25a53d001",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 711,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 496,
+              "output_tokens_details": {
+                "reasoning_tokens": 61
+              },
+              "total_tokens": 1207
+            }
+          },
+          "startedAt": "2026-07-16T19:35:29.963Z",
+          "durationMs": 5014
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "form-harmony-evidence-seminar:music/rhythm-and-meter",
+          "kernelId": "music/rhythm-and-meter",
+          "promptSha256": "aac9eda32b16e0a39fd78b82fddea73f36db86cf9323c6ad3a1f17943107c2c0",
+          "generationPromptSha256": "5b708fc8d3b853b606b128327182b9690773de63e892fb72d6b2acc5fd3c0c73",
+          "rawCallSha256": "fb0715a091172ba4cd9cc08b2530a8794d1d284ac3188dcbd11fa553d0ec5ce4",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which description best fits meter?",
+                "op": [
+                  "A movement marked by regulated strong and weak elements",
+                  "A pattern of chord functions in a progression",
+                  "A scale pattern built from whole and half steps",
+                  "A formal scheme of sections and reprises"
+                ],
+                "ai": 0,
+                "ex": "Meter is a regular, recurring pattern of strong and weak beats. It is not a harmonic, scalar, or formal pattern.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Triple metre",
+                "df": "A meter in which each bar is divided into three beats, or a multiple of three.",
+                "eg": "A bar grouped as three beats, or six beats as a multiple thereof.",
+                "mi": "It means any music that feels fast or has three-note figures.",
+                "cx": "Triple metre is about beat grouping per bar, not tempo or surface note groups.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "55992e9abce2b48cc40bcf6a81661d1ec4a8bcede6402024a052a949b0373046",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which description best fits meter?",
+                "op": [
+                  "A movement marked by regulated strong and weak elements",
+                  "A pattern of chord functions in a progression",
+                  "A scale pattern built from whole and half steps",
+                  "A formal scheme of sections and reprises"
+                ],
+                "ai": 0,
+                "ex": "Meter is a regular, recurring pattern of strong and weak beats. It is not a harmonic, scalar, or formal pattern.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Triple metre",
+                "df": "A meter in which each bar is divided into three beats, or a multiple of three.",
+                "eg": "A bar grouped as three beats, or six beats as a multiple thereof.",
+                "mi": "It means any music that feels fast or has three-note figures.",
+                "cx": "Triple metre is about beat grouping per bar, not tempo or surface note groups.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "55992e9abce2b48cc40bcf6a81661d1ec4a8bcede6402024a052a949b0373046",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 1,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0e28b322e0aad7ac006a5938929ce481a08b02d84cbfe0e674",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 662,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 264,
+              "output_tokens_details": {
+                "reasoning_tokens": 72
+              },
+              "total_tokens": 926
+            }
+          },
+          "startedAt": "2026-07-16T20:01:22.542Z",
+          "durationMs": 3104,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 1
+          }
+        },
+        {
+          "promptId": "form-harmony-evidence-seminar:music/triads-and-seventh-chords",
+          "kernelId": "music/triads-and-seventh-chords",
+          "promptSha256": "22ed5519401d24755cc1f1725cbd3daccc04ac6a603a50368a533db5eb3d8453",
+          "generationPromptSha256": "26ec88361ae6cf5d1a7529e686d0b27a30ab34178d0bcacd2fceaaebce673935",
+          "rawCallSha256": "560ac96395b2af4c3bfe290ce54df50d3ed727ddbfa52aafa2cfd674c69c13ad",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement best describes a seventh chord?",
+                "op": [
+                  "A triad plus a note forming a seventh above the root.",
+                  "Three notes stacked vertically in thirds.",
+                  "Four different inversions of a seventh chord.",
+                  "A triad that always moves in one direction."
+                ],
+                "ai": 0,
+                "ex": "It adds a seventh above the root to a triad. The four inversions belong to the seventh chord, not the triad.",
+                "sourceFactIndexes": [
+                  1,
+                  3,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "16b8ab2e593d3c35f6e5326aab6b2091b0ecefdfdb135a8bad58da42c9dab637",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which statement best describes a seventh chord?",
+                "op": [
+                  "A triad plus a note forming a seventh above the root.",
+                  "Three notes stacked vertically in thirds.",
+                  "Four different inversions of a seventh chord.",
+                  "A triad that always moves in one direction."
+                ],
+                "ai": 0,
+                "ex": "It adds a seventh above the root to a triad. The four inversions belong to the seventh chord, not the triad.",
+                "sourceFactIndexes": [
+                  1,
+                  3,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "16b8ab2e593d3c35f6e5326aab6b2091b0ecefdfdb135a8bad58da42c9dab637",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0ca16e46ecfdf043006a593895b44081a38f59c3918f8f5d12",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 664,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 172,
+              "output_tokens_details": {
+                "reasoning_tokens": 54
+              },
+              "total_tokens": 836
+            }
+          },
+          "startedAt": "2026-07-16T20:01:25.647Z",
+          "durationMs": 2285,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "form-harmony-evidence-seminar:music/rhythm-and-meter",
+        "form-harmony-evidence-seminar:music/triads-and-seventh-chords"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "form-harmony-evidence-seminar:music/rhythm-and-meter",
+        "kernelId": "music/rhythm-and-meter",
+        "promptSha256": "aac9eda32b16e0a39fd78b82fddea73f36db86cf9323c6ad3a1f17943107c2c0",
+        "generationPromptSha256": "5b708fc8d3b853b606b128327182b9690773de63e892fb72d6b2acc5fd3c0c73",
+        "rawCallSha256": "fb0715a091172ba4cd9cc08b2530a8794d1d284ac3188dcbd11fa553d0ec5ce4",
+        "recoveryCallSha256": "5b0241f6fa07fbd7605da2b9b0b5ceb2c69b723a1f1c33f487c06416745192e3",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A score is organized so each bar is divided into three beats. Which analysis term is directly supported by that fact?",
+              "op": [
+                "Rhythm",
+                "Meter",
+                "Triple metre",
+                "Weak beat"
+              ],
+              "ai": 2,
+              "ex": "Triple metre is directly supported because the defining feature is a bar divided into three beats, or a multiple thereof. The plausible misconception is to stop at meter, since meter also involves regular strong and weak beats, but that is less specific than the three-beat bar division stated here.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which description best fits meter?",
+              "op": [
+                "A movement marked by regulated strong and weak elements",
+                "A pattern of chord functions in a progression",
+                "A scale pattern built from whole and half steps",
+                "A formal scheme of sections and reprises"
+              ],
+              "ai": 0,
+              "ex": "Meter is a regular, recurring pattern of strong and weak beats. It is not a harmonic, scalar, or formal pattern.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Triple metre",
+              "df": "A meter whose bar division groups beats in threes.",
+              "eg": "In a passage counted 1-2-3 per bar, the organization is triple metre.",
+              "mi": "Any music with three notes is triple metre.",
+              "cx": "The evidence must show the bar is divided into three beats, or a multiple of three, not merely that three notes happen to occur.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Triple metre",
+              "df": "A meter in which each bar is divided into three beats, or a multiple of three.",
+              "eg": "A bar grouped as three beats, or six beats as a multiple thereof.",
+              "mi": "It means any music that feels fast or has three-note figures.",
+              "cx": "Triple metre is about beat grouping per bar, not tempo or surface note groups.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "dcf121ac9f99c64e48888103703cc69583bccfa5db42f0e01cd240bccbd69d0a",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A score is organized so each bar is divided into three beats. Which analysis term is directly supported by that fact?",
+              "op": [
+                "Rhythm",
+                "Meter",
+                "Triple metre",
+                "Weak beat"
+              ],
+              "ai": 2,
+              "ex": "Triple metre is directly supported because the defining feature is a bar divided into three beats, or a multiple thereof. The plausible misconception is to stop at meter, since meter also involves regular strong and weak beats, but that is less specific than the three-beat bar division stated here.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which description best fits meter?",
+              "op": [
+                "A movement marked by regulated strong and weak elements",
+                "A pattern of chord functions in a progression",
+                "A scale pattern built from whole and half steps",
+                "A formal scheme of sections and reprises"
+              ],
+              "ai": 0,
+              "ex": "Meter is a regular, recurring pattern of strong and weak beats. It is not a harmonic, scalar, or formal pattern.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Triple metre",
+              "df": "A meter whose bar division groups beats in threes.",
+              "eg": "In a passage counted 1-2-3 per bar, the organization is triple metre.",
+              "mi": "Any music with three notes is triple metre.",
+              "cx": "The evidence must show the bar is divided into three beats, or a multiple of three, not merely that three notes happen to occur.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Triple metre",
+              "df": "A meter in which each bar is divided into three beats, or a multiple of three.",
+              "eg": "A bar grouped as three beats, or six beats as a multiple thereof.",
+              "mi": "It means any music that feels fast or has three-note figures.",
+              "cx": "Triple metre is about beat grouping per bar, not tempo or surface note groups.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "dcf121ac9f99c64e48888103703cc69583bccfa5db42f0e01cd240bccbd69d0a",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T20:01:22.542Z",
+        "durationMs": 3104
+      },
+      {
+        "promptId": "form-harmony-evidence-seminar:music/musical-form",
+        "kernelId": "music/musical-form",
+        "promptSha256": "07c01cc3795f10d1eb4c87e2114327b4b5e5ea81b9f5f89b974a179c710dd73e",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which choice best matches what musical form describes in a composition?",
+              "op": [
+                "The overall structure of the piece",
+                "The number of chords in a phrase",
+                "The exact pitch pattern of a scale",
+                "The loudness level of each section"
+              ],
+              "ai": 0,
+              "ex": "The correct choice is the overall structure of the piece. A common misconception is to treat form as the chord count or another single surface feature, but form is the larger organization that unfolds over time; it results from the interaction of the musical elements, not just one of them.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                3
+              ]
+            },
+            {
+              "q": "In notation for a musical form, what do lowercase letters such as a and b usually indicate?",
+              "op": [
+                "Subdivisions of a larger unit",
+                "Two sections of equal length",
+                "A harmonic cadence pattern",
+                "A repeated rhythmic ratio"
+              ],
+              "ai": 0,
+              "ex": "Lowercase letters mark subdivisions of each large musical unit. The tempting mistake is to read them as naming the piece’s two main parts, but two sections of about equal length describes binary form, not the lettering used for subdivisions.",
+              "sourceFactIndexes": [
+                1,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Musical form",
+              "df": "The overall structure of a musical composition or performance.",
+              "eg": "A movement can be analyzed by how its sections are arranged and developed over time.",
+              "mi": "It is the same thing as a chord progression.",
+              "cx": "Chord progression is only one kind of evidence; form is the larger structural organization that can include harmony, melody, and rhythm.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                3
+              ]
+            },
+            {
+              "tr": "Binary form",
+              "df": "A design with two sections that are about equal in length.",
+              "eg": "A short piece divided into two balanced parts can be described this way.",
+              "mi": "Any time a score uses lowercase letters, it must be binary form.",
+              "cx": "Lowercase letters can mark subdivisions within a larger unit; they do not by themselves prove a two-section design.",
+              "sourceFactIndexes": [
+                1,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "f884fbd7d3c345e7dda320f6d48c6be89701db08e5ef595e6c38a65d6365de40",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which choice best matches what musical form describes in a composition?",
+              "op": [
+                "The overall structure of the piece",
+                "The number of chords in a phrase",
+                "The exact pitch pattern of a scale",
+                "The loudness level of each section"
+              ],
+              "ai": 0,
+              "ex": "The correct choice is the overall structure of the piece. A common misconception is to treat form as the chord count or another single surface feature, but form is the larger organization that unfolds over time; it results from the interaction of the musical elements, not just one of them.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                3
+              ]
+            },
+            {
+              "q": "In notation for a musical form, what do lowercase letters such as a and b usually indicate?",
+              "op": [
+                "Subdivisions of a larger unit",
+                "Two sections of equal length",
+                "A harmonic cadence pattern",
+                "A repeated rhythmic ratio"
+              ],
+              "ai": 0,
+              "ex": "Lowercase letters mark subdivisions of each large musical unit. The tempting mistake is to read them as naming the piece’s two main parts, but two sections of about equal length describes binary form, not the lettering used for subdivisions.",
+              "sourceFactIndexes": [
+                1,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Musical form",
+              "df": "The overall structure of a musical composition or performance.",
+              "eg": "A movement can be analyzed by how its sections are arranged and developed over time.",
+              "mi": "It is the same thing as a chord progression.",
+              "cx": "Chord progression is only one kind of evidence; form is the larger structural organization that can include harmony, melody, and rhythm.",
+              "sourceFactIndexes": [
+                0,
+                2,
+                3
+              ]
+            },
+            {
+              "tr": "Binary form",
+              "df": "A design with two sections that are about equal in length.",
+              "eg": "A short piece divided into two balanced parts can be described this way.",
+              "mi": "Any time a score uses lowercase letters, it must be binary form.",
+              "cx": "Lowercase letters can mark subdivisions within a larger unit; they do not by themselves prove a two-section design.",
+              "sourceFactIndexes": [
+                1,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "f884fbd7d3c345e7dda320f6d48c6be89701db08e5ef595e6c38a65d6365de40",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0d4bb6290ca768ae006a59326be954819f9bcd8914bbb24d6e",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 707,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 543,
+            "output_tokens_details": {
+              "reasoning_tokens": 121
+            },
+            "total_tokens": 1250
+          }
+        },
+        "startedAt": "2026-07-16T19:35:07.849Z",
+        "durationMs": 4951
+      },
+      {
+        "promptId": "form-harmony-evidence-seminar:music/harmony-and-progressions",
+        "kernelId": "music/harmony-and-progressions",
+        "promptSha256": "22111f7a15986bde13b2c422455c600efc989e6bbebd748bc65ba3fd8d466657",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which choice best matches the role of harmony in this source packet?",
+              "op": [
+                "Combining different sounds to create new, distinct musical ideas",
+                "A named sequence of chords that supports melody and rhythm",
+                "A scale pattern that fixes the pitches of a key",
+                "A ratio pattern that measures the length of notes"
+              ],
+              "ai": 0,
+              "ex": "Correct: harmony is described as combining different sounds to create new, distinct musical ideas. The common mistake is to treat harmony as the same thing as a chord progression; the packet instead says chord progressions are a foundation of harmony, not its whole definition.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "In many styles of popular and traditional music, how are chord progressions often expressed?",
+              "op": [
+                "By the name and quality of the chords",
+                "By the meter and accent pattern of the bar",
+                "By the order of scale degrees in a mode",
+                "By the timbre and register of the instruments"
+              ],
+              "ai": 0,
+              "ex": "Correct: the packet says these progressions are often written with the chord name and quality. A plausible confusion is to substitute scale or rhythmic evidence, but those describe other kinds of musical structure rather than how these progressions are labeled in the source.",
+              "sourceFactIndexes": [
+                5
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Harmony",
+              "df": "A way of combining different sounds so they form a new musical idea.",
+              "eg": "A passage that layers notes into a sonorous texture rather than leaving a single line alone.",
+              "mi": "It means only the written chord symbols on a page.",
+              "cx": "The source treats chord progressions as part of harmony, so harmony is broader than chord labels alone.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Chord progression",
+              "df": "A sequence in which one chord leads to another and then to another.",
+              "eg": "A move from one chord to a second, then a third, as the source describes.",
+              "mi": "It is the same thing as melody or rhythm.",
+              "cx": "The packet says progressions are a foundation for harmony, while melody and rhythm are built on them in some genres; that keeps the roles distinct.",
+              "sourceFactIndexes": [
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "a1742e743da1bef794003e176fcd0f4eaf0c5166a01a2f1ded4b4220e495d2fd",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which choice best matches the role of harmony in this source packet?",
+              "op": [
+                "Combining different sounds to create new, distinct musical ideas",
+                "A named sequence of chords that supports melody and rhythm",
+                "A scale pattern that fixes the pitches of a key",
+                "A ratio pattern that measures the length of notes"
+              ],
+              "ai": 0,
+              "ex": "Correct: harmony is described as combining different sounds to create new, distinct musical ideas. The common mistake is to treat harmony as the same thing as a chord progression; the packet instead says chord progressions are a foundation of harmony, not its whole definition.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "In many styles of popular and traditional music, how are chord progressions often expressed?",
+              "op": [
+                "By the name and quality of the chords",
+                "By the meter and accent pattern of the bar",
+                "By the order of scale degrees in a mode",
+                "By the timbre and register of the instruments"
+              ],
+              "ai": 0,
+              "ex": "Correct: the packet says these progressions are often written with the chord name and quality. A plausible confusion is to substitute scale or rhythmic evidence, but those describe other kinds of musical structure rather than how these progressions are labeled in the source.",
+              "sourceFactIndexes": [
+                5
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Harmony",
+              "df": "A way of combining different sounds so they form a new musical idea.",
+              "eg": "A passage that layers notes into a sonorous texture rather than leaving a single line alone.",
+              "mi": "It means only the written chord symbols on a page.",
+              "cx": "The source treats chord progressions as part of harmony, so harmony is broader than chord labels alone.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Chord progression",
+              "df": "A sequence in which one chord leads to another and then to another.",
+              "eg": "A move from one chord to a second, then a third, as the source describes.",
+              "mi": "It is the same thing as melody or rhythm.",
+              "cx": "The packet says progressions are a foundation for harmony, while melody and rhythm are built on them in some genres; that keeps the roles distinct.",
+              "sourceFactIndexes": [
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "a1742e743da1bef794003e176fcd0f4eaf0c5166a01a2f1ded4b4220e495d2fd",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_04b3ec8ae809df78006a593270df3c819282fb9d365f5d48e6",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 744,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 573,
+            "output_tokens_details": {
+              "reasoning_tokens": 120
+            },
+            "total_tokens": 1317
+          }
+        },
+        "startedAt": "2026-07-16T19:35:12.802Z",
+        "durationMs": 5309
+      },
+      {
+        "promptId": "form-harmony-evidence-seminar:music/triads-and-seventh-chords",
+        "kernelId": "music/triads-and-seventh-chords",
+        "promptSha256": "22ed5519401d24755cc1f1725cbd3daccc04ac6a603a50368a533db5eb3d8453",
+        "generationPromptSha256": "26ec88361ae6cf5d1a7529e686d0b27a30ab34178d0bcacd2fceaaebce673935",
+        "rawCallSha256": "560ac96395b2af4c3bfe290ce54df50d3ed727ddbfa52aafa2cfd674c69c13ad",
+        "recoveryCallSha256": "49e42005923a581258304dc802e74cd1577933588e6c16f01232ae8c802771b9",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student labels a sonority built from three notes stacked in thirds as a seventh chord because it sounds harmonically complete. What is the best correction?",
+              "op": [
+                "It is a triad, since three notes can be stacked vertically in thirds.",
+                "It is a seventh chord, since every stacked sonority contains a seventh.",
+                "It is an inversion of a seventh chord, since it has three notes.",
+                "It is not a chord, since thirds only describe melody."
+              ],
+              "ai": 0,
+              "ex": "The best correction is that three notes stacked in thirds form a triad. The tempting misconception is to treat any harmonically full-sounding sonority as a seventh chord, but a seventh chord requires a triad plus an added note a seventh above the root.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "Which statement best describes a seventh chord?",
+              "op": [
+                "A triad plus a note forming a seventh above the root.",
+                "Three notes stacked vertically in thirds.",
+                "Four different inversions of a seventh chord.",
+                "A triad that always moves in one direction."
+              ],
+              "ai": 0,
+              "ex": "It adds a seventh above the root to a triad. The four inversions belong to the seventh chord, not the triad.",
+              "sourceFactIndexes": [
+                1,
+                3,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Triad",
+              "df": "A three-note chord built by stacking pitches in thirds.",
+              "eg": "A student hears three pitches arranged in thirds and identifies the sonority as a triad.",
+              "mi": "Thinking any three-note texture is automatically a triad.",
+              "cx": "The correction is that the notes must be a vertical stack in thirds, not just any three simultaneous notes.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Seventh chord",
+              "df": "A chord made by adding a note a seventh above the root to a triad.",
+              "eg": "In analysis, a student spots a triad with an added seventh and labels it a seventh chord.",
+              "mi": "Assuming a seventh chord is just a louder triad or any four-note sonority.",
+              "cx": "The correction is that the seventh relation to the root is what defines the chord type.",
+              "sourceFactIndexes": [
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "2ee1a31b61393792aedb2721a5a12d10d92f9e6f0774584ce4730b23c352b8eb",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student labels a sonority built from three notes stacked in thirds as a seventh chord because it sounds harmonically complete. What is the best correction?",
+              "op": [
+                "It is a triad, since three notes can be stacked vertically in thirds.",
+                "It is a seventh chord, since every stacked sonority contains a seventh.",
+                "It is an inversion of a seventh chord, since it has three notes.",
+                "It is not a chord, since thirds only describe melody."
+              ],
+              "ai": 0,
+              "ex": "The best correction is that three notes stacked in thirds form a triad. The tempting misconception is to treat any harmonically full-sounding sonority as a seventh chord, but a seventh chord requires a triad plus an added note a seventh above the root.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "Which statement best describes a seventh chord?",
+              "op": [
+                "A triad plus a note forming a seventh above the root.",
+                "Three notes stacked vertically in thirds.",
+                "Four different inversions of a seventh chord.",
+                "A triad that always moves in one direction."
+              ],
+              "ai": 0,
+              "ex": "It adds a seventh above the root to a triad. The four inversions belong to the seventh chord, not the triad.",
+              "sourceFactIndexes": [
+                1,
+                3,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Triad",
+              "df": "A three-note chord built by stacking pitches in thirds.",
+              "eg": "A student hears three pitches arranged in thirds and identifies the sonority as a triad.",
+              "mi": "Thinking any three-note texture is automatically a triad.",
+              "cx": "The correction is that the notes must be a vertical stack in thirds, not just any three simultaneous notes.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Seventh chord",
+              "df": "A chord made by adding a note a seventh above the root to a triad.",
+              "eg": "In analysis, a student spots a triad with an added seventh and labels it a seventh chord.",
+              "mi": "Assuming a seventh chord is just a louder triad or any four-note sonority.",
+              "cx": "The correction is that the seventh relation to the root is what defines the chord type.",
+              "sourceFactIndexes": [
+                1,
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "2ee1a31b61393792aedb2721a5a12d10d92f9e6f0774584ce4730b23c352b8eb",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T20:01:25.647Z",
+        "durationMs": 2285
+      },
+      {
+        "promptId": "form-harmony-evidence-seminar:music/intervals",
+        "kernelId": "music/intervals",
+        "promptSha256": "7c4fa10dda9339cd0a24b50fe83b1c92a270b8469c99e6e68e9fe8aa611f6fc8",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student hears two notes and asks for the interval in the most basic music-theory sense. Which description fits best?",
+              "op": [
+                "The difference in pitch between the two sounds",
+                "The chord built from those two notes",
+                "The pattern made by repeating the notes in order",
+                "The overall form of the passage"
+              ],
+              "ai": 0,
+              "ex": "Correct: an interval is the pitch difference between two sounds. The most plausible misconception is to treat the interval as a chord or a larger formal pattern, but those describe harmony or form, not the relation between just two pitches.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "In a tuning lesson, the teacher describes one interval using numbers from acoustics rather than note names. What is being described?",
+              "op": [
+                "The ratio between two sonic frequencies",
+                "The distance between successive scale degrees",
+                "The function of a chord in a cadence",
+                "The length of a phrase in a movement"
+              ],
+              "ai": 0,
+              "ex": "Correct: in physical terms, an interval can be expressed as the ratio of two sonic frequencies. A likely misconception is to confuse this with a scale step, which is the interval between successive notes of a scale, not the frequency ratio itself.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Interval",
+              "df": "A pitch relation measured between two sounds; in acoustics, it can also be stated as a frequency ratio.",
+              "eg": "The span from one sung note to the next in a melody can be named as an interval.",
+              "mi": "It is just another word for a chord or harmony.",
+              "cx": "An interval concerns the relation between two pitches, while a chord combines multiple pitches at once.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Scale step",
+              "df": "The interval formed by moving from one note of a scale to the next note.",
+              "eg": "Going from one adjacent note in a major scale to the next is a scale step.",
+              "mi": "It means any melodic leap or any change in rhythm.",
+              "cx": "Only adjacent notes within a scale are scale steps; wider skips or nonpitch changes are different kinds of evidence.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "5264def8d51bad6ce0b51389696198aac22fbd01a6da7178c14b97111a4c9845",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student hears two notes and asks for the interval in the most basic music-theory sense. Which description fits best?",
+              "op": [
+                "The difference in pitch between the two sounds",
+                "The chord built from those two notes",
+                "The pattern made by repeating the notes in order",
+                "The overall form of the passage"
+              ],
+              "ai": 0,
+              "ex": "Correct: an interval is the pitch difference between two sounds. The most plausible misconception is to treat the interval as a chord or a larger formal pattern, but those describe harmony or form, not the relation between just two pitches.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "In a tuning lesson, the teacher describes one interval using numbers from acoustics rather than note names. What is being described?",
+              "op": [
+                "The ratio between two sonic frequencies",
+                "The distance between successive scale degrees",
+                "The function of a chord in a cadence",
+                "The length of a phrase in a movement"
+              ],
+              "ai": 0,
+              "ex": "Correct: in physical terms, an interval can be expressed as the ratio of two sonic frequencies. A likely misconception is to confuse this with a scale step, which is the interval between successive notes of a scale, not the frequency ratio itself.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Interval",
+              "df": "A pitch relation measured between two sounds; in acoustics, it can also be stated as a frequency ratio.",
+              "eg": "The span from one sung note to the next in a melody can be named as an interval.",
+              "mi": "It is just another word for a chord or harmony.",
+              "cx": "An interval concerns the relation between two pitches, while a chord combines multiple pitches at once.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Scale step",
+              "df": "The interval formed by moving from one note of a scale to the next note.",
+              "eg": "Going from one adjacent note in a major scale to the next is a scale step.",
+              "mi": "It means any melodic leap or any change in rhythm.",
+              "cx": "Only adjacent notes within a scale are scale steps; wider skips or nonpitch changes are different kinds of evidence.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "5264def8d51bad6ce0b51389696198aac22fbd01a6da7178c14b97111a4c9845",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0926d96a2aaa963b006a59327d383481a09468959ee4f46dc4",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 612,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 515,
+            "output_tokens_details": {
+              "reasoning_tokens": 69
+            },
+            "total_tokens": 1127
+          }
+        },
+        "startedAt": "2026-07-16T19:35:25.154Z",
+        "durationMs": 4804
+      },
+      {
+        "promptId": "form-harmony-evidence-seminar:music/scales-and-key-signatures",
+        "kernelId": "music/scales-and-key-signatures",
+        "promptSha256": "d298c32c7299fc64a57344d21e64fec30f073a274db7a5c43f2266c853a96da2",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student hears the same notes arranged in a different order and asks what feature still lets theorists identify the underlying scale. Which evidence is most decisive?",
+              "op": [
+                "The pattern of step sizes between adjacent notes",
+                "The total number of notes in the melody",
+                "The loudest note in the performance",
+                "The meter of the surrounding passage"
+              ],
+              "ai": 0,
+              "ex": "The correct choice is the step-size pattern, because a scale is identified by its characteristic interval pattern. The number of notes, loudness, and meter may matter for other analyses, but they do not by themselves classify the scale.",
+              "sourceFactIndexes": [
+                1,
+                3,
+                4
+              ]
+            },
+            {
+              "q": "In a class discussion, a student labels the first note of a scale and then assigns numbers to the remaining notes. What is that numbering system called?",
+              "op": [
+                "Scale degree labels",
+                "Chord inversion labels",
+                "Rhythmic beat counts",
+                "Form section names"
+              ],
+              "ai": 0,
+              "ex": "The correct choice is scale degree labels, because scale degree refers to the numerical labels given to notes in a scale. Chord inversions, beat counts, and section names describe different kinds of musical evidence, not the numbering of scale notes.",
+              "sourceFactIndexes": [
+                5,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Scale",
+              "df": "A consecutive note series that progresses from one pitch to its octave.",
+              "eg": "A major or minor collection heard as an ordered rise through the notes to the octave.",
+              "mi": "Any group of notes in a song is a scale.",
+              "cx": "That is too broad: a scale is defined by ordered progression and octave span, not just any note collection.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Tonic",
+              "df": "The special first degree that defines a specific scale.",
+              "eg": "When a class identifies the home note of a scale, that note is the tonic.",
+              "mi": "The tonic is the loudest note in the passage.",
+              "cx": "Loudness is not the defining feature here; the tonic is the first degree tied to the scale's identity.",
+              "sourceFactIndexes": [
+                4,
+                5
+              ]
+            }
+          ]
+        },
+        "responseSha256": "8b8bb249a0775956a600c765ee57436743d24a67be78d828bd82dc3703104c83",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student hears the same notes arranged in a different order and asks what feature still lets theorists identify the underlying scale. Which evidence is most decisive?",
+              "op": [
+                "The pattern of step sizes between adjacent notes",
+                "The total number of notes in the melody",
+                "The loudest note in the performance",
+                "The meter of the surrounding passage"
+              ],
+              "ai": 0,
+              "ex": "The correct choice is the step-size pattern, because a scale is identified by its characteristic interval pattern. The number of notes, loudness, and meter may matter for other analyses, but they do not by themselves classify the scale.",
+              "sourceFactIndexes": [
+                1,
+                3,
+                4
+              ]
+            },
+            {
+              "q": "In a class discussion, a student labels the first note of a scale and then assigns numbers to the remaining notes. What is that numbering system called?",
+              "op": [
+                "Scale degree labels",
+                "Chord inversion labels",
+                "Rhythmic beat counts",
+                "Form section names"
+              ],
+              "ai": 0,
+              "ex": "The correct choice is scale degree labels, because scale degree refers to the numerical labels given to notes in a scale. Chord inversions, beat counts, and section names describe different kinds of musical evidence, not the numbering of scale notes.",
+              "sourceFactIndexes": [
+                5,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Scale",
+              "df": "A consecutive note series that progresses from one pitch to its octave.",
+              "eg": "A major or minor collection heard as an ordered rise through the notes to the octave.",
+              "mi": "Any group of notes in a song is a scale.",
+              "cx": "That is too broad: a scale is defined by ordered progression and octave span, not just any note collection.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Tonic",
+              "df": "The special first degree that defines a specific scale.",
+              "eg": "When a class identifies the home note of a scale, that note is the tonic.",
+              "mi": "The tonic is the loudest note in the passage.",
+              "cx": "Loudness is not the defining feature here; the tonic is the first degree tied to the scale's identity.",
+              "sourceFactIndexes": [
+                4,
+                5
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "8b8bb249a0775956a600c765ee57436743d24a67be78d828bd82dc3703104c83",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0e95dbe615305621006a593282052081a2bbb679b25a53d001",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 711,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 496,
+            "output_tokens_details": {
+              "reasoning_tokens": 61
+            },
+            "total_tokens": 1207
+          }
+        },
+        "startedAt": "2026-07-16T19:35:29.963Z",
+        "durationMs": 5014
+      }
+    ]
+  }
+}

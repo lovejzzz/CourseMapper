@@ -1,5 +1,5 @@
 {
-  "version": "2026-07-12",
+  "version": "2026-07-16",
   "generator": "curriculumos-foundry-v1",
   "conceptCount": 284,
   "shards": [
@@ -281,6 +281,38 @@
     "w3c:involving-users": {
       "displayTitle": "Involving Users in Evaluating Web Accessibility",
       "sourceUrl": "https://www.w3.org/WAI/test-evaluate/involving-users/"
+    },
+    "omt:texture": {
+      "displayTitle": "Open Music Theory — Texture",
+      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/texture/"
+    },
+    "omt:other-notation": {
+      "displayTitle": "Open Music Theory — Other Aspects of Notation",
+      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/other-aspects-of-notation/"
+    },
+    "omt:phrase-archetypes": {
+      "displayTitle": "Open Music Theory — The Phrase, Archetypes, and Unique Forms",
+      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/phrase-archetypes-unique-forms/"
+    },
+    "omt:modulation": {
+      "displayTitle": "Open Music Theory — Extended Tonicization and Modulation",
+      "sourceUrl": "https://viva.pressbooks.pub/openmusictheory/chapter/extended-tonicization-and-modulation-to-closely-related-keys/"
+    },
+    "digitalgov:journeys": {
+      "displayTitle": "Digital.gov — Map your users’ and system’s journeys",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/user-needs/journeys"
+    },
+    "digitalgov:user-interaction": {
+      "displayTitle": "Digital.gov — User interactions",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/designing/user-interaction"
+    },
+    "digitalgov:usability-testing": {
+      "displayTitle": "Digital.gov — Usability testing",
+      "sourceUrl": "https://digital.gov/guides/research-collaboration/testing/usability"
+    },
+    "uswds:step-indicator": {
+      "displayTitle": "U.S. Web Design System — Step indicator",
+      "sourceUrl": "https://designsystem.digital.gov/components/step-indicator/"
     }
   }
 }

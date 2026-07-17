@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.46
+**Current release:** v0.16.47
 
 ---
 
@@ -31,7 +31,17 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.46**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts new foundation-model weights. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.47**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+
+v0.16.47 opens a research lab; it does not promote a model. The strict preference corpus now admits 143 of 145 source-bound rows across seven domains, thirty-two course groups, eighty-one task groups, and sixty-four source kernels. Four domains meet the twenty-row model-judge floor, every domain clears the research diversity rules, and the five frozen held-out domains and course groups remain completely disjoint. Two weak chosen artifacts are retained in quarantine instead of being counted as usable training data.
+
+The final fifteen-case readiness campaign was judged twice in isolated presentation orders. Eleven preferences stayed stable—eight favoring the GPT-5.4-mini artifact and three favoring the captured Scion-base artifact—with 86.7% outcome agreement. The complete corpus is still single-model Codex evidence, not human, instructor, classroom, or independent multi-judge evidence. It is sufficient to authorize one reproducible research-only adapter run, but insufficient to activate or promote an adapter.
+
+That run is now fail-closed around the exact evidence. The research launcher consumes only the v0.16.47 readiness corpus under strict semantic admission; binds the source and split bytes, public Gemma revision, frozen holdout, pinned MLX toolchain, clean Git commit and tree, seed, and every ORPO parameter; and derives the adapter ID from that plan. Research output remains non-promotable until the exact adapter beats base-only Scion on the frozen held-out benchmark. Noncommercial and share-alike rows also keep production training blocked until they are replaced or explicitly cleared.
+
+The benchmark changed the compiler as well as the future data. Strict admission now detects fifty of seventy-eight measured weak artifacts without rejecting a preferred artifact in the regression set. Targeted one-kernel source campaigns can materialize honestly, and historical source snapshots remain immutable outside the production Curriculum Genome selector. Two attempted prompt upgrades were rejected: V3 and V4 both reduced admission sharply, and V4 collapsed admitted key terms from thirty-four to one. V2 therefore remains active.
+
+No v0.16.47 adapter is active on the hosted website at this checkpoint. The next evidence is a reproducible research training run followed by a frozen base-versus-adapter-versus-reference comparison. If the adapter loses, Scion remains the public base plus compiler and the failure becomes new compiler or data work—not a hidden promotion.
 
 v0.16.46 gives exact cited source evidence final authority over a model explanation when Scion selects a multiple-choice key. Live browser-local kernels now require every MC item to cite one or two lesson facts by index, and both the early local parser and canonical compiler pass only those cited claims into the repair. A repair is allowed only when the question identifies at most two top source claims, one different option has at least three supported content tokens and 60% containment, the declared option has at most one supported token, and no competing option clears the same support floor. Negative claims, tied or overlapping alternatives, broad questions, missing or invalid source indexes, and weak lexical matches all refuse repair.
 

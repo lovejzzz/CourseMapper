@@ -9,12 +9,16 @@ import { assessCorpusRow } from './scionPreferenceCorpusAudit.mjs';
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
 import { assessHistoricalScionKeyTerm } from './lib/scionHistoricalAdmission.mjs';
 import { deriveScionCourseGroup, SHA256_PATTERN } from './lib/scionCourseGroup.mjs';
+import { scionSourceKernelSha256, scionSourceTaskSha256 } from './lib/scionSourceTaskIdentity.mjs';
 
 const DEFAULT_SOURCES = ['evaluation/scion-review-candidates.jsonl'];
 const DEFAULT_OUTPUT = 'verification-output/scion-blind-review';
 const DEFAULT_APPROVED = 'evaluation/scion-reviewed-preferences.jsonl';
 const DEFAULT_HELD_OUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v1.json';
 export const SCION_BLIND_ATOM_PACKET_PROTOCOL = 'scion-blind-atom-packet-v4';
+export const SCION_SOURCE_ROW_EXCLUSION_PROTOCOL = 'scion-source-row-exclusions-v1';
+export const SCION_SOURCE_TASK_EXCLUSION_PROTOCOL = 'scion-source-task-exclusions-v1';
+export const SCION_SOURCE_KERNEL_EXCLUSION_PROTOCOL = 'scion-source-kernel-exclusions-v1';
 const REVIEW_PROTOCOL = SCION_BLIND_ATOM_PACKET_PROTOCOL;
 const INSTRUCTOR_REVIEW_PROTOCOL = 'scion-blind-instructor-review-v3';
 const FOUNDER_REVIEW_PROTOCOL = 'scion-blind-founder-review-v1';
@@ -94,6 +98,75 @@ async function readHeldOutBenchmark(file) {
   );
   if (domains.size === 0) throw new Error('Held-out benchmark must declare at least one course domain');
   return { path: file, sha256: hash(raw), domains };
+}
+
+async function readSourceRowExclusions(file) {
+  if (!file) return null;
+  const raw = await fs.readFile(file, 'utf8');
+  const manifest = JSON.parse(raw);
+  if (manifest?.protocol !== SCION_SOURCE_ROW_EXCLUSION_PROTOCOL) {
+    throw new Error(`Unsupported source-row exclusion protocol: ${manifest?.protocol || 'missing'}`);
+  }
+  const hashes = Array.isArray(manifest.sourceRowSha256) ? manifest.sourceRowSha256 : [];
+  if (hashes.length === 0 || hashes.some((value) => !SHA256.test(String(value || '')))) {
+    throw new Error('Source-row exclusion manifest must contain valid SHA-256 identities');
+  }
+  if (new Set(hashes).size !== hashes.length) {
+    throw new Error('Source-row exclusion manifest contains duplicate SHA-256 identities');
+  }
+  return {
+    path: file,
+    sha256: hash(raw),
+    protocol: manifest.protocol,
+    declaredCount: hashes.length,
+    hashes: new Set(hashes),
+  };
+}
+
+async function readSourceTaskExclusions(file) {
+  if (!file) return null;
+  const raw = await fs.readFile(file, 'utf8');
+  const manifest = JSON.parse(raw);
+  if (manifest?.protocol !== SCION_SOURCE_TASK_EXCLUSION_PROTOCOL) {
+    throw new Error(`Unsupported source-task exclusion protocol: ${manifest?.protocol || 'missing'}`);
+  }
+  const hashes = Array.isArray(manifest.sourceTaskSha256) ? manifest.sourceTaskSha256 : [];
+  if (hashes.length === 0 || hashes.some((value) => !SHA256.test(String(value || '')))) {
+    throw new Error('Source-task exclusion manifest must contain valid SHA-256 identities');
+  }
+  if (new Set(hashes).size !== hashes.length) {
+    throw new Error('Source-task exclusion manifest contains duplicate SHA-256 identities');
+  }
+  return {
+    path: file,
+    sha256: hash(raw),
+    protocol: manifest.protocol,
+    declaredCount: hashes.length,
+    hashes: new Set(hashes),
+  };
+}
+
+async function readSourceKernelExclusions(file) {
+  if (!file) return null;
+  const raw = await fs.readFile(file, 'utf8');
+  const manifest = JSON.parse(raw);
+  if (manifest?.protocol !== SCION_SOURCE_KERNEL_EXCLUSION_PROTOCOL) {
+    throw new Error(`Unsupported source-kernel exclusion protocol: ${manifest?.protocol || 'missing'}`);
+  }
+  const hashes = Array.isArray(manifest.sourceKernelSha256) ? manifest.sourceKernelSha256 : [];
+  if (hashes.length === 0 || hashes.some((value) => !SHA256.test(String(value || '')))) {
+    throw new Error('Source-kernel exclusion manifest must contain valid SHA-256 identities');
+  }
+  if (new Set(hashes).size !== hashes.length) {
+    throw new Error('Source-kernel exclusion manifest contains duplicate SHA-256 identities');
+  }
+  return {
+    path: file,
+    sha256: hash(raw),
+    protocol: manifest.protocol,
+    declaredCount: hashes.length,
+    hashes: new Set(hashes),
+  };
 }
 
 export function publicCaseDigest(caseRow) {
@@ -533,20 +606,44 @@ export async function buildScionBlindReviewPacket({
   requireSourceContext = false,
   generatedAt = new Date().toISOString(),
   semanticAdmission = true,
+  exclusionManifest,
+  taskExclusionManifest,
+  kernelExclusionManifest,
 } = {}) {
-  const [loadedRows, benchmark] = await Promise.all([
+  const [loadedRows, benchmark, exclusions, taskExclusions, kernelExclusions] = await Promise.all([
     Promise.all(sources.map(readRows)).then((rows) => rows.flat()),
     readHeldOutBenchmark(heldOutBenchmark),
+    readSourceRowExclusions(exclusionManifest),
+    readSourceTaskExclusions(taskExclusionManifest),
+    readSourceKernelExclusions(kernelExclusionManifest),
   ]);
   const loaded = loadedRows;
   const seen = new Set();
   const candidates = [];
   const excludedHeldOut = {};
   const excludedInvalidCourseGroups = [];
+  const excludedSourceRows = [];
+  const excludedSourceTasks = [];
+  const excludedSourceKernels = [];
   for (const { row, source, sourceSha256, line } of loaded) {
     if (!['mc-item', 'key-term'].includes(row?.kind)) continue;
     const domain = canonicalDomain(row.domain || row.courseId);
     if (!domain) continue;
+    const sourceRowSha256 = hash(JSON.stringify(row));
+    if (exclusions?.hashes.has(sourceRowSha256)) {
+      excludedSourceRows.push({ source, line, sourceRowSha256 });
+      continue;
+    }
+    const sourceTaskSha256 = row.sourceContext ? scionSourceTaskSha256(row) : null;
+    const sourceKernelSha256 = row.sourceContext ? scionSourceKernelSha256(row) : null;
+    if (sourceKernelSha256 && kernelExclusions?.hashes.has(sourceKernelSha256)) {
+      excludedSourceKernels.push({ source, line, sourceKernelSha256 });
+      continue;
+    }
+    if (sourceTaskSha256 && taskExclusions?.hashes.has(sourceTaskSha256)) {
+      excludedSourceTasks.push({ source, line, sourceTaskSha256 });
+      continue;
+    }
     if (benchmark.domains.has(domain)) {
       excludedHeldOut[domain] = (excludedHeldOut[domain] || 0) + 1;
       continue;
@@ -590,7 +687,9 @@ export async function buildScionBlindReviewPacket({
       secondRole,
       source,
       sourceSha256,
-      sourceRowSha256: hash(JSON.stringify(row)),
+      sourceRowSha256,
+      sourceTaskSha256,
+      sourceKernelSha256,
       line,
       sourceRow: row,
     });
@@ -762,6 +861,41 @@ export async function buildScionBlindReviewPacket({
       excludedCount: Object.values(excludedHeldOut).reduce((sum, count) => sum + count, 0),
     },
     excludedInvalidCourseGroups,
+    sourceRowExclusions: exclusions
+      ? {
+          path: exclusions.path,
+          sha256: exclusions.sha256,
+          protocol: exclusions.protocol,
+          declaredCount: exclusions.declaredCount,
+          matchedCount: excludedSourceRows.length,
+          unmatchedCount: exclusions.declaredCount - excludedSourceRows.length,
+        }
+      : null,
+    sourceTaskExclusions: taskExclusions
+      ? {
+          path: taskExclusions.path,
+          sha256: taskExclusions.sha256,
+          protocol: taskExclusions.protocol,
+          declaredCount: taskExclusions.declaredCount,
+          matchedRows: excludedSourceTasks.length,
+          matchedTasks: new Set(excludedSourceTasks.map((entry) => entry.sourceTaskSha256)).size,
+          unmatchedCount:
+            taskExclusions.declaredCount - new Set(excludedSourceTasks.map((entry) => entry.sourceTaskSha256)).size,
+        }
+      : null,
+    sourceKernelExclusions: kernelExclusions
+      ? {
+          path: kernelExclusions.path,
+          sha256: kernelExclusions.sha256,
+          protocol: kernelExclusions.protocol,
+          declaredCount: kernelExclusions.declaredCount,
+          matchedRows: excludedSourceKernels.length,
+          matchedKernels: new Set(excludedSourceKernels.map((entry) => entry.sourceKernelSha256)).size,
+          unmatchedCount:
+            kernelExclusions.declaredCount -
+            new Set(excludedSourceKernels.map((entry) => entry.sourceKernelSha256)).size,
+        }
+      : null,
     sourceFiles: [...new Map(loaded.map((entry) => [entry.source, entry.sourceSha256])).entries()]
       .map(([source, sha256]) => ({ source, sha256 }))
       .sort((left, right) => left.source.localeCompare(right.source)),
@@ -880,6 +1014,11 @@ export async function buildScionBlindReviewPacket({
       kindCounts,
       heldOutBenchmark: meta.heldOutBenchmark,
       excludedInvalidCourseGroups,
+      ...(meta.sourceRowExclusions
+        ? { sourceRowExclusions: meta.sourceRowExclusions, semanticAdmission: semanticAdmission === true }
+        : {}),
+      ...(meta.sourceTaskExclusions ? { sourceTaskExclusions: meta.sourceTaskExclusions } : {}),
+      ...(meta.sourceKernelExclusions ? { sourceKernelExclusions: meta.sourceKernelExclusions } : {}),
       sourceFiles: meta.sourceFiles,
       claimBoundary:
         'This receipt proves a frozen, holdout-disjoint, hash-bound blind atom packet exists. It proves no Codex judgment, human judgment, approved training pair, adapter quality, or promotion result.',
@@ -1143,6 +1282,9 @@ function parseArgs(argv) {
     requireSourceContext: false,
     generatedAt: '',
     semanticAdmission: true,
+    exclusionManifest: '',
+    taskExclusionManifest: '',
+    kernelExclusionManifest: '',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -1156,6 +1298,9 @@ function parseArgs(argv) {
     else if (arg === '--source-only' || arg === '--require-source-context') args.requireSourceContext = true;
     else if (arg === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
     else if (arg === '--legacy-semantic-admission') args.semanticAdmission = false;
+    else if (arg === '--exclude-source-rows') args.exclusionManifest = argv[++index] || '';
+    else if (arg === '--exclude-source-tasks') args.taskExclusionManifest = argv[++index] || '';
+    else if (arg === '--exclude-source-kernels') args.kernelExclusionManifest = argv[++index] || '';
     else if (arg === '--held-out-benchmark') args.heldOutBenchmark = argv[++index] || args.heldOutBenchmark;
     else if (arg === '--receipt') args.receiptOutput = argv[++index];
   }

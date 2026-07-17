@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-grounded-atom-capture-v1",
+  "claimBoundary": "This failure-taxonomy campaign expands neutral, source-grounded training-domain comparisons. It excludes the frozen five-domain holdout, creates no preference by itself, and cannot prove that Scion or an adapter improved.",
+  "groups": [
+    {
+      "id": "python-debugging-evidence-clinic",
+      "domain": "computer-science",
+      "title": "Python Debugging Evidence Clinic",
+      "courseBrief": "Python Debugging Evidence Clinic, a six-session course in which students trace state changes, compare competing bug hypotheses, and choose the smallest diagnostic action justified by program evidence.",
+      "qualityFocus": "Stress answer-key integrity in near-neighbor control-flow cases. Make distractors differ by one observable state transition, keep options mutually exclusive, and require the explanation to name the evidence that rules out the closest distractor.",
+      "sourceFile": "public/genome/cs-intro.json",
+      "kernels": [
+        { "id": "cs/variables" },
+        { "id": "cs/expressions-and-types" },
+        { "id": "cs/conditionals" },
+        { "id": "cs/while-loops" },
+        { "id": "cs/for-loops" },
+        { "id": "cs/functions" }
+      ]
+    },
+    {
+      "id": "python-data-boundary-design-lab",
+      "domain": "computer-science",
+      "title": "Python Data Boundary Design Lab",
+      "courseBrief": "Python Data Boundary Design Lab, a six-session course in which students inspect collection state, text transformations, file persistence, recursive boundaries, and object behavior before choosing an implementation claim.",
+      "qualityFocus": "Stress source fidelity around aliasing, mutation, file state, recursion base cases, and class behavior. Refuse generic feedback: each explanation must contrast the keyed mechanism with one plausible but source-inconsistent mechanism.",
+      "sourceFile": "public/genome/cs-intro.json",
+      "kernels": [
+        { "id": "cs/lists" },
+        { "id": "cs/dictionaries" },
+        { "id": "cs/strings" },
+        { "id": "cs/file-io" },
+        { "id": "cs/recursion" },
+        { "id": "cs/classes" }
+      ]
+    },
+    {
+      "id": "geologic-process-evidence-clinic",
+      "domain": "geology",
+      "title": "Geologic Process Evidence Clinic",
+      "courseBrief": "Geologic Process Evidence Clinic, a six-session course in which students distinguish material properties from process evidence and select only the geologic claim warranted by a constrained observation packet.",
+      "qualityFocus": "Stress unsupported causal leaps, sequence errors, and answer choices that overlap across minerals, igneous processes, volcanism, weathering, and sedimentation. Explanations must identify the source observation that defeats the closest alternative.",
+      "sourceFile": "public/genome/geo-intro.json",
+      "kernels": [
+        { "id": "geo/minerals" },
+        { "id": "geo/silicate-structures" },
+        { "id": "geo/igneous-rocks" },
+        { "id": "geo/volcanism" },
+        { "id": "geo/weathering-erosion" },
+        { "id": "geo/sedimentary-rocks" }
+      ]
+    },
+    {
+      "id": "earth-history-inference-audit",
+      "domain": "geology",
+      "title": "Earth History Inference Audit",
+      "courseBrief": "Earth History Inference Audit, a six-session course in which students order rock transformations, separate deep-Earth mechanisms from surface evidence, and audit the limits of seismic and dating inferences.",
+      "qualityFocus": "Stress relative-versus-absolute evidence, process order, source omissions, and explanations that contradict their selected option. Every distractor must represent a distinct geologic inference rather than a paraphrase of another choice.",
+      "sourceFile": "public/genome/geo-intro.json",
+      "kernels": [
+        { "id": "geo/metamorphic-rocks" },
+        { "id": "geo/rock-cycle" },
+        { "id": "geo/earths-interior" },
+        { "id": "geo/plate-tectonics" },
+        { "id": "geo/earthquakes" },
+        { "id": "geo/geologic-time" }
+      ]
+    },
+    {
+      "id": "aural-notation-diagnosis-lab",
+      "domain": "music-theory",
+      "title": "Aural and Notation Diagnosis Lab",
+      "courseBrief": "Aural and Notation Diagnosis Lab, a six-session course in which students use written and heard evidence to distinguish pitch notation, interval, scale, rhythm, chord, and progression claims.",
+      "qualityFocus": "Stress closely related terminology, answer-feedback agreement, and misconceptions that must be genuinely false rather than copied source facts. Options should remain parallel across notation, interval, scale, rhythm, chord, and harmonic evidence.",
+      "sourceFile": "public/genome/music-intro.json",
+      "kernels": [
+        { "id": "music/staff-clefs-pitch-notation", "factIndexes": [0, 1, 4, 5] },
+        { "id": "music/intervals", "factIndexes": [1, 4] },
+        { "id": "music/scales-and-key-signatures", "factIndexes": [0, 1, 2, 4, 5] },
+        { "id": "music/rhythm-and-meter", "factIndexes": [0, 4] },
+        { "id": "music/triads-and-seventh-chords", "factIndexes": [0, 2, 3] },
+        { "id": "music/harmony-and-progressions", "factIndexes": [0, 2, 3, 4, 5] }
+      ]
+    },
+    {
+      "id": "form-harmony-evidence-seminar",
+      "domain": "music-theory",
+      "title": "Form and Harmony Evidence Seminar",
+      "courseBrief": "Form and Harmony Evidence Seminar, a six-session course in which students compare rhythmic, intervallic, scalar, chordal, harmonic, and formal evidence before defending an analysis.",
+      "qualityFocus": "Stress source coverage and conceptual boundaries where structure, ratio, scale pattern, chord function, progression, and form can be confused. Feedback must teach the distinction and must not merely repeat the keyed option.",
+      "sourceFile": "public/genome/music-intro.json",
+      "kernels": [
+        { "id": "music/rhythm-and-meter", "factIndexes": [0, 4] },
+        { "id": "music/musical-form", "factIndexes": [1, 2, 3, 4, 5] },
+        { "id": "music/harmony-and-progressions", "factIndexes": [0, 2, 3, 4, 5] },
+        { "id": "music/triads-and-seventh-chords", "factIndexes": [0, 2, 3] },
+        { "id": "music/intervals", "factIndexes": [1, 4] },
+        { "id": "music/scales-and-key-signatures", "factIndexes": [0, 1, 2, 4, 5] }
+      ]
+    },
+    {
+      "id": "ux-method-selection-clinic",
+      "domain": "user-experience-design",
+      "title": "UX Method Selection Clinic",
+      "courseBrief": "UX Method Selection Clinic, a six-session course in which students distinguish research, synthesis, mapping, flow, prototyping, accessibility, and usability decisions from the evidence each method can support.",
+      "qualityFocus": "Stress artifact-versus-method distinctions, ambiguous answer choices, and unsupported motive or cause inference from one behavior. Explanations must name why the keyed method fits and why the nearest plausible method does not.",
+      "sourceFile": "public/genome/ux-intro.json",
+      "kernels": [
+        { "id": "ux/research-planning" },
+        { "id": "ux/evidence-based-personas" },
+        { "id": "ux/journey-mapping" },
+        { "id": "ux/task-flow-analysis" },
+        { "id": "ux/interactive-prototyping" },
+        { "id": "ux/accessibility-usability-evaluation" }
+      ]
+    },
+    {
+      "id": "ux-evidence-claim-audit",
+      "domain": "user-experience-design",
+      "title": "UX Evidence Claim Audit",
+      "courseBrief": "UX Evidence Claim Audit, a six-session course in which students inspect the provenance and limits of personas, journeys, task flows, prototypes, accessibility checks, and usability findings before revising a design claim.",
+      "qualityFocus": "Stress source omissions, generic key terms, invalid misconceptions, and feedback that is circular or non-instructional. Keep observations separate from interpretations and make insufficient evidence an explicit answer when the source does not warrant a stronger claim.",
+      "sourceFile": "public/genome/ux-intro.json",
+      "kernels": [
+        { "id": "ux/evidence-based-personas" },
+        { "id": "ux/journey-mapping" },
+        { "id": "ux/task-flow-analysis" },
+        { "id": "ux/interactive-prototyping" },
+        { "id": "ux/accessibility-usability-evaluation" },
+        { "id": "ux/research-planning" }
+      ]
+    }
+  ]
+}

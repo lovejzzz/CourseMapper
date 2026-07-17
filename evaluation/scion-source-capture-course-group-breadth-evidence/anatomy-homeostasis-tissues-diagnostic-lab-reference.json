@@ -1,0 +1,1868 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-anatomy-homeostasis-tissues-diagnostic-lab-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Anatomy Homeostasis and Tissues Diagnostic Lab, a five-session course in which students move from levels of organization and feedback regulation to tissue classification and skin structure through short diagnostic decisions grounded in supplied claims.",
+  "fileNames": [
+    "source-packet-5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce.json"
+  ],
+  "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Anatomy Homeostasis and Tissues Diagnostic Lab\",\"sessions\":[{\"number\":1,\"title\":\"Levels of structural organization\"},{\"number\":2,\"title\":\"Homeostasis and feedback regulation\"},{\"number\":3,\"title\":\"Four primary tissue types\"},{\"number\":4,\"title\":\"Integumentary system and skin layers\"},{\"number\":5,\"title\":\"Skeletal system functions\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"Which structure is the smallest independently functioning unit in this sequence: cell, tissue, organ, organ system, organism?\",\"op\":[\"celltissueorganismorgan system\",\"tissuecellorgan systemorganism\",\"organcelltissueorganism\",\"organ systemtissueorganorganism\"],\"ai\":0,\"ex\":\"Cell is correct because it is the smallest independently functioning unit of a living organism. A tissue is a group level above cells, so it cannot be the smallest independently functioning unit.\",\"sourceFactIndexes\":[1,0],\"type\":\"multiple_choice\"},{\"q\":\"Which structure is the smallest independently functioning unit of a living organism?\",\"op\":[\"Chemical components\",\"Cells\",\"Tissues\",\"Organs\"],\"ai\":1,\"ex\":\"Cells are the smallest independently functioning unit. Tissues, organs, and chemical components are larger levels of organization.\",\"sourceFactIndexes\":[1,0,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Organ\",\"df\":\"A body structure formed from at least two tissue types and built for a specific anatomical role.\",\"eg\":\"The heart is a useful course example because it is treated as an organ rather than as a single tissue.\",\"mi\":\"An organ is simply any visible body part, even if it contains only one tissue type.\",\"cx\":\"The correction is that an organ is identified by its tissue combination, not just by its size or shape.\",\"sourceFactIndexes\":[2]},{\"tr\":\"cell\",\"df\":\"The smallest independently functioning unit of a living organism.\",\"eg\":\"A muscle cell helps the body carry out its work.\",\"mi\":\"A cell is the largest unit of body organization.\",\"cx\":\"A cell is the smallest unit that can function on its own.\",\"sourceFactIndexes\":[1]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Which sequence best matches a feedback loop in homeostasis?\",\"op\":[\"sensor, control center, effector\",\"effector, sensor, control center\",\"set point, effector, sensor\",\"control center, set point, sensor\"],\"ai\":0,\"ex\":\"A feedback loop is built from a sensor, a control center, and an effector. A common mistake is to start with the effector, but the loop begins by detecting change before producing a response.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"},{\"q\":\"Which statement best describes a set point?\",\"op\":[\"the physiological value around which the normal range fluctuates\",\"the response that reverses a deviation\",\"the structure that detects a deviation\",\"the stable internal condition after correction\"],\"ai\":0,\"ex\":\"A set point is the physiological value around which the normal range fluctuates. It is not the reversing response itself, which belongs to negative feedback.\",\"sourceFactIndexes\":[1,0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"set point\",\"df\":\"The physiological value that serves as the reference for a normal range.\",\"eg\":\"A course example is a body temperature target around which normal values fluctuate.\",\"mi\":\"It is the organ that carries out the response.\",\"cx\":\"The response comes from an effector; the set point is the reference value being compared with the current condition.\",\"sourceFactIndexes\":[1,2]},{\"tr\":\"Homeostasis\",\"df\":\"The maintenance of stable internal conditions, usually by a negative-feedback loop that detects a deviation from a set point and activates a response that reverses it.\",\"eg\":\"When body temperature drifts from normal, a feedback response helps bring it back toward the usual range.\",\"mi\":\"Homeostasis means the body keeps every internal condition fixed at one exact value.\",\"cx\":\"Homeostasis keeps conditions within a normal range around a set point, and small changes can still occur.\",\"sourceFactIndexes\":[0,1]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A student looks at a microscope image and identifies cells with shared shape and an orderly arrangement that help the structure work. Which course idea best matches that observation?\",\"op\":[\"Histology studies tissue appearance, organization, and function under the microscope.\",\"The body is organized first into organs, then tissues, then cells.\",\"Skin is classified as connective tissue because it covers the body surface.\",\"A negative feedback loop always increases the original change.\"],\"ai\":0,\"ex\":\"Histology is the study of tissue appearance, organization, and function under the microscope. That fits the microscope-based observation better than the nearby but incorrect ideas about body level order, skin classification, or feedback regulation.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"},{\"q\":\"Which option names the four broad tissue categories used to organize the body?\",\"op\":[\"Epithelial, connective, muscle, and nervous tissue.\",\"Epidermal, dermal, subcutaneous, and muscular tissue.\",\"Cells, tissues, organs, and organ systems.\",\"Surface, support, movement, and control tissue.\"],\"ai\":0,\"ex\":\"Epithelial, connective, muscle, and nervous tissue are the four broad tissue categories. The other choices mix anatomical layers, organization levels, or function labels rather than the standard tissue groups.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Histology\",\"df\":\"Study of how tissue looks, is arranged, and functions when viewed with a microscope.\",\"eg\":\"In a lab station, students compare microscope slides to decide whether the tissue’s organization matches its function.\",\"mi\":\"It is the study of bones and organs only.\",\"cx\":\"Microscope observations of tissue appearance and arrangement help identify histology.\",\"sourceFactIndexes\":[1,2]},{\"tr\":\"Four primary tissue types\",\"df\":\"The main tissue groupings used to organize the body into broad categories.\",\"eg\":\"A student sorting a class chart places epithelial, connective, muscle, and nervous tissue into the four primary groups.\",\"mi\":\"They are the same thing as the body’s organ systems.\",\"cx\":\"These categories help organize body structure without replacing the higher levels of organization.\",\"sourceFactIndexes\":[0]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"A student labels the skin’s outer covering and the deeper supportive layer. Which pairing matches the skin’s main layers?\",\"op\":[\"epidermis and dermis\",\"epidermis and accessory structures\",\"dermis and accessory structures\",\"skin and accessory structures\"],\"ai\":0,\"ex\":\"The epidermis and dermis are the skin’s two main layers. The other choices mix in accessory structures or the whole organ, which are related nearby categories but not the paired layers themselves.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Epidermis\",\"df\":\"The outer of the skin’s two main layers, built from keratinized stratified squamous epithelium.\",\"eg\":\"A microscope image showing the keratinized outer layer of skin represents the epidermis.\",\"mi\":\"It is the deeper supportive skin layer.\",\"cx\":\"The deeper supportive layer is the dermis; the epidermis is the outer layer.\",\"sourceFactIndexes\":[1,2]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"Which statement best matches how bones help movement in the body?\",\"op\":[\"They provide attachment points for muscles.\",\"They directly contract to move the skeleton.\",\"They mainly digest stored minerals.\",\"They replace cartilage in every joint.\"],\"ai\":0,\"ex\":\"Bones help movement by giving muscles places to attach, so muscle pull can act on the skeleton. The other choices describe functions or structures that are not supported by the claims.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"},{\"q\":\"Which function belongs to the skeletal system?\",\"op\":[\"It supports the body and protects organs.\",\"It controls nerve signals to muscles.\",\"It produces digestive enzymes for food breakdown.\",\"It carries oxygen through the bloodstream.\"],\"ai\":0,\"ex\":\"The skeletal system supports the body and protects organs. The other choices name functions of other body systems, not skeletal functions.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Skeletal system\",\"df\":\"A body framework made of bones and cartilage that helps support movement and organ protection.\",\"eg\":\"In lab, students could identify the skeletal system when looking at bones and cartilage as the body’s supporting framework.\",\"mi\":\"It is only there to make the body look rigid.\",\"cx\":\"That description is too narrow; this body framework also helps with movement, protection, blood cell production, and storing minerals and fat.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Bone\",\"df\":\"A hard, dense connective tissue that makes up most of the adult skeleton.\",\"eg\":\"A femur specimen in the lab would be an example of bone tissue in the adult skeleton.\",\"mi\":\"It is a soft tissue that mainly cushions organs.\",\"cx\":\"Bone is a dense connective tissue, not a soft cushioning tissue.\",\"sourceFactIndexes\":[1]}]}}}}",
+  "savedAt": "2026-07-16T22:42:21.611Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-course-group-breadth-v0.16.47.json",
+    "campaignManifestSha256": "54233a8e64074f0060a69d3ac778f719850220092ba51eb87ca10ef1fa0c3693",
+    "promptSetSha256": "5a44124735946a0ae568082769b29d43575b9bffa20cea1c81a520d7d48df40f",
+    "courseInputSha256": "f56acfff0d29bdc297cd65da104e05b7c79a2440a4c94236f739dfa609200209",
+    "courseGroupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+    "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/anatomy-intro.json",
+      "sourceArtifactSha256": "bd4ddecb051add0069a8e7010cd9af0b241fc124d23b235ac391c5524f0763cb",
+      "kernels": [
+        {
+          "id": "anatomy/levels-of-organization",
+          "term": "Levels of structural organization",
+          "definition": "Human anatomy and physiology organizes body structure from chemical components to cells, tissues, organs, organ systems, and the organism, so students can connect form to function across scales.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1-organization",
+            "loc": "1.2",
+            "quote": "Life processes of the human body are maintained at several levels of structural organization"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A cell is the smallest independently functioning unit of a living organism.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#1-organization",
+                "loc": "1.2",
+                "quote": "A cell is the smallest independently functioning unit of a living organism"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Organs are anatomically distinct structures made of two or more tissue types.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#1-organization",
+                "loc": "1.2",
+                "quote": "An organ is an anatomically distinct structure of the body composed of two or more tissue types"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/homeostasis-feedback",
+          "term": "Homeostasis and feedback regulation",
+          "definition": "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+            "loc": "1.5",
+            "quote": "Negative feedback is a mechanism that reverses a deviation from the set point"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A set point is the physiological value around which the normal range fluctuates.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+                "loc": "1.5",
+                "quote": "A set point is the physiological value around which the normal range fluctuates"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A feedback loop includes a sensor, a control center, and an effector.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+                "loc": "1.5",
+                "quote": "An effector is the component in a feedback system that causes a change to reverse the situation and return the value to the normal range"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/tissue-types",
+          "term": "Four primary tissue types",
+          "definition": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#4-1",
+            "loc": "4.1",
+            "quote": "they are organized into four broad categories of tissues: epithelial, connective, muscle, and nervous"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Histology studies tissue appearance, organization, and function under the microscope.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#4-1",
+                "loc": "4.1",
+                "quote": "histology, the microscopic study of tissue appearance, organization, and function"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Tissue cells share morphological features and an orderly arrangement that supports tissue function.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#4-1",
+                "loc": "4.1",
+                "quote": "share morphological features and are arranged in an orderly pattern that achieves the tissue's functions"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/integumentary-skin-layers",
+          "term": "Integumentary system and skin layers",
+          "definition": "The integumentary system includes the skin and accessory structures; skin has epidermal and dermal layers that support protection and communication.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#5-1",
+            "loc": "5.1",
+            "quote": "The skin and its accessory structures make up the integumentary system"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The skin has two main layers: the epidermis and dermis.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#5-1",
+                "loc": "5.1",
+                "quote": "The skin is composed of two main layers: the epidermis"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The epidermis is made of keratinized stratified squamous epithelium.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#5-1",
+                "loc": "5.1",
+                "quote": "The epidermis is composed of keratinized, stratified squamous epithelium"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/skeletal-system-functions",
+          "term": "Skeletal system functions",
+          "definition": "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "supports the body, facilitates movement, protects internal organs, produces blood cells, stores and releases minerals and fat"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#6-1",
+                "loc": "6.1",
+                "quote": "Bone, or osseous tissue, is a hard, dense connective tissue"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Bones facilitate movement by providing attachment points for muscles.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#6-1",
+                "loc": "6.1",
+                "quote": "Bones also facilitate movement by serving as points of attachment for your muscles"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-16T22:42:21.611Z",
+    "admittedPromptIds": [
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization",
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/homeostasis-feedback",
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/tissue-types",
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/integumentary-skin-layers",
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/skeletal-system-functions"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization",
+          "kernelId": "anatomy/levels-of-organization",
+          "promptSha256": "f7e0def712cde4901bc85395738f285c595693b714fe3354b9f66b9e745407ac",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which structure is the smallest independently functioning unit in this sequence: cell, tissue, organ, organ system, organism?",
+                "op": [
+                  "celltissueorganismorgan system",
+                  "tissuecellorgan systemorganism",
+                  "organcelltissueorganism",
+                  "organ systemtissueorganorganism"
+                ],
+                "ai": 0,
+                "ex": "Cell is correct because it is the smallest independently functioning unit of a living organism. A tissue is a group level above cells, so it cannot be the smallest independently functioning unit.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "q": "Which choice best describes an organ in this course sequence?",
+                "op": [
+                  "a distinct structure built from two or more tissue types",
+                  "a single cell that works on its own",
+                  "a collection of organs working together",
+                  "a layer of chemical components with no tissues"
+                ],
+                "ai": 0,
+                "ex": "A distinct structure built from two or more tissue types is correct because that is what defines an organ here. The nearby misconception is to confuse an organ with a tissue, cell, or organ system, but those are different levels of organization.",
+                "sourceFactIndexes": [
+                  2,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Cell",
+                "df": "The smallest unit that can function independently in a living organism.",
+                "eg": "In this course, a cell is the starting point for tracing how structure builds upward into tissues, organs, and organ systems.",
+                "mi": "A cell is just any tiny part of the body, even if it cannot function on its own.",
+                "cx": "A more accurate way to think about it is as the least complex living unit that still works independently.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Organ",
+                "df": "A body structure formed from at least two tissue types and built for a specific anatomical role.",
+                "eg": "The heart is a useful course example because it is treated as an organ rather than as a single tissue.",
+                "mi": "An organ is simply any visible body part, even if it contains only one tissue type.",
+                "cx": "The correction is that an organ is identified by its tissue combination, not just by its size or shape.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "6c2645f4b5ebc6bae32812acffa5b68ee1042c5c0af5fe00be4c5b8368e729f7",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which structure is the smallest independently functioning unit in this sequence: cell, tissue, organ, organ system, organism?",
+                "op": [
+                  "celltissueorganismorgan system",
+                  "tissuecellorgan systemorganism",
+                  "organcelltissueorganism",
+                  "organ systemtissueorganorganism"
+                ],
+                "ai": 0,
+                "ex": "Cell is correct because it is the smallest independently functioning unit of a living organism. A tissue is a group level above cells, so it cannot be the smallest independently functioning unit.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Organ",
+                "df": "A body structure formed from at least two tissue types and built for a specific anatomical role.",
+                "eg": "The heart is a useful course example because it is treated as an organ rather than as a single tissue.",
+                "mi": "An organ is simply any visible body part, even if it contains only one tissue type.",
+                "cx": "The correction is that an organ is identified by its tissue combination, not just by its size or shape.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "b1f940a61d5f63885b23945c1f149532f5c8241c4d0151d3c6fdd25edb8de151",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-process-leakage",
+              "mc-1-meta-surface",
+              "key-term-0-meta-definition"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_09e939c3ea520737006a595d5d0c20819180a0246d2e630d8e",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 749,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 555,
+              "output_tokens_details": {
+                "reasoning_tokens": 115
+              },
+              "total_tokens": 1304
+            }
+          },
+          "startedAt": "2026-07-16T22:38:20.168Z",
+          "durationMs": 5725
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/homeostasis-feedback",
+          "kernelId": "anatomy/homeostasis-feedback",
+          "promptSha256": "14a650685e12d7c52b49f382cd1bc1b7450be27caed8c605653838b67d6824e8",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which sequence best matches a feedback loop in homeostasis?",
+                "op": [
+                  "sensor, control center, effector",
+                  "effector, sensor, control center",
+                  "set point, effector, sensor",
+                  "control center, set point, sensor"
+                ],
+                "ai": 0,
+                "ex": "A feedback loop is built from a sensor, a control center, and an effector. A common mistake is to start with the effector, but the loop begins by detecting change before producing a response.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "q": "Which statement best describes a set point?",
+                "op": [
+                  "the physiological value around which the normal range fluctuates",
+                  "the response that reverses a deviation",
+                  "the structure that detects a deviation",
+                  "the stable internal condition after correction"
+                ],
+                "ai": 0,
+                "ex": "A set point is the physiological value around which the normal range fluctuates. It is not the reversing response itself, which belongs to negative feedback.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "homeostasis",
+                "df": "The stable internal condition maintained by the body.",
+                "eg": "In this course, homeostasis can be described as keeping internal conditions stable by using a feedback loop that corrects deviations from a set point.",
+                "mi": "It means the body never changes any variable.",
+                "cx": "The body can still change; the key idea is that negative feedback helps return conditions toward the normal range.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "set point",
+                "df": "The physiological value that serves as the reference for a normal range.",
+                "eg": "A course example is a body temperature target around which normal values fluctuate.",
+                "mi": "It is the organ that carries out the response.",
+                "cx": "The response comes from an effector; the set point is the reference value being compared with the current condition.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "c7d2e289f96540bfa39e7d184ce603d31fa67458fee5db3c7192ca87a32b6e03",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which sequence best matches a feedback loop in homeostasis?",
+                "op": [
+                  "sensor, control center, effector",
+                  "effector, sensor, control center",
+                  "set point, effector, sensor",
+                  "control center, set point, sensor"
+                ],
+                "ai": 0,
+                "ex": "A feedback loop is built from a sensor, a control center, and an effector. A common mistake is to start with the effector, but the loop begins by detecting change before producing a response.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "q": "Which statement best describes a set point?",
+                "op": [
+                  "the physiological value around which the normal range fluctuates",
+                  "the response that reverses a deviation",
+                  "the structure that detects a deviation",
+                  "the stable internal condition after correction"
+                ],
+                "ai": 0,
+                "ex": "A set point is the physiological value around which the normal range fluctuates. It is not the reversing response itself, which belongs to negative feedback.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "set point",
+                "df": "The physiological value that serves as the reference for a normal range.",
+                "eg": "A course example is a body temperature target around which normal values fluctuate.",
+                "mi": "It is the organ that carries out the response.",
+                "cx": "The response comes from an effector; the set point is the reference value being compared with the current condition.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "6a2c1ba4c132b567e03a07c23b9a89e21a605ff6185819cea791abc7bdebfbc5",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-meta-definition"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0c607e3abb47cc54006a595d6203cc81a190086650b98ccab9",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 749,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 432,
+              "output_tokens_details": {
+                "reasoning_tokens": 47
+              },
+              "total_tokens": 1181
+            }
+          },
+          "startedAt": "2026-07-16T22:38:25.894Z",
+          "durationMs": 4489
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/tissue-types",
+          "kernelId": "anatomy/tissue-types",
+          "promptSha256": "d62d1974e059bd008ca61edb3f5f6bdacef25b0007db8fb361f24529695cd57d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student looks at a microscope image and identifies cells with shared shape and an orderly arrangement that help the structure work. Which course idea best matches that observation?",
+                "op": [
+                  "Histology studies tissue appearance, organization, and function under the microscope.",
+                  "The body is organized first into organs, then tissues, then cells.",
+                  "Skin is classified as connective tissue because it covers the body surface.",
+                  "A negative feedback loop always increases the original change."
+                ],
+                "ai": 0,
+                "ex": "Histology is the study of tissue appearance, organization, and function under the microscope. That fits the microscope-based observation better than the nearby but incorrect ideas about body level order, skin classification, or feedback regulation.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "Which option names the four broad tissue categories used to organize the body?",
+                "op": [
+                  "Epithelial, connective, muscle, and nervous tissue.",
+                  "Epidermal, dermal, subcutaneous, and muscular tissue.",
+                  "Cells, tissues, organs, and organ systems.",
+                  "Surface, support, movement, and control tissue."
+                ],
+                "ai": 0,
+                "ex": "Epithelial, connective, muscle, and nervous tissue are the four broad tissue categories. The other choices mix anatomical layers, organization levels, or function labels rather than the standard tissue groups.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Histology",
+                "df": "Study of how tissue looks, is arranged, and functions when viewed with a microscope.",
+                "eg": "In a lab station, students compare microscope slides to decide whether the tissue’s organization matches its function.",
+                "mi": "It is the study of bones and organs only.",
+                "cx": "Microscope observations of tissue appearance and arrangement help identify histology.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Four primary tissue types",
+                "df": "The main tissue groupings used to organize the body into broad categories.",
+                "eg": "A student sorting a class chart places epithelial, connective, muscle, and nervous tissue into the four primary groups.",
+                "mi": "They are the same thing as the body’s organ systems.",
+                "cx": "These categories help organize body structure without replacing the higher levels of organization.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "0413c28375e36ba4e52fdf47b4cf0175b10e5b449b73152fcdecf47e8c541b07",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student looks at a microscope image and identifies cells with shared shape and an orderly arrangement that help the structure work. Which course idea best matches that observation?",
+                "op": [
+                  "Histology studies tissue appearance, organization, and function under the microscope.",
+                  "The body is organized first into organs, then tissues, then cells.",
+                  "Skin is classified as connective tissue because it covers the body surface.",
+                  "A negative feedback loop always increases the original change."
+                ],
+                "ai": 0,
+                "ex": "Histology is the study of tissue appearance, organization, and function under the microscope. That fits the microscope-based observation better than the nearby but incorrect ideas about body level order, skin classification, or feedback regulation.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "Which option names the four broad tissue categories used to organize the body?",
+                "op": [
+                  "Epithelial, connective, muscle, and nervous tissue.",
+                  "Epidermal, dermal, subcutaneous, and muscular tissue.",
+                  "Cells, tissues, organs, and organ systems.",
+                  "Surface, support, movement, and control tissue."
+                ],
+                "ai": 0,
+                "ex": "Epithelial, connective, muscle, and nervous tissue are the four broad tissue categories. The other choices mix anatomical layers, organization levels, or function labels rather than the standard tissue groups.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Histology",
+                "df": "Study of how tissue looks, is arranged, and functions when viewed with a microscope.",
+                "eg": "In a lab station, students compare microscope slides to decide whether the tissue’s organization matches its function.",
+                "mi": "It is the study of bones and organs only.",
+                "cx": "Microscope observations of tissue appearance and arrangement help identify histology.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Four primary tissue types",
+                "df": "The main tissue groupings used to organize the body into broad categories.",
+                "eg": "A student sorting a class chart places epithelial, connective, muscle, and nervous tissue into the four primary groups.",
+                "mi": "They are the same thing as the body’s organ systems.",
+                "cx": "These categories help organize body structure without replacing the higher levels of organization.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "0413c28375e36ba4e52fdf47b4cf0175b10e5b449b73152fcdecf47e8c541b07",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_029382f391c0d38e006a595d66798c819d915afedb12083bf1",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 740,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 605,
+              "output_tokens_details": {
+                "reasoning_tokens": 154
+              },
+              "total_tokens": 1345
+            }
+          },
+          "startedAt": "2026-07-16T22:38:30.390Z",
+          "durationMs": 4401
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/integumentary-skin-layers",
+          "kernelId": "anatomy/integumentary-skin-layers",
+          "promptSha256": "21fea912b025eafc579699203c08ab8d572f498cd52c7e027467f111dd14d20d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student labels the skin’s outer covering and the deeper supportive layer. Which pairing matches the skin’s main layers?",
+                "op": [
+                  "epidermis and dermis",
+                  "epidermis and accessory structures",
+                  "dermis and accessory structures",
+                  "skin and accessory structures"
+                ],
+                "ai": 0,
+                "ex": "The epidermis and dermis are the skin’s two main layers. The other choices mix in accessory structures or the whole organ, which are related nearby categories but not the paired layers themselves.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "A lab slide shows the outer skin layer made of keratinized stratified squamous epithelium. Which tissue description fits that layer?",
+                "op": [
+                  "keratinized stratified squamous epithelium",
+                  "simple cuboidal epithelium",
+                  "dense connective tissue",
+                  "transitional epithelium"
+                ],
+                "ai": 0,
+                "ex": "Keratinized stratified squamous epithelium describes the epidermis. The other options are plausible tissue types, but they do not match the epidermal layer named in the supplied claims.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Integumentary system",
+                "df": "A body system made up of the skin plus its accessory structures.",
+                "eg": "In this course, a diagram of skin with associated structures is classified as part of the integumentary system.",
+                "mi": "It refers only to the epidermis.",
+                "cx": "The correction is that this system includes the skin and its accessory structures, not just the epidermal layer.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Epidermis",
+                "df": "The outer of the skin’s two main layers, built from keratinized stratified squamous epithelium.",
+                "eg": "A microscope image showing the keratinized outer layer of skin represents the epidermis.",
+                "mi": "It is the deeper supportive skin layer.",
+                "cx": "The deeper supportive layer is the dermis; the epidermis is the outer layer.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "d6a14d23e56e2bbac37cf48d88db3145dff2d49a0c23303251fedfbf2f2ac582",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student labels the skin’s outer covering and the deeper supportive layer. Which pairing matches the skin’s main layers?",
+                "op": [
+                  "epidermis and dermis",
+                  "epidermis and accessory structures",
+                  "dermis and accessory structures",
+                  "skin and accessory structures"
+                ],
+                "ai": 0,
+                "ex": "The epidermis and dermis are the skin’s two main layers. The other choices mix in accessory structures or the whole organ, which are related nearby categories but not the paired layers themselves.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Epidermis",
+                "df": "The outer of the skin’s two main layers, built from keratinized stratified squamous epithelium.",
+                "eg": "A microscope image showing the keratinized outer layer of skin represents the epidermis.",
+                "mi": "It is the deeper supportive skin layer.",
+                "cx": "The deeper supportive layer is the dermis; the epidermis is the outer layer.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "dd96bcda6949b11ad2aa8d9426f750086c805a84083df90b3335509bc36934da",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-clang-association-cue",
+              "key-term-0-meta-definition"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_02dbafc6fa87f04e006a595d6aedc4819e8d9652109c4a06da",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 753,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 546,
+              "output_tokens_details": {
+                "reasoning_tokens": 121
+              },
+              "total_tokens": 1299
+            }
+          },
+          "startedAt": "2026-07-16T22:38:34.792Z",
+          "durationMs": 3870
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/skeletal-system-functions",
+          "kernelId": "anatomy/skeletal-system-functions",
+          "promptSha256": "1fcde06885fa57516e713938fa01349b0f14fb9b8c09ab50d652a7505340e383",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement best matches how bones help movement in the body?",
+                "op": [
+                  "They provide attachment points for muscles.",
+                  "They directly contract to move the skeleton.",
+                  "They mainly digest stored minerals.",
+                  "They replace cartilage in every joint."
+                ],
+                "ai": 0,
+                "ex": "Bones help movement by giving muscles places to attach, so muscle pull can act on the skeleton. The other choices describe functions or structures that are not supported by the claims.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "q": "Which function belongs to the skeletal system?",
+                "op": [
+                  "It supports the body and protects organs.",
+                  "It controls nerve signals to muscles.",
+                  "It produces digestive enzymes for food breakdown.",
+                  "It carries oxygen through the bloodstream."
+                ],
+                "ai": 0,
+                "ex": "The skeletal system supports the body and protects organs. The other choices name functions of other body systems, not skeletal functions.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Skeletal system",
+                "df": "A body framework made of bones and cartilage that helps support movement and organ protection.",
+                "eg": "In lab, students could identify the skeletal system when looking at bones and cartilage as the body’s supporting framework.",
+                "mi": "It is only there to make the body look rigid.",
+                "cx": "That description is too narrow; this body framework also helps with movement, protection, blood cell production, and storing minerals and fat.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Bone",
+                "df": "A hard, dense connective tissue that makes up most of the adult skeleton.",
+                "eg": "A femur specimen in the lab would be an example of bone tissue in the adult skeleton.",
+                "mi": "It is a soft tissue that mainly cushions organs.",
+                "cx": "Bone is a dense connective tissue, not a soft cushioning tissue.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "ce2ff5c968db4053f5bbaf130c069b65bf3c88c4e2d45a03dd7d9cea4ae412fc",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which statement best matches how bones help movement in the body?",
+                "op": [
+                  "They provide attachment points for muscles.",
+                  "They directly contract to move the skeleton.",
+                  "They mainly digest stored minerals.",
+                  "They replace cartilage in every joint."
+                ],
+                "ai": 0,
+                "ex": "Bones help movement by giving muscles places to attach, so muscle pull can act on the skeleton. The other choices describe functions or structures that are not supported by the claims.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "q": "Which function belongs to the skeletal system?",
+                "op": [
+                  "It supports the body and protects organs.",
+                  "It controls nerve signals to muscles.",
+                  "It produces digestive enzymes for food breakdown.",
+                  "It carries oxygen through the bloodstream."
+                ],
+                "ai": 0,
+                "ex": "The skeletal system supports the body and protects organs. The other choices name functions of other body systems, not skeletal functions.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Skeletal system",
+                "df": "A body framework made of bones and cartilage that helps support movement and organ protection.",
+                "eg": "In lab, students could identify the skeletal system when looking at bones and cartilage as the body’s supporting framework.",
+                "mi": "It is only there to make the body look rigid.",
+                "cx": "That description is too narrow; this body framework also helps with movement, protection, blood cell production, and storing minerals and fat.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Bone",
+                "df": "A hard, dense connective tissue that makes up most of the adult skeleton.",
+                "eg": "A femur specimen in the lab would be an example of bone tissue in the adult skeleton.",
+                "mi": "It is a soft tissue that mainly cushions organs.",
+                "cx": "Bone is a dense connective tissue, not a soft cushioning tissue.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "ce2ff5c968db4053f5bbaf130c069b65bf3c88c4e2d45a03dd7d9cea4ae412fc",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_01f7ffda201f8ab5006a595d6ec35081a099284fb86814abd3",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 741,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 751,
+              "output_tokens_details": {
+                "reasoning_tokens": 383
+              },
+              "total_tokens": 1492
+            }
+          },
+          "startedAt": "2026-07-16T22:38:38.663Z",
+          "durationMs": 5539
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization",
+          "kernelId": "anatomy/levels-of-organization",
+          "promptSha256": "f7e0def712cde4901bc85395738f285c595693b714fe3354b9f66b9e745407ac",
+          "generationPromptSha256": "05a24049d7df26eab0f496a04a718f238e4e11c365cd7fda2f7b93c435531062",
+          "rawCallSha256": "1ccde2f0ac1b1abd3ab82f855245946357da8f5a01e0a1af26205f6302062c00",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which structure is the smallest independently functioning unit of a living organism?",
+                "op": [
+                  "Chemical components",
+                  "Cells",
+                  "Tissues",
+                  "Organs"
+                ],
+                "ai": 1,
+                "ex": "Cells are the smallest independently functioning unit. Tissues, organs, and chemical components are larger levels of organization.",
+                "sourceFactIndexes": [
+                  1,
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "cell",
+                "df": "The smallest independently functioning unit of a living organism.",
+                "eg": "A muscle cell helps the body carry out its work.",
+                "mi": "A cell is the largest unit of body organization.",
+                "cx": "A cell is the smallest unit that can function on its own.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "ac7d14359bafeedfac03f766f508b09bc7021e6c9305f3a40b8ecc5091bf499e",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which structure is the smallest independently functioning unit of a living organism?",
+                "op": [
+                  "Chemical components",
+                  "Cells",
+                  "Tissues",
+                  "Organs"
+                ],
+                "ai": 1,
+                "ex": "Cells are the smallest independently functioning unit. Tissues, organs, and chemical components are larger levels of organization.",
+                "sourceFactIndexes": [
+                  1,
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "cell",
+                "df": "The smallest independently functioning unit of a living organism.",
+                "eg": "A muscle cell helps the body carry out its work.",
+                "mi": "A cell is the largest unit of body organization.",
+                "cx": "A cell is the smallest unit that can function on its own.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "ac7d14359bafeedfac03f766f508b09bc7021e6c9305f3a40b8ecc5091bf499e",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 1,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_031277b190780815006a595e4671a8819c843e0b0981535e65",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 708,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 243,
+              "output_tokens_details": {
+                "reasoning_tokens": 90
+              },
+              "total_tokens": 951
+            }
+          },
+          "startedAt": "2026-07-16T22:42:14.182Z",
+          "durationMs": 2345,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 1
+          }
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/homeostasis-feedback",
+          "kernelId": "anatomy/homeostasis-feedback",
+          "promptSha256": "14a650685e12d7c52b49f382cd1bc1b7450be27caed8c605653838b67d6824e8",
+          "generationPromptSha256": "103459082bfd051ebb0d46252b2de353a8fd025d8c4654a953090bac5332b9bb",
+          "rawCallSha256": "e8c92fc5cc0328730cc4a375dc8390482e77b6dcc6ba8c599d09036686a94dca",
+          "response": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Homeostasis",
+                "df": "The maintenance of stable internal conditions, usually by a negative-feedback loop that detects a deviation from a set point and activates a response that reverses it.",
+                "eg": "When body temperature drifts from normal, a feedback response helps bring it back toward the usual range.",
+                "mi": "Homeostasis means the body keeps every internal condition fixed at one exact value.",
+                "cx": "Homeostasis keeps conditions within a normal range around a set point, and small changes can still occur.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "1777b48ed7d55e8fe319166b0f7b7336954aa5ad39b60cbdd6786df6c74fd71e",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Homeostasis",
+                "df": "The maintenance of stable internal conditions, usually by a negative-feedback loop that detects a deviation from a set point and activates a response that reverses it.",
+                "eg": "When body temperature drifts from normal, a feedback response helps bring it back toward the usual range.",
+                "mi": "Homeostasis means the body keeps every internal condition fixed at one exact value.",
+                "cx": "Homeostasis keeps conditions within a normal range around a set point, and small changes can still occur.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "1777b48ed7d55e8fe319166b0f7b7336954aa5ad39b60cbdd6786df6c74fd71e",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 0,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 1,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0a9345817d45152c006a595e489a7c819e9c591200b72e7a13",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 693,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 190,
+              "output_tokens_details": {
+                "reasoning_tokens": 62
+              },
+              "total_tokens": 883
+            }
+          },
+          "startedAt": "2026-07-16T22:42:16.529Z",
+          "durationMs": 2103,
+          "recoveryTarget": {
+            "mcItems": 0,
+            "keyTerms": 1
+          }
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/integumentary-skin-layers",
+          "kernelId": "anatomy/integumentary-skin-layers",
+          "promptSha256": "21fea912b025eafc579699203c08ab8d572f498cd52c7e027467f111dd14d20d",
+          "generationPromptSha256": "b807d30705a490044896a2d8d0195dbe5373606524c0218544ed07e9713e1719",
+          "rawCallSha256": "c8259e14bf8e6283fe2916316ab523dc2cd56c7d64bd2479f5e9a22a50bc0d7a",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement matches the integumentary system and the skin layers it contains?",
+                "op": [
+                  "It includes the skin and accessory structures, and the skin has epidermal and dermal layers.",
+                  "It includes only bones, and the skin is a single uniform layer.",
+                  "It includes the muscles, and the skin has three main layers.",
+                  "It includes the blood vessels, and the skin has no distinct layers."
+                ],
+                "ai": 0,
+                "ex": "This matches the system and its two main skin layers. The skin is not a single layer.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "epidermis",
+                "df": "The epidermis is the skin's outer layer and is made of keratinized stratified squamous epithelium.",
+                "eg": "In a skin section, the epidermis forms the outer covering.",
+                "mi": "The epidermis is the dermis, not the outer skin layer.",
+                "cx": "The epidermis is the outer skin layer made of keratinized stratified squamous epithelium.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "1e1fb78947ff6adac37f2bb738ff1cad8ebfdc6c982a9fff538553aecbc5a01c",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "mc-0-explanation-key-conflict",
+              "key-term-0-circular-definition",
+              "key-term-0-correction-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 1,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0d00c0110c8a0d60006a595e4ac4d8819f88726e850507bb00",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 707,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 404,
+              "output_tokens_details": {
+                "reasoning_tokens": 170
+              },
+              "total_tokens": 1111
+            }
+          },
+          "startedAt": "2026-07-16T22:42:18.647Z",
+          "durationMs": 2964,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 1
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/homeostasis-feedback",
+        "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization",
+        "kernelId": "anatomy/levels-of-organization",
+        "promptSha256": "f7e0def712cde4901bc85395738f285c595693b714fe3354b9f66b9e745407ac",
+        "generationPromptSha256": "05a24049d7df26eab0f496a04a718f238e4e11c365cd7fda2f7b93c435531062",
+        "rawCallSha256": "1ccde2f0ac1b1abd3ab82f855245946357da8f5a01e0a1af26205f6302062c00",
+        "recoveryCallSha256": "73fa71e49ce2ddb523199a17cc97ece6f97f4b66fae6e315ed920727020f054c",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which structure is the smallest independently functioning unit in this sequence: cell, tissue, organ, organ system, organism?",
+              "op": [
+                "celltissueorganismorgan system",
+                "tissuecellorgan systemorganism",
+                "organcelltissueorganism",
+                "organ systemtissueorganorganism"
+              ],
+              "ai": 0,
+              "ex": "Cell is correct because it is the smallest independently functioning unit of a living organism. A tissue is a group level above cells, so it cannot be the smallest independently functioning unit.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            },
+            {
+              "q": "Which structure is the smallest independently functioning unit of a living organism?",
+              "op": [
+                "Chemical components",
+                "Cells",
+                "Tissues",
+                "Organs"
+              ],
+              "ai": 1,
+              "ex": "Cells are the smallest independently functioning unit. Tissues, organs, and chemical components are larger levels of organization.",
+              "sourceFactIndexes": [
+                1,
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Organ",
+              "df": "A body structure formed from at least two tissue types and built for a specific anatomical role.",
+              "eg": "The heart is a useful course example because it is treated as an organ rather than as a single tissue.",
+              "mi": "An organ is simply any visible body part, even if it contains only one tissue type.",
+              "cx": "The correction is that an organ is identified by its tissue combination, not just by its size or shape.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "cell",
+              "df": "The smallest independently functioning unit of a living organism.",
+              "eg": "A muscle cell helps the body carry out its work.",
+              "mi": "A cell is the largest unit of body organization.",
+              "cx": "A cell is the smallest unit that can function on its own.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "56c98abf07c0b4f8fc3d583ab920801c8f2a57c4a0cf6ffee72642b9f2931c84",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which structure is the smallest independently functioning unit in this sequence: cell, tissue, organ, organ system, organism?",
+              "op": [
+                "celltissueorganismorgan system",
+                "tissuecellorgan systemorganism",
+                "organcelltissueorganism",
+                "organ systemtissueorganorganism"
+              ],
+              "ai": 0,
+              "ex": "Cell is correct because it is the smallest independently functioning unit of a living organism. A tissue is a group level above cells, so it cannot be the smallest independently functioning unit.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            },
+            {
+              "q": "Which structure is the smallest independently functioning unit of a living organism?",
+              "op": [
+                "Chemical components",
+                "Cells",
+                "Tissues",
+                "Organs"
+              ],
+              "ai": 1,
+              "ex": "Cells are the smallest independently functioning unit. Tissues, organs, and chemical components are larger levels of organization.",
+              "sourceFactIndexes": [
+                1,
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Organ",
+              "df": "A body structure formed from at least two tissue types and built for a specific anatomical role.",
+              "eg": "The heart is a useful course example because it is treated as an organ rather than as a single tissue.",
+              "mi": "An organ is simply any visible body part, even if it contains only one tissue type.",
+              "cx": "The correction is that an organ is identified by its tissue combination, not just by its size or shape.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "cell",
+              "df": "The smallest independently functioning unit of a living organism.",
+              "eg": "A muscle cell helps the body carry out its work.",
+              "mi": "A cell is the largest unit of body organization.",
+              "cx": "A cell is the smallest unit that can function on its own.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "56c98abf07c0b4f8fc3d583ab920801c8f2a57c4a0cf6ffee72642b9f2931c84",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:14.182Z",
+        "durationMs": 2345
+      },
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/homeostasis-feedback",
+        "kernelId": "anatomy/homeostasis-feedback",
+        "promptSha256": "14a650685e12d7c52b49f382cd1bc1b7450be27caed8c605653838b67d6824e8",
+        "generationPromptSha256": "103459082bfd051ebb0d46252b2de353a8fd025d8c4654a953090bac5332b9bb",
+        "rawCallSha256": "e8c92fc5cc0328730cc4a375dc8390482e77b6dcc6ba8c599d09036686a94dca",
+        "recoveryCallSha256": "5223a8560e518806e4afb0dfca33bc6b5fa879ccd19946461b50490dca9b21c6",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which sequence best matches a feedback loop in homeostasis?",
+              "op": [
+                "sensor, control center, effector",
+                "effector, sensor, control center",
+                "set point, effector, sensor",
+                "control center, set point, sensor"
+              ],
+              "ai": 0,
+              "ex": "A feedback loop is built from a sensor, a control center, and an effector. A common mistake is to start with the effector, but the loop begins by detecting change before producing a response.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "Which statement best describes a set point?",
+              "op": [
+                "the physiological value around which the normal range fluctuates",
+                "the response that reverses a deviation",
+                "the structure that detects a deviation",
+                "the stable internal condition after correction"
+              ],
+              "ai": 0,
+              "ex": "A set point is the physiological value around which the normal range fluctuates. It is not the reversing response itself, which belongs to negative feedback.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "set point",
+              "df": "The physiological value that serves as the reference for a normal range.",
+              "eg": "A course example is a body temperature target around which normal values fluctuate.",
+              "mi": "It is the organ that carries out the response.",
+              "cx": "The response comes from an effector; the set point is the reference value being compared with the current condition.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Homeostasis",
+              "df": "The maintenance of stable internal conditions, usually by a negative-feedback loop that detects a deviation from a set point and activates a response that reverses it.",
+              "eg": "When body temperature drifts from normal, a feedback response helps bring it back toward the usual range.",
+              "mi": "Homeostasis means the body keeps every internal condition fixed at one exact value.",
+              "cx": "Homeostasis keeps conditions within a normal range around a set point, and small changes can still occur.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "217b84efc531d2fec7c81e2f72bba52bd992f3de5dde5df8ae34498e640cfcaa",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which sequence best matches a feedback loop in homeostasis?",
+              "op": [
+                "sensor, control center, effector",
+                "effector, sensor, control center",
+                "set point, effector, sensor",
+                "control center, set point, sensor"
+              ],
+              "ai": 0,
+              "ex": "A feedback loop is built from a sensor, a control center, and an effector. A common mistake is to start with the effector, but the loop begins by detecting change before producing a response.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "Which statement best describes a set point?",
+              "op": [
+                "the physiological value around which the normal range fluctuates",
+                "the response that reverses a deviation",
+                "the structure that detects a deviation",
+                "the stable internal condition after correction"
+              ],
+              "ai": 0,
+              "ex": "A set point is the physiological value around which the normal range fluctuates. It is not the reversing response itself, which belongs to negative feedback.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "set point",
+              "df": "The physiological value that serves as the reference for a normal range.",
+              "eg": "A course example is a body temperature target around which normal values fluctuate.",
+              "mi": "It is the organ that carries out the response.",
+              "cx": "The response comes from an effector; the set point is the reference value being compared with the current condition.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Homeostasis",
+              "df": "The maintenance of stable internal conditions, usually by a negative-feedback loop that detects a deviation from a set point and activates a response that reverses it.",
+              "eg": "When body temperature drifts from normal, a feedback response helps bring it back toward the usual range.",
+              "mi": "Homeostasis means the body keeps every internal condition fixed at one exact value.",
+              "cx": "Homeostasis keeps conditions within a normal range around a set point, and small changes can still occur.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "217b84efc531d2fec7c81e2f72bba52bd992f3de5dde5df8ae34498e640cfcaa",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:16.529Z",
+        "durationMs": 2103
+      },
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/tissue-types",
+        "kernelId": "anatomy/tissue-types",
+        "promptSha256": "d62d1974e059bd008ca61edb3f5f6bdacef25b0007db8fb361f24529695cd57d",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student looks at a microscope image and identifies cells with shared shape and an orderly arrangement that help the structure work. Which course idea best matches that observation?",
+              "op": [
+                "Histology studies tissue appearance, organization, and function under the microscope.",
+                "The body is organized first into organs, then tissues, then cells.",
+                "Skin is classified as connective tissue because it covers the body surface.",
+                "A negative feedback loop always increases the original change."
+              ],
+              "ai": 0,
+              "ex": "Histology is the study of tissue appearance, organization, and function under the microscope. That fits the microscope-based observation better than the nearby but incorrect ideas about body level order, skin classification, or feedback regulation.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which option names the four broad tissue categories used to organize the body?",
+              "op": [
+                "Epithelial, connective, muscle, and nervous tissue.",
+                "Epidermal, dermal, subcutaneous, and muscular tissue.",
+                "Cells, tissues, organs, and organ systems.",
+                "Surface, support, movement, and control tissue."
+              ],
+              "ai": 0,
+              "ex": "Epithelial, connective, muscle, and nervous tissue are the four broad tissue categories. The other choices mix anatomical layers, organization levels, or function labels rather than the standard tissue groups.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Histology",
+              "df": "Study of how tissue looks, is arranged, and functions when viewed with a microscope.",
+              "eg": "In a lab station, students compare microscope slides to decide whether the tissue’s organization matches its function.",
+              "mi": "It is the study of bones and organs only.",
+              "cx": "Microscope observations of tissue appearance and arrangement help identify histology.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Four primary tissue types",
+              "df": "The main tissue groupings used to organize the body into broad categories.",
+              "eg": "A student sorting a class chart places epithelial, connective, muscle, and nervous tissue into the four primary groups.",
+              "mi": "They are the same thing as the body’s organ systems.",
+              "cx": "These categories help organize body structure without replacing the higher levels of organization.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "0413c28375e36ba4e52fdf47b4cf0175b10e5b449b73152fcdecf47e8c541b07",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student looks at a microscope image and identifies cells with shared shape and an orderly arrangement that help the structure work. Which course idea best matches that observation?",
+              "op": [
+                "Histology studies tissue appearance, organization, and function under the microscope.",
+                "The body is organized first into organs, then tissues, then cells.",
+                "Skin is classified as connective tissue because it covers the body surface.",
+                "A negative feedback loop always increases the original change."
+              ],
+              "ai": 0,
+              "ex": "Histology is the study of tissue appearance, organization, and function under the microscope. That fits the microscope-based observation better than the nearby but incorrect ideas about body level order, skin classification, or feedback regulation.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which option names the four broad tissue categories used to organize the body?",
+              "op": [
+                "Epithelial, connective, muscle, and nervous tissue.",
+                "Epidermal, dermal, subcutaneous, and muscular tissue.",
+                "Cells, tissues, organs, and organ systems.",
+                "Surface, support, movement, and control tissue."
+              ],
+              "ai": 0,
+              "ex": "Epithelial, connective, muscle, and nervous tissue are the four broad tissue categories. The other choices mix anatomical layers, organization levels, or function labels rather than the standard tissue groups.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Histology",
+              "df": "Study of how tissue looks, is arranged, and functions when viewed with a microscope.",
+              "eg": "In a lab station, students compare microscope slides to decide whether the tissue’s organization matches its function.",
+              "mi": "It is the study of bones and organs only.",
+              "cx": "Microscope observations of tissue appearance and arrangement help identify histology.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Four primary tissue types",
+              "df": "The main tissue groupings used to organize the body into broad categories.",
+              "eg": "A student sorting a class chart places epithelial, connective, muscle, and nervous tissue into the four primary groups.",
+              "mi": "They are the same thing as the body’s organ systems.",
+              "cx": "These categories help organize body structure without replacing the higher levels of organization.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "0413c28375e36ba4e52fdf47b4cf0175b10e5b449b73152fcdecf47e8c541b07",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_029382f391c0d38e006a595d66798c819d915afedb12083bf1",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 740,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 605,
+            "output_tokens_details": {
+              "reasoning_tokens": 154
+            },
+            "total_tokens": 1345
+          }
+        },
+        "startedAt": "2026-07-16T22:38:30.390Z",
+        "durationMs": 4401
+      },
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/integumentary-skin-layers",
+        "kernelId": "anatomy/integumentary-skin-layers",
+        "promptSha256": "21fea912b025eafc579699203c08ab8d572f498cd52c7e027467f111dd14d20d",
+        "generationPromptSha256": "b807d30705a490044896a2d8d0195dbe5373606524c0218544ed07e9713e1719",
+        "rawCallSha256": "c8259e14bf8e6283fe2916316ab523dc2cd56c7d64bd2479f5e9a22a50bc0d7a",
+        "recoveryCallSha256": "006926093113f7eb92dd3381488d61b397b9cbb76bb270de6c7d47f102597d75",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student labels the skin’s outer covering and the deeper supportive layer. Which pairing matches the skin’s main layers?",
+              "op": [
+                "epidermis and dermis",
+                "epidermis and accessory structures",
+                "dermis and accessory structures",
+                "skin and accessory structures"
+              ],
+              "ai": 0,
+              "ex": "The epidermis and dermis are the skin’s two main layers. The other choices mix in accessory structures or the whole organ, which are related nearby categories but not the paired layers themselves.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Epidermis",
+              "df": "The outer of the skin’s two main layers, built from keratinized stratified squamous epithelium.",
+              "eg": "A microscope image showing the keratinized outer layer of skin represents the epidermis.",
+              "mi": "It is the deeper supportive skin layer.",
+              "cx": "The deeper supportive layer is the dermis; the epidermis is the outer layer.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "dd96bcda6949b11ad2aa8d9426f750086c805a84083df90b3335509bc36934da",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student labels the skin’s outer covering and the deeper supportive layer. Which pairing matches the skin’s main layers?",
+              "op": [
+                "epidermis and dermis",
+                "epidermis and accessory structures",
+                "dermis and accessory structures",
+                "skin and accessory structures"
+              ],
+              "ai": 0,
+              "ex": "The epidermis and dermis are the skin’s two main layers. The other choices mix in accessory structures or the whole organ, which are related nearby categories but not the paired layers themselves.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Epidermis",
+              "df": "The outer of the skin’s two main layers, built from keratinized stratified squamous epithelium.",
+              "eg": "A microscope image showing the keratinized outer layer of skin represents the epidermis.",
+              "mi": "It is the deeper supportive skin layer.",
+              "cx": "The deeper supportive layer is the dermis; the epidermis is the outer layer.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "dd96bcda6949b11ad2aa8d9426f750086c805a84083df90b3335509bc36934da",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "key-term-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 1,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:18.647Z",
+        "durationMs": 2964
+      },
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/skeletal-system-functions",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "promptSha256": "1fcde06885fa57516e713938fa01349b0f14fb9b8c09ab50d652a7505340e383",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which statement best matches how bones help movement in the body?",
+              "op": [
+                "They provide attachment points for muscles.",
+                "They directly contract to move the skeleton.",
+                "They mainly digest stored minerals.",
+                "They replace cartilage in every joint."
+              ],
+              "ai": 0,
+              "ex": "Bones help movement by giving muscles places to attach, so muscle pull can act on the skeleton. The other choices describe functions or structures that are not supported by the claims.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "Which function belongs to the skeletal system?",
+              "op": [
+                "It supports the body and protects organs.",
+                "It controls nerve signals to muscles.",
+                "It produces digestive enzymes for food breakdown.",
+                "It carries oxygen through the bloodstream."
+              ],
+              "ai": 0,
+              "ex": "The skeletal system supports the body and protects organs. The other choices name functions of other body systems, not skeletal functions.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Skeletal system",
+              "df": "A body framework made of bones and cartilage that helps support movement and organ protection.",
+              "eg": "In lab, students could identify the skeletal system when looking at bones and cartilage as the body’s supporting framework.",
+              "mi": "It is only there to make the body look rigid.",
+              "cx": "That description is too narrow; this body framework also helps with movement, protection, blood cell production, and storing minerals and fat.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Bone",
+              "df": "A hard, dense connective tissue that makes up most of the adult skeleton.",
+              "eg": "A femur specimen in the lab would be an example of bone tissue in the adult skeleton.",
+              "mi": "It is a soft tissue that mainly cushions organs.",
+              "cx": "Bone is a dense connective tissue, not a soft cushioning tissue.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "ce2ff5c968db4053f5bbaf130c069b65bf3c88c4e2d45a03dd7d9cea4ae412fc",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which statement best matches how bones help movement in the body?",
+              "op": [
+                "They provide attachment points for muscles.",
+                "They directly contract to move the skeleton.",
+                "They mainly digest stored minerals.",
+                "They replace cartilage in every joint."
+              ],
+              "ai": 0,
+              "ex": "Bones help movement by giving muscles places to attach, so muscle pull can act on the skeleton. The other choices describe functions or structures that are not supported by the claims.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "Which function belongs to the skeletal system?",
+              "op": [
+                "It supports the body and protects organs.",
+                "It controls nerve signals to muscles.",
+                "It produces digestive enzymes for food breakdown.",
+                "It carries oxygen through the bloodstream."
+              ],
+              "ai": 0,
+              "ex": "The skeletal system supports the body and protects organs. The other choices name functions of other body systems, not skeletal functions.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Skeletal system",
+              "df": "A body framework made of bones and cartilage that helps support movement and organ protection.",
+              "eg": "In lab, students could identify the skeletal system when looking at bones and cartilage as the body’s supporting framework.",
+              "mi": "It is only there to make the body look rigid.",
+              "cx": "That description is too narrow; this body framework also helps with movement, protection, blood cell production, and storing minerals and fat.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Bone",
+              "df": "A hard, dense connective tissue that makes up most of the adult skeleton.",
+              "eg": "A femur specimen in the lab would be an example of bone tissue in the adult skeleton.",
+              "mi": "It is a soft tissue that mainly cushions organs.",
+              "cx": "Bone is a dense connective tissue, not a soft cushioning tissue.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "ce2ff5c968db4053f5bbaf130c069b65bf3c88c4e2d45a03dd7d9cea4ae412fc",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_01f7ffda201f8ab5006a595d6ec35081a099284fb86814abd3",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 741,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 751,
+            "output_tokens_details": {
+              "reasoning_tokens": 383
+            },
+            "total_tokens": 1492
+          }
+        },
+        "startedAt": "2026-07-16T22:38:38.663Z",
+        "durationMs": 5539
+      }
+    ]
+  }
+}

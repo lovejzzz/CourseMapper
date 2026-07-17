@@ -1,0 +1,963 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1e87a4687c50f0ecf255",
+    "packetDigest": "1e87a4687c50f0ecf2557df7677fd08bf0f5037609907a03531c41ee059e44c7",
+    "organizerDigest": "f401694ee81d1355305749bebeb325cc48264de5e778e0a5fba1bb2994aaadcb"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-1252de3149332764c30d",
+      "caseDigest": "433f9462fc345099963060437c7296fb9b829ffa09f7ae302269dc18ca525e3c",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "1180188ecf606198b51211f89feb2367fb754135bbde0da934cacf559c10666a",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/gausss-law",
+        "term": "Gauss's law",
+        "claims": [
+          "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+          "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+          "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4955fb87b5da823f473e6d4bfdb7ab24e6e400fe984c3c5a84ffb5f957e905d6",
+          "artifact": {
+            "q": "A Gaussian surface is most useful for calculating electric fields when what condition is met?",
+            "op": [
+              "The field magnitude is complex on the surface.",
+              "The field direction is highly variable on the surface.",
+              "Symmetry makes the field magnitude or direction simple on the surface.",
+              "The enclosed charge is non-zero and distributed unevenly."
+            ],
+            "ai": 1,
+            "ex": "Option 3 describes the condition where symmetry simplifies the field calculation, aligning with the claim. Option 1 and 2 suggest complexity or lack of relationship, which are contrary to the utility of the surface."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "eb0f9ca5071a9b7b6f9e033c304fb53915c483429556441eed2dcad05f7f0a33",
+          "artifact": {
+            "q": "When is a Gaussian surface useful?",
+            "op": [
+              "When symmetry makes the field magnitude or direction simple on the surface",
+              "When the surface has the largest possible area",
+              "When the enclosed charge is zero",
+              "When the electric field is uniform everywhere in space"
+            ],
+            "ai": 0,
+            "ex": "Symmetry can make the field magnitude or direction simple on the surface. A zero enclosed charge gives zero net flux, not automatic field cancellation."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4955fb87b5da823f473e6d4bfdb7ab24e6e400fe984c3c5a84ffb5f957e905d6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "eb0f9ca5071a9b7b6f9e033c304fb53915c483429556441eed2dcad05f7f0a33",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-131d8be30da1502137c7",
+      "caseDigest": "db664f0520c5b71bd0525619178f59776fae47132ab97592e58e03e1c9184def",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "91948b0219160f47df87b37a776d20f63c609664ab41077d06d2c9f5c44be3be",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/resistance-ohms-law",
+        "term": "Ohmic resistance in electric circuits",
+        "claims": [
+          "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+          "For an ohmic device at fixed temperature, current is proportional to voltage.",
+          "Resistance depends on material, length, cross-sectional area, and temperature."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "995c65b081fcd8511be3ae3eb4a0a93ff7779ecccf6e428d6e3ffa21201f7b76",
+          "artifact": {
+            "q": "Two wires are made from different materials, have different lengths, and different cross-sectional areas. Which statement best matches how resistance can change?",
+            "op": [
+              "It can depend on material, length, area, and temperature.",
+              "It depends only on current and voltage.",
+              "It is set only by the wire's color.",
+              "It depends only on the device's shape."
+            ],
+            "ai": 0,
+            "ex": "Resistance can vary with material, length, cross-sectional area, and temperature. The most plausible misconception is to reduce resistance to just the circuit reading of current and voltage, but Ohm's law relates those quantities; it does not say resistance depends only on them."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a159f3a8eb962e64167ded3998e6d2dd2c74496b46a1e413afd7669358f5ab4f",
+          "artifact": {
+            "q": "Which relationship accurately describes the behavior of current in an ohmic device at a constant temperature?",
+            "op": [
+              "Current is inversely proportional to voltage.",
+              "Current is proportional to voltage.",
+              "Current is independent of voltage.",
+              "Current is proportional to the square of the voltage."
+            ],
+            "ai": 1,
+            "ex": "The correct choice states that current is proportional to voltage, which is consistent with the definition of an ohmic device at fixed temperature. The misconception is that current is inversely proportional to voltage, which contradicts the source claim."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "995c65b081fcd8511be3ae3eb4a0a93ff7779ecccf6e428d6e3ffa21201f7b76",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a159f3a8eb962e64167ded3998e6d2dd2c74496b46a1e413afd7669358f5ab4f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-77f447c7b74ef0b49d1b",
+      "caseDigest": "23586d9a496724d918ca89f587f286116e560e336b4ded9ba237c1d0bed2861b",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "c857fc9e9a6ebe5ff857f9fbb9d0df61c9aeab63a532984ad7a53705b624c8a8",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/magnetic-field",
+        "term": "Magnetic field",
+        "claims": [
+          "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+          "Currents produce magnetic fields."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11-12"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ff79e3dcca4f6f5f7f452eccd44e634985f236a5ed2bb19acceff0ae491bd24d",
+          "artifact": {
+            "q": "Which statement about a magnetic field is correct?",
+            "op": [
+              "It describes magnetic influence in space and affects moving charges and currents.",
+              "It is the same thing as electric potential energy.",
+              "It begins and ends on isolated magnetic charges.",
+              "It is created only by stationary charges."
+            ],
+            "ai": 0,
+            "ex": "Yes. Magnetic fields act on moving charges and currents, not isolated magnetic charges."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "086ee4a5d4f0b335e9cd7e82233af769a1288146fc94154c9a50c4db881f4842",
+          "artifact": {
+            "q": "Which statement correctly describes the relationship between magnetic fields and moving charges?",
+            "op": [
+              "Magnetic fields are determined by the movement of charges.",
+              "Magnetic fields determine forces on moving charges.",
+              "Moving charges create magnetic fields.",
+              "Magnetic fields are static in space."
+            ],
+            "ai": 1,
+            "ex": "The correct choice states that magnetic fields determine the forces exerted on charges in motion. The misconception is that magnetic fields are created by the movement of charges; the source indicates the reverse relationship (Claim 0)."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ff79e3dcca4f6f5f7f452eccd44e634985f236a5ed2bb19acceff0ae491bd24d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "086ee4a5d4f0b335e9cd7e82233af769a1288146fc94154c9a50c4db881f4842",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-8d5cf4ca35533f278b55",
+      "caseDigest": "9748214f0fb35871d98c8d590bf523f8970a39ed4c98e8122710600feeb8675c",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "1180188ecf606198b51211f89feb2367fb754135bbde0da934cacf559c10666a",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/gausss-law",
+        "term": "Gauss's law",
+        "claims": [
+          "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+          "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+          "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c9a9a27ec26279dcd42eb35215ef53d3392ca5d542ae2d11aa1bb4de2c2e4867",
+          "artifact": {
+            "q": "When applying Gauss's law, what relationship connects the net electric flux through a closed surface to the charge within it?",
+            "op": [
+              "The net electric flux is proportional to the net charge enclosed.",
+              "The net electric flux is independent of the enclosed charge.",
+              "The net electric flux is related to the net charge enclosed by the surface.",
+              "The net electric flux is only related to the charge on the surface."
+            ],
+            "ai": 2,
+            "ex": "Option 2 suggests the flux is independent of the enclosed charge, which contradicts the claim that Gauss's law relates flux to enclosed charge. The correct choice correctly states the relationship described in the source."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ed1ce2aa93ea1049d3b21e854d8f00f90230887243d72e60e3c4dfeb80dbc1bb",
+          "artifact": {
+            "q": "What does Gauss's law relate?",
+            "op": [
+              "The net electric flux through a closed surface and the net charge enclosed by it",
+              "The electric field at every point on a closed surface and the total surface area",
+              "The magnetic flux through a closed surface and the current enclosed by it",
+              "The electric potential difference between two points and the enclosed charge"
+            ],
+            "ai": 0,
+            "ex": "It links net electric flux to enclosed charge. It does not say zero charge means zero field everywhere on the surface."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c9a9a27ec26279dcd42eb35215ef53d3392ca5d542ae2d11aa1bb4de2c2e4867",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ed1ce2aa93ea1049d3b21e854d8f00f90230887243d72e60e3c4dfeb80dbc1bb",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-8f540ef2b59db69a2891",
+      "caseDigest": "83b4c3a3cd9886087d806a8b8ab58e041880b55e4a1baa3b8bb337c1f9411030",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "5ebf213df410eed66f28b2c6b277f530a80a720fe8dd603fcaf8ca4aa4f589ac",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/magnetic-force",
+        "term": "Magnetic force",
+        "claims": [
+          "Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.",
+          "The magnetic force is perpendicular to both the velocity and the magnetic field.",
+          "A charge moving parallel to a magnetic field experiences no magnetic force."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "e1687d1ceb10e8e3d52bc05985f248dc46a059fdad6834c57253a78d55afd749",
+          "artifact": {
+            "q": "A positive charge enters a magnetic field with its velocity at an angle. Which statement best describes the magnetic force on it?",
+            "op": [
+              "It is parallel to the velocity",
+              "It is perpendicular to both velocity and field",
+              "It points only with the field strength",
+              "It depends only on the particle's speed"
+            ],
+            "ai": 1,
+            "ex": "Correct: the magnetic force is perpendicular to both the velocity and the magnetic field. A common misconception is to treat it like a force along the motion or along the field; the source instead gives a right-angle relationship to both."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "538ca63cadf54fe2e73a40e54cdacc023f15204ad6949f9b8673bae7103e2de8",
+          "artifact": {
+            "q": "The magnetic force exerted on a moving charge is always oriented in which direction relative to the velocity and the magnetic field?",
+            "op": [
+              "A) Parallel to the velocity and the magnetic field.",
+              "B) Perpendicular to both the velocity and the magnetic field.",
+              "C) In the same direction as the magnetic field.",
+              "D) Dependent only on the charge and the field strength."
+            ],
+            "ai": 1,
+            "ex": "Option B is correct because the magnetic force is perpendicular to both the velocity and the magnetic field. Option A is incorrect because the force is not parallel to both vectors, and Option C is incorrect because the force is not in the same direction as the field."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "e1687d1ceb10e8e3d52bc05985f248dc46a059fdad6834c57253a78d55afd749",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "538ca63cadf54fe2e73a40e54cdacc023f15204ad6949f9b8673bae7103e2de8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-d7514619ee394721b2bf",
+      "caseDigest": "3e5eb38ac3e5239d2e28d050ab577c393ae8288ff699a2f115c05c86809b2958",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "49084902fd5d4d054c3efce0301e2e580ca82b9482b8ffecd85c01da71de4775",
+      "sourceContextSha256": "09f1a0b5250afd3cc3b9c11439b8233f3cfa521168af32458e2a27bcc018cb24",
+      "sourceContext": {
+        "sourcePacketSha256": "91025e358b91265f110903e864438a936557a07bce01795345fa49826e0ca607",
+        "kernelId": "ux/user-scenarios",
+        "term": "User scenarios",
+        "claims": [
+          "A user scenario is a narrative that situates a user type, motivation, context, goal, and tasks in a specific interaction.",
+          "Scenarios communicate a design idea through a specific interaction for a specific user.",
+          "A scenario should state who the user is, why and where they act, what goal they have, and how they pursue it.",
+          "Scenario work can reveal how needs vary with context and across diverse users.",
+          "Teams should validate and refine scenarios with the represented user group and collaborators."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9a589393ca1eeb4b5c6ff1d31dbd51de838f44e87ac212259b4c3814cd0f15b6",
+          "artifact": {
+            "tr": "Validation of user narratives",
+            "df": "The process of testing and refining user scenarios with the target user group.",
+            "eg": "Testing a scenario with actual customers to ensure the context is accurate.",
+            "mi": "Assuming a scenario is complete without testing it with the represented user group.",
+            "cx": "Teams should validate and refine scenarios with the represented user group and collaborators."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f09bac1215c57f4bfe2750b1b3db986c2cacde74e243d1f304460cd2f309a03e",
+          "artifact": {
+            "tr": "Scenario validation",
+            "df": "Checking a draft scenario against the people and teammates it represents, then improving it.",
+            "eg": "A team shares a draft scenario with students who use the service and revises details about timing and access.",
+            "mi": "It means polishing the wording without feedback from anyone represented.",
+            "cx": "Use it to test whether the scenario fits real users and collaboration needs."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9a589393ca1eeb4b5c6ff1d31dbd51de838f44e87ac212259b4c3814cd0f15b6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f09bac1215c57f4bfe2750b1b3db986c2cacde74e243d1f304460cd2f309a03e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-cd7f765ab3e471296b97",
+      "caseDigest": "1e57bf003bf6be175d409995fcb5800b2609e62c448bcda27bd03dec787af926",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "74201d28d81a62724c0e4b6c135e4e6220b09871dbe966285a779d129d3ffe32",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/homeostasis-feedback",
+        "term": "Homeostasis and feedback regulation",
+        "claims": [
+          "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+          "A set point is the physiological value around which the normal range fluctuates.",
+          "A feedback loop includes a sensor, a control center, and an effector."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0b87fcc3a0023011f9086b53a11edb88c50421d9570bebb62d76f7916c99bf3e",
+          "artifact": {
+            "tr": "Mechanism for maintaining internal stability",
+            "df": "A negative-feedback loop that detects a deviation from a set point and activates a response that reverses it.",
+            "eg": "Blood glucose regulation.",
+            "mi": "A sensor is the mechanism for maintaining internal stability.",
+            "cx": "A sensor is the component that detects a deviation from a set point."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0889e320f7cbc7e272f91e813a30c1b2bddbfe59d40333ebd399869f3a422c4d",
+          "artifact": {
+            "tr": "negative feedback",
+            "df": "A control pattern that counteracts a change to keep conditions near a target range.",
+            "eg": "When a variable moves away from its usual level, the system responds in the opposite direction to bring it back.",
+            "mi": "It increases the original change so the system can respond more strongly.",
+            "cx": "Blood glucose regulation is a classic course example of a negative-feedback process."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "0b87fcc3a0023011f9086b53a11edb88c50421d9570bebb62d76f7916c99bf3e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0889e320f7cbc7e272f91e813a30c1b2bddbfe59d40333ebd399869f3a422c4d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-ab103e0f62b6aec48303",
+      "caseDigest": "97a1e3a53586b5047b6d4c220cb728755b4e56467a579224a0a0ab7fc2da77dc",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "5ebf213df410eed66f28b2c6b277f530a80a720fe8dd603fcaf8ca4aa4f589ac",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/magnetic-force",
+        "term": "Magnetic force",
+        "claims": [
+          "Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.",
+          "The magnetic force is perpendicular to both the velocity and the magnetic field.",
+          "A charge moving parallel to a magnetic field experiences no magnetic force."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4efaa28de123a33067d84e1da0bc7aac6d3817b69205b89a6ea97e06b4402d4b",
+          "artifact": {
+            "tr": "Magnetic force",
+            "df": "The interaction between motion and a magnetic field that results in a push or pull on a moving particle.",
+            "eg": "A current-carrying wire placed in a uniform magnetic field experiences a force perpendicular to the direction of the current.",
+            "mi": "The force is always parallel to the direction of the current.",
+            "cx": "The force is perpendicular to both the velocity and the magnetic field."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "220af159356363102bc9b0a9662ecd364aef174e8b1ecca46149ac36960f326b",
+          "artifact": {
+            "tr": "magnetic force",
+            "df": "A push on a moving charge that is set by charge, velocity, field, and the angle between velocity and field.",
+            "eg": "A charge crossing a magnetic field can be deflected even when its speed stays the same.",
+            "mi": "It acts only on charges at rest.",
+            "cx": "The source says the force depends on motion and is perpendicular to both velocity and magnetic field."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "4efaa28de123a33067d84e1da0bc7aac6d3817b69205b89a6ea97e06b4402d4b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "220af159356363102bc9b0a9662ecd364aef174e8b1ecca46149ac36960f326b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-dd84d7ba22edd56aa715",
+      "caseDigest": "55baf262b0bfa89058f202d67c1ee7a5972468de8507b8a98411f76c4088b92b",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "721b4bb8452a3de3c9e3b55bd27cda4d853f6e2073a640ffbf42bb604c821c99",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/electric-charge",
+        "term": "Electric charge",
+        "claims": [
+          "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+          "Like charges repel and unlike charges attract.",
+          "Net charge is conserved in an isolated system."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "d7fd77de72a45c56fd90178ebb660fad6bf5dcf82bd7976293ca125e593cf1f3",
+          "artifact": {
+            "q": "A sealed, isolated system begins with a net charge of zero. After rubbing two objects inside it, one object becomes negative. What must be true about the system’s net charge?",
+            "op": [
+              "It must still be zero.",
+              "It must become positive.",
+              "It must disappear from the system.",
+              "It must always match the larger object."
+            ],
+            "ai": 0,
+            "ex": "The net charge must still be zero in an isolated system, because net charge is conserved. A plausible mistake is to think creating a negative object adds extra charge overall, but the source says the total net charge does not change in isolation."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "aeaeed39ea09a0b6519f0d801e47faf3c0fa3a1a8344b30703cdbf334e1c4db9",
+          "artifact": {
+            "q": "In a closed system, what principle governs the total electric charge?",
+            "op": [
+              "Charge is created",
+              "Net charge is conserved",
+              "Charge is repulsive",
+              "Charge is determined by interaction"
+            ],
+            "ai": 1,
+            "ex": "The correct choice is 'Net charge is conserved' because net charge is conserved in an isolated system. The misconception is choosing 'Charge is created,' which contradicts the conservation principle."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "d7fd77de72a45c56fd90178ebb660fad6bf5dcf82bd7976293ca125e593cf1f3",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "aeaeed39ea09a0b6519f0d801e47faf3c0fa3a1a8344b30703cdbf334e1c4db9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

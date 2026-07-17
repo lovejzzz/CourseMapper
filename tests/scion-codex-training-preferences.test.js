@@ -276,6 +276,13 @@ describe('Scion Codex training preferences', () => {
         taskQuality: 5,
       },
     });
+    expect(row.sourceContext).toMatchObject({
+      kernelId: expect.any(String),
+      claims: expect.any(Array),
+    });
+    expect(crypto.createHash('sha256').update(JSON.stringify(row.sourceContext)).digest('hex')).toBe(
+      row.preferenceEvidence.sourceContextSha256,
+    );
 
     const dataset = await buildScionAdapterDataset({
       sources: [approvedOutput],
@@ -288,6 +295,30 @@ describe('Scion Codex training preferences', () => {
       status: 'smoke-only',
       counts: { total: 1, singleModelJudgePairs: 1, singleModelJudgeDomains: 1, blindInstructorPairs: 0 },
       modelJudgeDomainCounts: { 'user-experience-design': 1 },
+      sourceGroundingPolicy: {
+        requiredForModelJudge: true,
+        promptEmbeddingEnabled: true,
+        sourceBoundModelJudgePairs: 1,
+        unboundAdmittedModelJudgePairs: 0,
+      },
+    });
+    const trainingRows = (
+      await Promise.all(
+        ['train', 'valid', 'test'].map((split) => fs.readFile(path.join(root, 'dataset', `${split}.jsonl`), 'utf8')),
+      )
+    )
+      .join('')
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map(JSON.parse);
+    expect(trainingRows).toHaveLength(1);
+    expect(trainingRows[0].chosen[0].content).toContain('Source context:');
+    expect(trainingRows[0].chosen[0].content).toContain(row.sourceContext.claims[0]);
+    expect(trainingRows[0].chosen[0].content).not.toContain(row.sourceContext.sourcePacketSha256);
+    expect(trainingRows[0].provenance).toMatchObject({
+      promptProtocol: 'source-bound-row-prompt-v1',
+      sourceContextSha256: row.preferenceEvidence.sourceContextSha256,
     });
   });
 

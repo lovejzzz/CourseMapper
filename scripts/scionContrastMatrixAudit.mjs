@@ -2,6 +2,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 
 import { buildScionContrastMatrix } from '../src/lib/quality/scionContrastMatrix.js';
 
@@ -44,7 +45,8 @@ function renderMarkdown(matrix, manifestPath) {
     `Generated: ${matrix.generatedAt}`,
     `Manifest: ${manifestPath}`,
     `Pairs: ${matrix.pairCount} across ${matrix.domainCount} domains`,
-    `Blind-review-only pairs excluded from full-course contrast scoring: ${matrix.reviewOnlyPairCount || 0}`,
+    `Evidence-only pairs excluded from full-course contrast scoring: ${matrix.nonFullCoursePairCount || 0}`,
+    `Blind-review-only pairs among excluded evidence: ${matrix.reviewOnlyPairCount || 0}`,
     '',
     `> ${matrix.claimBoundary}`,
     '',
@@ -85,6 +87,25 @@ function renderMarkdown(matrix, manifestPath) {
   return `${lines.join('\n')}\n`;
 }
 
+export function partitionScionContrastPairs(pairs) {
+  const nonFullCoursePairs = pairs.filter((pair) => Boolean(pair.evaluationUse));
+  const reviewOnlyPairs = nonFullCoursePairs.filter((pair) => pair.evaluationUse === 'blind-review-only');
+  const evaluationUseCounts = Object.fromEntries(
+    [...new Set(nonFullCoursePairs.map((pair) => pair.evaluationUse))]
+      .sort()
+      .map((evaluationUse) => [
+        evaluationUse,
+        nonFullCoursePairs.filter((pair) => pair.evaluationUse === evaluationUse).length,
+      ]),
+  );
+  return {
+    fullCoursePairs: pairs.filter((pair) => !pair.evaluationUse),
+    nonFullCoursePairs,
+    reviewOnlyPairs,
+    evaluationUseCounts,
+  };
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
@@ -101,9 +122,18 @@ async function main() {
       return { ...pair, candidateProject, referenceProject };
     }),
   );
-  const reviewOnlyPairs = pairs.filter((pair) => pair.evaluationUse === 'blind-review-only');
+  const { fullCoursePairs, nonFullCoursePairs, reviewOnlyPairs, evaluationUseCounts } =
+    partitionScionContrastPairs(pairs);
   const matrix = {
-    ...buildScionContrastMatrix(pairs.filter((pair) => pair.evaluationUse !== 'blind-review-only')),
+    ...buildScionContrastMatrix(fullCoursePairs),
+    nonFullCoursePairCount: nonFullCoursePairs.length,
+    nonFullCoursePairs: nonFullCoursePairs.map((pair) => ({
+      id: pair.id,
+      domain: pair.domain,
+      artifactStatus: pair.artifactStatus,
+      evaluationUse: pair.evaluationUse,
+    })),
+    evaluationUseCounts,
     reviewOnlyPairCount: reviewOnlyPairs.length,
     reviewOnlyPairs: reviewOnlyPairs.map((pair) => ({
       id: pair.id,
@@ -117,6 +147,7 @@ async function main() {
     fs.writeFile(path.join(args.output, 'latest.md'), renderMarkdown(matrix, args.manifest)),
   ]);
   console.log(`Scion contrast matrix: ${matrix.pairCount} pairs / ${matrix.domainCount} domains`);
+  console.log(`Evidence-only pairs excluded from full-course scoring: ${matrix.nonFullCoursePairCount}`);
   console.log(`Blind-review-only source pairs: ${matrix.reviewOnlyPairCount}`);
   for (const [route, summary] of Object.entries(matrix.routes)) {
     console.log(
@@ -126,7 +157,9 @@ async function main() {
   console.log(`Report: ${path.join(args.output, 'latest.md')}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}

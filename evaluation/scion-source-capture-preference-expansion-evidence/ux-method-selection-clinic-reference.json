@@ -1,0 +1,2591 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-ux-method-selection-clinic-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "UX Method Selection Clinic, a six-session course in which students distinguish research, synthesis, mapping, flow, prototyping, accessibility, and usability decisions from the evidence each method can support.",
+  "fileNames": [
+    "source-packet-55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e.json"
+  ],
+  "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"UX Method Selection Clinic\",\"sessions\":[{\"number\":1,\"title\":\"Research planning\"},{\"number\":2,\"title\":\"Personas\"},{\"number\":3,\"title\":\"Journey mapping\"},{\"number\":4,\"title\":\"Task flow analysis\"},{\"number\":5,\"title\":\"Interactive prototyping\"},{\"number\":6,\"title\":\"Accessibility and usability evaluation\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"What is the best use of the day before a research session?\",\"op\":[\"Run through the test tasks with the team.\",\"Launch the final survey to all users.\",\"Rewrite the interface based on guesses.\",\"Archive the prototype as complete.\"],\"ai\":0,\"ex\":\"Correct: researchers should run through test tasks the day before the session. The nearest plausible misconception is a full pilot with participants or a different prep activity, but the source specifies a practice run with a team member to expose procedure problems before participants arrive.\",\"sourceFactIndexes\":[3,4],\"type\":\"multiple_choice\"},{\"q\":\"What does a UX research plan turn a decision need into?\",\"op\":[\"Learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study\",\"A finished interface with final visuals, interactions, and launch copy\",\"A post-study summary of findings, recommendations, and design changes\",\"A set of business metrics, staffing plans, and release dates\"],\"ai\":0,\"ex\":\"It converts the decision need into learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study. It is not the final interface or a post-study report.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Research plan\",\"df\":\"A document that turns a decision need into learning goals, participants, tasks, evidence roles, and a ready study setup.\",\"eg\":\"A team defines what it needs to learn, then lists who to recruit, what to ask them to do, who captures notes, and how the session will run.\",\"mi\":\"A research plan is only a schedule of dates.\",\"cx\":\"It also specifies learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready setup.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Practice session\",\"df\":\"A rehearsal run used to check the study procedure before real participants show up.\",\"eg\":\"On the day before testing, the team member walks through the tasks so the researchers can spot any workflow problems.\",\"mi\":\"It is the same thing as collecting user data.\",\"cx\":\"The practice run happens before participants arrive and is meant to expose procedure problems, not to gather findings from real users.\",\"sourceFactIndexes\":[3,4]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Which statement best matches how teams should use user stories?\",\"op\":[\"They should capture one-off interface requests exactly as given\",\"They should describe features and content intended to meet user needs\",\"They should replace the underlying user need with a design detail\",\"They should be kept separate from their source need\"],\"ai\":1,\"ex\":\"User stories describe features and content intended to meet user needs. Keeping them linked to the source need is the useful practice, not separating them.\",\"sourceFactIndexes\":[2,3,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Research-based persona\",\"df\":\"A shareable profile built from evidence about a user group with similar behavior and needs.\",\"eg\":\"A team summarizes interview patterns into one profile so design decisions stay tied to evidence.\",\"mi\":\"It is just a fictional marketing character.\",\"cx\":\"The correction is that it must reflect research findings and help others understand and share them.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"User story linked to source need\",\"df\":\"A feature description kept connected to the need it is meant to address so the need can be checked later.\",\"eg\":\"A backlog item for a dashboard remains linked to the need for quick status awareness.\",\"mi\":\"Any feature note can stand alone once written.\",\"cx\":\"The correction is that the link to the source need matters because it enables evaluation of whether the need is being met.\",\"sourceFactIndexes\":[2,3,4]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"Which method best fits a team that wants to show a user's end-to-end service experience, including connected steps and breakdowns?\",\"op\":[\"Journey mapping\",\"Card sorting\",\"A/B testing\",\"Heuristic evaluation\"],\"ai\":0,\"ex\":\"It shows the end-to-end experience from the user's perspective. Card sorting groups labels, not service steps.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"What should a journey map be built from first?\",\"op\":[\"Research about the steps users actually take and the transactions involved\",\"A list of internal team assumptions about pain points\",\"A single screen's visual design\",\"A style guide for interface components\"],\"ai\":0,\"ex\":\"It should start from research on what users actually do and the transactions involved. A map is not first built from assumptions or visual design.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Journey mapping\",\"df\":\"A way to represent the user's end-to-end experience so the team can see connected steps, boundaries, breakdowns, and opportunities.\",\"eg\":\"A service team maps how a person books online, arrives in person, and resolves a problem across those touchpoints.\",\"mi\":\"It is mainly a list of interface screens or a research interview script.\",\"cx\":\"Those are different artifacts; the map organizes the whole experience, while research methods gather the evidence that can inform it.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Dead end\",\"df\":\"A point in the mapped experience where the user cannot continue toward the larger goal.\",\"eg\":\"A checkout flow that leaves no clear way to finish the purchase or recover from an error.\",\"mi\":\"It means the user disliked the interface or intended to leave.\",\"cx\":\"The claim supports a blocked path in the journey, not an inferred motive, feeling, or cause from one behavior.\",\"sourceFactIndexes\":[3]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"What can a task flow analysis help a team check?\",\"op\":[\"Whether the team understands user goals, common scenarios, and tasks\",\"Whether the interface uses the most modern visual trend\",\"Whether a single observed click reveals the user's motive\",\"Whether the product's pricing matches competitor prices\"],\"ai\":0,\"ex\":\"It can validate the team's grasp of goals, scenarios, and tasks. One click does not prove motive, and the other options are unrelated.\",\"sourceFactIndexes\":[1,3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Task flow analysis\",\"df\":\"A diagram-based approach for tracing how people move through a system to reach a goal.\",\"eg\":\"A team maps checkout steps, branches, and decision points before redesigning the purchase flow.\",\"mi\":\"It is mainly a visual design or screen-mockup exercise.\",\"cx\":\"It focuses on steps, paths, and obstacles, not the look of the interface.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"Decision point\",\"df\":\"A place in the flow where one path must be chosen over another.\",\"eg\":\"At checkout, a shopper chooses delivery pickup or home delivery.\",\"mi\":\"It only means a dead end or failure.\",\"cx\":\"It can be any branching choice; task flows may include several possible paths.\",\"sourceFactIndexes\":[0,4]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"Which statement best fits interactive prototyping?\",\"op\":[\"A prototype is a final product that must include every production detail.\",\"A prototype is a testable model that shows the planned experience and can be discarded after a,\",\"A prototype is only a visual mockup and cannot support learning from use.\",\"A prototype should delay changes until all features are fully built.\"],\"ai\":1,\"ex\":\"It is testable, omits some production detail, and can be cheap to discard. The other choices mistake a prototype for a final build or static mockup.\",\"sourceFactIndexes\":[0,4],\"type\":\"multiple_choice\"},{\"q\":\"What can a functional prototype help a team do?\",\"op\":[\"Observe how users interact with a product.\",\"Prove every interaction is complete before testing.\",\"Replace usability testing with documentation only.\",\"Show only the final visual style of the product.\"],\"ai\":0,\"ex\":\"It lets a team observe user interaction with the product. The closest miss is a static visual style, which cannot show behavior in use.\",\"sourceFactIndexes\":[2,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Interactive prototyping\",\"df\":\"Creating a testable stand-in for an experience so teams can evaluate how it looks and works without building every production detail.\",\"eg\":\"A team makes a clickable checkout prototype to test the main interactions before coding the full flow.\",\"mi\":\"It means a polished finished product.\",\"cx\":\"It is meant to be inexpensive and fast enough to discard after learning from it.\",\"sourceFactIndexes\":[0,3,4]},{\"tr\":\"Functional prototype\",\"df\":\"A prototype that is capable of letting people interact with the product in order to observe behavior.\",\"eg\":\"Users tap through a prototype login flow while the team watches where they succeed or get stuck.\",\"mi\":\"It must include every interaction and production detail.\",\"cx\":\"Only the major interactions need to be shown; not every interaction must be functional.\",\"sourceFactIndexes\":[2,3]}]},\"lesson-6\":{\"quizItems\":[{\"q\":\"Which method combines standards-based conformance checks with observing representative users on realistic tasks?\",\"op\":[\"Accessibility and usability evaluation\",\"A usability test\",\"A card sort\",\"A persona workshop\"],\"ai\":0,\"ex\":\"It combines standards checks with real-user task observation. A usability test observes users, but not the standards check.\",\"sourceFactIndexes\":[0,3],\"type\":\"multiple_choice\"},{\"q\":\"Which evaluation can reveal barriers that conformance checks alone may miss?\",\"op\":[\"Evaluation with disabled and older users\",\"A WCAG conformance review\",\"A card sort\",\"A heuristic brainstorm\"],\"ai\":0,\"ex\":\"It can surface barriers conformance alone misses. One disabled participant does not represent all people with disabilities.\",\"sourceFactIndexes\":[2,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"WCAG principles\",\"df\":\"Four organizing goals used to structure web accessibility requirements.\",\"eg\":\"A design review checks whether a form is perceivable, operable, understandable, and robust.\",\"mi\":\"They are a list of visual style preferences.\",\"cx\":\"Use them to organize an accessibility review, not to infer user intent or motivation.\",\"sourceFactIndexes\":[1]},{\"tr\":\"Thinking aloud usability test\",\"df\":\"A usability session in which people attempt realistic tasks while verbalizing what they are doing and noticing.\",\"eg\":\"A participant tries to reset a password while narrating each step and the moderator observes difficulties.\",\"mi\":\"It means asking users whether they like the product after the session.\",\"cx\":\"The method observes task use and spoken thought, rather than gathering opinions alone.\",\"sourceFactIndexes\":[3]}]}}}}",
+  "savedAt": "2026-07-16T20:01:58.282Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-preference-expansion-v0.16.47.json",
+    "campaignManifestSha256": "77cd0f41c9af2be733d987e0d429720e28aec3ca931ce4902ea9d700fbd44e70",
+    "promptSetSha256": "4377647464125077c70edf29659853b6faaf0e3efad4d2b6b0a051fe0cd4a975",
+    "courseInputSha256": "df444f88819ebc1124e3d1ce13c68df323eeb2f0fddfaebfafb1033453e598ac",
+    "courseGroupId": "ux-method-selection-clinic",
+    "courseGroupSha256": "06ab2cdeac734edd8ef5df93070d35408285ceb632fbba18e19ae1247777989a",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/ux-intro.json",
+      "sourceArtifactSha256": "97184a577a92ba3e8103dacfb100bbabbf25c8d90905da95b1b0dec1e0664e54",
+      "kernels": [
+        {
+          "id": "ux/research-planning",
+          "term": "Research planning",
+          "definition": "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "definitionAnchor": {
+            "src": "govuk:plan-user-research",
+            "loc": "Set your research objectives",
+            "quote": "Each round of user research should have clear objectives. Keep your objectives actionable and to the point."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The team should agree what it wants to learn from the research round before selecting study details.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Set your research objectives",
+                "quote": "Work with your team to agree what you want to learn from a round of research."
+              }
+            },
+            {
+              "index": 1,
+              "text": "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Prepare the prototype",
+                "quote": "Your prototype or beta service needs to work from end-to-end and be usable and accessible from the research venue."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Researchers should run through test tasks on the day before the research session.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Prepare the prototype",
+                "quote": "Run through the test tasks on the day before the research."
+              }
+            },
+            {
+              "index": 3,
+              "text": "A practice session with a team member can expose procedure problems before participants arrive.",
+              "anchor": {
+                "src": "govuk:plan-user-research",
+                "loc": "Run a practice session",
+                "quote": "To make sure your research goes smoothly, consider running through the session with a team member."
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/evidence-based-personas",
+          "term": "Personas",
+          "definition": "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "definitionAnchor": {
+            "src": "govuk:user-needs",
+            "loc": "Share your user needs",
+            "quote": "user profiles or personas that describe groups of users with similar behaviour and needs"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Personas are one way to present research findings so other people can understand and share them.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Share your user needs",
+                "quote": "Present what you've learned in a way that's easy for others to understand and share."
+              }
+            },
+            {
+              "index": 1,
+              "text": "User needs are generally higher-level and more stable over time than individual interface requests.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "User needs tend to be high-level, broad in scope and stable over time."
+              }
+            },
+            {
+              "index": 2,
+              "text": "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "These describe the specific features and content you need to create for your service to meet your users' needs."
+              }
+            },
+            {
+              "index": 3,
+              "text": "Keeping each user story linked to its source need enables evaluation of whether the need is being met.",
+              "anchor": {
+                "src": "govuk:user-needs",
+                "loc": "Linking user needs",
+                "quote": "This traceability allows you to track related activities and determine how well you're meeting a particular user need."
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/journey-mapping",
+          "term": "Journey mapping",
+          "definition": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "definitionAnchor": {
+            "src": "govuk:whole-journey",
+            "loc": "Whole problem",
+            "quote": "It's important for teams to make sure the thing they're building forms a coherent part of a user's wider journey."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "User point of view",
+                "quote": "Start by talking to your users to learn more about the steps they have to take and the transactions involved."
+              }
+            },
+            {
+              "index": 1,
+              "text": "An experience map should make struggle points and candidate improvement areas visible.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "User point of view",
+                "quote": "The map should show which bits of the journey users are struggling with and the areas you might want to focus on improving."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "What to change",
+                "quote": "dead ends in the user journey"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Journey analysis should include gaps between online and offline parts of a service.",
+              "anchor": {
+                "src": "govuk:whole-journey",
+                "loc": "What to change",
+                "quote": "online and offline elements of the transaction not joining up in an intuitive way"
+              }
+            }
+          ],
+          "license": "Open Government Licence v3.0",
+          "attribution": [
+            "UK Government Service Manual"
+          ]
+        },
+        {
+          "id": "ux/task-flow-analysis",
+          "term": "Task flow analysis",
+          "definition": "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "definitionAnchor": {
+            "src": "digitalgov:task-flow",
+            "loc": "What",
+            "quote": "A task flow analysis is a step-by-step diagram showing how a user interacts with a system to reach a goal."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "Validate your understanding of users' goals, common scenarios, and tasks"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A task flow should show how a user progresses through tasks to accomplish a goal.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "Illustrate the overall flow of tasks through which a user progresses to accomplish a goal"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Task flow analysis should surface obstacles that stand between users and their goals.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "Surface obstacles in the way of users achieving their goal"
+              }
+            },
+            {
+              "index": 3,
+              "text": "The diagram may include multiple possible paths, task sequences, and decision points.",
+              "anchor": {
+                "src": "digitalgov:task-flow",
+                "loc": "Why",
+                "quote": "The diagram traces a user's possible paths through sequences of tasks and decision points to meet their goal."
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        },
+        {
+          "id": "ux/interactive-prototyping",
+          "term": "Interactive prototyping",
+          "definition": "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "definitionAnchor": {
+            "src": "digitalgov:prototypes",
+            "loc": "What",
+            "quote": "A prototype is an interactive (high-fidelity) version of the experience you are planning to build. It shows how the design will look and work, without full detail."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "Why",
+                "quote": "Combined with other methods like usability testing or a cognitive walkthrough, prototypes help you test whether a design concept will work."
+              }
+            },
+            {
+              "index": 1,
+              "text": "Functional prototypes allow a team to observe how users interact with a product.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "Why",
+                "quote": "Functional prototypes help you observe how users interact with the product."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A prototype should show the major interactions even when not every interaction is functional.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "How to do it",
+                "quote": "Show the major interactions. Not all interactions need to be functional."
+              }
+            },
+            {
+              "index": 3,
+              "text": "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them.",
+              "anchor": {
+                "src": "digitalgov:prototypes",
+                "loc": "How to do it",
+                "quote": "Iterate. Prototypes should be quick to create and even quicker to discard."
+              }
+            }
+          ],
+          "license": "U.S. Government Work",
+          "attribution": [
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        },
+        {
+          "id": "ux/accessibility-usability-evaluation",
+          "term": "Accessibility and usability evaluation",
+          "definition": "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "definitionAnchor": {
+            "src": "w3c:wcag22",
+            "loc": "Introduction",
+            "quote": "WCAG 2.2 is designed to apply broadly to different web technologies now and in the future, and to be testable with a combination of automated testing and human evaluation."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+              "anchor": {
+                "src": "w3c:wcag22",
+                "loc": "Layers of Guidance",
+                "quote": "perceivable, operable, understandable, and robust"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+              "anchor": {
+                "src": "w3c:involving-users",
+                "loc": "Introduction",
+                "quote": "Evaluating with users with disabilities and with older users identifies usability issues that are not discovered by conformance evaluation alone."
+              }
+            },
+            {
+              "index": 2,
+              "text": "A usability test observes users attempting to use a product or service while thinking aloud.",
+              "anchor": {
+                "src": "digitalgov:usability",
+                "loc": "What",
+                "quote": "A usability test observes users as they attempt to use a product or service while thinking out loud."
+              }
+            },
+            {
+              "index": 3,
+              "text": "A single disabled participant's experience should not be generalized to all people with disabilities.",
+              "anchor": {
+                "src": "w3c:involving-users",
+                "loc": "Basics",
+                "quote": "Avoid assuming that input from one person with a disability applies to all people with disabilities."
+              }
+            }
+          ],
+          "license": "W3C Document License and U.S. Government Work",
+          "attribution": [
+            "W3C Web Accessibility Initiative",
+            "Digital.gov, U.S. General Services Administration"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-16T20:01:58.282Z",
+    "admittedPromptIds": [
+      "ux-method-selection-clinic:ux/research-planning",
+      "ux-method-selection-clinic:ux/evidence-based-personas",
+      "ux-method-selection-clinic:ux/journey-mapping",
+      "ux-method-selection-clinic:ux/task-flow-analysis",
+      "ux-method-selection-clinic:ux/interactive-prototyping",
+      "ux-method-selection-clinic:ux/accessibility-usability-evaluation"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "ux-method-selection-clinic:ux/research-planning",
+          "kernelId": "ux/research-planning",
+          "promptSha256": "7886c7139cd2c53cfa3115a03cdee1ec4c37b57793f0f31e0ce82fa698057311",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Before a UX team chooses study details, what should it settle first?",
+                "op": [
+                  "Agree on the learning goal for the round.",
+                  "Pick the busiest participants available.",
+                  "Write the final recommendation slide.",
+                  "Choose the longest task script."
+                ],
+                "ai": 0,
+                "ex": "Correct: the team should first agree what it wants to learn from the research round. That comes before selecting study details. The most plausible misconception is to jump straight to participants or tasks; those are study details, but the source says the decision need and learning objectives come ﬁ",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "q": "What is the best use of the day before a research session?",
+                "op": [
+                  "Run through the test tasks with the team.",
+                  "Launch the final survey to all users.",
+                  "Rewrite the interface based on guesses.",
+                  "Archive the prototype as complete."
+                ],
+                "ai": 0,
+                "ex": "Correct: researchers should run through test tasks the day before the session. The nearest plausible misconception is a full pilot with participants or a different prep activity, but the source specifies a practice run with a team member to expose procedure problems before participants arrive.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Research plan",
+                "df": "A document that turns a decision need into learning goals, participants, tasks, evidence roles, and a ready study setup.",
+                "eg": "A team defines what it needs to learn, then lists who to recruit, what to ask them to do, who captures notes, and how the session will run.",
+                "mi": "A research plan is only a schedule of dates.",
+                "cx": "It also specifies learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready setup.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Practice session",
+                "df": "A rehearsal run used to check the study procedure before real participants show up.",
+                "eg": "On the day before testing, the team member walks through the tasks so the researchers can spot any workflow problems.",
+                "mi": "It is the same thing as collecting user data.",
+                "cx": "The practice run happens before participants arrive and is meant to expose procedure problems, not to gather findings from real users.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "f419f0f23c2d22bc8d2ce522be355a3fdad8296378f19bb3ffcdd954ce93ba5b",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the best use of the day before a research session?",
+                "op": [
+                  "Run through the test tasks with the team.",
+                  "Launch the final survey to all users.",
+                  "Rewrite the interface based on guesses.",
+                  "Archive the prototype as complete."
+                ],
+                "ai": 0,
+                "ex": "Correct: researchers should run through test tasks the day before the session. The nearest plausible misconception is a full pilot with participants or a different prep activity, but the source specifies a practice run with a team member to expose procedure problems before participants arrive.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Research plan",
+                "df": "A document that turns a decision need into learning goals, participants, tasks, evidence roles, and a ready study setup.",
+                "eg": "A team defines what it needs to learn, then lists who to recruit, what to ask them to do, who captures notes, and how the session will run.",
+                "mi": "A research plan is only a schedule of dates.",
+                "cx": "It also specifies learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready setup.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Practice session",
+                "df": "A rehearsal run used to check the study procedure before real participants show up.",
+                "eg": "On the day before testing, the team member walks through the tasks so the researchers can spot any workflow problems.",
+                "mi": "It is the same thing as collecting user data.",
+                "cx": "The practice run happens before participants arrive and is meant to expose procedure problems, not to gather findings from real users.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "70f6585078574b80c4beaa90ba88a96cfb7043caefb3a92925fa320c95f7c42d",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-0-longest-option-cue"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_09f3f1067087a862006a5932873ca081a3986d7d79fab950d0",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 677,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 641,
+              "output_tokens_details": {
+                "reasoning_tokens": 187
+              },
+              "total_tokens": 1318
+            }
+          },
+          "startedAt": "2026-07-16T19:35:34.980Z",
+          "durationMs": 10974
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/evidence-based-personas",
+          "kernelId": "ux/evidence-based-personas",
+          "promptSha256": "062c6be919cd7cb78f46a9fab3fdb9001ae1587ef4da1c35a9897ffd2da3c02c",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team has interview findings about a user group with similar behavior and needs. Which deliverable best keeps the design choices connected to that evidence and lets others understand and share the findings?",
+                "op": [
+                  "A research-based persona",
+                  "A task flow diagram",
+                  "A usability test script",
+                  "A color style guide"
+                ],
+                "ai": 0,
+                "ex": "A research-based persona fits because it is a shareable profile of a user group with similar behavior and needs, and it is used to keep design choices connected to evidence. A task flow diagram is the nearest plausible distraction because it can organize steps, but it does not present research findi",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "A team wants a traceable way to judge whether a higher-level, more stable need is being met after turning it into a story. Which practice best supports that evaluation?",
+                "op": [
+                  "Link each user story to its source need",
+                  "Rewrite the need as an interface request",
+                  "Remove the evidence trail to simplify review",
+                  "Choose a persona headline instead of a story"
+                ],
+                "ai": 0,
+                "ex": "Linking each user story to its source need fits because the source need can then be used to evaluate whether that need is being met. Rewriting the need as an interface request is the nearest plausible mistake because interface requests are narrower and less stable than user needs, so that move weak",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Research-based persona",
+                "df": "A shareable profile built from evidence about a user group with similar behavior and needs.",
+                "eg": "A team summarizes interview patterns into one profile so design decisions stay tied to evidence.",
+                "mi": "It is just a fictional marketing character.",
+                "cx": "The correction is that it must reflect research findings and help others understand and share them.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "User story linked to source need",
+                "df": "A feature description kept connected to the need it is meant to address so the need can be checked later.",
+                "eg": "A backlog item for a dashboard remains linked to the need for quick status awareness.",
+                "mi": "Any feature note can stand alone once written.",
+                "cx": "The correction is that the link to the source need matters because it enables evaluation of whether the need is being met.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "bf2d4aa8f8de7c258459c7d60fe4f1218ae4c136749773089b62dd46752ea676",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Research-based persona",
+                "df": "A shareable profile built from evidence about a user group with similar behavior and needs.",
+                "eg": "A team summarizes interview patterns into one profile so design decisions stay tied to evidence.",
+                "mi": "It is just a fictional marketing character.",
+                "cx": "The correction is that it must reflect research findings and help others understand and share them.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "User story linked to source need",
+                "df": "A feature description kept connected to the need it is meant to address so the need can be checked later.",
+                "eg": "A backlog item for a dashboard remains linked to the need for quick status awareness.",
+                "mi": "Any feature note can stand alone once written.",
+                "cx": "The correction is that the link to the source need matters because it enables evaluation of whether the need is being met.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "9ad3d36d1a96e976376fb0212fa437523d2398928d99a2655c50e136dbc42da7",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-1-truncated-explanation",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_087df5e3f5f8fa56006a5932924a14819c80fa9c1016026cc8",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 681,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 535,
+              "output_tokens_details": {
+                "reasoning_tokens": 53
+              },
+              "total_tokens": 1216
+            }
+          },
+          "startedAt": "2026-07-16T19:35:45.958Z",
+          "durationMs": 5244
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/journey-mapping",
+          "kernelId": "ux/journey-mapping",
+          "promptSha256": "2023c2b7c07b73e542e9175319060f342f5778681cdae2a4039af6191b80725d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team interviews users, then creates a visual of the full service from the user's perspective to show connected steps, boundaries, breakdowns, and opportunities. Which method is being used?",
+                "op": [
+                  "Journey mapping",
+                  "A/B testing",
+                  "Heuristic evaluation",
+                  "Card sorting"
+                ],
+                "ai": 0,
+                "ex": "Journey mapping fits because it represents an end-to-end experience from the user's perspective and is grounded in research about the steps users actually take. Card sorting is the nearest tempting distractor, but it organizes content rather than showing the service journey across steps and breakage",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "During review, a team wants to make struggle points and candidate improvement areas visible, including places where users hit a dead end and cannot continue toward the larger goal. What artifact best supports that goal?",
+                "op": [
+                  "A journey map",
+                  "A usability test script",
+                  "A sitemap",
+                  "A style guide"
+                ],
+                "ai": 0,
+                "ex": "A journey map fits because it can surface struggle points, dead ends, and opportunities across the user’s end-to-end experience. A usability test script is the nearest plausible misconception, but it is a research instrument for running sessions rather than the artifact that visualizes connected and",
+                "sourceFactIndexes": [
+                  2,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "A way to represent the user's end-to-end experience so the team can see connected steps, boundaries, breakdowns, and opportunities.",
+                "eg": "A service team maps how a person books online, arrives in person, and resolves a problem across those touchpoints.",
+                "mi": "It is mainly a list of interface screens or a research interview script.",
+                "cx": "Those are different artifacts; the map organizes the whole experience, while research methods gather the evidence that can inform it.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Dead end",
+                "df": "A point in the mapped experience where the user cannot continue toward the larger goal.",
+                "eg": "A checkout flow that leaves no clear way to finish the purchase or recover from an error.",
+                "mi": "It means the user disliked the interface or intended to leave.",
+                "cx": "The claim supports a blocked path in the journey, not an inferred motive, feeling, or cause from one behavior.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "ba928150105e45a0d56a6004d8fe7faaccffc4fbd7079ec8990c7de6f28efe5d",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "A way to represent the user's end-to-end experience so the team can see connected steps, boundaries, breakdowns, and opportunities.",
+                "eg": "A service team maps how a person books online, arrives in person, and resolves a problem across those touchpoints.",
+                "mi": "It is mainly a list of interface screens or a research interview script.",
+                "cx": "Those are different artifacts; the map organizes the whole experience, while research methods gather the evidence that can inform it.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Dead end",
+                "df": "A point in the mapped experience where the user cannot continue toward the larger goal.",
+                "eg": "A checkout flow that leaves no clear way to finish the purchase or recover from an error.",
+                "mi": "It means the user disliked the interface or intended to leave.",
+                "cx": "The claim supports a blocked path in the journey, not an inferred motive, feeling, or cause from one behavior.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "93f778a3b473de2728b6d2d73030aeff8b1009a2aac036bbef59fbc0de238cfb",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-1-truncated-explanation",
+              "mc-1-meta-surface",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_08ee84aaa61fc7cf006a593297441481919cbba71df3b59a0a",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 670,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 590,
+              "output_tokens_details": {
+                "reasoning_tokens": 117
+              },
+              "total_tokens": 1260
+            }
+          },
+          "startedAt": "2026-07-16T19:35:51.204Z",
+          "durationMs": 5278
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/task-flow-analysis",
+          "kernelId": "ux/task-flow-analysis",
+          "promptSha256": "2c81457e84258118e0fc0f80ee8a795678bb2465830d34c2524d6ddd462d10c1",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team sketches the steps and decision points a user would follow to reach one goal. Which method best matches that evidence need?",
+                "op": [
+                  "Task flow analysis",
+                  "Card sorting study",
+                  "Heuristic review",
+                  "Diary study"
+                ],
+                "ai": 0,
+                "ex": "Task flow analysis fits because it diagrams the steps and decision points a user uses to reach a defined goal and can validate the team’s understanding of goals, common scenarios, and tasks. Card sorting is the nearest plausible distraction, but it is about grouping or labeling content rather than a",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "During review, the team wants to surface where users may get blocked while moving through a goal-oriented process. What should they use?",
+                "op": [
+                  "Task flow analysis",
+                  "Usability test script",
+                  "Style guide audit",
+                  "Content inventory"
+                ],
+                "ai": 0,
+                "ex": "Task flow analysis fits because it should surface obstacles between users and their goals and may include multiple paths, task sequences, and decision points. Usability testing is the nearest plausible misconception, but the evidence here asks for a diagram of the flow and likely blockers, not for a",
+                "sourceFactIndexes": [
+                  3,
+                  4,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Task flow analysis",
+                "df": "A diagram-based approach for tracing how people move through a system to reach a goal.",
+                "eg": "A team maps checkout steps, branches, and decision points before redesigning the purchase flow.",
+                "mi": "It is mainly a visual design or screen-mockup exercise.",
+                "cx": "It focuses on steps, paths, and obstacles, not the look of the interface.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Decision point",
+                "df": "A place in the flow where one path must be chosen over another.",
+                "eg": "At checkout, a shopper chooses delivery pickup or home delivery.",
+                "mi": "It only means a dead end or failure.",
+                "cx": "It can be any branching choice; task flows may include several possible paths.",
+                "sourceFactIndexes": [
+                  0,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "52a587b0144fbbe983b8e571a97bfb90c083d4536912bf35b9a29517ab1df6af",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Task flow analysis",
+                "df": "A diagram-based approach for tracing how people move through a system to reach a goal.",
+                "eg": "A team maps checkout steps, branches, and decision points before redesigning the purchase flow.",
+                "mi": "It is mainly a visual design or screen-mockup exercise.",
+                "cx": "It focuses on steps, paths, and obstacles, not the look of the interface.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Decision point",
+                "df": "A place in the flow where one path must be chosen over another.",
+                "eg": "At checkout, a shopper chooses delivery pickup or home delivery.",
+                "mi": "It only means a dead end or failure.",
+                "cx": "It can be any branching choice; task flows may include several possible paths.",
+                "sourceFactIndexes": [
+                  0,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "4ae116134cb3a10bba43fb5224229eeb2b1651fb7f0ac449ed7c7cb55b95d745",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-1-truncated-explanation",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0a215f945fabb1a5006a59329c8ca081a2b03716c1d1d0961a",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 671,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 2006,
+              "output_tokens_details": {
+                "reasoning_tokens": 1582
+              },
+              "total_tokens": 2677
+            }
+          },
+          "startedAt": "2026-07-16T19:35:56.486Z",
+          "durationMs": 16049
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/interactive-prototyping",
+          "kernelId": "ux/interactive-prototyping",
+          "promptSha256": "d635e28dc64ce2e7bc93742ac5945b5925c37a58f8407e57063a3de751845181",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team wants a low-cost version of a planned checkout flow that shows the main interactions, can be discarded after learning, and is good for a test before building the full product. Which method best fits?",
+                "op": [
+                  "Interactive prototyping",
+                  "A final visual mockup",
+                  "Market segmentation",
+                  "Content audit"
+                ],
+                "ai": 0,
+                "ex": "Interactive prototyping fits because it creates a testable representation of how an experience looks and works without every production detail, supports fast iteration, and can be inexpensive enough to discard after learning. A final visual mockup is a plausible misconception, but it suggests a more",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              },
+              {
+                "q": "A design team wants to see whether users can complete key interactions in a planned app screen before production details are finished. Which approach best matches that goal?",
+                "op": [
+                  "Interactive prototyping",
+                  "Brand guideline review",
+                  "Survey recruitment",
+                  "Stakeholder mapping"
+                ],
+                "ai": 0,
+                "ex": "Interactive prototyping fits because functional prototypes let a team observe how users interact with a product, and prototypes can be paired with usability testing or a cognitive walkthrough to test whether a concept works. Brand guideline review is the nearest plausible distraction, but it checks",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Interactive prototyping",
+                "df": "Creating a testable stand-in for an experience so teams can evaluate how it looks and works without building every production detail.",
+                "eg": "A team makes a clickable checkout prototype to test the main interactions before coding the full flow.",
+                "mi": "It means a polished finished product.",
+                "cx": "It is meant to be inexpensive and fast enough to discard after learning from it.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              },
+              {
+                "tr": "Functional prototype",
+                "df": "A prototype that is capable of letting people interact with the product in order to observe behavior.",
+                "eg": "Users tap through a prototype login flow while the team watches where they succeed or get stuck.",
+                "mi": "It must include every interaction and production detail.",
+                "cx": "Only the major interactions need to be shown; not every interaction must be functional.",
+                "sourceFactIndexes": [
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "65b4901deac92d3275a6c7e60ee904f4e03aa28db4b5d4011c0825cc2ec38786",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Interactive prototyping",
+                "df": "Creating a testable stand-in for an experience so teams can evaluate how it looks and works without building every production detail.",
+                "eg": "A team makes a clickable checkout prototype to test the main interactions before coding the full flow.",
+                "mi": "It means a polished finished product.",
+                "cx": "It is meant to be inexpensive and fast enough to discard after learning from it.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              },
+              {
+                "tr": "Functional prototype",
+                "df": "A prototype that is capable of letting people interact with the product in order to observe behavior.",
+                "eg": "Users tap through a prototype login flow while the team watches where they succeed or get stuck.",
+                "mi": "It must include every interaction and production detail.",
+                "cx": "Only the major interactions need to be shown; not every interaction must be functional.",
+                "sourceFactIndexes": [
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "6617418ed821814e88c82c2bb41f2abe2afe36456075c0f8f41cdf781ca27af2",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-1-truncated-explanation",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0801d1605a21d737006a5932ac979c81a1a456de18a321aa4d",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 675,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 495,
+              "output_tokens_details": {
+                "reasoning_tokens": 50
+              },
+              "total_tokens": 1170
+            }
+          },
+          "startedAt": "2026-07-16T19:36:12.538Z",
+          "durationMs": 4135
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/accessibility-usability-evaluation",
+          "kernelId": "ux/accessibility-usability-evaluation",
+          "promptSha256": "e216ba357ac939ac1f119eca0919a18748e5af53f73bf407bcadc94439f36303",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A team reviews a sign-in flow by checking it against accessibility standards and then watching representative older users try realistic tasks. Which method best fits the evidence they are collecting?",
+                "op": [
+                  "Accessibility and usability evaluation",
+                  "Accessibility conformance check",
+                  "Usability test",
+                  "Card sorting"
+                ],
+                "ai": 0,
+                "ex": "This is the combined method because it uses standards-based conformance checks and observation of representative users doing realistic tasks. A conformance check alone would stop at standards, while a usability test alone would focus on task performance without the standards check.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  3
+                ]
+              },
+              {
+                "q": "During a usability test, one disabled participant cannot complete checkout. What conclusion is supported by that observation alone?",
+                "op": [
+                  "All disabled users will face the same barrier",
+                  "The checkout is inaccessible for every user",
+                  "You can report a barrier for that participant, but not generalize to all disabled people",
+                  "The participant's impairment caused the failure"
+                ],
+                "ai": 2,
+                "ex": "The evidence supports a limited finding about that participant's experience. The nearest plausible mistake is generalizing from one disabled participant to all people with disabilities; the source explicitly says not to do that.",
+                "sourceFactIndexes": [
+                  4,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "WCAG principles",
+                "df": "Four organizing goals used to structure web accessibility requirements.",
+                "eg": "A design review checks whether a form is perceivable, operable, understandable, and robust.",
+                "mi": "They are a list of visual style preferences.",
+                "cx": "Use them to organize an accessibility review, not to infer user intent or motivation.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Thinking aloud usability test",
+                "df": "A usability session in which people attempt realistic tasks while verbalizing what they are doing and noticing.",
+                "eg": "A participant tries to reset a password while narrating each step and the moderator observes difficulties.",
+                "mi": "It means asking users whether they like the product after the session.",
+                "cx": "The method observes task use and spoken thought, rather than gathering opinions alone.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "2ac283b02b4edbb6062dc4e1361256a527908b9e4e3b5d1cbdbed5834b00b486",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "WCAG principles",
+                "df": "Four organizing goals used to structure web accessibility requirements.",
+                "eg": "A design review checks whether a form is perceivable, operable, understandable, and robust.",
+                "mi": "They are a list of visual style preferences.",
+                "cx": "Use them to organize an accessibility review, not to infer user intent or motivation.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Thinking aloud usability test",
+                "df": "A usability session in which people attempt realistic tasks while verbalizing what they are doing and noticing.",
+                "eg": "A participant tries to reset a password while narrating each step and the moderator observes difficulties.",
+                "mi": "It means asking users whether they like the product after the session.",
+                "cx": "The method observes task use and spoken thought, rather than gathering opinions alone.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "83ef703707fe17496b8e811eb0567b4cf9dc66b8924e5996dbe7dc6e51794083",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-explanation-key-conflict",
+              "mc-1-longest-option-cue",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_08648af1502c3794006a5932b0c0e88192bdfdbb216d296e05",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 689,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 879,
+              "output_tokens_details": {
+                "reasoning_tokens": 453
+              },
+              "total_tokens": 1568
+            }
+          },
+          "startedAt": "2026-07-16T19:36:16.677Z",
+          "durationMs": 8171
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "ux-method-selection-clinic:ux/research-planning",
+          "kernelId": "ux/research-planning",
+          "promptSha256": "7886c7139cd2c53cfa3115a03cdee1ec4c37b57793f0f31e0ce82fa698057311",
+          "generationPromptSha256": "eaa999391328a91ce527010aa640b7951161b132e8144d45196b5e912f1245ec",
+          "rawCallSha256": "61339ce7b3e0bdafa702e2f9c3675e51191b564c5f69a77a794bcc77d7210057",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What does a UX research plan turn a decision need into?",
+                "op": [
+                  "Learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study",
+                  "A finished interface with final visuals, interactions, and launch copy",
+                  "A post-study summary of findings, recommendations, and design changes",
+                  "A set of business metrics, staffing plans, and release dates"
+                ],
+                "ai": 0,
+                "ex": "It converts the decision need into learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study. It is not the final interface or a post-study report.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "d2f1063650aac2fe1ef9d70faa3cdfadfbeb8379d6684a5778a994df201a87c7",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What does a UX research plan turn a decision need into?",
+                "op": [
+                  "Learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study",
+                  "A finished interface with final visuals, interactions, and launch copy",
+                  "A post-study summary of findings, recommendations, and design changes",
+                  "A set of business metrics, staffing plans, and release dates"
+                ],
+                "ai": 0,
+                "ex": "It converts the decision need into learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study. It is not the final interface or a post-study report.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "d2f1063650aac2fe1ef9d70faa3cdfadfbeb8379d6684a5778a994df201a87c7",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0bacead48ec07585006a593898029081a2bb0b033b3a716e27",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 685,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 253,
+              "output_tokens_details": {
+                "reasoning_tokens": 108
+              },
+              "total_tokens": 938
+            }
+          },
+          "startedAt": "2026-07-16T20:01:27.933Z",
+          "durationMs": 3593,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/evidence-based-personas",
+          "kernelId": "ux/evidence-based-personas",
+          "promptSha256": "062c6be919cd7cb78f46a9fab3fdb9001ae1587ef4da1c35a9897ffd2da3c02c",
+          "generationPromptSha256": "4995f33fd02143d65fe44690bdeb00595f3b1a18b88cbde0985fc72b3b5173ad",
+          "rawCallSha256": "67e5ff069aa79525f160d6030a421e833d25f3e952b896bb507c1356a0574e85",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which artifact is used to present research findings so other people can understand and share them?",
+                "op": [
+                  "A research-based profile of a user group with similar behavior and needs",
+                  "A list of interface requests from a single user",
+                  "A sequence of screens for a task",
+                  "A checklist for code review"
+                ],
+                "ai": 0,
+                "ex": "Personas present research findings so others can understand and share them. A user story describes features and content, so it is not the research summary.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  3
+                ]
+              },
+              {
+                "q": "Which statement best matches how teams should use user stories?",
+                "op": [
+                  "They should capture one-off interface requests exactly as given",
+                  "They should describe features and content intended to meet user needs",
+                  "They should replace the underlying user need with a design detail",
+                  "They should be kept separate from their source need"
+                ],
+                "ai": 1,
+                "ex": "User stories describe features and content intended to meet user needs. Keeping them linked to the source need is the useful practice, not separating them.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "47a0ac10cf82d4b7f3b9aed6d5aba40f17395d2da64cba2f4c5a88cae4de6263",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which statement best matches how teams should use user stories?",
+                "op": [
+                  "They should capture one-off interface requests exactly as given",
+                  "They should describe features and content intended to meet user needs",
+                  "They should replace the underlying user need with a design detail",
+                  "They should be kept separate from their source need"
+                ],
+                "ai": 1,
+                "ex": "User stories describe features and content intended to meet user needs. Keeping them linked to the source need is the useful practice, not separating them.",
+                "sourceFactIndexes": [
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "f7c734fb5ec912d88b58cbf9f5fe438d296268a393ea31afc448faac0c7a6fad",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-count",
+              "mc-0-meta-surface",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0b863ad72770e0c1006a59389befdc819d97bf2f5a89591f0b",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 695,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 474,
+              "output_tokens_details": {
+                "reasoning_tokens": 239
+              },
+              "total_tokens": 1169
+            }
+          },
+          "startedAt": "2026-07-16T20:01:31.527Z",
+          "durationMs": 12397,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/journey-mapping",
+          "kernelId": "ux/journey-mapping",
+          "promptSha256": "2023c2b7c07b73e542e9175319060f342f5778681cdae2a4039af6191b80725d",
+          "generationPromptSha256": "25ea9361752c10200717144796d788dd61fc0697945c69963009fd619d51babb",
+          "rawCallSha256": "28c3e42c2b7b11282d89a89aa930f6926dae1cf9ac32fabaf1ed5ad2b170e3a0",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which method best fits a team that wants to show a user's end-to-end service experience, including connected steps and breakdowns?",
+                "op": [
+                  "Journey mapping",
+                  "Card sorting",
+                  "A/B testing",
+                  "Heuristic evaluation"
+                ],
+                "ai": 0,
+                "ex": "It shows the end-to-end experience from the user's perspective. Card sorting groups labels, not service steps.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What should a journey map be built from first?",
+                "op": [
+                  "Research about the steps users actually take and the transactions involved",
+                  "A list of internal team assumptions about pain points",
+                  "A single screen's visual design",
+                  "A style guide for interface components"
+                ],
+                "ai": 0,
+                "ex": "It should start from research on what users actually do and the transactions involved. A map is not first built from assumptions or visual design.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "fe17df8f31b416e6692967be568bcfd074096da8e52943bf836b2aa84788b73b",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which method best fits a team that wants to show a user's end-to-end service experience, including connected steps and breakdowns?",
+                "op": [
+                  "Journey mapping",
+                  "Card sorting",
+                  "A/B testing",
+                  "Heuristic evaluation"
+                ],
+                "ai": 0,
+                "ex": "It shows the end-to-end experience from the user's perspective. Card sorting groups labels, not service steps.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What should a journey map be built from first?",
+                "op": [
+                  "Research about the steps users actually take and the transactions involved",
+                  "A list of internal team assumptions about pain points",
+                  "A single screen's visual design",
+                  "A style guide for interface components"
+                ],
+                "ai": 0,
+                "ex": "It should start from research on what users actually do and the transactions involved. A map is not first built from assumptions or visual design.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "fe17df8f31b416e6692967be568bcfd074096da8e52943bf836b2aa84788b73b",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_08e3596c6c5ffe37006a5938a7fe6481a280bc5f908df944df",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 691,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 261,
+              "output_tokens_details": {
+                "reasoning_tokens": 69
+              },
+              "total_tokens": 952
+            }
+          },
+          "startedAt": "2026-07-16T20:01:43.925Z",
+          "durationMs": 2620,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/task-flow-analysis",
+          "kernelId": "ux/task-flow-analysis",
+          "promptSha256": "2c81457e84258118e0fc0f80ee8a795678bb2465830d34c2524d6ddd462d10c1",
+          "generationPromptSha256": "a1a33fbb0cf14e69dbb5c7630050e9ec2e61e85f520e384881e2e2f463561542",
+          "rawCallSha256": "ade38ee1c47db712416f503ddede966540136c80c0857963d3052ece1251016c",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which artifact best fits task flow analysis?",
+                "op": [
+                  "A diagram of the steps and decision points a user follows to reach a goal",
+                  "A list of interview quotes explaining why users feel frustrated",
+                  "A color palette showing the interface's visual style",
+                  "A summary of competing product strategies and market position"
+                ],
+                "ai": 0,
+                "ex": "It maps steps and decision points to reach a goal. Not quotes, visuals, or strategy, which are different artifact types.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  4
+                ]
+              },
+              {
+                "q": "What can a task flow analysis help a team check?",
+                "op": [
+                  "Whether the team understands user goals, common scenarios, and tasks",
+                  "Whether the interface uses the most modern visual trend",
+                  "Whether a single observed click reveals the user's motive",
+                  "Whether the product's pricing matches competitor prices"
+                ],
+                "ai": 0,
+                "ex": "It can validate the team's grasp of goals, scenarios, and tasks. One click does not prove motive, and the other options are unrelated.",
+                "sourceFactIndexes": [
+                  1,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "6472ab832bf97f6e6a39ff9f7be83bc1cc5f9d9e2659234719c4d9df473e51ad",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What can a task flow analysis help a team check?",
+                "op": [
+                  "Whether the team understands user goals, common scenarios, and tasks",
+                  "Whether the interface uses the most modern visual trend",
+                  "Whether a single observed click reveals the user's motive",
+                  "Whether the product's pricing matches competitor prices"
+                ],
+                "ai": 0,
+                "ex": "It can validate the team's grasp of goals, scenarios, and tasks. One click does not prove motive, and the other options are unrelated.",
+                "sourceFactIndexes": [
+                  1,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "54397e0a3ead88fdc77a0c80c730cfb5784e4eb5d6ed203226b9c353e3fa3cc3",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-count",
+              "mc-0-meta-surface",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0b521b0a455fb925006a5938aaa03c819c85ace10aded4ac58",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 685,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 290,
+              "output_tokens_details": {
+                "reasoning_tokens": 64
+              },
+              "total_tokens": 975
+            }
+          },
+          "startedAt": "2026-07-16T20:01:46.547Z",
+          "durationMs": 2822,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/interactive-prototyping",
+          "kernelId": "ux/interactive-prototyping",
+          "promptSha256": "d635e28dc64ce2e7bc93742ac5945b5925c37a58f8407e57063a3de751845181",
+          "generationPromptSha256": "64c7bb48120a658fa75653aeb9c73b4f28609d338a27b12956a568306ed9a470",
+          "rawCallSha256": "62a2584a36a0b44aaf2be6832706d8b64b267063b4da50ca864616a7f04234cb",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement best fits interactive prototyping?",
+                "op": [
+                  "A prototype is a final product that must include every production detail.",
+                  "A prototype is a testable model that shows the planned experience and can be discarded after a,",
+                  "A prototype is only a visual mockup and cannot support learning from use.",
+                  "A prototype should delay changes until all features are fully built."
+                ],
+                "ai": 1,
+                "ex": "It is testable, omits some production detail, and can be cheap to discard. The other choices mistake a prototype for a final build or static mockup.",
+                "sourceFactIndexes": [
+                  0,
+                  4
+                ]
+              },
+              {
+                "q": "What can a functional prototype help a team do?",
+                "op": [
+                  "Observe how users interact with a product.",
+                  "Prove every interaction is complete before testing.",
+                  "Replace usability testing with documentation only.",
+                  "Show only the final visual style of the product."
+                ],
+                "ai": 0,
+                "ex": "It lets a team observe user interaction with the product. The closest miss is a static visual style, which cannot show behavior in use.",
+                "sourceFactIndexes": [
+                  2,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "aa3507dd87a516ff4ebc5789da8b316f63f0e90c2c45521d1a55ac0e992db979",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which statement best fits interactive prototyping?",
+                "op": [
+                  "A prototype is a final product that must include every production detail.",
+                  "A prototype is a testable model that shows the planned experience and can be discarded after a,",
+                  "A prototype is only a visual mockup and cannot support learning from use.",
+                  "A prototype should delay changes until all features are fully built."
+                ],
+                "ai": 1,
+                "ex": "It is testable, omits some production detail, and can be cheap to discard. The other choices mistake a prototype for a final build or static mockup.",
+                "sourceFactIndexes": [
+                  0,
+                  4
+                ]
+              },
+              {
+                "q": "What can a functional prototype help a team do?",
+                "op": [
+                  "Observe how users interact with a product.",
+                  "Prove every interaction is complete before testing.",
+                  "Replace usability testing with documentation only.",
+                  "Show only the final visual style of the product."
+                ],
+                "ai": 0,
+                "ex": "It lets a team observe user interaction with the product. The closest miss is a static visual style, which cannot show behavior in use.",
+                "sourceFactIndexes": [
+                  2,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "aa3507dd87a516ff4ebc5789da8b316f63f0e90c2c45521d1a55ac0e992db979",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0f357ccb01948b95006a5938ad712c819d84826effae44e667",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 689,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 337,
+              "output_tokens_details": {
+                "reasoning_tokens": 102
+              },
+              "total_tokens": 1026
+            }
+          },
+          "startedAt": "2026-07-16T20:01:49.370Z",
+          "durationMs": 3210,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "ux-method-selection-clinic:ux/accessibility-usability-evaluation",
+          "kernelId": "ux/accessibility-usability-evaluation",
+          "promptSha256": "e216ba357ac939ac1f119eca0919a18748e5af53f73bf407bcadc94439f36303",
+          "generationPromptSha256": "13795e98d556bb68987b54c6410a8a9bf9c32637e8963a33eab0c1af53959feb",
+          "rawCallSha256": "971620a0cafd6bb1c2ce108eb4f9a765528f60ca4652c83ab329156580e2cc80",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which method combines standards-based conformance checks with observing representative users on realistic tasks?",
+                "op": [
+                  "Accessibility and usability evaluation",
+                  "A usability test",
+                  "A card sort",
+                  "A persona workshop"
+                ],
+                "ai": 0,
+                "ex": "It combines standards checks with real-user task observation. A usability test observes users, but not the standards check.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "q": "Which evaluation can reveal barriers that conformance checks alone may miss?",
+                "op": [
+                  "Evaluation with disabled and older users",
+                  "A WCAG conformance review",
+                  "A card sort",
+                  "A heuristic brainstorm"
+                ],
+                "ai": 0,
+                "ex": "It can surface barriers conformance alone misses. One disabled participant does not represent all people with disabilities.",
+                "sourceFactIndexes": [
+                  2,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "4f4333673b590c79e643f42b7c8251fbb5b87d4680c96cef766fbfc1fd2753d6",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which method combines standards-based conformance checks with observing representative users on realistic tasks?",
+                "op": [
+                  "Accessibility and usability evaluation",
+                  "A usability test",
+                  "A card sort",
+                  "A persona workshop"
+                ],
+                "ai": 0,
+                "ex": "It combines standards checks with real-user task observation. A usability test observes users, but not the standards check.",
+                "sourceFactIndexes": [
+                  0,
+                  3
+                ]
+              },
+              {
+                "q": "Which evaluation can reveal barriers that conformance checks alone may miss?",
+                "op": [
+                  "Evaluation with disabled and older users",
+                  "A WCAG conformance review",
+                  "A card sort",
+                  "A heuristic brainstorm"
+                ],
+                "ai": 0,
+                "ex": "It can surface barriers conformance alone misses. One disabled participant does not represent all people with disabilities.",
+                "sourceFactIndexes": [
+                  2,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "4f4333673b590c79e643f42b7c8251fbb5b87d4680c96cef766fbfc1fd2753d6",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0d471b7c478fecfd006a5938b0a54081a286563e911b0873ae",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 705,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 655,
+              "output_tokens_details": {
+                "reasoning_tokens": 482
+              },
+              "total_tokens": 1360
+            }
+          },
+          "startedAt": "2026-07-16T20:01:52.581Z",
+          "durationMs": 5701,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "ux-method-selection-clinic:ux/accessibility-usability-evaluation",
+        "ux-method-selection-clinic:ux/evidence-based-personas",
+        "ux-method-selection-clinic:ux/interactive-prototyping",
+        "ux-method-selection-clinic:ux/journey-mapping",
+        "ux-method-selection-clinic:ux/research-planning",
+        "ux-method-selection-clinic:ux/task-flow-analysis"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "ux-method-selection-clinic:ux/research-planning",
+        "kernelId": "ux/research-planning",
+        "promptSha256": "7886c7139cd2c53cfa3115a03cdee1ec4c37b57793f0f31e0ce82fa698057311",
+        "generationPromptSha256": "eaa999391328a91ce527010aa640b7951161b132e8144d45196b5e912f1245ec",
+        "rawCallSha256": "61339ce7b3e0bdafa702e2f9c3675e51191b564c5f69a77a794bcc77d7210057",
+        "recoveryCallSha256": "f12ccf652e556ed0d6c1ebc9121db962ef09b6586e2ab0323994af33ede68e79",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the best use of the day before a research session?",
+              "op": [
+                "Run through the test tasks with the team.",
+                "Launch the final survey to all users.",
+                "Rewrite the interface based on guesses.",
+                "Archive the prototype as complete."
+              ],
+              "ai": 0,
+              "ex": "Correct: researchers should run through test tasks the day before the session. The nearest plausible misconception is a full pilot with participants or a different prep activity, but the source specifies a practice run with a team member to expose procedure problems before participants arrive.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            },
+            {
+              "q": "What does a UX research plan turn a decision need into?",
+              "op": [
+                "Learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study",
+                "A finished interface with final visuals, interactions, and launch copy",
+                "A post-study summary of findings, recommendations, and design changes",
+                "A set of business metrics, staffing plans, and release dates"
+              ],
+              "ai": 0,
+              "ex": "It converts the decision need into learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study. It is not the final interface or a post-study report.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Research plan",
+              "df": "A document that turns a decision need into learning goals, participants, tasks, evidence roles, and a ready study setup.",
+              "eg": "A team defines what it needs to learn, then lists who to recruit, what to ask them to do, who captures notes, and how the session will run.",
+              "mi": "A research plan is only a schedule of dates.",
+              "cx": "It also specifies learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready setup.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Practice session",
+              "df": "A rehearsal run used to check the study procedure before real participants show up.",
+              "eg": "On the day before testing, the team member walks through the tasks so the researchers can spot any workflow problems.",
+              "mi": "It is the same thing as collecting user data.",
+              "cx": "The practice run happens before participants arrive and is meant to expose procedure problems, not to gather findings from real users.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "b25b7cbc3dc932a31c558d3bbeb3ca8d8e31184992dbc6be4f7aef5f1847068a",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the best use of the day before a research session?",
+              "op": [
+                "Run through the test tasks with the team.",
+                "Launch the final survey to all users.",
+                "Rewrite the interface based on guesses.",
+                "Archive the prototype as complete."
+              ],
+              "ai": 0,
+              "ex": "Correct: researchers should run through test tasks the day before the session. The nearest plausible misconception is a full pilot with participants or a different prep activity, but the source specifies a practice run with a team member to expose procedure problems before participants arrive.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            },
+            {
+              "q": "What does a UX research plan turn a decision need into?",
+              "op": [
+                "Learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study",
+                "A finished interface with final visuals, interactions, and launch copy",
+                "A post-study summary of findings, recommendations, and design changes",
+                "A set of business metrics, staffing plans, and release dates"
+              ],
+              "ai": 0,
+              "ex": "It converts the decision need into learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study. It is not the final interface or a post-study report.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Research plan",
+              "df": "A document that turns a decision need into learning goals, participants, tasks, evidence roles, and a ready study setup.",
+              "eg": "A team defines what it needs to learn, then lists who to recruit, what to ask them to do, who captures notes, and how the session will run.",
+              "mi": "A research plan is only a schedule of dates.",
+              "cx": "It also specifies learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready setup.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Practice session",
+              "df": "A rehearsal run used to check the study procedure before real participants show up.",
+              "eg": "On the day before testing, the team member walks through the tasks so the researchers can spot any workflow problems.",
+              "mi": "It is the same thing as collecting user data.",
+              "cx": "The practice run happens before participants arrive and is meant to expose procedure problems, not to gather findings from real users.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "b25b7cbc3dc932a31c558d3bbeb3ca8d8e31184992dbc6be4f7aef5f1847068a",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T20:01:27.933Z",
+        "durationMs": 3593
+      },
+      {
+        "promptId": "ux-method-selection-clinic:ux/evidence-based-personas",
+        "kernelId": "ux/evidence-based-personas",
+        "promptSha256": "062c6be919cd7cb78f46a9fab3fdb9001ae1587ef4da1c35a9897ffd2da3c02c",
+        "generationPromptSha256": "4995f33fd02143d65fe44690bdeb00595f3b1a18b88cbde0985fc72b3b5173ad",
+        "rawCallSha256": "67e5ff069aa79525f160d6030a421e833d25f3e952b896bb507c1356a0574e85",
+        "recoveryCallSha256": "384217cb7f345ff908467fedecb6daa22bc59bd491bc7775dcc89b6d9b93a69a",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which statement best matches how teams should use user stories?",
+              "op": [
+                "They should capture one-off interface requests exactly as given",
+                "They should describe features and content intended to meet user needs",
+                "They should replace the underlying user need with a design detail",
+                "They should be kept separate from their source need"
+              ],
+              "ai": 1,
+              "ex": "User stories describe features and content intended to meet user needs. Keeping them linked to the source need is the useful practice, not separating them.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Research-based persona",
+              "df": "A shareable profile built from evidence about a user group with similar behavior and needs.",
+              "eg": "A team summarizes interview patterns into one profile so design decisions stay tied to evidence.",
+              "mi": "It is just a fictional marketing character.",
+              "cx": "The correction is that it must reflect research findings and help others understand and share them.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "User story linked to source need",
+              "df": "A feature description kept connected to the need it is meant to address so the need can be checked later.",
+              "eg": "A backlog item for a dashboard remains linked to the need for quick status awareness.",
+              "mi": "Any feature note can stand alone once written.",
+              "cx": "The correction is that the link to the source need matters because it enables evaluation of whether the need is being met.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "a6721ff84e9d9ea8fd5b2fc31b37332adb74b6b04dfd3ef52c3f5bd7fcb71e0e",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which statement best matches how teams should use user stories?",
+              "op": [
+                "They should capture one-off interface requests exactly as given",
+                "They should describe features and content intended to meet user needs",
+                "They should replace the underlying user need with a design detail",
+                "They should be kept separate from their source need"
+              ],
+              "ai": 1,
+              "ex": "User stories describe features and content intended to meet user needs. Keeping them linked to the source need is the useful practice, not separating them.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Research-based persona",
+              "df": "A shareable profile built from evidence about a user group with similar behavior and needs.",
+              "eg": "A team summarizes interview patterns into one profile so design decisions stay tied to evidence.",
+              "mi": "It is just a fictional marketing character.",
+              "cx": "The correction is that it must reflect research findings and help others understand and share them.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "User story linked to source need",
+              "df": "A feature description kept connected to the need it is meant to address so the need can be checked later.",
+              "eg": "A backlog item for a dashboard remains linked to the need for quick status awareness.",
+              "mi": "Any feature note can stand alone once written.",
+              "cx": "The correction is that the link to the source need matters because it enables evaluation of whether the need is being met.",
+              "sourceFactIndexes": [
+                2,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "a6721ff84e9d9ea8fd5b2fc31b37332adb74b6b04dfd3ef52c3f5bd7fcb71e0e",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T20:01:31.527Z",
+        "durationMs": 12397
+      },
+      {
+        "promptId": "ux-method-selection-clinic:ux/journey-mapping",
+        "kernelId": "ux/journey-mapping",
+        "promptSha256": "2023c2b7c07b73e542e9175319060f342f5778681cdae2a4039af6191b80725d",
+        "generationPromptSha256": "25ea9361752c10200717144796d788dd61fc0697945c69963009fd619d51babb",
+        "rawCallSha256": "28c3e42c2b7b11282d89a89aa930f6926dae1cf9ac32fabaf1ed5ad2b170e3a0",
+        "recoveryCallSha256": "5dd1fe3380c9db7a2bee87e525b2c7002da4ee903099a84cc31038f226ad8753",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which method best fits a team that wants to show a user's end-to-end service experience, including connected steps and breakdowns?",
+              "op": [
+                "Journey mapping",
+                "Card sorting",
+                "A/B testing",
+                "Heuristic evaluation"
+              ],
+              "ai": 0,
+              "ex": "It shows the end-to-end experience from the user's perspective. Card sorting groups labels, not service steps.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What should a journey map be built from first?",
+              "op": [
+                "Research about the steps users actually take and the transactions involved",
+                "A list of internal team assumptions about pain points",
+                "A single screen's visual design",
+                "A style guide for interface components"
+              ],
+              "ai": 0,
+              "ex": "It should start from research on what users actually do and the transactions involved. A map is not first built from assumptions or visual design.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Journey mapping",
+              "df": "A way to represent the user's end-to-end experience so the team can see connected steps, boundaries, breakdowns, and opportunities.",
+              "eg": "A service team maps how a person books online, arrives in person, and resolves a problem across those touchpoints.",
+              "mi": "It is mainly a list of interface screens or a research interview script.",
+              "cx": "Those are different artifacts; the map organizes the whole experience, while research methods gather the evidence that can inform it.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Dead end",
+              "df": "A point in the mapped experience where the user cannot continue toward the larger goal.",
+              "eg": "A checkout flow that leaves no clear way to finish the purchase or recover from an error.",
+              "mi": "It means the user disliked the interface or intended to leave.",
+              "cx": "The claim supports a blocked path in the journey, not an inferred motive, feeling, or cause from one behavior.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "10faae251f1b563e00d2abe6436a2492cf27bd5c21c1ad754a97eb42a1a2477e",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which method best fits a team that wants to show a user's end-to-end service experience, including connected steps and breakdowns?",
+              "op": [
+                "Journey mapping",
+                "Card sorting",
+                "A/B testing",
+                "Heuristic evaluation"
+              ],
+              "ai": 0,
+              "ex": "It shows the end-to-end experience from the user's perspective. Card sorting groups labels, not service steps.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What should a journey map be built from first?",
+              "op": [
+                "Research about the steps users actually take and the transactions involved",
+                "A list of internal team assumptions about pain points",
+                "A single screen's visual design",
+                "A style guide for interface components"
+              ],
+              "ai": 0,
+              "ex": "It should start from research on what users actually do and the transactions involved. A map is not first built from assumptions or visual design.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Journey mapping",
+              "df": "A way to represent the user's end-to-end experience so the team can see connected steps, boundaries, breakdowns, and opportunities.",
+              "eg": "A service team maps how a person books online, arrives in person, and resolves a problem across those touchpoints.",
+              "mi": "It is mainly a list of interface screens or a research interview script.",
+              "cx": "Those are different artifacts; the map organizes the whole experience, while research methods gather the evidence that can inform it.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Dead end",
+              "df": "A point in the mapped experience where the user cannot continue toward the larger goal.",
+              "eg": "A checkout flow that leaves no clear way to finish the purchase or recover from an error.",
+              "mi": "It means the user disliked the interface or intended to leave.",
+              "cx": "The claim supports a blocked path in the journey, not an inferred motive, feeling, or cause from one behavior.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "10faae251f1b563e00d2abe6436a2492cf27bd5c21c1ad754a97eb42a1a2477e",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T20:01:43.925Z",
+        "durationMs": 2620
+      },
+      {
+        "promptId": "ux-method-selection-clinic:ux/task-flow-analysis",
+        "kernelId": "ux/task-flow-analysis",
+        "promptSha256": "2c81457e84258118e0fc0f80ee8a795678bb2465830d34c2524d6ddd462d10c1",
+        "generationPromptSha256": "a1a33fbb0cf14e69dbb5c7630050e9ec2e61e85f520e384881e2e2f463561542",
+        "rawCallSha256": "ade38ee1c47db712416f503ddede966540136c80c0857963d3052ece1251016c",
+        "recoveryCallSha256": "35184f06cc6c44e4a2cddb0a9309ad744dbec03d5a84d117deb398c6106084c1",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What can a task flow analysis help a team check?",
+              "op": [
+                "Whether the team understands user goals, common scenarios, and tasks",
+                "Whether the interface uses the most modern visual trend",
+                "Whether a single observed click reveals the user's motive",
+                "Whether the product's pricing matches competitor prices"
+              ],
+              "ai": 0,
+              "ex": "It can validate the team's grasp of goals, scenarios, and tasks. One click does not prove motive, and the other options are unrelated.",
+              "sourceFactIndexes": [
+                1,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Task flow analysis",
+              "df": "A diagram-based approach for tracing how people move through a system to reach a goal.",
+              "eg": "A team maps checkout steps, branches, and decision points before redesigning the purchase flow.",
+              "mi": "It is mainly a visual design or screen-mockup exercise.",
+              "cx": "It focuses on steps, paths, and obstacles, not the look of the interface.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Decision point",
+              "df": "A place in the flow where one path must be chosen over another.",
+              "eg": "At checkout, a shopper chooses delivery pickup or home delivery.",
+              "mi": "It only means a dead end or failure.",
+              "cx": "It can be any branching choice; task flows may include several possible paths.",
+              "sourceFactIndexes": [
+                0,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "3af07def440f058ba191d614c15a63dea663d5086443454ea4d97a201c8758b6",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What can a task flow analysis help a team check?",
+              "op": [
+                "Whether the team understands user goals, common scenarios, and tasks",
+                "Whether the interface uses the most modern visual trend",
+                "Whether a single observed click reveals the user's motive",
+                "Whether the product's pricing matches competitor prices"
+              ],
+              "ai": 0,
+              "ex": "It can validate the team's grasp of goals, scenarios, and tasks. One click does not prove motive, and the other options are unrelated.",
+              "sourceFactIndexes": [
+                1,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Task flow analysis",
+              "df": "A diagram-based approach for tracing how people move through a system to reach a goal.",
+              "eg": "A team maps checkout steps, branches, and decision points before redesigning the purchase flow.",
+              "mi": "It is mainly a visual design or screen-mockup exercise.",
+              "cx": "It focuses on steps, paths, and obstacles, not the look of the interface.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Decision point",
+              "df": "A place in the flow where one path must be chosen over another.",
+              "eg": "At checkout, a shopper chooses delivery pickup or home delivery.",
+              "mi": "It only means a dead end or failure.",
+              "cx": "It can be any branching choice; task flows may include several possible paths.",
+              "sourceFactIndexes": [
+                0,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "3af07def440f058ba191d614c15a63dea663d5086443454ea4d97a201c8758b6",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T20:01:46.547Z",
+        "durationMs": 2822
+      },
+      {
+        "promptId": "ux-method-selection-clinic:ux/interactive-prototyping",
+        "kernelId": "ux/interactive-prototyping",
+        "promptSha256": "d635e28dc64ce2e7bc93742ac5945b5925c37a58f8407e57063a3de751845181",
+        "generationPromptSha256": "64c7bb48120a658fa75653aeb9c73b4f28609d338a27b12956a568306ed9a470",
+        "rawCallSha256": "62a2584a36a0b44aaf2be6832706d8b64b267063b4da50ca864616a7f04234cb",
+        "recoveryCallSha256": "788d45f81ce813803a5cde3ab1a3eed1e1ba1b10ad4f0b460bd077e6b72705dc",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which statement best fits interactive prototyping?",
+              "op": [
+                "A prototype is a final product that must include every production detail.",
+                "A prototype is a testable model that shows the planned experience and can be discarded after a,",
+                "A prototype is only a visual mockup and cannot support learning from use.",
+                "A prototype should delay changes until all features are fully built."
+              ],
+              "ai": 1,
+              "ex": "It is testable, omits some production detail, and can be cheap to discard. The other choices mistake a prototype for a final build or static mockup.",
+              "sourceFactIndexes": [
+                0,
+                4
+              ]
+            },
+            {
+              "q": "What can a functional prototype help a team do?",
+              "op": [
+                "Observe how users interact with a product.",
+                "Prove every interaction is complete before testing.",
+                "Replace usability testing with documentation only.",
+                "Show only the final visual style of the product."
+              ],
+              "ai": 0,
+              "ex": "It lets a team observe user interaction with the product. The closest miss is a static visual style, which cannot show behavior in use.",
+              "sourceFactIndexes": [
+                2,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Interactive prototyping",
+              "df": "Creating a testable stand-in for an experience so teams can evaluate how it looks and works without building every production detail.",
+              "eg": "A team makes a clickable checkout prototype to test the main interactions before coding the full flow.",
+              "mi": "It means a polished finished product.",
+              "cx": "It is meant to be inexpensive and fast enough to discard after learning from it.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            },
+            {
+              "tr": "Functional prototype",
+              "df": "A prototype that is capable of letting people interact with the product in order to observe behavior.",
+              "eg": "Users tap through a prototype login flow while the team watches where they succeed or get stuck.",
+              "mi": "It must include every interaction and production detail.",
+              "cx": "Only the major interactions need to be shown; not every interaction must be functional.",
+              "sourceFactIndexes": [
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "4e8e19c2a3979221e47e7170a967a2ba1deaf12538f9cea102ed73580cdde98f",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which statement best fits interactive prototyping?",
+              "op": [
+                "A prototype is a final product that must include every production detail.",
+                "A prototype is a testable model that shows the planned experience and can be discarded after a,",
+                "A prototype is only a visual mockup and cannot support learning from use.",
+                "A prototype should delay changes until all features are fully built."
+              ],
+              "ai": 1,
+              "ex": "It is testable, omits some production detail, and can be cheap to discard. The other choices mistake a prototype for a final build or static mockup.",
+              "sourceFactIndexes": [
+                0,
+                4
+              ]
+            },
+            {
+              "q": "What can a functional prototype help a team do?",
+              "op": [
+                "Observe how users interact with a product.",
+                "Prove every interaction is complete before testing.",
+                "Replace usability testing with documentation only.",
+                "Show only the final visual style of the product."
+              ],
+              "ai": 0,
+              "ex": "It lets a team observe user interaction with the product. The closest miss is a static visual style, which cannot show behavior in use.",
+              "sourceFactIndexes": [
+                2,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Interactive prototyping",
+              "df": "Creating a testable stand-in for an experience so teams can evaluate how it looks and works without building every production detail.",
+              "eg": "A team makes a clickable checkout prototype to test the main interactions before coding the full flow.",
+              "mi": "It means a polished finished product.",
+              "cx": "It is meant to be inexpensive and fast enough to discard after learning from it.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            },
+            {
+              "tr": "Functional prototype",
+              "df": "A prototype that is capable of letting people interact with the product in order to observe behavior.",
+              "eg": "Users tap through a prototype login flow while the team watches where they succeed or get stuck.",
+              "mi": "It must include every interaction and production detail.",
+              "cx": "Only the major interactions need to be shown; not every interaction must be functional.",
+              "sourceFactIndexes": [
+                2,
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "4e8e19c2a3979221e47e7170a967a2ba1deaf12538f9cea102ed73580cdde98f",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T20:01:49.370Z",
+        "durationMs": 3210
+      },
+      {
+        "promptId": "ux-method-selection-clinic:ux/accessibility-usability-evaluation",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "promptSha256": "e216ba357ac939ac1f119eca0919a18748e5af53f73bf407bcadc94439f36303",
+        "generationPromptSha256": "13795e98d556bb68987b54c6410a8a9bf9c32637e8963a33eab0c1af53959feb",
+        "rawCallSha256": "971620a0cafd6bb1c2ce108eb4f9a765528f60ca4652c83ab329156580e2cc80",
+        "recoveryCallSha256": "67145ca3d0e2c7b74632ad110bb9b02bef6ae62fe8bf6bfc01053c88bdfd3470",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which method combines standards-based conformance checks with observing representative users on realistic tasks?",
+              "op": [
+                "Accessibility and usability evaluation",
+                "A usability test",
+                "A card sort",
+                "A persona workshop"
+              ],
+              "ai": 0,
+              "ex": "It combines standards checks with real-user task observation. A usability test observes users, but not the standards check.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "q": "Which evaluation can reveal barriers that conformance checks alone may miss?",
+              "op": [
+                "Evaluation with disabled and older users",
+                "A WCAG conformance review",
+                "A card sort",
+                "A heuristic brainstorm"
+              ],
+              "ai": 0,
+              "ex": "It can surface barriers conformance alone misses. One disabled participant does not represent all people with disabilities.",
+              "sourceFactIndexes": [
+                2,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "WCAG principles",
+              "df": "Four organizing goals used to structure web accessibility requirements.",
+              "eg": "A design review checks whether a form is perceivable, operable, understandable, and robust.",
+              "mi": "They are a list of visual style preferences.",
+              "cx": "Use them to organize an accessibility review, not to infer user intent or motivation.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Thinking aloud usability test",
+              "df": "A usability session in which people attempt realistic tasks while verbalizing what they are doing and noticing.",
+              "eg": "A participant tries to reset a password while narrating each step and the moderator observes difficulties.",
+              "mi": "It means asking users whether they like the product after the session.",
+              "cx": "The method observes task use and spoken thought, rather than gathering opinions alone.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "3287df05b8e407fa27421622ac0549d3f313f83079afc487381004e09b67770b",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which method combines standards-based conformance checks with observing representative users on realistic tasks?",
+              "op": [
+                "Accessibility and usability evaluation",
+                "A usability test",
+                "A card sort",
+                "A persona workshop"
+              ],
+              "ai": 0,
+              "ex": "It combines standards checks with real-user task observation. A usability test observes users, but not the standards check.",
+              "sourceFactIndexes": [
+                0,
+                3
+              ]
+            },
+            {
+              "q": "Which evaluation can reveal barriers that conformance checks alone may miss?",
+              "op": [
+                "Evaluation with disabled and older users",
+                "A WCAG conformance review",
+                "A card sort",
+                "A heuristic brainstorm"
+              ],
+              "ai": 0,
+              "ex": "It can surface barriers conformance alone misses. One disabled participant does not represent all people with disabilities.",
+              "sourceFactIndexes": [
+                2,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "WCAG principles",
+              "df": "Four organizing goals used to structure web accessibility requirements.",
+              "eg": "A design review checks whether a form is perceivable, operable, understandable, and robust.",
+              "mi": "They are a list of visual style preferences.",
+              "cx": "Use them to organize an accessibility review, not to infer user intent or motivation.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Thinking aloud usability test",
+              "df": "A usability session in which people attempt realistic tasks while verbalizing what they are doing and noticing.",
+              "eg": "A participant tries to reset a password while narrating each step and the moderator observes difficulties.",
+              "mi": "It means asking users whether they like the product after the session.",
+              "cx": "The method observes task use and spoken thought, rather than gathering opinions alone.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "3287df05b8e407fa27421622ac0549d3f313f83079afc487381004e09b67770b",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T20:01:52.581Z",
+        "durationMs": 5701
+      }
+    ]
+  }
+}

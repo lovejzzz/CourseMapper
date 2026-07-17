@@ -6,7 +6,7 @@ import process from 'node:process';
 
 import { buildScionBlindReviewPacket } from './scionBlindReviewPacket.mjs';
 
-const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/source-review-packet-v0.16.40.json';
+const DEFAULT_RECEIPT = 'evaluation/scion-adapters/evidence/source-review-packet-v0.16.47.json';
 
 function parseArgs(argv) {
   const args = { receipt: DEFAULT_RECEIPT };
@@ -32,6 +32,7 @@ async function main() {
   try {
     const receiptOutput = path.join(temporary, 'receipt.json');
     const rebuilt = await buildScionBlindReviewPacket({
+      sources: expected.sourceFiles.map((source) => source.source),
       outputDir: path.join(temporary, 'packet'),
       limit: expected.requestedCases,
       perDomainLimit: expected.perDomainLimit || 0,
@@ -39,7 +40,8 @@ async function main() {
       receiptOutput,
       requireSourceContext: true,
       generatedAt: expected.generatedAt,
-      semanticAdmission: false,
+      semanticAdmission: expected.semanticAdmission === true,
+      exclusionManifest: expected.sourceRowExclusions?.path,
     });
     const observedRaw = await fs.readFile(receiptOutput, 'utf8');
     if (observedRaw !== expectedRaw) throw new Error('Tracked source review packet receipt is stale');

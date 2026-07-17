@@ -47,6 +47,7 @@ function goodMc(overrides = {}) {
 }
 
 function bindModelJudgeEvidence(row) {
+  row.preferenceEvidence.sourceContextSha256 = sha256Value(JSON.stringify(row.sourceContext));
   row.preferenceEvidence.chosenArtifactSha256 = sha256Value(JSON.stringify(row.chosen));
   row.preferenceEvidence.rejectedArtifactSha256 = sha256Value(JSON.stringify(row.rejected));
   row.preferenceEvidence.trainingPairSha256 = sha256Value(
@@ -69,6 +70,14 @@ function approvedRow(overrides = {}) {
     chosen: goodMc(),
     rejected: goodMc({ q: 'Which observation suggests changing the prototype navigation?' }),
     context: { domain: 'user experience design', courseId: 'ux-101' },
+    sourceContext: {
+      sourcePacketSha256: 'f'.repeat(64),
+      kernelId: 'ux/prototype-evidence',
+      term: 'Prototype evidence',
+      claims: ['Repeated failure on the same realistic task is behavioral evidence for revising a prototype.'],
+      attribution: ['Synthetic test fixture'],
+      license: 'test-only',
+    },
     ...overrides,
     preferenceEvidence: {
       kind: 'single-model-judge-preference',
@@ -185,6 +194,94 @@ describe('Scion adapter tooling', () => {
     expect(result.manifest.quarantine[0].issues).toContain('duplicate-pair');
   });
 
+  it('keeps repeated source tasks in one split even when declared course groups differ', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-source-task-split-'));
+    const source = path.join(root, 'source.jsonl');
+    const rows = [1, 2, 3].map((index) =>
+      approvedRow({
+        chosen: goodMc({
+          q: `Which evidence most directly supports revising prototype navigation in sample ${index}?`,
+        }),
+        rejected: goodMc({ q: `Which observation relates to prototype navigation in sample ${index}?` }),
+        context: { domain: 'user-experience-design', courseId: `ux-replicate-${index}` },
+      }),
+    );
+    await fs.writeFile(source, `${rows.map((row) => JSON.stringify(row)).join('\n')}\n`);
+
+    const result = await buildScionAdapterDataset({
+      sources: [source],
+      outputDir: path.join(root, 'dataset'),
+      allowSmoke: true,
+    });
+
+    expect(result.manifest).toMatchObject({
+      counts: { total: 3, groups: 3, trainingTaskGroups: 1, trainingSourceKernels: 1 },
+      domainGroupCounts: { 'user-experience-design': 3 },
+      domainTaskGroupCounts: { 'user-experience-design': 1 },
+      domainSourceKernelCounts: { 'user-experience-design': 1 },
+      trainingTaskIdentity: {
+        algorithm: 'sha256-source-task-or-course-group-v2',
+        sourceBoundGroups: 1,
+        courseFallbackGroups: 0,
+      },
+      leakage: { groupOverlapCount: 0 },
+    });
+    const nonEmptySplits = Object.values(result.manifest.files).filter((file) => file.rows > 0);
+    expect(nonEmptySplits).toHaveLength(1);
+    expect(nonEmptySplits[0].rows).toBe(3);
+  });
+
+  it('quarantines a judged row when its restored source context no longer matches the sealed digest', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-source-context-tamper-'));
+    const source = path.join(root, 'source.jsonl');
+    const row = approvedRow();
+    row.sourceContext.claims[0] = 'A changed claim that was not available during blind judgment.';
+    await fs.writeFile(source, `${JSON.stringify(row)}\n`);
+
+    const result = await buildScionAdapterDataset({
+      sources: [source],
+      outputDir: path.join(root, 'dataset'),
+      allowSmoke: true,
+    });
+
+    expect(result.manifest).toMatchObject({
+      status: 'blocked',
+      counts: { loaded: 1, total: 0, quarantined: 1, singleModelJudgePairs: 0 },
+    });
+    expect(result.manifest.quarantine[0].issues).toContain('source-context-binding');
+  });
+
+  it('permits declared noncommercial sources only in non-production research lanes', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-source-license-'));
+    const source = path.join(root, 'source.jsonl');
+    const row = approvedRow();
+    row.sourceContext.license = 'CC-BY-NC-SA-4.0';
+    bindModelJudgeEvidence(row);
+    await fs.writeFile(source, `${JSON.stringify(row)}\n`);
+
+    const result = await buildScionAdapterDataset({
+      sources: [source],
+      outputDir: path.join(root, 'dataset'),
+      allowSmoke: true,
+    });
+
+    expect(result.manifest.sourceLicensePolicy).toMatchObject({
+      declaredRows: 1,
+      missingRows: 0,
+      licenses: { 'CC-BY-NC-SA-4.0': 1 },
+      nonCommercialRows: 1,
+      shareAlikeRows: 1,
+      researchCompatible: true,
+      productionCompatible: false,
+    });
+    expect(result.manifest.gate.profiles.production.issues).toEqual(
+      expect.arrayContaining(['source-license-noncommercial:1', 'source-license-sharealike-review:1']),
+    );
+    expect(result.manifest.gate.profiles.research.issues).not.toEqual(
+      expect.arrayContaining([expect.stringContaining('source-license')]),
+    );
+  });
+
   it('quarantines frozen holdout domains and course IDs before any training split is written', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-holdout-firewall-'));
     const source = path.join(root, 'source.jsonl');
@@ -248,6 +345,14 @@ describe('Scion adapter tooling', () => {
                 q: `Which observation should be considered for decision ${item} in ${domain} course ${course}?`,
               }),
               context: { domain, courseId: `${domain}-${course}` },
+              sourceContext: {
+                sourcePacketSha256: 'f'.repeat(64),
+                kernelId: `${domain}/decision-${course}-${item}`,
+                term: `${domain} decision ${course}-${item}`,
+                claims: [`Evidence ${item} grounds decision ${course} in the ${domain} fixture.`],
+                attribution: ['Synthetic diversity fixture'],
+                license: 'test-only',
+              },
             }),
           );
         }
@@ -268,9 +373,11 @@ describe('Scion adapter tooling', () => {
         total: 108,
         domains: 4,
         groups: 12,
-        train: 36,
-        valid: 36,
-        test: 36,
+        trainingTaskGroups: 108,
+        trainingSourceKernels: 108,
+        train: 84,
+        valid: 12,
+        test: 12,
         trainDomains: 4,
         validDomains: 4,
         testDomains: 4,
@@ -283,8 +390,18 @@ describe('Scion adapter tooling', () => {
         'music-theory': 27,
         'user-experience-design': 27,
       },
+      domainSourceKernelCounts: {
+        'computer-science': 27,
+        geology: 27,
+        'music-theory': 27,
+        'user-experience-design': 27,
+      },
+      trainingSourceKernelIdentity: {
+        algorithm: 'sha256-semantic-source-kernel-v1',
+        groups: 108,
+      },
       splitIdentity: {
-        strategy: 'domain-stratified-hash-v1',
+        strategy: 'domain-stratified-source-task-hash-v2',
         domains: {
           train: expect.arrayContaining(['computer-science', 'geology', 'music-theory', 'user-experience-design']),
           valid: expect.arrayContaining(['computer-science', 'geology', 'music-theory', 'user-experience-design']),
@@ -688,6 +805,9 @@ describe('Scion adapter tooling', () => {
       expect(source).toContain(SCION_GEMMA4_E2B_BASE.modelId);
     }
     expect(launcher).toContain(SCION_GEMMA4_E2B_BASE.revision);
+    expect(launcher).toContain('codex-approved-preferences-v0.16.47-readiness-gap.jsonl');
+    expect(launcher).toContain('--source "$RESEARCH_PREFERENCE_SOURCE"');
+    expect(launcher).toContain('--semantic-profile strict');
     expect(launcher).not.toContain('BASE_MODEL=google/gemma-4-E2B-it\n');
   });
 

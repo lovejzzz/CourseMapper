@@ -209,7 +209,7 @@ async function generateVerifiedReplacement({ system, user, promptLesson, topicTo
         op: normalizeOptionLabels(parsed?.op),
         ex: completeSentencePrefix(parsed?.ex),
       };
-      const admission = assessScionMcItem(fresh, { topicWords: topicTokens });
+      const admission = assessScionMcItem(fresh, { topicWords: topicTokens, semanticProfile: 'strict' });
       if (!admission.eligible) continue;
       const keyVerification = await verifyReplacementKey(fresh, generateJson);
       if (!keyVerification.verified) continue;
@@ -335,7 +335,7 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
           ai: repair.ai,
           ex: completeSentencePrefix(repair.ex),
         };
-        const admission = assessScionMcItem(fresh, { topicWords: words });
+        const admission = assessScionMcItem(fresh, { topicWords: words, semanticProfile: 'strict' });
         if (!admission.eligible || !onTopic(fresh, words)) {
           events.push({
             pass: 'topicGate',
@@ -405,7 +405,11 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
   const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
   const topicTokens = topicWords(promptLesson);
   const targets = items
-    .map((item, index) => ({ item, index, admission: assessScionMcItem(item, { topicWords: topicTokens }) }))
+    .map((item, index) => ({
+      item,
+      index,
+      admission: assessScionMcItem(item, { topicWords: topicTokens, semanticProfile: 'strict' }),
+    }))
     .filter(({ admission }) => !admission.eligible);
   for (let index = items.length; index < expectedMcCount; index += 1) {
     targets.push({ item: null, index, admission: { eligible: false, issues: ['missing-item'], score: 0 } });
@@ -469,7 +473,7 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
           ai: repair.ai,
           ex: completeSentencePrefix(repair.ex),
         };
-        const admission = assessScionMcItem(fresh, { topicWords: topicTokens });
+        const admission = assessScionMcItem(fresh, { topicWords: topicTokens, semanticProfile: 'strict' });
         if (!admission.eligible) {
           events.push({
             pass: 'admissionGate',
@@ -545,7 +549,7 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
   const assessed = terms.map((term, index) => ({
     term,
     index,
-    result: assessScionKeyTerm(term, { lessonTitle: promptLesson?.title }),
+    result: assessScionKeyTerm(term, { lessonTitle: promptLesson?.title, semanticProfile: 'strict' }),
   }));
   const targets = assessed.filter(({ result }) => !result.eligible);
   for (let index = terms.length; index < minimumKeyTermCount; index += 1) {
@@ -618,7 +622,10 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
         mi: completeSentencePrefix(repair.mi),
         cx: completeSentencePrefix(repair.cx),
       };
-      const admission = assessScionKeyTerm(fresh, { lessonTitle: promptLesson?.title });
+      const admission = assessScionKeyTerm(fresh, {
+        lessonTitle: promptLesson?.title,
+        semanticProfile: 'strict',
+      });
       const duplicate = terms.some(
         (other, otherIndex) =>
           otherIndex !== index &&
@@ -685,7 +692,9 @@ async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
     .map((item, index) => ({ item, index }))
     .filter(
       ({ item, index }) =>
-        index > 0 && !isAppliedQuizStem(item?.q) && assessScionMcItem(item, { topicWords: topicTokens }).eligible,
+        index > 0 &&
+        !isAppliedQuizStem(item?.q) &&
+        assessScionMcItem(item, { topicWords: topicTokens, semanticProfile: 'strict' }).eligible,
     )
     .slice(0, neededRepairs);
   const grounding = groundingWords(lesson);
@@ -744,7 +753,7 @@ async function appliedDepthGate(lesson, promptLesson, generateJson, events) {
           return null;
         }
         const fresh = { ...item, q: normalizeRepairedStem(repair.q) };
-        const admission = assessScionMcItem(fresh, { topicWords: topicTokens });
+        const admission = assessScionMcItem(fresh, { topicWords: topicTokens, semanticProfile: 'strict' });
         const matchedGrounding = matchingGroundingWords(fresh.q, grounding);
         const reasons = [
           ...admission.issues,

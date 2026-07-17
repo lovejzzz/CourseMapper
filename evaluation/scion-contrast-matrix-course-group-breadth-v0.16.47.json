@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-contrast-matrix-v1",
+  "release": "v0.16.47",
+  "promptPolicy": "source-atom-authoring-v2",
+  "pairs": [
+    {
+      "id": "anatomy-homeostasis-tissues-diagnostic-lab-authoring-v2-vs-gpt54mini",
+      "domain": "anatomy",
+      "courseGroupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+      "candidateRoute": "local-scion-base-source-compiler-recovery-authoring-v2-v0.16.47",
+      "candidateModel": "Scion base + compiler recovery (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-and-controlled-breadth-only",
+      "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+      "candidate": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-homeostasis-tissues-diagnostic-lab-local.json",
+      "reference": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-homeostasis-tissues-diagnostic-lab-reference.json"
+    },
+    {
+      "id": "anatomy-movement-signaling-case-studio-authoring-v2-vs-gpt54mini",
+      "domain": "anatomy",
+      "courseGroupId": "anatomy-movement-signaling-case-studio",
+      "candidateRoute": "local-scion-base-source-compiler-recovery-authoring-v2-v0.16.47",
+      "candidateModel": "Scion base + compiler recovery (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-and-controlled-breadth-only",
+      "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+      "candidate": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-movement-signaling-case-studio-local.json",
+      "reference": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-movement-signaling-case-studio-reference.json"
+    },
+    {
+      "id": "economics-markets-choice-decision-lab-authoring-v2-vs-gpt54mini",
+      "domain": "economics",
+      "courseGroupId": "economics-markets-choice-decision-lab",
+      "candidateRoute": "local-scion-base-source-compiler-recovery-authoring-v2-v0.16.47",
+      "candidateModel": "Scion base + compiler recovery (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-and-controlled-breadth-only",
+      "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+      "candidate": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-markets-choice-decision-lab-local.json",
+      "reference": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-markets-choice-decision-lab-reference.json"
+    },
+    {
+      "id": "economics-evidence-flows-measurement-studio-authoring-v2-vs-gpt54mini",
+      "domain": "economics",
+      "courseGroupId": "economics-evidence-flows-measurement-studio",
+      "candidateRoute": "local-scion-base-source-compiler-recovery-authoring-v2-v0.16.47",
+      "candidateModel": "Scion base + compiler recovery (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-and-controlled-breadth-only",
+      "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+      "candidate": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-evidence-flows-measurement-studio-local.json",
+      "reference": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-evidence-flows-measurement-studio-reference.json"
+    },
+    {
+      "id": "physics-charge-fields-potential-workshop-authoring-v2-vs-gpt54mini",
+      "domain": "physics",
+      "courseGroupId": "physics-charge-fields-potential-workshop",
+      "candidateRoute": "local-scion-base-source-compiler-recovery-authoring-v2-v0.16.47",
+      "candidateModel": "Scion base + compiler recovery (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-and-controlled-breadth-only",
+      "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+      "candidate": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-charge-fields-potential-workshop-local.json",
+      "reference": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-charge-fields-potential-workshop-reference.json"
+    },
+    {
+      "id": "physics-circuits-magnetism-induction-lab-authoring-v2-vs-gpt54mini",
+      "domain": "physics",
+      "courseGroupId": "physics-circuits-magnetism-induction-lab",
+      "candidateRoute": "local-scion-base-source-compiler-recovery-authoring-v2-v0.16.47",
+      "candidateModel": "Scion base + compiler recovery (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-and-controlled-breadth-only",
+      "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+      "candidate": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-circuits-magnetism-induction-lab-local.json",
+      "reference": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-circuits-magnetism-induction-lab-reference.json"
+    }
+  ],
+  "evidence": {
+    "campaign": {
+      "path": "evaluation/scion-source-capture-course-group-breadth-v0.16.47.json",
+      "sha256": "54233a8e64074f0060a69d3ac778f719850220092ba51eb87ca10ef1fa0c3693",
+      "promptSetSha256": "5a44124735946a0ae568082769b29d43575b9bffa20cea1c81a520d7d48df40f"
+    },
+    "artifacts": [
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-homeostasis-tissues-diagnostic-lab-local.json",
+        "bytes": 83525,
+        "sha256": "ec4fbec6636000cdbb5704c76025c11c5d6fe3101343794713fce982dbd07c9a"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-homeostasis-tissues-diagnostic-lab-reference.json",
+        "bytes": 95229,
+        "sha256": "99922c15859bb538eaa44575fd0e323eb7a526326d4df40103c8b3c8b59b4d90"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-movement-signaling-case-studio-local.json",
+        "bytes": 78263,
+        "sha256": "a620037e03e32641078772b463fdb635b9a55de7e2746d2e4668924baacd5e1c"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/anatomy-movement-signaling-case-studio-reference.json",
+        "bytes": 105137,
+        "sha256": "1d5c5b0bb8b136d01ada517dee507dff0fddf6495389d597f0009d46af97accb"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-markets-choice-decision-lab-local.json",
+        "bytes": 108482,
+        "sha256": "4a788a98f4559a4813f2283b41b53c6bae22f8012a0ddaf93f7273b5beda8422"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-markets-choice-decision-lab-reference.json",
+        "bytes": 116929,
+        "sha256": "59e45ae22a304185a0daee17812d8a79acdda5ec983f73a753b7b3f2881e0cb2"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-evidence-flows-measurement-studio-local.json",
+        "bytes": 104202,
+        "sha256": "dc19302acbb2bf6e67ed0aab44f621ffe8ed756a7dbd14bed24d20997cc25a4a"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/economics-evidence-flows-measurement-studio-reference.json",
+        "bytes": 127859,
+        "sha256": "eaa26234d26aa71571fa98c729067d700873f2e2401ca1d7884e6d9bcc0111cd"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-charge-fields-potential-workshop-local.json",
+        "bytes": 97665,
+        "sha256": "74d9501b31b6cb834865e0439f1cb15dfe385dec6302f32f0743cdf940357000"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-charge-fields-potential-workshop-reference.json",
+        "bytes": 111704,
+        "sha256": "60f3b4eb50e9ea6b96b89c53c6f7b2a8def1e86b2d79e6ebf3923d5e9de8c7e2"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-circuits-magnetism-induction-lab-local.json",
+        "bytes": 97933,
+        "sha256": "c712b2ebe76be9aa7b77fa2843ca4bd243164f7de677f80be236254411799320"
+      },
+      {
+        "path": "evaluation/scion-source-capture-course-group-breadth-evidence/physics-circuits-magnetism-induction-lab-reference.json",
+        "bytes": 114749,
+        "sha256": "c619a4078349f0e998d2ded2268c0e981628ef827488df8029155ccae5a47ca9"
+      }
+    ],
+    "courseGroupsByDomain": {
+      "anatomy": 2,
+      "economics": 2,
+      "physics": 2
+    },
+    "sourceKernels": 34
+  },
+  "claimBoundary": "These six neutral source-grounded capture pairs add two course contexts per novel domain and replay thirty-four already measured semantic kernels under the v2 authoring policy. They supply no preference label, new-kernel claim, adapter authorization, or quality win."
+}

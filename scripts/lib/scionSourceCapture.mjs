@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { repairScionMcItem } from '../../src/lib/scionAnswerKeyAlignment.js';
+import { repairScionKeyTermContract } from '../../src/lib/scionKeyTermContract.js';
 import { assessScionKeyTerm, assessScionMcItem } from '../../src/lib/scionPreferenceGate.js';
 import {
   canonicalScionCourseInput,
@@ -13,6 +14,12 @@ import {
 
 export const SOURCE_CAPTURE_PROTOCOL = 'scion-source-grounded-atom-capture-v1';
 export const SOURCE_RECOVERY_PROTOCOL = 'scion-source-compiler-recovery-v1';
+export const SOURCE_PARTIAL_RECOVERY_PROTOCOL = 'scion-source-compiler-partial-recovery-v1';
+export const SOURCE_TARGETED_ASSESSMENT_CONTRACT = 'scion-source-targeted-assessment-v1';
+export const SOURCE_PROMPT_POLICY_V1 = 'source-atom-authoring-v1';
+export const SOURCE_PROMPT_POLICY_V2 = 'source-atom-authoring-v2';
+export const SOURCE_PROMPT_POLICY_V3 = 'source-atom-authoring-v3';
+export const SOURCE_PROMPT_POLICY_V4 = 'source-atom-authoring-v4';
 
 export const SOURCE_ATOM_SCHEMA = {
   type: 'object',
@@ -80,6 +87,33 @@ export const SOURCE_RECOVERY_SCHEMA = {
     keyTerms: { ...SOURCE_ATOM_SCHEMA.properties.keyTerms, minItems: 1, maxItems: 1 },
   },
 };
+
+function boundedAtomCount(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? Math.max(0, Math.min(2, Math.trunc(numeric))) : 0;
+}
+
+export function sourceRecoveryTarget(call) {
+  const counts = call?.assessment?.counts || {};
+  return {
+    mcItems: 2 - boundedAtomCount(counts.admittedMcItems),
+    keyTerms: 2 - boundedAtomCount(counts.admittedKeyTerms),
+  };
+}
+
+export function buildSourcePartialRecoverySchema(target = {}) {
+  const mcItems = boundedAtomCount(target.mcItems);
+  const keyTerms = boundedAtomCount(target.keyTerms);
+  if (mcItems + keyTerms === 0) throw new Error('Partial recovery requires at least one missing atom');
+  return {
+    ...SOURCE_ATOM_SCHEMA,
+    properties: {
+      ...SOURCE_ATOM_SCHEMA.properties,
+      mcItems: { ...SOURCE_ATOM_SCHEMA.properties.mcItems, minItems: mcItems, maxItems: mcItems },
+      keyTerms: { ...SOURCE_ATOM_SCHEMA.properties.keyTerms, minItems: keyTerms, maxItems: keyTerms },
+    },
+  };
+}
 
 function normalize(value) {
   return String(value ?? '')
@@ -180,7 +214,14 @@ function compactKernel(kernel, selection) {
   };
 }
 
-export function buildSourceAtomPrompt(group, kernel) {
+export function buildSourceAtomPrompt(group, kernel, { promptPolicy = SOURCE_PROMPT_POLICY_V1 } = {}) {
+  if (
+    ![SOURCE_PROMPT_POLICY_V1, SOURCE_PROMPT_POLICY_V2, SOURCE_PROMPT_POLICY_V3, SOURCE_PROMPT_POLICY_V4].includes(
+      promptPolicy,
+    )
+  ) {
+    throw new Error(`Unsupported source prompt policy: ${promptPolicy}`);
+  }
   const factList = [kernel.definition, ...kernel.facts.map((fact) => fact.text)];
   const sourceContext = {
     kernelId: kernel.id,
@@ -197,23 +238,86 @@ export function buildSourceAtomPrompt(group, kernel) {
       'You are Scion, a compact college-course atom author. Use only the supplied source claims for factual content. Return the exact JSON contract. Do not mention the prompt, source packet, model, or review process.',
     user: [
       `Course brief: ${group.courseBrief}`,
+      ...(group.qualityFocus ? [`Quality stress focus: ${group.qualityFocus}`] : []),
       `Source packet SHA-256: ${group.sourcePacketSha256}`,
       `Source kernel: ${JSON.stringify(sourceContext)}`,
-      'Write exactly two applied multiple-choice items and two key terms. Each MC item needs four parallel, cue-free options, one correct index, and an explanation that contrasts the correct choice with the most plausible misconception. Balance stem-word overlap across all four options: the correct option must not be the only option that repeats two or more content words from the stem, and it must not be conspicuously longer. Treat capitalization-only variants as duplicate options. Do not infer a person’s intention, internal state, causation, absence, or policy conclusion from one observation; when the evidence is insufficient, make the evidence-limited answer explicit. Each key term needs a concise definition, a concrete course-relevant example, a genuine misconception, and a correction. A definition must never begin with the term itself or repeat the full term within its first six words. sourceFactIndexes must cite the numbered claims actually used.',
+      promptPolicy === SOURCE_PROMPT_POLICY_V4
+        ? 'Write exactly two applied multiple-choice items and two key terms. For each MC item, write an applied q and four parallel, cue-free op alternatives under 80 characters each. Do not put letter, number, or bracketed list labels at either end of an option, and finish every option as a complete phrase. Exactly one option may be true under the cited claims; ai is its zero-based index. Keep the four options similarly specific and similar in length. Write ex as two complete sentences under 180 characters total: first support the option at ai, then correct the strongest distractor without naming an option label. For each key term, choose a precise course concept. df must be concise and must not begin with tr or repeat tr in its first six words. eg, mi, and cx must each be one complete sentence: eg is concrete, mi is genuinely false rather than a supplied claim, and cx directly corrects mi in fresh wording without repeating df. Use only the supplied claims. Never expose claim numbers, sourceFactIndexes, field names, source metadata, or review language in learner-facing q, op, ex, tr, df, eg, mi, or cx text. sourceFactIndexes must cite only the numbered claims actually used and appear only in that JSON field.'
+        : promptPolicy === SOURCE_PROMPT_POLICY_V3
+          ? 'Write exactly two applied multiple-choice items and two key terms. MC contract: q asks the learner to apply or distinguish the supplied claims; op contains four parallel alternatives under 80 characters each; no option begins or ends with a letter, number, bracketed list label, conjunction, preposition, determiner, or cut-off word; exactly one option is true under the cited claims; ai is its zero-based index. Keep all options similarly specific and similar in length. ex is exactly two complete sentences under 180 characters total: sentence one directly supports the option at ai, and sentence two corrects the strongest distractor without using an option label. Key-term contract: tr names a precise course concept; df is 45-160 characters and neither begins with tr nor repeats tr in its first six words; eg is a complete concrete sentence with an actor or object, an action, and an observable result; mi is one complete, genuinely false claim; cx directly refutes mi in fresh wording without copying df or a source claim. Never expose claim numbers, sourceFactIndexes, field names, source metadata, or review language in learner-facing q, op, ex, tr, df, eg, mi, or cx text. Do not infer intention, internal state, causation, absence, or policy from one observation. sourceFactIndexes must cite only the numbered claims actually used and appear only in that JSON field.'
+          : promptPolicy === SOURCE_PROMPT_POLICY_V2
+            ? 'Write exactly two applied multiple-choice items and two key terms. Each MC item needs four parallel, cue-free options with no A-D or 1-4 prefixes, one correct zero-based ai, and an explanation that contrasts the correct choice with the most plausible misconception. The first explanation sentence must uniquely support the option at ai; no other option may also be true under the cited claims. Never mention claim numbers, sourceFactIndexes, or source metadata in learner-facing q, op, ex, tr, df, eg, mi, or cx text. Balance stem-word overlap across all four options: the correct option must not be the only option that repeats two or more content words from the stem, and it must not be conspicuously longer. Treat capitalization-only variants as duplicate options. Do not infer a person’s intention, internal state, causation, absence, or policy conclusion from one observation; when the evidence is insufficient, make the evidence-limited answer explicit. Each key term needs a concise definition, a complete-sentence concrete course example, a genuinely false misconception that does not restate a supplied claim, and a correction in fresh wording. A definition must never begin with the term itself or repeat the full term within its first six words. sourceFactIndexes must cite the numbered claims actually used, but those indexes belong only in the JSON field.'
+            : 'Write exactly two applied multiple-choice items and two key terms. Each MC item needs four parallel, cue-free options, one correct index, and an explanation that contrasts the correct choice with the most plausible misconception. Balance stem-word overlap across all four options: the correct option must not be the only option that repeats two or more content words from the stem, and it must not be conspicuously longer. Treat capitalization-only variants as duplicate options. Do not infer a person’s intention, internal state, causation, absence, or policy conclusion from one observation; when the evidence is insufficient, make the evidence-limited answer explicit. Each key term needs a concise definition, a concrete course-relevant example, a genuine misconception, and a correction. A definition must never begin with the term itself or repeat the full term within its first six words. sourceFactIndexes must cite the numbered claims actually used.',
     ].join('\n\n'),
     sourceClaims: factList,
+    ...(promptPolicy !== SOURCE_PROMPT_POLICY_V1 ? { promptPolicy } : {}),
   };
 }
 
-export function buildSourceRecoveryPrompt(prompt, rawCall) {
+export function buildSourceRecoveryPrompt(prompt, rawCall, { target = null } = {}) {
   const issues = Array.isArray(rawCall?.assessment?.issues) ? rawCall.assessment.issues : ['unknown-rejection'];
+  const strictRecoveryRule =
+    prompt.promptPolicy === SOURCE_PROMPT_POLICY_V4
+      ? ' Never expose claim numbers, option labels, or field names in learner-facing text. Keep options under 80 characters and finish every field as a complete phrase or sentence.'
+      : prompt.promptPolicy === SOURCE_PROMPT_POLICY_V3
+        ? ' Never expose claim numbers, option labels, or field names in learner-facing text. Keep every option under 80 characters and end it with a complete content phrase. Every key-term example must state a concrete actor or object, action, and observable result. mi must be a complete false claim; cx must directly refute it without copying df or a source claim.'
+        : prompt.promptPolicy === SOURCE_PROMPT_POLICY_V2
+          ? ' Never expose claim numbers or field names in learner-facing text. Every key-term example must be a complete concrete sentence, and mi must be false rather than a paraphrase of a source claim.'
+          : '';
+  if (target) {
+    const mcItems = boundedAtomCount(target.mcItems);
+    const keyTerms = boundedAtomCount(target.keyTerms);
+    const sourceContextUser = prompt.user.replace(/\n\nWrite exactly two applied multiple-choice items[\s\S]*$/u, '');
+    if (prompt.promptPolicy === SOURCE_PROMPT_POLICY_V4) {
+      const relevantIssues = [...new Set(issues)]
+        .filter(
+          (issue) =>
+            (mcItems > 0 && (issue.startsWith('mc-') || issue === 'mc-count' || issue === 'no-admitted-mc-items')) ||
+            (keyTerms > 0 &&
+              (issue.startsWith('key-term-') || issue === 'key-term-count' || issue === 'no-admitted-key-terms')),
+        )
+        .slice(0, 8);
+      const rules = [];
+      if (mcItems > 0) {
+        rules.push(
+          'MC rule: use four parallel options under 80 characters with no leading or trailing labels. Exactly one option is true. ai is zero-based. ex has two complete sentences: support ai, then correct one distractor.',
+        );
+      }
+      if (keyTerms > 0) {
+        rules.push(
+          'Key-term rule: df must not start with tr. eg is one concrete sentence. mi is one false sentence. cx directly corrects mi without copying df.',
+        );
+      }
+      return {
+        ...prompt,
+        system: `${prompt.system}\n\nThis is a compiler recovery attempt. Re-author only the requested missing seats from the source claims; do not patch or discuss the prior response.`,
+        user: [
+          sourceContextUser,
+          `Rejected-seat reasons: ${(relevantIssues.length ? relevantIssues : ['unknown-rejection']).join(', ')}.`,
+          `Write exactly ${mcItems} multiple-choice item${mcItems === 1 ? '' : 's'} and ${keyTerms} key term${keyTerms === 1 ? '' : 's'}. Return an empty array for a zero target.`,
+          ...rules,
+          'Use only supplied claims. Put valid sourceFactIndexes only in that JSON field. Do not expose source or field metadata to learners.',
+        ].join('\n\n'),
+      };
+    }
+    return {
+      ...prompt,
+      system: `${prompt.system}\n\nThis is a compiler recovery attempt. Re-author only the missing atom seats from the source claims; do not patch or discuss the prior response.`,
+      user: [
+        sourceContextUser,
+        `The deterministic compiler rejected some or all prior atoms for: ${issues.join(', ')}.`,
+        `Recovery target: write exactly ${mcItems} multiple-choice item${mcItems === 1 ? '' : 's'} and exactly ${keyTerms} key term${keyTerms === 1 ? '' : 's'}. Return an empty array for a zero target.`,
+        `Recovery rules: MC options must be four parallel, cue-free alternatives without letter or number prefixes. ai is a zero-based index and must point to the exact option defended by ex. Every explanation must be two complete sentences under 180 characters total: sentence one supports the keyed option and sentence two corrects only the strongest misconception. Every key term needs a precise definition, concrete example, genuine misconception, and a cx that directly corrects mi with new wording without repeating df. Use only supplied claims and cite valid sourceFactIndexes.${strictRecoveryRule}`,
+      ].join('\n\n'),
+    };
+  }
   return {
     ...prompt,
     system: `${prompt.system}\n\nThis is a compiler recovery attempt. Re-author the complete object from the source claims; do not patch or discuss the prior response.`,
     user: [
       prompt.user,
       `The deterministic compiler rejected the prior attempt for: ${issues.join(', ')}.`,
-      'Recovery rules: write exactly ONE applied multiple-choice item and ONE key term, even though the original request asked for two of each. Do not prefix options with letters or numbers. ai is a zero-based index and must point to the exact option defended by ex. The explanation must be two complete sentences under 180 characters total: sentence one supports the keyed option and sentence two corrects only the strongest misconception. The key term cx must directly correct mi with new wording and must not repeat df. Use only supplied claims and cite valid sourceFactIndexes.',
+      `Recovery rules: write exactly ONE applied multiple-choice item and ONE key term, even though the original request asked for two of each. Do not prefix options with letters or numbers. ai is a zero-based index and must point to the exact option defended by ex. The explanation must be two complete sentences under 180 characters total: sentence one supports the keyed option and sentence two corrects only the strongest misconception. The key term cx must directly correct mi with new wording and must not repeat df. Use only supplied claims and cite valid sourceFactIndexes.${strictRecoveryRule}`,
     ].join('\n\n'),
   };
 }
@@ -240,16 +344,25 @@ function validFactIndexes(indexes, sourceClaimCount) {
 
 export function assessSourceAtomResponse(
   value,
-  { sourceClaimCount, sourceClaims = [], semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission },
+  {
+    sourceClaimCount,
+    sourceClaims = [],
+    semanticAdmission = true,
+    semanticProfile = 'legacy',
+    allowFirstSentenceLexicalCue = semanticAdmission,
+    expectedCounts = null,
+  },
 ) {
   const response = parseSourceAtomResponse(value);
   const mcItems = Array.isArray(response?.mcItems) ? response.mcItems : [];
   const keyTerms = Array.isArray(response?.keyTerms) ? response.keyTerms : [];
-  const mcCandidates = mcItems.slice(0, 2);
-  const keyTermCandidates = keyTerms.slice(0, 2);
+  const expectedMcItems = expectedCounts ? boundedAtomCount(expectedCounts.mcItems) : 2;
+  const expectedKeyTerms = expectedCounts ? boundedAtomCount(expectedCounts.keyTerms) : 2;
+  const mcCandidates = mcItems.slice(0, expectedMcItems);
+  const keyTermCandidates = keyTerms.slice(0, expectedKeyTerms);
   const issues = [];
-  if (mcItems.length !== 2) issues.push('mc-count');
-  if (keyTerms.length !== 2) issues.push('key-term-count');
+  if (mcItems.length !== expectedMcItems) issues.push('mc-count');
+  if (keyTerms.length !== expectedKeyTerms) issues.push('key-term-count');
   const mcAssessments = mcCandidates.map((item, index) => {
     const citedSourceClaims = validFactIndexes(item?.sourceFactIndexes, sourceClaimCount)
       ? [...new Set(item.sourceFactIndexes)].map((factIndex) => sourceClaims[factIndex]).filter(Boolean)
@@ -257,6 +370,7 @@ export function assessSourceAtomResponse(
     const assessment = assessScionMcItem(item, {
       sourceClaims: citedSourceClaims,
       semanticAdmission,
+      semanticProfile,
       allowFirstSentenceLexicalCue,
     });
     const itemIssues = [...assessment.issues];
@@ -265,7 +379,7 @@ export function assessSourceAtomResponse(
     return { eligible: itemIssues.length === 0, issues: itemIssues };
   });
   const keyTermAssessments = keyTermCandidates.map((term, index) => {
-    const assessment = assessScionKeyTerm(term, { knownFacts: sourceClaims });
+    const assessment = assessScionKeyTerm(term, { knownFacts: sourceClaims, semanticProfile });
     const itemIssues = [...assessment.issues];
     if (!validFactIndexes(term?.sourceFactIndexes, sourceClaimCount)) itemIssues.push('source-fact-index');
     issues.push(...itemIssues.map((issue) => `key-term-${index}-${issue}`));
@@ -275,8 +389,8 @@ export function assessSourceAtomResponse(
     mcItems: mcCandidates.filter((_, index) => mcAssessments[index]?.eligible),
     keyTerms: keyTermCandidates.filter((_, index) => keyTermAssessments[index]?.eligible),
   };
-  if (admittedResponse.mcItems.length === 0) issues.push('no-admitted-mc-items');
-  if (admittedResponse.keyTerms.length === 0) issues.push('no-admitted-key-terms');
+  if (expectedMcItems > 0 && admittedResponse.mcItems.length === 0) issues.push('no-admitted-mc-items');
+  if (expectedKeyTerms > 0 && admittedResponse.keyTerms.length === 0) issues.push('no-admitted-key-terms');
   return {
     eligible: admittedResponse.mcItems.length + admittedResponse.keyTerms.length > 0,
     issues: [...new Set(issues)],
@@ -288,6 +402,40 @@ export function assessSourceAtomResponse(
       generatedKeyTerms: keyTerms.length,
       admittedKeyTerms: admittedResponse.keyTerms.length,
     },
+  };
+}
+
+export function mergeSourceRecoveryCall({ rawCall, recoveryCall, prompt }) {
+  const raw = rawCall?.admittedResponse || { mcItems: [], keyTerms: [] };
+  const recovered = recoveryCall?.admittedResponse || { mcItems: [], keyTerms: [] };
+  const response = {
+    mcItems: [...(raw.mcItems || []), ...(recovered.mcItems || [])].slice(0, 2),
+    keyTerms: [...(raw.keyTerms || []), ...(recovered.keyTerms || [])].slice(0, 2),
+  };
+  const assessment = assessSourceAtomResponse(response, {
+    sourceClaimCount: prompt.sourceClaims.length,
+    sourceClaims: prompt.sourceClaims,
+  });
+  return {
+    promptId: rawCall.promptId,
+    kernelId: rawCall.kernelId,
+    promptSha256: rawCall.promptSha256,
+    generationPromptSha256: recoveryCall.generationPromptSha256,
+    rawCallSha256: sourceCaptureSha256(rawCall),
+    recoveryCallSha256: sourceCaptureSha256(recoveryCall),
+    response,
+    responseSha256: sourceCaptureSha256(response),
+    admittedResponse: assessment.admittedResponse,
+    admittedResponseSha256: sourceCaptureSha256(assessment.admittedResponse),
+    assessment: { eligible: assessment.eligible, issues: assessment.issues, counts: assessment.counts },
+    receipt: {
+      provider: 'scion-compiler',
+      action: 'merge-admitted-raw-and-recovery-atoms',
+      recoveryProvider: recoveryCall?.receipt?.provider || null,
+      recoveryConstrained: recoveryCall?.receipt?.constrained || null,
+    },
+    startedAt: recoveryCall.startedAt,
+    durationMs: recoveryCall.durationMs,
   };
 }
 
@@ -304,6 +452,7 @@ export function compileSourceAtomResponse(
     sourceClaims = [],
     lessonId = '',
     semanticAdmission = true,
+    semanticProfile = 'legacy',
     allowFirstSentenceLexicalCue = semanticAdmission,
   },
 ) {
@@ -319,16 +468,32 @@ export function compileSourceAtomResponse(
         lessonId,
         itemIndex,
         sourceClaims: citedSourceClaims,
+        strictSourceAlignment: semanticProfile === 'strict',
         keyConflictOptions: { allowFirstSentenceLexicalCue },
       });
       repairs.push(...compiled.repairs.map((repair) => ({ ...repair, sourceFactIndexes: item.sourceFactIndexes })));
       return compiled.item;
+    }),
+    keyTerms: (Array.isArray(response?.keyTerms) ? response.keyTerms : []).map((term, termIndex) => {
+      const compiled = repairScionKeyTermContract(term, {
+        knownFacts: sourceClaims,
+        semanticProfile,
+      });
+      repairs.push(
+        ...compiled.repairs.map((repair) => ({
+          ...repair,
+          termIndex,
+          sourceFactIndexes: term.sourceFactIndexes,
+        })),
+      );
+      return compiled.term;
     }),
   };
   const assessment = assessSourceAtomResponse(compiledResponse, {
     sourceClaimCount,
     sourceClaims,
     semanticAdmission,
+    semanticProfile,
     allowFirstSentenceLexicalCue,
   });
   return {
@@ -341,6 +506,7 @@ export function compileSourceAtomResponse(
       incompleteExplanationTail: repairs.filter((repair) => repair.pass === 'incompleteExplanationTail').length,
       explanationKeyAlignment: repairs.filter((repair) => repair.pass === 'explanationKeyAlignment').length,
       sourceAnswerAlignment: repairs.filter((repair) => repair.pass === 'sourceAnswerAlignment').length,
+      redundantDefinitionLead: repairs.filter((repair) => repair.pass === 'redundantDefinitionLead').length,
     },
   };
 }
@@ -393,6 +559,7 @@ export function summarizeSourceCaptureBurden({ calls = [], expectedCalls = 0, ex
 export async function materializeSourceCaptureCampaign({
   manifestPath = 'evaluation/scion-source-capture-campaign.json',
   cwd = process.cwd(),
+  sourceSnapshots = {},
 } = {}) {
   const absoluteManifest = path.resolve(cwd, manifestPath);
   const manifestRaw = await fs.readFile(absoluteManifest, 'utf8');
@@ -400,13 +567,24 @@ export async function materializeSourceCaptureCampaign({
   if (manifest.protocol !== SOURCE_CAPTURE_PROTOCOL) {
     throw new Error(`Unsupported Scion source-capture protocol: ${manifest.protocol || 'missing'}`);
   }
+  const promptPolicy = manifest.promptPolicy || SOURCE_PROMPT_POLICY_V1;
+  if (
+    ![SOURCE_PROMPT_POLICY_V1, SOURCE_PROMPT_POLICY_V2, SOURCE_PROMPT_POLICY_V3, SOURCE_PROMPT_POLICY_V4].includes(
+      promptPolicy,
+    )
+  ) {
+    throw new Error(`Unsupported source prompt policy: ${promptPolicy}`);
+  }
   const groups = [];
   const groupIds = new Set();
   for (const entry of manifest.groups || []) {
     if (groupIds.has(entry.id)) throw new Error(`Duplicate Scion source-capture group: ${entry.id}`);
     groupIds.add(entry.id);
     const sourcePath = path.resolve(cwd, entry.sourceFile || '');
-    const sourceRaw = await fs.readFile(sourcePath, 'utf8');
+    const logicalSourceFile = path.relative(cwd, sourcePath);
+    const snapshotPath = sourceSnapshots[logicalSourceFile] || sourceSnapshots[entry.sourceFile];
+    const sourceArtifactPath = snapshotPath ? path.resolve(cwd, snapshotPath) : sourcePath;
+    const sourceRaw = await fs.readFile(sourceArtifactPath, 'utf8');
     const source = JSON.parse(sourceRaw);
     const kernelMap = new Map((source.kernels || []).map((kernel) => [kernel.id, kernel]));
     const selected = (entry.kernels || []).map((selection) => {
@@ -418,12 +596,16 @@ export async function materializeSourceCaptureCampaign({
     if (issues.length > 0) throw new Error(`${entry.id} source quality failed: ${issues.join(', ')}`);
     const sourcePacket = {
       schemaVersion: 1,
-      sourceFile: path.relative(cwd, sourcePath),
+      sourceFile: logicalSourceFile,
       sourceArtifactSha256: sourceCaptureSha256(sourceRaw),
       kernels: selected.map((row) => row.kernel),
     };
     const sourcePacketSha256 = sourceCaptureSha256(sourcePacket);
     const courseBrief = normalize(entry.courseBrief);
+    const qualityFocus = normalize(entry.qualityFocus);
+    if (qualityFocus && (qualityFocus.length < 80 || qualityFocus.length > 700)) {
+      throw new Error(`${entry.id} must declare an 80-700 character qualityFocus`);
+    }
     const fileNames = [`source-packet-${sourcePacketSha256}.json`];
     const courseInput = canonicalScionCourseInput({ promptText: courseBrief, fileNames, sourcePacketSha256 });
     const courseInputSha256 = scionCourseInputSha256(courseInput);
@@ -437,6 +619,7 @@ export async function materializeSourceCaptureCampaign({
       title: normalize(entry.title),
       domain: normalize(entry.domain).toLowerCase(),
       courseBrief: courseInput.promptText,
+      qualityFocus,
       fileNames: courseInput.fileNames,
       courseInputSha256,
       courseGroupSha256: courseGroup.sha256,
@@ -446,7 +629,7 @@ export async function materializeSourceCaptureCampaign({
     };
     groups.push({
       ...group,
-      prompts: group.sourcePacket.kernels.map((kernel) => buildSourceAtomPrompt(group, kernel)),
+      prompts: group.sourcePacket.kernels.map((kernel) => buildSourceAtomPrompt(group, kernel, { promptPolicy })),
     });
   }
   const domains = [...new Set(groups.map((group) => group.domain))].sort();
@@ -454,9 +637,26 @@ export async function materializeSourceCaptureCampaign({
     domains.map((domain) => [domain, groups.filter((group) => group.domain === domain).length]),
   );
   const balancedGroupCounts = new Set(Object.values(domainGroupCounts));
-  if (domains.length !== 4 || balancedGroupCounts.size !== 1 || [...balancedGroupCounts][0] < 1) {
+  const coveragePolicy = manifest.coveragePolicy || {
+    protocol: 'scion-source-capture-four-domain-balance-v1',
+    domains: 4,
+  };
+  const targetedGap = coveragePolicy.protocol === 'scion-source-capture-targeted-domain-gap-v1';
+  const expectedDomains = targetedGap
+    ? [...new Set((coveragePolicy.domains || []).map((domain) => normalize(domain).toLowerCase()))].sort()
+    : [];
+  const coverageValid = targetedGap
+    ? expectedDomains.length >= 1 &&
+      canonicalJson(domains) === canonicalJson(expectedDomains) &&
+      balancedGroupCounts.size === 1 &&
+      [...balancedGroupCounts][0] >= 1
+    : coveragePolicy.protocol === 'scion-source-capture-four-domain-balance-v1' &&
+      domains.length === 4 &&
+      balancedGroupCounts.size === 1 &&
+      [...balancedGroupCounts][0] >= 1;
+  if (!coverageValid) {
     throw new Error(
-      `Source capture requires the same positive number of groups in each of four domains: ${JSON.stringify(domainGroupCounts)}`,
+      `Source capture violates ${coveragePolicy.protocol || 'missing-coverage-policy'}: ${JSON.stringify(domainGroupCounts)}`,
     );
   }
   const promptSetSha256 = sourceCaptureSha256(
@@ -474,12 +674,18 @@ export async function materializeSourceCaptureCampaign({
       groups: groups.length,
       domains,
       domainGroupCounts,
+      coveragePolicy,
+      ...(manifest.promptPolicy ? { promptPolicy } : {}),
       prompts: groups.reduce((sum, group) => sum + group.prompts.length, 0),
       expectedCandidates: groups.reduce((sum, group) => sum + group.prompts.length * 4, 0),
       sourceQualityStatus: 'pass',
       claimBoundary: manifest.claimBoundary,
     },
   };
+}
+
+export function sourceGroupMinimumAdmittedPrompts(group) {
+  return Math.min(2, Math.max(1, Number(group?.prompts?.length || 0)));
 }
 
 function compileSourceCaptureGraph(group, calls, arm = 'unknown') {
@@ -505,8 +711,9 @@ function compileSourceCaptureGraph(group, calls, arm = 'unknown') {
       keyTerms: admitted.keyTerms,
     };
   }
-  if (admittedPromptIds.length < 2) {
-    throw new Error(`${group.id} ${arm} needs at least two admitted source prompts`);
+  const minimumAdmittedPrompts = sourceGroupMinimumAdmittedPrompts(group);
+  if (admittedPromptIds.length < minimumAdmittedPrompts) {
+    throw new Error(`${group.id} ${arm} needs at least ${minimumAdmittedPrompts} admitted source prompts`);
   }
   const graph = {
     schemaVersion: 1,
@@ -525,6 +732,7 @@ export function buildSourceCaptureProject({
   calls,
   rawCalls = calls,
   recoveryCalls = [],
+  recoveryProtocol = SOURCE_RECOVERY_PROTOCOL,
   generatedAt,
 }) {
   const { graph, admittedPromptIds, rejectedPromptIds } = compileSourceCaptureGraph(group, calls, arm);
@@ -561,7 +769,7 @@ export function buildSourceCaptureProject({
       admittedPromptIds,
       rejectedPromptIds,
       compilerRecovery: {
-        protocol: SOURCE_RECOVERY_PROTOCOL,
+        protocol: recoveryProtocol,
         rawCalls,
         recoveryCalls,
         recoveredPromptIds: recoveryCalls
@@ -621,6 +829,9 @@ function verifyCapturedCall(call, prompt, generationPrompt = prompt, { admission
   const assessment = assessSourceAtomResponse(call.response, {
     sourceClaimCount: prompt.sourceClaims.length,
     sourceClaims: prompt.sourceClaims,
+    ...(call.assessmentContract === SOURCE_TARGETED_ASSESSMENT_CONTRACT && call.recoveryTarget
+      ? { expectedCounts: call.recoveryTarget }
+      : {}),
   });
   if (Boolean(call.assessment?.eligible) !== assessment.eligible) {
     issues.push(`assessment-status-mismatch:${call.promptId}`);
@@ -683,7 +894,10 @@ export function verifySourceCaptureProject(
     recoveryCalls: [],
     recoveredPromptIds: [],
   };
-  if (compilerRecovery.protocol !== SOURCE_RECOVERY_PROTOCOL) issues.push('recovery-protocol-mismatch');
+  const partialRecovery = compilerRecovery.protocol === SOURCE_PARTIAL_RECOVERY_PROTOCOL;
+  if (![SOURCE_RECOVERY_PROTOCOL, SOURCE_PARTIAL_RECOVERY_PROTOCOL].includes(compilerRecovery.protocol)) {
+    issues.push('recovery-protocol-mismatch');
+  }
   const rawCalls = compilerRecovery.rawCalls || [];
   const recoveryCalls = compilerRecovery.recoveryCalls || [];
   const effectiveCalls = capture.calls || [];
@@ -709,22 +923,41 @@ export function verifySourceCaptureProject(
     );
     const recoveryCall = recoveryByPrompt.get(prompt.id);
     if (recoveryCall) {
-      if (rawCall.assessment?.eligible) issues.push(`recovery-for-eligible-call:${prompt.id}`);
+      const target = partialRecovery ? sourceRecoveryTarget(rawCall) : null;
+      if (!partialRecovery && rawCall.assessment?.eligible) issues.push(`recovery-for-eligible-call:${prompt.id}`);
+      if (partialRecovery && target.mcItems + target.keyTerms === 0) {
+        issues.push(`recovery-for-full-pass-call:${prompt.id}`);
+      }
       if (recoveryCall.response) {
-        if (recoveryCall.response.mcItems?.length !== 1) issues.push(`recovery-mc-count-mismatch:${prompt.id}`);
-        if (recoveryCall.response.keyTerms?.length !== 1) issues.push(`recovery-key-term-count-mismatch:${prompt.id}`);
+        const expectedMcItems = partialRecovery ? target.mcItems : 1;
+        const expectedKeyTerms = partialRecovery ? target.keyTerms : 1;
+        if (recoveryCall.response.mcItems?.length !== expectedMcItems) {
+          issues.push(`recovery-mc-count-mismatch:${prompt.id}`);
+        }
+        if (recoveryCall.response.keyTerms?.length !== expectedKeyTerms) {
+          issues.push(`recovery-key-term-count-mismatch:${prompt.id}`);
+        }
       }
       if (recoveryCall.rawCallSha256 !== sourceCaptureSha256(rawCall)) {
         issues.push(`recovery-raw-call-digest-mismatch:${prompt.id}`);
       }
-      const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall);
+      if (partialRecovery && canonicalJson(recoveryCall.recoveryTarget) !== canonicalJson(target)) {
+        issues.push(`recovery-target-mismatch:${prompt.id}`);
+      }
+      const recoveryPrompt = buildSourceRecoveryPrompt(prompt, rawCall, partialRecovery ? { target } : {});
       issues.push(
         ...verifyCapturedCall(recoveryCall, prompt, recoveryPrompt, { admissionMode }).issues.map(
           (issue) => `recovery-${issue}`,
         ),
       );
     }
-    const expectedEffective = rawCall.assessment?.eligible ? rawCall : recoveryCall || rawCall;
+    const expectedEffective = partialRecovery
+      ? recoveryCall
+        ? mergeSourceRecoveryCall({ rawCall, recoveryCall, prompt })
+        : rawCall
+      : rawCall.assessment?.eligible
+        ? rawCall
+        : recoveryCall || rawCall;
     if (canonicalJson(effectiveByPrompt.get(prompt.id)) !== canonicalJson(expectedEffective)) {
       issues.push(`effective-call-mismatch:${prompt.id}`);
     }
@@ -746,8 +979,8 @@ export function verifySourceCaptureProject(
     }
     const rawCall = rawByPrompt.get(prompt.id);
     const recoveryPrompt =
-      rawCall && !rawCall.assessment?.eligible && recoveryByPrompt.has(prompt.id)
-        ? buildSourceRecoveryPrompt(prompt, rawCall)
+      rawCall && recoveryByPrompt.has(prompt.id) && (partialRecovery || !rawCall.assessment?.eligible)
+        ? buildSourceRecoveryPrompt(prompt, rawCall, partialRecovery ? { target: sourceRecoveryTarget(rawCall) } : {})
         : prompt;
     const verification = verifyCapturedCall(call, prompt, recoveryPrompt, { admissionMode });
     issues.push(...verification.issues);
@@ -761,7 +994,9 @@ export function verifySourceCaptureProject(
   if (canonicalJson(capture.rejectedPromptIds) !== canonicalJson(inGroupOrder(expectedRejectedPromptIds))) {
     issues.push('rejected-prompt-list-mismatch');
   }
-  if (expectedAdmittedPromptIds.length < 2) issues.push('insufficient-admitted-prompts');
+  if (expectedAdmittedPromptIds.length < sourceGroupMinimumAdmittedPrompts(group)) {
+    issues.push('insufficient-admitted-prompts');
+  }
   try {
     const graph = JSON.parse(project?.courseGraphJson || '{}');
     const expected = compileSourceCaptureGraph(group, capture.calls || [], arm).graph;

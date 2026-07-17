@@ -1,0 +1,1582 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-music-structure-expression-evidence-lab-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Music Structure and Expression Evidence Lab, a four-session course in which students distinguish texture, expressive markings, phrase closure, and changes of tonic through source-grounded listening and notation decisions.",
+  "fileNames": [
+    "source-packet-c26ea1c9f80603e5033c58cdb550be737fc96676b603d66a0ff04abaf6dff145.json"
+  ],
+  "sourcePacketSha256": "c26ea1c9f80603e5033c58cdb550be737fc96676b603d66a0ff04abaf6dff145",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Music Structure and Expression Evidence Lab\",\"sessions\":[{\"number\":1,\"title\":\"Musical texture\"},{\"number\":2,\"title\":\"Dynamics, articulation, and tempo\"},{\"number\":3,\"title\":\"Phrases and cadences\"},{\"number\":4,\"title\":\"Tonicization and modulation\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"A choir sings a tune in which the soprano carries the main melody while the lower voices move in coordinated chords at the same harmonic pace. Which texture is described?\",\"op\":[\"Monophony\",\"Heterophony\",\"Homophony\",\"Polyphony\"],\"ai\":2,\"ex\":\"Homophony is correct because the voices coordinate at a shared harmonic pace, with melody plus accompaniment. Polyphony is the most plausible misconception, but it would require independent melodic lines and rhythms rather than chordal support for one main tune.\",\"sourceFactIndexes\":[3,4],\"type\":\"multiple_choice\"},{\"q\":\"Which description matches musical texture?\",\"op\":[\"The density of a passage and how simultaneous voices or layers interact.\",\"The number of instruments heard in a passage.\",\"The speed at which the music moves.\",\"A pause that ends a phrase.\"],\"ai\":0,\"ex\":\"Texture is the density and interaction of simultaneous voices or layers. It is not just how many instruments play.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Musical texture\",\"df\":\"The density of a passage and how its simultaneous layers interact.\",\"eg\":\"A class listening exercise that asks whether a passage feels single-lined, chordal, or independently layered.\",\"mi\":\"Texture is the same as how many instruments are playing.\",\"cx\":\"The number of instruments can help describe a passage, but texture is about the density and interaction of the voices or layers, not count alone.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Polyphony\",\"df\":\"A texture in which voices carry independent melodic lines and rhythms.\",\"eg\":\"Two vocal parts entering with different rhythms and contour instead of simply supporting one melody.\",\"mi\":\"Any music with more than one instrument is polyphonic.\",\"cx\":\"Multiple instruments do not automatically make polyphony; the voices must have independent melodic lines and rhythms.\",\"sourceFactIndexes\":[4]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"In the score, the composer writes \\\"cresc.\\\" under a sustained line. What performance change does that marking indicate?\",\"op\":[\"Play the passage more quietly\",\"Play the passage more loudly\",\"Shorten each note's duration\",\"Speed up the passage\"],\"ai\":1,\"ex\":\"\\\"cresc.\\\" is a dynamic marking, so it changes loudness. The strongest nearby mistake is to read it as a tempo instruction, but tempo concerns speed, not volume.\",\"sourceFactIndexes\":[1,2,4],\"type\":\"multiple_choice\"},{\"q\":\"A passage is marked with short, detached notes, but the tempo marking stays the same. What is the notated change most directly described?\",\"op\":[\"A change in articulation\",\"A change in dynamics\",\"A change in tempo\",\"A change in note pitch\"],\"ai\":0,\"ex\":\"Short, detached notes describe articulation, which concerns how notes connect or separate. The most plausible confusion is tempo, but speed would require a separate instruction or indication.\",\"sourceFactIndexes\":[0,3,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Dynamics\",\"df\":\"The performance dimension that controls how loud or soft the music is.\",\"eg\":\"A score marked mezzo forte followed later by a crescendo asks the performer to increase loudness.\",\"mi\":\"It means the same thing as tempo.\",\"cx\":\"Tempo changes speed; dynamics change loudness, so a crescendo is not a speed-up instruction.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"Articulation\",\"df\":\"The way notes are connected or separated in performance.\",\"eg\":\"A phrase marked staccato asks for short, detached attacks rather than a louder volume.\",\"mi\":\"It only tells how fast the music should go.\",\"cx\":\"Speed belongs to tempo, while articulation concerns note connection, separation, and attack emphasis.\",\"sourceFactIndexes\":[0,3,4]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A melody reaches a point of rest that sounds like the end of a complete musical thought. Which label best fits that event?\",\"op\":[\"phrase\",\"cadence\",\"presentation\",\"continuation\"],\"ai\":1,\"ex\":\"A cadence is the best match because it is the harmonic event that can mark a phrase’s ending. A phrase is the larger thought itself, not the specific closing event; the strongest mistake is to treat the resting point as the whole thought rather than its ending marker.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"In a classical tonal passage, the first phrase of a period closes less strongly than the second phrase. Which description matches that first phrase?\",\"op\":[\"consequent phrase\",\"antecedent phrase\",\"sentence continuation\",\"cadential closure\"],\"ai\":1,\"ex\":\"An antecedent phrase normally ends with the weaker cadence in a period. The most plausible confusion is to pick consequent phrase because both belong to a period, but the consequent is the one that normally ends more strongly.\",\"sourceFactIndexes\":[2,3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"phrase\",\"df\":\"A relatively complete musical thought aimed toward a goal.\",\"eg\":\"In a short class listening example, one melody line can sound like it reaches a goal even before the next idea begins.\",\"mi\":\"Any ending pause must be a phrase.\",\"cx\":\"A pause may happen inside a phrase; the phrase is the whole directed thought, while a cadence is the event that can mark its ending.\",\"sourceFactIndexes\":[0]},{\"tr\":\"cadence\",\"df\":\"A harmonic event that can signal the close of a phrase.\",\"eg\":\"At the end of a tonal excerpt, the harmony may settle in a way that makes the phrase sound finished.\",\"mi\":\"It means any pause, silence, or loud ending.\",\"cx\":\"A pause or loudness change may be expressive, but a cadence is specifically a harmonic event, and it may mark phrase closure without being identical to a general stop.\",\"sourceFactIndexes\":[0]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"A passage ends with a short stretch that makes D sound settled, but the music soon returns to the original key. What is the best label for the D event?\",\"op\":[\"tonicization\",\"modulation\",\"pivot-chord modulation\",\"cadential closure\"],\"ai\":0,\"ex\":\"Tonicization is best because it briefly makes a non-tonic harmony sound like a tonic. Modulation would imply a longer-term change of tonic, and the return to the original key argues against that. The strongest misconception is to equate any local sense of arrival with a full key change.\",\"sourceFactIndexes\":[0,3,4],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"tonicization\",\"df\":\"A brief local event that makes a non-tonic harmony sound temporarily like home.\",\"eg\":\"A short passage points to V/V as if it were a temporary center, then the music moves on without establishing a new key.\",\"mi\":\"Any strong cadence must be a full key change.\",\"cx\":\"Strong local emphasis can still be only temporary; the key has not necessarily changed.\",\"sourceFactIndexes\":[0,3,4]},{\"tr\":\"modulation\",\"df\":\"A longer-lasting shift that establishes a different tonic as the new key center.\",\"eg\":\"The music moves into G major and stays structurally stable there for a while.\",\"mi\":\"If the new key is introduced suddenly, it cannot be a modulation.\",\"cx\":\"A modulation can be direct and abrupt, or it can be smoothed by a pivot chord.\",\"sourceFactIndexes\":[0,1,2]}]}}}}",
+  "savedAt": "2026-07-16T21:39:09.778Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-novel-kernels-v0.16.47.json",
+    "campaignManifestSha256": "97ac9210a3be47f6aec12da1b2be8844b3ee8b4aac97653f7a35ffae1f13f02e",
+    "promptSetSha256": "36eb3f24584637bd38a67432511f85e802197615c85339fc19fc4a2d89b73404",
+    "courseInputSha256": "e23206e6cefc49ba4b9bf1f9faa7ffd65749a229ba182bfb04f6cc411a360fc3",
+    "courseGroupId": "music-structure-expression-evidence-lab",
+    "courseGroupSha256": "401dd40680d08067f6c0debce0848d39237733e48557e4a9fc7d7044c749bbfc",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/music-scion-v01647.json",
+      "sourceArtifactSha256": "4cf8d6da04816910caefe3b24f219a73bb65f9e15c8e1e7841874c5fb2948d4b",
+      "kernels": [
+        {
+          "id": "music/musical-texture",
+          "term": "Musical texture",
+          "definition": "Musical texture describes the density of a passage and the way its simultaneous voices or layers interact.",
+          "definitionAnchor": {
+            "src": "omt:texture",
+            "loc": "Key Takeaways",
+            "quote": "density of and interaction between"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Monophony presents one melodic line without an independent accompaniment.",
+              "anchor": {
+                "src": "omt:texture",
+                "loc": "Monophony",
+                "quote": "unaccompanied melodic line"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Heterophony presents simultaneous variants of essentially the same melody.",
+              "anchor": {
+                "src": "omt:texture",
+                "loc": "Heterophony",
+                "quote": "multiple variants of a single melodic line"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Homophony coordinates multiple voices at a shared harmonic pace, often as melody with accompaniment.",
+              "anchor": {
+                "src": "omt:texture",
+                "loc": "Homophony",
+                "quote": "multiple voices harmonically moving together"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Polyphony combines voices that carry independent melodic lines and rhythms.",
+              "anchor": {
+                "src": "omt:texture",
+                "loc": "Polyphony",
+                "quote": "separate melodic lines and rhythms"
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+          ]
+        },
+        {
+          "id": "music/dynamics-articulation-tempo",
+          "term": "Dynamics, articulation, and tempo",
+          "definition": "Dynamics, articulation, and tempo are distinct performance dimensions: loudness, the attack or connection of notes, and performance speed.",
+          "definitionAnchor": {
+            "src": "omt:other-notation",
+            "loc": "Introduction",
+            "quote": "dynamics, articulations, tempi"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Dynamic markings communicate loudness rather than speed or note length.",
+              "anchor": {
+                "src": "omt:other-notation",
+                "loc": "Dynamics",
+                "quote": "Dynamics indicate the loudness of music"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A crescendo increases loudness, while a decrescendo or diminuendo decreases it.",
+              "anchor": {
+                "src": "omt:other-notation",
+                "loc": "Dynamics",
+                "quote": "increase in loudness"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Articulation describes how notes connect or separate and how their attacks are emphasized.",
+              "anchor": {
+                "src": "omt:other-notation",
+                "loc": "Articulations",
+                "quote": "connection or separation between notes"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Tempo indicates how fast or slowly a composition is performed and may be stated with text or beats per minute.",
+              "anchor": {
+                "src": "omt:other-notation",
+                "loc": "Tempo",
+                "quote": "how fast or slow"
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+          ]
+        },
+        {
+          "id": "music/phrases-and-cadences",
+          "term": "Phrases and cadences",
+          "definition": "A musical phrase is a relatively complete thought directed toward a goal, and a cadence is a harmonic event that can mark its ending.",
+          "definitionAnchor": {
+            "src": "omt:phrase-archetypes",
+            "loc": "Key Takeaways",
+            "quote": "trajectory toward a goal"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A sentence is a phrase archetype with a presentation followed by a continuation.",
+              "anchor": {
+                "src": "omt:phrase-archetypes",
+                "loc": "Key Takeaways",
+                "quote": "presentation and a continuation"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A period combines an antecedent phrase with a consequent phrase.",
+              "anchor": {
+                "src": "omt:phrase-archetypes",
+                "loc": "The Period",
+                "quote": "antecedent and a consequent"
+              }
+            },
+            {
+              "index": 2,
+              "text": "The antecedent normally ends with a weaker cadence than the consequent.",
+              "anchor": {
+                "src": "omt:phrase-archetypes",
+                "loc": "The Period",
+                "quote": "ends with a weaker cadence"
+              }
+            },
+            {
+              "index": 3,
+              "text": "Cadential closure is a common phrase goal in tonal classical music, but other musical styles can establish different goals.",
+              "anchor": {
+                "src": "omt:phrase-archetypes",
+                "loc": "Key Takeaways",
+                "quote": "traditional cadence types"
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+          ]
+        },
+        {
+          "id": "music/tonicization-and-modulation",
+          "term": "Tonicization and modulation",
+          "definition": "Tonicization briefly makes a non-tonic harmony sound like a tonic, while modulation establishes a longer-term change of tonic.",
+          "definitionAnchor": {
+            "src": "omt:modulation",
+            "loc": "Key Takeaways",
+            "quote": "longer-term change of tonic"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A modulation may introduce the new key directly and abruptly.",
+              "anchor": {
+                "src": "omt:modulation",
+                "loc": "Key Takeaways",
+                "quote": "direct, abrupt modulation"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A pivot-chord modulation uses a shared chord to make the move between keys more subtle.",
+              "anchor": {
+                "src": "omt:modulation",
+                "loc": "Key Takeaways",
+                "quote": "pivot chord modulation"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Extended tonicization can blur the boundary between a temporary tonic and a full modulation.",
+              "anchor": {
+                "src": "omt:modulation",
+                "loc": "Key Takeaways",
+                "quote": "extended tonicizations"
+              }
+            },
+            {
+              "index": 3,
+              "text": "The duration and structural stability of the new tonic help distinguish modulation from a momentary tonicization.",
+              "anchor": {
+                "src": "omt:modulation",
+                "loc": "Introduction",
+                "quote": "temporary nature of tonicization"
+              }
+            }
+          ],
+          "license": "CC-BY-SA-4.0",
+          "attribution": [
+            "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "c26ea1c9f80603e5033c58cdb550be737fc96676b603d66a0ff04abaf6dff145",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-16T21:39:09.778Z",
+    "admittedPromptIds": [
+      "music-structure-expression-evidence-lab:music/musical-texture",
+      "music-structure-expression-evidence-lab:music/dynamics-articulation-tempo",
+      "music-structure-expression-evidence-lab:music/phrases-and-cadences",
+      "music-structure-expression-evidence-lab:music/tonicization-and-modulation"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "music-structure-expression-evidence-lab:music/musical-texture",
+          "kernelId": "music/musical-texture",
+          "promptSha256": "3e397e0069246fea39c3be66ca35ca43966acf2abb4eb42aa53bbe70e7d59e73",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A passage has one flute and one cello, both playing the same melody together with no independent accompaniment. Which texture is the best match?",
+                "op": [
+                  "Monophony",
+                  "Heterophony",
+                  "Homophony",
+                  "Polyphony"
+                ],
+                "ai": 0,
+                "ex": "Monophony fits because the passage has a single melodic line without an independent accompaniment. The strongest nearby alternative is homophony, but that would require multiple voices moving at a shared harmonic pace, typically melody with accompaniment, which is not present here. The fact that two",
+                "sourceFactIndexes": [
+                  1,
+                  3
+                ]
+              },
+              {
+                "q": "A choir sings a tune in which the soprano carries the main melody while the lower voices move in coordinated chords at the same harmonic pace. Which texture is described?",
+                "op": [
+                  "Monophony",
+                  "Heterophony",
+                  "Homophony",
+                  "Polyphony"
+                ],
+                "ai": 2,
+                "ex": "Homophony is correct because the voices coordinate at a shared harmonic pace, with melody plus accompaniment. Polyphony is the most plausible misconception, but it would require independent melodic lines and rhythms rather than chordal support for one main tune.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Musical texture",
+                "df": "The density of a passage and how its simultaneous layers interact.",
+                "eg": "A class listening exercise that asks whether a passage feels single-lined, chordal, or independently layered.",
+                "mi": "Texture is the same as how many instruments are playing.",
+                "cx": "The number of instruments can help describe a passage, but texture is about the density and interaction of the voices or layers, not count alone.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Polyphony",
+                "df": "A texture in which voices carry independent melodic lines and rhythms.",
+                "eg": "Two vocal parts entering with different rhythms and contour instead of simply supporting one melody.",
+                "mi": "Any music with more than one instrument is polyphonic.",
+                "cx": "Multiple instruments do not automatically make polyphony; the voices must have independent melodic lines and rhythms.",
+                "sourceFactIndexes": [
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "5f7b56814daac34e2a825a964f7f41fe9bc6f21593044b8b8b3c2aa006b5e811",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A choir sings a tune in which the soprano carries the main melody while the lower voices move in coordinated chords at the same harmonic pace. Which texture is described?",
+                "op": [
+                  "Monophony",
+                  "Heterophony",
+                  "Homophony",
+                  "Polyphony"
+                ],
+                "ai": 2,
+                "ex": "Homophony is correct because the voices coordinate at a shared harmonic pace, with melody plus accompaniment. Polyphony is the most plausible misconception, but it would require independent melodic lines and rhythms rather than chordal support for one main tune.",
+                "sourceFactIndexes": [
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Musical texture",
+                "df": "The density of a passage and how its simultaneous layers interact.",
+                "eg": "A class listening exercise that asks whether a passage feels single-lined, chordal, or independently layered.",
+                "mi": "Texture is the same as how many instruments are playing.",
+                "cx": "The number of instruments can help describe a passage, but texture is about the density and interaction of the voices or layers, not count alone.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Polyphony",
+                "df": "A texture in which voices carry independent melodic lines and rhythms.",
+                "eg": "Two vocal parts entering with different rhythms and contour instead of simply supporting one melody.",
+                "mi": "Any music with more than one instrument is polyphonic.",
+                "cx": "Multiple instruments do not automatically make polyphony; the voices must have independent melodic lines and rhythms.",
+                "sourceFactIndexes": [
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "4056fc2fd8c788bb82ee9d62006894b5741052589e5e845fe8a66508e7e57ab5",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0a680b455f6e97fc006a594edebcec819e9083d110b587cbf9",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 695,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 524,
+              "output_tokens_details": {
+                "reasoning_tokens": 96
+              },
+              "total_tokens": 1219
+            }
+          },
+          "startedAt": "2026-07-16T21:36:29.701Z",
+          "durationMs": 5367
+        },
+        {
+          "promptId": "music-structure-expression-evidence-lab:music/dynamics-articulation-tempo",
+          "kernelId": "music/dynamics-articulation-tempo",
+          "promptSha256": "921b887d6316aae935e01e3b9ce07b4da858a6ee89cd137afcd20cab303de81c",
+          "response": {
+            "mcItems": [
+              {
+                "q": "In the score, the composer writes \"cresc.\" under a sustained line. What performance change does that marking indicate?",
+                "op": [
+                  "Play the passage more quietly",
+                  "Play the passage more loudly",
+                  "Shorten each note's duration",
+                  "Speed up the passage"
+                ],
+                "ai": 1,
+                "ex": "\"cresc.\" is a dynamic marking, so it changes loudness. The strongest nearby mistake is to read it as a tempo instruction, but tempo concerns speed, not volume.",
+                "sourceFactIndexes": [
+                  1,
+                  2,
+                  4
+                ]
+              },
+              {
+                "q": "A passage is marked with short, detached notes, but the tempo marking stays the same. What is the notated change most directly described?",
+                "op": [
+                  "A change in articulation",
+                  "A change in dynamics",
+                  "A change in tempo",
+                  "A change in note pitch"
+                ],
+                "ai": 0,
+                "ex": "Short, detached notes describe articulation, which concerns how notes connect or separate. The most plausible confusion is tempo, but speed would require a separate instruction or indication.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Dynamics",
+                "df": "The performance dimension that controls how loud or soft the music is.",
+                "eg": "A score marked mezzo forte followed later by a crescendo asks the performer to increase loudness.",
+                "mi": "It means the same thing as tempo.",
+                "cx": "Tempo changes speed; dynamics change loudness, so a crescendo is not a speed-up instruction.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Articulation",
+                "df": "The way notes are connected or separated in performance.",
+                "eg": "A phrase marked staccato asks for short, detached attacks rather than a louder volume.",
+                "mi": "It only tells how fast the music should go.",
+                "cx": "Speed belongs to tempo, while articulation concerns note connection, separation, and attack emphasis.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "be1ded24450383c448d2b1b2e15f1b76ef41bac56ca4f2271176943df1e023ed",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "In the score, the composer writes \"cresc.\" under a sustained line. What performance change does that marking indicate?",
+                "op": [
+                  "Play the passage more quietly",
+                  "Play the passage more loudly",
+                  "Shorten each note's duration",
+                  "Speed up the passage"
+                ],
+                "ai": 1,
+                "ex": "\"cresc.\" is a dynamic marking, so it changes loudness. The strongest nearby mistake is to read it as a tempo instruction, but tempo concerns speed, not volume.",
+                "sourceFactIndexes": [
+                  1,
+                  2,
+                  4
+                ]
+              },
+              {
+                "q": "A passage is marked with short, detached notes, but the tempo marking stays the same. What is the notated change most directly described?",
+                "op": [
+                  "A change in articulation",
+                  "A change in dynamics",
+                  "A change in tempo",
+                  "A change in note pitch"
+                ],
+                "ai": 0,
+                "ex": "Short, detached notes describe articulation, which concerns how notes connect or separate. The most plausible confusion is tempo, but speed would require a separate instruction or indication.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Dynamics",
+                "df": "The performance dimension that controls how loud or soft the music is.",
+                "eg": "A score marked mezzo forte followed later by a crescendo asks the performer to increase loudness.",
+                "mi": "It means the same thing as tempo.",
+                "cx": "Tempo changes speed; dynamics change loudness, so a crescendo is not a speed-up instruction.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Articulation",
+                "df": "The way notes are connected or separated in performance.",
+                "eg": "A phrase marked staccato asks for short, detached attacks rather than a louder volume.",
+                "mi": "It only tells how fast the music should go.",
+                "cx": "Speed belongs to tempo, while articulation concerns note connection, separation, and attack emphasis.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "be1ded24450383c448d2b1b2e15f1b76ef41bac56ca4f2271176943df1e023ed",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0fa6f3e1f59dcd7e006a594ee321b4819c85e215ea2b25e552",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 717,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 439,
+              "output_tokens_details": {
+                "reasoning_tokens": 46
+              },
+              "total_tokens": 1156
+            }
+          },
+          "startedAt": "2026-07-16T21:36:35.069Z",
+          "durationMs": 8604
+        },
+        {
+          "promptId": "music-structure-expression-evidence-lab:music/phrases-and-cadences",
+          "kernelId": "music/phrases-and-cadences",
+          "promptSha256": "a1b5bdfe7a9d4001748f98c6a9de00f5c69941ecea6f9e041d0de95a9fd96641",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A melody reaches a point of rest that sounds like the end of a complete musical thought. Which label best fits that event?",
+                "op": [
+                  "phrase",
+                  "cadence",
+                  "presentation",
+                  "continuation"
+                ],
+                "ai": 1,
+                "ex": "A cadence is the best match because it is the harmonic event that can mark a phrase’s ending. A phrase is the larger thought itself, not the specific closing event; the strongest mistake is to treat the resting point as the whole thought rather than its ending marker.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "In a classical tonal passage, the first phrase of a period closes less strongly than the second phrase. Which description matches that first phrase?",
+                "op": [
+                  "consequent phrase",
+                  "antecedent phrase",
+                  "sentence continuation",
+                  "cadential closure"
+                ],
+                "ai": 1,
+                "ex": "An antecedent phrase normally ends with the weaker cadence in a period. The most plausible confusion is to pick consequent phrase because both belong to a period, but the consequent is the one that normally ends more strongly.",
+                "sourceFactIndexes": [
+                  2,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "phrase",
+                "df": "A relatively complete musical thought aimed toward a goal.",
+                "eg": "In a short class listening example, one melody line can sound like it reaches a goal even before the next idea begins.",
+                "mi": "Any ending pause must be a phrase.",
+                "cx": "A pause may happen inside a phrase; the phrase is the whole directed thought, while a cadence is the event that can mark its ending.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "cadence",
+                "df": "A harmonic event that can signal the close of a phrase.",
+                "eg": "At the end of a tonal excerpt, the harmony may settle in a way that makes the phrase sound finished.",
+                "mi": "It means any pause, silence, or loud ending.",
+                "cx": "A pause or loudness change may be expressive, but a cadence is specifically a harmonic event, and it may mark phrase closure without being identical to a general stop.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "07943302e4c69c23666fc815c7ef771dc744e0ece97531e5f6a201a37a105dcd",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A melody reaches a point of rest that sounds like the end of a complete musical thought. Which label best fits that event?",
+                "op": [
+                  "phrase",
+                  "cadence",
+                  "presentation",
+                  "continuation"
+                ],
+                "ai": 1,
+                "ex": "A cadence is the best match because it is the harmonic event that can mark a phrase’s ending. A phrase is the larger thought itself, not the specific closing event; the strongest mistake is to treat the resting point as the whole thought rather than its ending marker.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "In a classical tonal passage, the first phrase of a period closes less strongly than the second phrase. Which description matches that first phrase?",
+                "op": [
+                  "consequent phrase",
+                  "antecedent phrase",
+                  "sentence continuation",
+                  "cadential closure"
+                ],
+                "ai": 1,
+                "ex": "An antecedent phrase normally ends with the weaker cadence in a period. The most plausible confusion is to pick consequent phrase because both belong to a period, but the consequent is the one that normally ends more strongly.",
+                "sourceFactIndexes": [
+                  2,
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "phrase",
+                "df": "A relatively complete musical thought aimed toward a goal.",
+                "eg": "In a short class listening example, one melody line can sound like it reaches a goal even before the next idea begins.",
+                "mi": "Any ending pause must be a phrase.",
+                "cx": "A pause may happen inside a phrase; the phrase is the whole directed thought, while a cadence is the event that can mark its ending.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "cadence",
+                "df": "A harmonic event that can signal the close of a phrase.",
+                "eg": "At the end of a tonal excerpt, the harmony may settle in a way that makes the phrase sound finished.",
+                "mi": "It means any pause, silence, or loud ending.",
+                "cx": "A pause or loudness change may be expressive, but a cadence is specifically a harmonic event, and it may mark phrase closure without being identical to a general stop.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "07943302e4c69c23666fc815c7ef771dc744e0ece97531e5f6a201a37a105dcd",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0817b455382ca36d006a594eebc6dc81a3b276ef16722428b7",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 713,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 584,
+              "output_tokens_details": {
+                "reasoning_tokens": 161
+              },
+              "total_tokens": 1297
+            }
+          },
+          "startedAt": "2026-07-16T21:36:43.679Z",
+          "durationMs": 4833
+        },
+        {
+          "promptId": "music-structure-expression-evidence-lab:music/tonicization-and-modulation",
+          "kernelId": "music/tonicization-and-modulation",
+          "promptSha256": "bdf3404c078c21e08d91f715972a4f13cc2cd882320ce9ef775620fb1a5037e7",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A passage ends with a short stretch that makes D sound settled, but the music soon returns to the original key. What is the best label for the D event?",
+                "op": [
+                  "tonicization",
+                  "modulation",
+                  "pivot-chord modulation",
+                  "cadential closure"
+                ],
+                "ai": 0,
+                "ex": "Tonicization is best because it briefly makes a non-tonic harmony sound like a tonic. Modulation would imply a longer-term change of tonic, and the return to the original key argues against that. The strongest misconception is to equate any local sense of arrival with a full key change.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              },
+              {
+                "q": "A new key arrives suddenly, without a shared chord easing the change. Which description fits best?",
+                "op": [
+                  "extended tonicization",
+                  "pivot-chord modulation",
+                  "momentary tonicization",
+                  "direct and abrupt modulation"
+                ],
+                "ai": 3,
+                "ex": "Direct and abrupt modulation fits because a modulation may introduce the new key this way. The most plausible alternative is pivot-chord modulation, but that requires a shared chord to smooth the move between keys.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "tonicization",
+                "df": "A brief local event that makes a non-tonic harmony sound temporarily like home.",
+                "eg": "A short passage points to V/V as if it were a temporary center, then the music moves on without establishing a new key.",
+                "mi": "Any strong cadence must be a full key change.",
+                "cx": "Strong local emphasis can still be only temporary; the key has not necessarily changed.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              },
+              {
+                "tr": "modulation",
+                "df": "A longer-lasting shift that establishes a different tonic as the new key center.",
+                "eg": "The music moves into G major and stays structurally stable there for a while.",
+                "mi": "If the new key is introduced suddenly, it cannot be a modulation.",
+                "cx": "A modulation can be direct and abrupt, or it can be smoothed by a pivot chord.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "4ff7a2a256f80637d6f1c7989481a41ca3c5d2387e00a9b5fb67e92e6ad919e2",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A passage ends with a short stretch that makes D sound settled, but the music soon returns to the original key. What is the best label for the D event?",
+                "op": [
+                  "tonicization",
+                  "modulation",
+                  "pivot-chord modulation",
+                  "cadential closure"
+                ],
+                "ai": 0,
+                "ex": "Tonicization is best because it briefly makes a non-tonic harmony sound like a tonic. Modulation would imply a longer-term change of tonic, and the return to the original key argues against that. The strongest misconception is to equate any local sense of arrival with a full key change.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "tonicization",
+                "df": "A brief local event that makes a non-tonic harmony sound temporarily like home.",
+                "eg": "A short passage points to V/V as if it were a temporary center, then the music moves on without establishing a new key.",
+                "mi": "Any strong cadence must be a full key change.",
+                "cx": "Strong local emphasis can still be only temporary; the key has not necessarily changed.",
+                "sourceFactIndexes": [
+                  0,
+                  3,
+                  4
+                ]
+              },
+              {
+                "tr": "modulation",
+                "df": "A longer-lasting shift that establishes a different tonic as the new key center.",
+                "eg": "The music moves into G major and stays structurally stable there for a while.",
+                "mi": "If the new key is introduced suddenly, it cannot be a modulation.",
+                "cx": "A modulation can be direct and abrupt, or it can be smoothed by a pivot chord.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "409ccb00f9939f1d42af47504b84a8a71535d378a06069bf57adc22064c26537",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-source-answer-conflict"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_099ca18ab4dcdac5006a594ef0978881a28dbb19022ce1bce2",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 714,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 605,
+              "output_tokens_details": {
+                "reasoning_tokens": 174
+              },
+              "total_tokens": 1319
+            }
+          },
+          "startedAt": "2026-07-16T21:36:48.513Z",
+          "durationMs": 5279
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "music-structure-expression-evidence-lab:music/musical-texture",
+          "kernelId": "music/musical-texture",
+          "promptSha256": "3e397e0069246fea39c3be66ca35ca43966acf2abb4eb42aa53bbe70e7d59e73",
+          "generationPromptSha256": "25d8beabb05d39ea8e7f0b4160fdedd53dbbc130b8bbd8047c4e0d1f21201335",
+          "rawCallSha256": "99ba26c7a2973438af43e3096d7e869bf478449ea86243fd2d94f012698d79a5",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which description matches musical texture?",
+                "op": [
+                  "The density of a passage and how simultaneous voices or layers interact.",
+                  "The number of instruments heard in a passage.",
+                  "The speed at which the music moves.",
+                  "A pause that ends a phrase."
+                ],
+                "ai": 0,
+                "ex": "Texture is the density and interaction of simultaneous voices or layers. It is not just how many instruments play.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "1b1e75a67cf3cd00f0de2bbf3f92f2f42b6c8aaf03b7817e5c29f29f4afeec8f",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which description matches musical texture?",
+                "op": [
+                  "The density of a passage and how simultaneous voices or layers interact.",
+                  "The number of instruments heard in a passage.",
+                  "The speed at which the music moves.",
+                  "A pause that ends a phrase."
+                ],
+                "ai": 0,
+                "ex": "Texture is the density and interaction of simultaneous voices or layers. It is not just how many instruments play.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "1b1e75a67cf3cd00f0de2bbf3f92f2f42b6c8aaf03b7817e5c29f29f4afeec8f",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0901f0fccede9e4b006a594f7a258c819db720f22b8b3888a2",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 694,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 154,
+              "output_tokens_details": {
+                "reasoning_tokens": 50
+              },
+              "total_tokens": 848
+            }
+          },
+          "startedAt": "2026-07-16T21:39:05.886Z",
+          "durationMs": 1845,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "music-structure-expression-evidence-lab:music/tonicization-and-modulation",
+          "kernelId": "music/tonicization-and-modulation",
+          "promptSha256": "bdf3404c078c21e08d91f715972a4f13cc2cd882320ce9ef775620fb1a5037e7",
+          "generationPromptSha256": "759465cd776714b37c8fab40f2eab5d955505f70f05527fd2269da9202982907",
+          "rawCallSha256": "55f1ea78ec6a0ea5e2d735d163830cd7ef1cb1bb44843f70ddf07c5c96ceaf3c",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement best distinguishes tonicization from modulation?",
+                "op": [
+                  "Tonicization briefly makes a non-tonic harmony sound like a tonic, while modulation establishes",
+                  "Tonicization always lasts longer than modulation because the new tonic is more stable",
+                  "A modulation must always be introduced by a pivot chord, while tonicization cannot use one",
+                  "Tonicization and modulation are the same thing because both simply add a new chord"
+                ],
+                "ai": 0,
+                "ex": "Tonicization is brief; modulation is a longer-term change of tonic. A pivot chord can make a modulation subtle, but it is not required.",
+                "sourceFactIndexes": [
+                  0,
+                  2,
+                  4
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "559cc39caf0d51265f0c01f608d8f7e8a4cc6d02a0680b7f911fbbf2dd23a8ab",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "mc-0-explanation-key-conflict",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_060870ff6e0bfe2f006a594f7bceac819282cbf469b0bf2fd4",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 713,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 232,
+              "output_tokens_details": {
+                "reasoning_tokens": 78
+              },
+              "total_tokens": 945
+            }
+          },
+          "startedAt": "2026-07-16T21:39:07.732Z",
+          "durationMs": 2046,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "music-structure-expression-evidence-lab:music/musical-texture"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "music-structure-expression-evidence-lab:music/musical-texture",
+        "kernelId": "music/musical-texture",
+        "promptSha256": "3e397e0069246fea39c3be66ca35ca43966acf2abb4eb42aa53bbe70e7d59e73",
+        "generationPromptSha256": "25d8beabb05d39ea8e7f0b4160fdedd53dbbc130b8bbd8047c4e0d1f21201335",
+        "rawCallSha256": "99ba26c7a2973438af43e3096d7e869bf478449ea86243fd2d94f012698d79a5",
+        "recoveryCallSha256": "a16e42d840eecbb9f5c421b38ea93851886cfa93c4b63fee589d360ddf0be6bb",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A choir sings a tune in which the soprano carries the main melody while the lower voices move in coordinated chords at the same harmonic pace. Which texture is described?",
+              "op": [
+                "Monophony",
+                "Heterophony",
+                "Homophony",
+                "Polyphony"
+              ],
+              "ai": 2,
+              "ex": "Homophony is correct because the voices coordinate at a shared harmonic pace, with melody plus accompaniment. Polyphony is the most plausible misconception, but it would require independent melodic lines and rhythms rather than chordal support for one main tune.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            },
+            {
+              "q": "Which description matches musical texture?",
+              "op": [
+                "The density of a passage and how simultaneous voices or layers interact.",
+                "The number of instruments heard in a passage.",
+                "The speed at which the music moves.",
+                "A pause that ends a phrase."
+              ],
+              "ai": 0,
+              "ex": "Texture is the density and interaction of simultaneous voices or layers. It is not just how many instruments play.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Musical texture",
+              "df": "The density of a passage and how its simultaneous layers interact.",
+              "eg": "A class listening exercise that asks whether a passage feels single-lined, chordal, or independently layered.",
+              "mi": "Texture is the same as how many instruments are playing.",
+              "cx": "The number of instruments can help describe a passage, but texture is about the density and interaction of the voices or layers, not count alone.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Polyphony",
+              "df": "A texture in which voices carry independent melodic lines and rhythms.",
+              "eg": "Two vocal parts entering with different rhythms and contour instead of simply supporting one melody.",
+              "mi": "Any music with more than one instrument is polyphonic.",
+              "cx": "Multiple instruments do not automatically make polyphony; the voices must have independent melodic lines and rhythms.",
+              "sourceFactIndexes": [
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "83a6224f805822761ea9a3b2ab780345ea029ff8df8a1d8fcc76af65946ebc5a",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A choir sings a tune in which the soprano carries the main melody while the lower voices move in coordinated chords at the same harmonic pace. Which texture is described?",
+              "op": [
+                "Monophony",
+                "Heterophony",
+                "Homophony",
+                "Polyphony"
+              ],
+              "ai": 2,
+              "ex": "Homophony is correct because the voices coordinate at a shared harmonic pace, with melody plus accompaniment. Polyphony is the most plausible misconception, but it would require independent melodic lines and rhythms rather than chordal support for one main tune.",
+              "sourceFactIndexes": [
+                3,
+                4
+              ]
+            },
+            {
+              "q": "Which description matches musical texture?",
+              "op": [
+                "The density of a passage and how simultaneous voices or layers interact.",
+                "The number of instruments heard in a passage.",
+                "The speed at which the music moves.",
+                "A pause that ends a phrase."
+              ],
+              "ai": 0,
+              "ex": "Texture is the density and interaction of simultaneous voices or layers. It is not just how many instruments play.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Musical texture",
+              "df": "The density of a passage and how its simultaneous layers interact.",
+              "eg": "A class listening exercise that asks whether a passage feels single-lined, chordal, or independently layered.",
+              "mi": "Texture is the same as how many instruments are playing.",
+              "cx": "The number of instruments can help describe a passage, but texture is about the density and interaction of the voices or layers, not count alone.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Polyphony",
+              "df": "A texture in which voices carry independent melodic lines and rhythms.",
+              "eg": "Two vocal parts entering with different rhythms and contour instead of simply supporting one melody.",
+              "mi": "Any music with more than one instrument is polyphonic.",
+              "cx": "Multiple instruments do not automatically make polyphony; the voices must have independent melodic lines and rhythms.",
+              "sourceFactIndexes": [
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "83a6224f805822761ea9a3b2ab780345ea029ff8df8a1d8fcc76af65946ebc5a",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T21:39:05.886Z",
+        "durationMs": 1845
+      },
+      {
+        "promptId": "music-structure-expression-evidence-lab:music/dynamics-articulation-tempo",
+        "kernelId": "music/dynamics-articulation-tempo",
+        "promptSha256": "921b887d6316aae935e01e3b9ce07b4da858a6ee89cd137afcd20cab303de81c",
+        "response": {
+          "mcItems": [
+            {
+              "q": "In the score, the composer writes \"cresc.\" under a sustained line. What performance change does that marking indicate?",
+              "op": [
+                "Play the passage more quietly",
+                "Play the passage more loudly",
+                "Shorten each note's duration",
+                "Speed up the passage"
+              ],
+              "ai": 1,
+              "ex": "\"cresc.\" is a dynamic marking, so it changes loudness. The strongest nearby mistake is to read it as a tempo instruction, but tempo concerns speed, not volume.",
+              "sourceFactIndexes": [
+                1,
+                2,
+                4
+              ]
+            },
+            {
+              "q": "A passage is marked with short, detached notes, but the tempo marking stays the same. What is the notated change most directly described?",
+              "op": [
+                "A change in articulation",
+                "A change in dynamics",
+                "A change in tempo",
+                "A change in note pitch"
+              ],
+              "ai": 0,
+              "ex": "Short, detached notes describe articulation, which concerns how notes connect or separate. The most plausible confusion is tempo, but speed would require a separate instruction or indication.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Dynamics",
+              "df": "The performance dimension that controls how loud or soft the music is.",
+              "eg": "A score marked mezzo forte followed later by a crescendo asks the performer to increase loudness.",
+              "mi": "It means the same thing as tempo.",
+              "cx": "Tempo changes speed; dynamics change loudness, so a crescendo is not a speed-up instruction.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Articulation",
+              "df": "The way notes are connected or separated in performance.",
+              "eg": "A phrase marked staccato asks for short, detached attacks rather than a louder volume.",
+              "mi": "It only tells how fast the music should go.",
+              "cx": "Speed belongs to tempo, while articulation concerns note connection, separation, and attack emphasis.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "be1ded24450383c448d2b1b2e15f1b76ef41bac56ca4f2271176943df1e023ed",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "In the score, the composer writes \"cresc.\" under a sustained line. What performance change does that marking indicate?",
+              "op": [
+                "Play the passage more quietly",
+                "Play the passage more loudly",
+                "Shorten each note's duration",
+                "Speed up the passage"
+              ],
+              "ai": 1,
+              "ex": "\"cresc.\" is a dynamic marking, so it changes loudness. The strongest nearby mistake is to read it as a tempo instruction, but tempo concerns speed, not volume.",
+              "sourceFactIndexes": [
+                1,
+                2,
+                4
+              ]
+            },
+            {
+              "q": "A passage is marked with short, detached notes, but the tempo marking stays the same. What is the notated change most directly described?",
+              "op": [
+                "A change in articulation",
+                "A change in dynamics",
+                "A change in tempo",
+                "A change in note pitch"
+              ],
+              "ai": 0,
+              "ex": "Short, detached notes describe articulation, which concerns how notes connect or separate. The most plausible confusion is tempo, but speed would require a separate instruction or indication.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Dynamics",
+              "df": "The performance dimension that controls how loud or soft the music is.",
+              "eg": "A score marked mezzo forte followed later by a crescendo asks the performer to increase loudness.",
+              "mi": "It means the same thing as tempo.",
+              "cx": "Tempo changes speed; dynamics change loudness, so a crescendo is not a speed-up instruction.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Articulation",
+              "df": "The way notes are connected or separated in performance.",
+              "eg": "A phrase marked staccato asks for short, detached attacks rather than a louder volume.",
+              "mi": "It only tells how fast the music should go.",
+              "cx": "Speed belongs to tempo, while articulation concerns note connection, separation, and attack emphasis.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "be1ded24450383c448d2b1b2e15f1b76ef41bac56ca4f2271176943df1e023ed",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0fa6f3e1f59dcd7e006a594ee321b4819c85e215ea2b25e552",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 717,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 439,
+            "output_tokens_details": {
+              "reasoning_tokens": 46
+            },
+            "total_tokens": 1156
+          }
+        },
+        "startedAt": "2026-07-16T21:36:35.069Z",
+        "durationMs": 8604
+      },
+      {
+        "promptId": "music-structure-expression-evidence-lab:music/phrases-and-cadences",
+        "kernelId": "music/phrases-and-cadences",
+        "promptSha256": "a1b5bdfe7a9d4001748f98c6a9de00f5c69941ecea6f9e041d0de95a9fd96641",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A melody reaches a point of rest that sounds like the end of a complete musical thought. Which label best fits that event?",
+              "op": [
+                "phrase",
+                "cadence",
+                "presentation",
+                "continuation"
+              ],
+              "ai": 1,
+              "ex": "A cadence is the best match because it is the harmonic event that can mark a phrase’s ending. A phrase is the larger thought itself, not the specific closing event; the strongest mistake is to treat the resting point as the whole thought rather than its ending marker.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "In a classical tonal passage, the first phrase of a period closes less strongly than the second phrase. Which description matches that first phrase?",
+              "op": [
+                "consequent phrase",
+                "antecedent phrase",
+                "sentence continuation",
+                "cadential closure"
+              ],
+              "ai": 1,
+              "ex": "An antecedent phrase normally ends with the weaker cadence in a period. The most plausible confusion is to pick consequent phrase because both belong to a period, but the consequent is the one that normally ends more strongly.",
+              "sourceFactIndexes": [
+                2,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "phrase",
+              "df": "A relatively complete musical thought aimed toward a goal.",
+              "eg": "In a short class listening example, one melody line can sound like it reaches a goal even before the next idea begins.",
+              "mi": "Any ending pause must be a phrase.",
+              "cx": "A pause may happen inside a phrase; the phrase is the whole directed thought, while a cadence is the event that can mark its ending.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "cadence",
+              "df": "A harmonic event that can signal the close of a phrase.",
+              "eg": "At the end of a tonal excerpt, the harmony may settle in a way that makes the phrase sound finished.",
+              "mi": "It means any pause, silence, or loud ending.",
+              "cx": "A pause or loudness change may be expressive, but a cadence is specifically a harmonic event, and it may mark phrase closure without being identical to a general stop.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "07943302e4c69c23666fc815c7ef771dc744e0ece97531e5f6a201a37a105dcd",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A melody reaches a point of rest that sounds like the end of a complete musical thought. Which label best fits that event?",
+              "op": [
+                "phrase",
+                "cadence",
+                "presentation",
+                "continuation"
+              ],
+              "ai": 1,
+              "ex": "A cadence is the best match because it is the harmonic event that can mark a phrase’s ending. A phrase is the larger thought itself, not the specific closing event; the strongest mistake is to treat the resting point as the whole thought rather than its ending marker.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "In a classical tonal passage, the first phrase of a period closes less strongly than the second phrase. Which description matches that first phrase?",
+              "op": [
+                "consequent phrase",
+                "antecedent phrase",
+                "sentence continuation",
+                "cadential closure"
+              ],
+              "ai": 1,
+              "ex": "An antecedent phrase normally ends with the weaker cadence in a period. The most plausible confusion is to pick consequent phrase because both belong to a period, but the consequent is the one that normally ends more strongly.",
+              "sourceFactIndexes": [
+                2,
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "phrase",
+              "df": "A relatively complete musical thought aimed toward a goal.",
+              "eg": "In a short class listening example, one melody line can sound like it reaches a goal even before the next idea begins.",
+              "mi": "Any ending pause must be a phrase.",
+              "cx": "A pause may happen inside a phrase; the phrase is the whole directed thought, while a cadence is the event that can mark its ending.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "cadence",
+              "df": "A harmonic event that can signal the close of a phrase.",
+              "eg": "At the end of a tonal excerpt, the harmony may settle in a way that makes the phrase sound finished.",
+              "mi": "It means any pause, silence, or loud ending.",
+              "cx": "A pause or loudness change may be expressive, but a cadence is specifically a harmonic event, and it may mark phrase closure without being identical to a general stop.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "07943302e4c69c23666fc815c7ef771dc744e0ece97531e5f6a201a37a105dcd",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0817b455382ca36d006a594eebc6dc81a3b276ef16722428b7",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 713,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 584,
+            "output_tokens_details": {
+              "reasoning_tokens": 161
+            },
+            "total_tokens": 1297
+          }
+        },
+        "startedAt": "2026-07-16T21:36:43.679Z",
+        "durationMs": 4833
+      },
+      {
+        "promptId": "music-structure-expression-evidence-lab:music/tonicization-and-modulation",
+        "kernelId": "music/tonicization-and-modulation",
+        "promptSha256": "bdf3404c078c21e08d91f715972a4f13cc2cd882320ce9ef775620fb1a5037e7",
+        "generationPromptSha256": "759465cd776714b37c8fab40f2eab5d955505f70f05527fd2269da9202982907",
+        "rawCallSha256": "55f1ea78ec6a0ea5e2d735d163830cd7ef1cb1bb44843f70ddf07c5c96ceaf3c",
+        "recoveryCallSha256": "782017bf6744787714d99892178f9f39fff8ef70b42ed233c09a3738464f1193",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A passage ends with a short stretch that makes D sound settled, but the music soon returns to the original key. What is the best label for the D event?",
+              "op": [
+                "tonicization",
+                "modulation",
+                "pivot-chord modulation",
+                "cadential closure"
+              ],
+              "ai": 0,
+              "ex": "Tonicization is best because it briefly makes a non-tonic harmony sound like a tonic. Modulation would imply a longer-term change of tonic, and the return to the original key argues against that. The strongest misconception is to equate any local sense of arrival with a full key change.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "tonicization",
+              "df": "A brief local event that makes a non-tonic harmony sound temporarily like home.",
+              "eg": "A short passage points to V/V as if it were a temporary center, then the music moves on without establishing a new key.",
+              "mi": "Any strong cadence must be a full key change.",
+              "cx": "Strong local emphasis can still be only temporary; the key has not necessarily changed.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            },
+            {
+              "tr": "modulation",
+              "df": "A longer-lasting shift that establishes a different tonic as the new key center.",
+              "eg": "The music moves into G major and stays structurally stable there for a while.",
+              "mi": "If the new key is introduced suddenly, it cannot be a modulation.",
+              "cx": "A modulation can be direct and abrupt, or it can be smoothed by a pivot chord.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "409ccb00f9939f1d42af47504b84a8a71535d378a06069bf57adc22064c26537",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A passage ends with a short stretch that makes D sound settled, but the music soon returns to the original key. What is the best label for the D event?",
+              "op": [
+                "tonicization",
+                "modulation",
+                "pivot-chord modulation",
+                "cadential closure"
+              ],
+              "ai": 0,
+              "ex": "Tonicization is best because it briefly makes a non-tonic harmony sound like a tonic. Modulation would imply a longer-term change of tonic, and the return to the original key argues against that. The strongest misconception is to equate any local sense of arrival with a full key change.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "tonicization",
+              "df": "A brief local event that makes a non-tonic harmony sound temporarily like home.",
+              "eg": "A short passage points to V/V as if it were a temporary center, then the music moves on without establishing a new key.",
+              "mi": "Any strong cadence must be a full key change.",
+              "cx": "Strong local emphasis can still be only temporary; the key has not necessarily changed.",
+              "sourceFactIndexes": [
+                0,
+                3,
+                4
+              ]
+            },
+            {
+              "tr": "modulation",
+              "df": "A longer-lasting shift that establishes a different tonic as the new key center.",
+              "eg": "The music moves into G major and stays structurally stable there for a while.",
+              "mi": "If the new key is introduced suddenly, it cannot be a modulation.",
+              "cx": "A modulation can be direct and abrupt, or it can be smoothed by a pivot chord.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "409ccb00f9939f1d42af47504b84a8a71535d378a06069bf57adc22064c26537",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T21:39:07.732Z",
+        "durationMs": 2046
+      }
+    ]
+  }
+}

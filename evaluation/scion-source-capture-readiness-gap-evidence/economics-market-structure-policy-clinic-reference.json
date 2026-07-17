@@ -1,0 +1,1465 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-economics-market-structure-policy-clinic-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Economics Market Structure and Policy Clinic, a four-session source-grounded course in which students distinguish supply shifts, comparative advantage, external costs, and monopoly power through bounded decisions.",
+  "fileNames": [
+    "source-packet-878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd.json"
+  ],
+  "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Economics Market Structure and Policy Clinic\",\"sessions\":[{\"number\":1,\"title\":\"Supply curve\"},{\"number\":2,\"title\":\"Comparative advantage\"},{\"number\":3,\"title\":\"Externality\"},{\"number\":4,\"title\":\"Monopoly\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"A bakery sees the price of its bread rise while its flour costs and ovens stay the same. What happens to the bakery's supply curve for bread?\",\"op\":[\"It moves upward along the same curve\",\"It shifts to a new position\",\"It becomes flatter because costs stayed the same\",\"It leaves quantity supplied unchanged\"],\"ai\":0,\"ex\":\"It moves upward along the same curve because a change in the good's own price changes the quantity supplied rather than shifting the entire supply curve. A shift is more likely when input costs or technology change, which is not the case here.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"A farmer says, “I supply 50 bushels of corn.” Which statement fits the idea of quantity supplied?\",\"op\":[\"It is a flow measured over a period\",\"It is a fixed stock sitting in storage\",\"It is the market price of corn\",\"It is the farmer's technology level\"],\"ai\":0,\"ex\":\"It is a flow measured over a period because quantity supplied is described as a per-period amount. The common mistake is to treat it like a stock, but the claim distinguishes flow from fixed stock.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Supply curve\",\"df\":\"A graph showing how much producers are willing to sell at different prices; higher prices are linked to larger quantities supplied.\",\"eg\":\"In a pizza shop, a higher price for slices is associated with a larger amount the shop is willing to supply.\",\"mi\":\"A curve is always a list of all firms in a market.\",\"cx\":\"The curve describes price-quantity willingness, not the number of firms.\",\"sourceFactIndexes\":[0,1]},{\"tr\":\"Quantity supplied\",\"df\":\"The amount offered for sale during a given time period at a particular price.\",\"eg\":\"A fruit seller may supply 200 apples this week at one price and a different amount next week at another price.\",\"mi\":\"It means the total items a seller owns.\",\"cx\":\"It is a per-period flow of goods offered for sale, not a stock of inventory.\",\"sourceFactIndexes\":[2]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Two classmates can each produce both essays and slides, but one gives up fewer essays to make a slide deck. Which conclusion is supported?\",\"op\":[\"That classmate has a comparative advantage in slide decks.\",\"That classmate has an absolute advantage in slide decks.\",\"That classmate will always earn more from trade.\",\"That classmate must produce every slide deck for the class.\"],\"ai\":0,\"ex\":\"That classmate has a comparative advantage in slide decks because the deciding factor is lower opportunity cost. A common mistake is to confuse this with absolute advantage, but being better at everything is not what makes the advantage comparative.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"After each producer specializes in the good with the lower opportunity cost and they trade, what happens according to the claims?\",\"op\":[\"Total output rises and both can consume beyond what they could make alone.\",\"One producer must end up worse off than before trade.\",\"Each producer can consume only what it can produce alone.\",\"Trade helps only when one producer is better at every task.\"],\"ai\":0,\"ex\":\"Total output rises and both can consume beyond what they could make alone when specialization follows comparative advantage and trade occurs. The mistaken idea is that gains from trade require one producer to be better at everything, but the claims say the gains come from differences in opportunity.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Comparative advantage\",\"df\":\"The lower-opportunity-cost producer in a good.\",\"eg\":\"In the clinic, one student may have comparative advantage in chart design because giving up fewer practice problems is needed to make a polished slide.\",\"mi\":\"It means the person who is best at a task in every respect.\",\"cx\":\"The correction is that comparative advantage depends on lower opportunity cost, not overall talent or being strongest at everything.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Opportunity cost\",\"df\":\"The next-best alternative given up when choosing one action over another.\",\"eg\":\"If a student spends an hour on market-structure notes instead of a coding assignment, the forgone coding work is the opportunity cost.\",\"mi\":\"It is the money spent directly on a choice.\",\"cx\":\"The correction is that opportunity cost is about what must be forgone, whether or not any cash changes hands.\",\"sourceFactIndexes\":[0,2]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"Which case is an externality?\",\"op\":[\"Some of the cost of a transaction is paid by a bystander.\",\"The buyer and seller both bear the full cost of their trade.\",\"Only the firm making the choice pays every cost created by it.\",\"A price change happens before the trade takes place.\"],\"ai\":0,\"ex\":\"The first option fits because a cost from the exchange lands on someone outside the exchange. The other choices describe costs staying inside the trade, which is not an externality under the claim.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"Why can pollution lead a market to produce too much?\",\"op\":[\"The price leaves out spillover cost, so the market boundary is too narrow.\",\"The buyer's private value rises above the seller's asking price.\",\"Each producer has a larger plant than rivals.\",\"Trade stops whenever costs are visible.\"],\"ai\":0,\"ex\":\"The first option fits because when the price excludes the spillover cost, the market can produce more than the socially efficient quantity. A common mistake is to treat the problem as ordinary bargaining, but the issue here is the missing third-party cost, not a mismatch between buyer and seller.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Externality\",\"df\":\"A cost or benefit from a transaction that lands on someone outside the exchange.\",\"eg\":\"A factory's smoke raises nearby residents' cleanup expenses even though they did not buy the factory's output.\",\"mi\":\"It is just the same as any direct payment between the two traders.\",\"cx\":\"The extra effect is outside the bargain, so it is not part of the buyer-seller exchange itself.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Negative externality\",\"df\":\"A spillover cost that can make an unregulated market choose too much output.\",\"eg\":\"Pollution from a production process can leave nearby people worse off while the market price stays unchanged.\",\"mi\":\"It means the good must be illegal or useless.\",\"cx\":\"The key feature is the hidden cost on others, not whether the product has value or is banned.\",\"sourceFactIndexes\":[1,2]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"Which description best matches a monopoly?\",\"op\":[\"A market with a single seller of a product that has no close substitutes, protected by barriers\",\"A market with many sellers offering close substitutes and no entry barriers\",\"A firm that can only accept the market price and cannot influence it\",\"A buyer-controlled market where firms must lower price to sell any output\"],\"ai\":0,\"ex\":\"Correct: it has one seller, no close substitutes, and entry barriers. A monopoly is not just any large firm.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"What is a monopoly able to do differently from a price-taking competitive firm?\",\"op\":[\"Raise price by restricting the quantity it sells\",\"Keep price fixed by selling whatever amount buyers want\",\"Avoid all losses because it faces no rivals\",\"Set price only by matching the average firm in the market\"],\"ai\":0,\"ex\":\"Correct: it sells less and charges more than a competitive market, creating deadweight loss. That is not the same as simply being a big seller.\",\"sourceFactIndexes\":[1,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Monopoly\",\"df\":\"A market in which one seller faces no close substitutes and entry is blocked by barriers.\",\"eg\":\"Our clinic example treated a single local supplier with no close substitutes and high entry barriers as a monopoly market.\",\"mi\":\"A monopoly just means a very large firm.\",\"cx\":\"Size alone is not enough; the key features are one seller, no close substitutes, and barriers to entry.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Price maker\",\"df\":\"A seller that can influence the market price by changing how much it sells.\",\"eg\":\"In the course case, the seller raises price by cutting the quantity offered.\",\"mi\":\"A price maker is any firm that sells at a high price.\",\"cx\":\"The important idea is control over price, not simply charging a high price or having many customers.\",\"sourceFactIndexes\":[1]}]}}}}",
+  "savedAt": "2026-07-16T23:59:14.308Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-readiness-gap-v0.16.47.json",
+    "campaignManifestSha256": "fa81d207826fd4226aa9302855b8a56543a91f5e1d73145214ff79c94dffe613",
+    "promptSetSha256": "2c92b418e427a0d6648b2348bfabbd20c31e2225935594bcd3cc7218fc4f7cb2",
+    "courseInputSha256": "54bcad67209930a18d4e37467c4edf9bfceac83a3c08d6b21383b1b0d8f49bc3",
+    "courseGroupId": "economics-market-structure-policy-clinic",
+    "courseGroupSha256": "0ace6623e100df62e824f06e351fefb4d91fc80773d65d958354322de394bdf6",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/econ-intro.json",
+      "sourceArtifactSha256": "80169c3278f2f18968a60614e01674543cf25cea22529f5815aaa432cd886286",
+      "kernels": [
+        {
+          "id": "econ/supply-curve",
+          "term": "Supply curve",
+          "definition": "By the law of supply, a higher price raises the quantity producers are willing to supply, so the supply curve slopes upward.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#7",
+            "loc": "3.2",
+            "quote": "a higher price raises the quantity that producers are willing to supply, so the supply curve slopes upward"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#7",
+                "loc": "3.2",
+                "quote": "A change in the good's own price moves along the supply curve, while a change in input costs or technology shifts the whole curve"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Quantity supplied is a flow per period, not a fixed stock.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#7",
+                "loc": "3.2",
+                "quote": "Quantity supplied is a flow per period, not a fixed stock"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 3"
+          ]
+        },
+        {
+          "id": "econ/comparative-advantage",
+          "term": "Comparative advantage",
+          "definition": "A producer has a comparative advantage in the good it can make at the lower opportunity cost, even if another producer is better at making everything.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#8",
+            "loc": "19.1",
+            "quote": "A producer has a comparative advantage in the good it can make at the lower opportunity cost"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "When each producer specializes according to comparative advantage and then trades, total output rises and both can consume beyond what they could produce alone.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#8",
+                "loc": "19.1",
+                "quote": "When each producer specializes according to comparative advantage and then trades, total output rises"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Gains from trade come from differences in opportunity cost, not from absolute skill.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#8",
+                "loc": "19.1",
+                "quote": "Gains from trade come from differences in opportunity cost, not from absolute skill"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 19"
+          ]
+        },
+        {
+          "id": "econ/externality",
+          "term": "Externality",
+          "definition": "An externality is a cost or benefit from a transaction that falls on a third party who is not part of the exchange.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#9",
+            "loc": "12.1",
+            "quote": "An externality is a cost or benefit from a transaction that falls on a third party who is not part of the exchange"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "With a negative externality like pollution, the market produces more than the socially efficient quantity because the price excludes the spillover cost.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#9",
+                "loc": "12.1",
+                "quote": "the market produces more than the socially efficient quantity because the price excludes the spillover cost"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Correcting an externality means making decision-makers face the costs or benefits the market boundary leaves out.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#9",
+                "loc": "12.1",
+                "quote": "making the decision-makers face the costs or benefits the market boundary leaves out"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 12"
+          ]
+        },
+        {
+          "id": "econ/monopoly",
+          "term": "Monopoly",
+          "definition": "A monopoly is a market with a single seller of a product that has no close substitutes, protected by barriers to entry.",
+          "definitionAnchor": {
+            "src": "openstax:microeconomics-3e#10",
+            "loc": "9.1",
+            "quote": "a market with a single seller of a product that has no close substitutes, protected by barriers to entry"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Unlike a price-taking competitive firm, a monopoly is a price maker: it can raise price by restricting the quantity it sells.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#10",
+                "loc": "9.1",
+                "quote": "a monopoly is a price maker: it can raise price by restricting the quantity it sells"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Because it produces less and charges more than a competitive market, a monopoly creates deadweight loss.",
+              "anchor": {
+                "src": "openstax:microeconomics-3e#10",
+                "loc": "9.1",
+                "quote": "a monopoly creates deadweight loss"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Principles of Microeconomics 3e, Ch. 9"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-16T23:59:14.308Z",
+    "admittedPromptIds": [
+      "economics-market-structure-policy-clinic:econ/supply-curve",
+      "economics-market-structure-policy-clinic:econ/comparative-advantage",
+      "economics-market-structure-policy-clinic:econ/externality",
+      "economics-market-structure-policy-clinic:econ/monopoly"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "economics-market-structure-policy-clinic:econ/supply-curve",
+          "kernelId": "econ/supply-curve",
+          "promptSha256": "ef87bcbd25e84981e018db9c2b321363071a2e18a8c3dc617152c0b3073ff9d9",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A bakery sees the price of its bread rise while its flour costs and ovens stay the same. What happens to the bakery's supply curve for bread?",
+                "op": [
+                  "It moves upward along the same curve",
+                  "It shifts to a new position",
+                  "It becomes flatter because costs stayed the same",
+                  "It leaves quantity supplied unchanged"
+                ],
+                "ai": 0,
+                "ex": "It moves upward along the same curve because a change in the good's own price changes the quantity supplied rather than shifting the entire supply curve. A shift is more likely when input costs or technology change, which is not the case here.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "A farmer says, “I supply 50 bushels of corn.” Which statement fits the idea of quantity supplied?",
+                "op": [
+                  "It is a flow measured over a period",
+                  "It is a fixed stock sitting in storage",
+                  "It is the market price of corn",
+                  "It is the farmer's technology level"
+                ],
+                "ai": 0,
+                "ex": "It is a flow measured over a period because quantity supplied is described as a per-period amount. The common mistake is to treat it like a stock, but the claim distinguishes flow from fixed stock.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Supply curve",
+                "df": "A graph showing how much producers are willing to sell at different prices; higher prices are linked to larger quantities supplied.",
+                "eg": "In a pizza shop, a higher price for slices is associated with a larger amount the shop is willing to supply.",
+                "mi": "A curve is always a list of all firms in a market.",
+                "cx": "The curve describes price-quantity willingness, not the number of firms.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Quantity supplied",
+                "df": "The amount offered for sale during a given time period at a particular price.",
+                "eg": "A fruit seller may supply 200 apples this week at one price and a different amount next week at another price.",
+                "mi": "It means the total items a seller owns.",
+                "cx": "It is a per-period flow of goods offered for sale, not a stock of inventory.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "6b215ef9e0614b3181da1ceb8f1d35bc1f034fb3b435d89396c7264034a93929",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A bakery sees the price of its bread rise while its flour costs and ovens stay the same. What happens to the bakery's supply curve for bread?",
+                "op": [
+                  "It moves upward along the same curve",
+                  "It shifts to a new position",
+                  "It becomes flatter because costs stayed the same",
+                  "It leaves quantity supplied unchanged"
+                ],
+                "ai": 0,
+                "ex": "It moves upward along the same curve because a change in the good's own price changes the quantity supplied rather than shifting the entire supply curve. A shift is more likely when input costs or technology change, which is not the case here.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "A farmer says, “I supply 50 bushels of corn.” Which statement fits the idea of quantity supplied?",
+                "op": [
+                  "It is a flow measured over a period",
+                  "It is a fixed stock sitting in storage",
+                  "It is the market price of corn",
+                  "It is the farmer's technology level"
+                ],
+                "ai": 0,
+                "ex": "It is a flow measured over a period because quantity supplied is described as a per-period amount. The common mistake is to treat it like a stock, but the claim distinguishes flow from fixed stock.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Supply curve",
+                "df": "A graph showing how much producers are willing to sell at different prices; higher prices are linked to larger quantities supplied.",
+                "eg": "In a pizza shop, a higher price for slices is associated with a larger amount the shop is willing to supply.",
+                "mi": "A curve is always a list of all firms in a market.",
+                "cx": "The curve describes price-quantity willingness, not the number of firms.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "tr": "Quantity supplied",
+                "df": "The amount offered for sale during a given time period at a particular price.",
+                "eg": "A fruit seller may supply 200 apples this week at one price and a different amount next week at another price.",
+                "mi": "It means the total items a seller owns.",
+                "cx": "It is a per-period flow of goods offered for sale, not a stock of inventory.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "6b215ef9e0614b3181da1ceb8f1d35bc1f034fb3b435d89396c7264034a93929",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0cc539c70366a33b006a59700b26ac819193ecb1e73c5bf355",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 737,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 549,
+              "output_tokens_details": {
+                "reasoning_tokens": 104
+              },
+              "total_tokens": 1286
+            }
+          },
+          "startedAt": "2026-07-16T23:58:02.134Z",
+          "durationMs": 5519
+        },
+        {
+          "promptId": "economics-market-structure-policy-clinic:econ/comparative-advantage",
+          "kernelId": "econ/comparative-advantage",
+          "promptSha256": "0af04ce34c318b5026fa95600b337bf048ea281ea38102de9bedde47055ceef6",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Two classmates can each produce both essays and slides, but one gives up fewer essays to make a slide deck. Which conclusion is supported?",
+                "op": [
+                  "That classmate has a comparative advantage in slide decks.",
+                  "That classmate has an absolute advantage in slide decks.",
+                  "That classmate will always earn more from trade.",
+                  "That classmate must produce every slide deck for the class."
+                ],
+                "ai": 0,
+                "ex": "That classmate has a comparative advantage in slide decks because the deciding factor is lower opportunity cost. A common mistake is to confuse this with absolute advantage, but being better at everything is not what makes the advantage comparative.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "After each producer specializes in the good with the lower opportunity cost and they trade, what happens according to the claims?",
+                "op": [
+                  "Total output rises and both can consume beyond what they could make alone.",
+                  "One producer must end up worse off than before trade.",
+                  "Each producer can consume only what it can produce alone.",
+                  "Trade helps only when one producer is better at every task."
+                ],
+                "ai": 0,
+                "ex": "Total output rises and both can consume beyond what they could make alone when specialization follows comparative advantage and trade occurs. The mistaken idea is that gains from trade require one producer to be better at everything, but the claims say the gains come from differences in opportunity.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Comparative advantage",
+                "df": "The lower-opportunity-cost producer in a good.",
+                "eg": "In the clinic, one student may have comparative advantage in chart design because giving up fewer practice problems is needed to make a polished slide.",
+                "mi": "It means the person who is best at a task in every respect.",
+                "cx": "The correction is that comparative advantage depends on lower opportunity cost, not overall talent or being strongest at everything.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Opportunity cost",
+                "df": "The next-best alternative given up when choosing one action over another.",
+                "eg": "If a student spends an hour on market-structure notes instead of a coding assignment, the forgone coding work is the opportunity cost.",
+                "mi": "It is the money spent directly on a choice.",
+                "cx": "The correction is that opportunity cost is about what must be forgone, whether or not any cash changes hands.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "e18d1b3ffd66b5bc2e05bedd4cb61883e79741b383abf80a1af5661267a5dc8c",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Two classmates can each produce both essays and slides, but one gives up fewer essays to make a slide deck. Which conclusion is supported?",
+                "op": [
+                  "That classmate has a comparative advantage in slide decks.",
+                  "That classmate has an absolute advantage in slide decks.",
+                  "That classmate will always earn more from trade.",
+                  "That classmate must produce every slide deck for the class."
+                ],
+                "ai": 0,
+                "ex": "That classmate has a comparative advantage in slide decks because the deciding factor is lower opportunity cost. A common mistake is to confuse this with absolute advantage, but being better at everything is not what makes the advantage comparative.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "After each producer specializes in the good with the lower opportunity cost and they trade, what happens according to the claims?",
+                "op": [
+                  "Total output rises and both can consume beyond what they could make alone.",
+                  "One producer must end up worse off than before trade.",
+                  "Each producer can consume only what it can produce alone.",
+                  "Trade helps only when one producer is better at every task."
+                ],
+                "ai": 0,
+                "ex": "Total output rises and both can consume beyond what they could make alone when specialization follows comparative advantage and trade occurs. The mistaken idea is that gains from trade require one producer to be better at everything, but the claims say the gains come from differences in opportunity.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Comparative advantage",
+                "df": "The lower-opportunity-cost producer in a good.",
+                "eg": "In the clinic, one student may have comparative advantage in chart design because giving up fewer practice problems is needed to make a polished slide.",
+                "mi": "It means the person who is best at a task in every respect.",
+                "cx": "The correction is that comparative advantage depends on lower opportunity cost, not overall talent or being strongest at everything.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Opportunity cost",
+                "df": "The next-best alternative given up when choosing one action over another.",
+                "eg": "If a student spends an hour on market-structure notes instead of a coding assignment, the forgone coding work is the opportunity cost.",
+                "mi": "It is the money spent directly on a choice.",
+                "cx": "The correction is that opportunity cost is about what must be forgone, whether or not any cash changes hands.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "e18d1b3ffd66b5bc2e05bedd4cb61883e79741b383abf80a1af5661267a5dc8c",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_095dc35e162980ef006a59700fbb2c81a3836636b8952f1492",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 745,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 797,
+              "output_tokens_details": {
+                "reasoning_tokens": 308
+              },
+              "total_tokens": 1542
+            }
+          },
+          "startedAt": "2026-07-16T23:58:07.655Z",
+          "durationMs": 6523
+        },
+        {
+          "promptId": "economics-market-structure-policy-clinic:econ/externality",
+          "kernelId": "econ/externality",
+          "promptSha256": "639d30fd336e2294ceca0143557cb9b33519e8ff37cc841b5a6f2acb63263efd",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which case is an externality?",
+                "op": [
+                  "Some of the cost of a transaction is paid by a bystander.",
+                  "The buyer and seller both bear the full cost of their trade.",
+                  "Only the firm making the choice pays every cost created by it.",
+                  "A price change happens before the trade takes place."
+                ],
+                "ai": 0,
+                "ex": "The first option fits because a cost from the exchange lands on someone outside the exchange. The other choices describe costs staying inside the trade, which is not an externality under the claim.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Why can pollution lead a market to produce too much?",
+                "op": [
+                  "The price leaves out spillover cost, so the market boundary is too narrow.",
+                  "The buyer's private value rises above the seller's asking price.",
+                  "Each producer has a larger plant than rivals.",
+                  "Trade stops whenever costs are visible."
+                ],
+                "ai": 0,
+                "ex": "The first option fits because when the price excludes the spillover cost, the market can produce more than the socially efficient quantity. A common mistake is to treat the problem as ordinary bargaining, but the issue here is the missing third-party cost, not a mismatch between buyer and seller.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Externality",
+                "df": "A cost or benefit from a transaction that lands on someone outside the exchange.",
+                "eg": "A factory's smoke raises nearby residents' cleanup expenses even though they did not buy the factory's output.",
+                "mi": "It is just the same as any direct payment between the two traders.",
+                "cx": "The extra effect is outside the bargain, so it is not part of the buyer-seller exchange itself.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Negative externality",
+                "df": "A spillover cost that can make an unregulated market choose too much output.",
+                "eg": "Pollution from a production process can leave nearby people worse off while the market price stays unchanged.",
+                "mi": "It means the good must be illegal or useless.",
+                "cx": "The key feature is the hidden cost on others, not whether the product has value or is banned.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "97be621d59ef3bcf5da098dcfeeb2355c4d16cc1d90f2564b79689d7e3962c7f",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which case is an externality?",
+                "op": [
+                  "Some of the cost of a transaction is paid by a bystander.",
+                  "The buyer and seller both bear the full cost of their trade.",
+                  "Only the firm making the choice pays every cost created by it.",
+                  "A price change happens before the trade takes place."
+                ],
+                "ai": 0,
+                "ex": "The first option fits because a cost from the exchange lands on someone outside the exchange. The other choices describe costs staying inside the trade, which is not an externality under the claim.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Why can pollution lead a market to produce too much?",
+                "op": [
+                  "The price leaves out spillover cost, so the market boundary is too narrow.",
+                  "The buyer's private value rises above the seller's asking price.",
+                  "Each producer has a larger plant than rivals.",
+                  "Trade stops whenever costs are visible."
+                ],
+                "ai": 0,
+                "ex": "The first option fits because when the price excludes the spillover cost, the market can produce more than the socially efficient quantity. A common mistake is to treat the problem as ordinary bargaining, but the issue here is the missing third-party cost, not a mismatch between buyer and seller.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Externality",
+                "df": "A cost or benefit from a transaction that lands on someone outside the exchange.",
+                "eg": "A factory's smoke raises nearby residents' cleanup expenses even though they did not buy the factory's output.",
+                "mi": "It is just the same as any direct payment between the two traders.",
+                "cx": "The extra effect is outside the bargain, so it is not part of the buyer-seller exchange itself.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Negative externality",
+                "df": "A spillover cost that can make an unregulated market choose too much output.",
+                "eg": "Pollution from a production process can leave nearby people worse off while the market price stays unchanged.",
+                "mi": "It means the good must be illegal or useless.",
+                "cx": "The key feature is the hidden cost on others, not whether the product has value or is banned.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "97be621d59ef3bcf5da098dcfeeb2355c4d16cc1d90f2564b79689d7e3962c7f",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_063e00aee4d89b39006a5970163fa0819d9e44460ad6fc5529",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 742,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 1115,
+              "output_tokens_details": {
+                "reasoning_tokens": 667
+              },
+              "total_tokens": 1857
+            }
+          },
+          "startedAt": "2026-07-16T23:58:14.191Z",
+          "durationMs": 10754
+        },
+        {
+          "promptId": "economics-market-structure-policy-clinic:econ/monopoly",
+          "kernelId": "econ/monopoly",
+          "promptSha256": "4a790c716c4b302c7d57d044947d3466ffb27455ab08ceee3c14ed9c5b38fd0f",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A market has one seller, no close substitutes, and barriers to entry. What market structure fits this description best?",
+                "op": [
+                  "A monopoly market",
+                  "A competitive market with many small sellers",
+                  "A market where firms freely enter and exit",
+                  "A market with close substitutes and no barriers"
+                ],
+                "ai": 0,
+                "ex": "A monopoly market is the only option that matches a single seller with no close substitutes and barriers to entry. The common mistake is to focus on the presence of a seller and miss that the other features are part of the same description, while the other options describe different kinds of markets",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "Compared with a price-taking competitive firm, what can a monopoly do by restricting the quantity it sells?",
+                "op": [
+                  "It can raise price",
+                  "It must accept the market price",
+                  "It can only lower price",
+                  "It cannot change quantity"
+                ],
+                "ai": 0,
+                "ex": "It can raise price is supported because a monopoly is a price maker that can increase price by restricting the quantity it sells. A plausible confusion is to treat it like a price-taking firm, but that is the opposite of the claim and the other options do not match it",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Monopoly",
+                "df": "A market in which one seller faces no close substitutes and entry is blocked by barriers.",
+                "eg": "Our clinic example treated a single local supplier with no close substitutes and high entry barriers as a monopoly market.",
+                "mi": "A monopoly just means a very large firm.",
+                "cx": "Size alone is not enough; the key features are one seller, no close substitutes, and barriers to entry.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Price maker",
+                "df": "A seller that can influence the market price by changing how much it sells.",
+                "eg": "In the course case, the seller raises price by cutting the quantity offered.",
+                "mi": "A price maker is any firm that sells at a high price.",
+                "cx": "The important idea is control over price, not simply charging a high price or having many customers.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "cc87d1a6552e75f2811d513a912c1a799a0ec6a5882070b5b5fa404f5173c244",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Monopoly",
+                "df": "A market in which one seller faces no close substitutes and entry is blocked by barriers.",
+                "eg": "Our clinic example treated a single local supplier with no close substitutes and high entry barriers as a monopoly market.",
+                "mi": "A monopoly just means a very large firm.",
+                "cx": "Size alone is not enough; the key features are one seller, no close substitutes, and barriers to entry.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Price maker",
+                "df": "A seller that can influence the market price by changing how much it sells.",
+                "eg": "In the course case, the seller raises price by cutting the quantity offered.",
+                "mi": "A price maker is any firm that sells at a high price.",
+                "cx": "The important idea is control over price, not simply charging a high price or having many customers.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "7ffed924e8029309d4267cf35d96a98275cc793862665eb4296c44e7769b8e79",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation",
+              "mc-1-truncated-explanation",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_02c302ecc923fbf0006a59702106fc81a0899a14061bd6df78",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 739,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 527,
+              "output_tokens_details": {
+                "reasoning_tokens": 90
+              },
+              "total_tokens": 1266
+            }
+          },
+          "startedAt": "2026-07-16T23:58:24.947Z",
+          "durationMs": 4707
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "economics-market-structure-policy-clinic:econ/monopoly",
+          "kernelId": "econ/monopoly",
+          "promptSha256": "4a790c716c4b302c7d57d044947d3466ffb27455ab08ceee3c14ed9c5b38fd0f",
+          "generationPromptSha256": "dccbd7be30f9711efbb698e9b956d3280bafe8e8c558b35906634f6e55225518",
+          "rawCallSha256": "62984f7e46d388eb52882348c49781fac659b80ce69148c8d3a40cb9e3fbb5eb",
+          "assessmentContract": "scion-source-targeted-assessment-v1",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which description best matches a monopoly?",
+                "op": [
+                  "A market with a single seller of a product that has no close substitutes, protected by barriers",
+                  "A market with many sellers offering close substitutes and no entry barriers",
+                  "A firm that can only accept the market price and cannot influence it",
+                  "A buyer-controlled market where firms must lower price to sell any output"
+                ],
+                "ai": 0,
+                "ex": "Correct: it has one seller, no close substitutes, and entry barriers. A monopoly is not just any large firm.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is a monopoly able to do differently from a price-taking competitive firm?",
+                "op": [
+                  "Raise price by restricting the quantity it sells",
+                  "Keep price fixed by selling whatever amount buyers want",
+                  "Avoid all losses because it faces no rivals",
+                  "Set price only by matching the average firm in the market"
+                ],
+                "ai": 0,
+                "ex": "Correct: it sells less and charges more than a competitive market, creating deadweight loss. That is not the same as simply being a big seller.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "7c4dea9c7b179c01480eeb5c0b21fc5d9899e6f5c27414b3792678f222d49367",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which description best matches a monopoly?",
+                "op": [
+                  "A market with a single seller of a product that has no close substitutes, protected by barriers",
+                  "A market with many sellers offering close substitutes and no entry barriers",
+                  "A firm that can only accept the market price and cannot influence it",
+                  "A buyer-controlled market where firms must lower price to sell any output"
+                ],
+                "ai": 0,
+                "ex": "Correct: it has one seller, no close substitutes, and entry barriers. A monopoly is not just any large firm.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is a monopoly able to do differently from a price-taking competitive firm?",
+                "op": [
+                  "Raise price by restricting the quantity it sells",
+                  "Keep price fixed by selling whatever amount buyers want",
+                  "Avoid all losses because it faces no rivals",
+                  "Set price only by matching the average firm in the market"
+                ],
+                "ai": 0,
+                "ex": "Correct: it sells less and charges more than a competitive market, creating deadweight loss. That is not the same as simply being a big seller.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "7c4dea9c7b179c01480eeb5c0b21fc5d9899e6f5c27414b3792678f222d49367",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_07b8895b7ce418dc006a59704e89ac819d9ca92b7b32954229",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 699,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 515,
+              "output_tokens_details": {
+                "reasoning_tokens": 278
+              },
+              "total_tokens": 1214
+            }
+          },
+          "startedAt": "2026-07-16T23:59:10.283Z",
+          "durationMs": 4025,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "economics-market-structure-policy-clinic:econ/monopoly"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "economics-market-structure-policy-clinic:econ/supply-curve",
+        "kernelId": "econ/supply-curve",
+        "promptSha256": "ef87bcbd25e84981e018db9c2b321363071a2e18a8c3dc617152c0b3073ff9d9",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A bakery sees the price of its bread rise while its flour costs and ovens stay the same. What happens to the bakery's supply curve for bread?",
+              "op": [
+                "It moves upward along the same curve",
+                "It shifts to a new position",
+                "It becomes flatter because costs stayed the same",
+                "It leaves quantity supplied unchanged"
+              ],
+              "ai": 0,
+              "ex": "It moves upward along the same curve because a change in the good's own price changes the quantity supplied rather than shifting the entire supply curve. A shift is more likely when input costs or technology change, which is not the case here.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "A farmer says, “I supply 50 bushels of corn.” Which statement fits the idea of quantity supplied?",
+              "op": [
+                "It is a flow measured over a period",
+                "It is a fixed stock sitting in storage",
+                "It is the market price of corn",
+                "It is the farmer's technology level"
+              ],
+              "ai": 0,
+              "ex": "It is a flow measured over a period because quantity supplied is described as a per-period amount. The common mistake is to treat it like a stock, but the claim distinguishes flow from fixed stock.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Supply curve",
+              "df": "A graph showing how much producers are willing to sell at different prices; higher prices are linked to larger quantities supplied.",
+              "eg": "In a pizza shop, a higher price for slices is associated with a larger amount the shop is willing to supply.",
+              "mi": "A curve is always a list of all firms in a market.",
+              "cx": "The curve describes price-quantity willingness, not the number of firms.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Quantity supplied",
+              "df": "The amount offered for sale during a given time period at a particular price.",
+              "eg": "A fruit seller may supply 200 apples this week at one price and a different amount next week at another price.",
+              "mi": "It means the total items a seller owns.",
+              "cx": "It is a per-period flow of goods offered for sale, not a stock of inventory.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "6b215ef9e0614b3181da1ceb8f1d35bc1f034fb3b435d89396c7264034a93929",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A bakery sees the price of its bread rise while its flour costs and ovens stay the same. What happens to the bakery's supply curve for bread?",
+              "op": [
+                "It moves upward along the same curve",
+                "It shifts to a new position",
+                "It becomes flatter because costs stayed the same",
+                "It leaves quantity supplied unchanged"
+              ],
+              "ai": 0,
+              "ex": "It moves upward along the same curve because a change in the good's own price changes the quantity supplied rather than shifting the entire supply curve. A shift is more likely when input costs or technology change, which is not the case here.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "A farmer says, “I supply 50 bushels of corn.” Which statement fits the idea of quantity supplied?",
+              "op": [
+                "It is a flow measured over a period",
+                "It is a fixed stock sitting in storage",
+                "It is the market price of corn",
+                "It is the farmer's technology level"
+              ],
+              "ai": 0,
+              "ex": "It is a flow measured over a period because quantity supplied is described as a per-period amount. The common mistake is to treat it like a stock, but the claim distinguishes flow from fixed stock.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Supply curve",
+              "df": "A graph showing how much producers are willing to sell at different prices; higher prices are linked to larger quantities supplied.",
+              "eg": "In a pizza shop, a higher price for slices is associated with a larger amount the shop is willing to supply.",
+              "mi": "A curve is always a list of all firms in a market.",
+              "cx": "The curve describes price-quantity willingness, not the number of firms.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "tr": "Quantity supplied",
+              "df": "The amount offered for sale during a given time period at a particular price.",
+              "eg": "A fruit seller may supply 200 apples this week at one price and a different amount next week at another price.",
+              "mi": "It means the total items a seller owns.",
+              "cx": "It is a per-period flow of goods offered for sale, not a stock of inventory.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "6b215ef9e0614b3181da1ceb8f1d35bc1f034fb3b435d89396c7264034a93929",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0cc539c70366a33b006a59700b26ac819193ecb1e73c5bf355",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 737,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 549,
+            "output_tokens_details": {
+              "reasoning_tokens": 104
+            },
+            "total_tokens": 1286
+          }
+        },
+        "startedAt": "2026-07-16T23:58:02.134Z",
+        "durationMs": 5519
+      },
+      {
+        "promptId": "economics-market-structure-policy-clinic:econ/comparative-advantage",
+        "kernelId": "econ/comparative-advantage",
+        "promptSha256": "0af04ce34c318b5026fa95600b337bf048ea281ea38102de9bedde47055ceef6",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Two classmates can each produce both essays and slides, but one gives up fewer essays to make a slide deck. Which conclusion is supported?",
+              "op": [
+                "That classmate has a comparative advantage in slide decks.",
+                "That classmate has an absolute advantage in slide decks.",
+                "That classmate will always earn more from trade.",
+                "That classmate must produce every slide deck for the class."
+              ],
+              "ai": 0,
+              "ex": "That classmate has a comparative advantage in slide decks because the deciding factor is lower opportunity cost. A common mistake is to confuse this with absolute advantage, but being better at everything is not what makes the advantage comparative.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "After each producer specializes in the good with the lower opportunity cost and they trade, what happens according to the claims?",
+              "op": [
+                "Total output rises and both can consume beyond what they could make alone.",
+                "One producer must end up worse off than before trade.",
+                "Each producer can consume only what it can produce alone.",
+                "Trade helps only when one producer is better at every task."
+              ],
+              "ai": 0,
+              "ex": "Total output rises and both can consume beyond what they could make alone when specialization follows comparative advantage and trade occurs. The mistaken idea is that gains from trade require one producer to be better at everything, but the claims say the gains come from differences in opportunity.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Comparative advantage",
+              "df": "The lower-opportunity-cost producer in a good.",
+              "eg": "In the clinic, one student may have comparative advantage in chart design because giving up fewer practice problems is needed to make a polished slide.",
+              "mi": "It means the person who is best at a task in every respect.",
+              "cx": "The correction is that comparative advantage depends on lower opportunity cost, not overall talent or being strongest at everything.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Opportunity cost",
+              "df": "The next-best alternative given up when choosing one action over another.",
+              "eg": "If a student spends an hour on market-structure notes instead of a coding assignment, the forgone coding work is the opportunity cost.",
+              "mi": "It is the money spent directly on a choice.",
+              "cx": "The correction is that opportunity cost is about what must be forgone, whether or not any cash changes hands.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "e18d1b3ffd66b5bc2e05bedd4cb61883e79741b383abf80a1af5661267a5dc8c",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Two classmates can each produce both essays and slides, but one gives up fewer essays to make a slide deck. Which conclusion is supported?",
+              "op": [
+                "That classmate has a comparative advantage in slide decks.",
+                "That classmate has an absolute advantage in slide decks.",
+                "That classmate will always earn more from trade.",
+                "That classmate must produce every slide deck for the class."
+              ],
+              "ai": 0,
+              "ex": "That classmate has a comparative advantage in slide decks because the deciding factor is lower opportunity cost. A common mistake is to confuse this with absolute advantage, but being better at everything is not what makes the advantage comparative.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "After each producer specializes in the good with the lower opportunity cost and they trade, what happens according to the claims?",
+              "op": [
+                "Total output rises and both can consume beyond what they could make alone.",
+                "One producer must end up worse off than before trade.",
+                "Each producer can consume only what it can produce alone.",
+                "Trade helps only when one producer is better at every task."
+              ],
+              "ai": 0,
+              "ex": "Total output rises and both can consume beyond what they could make alone when specialization follows comparative advantage and trade occurs. The mistaken idea is that gains from trade require one producer to be better at everything, but the claims say the gains come from differences in opportunity.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Comparative advantage",
+              "df": "The lower-opportunity-cost producer in a good.",
+              "eg": "In the clinic, one student may have comparative advantage in chart design because giving up fewer practice problems is needed to make a polished slide.",
+              "mi": "It means the person who is best at a task in every respect.",
+              "cx": "The correction is that comparative advantage depends on lower opportunity cost, not overall talent or being strongest at everything.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Opportunity cost",
+              "df": "The next-best alternative given up when choosing one action over another.",
+              "eg": "If a student spends an hour on market-structure notes instead of a coding assignment, the forgone coding work is the opportunity cost.",
+              "mi": "It is the money spent directly on a choice.",
+              "cx": "The correction is that opportunity cost is about what must be forgone, whether or not any cash changes hands.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "e18d1b3ffd66b5bc2e05bedd4cb61883e79741b383abf80a1af5661267a5dc8c",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_095dc35e162980ef006a59700fbb2c81a3836636b8952f1492",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 745,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 797,
+            "output_tokens_details": {
+              "reasoning_tokens": 308
+            },
+            "total_tokens": 1542
+          }
+        },
+        "startedAt": "2026-07-16T23:58:07.655Z",
+        "durationMs": 6523
+      },
+      {
+        "promptId": "economics-market-structure-policy-clinic:econ/externality",
+        "kernelId": "econ/externality",
+        "promptSha256": "639d30fd336e2294ceca0143557cb9b33519e8ff37cc841b5a6f2acb63263efd",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which case is an externality?",
+              "op": [
+                "Some of the cost of a transaction is paid by a bystander.",
+                "The buyer and seller both bear the full cost of their trade.",
+                "Only the firm making the choice pays every cost created by it.",
+                "A price change happens before the trade takes place."
+              ],
+              "ai": 0,
+              "ex": "The first option fits because a cost from the exchange lands on someone outside the exchange. The other choices describe costs staying inside the trade, which is not an externality under the claim.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Why can pollution lead a market to produce too much?",
+              "op": [
+                "The price leaves out spillover cost, so the market boundary is too narrow.",
+                "The buyer's private value rises above the seller's asking price.",
+                "Each producer has a larger plant than rivals.",
+                "Trade stops whenever costs are visible."
+              ],
+              "ai": 0,
+              "ex": "The first option fits because when the price excludes the spillover cost, the market can produce more than the socially efficient quantity. A common mistake is to treat the problem as ordinary bargaining, but the issue here is the missing third-party cost, not a mismatch between buyer and seller.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Externality",
+              "df": "A cost or benefit from a transaction that lands on someone outside the exchange.",
+              "eg": "A factory's smoke raises nearby residents' cleanup expenses even though they did not buy the factory's output.",
+              "mi": "It is just the same as any direct payment between the two traders.",
+              "cx": "The extra effect is outside the bargain, so it is not part of the buyer-seller exchange itself.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Negative externality",
+              "df": "A spillover cost that can make an unregulated market choose too much output.",
+              "eg": "Pollution from a production process can leave nearby people worse off while the market price stays unchanged.",
+              "mi": "It means the good must be illegal or useless.",
+              "cx": "The key feature is the hidden cost on others, not whether the product has value or is banned.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "97be621d59ef3bcf5da098dcfeeb2355c4d16cc1d90f2564b79689d7e3962c7f",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which case is an externality?",
+              "op": [
+                "Some of the cost of a transaction is paid by a bystander.",
+                "The buyer and seller both bear the full cost of their trade.",
+                "Only the firm making the choice pays every cost created by it.",
+                "A price change happens before the trade takes place."
+              ],
+              "ai": 0,
+              "ex": "The first option fits because a cost from the exchange lands on someone outside the exchange. The other choices describe costs staying inside the trade, which is not an externality under the claim.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "Why can pollution lead a market to produce too much?",
+              "op": [
+                "The price leaves out spillover cost, so the market boundary is too narrow.",
+                "The buyer's private value rises above the seller's asking price.",
+                "Each producer has a larger plant than rivals.",
+                "Trade stops whenever costs are visible."
+              ],
+              "ai": 0,
+              "ex": "The first option fits because when the price excludes the spillover cost, the market can produce more than the socially efficient quantity. A common mistake is to treat the problem as ordinary bargaining, but the issue here is the missing third-party cost, not a mismatch between buyer and seller.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Externality",
+              "df": "A cost or benefit from a transaction that lands on someone outside the exchange.",
+              "eg": "A factory's smoke raises nearby residents' cleanup expenses even though they did not buy the factory's output.",
+              "mi": "It is just the same as any direct payment between the two traders.",
+              "cx": "The extra effect is outside the bargain, so it is not part of the buyer-seller exchange itself.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Negative externality",
+              "df": "A spillover cost that can make an unregulated market choose too much output.",
+              "eg": "Pollution from a production process can leave nearby people worse off while the market price stays unchanged.",
+              "mi": "It means the good must be illegal or useless.",
+              "cx": "The key feature is the hidden cost on others, not whether the product has value or is banned.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "97be621d59ef3bcf5da098dcfeeb2355c4d16cc1d90f2564b79689d7e3962c7f",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_063e00aee4d89b39006a5970163fa0819d9e44460ad6fc5529",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 742,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 1115,
+            "output_tokens_details": {
+              "reasoning_tokens": 667
+            },
+            "total_tokens": 1857
+          }
+        },
+        "startedAt": "2026-07-16T23:58:14.191Z",
+        "durationMs": 10754
+      },
+      {
+        "promptId": "economics-market-structure-policy-clinic:econ/monopoly",
+        "kernelId": "econ/monopoly",
+        "promptSha256": "4a790c716c4b302c7d57d044947d3466ffb27455ab08ceee3c14ed9c5b38fd0f",
+        "generationPromptSha256": "dccbd7be30f9711efbb698e9b956d3280bafe8e8c558b35906634f6e55225518",
+        "rawCallSha256": "62984f7e46d388eb52882348c49781fac659b80ce69148c8d3a40cb9e3fbb5eb",
+        "recoveryCallSha256": "3d0d6a5ea23e62672e1f53d1b89eb1b9e1001059c65679c844db6751f5698b82",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which description best matches a monopoly?",
+              "op": [
+                "A market with a single seller of a product that has no close substitutes, protected by barriers",
+                "A market with many sellers offering close substitutes and no entry barriers",
+                "A firm that can only accept the market price and cannot influence it",
+                "A buyer-controlled market where firms must lower price to sell any output"
+              ],
+              "ai": 0,
+              "ex": "Correct: it has one seller, no close substitutes, and entry barriers. A monopoly is not just any large firm.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What is a monopoly able to do differently from a price-taking competitive firm?",
+              "op": [
+                "Raise price by restricting the quantity it sells",
+                "Keep price fixed by selling whatever amount buyers want",
+                "Avoid all losses because it faces no rivals",
+                "Set price only by matching the average firm in the market"
+              ],
+              "ai": 0,
+              "ex": "Correct: it sells less and charges more than a competitive market, creating deadweight loss. That is not the same as simply being a big seller.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Monopoly",
+              "df": "A market in which one seller faces no close substitutes and entry is blocked by barriers.",
+              "eg": "Our clinic example treated a single local supplier with no close substitutes and high entry barriers as a monopoly market.",
+              "mi": "A monopoly just means a very large firm.",
+              "cx": "Size alone is not enough; the key features are one seller, no close substitutes, and barriers to entry.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Price maker",
+              "df": "A seller that can influence the market price by changing how much it sells.",
+              "eg": "In the course case, the seller raises price by cutting the quantity offered.",
+              "mi": "A price maker is any firm that sells at a high price.",
+              "cx": "The important idea is control over price, not simply charging a high price or having many customers.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "b92143c7d8defdad5e1e6c20dbe19fed771ff89ada583ed5e3f3ce94f434ffa1",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which description best matches a monopoly?",
+              "op": [
+                "A market with a single seller of a product that has no close substitutes, protected by barriers",
+                "A market with many sellers offering close substitutes and no entry barriers",
+                "A firm that can only accept the market price and cannot influence it",
+                "A buyer-controlled market where firms must lower price to sell any output"
+              ],
+              "ai": 0,
+              "ex": "Correct: it has one seller, no close substitutes, and entry barriers. A monopoly is not just any large firm.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What is a monopoly able to do differently from a price-taking competitive firm?",
+              "op": [
+                "Raise price by restricting the quantity it sells",
+                "Keep price fixed by selling whatever amount buyers want",
+                "Avoid all losses because it faces no rivals",
+                "Set price only by matching the average firm in the market"
+              ],
+              "ai": 0,
+              "ex": "Correct: it sells less and charges more than a competitive market, creating deadweight loss. That is not the same as simply being a big seller.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Monopoly",
+              "df": "A market in which one seller faces no close substitutes and entry is blocked by barriers.",
+              "eg": "Our clinic example treated a single local supplier with no close substitutes and high entry barriers as a monopoly market.",
+              "mi": "A monopoly just means a very large firm.",
+              "cx": "Size alone is not enough; the key features are one seller, no close substitutes, and barriers to entry.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Price maker",
+              "df": "A seller that can influence the market price by changing how much it sells.",
+              "eg": "In the course case, the seller raises price by cutting the quantity offered.",
+              "mi": "A price maker is any firm that sells at a high price.",
+              "cx": "The important idea is control over price, not simply charging a high price or having many customers.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "b92143c7d8defdad5e1e6c20dbe19fed771ff89ada583ed5e3f3ce94f434ffa1",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T23:59:10.283Z",
+        "durationMs": 4025
+      }
+    ]
+  }
+}

@@ -1,0 +1,1785 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-anatomy-homeostasis-tissues-diagnostic-lab-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "Anatomy Homeostasis and Tissues Diagnostic Lab, a five-session course in which students move from levels of organization and feedback regulation to tissue classification and skin structure through short diagnostic decisions grounded in supplied claims.",
+  "fileNames": [
+    "source-packet-5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce.json"
+  ],
+  "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Anatomy Homeostasis and Tissues Diagnostic Lab\",\"sessions\":[{\"number\":1,\"title\":\"Levels of structural organization\"},{\"number\":2,\"title\":\"Homeostasis and feedback regulation\"},{\"number\":3,\"title\":\"Four primary tissue types\"},{\"number\":4,\"title\":\"Integumentary system and skin layers\"},{\"number\":5,\"title\":\"Skeletal system functions\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"Which level of organization includes the organism as the highest level?\",\"op\":[\"Cellular\",\"Tissue\",\"Organ System\",\"Organism\"],\"ai\":3,\"ex\":\"The organism is the highest level because it encompasses all other structures.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"What is the smallest independently functioning unit of a living organism?\",\"op\":[\"Tissue\",\"Cellular\",\"Organ\",\"Organ System\"],\"ai\":1,\"ex\":\"A cell is the smallest independently functioning unit of a living organism.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Levels of structural organization\",\"df\":\"The process of moving from chemical components to the organism.\",\"eg\":\"The progression from chemical components to cells to tissues to organs to the organism demonstrates the levels of structural organization.\",\"mi\":\"Levels of structural organization is only about chemical components and cells.\",\"cx\":\"Levels of structural organization includes chemical components, cells, tissues, organs, organ systems, and the organism.\",\"sourceFactIndexes\":[0]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Which mechanism describes the process where a system detects a deviation from a set point and initiates a response to restore stability?\",\"op\":[\"A feedback loop\",\"A set point\",\"A sensor\",\"A control center\"],\"ai\":0,\"ex\":\"A feedback loop includes a sensor, a control center, and an effector.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"What is the primary function of the physiological value that a system maintains stability around?\",\"op\":[\"A deviation\",\"A set point\",\"A response\",\"A sensor\"],\"ai\":1,\"ex\":\"A set point is the physiological value around which the normal range fluctuates.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-3\":{\"quizItems\":[{\"q\":\"Which tissue type is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function?\",\"op\":[\"Connective tissue\",\"Muscle tissue\",\"Epithelial tissue\",\"Nervous tissue\"],\"ai\":2,\"ex\":\"Epithelial tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function. Connective tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"What is the primary focus of histology studies?\",\"op\":[\"Feedback regulation mechanisms\",\"Tissue appearance, organization, and function under the microscope\",\"Levels of organization and feedback regulation\",\"Skin structure classification\"],\"ai\":1,\"ex\":\"Tissue appearance, organization, and function under the microscope is the primary focus of histology studies. Levels of organization and feedback regulation is the primary focus of histology studies.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Four primary tissue types\",\"df\":\"The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.\",\"eg\":\"Epithelial tissue forms the outer layer of the skin.\",\"mi\":\"Connective tissue is the only tissue that lacks cells.\",\"cx\":\"Connective tissue contains cells that are not epithelial.\",\"sourceFactIndexes\":[0]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"Which tissue layer is composed of keratinized stratified squamous epithelium?\",\"op\":[\"Dermis\",\"Epidermis\",\"Accessory structures\",\"Integumentary system\"],\"ai\":1,\"ex\":\"The epidermis is made of keratinized stratified squamous epithelium.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"What structures within the skin support protection and communication?\",\"op\":[\"Epidermis and dermis\",\"Keratinized epithelium\",\"Accessory structures\",\"Stratified squamous epithelium\"],\"ai\":2,\"ex\":\"Skin has epidermal and dermal layers that support protection and communication.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Epidermis\",\"df\":\"This layer is characterized by keratinized stratified squamous epithelium.\",\"eg\":\"The epidermis provides the primary barrier against external agents.\",\"mi\":\"The epidermis is the layer that contains the dermal connective tissue.\",\"cx\":\"The epidermis is the outermost layer of the skin composed of keratinized stratified squamous epithelium.\",\"sourceFactIndexes\":[1,2]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"Which component of the body is characterized by being hard, dense connective tissue that constitutes the majority of the adult skeleton?\",\"op\":[\"Cartilage\",\"Bone tissue\",\"Muscle tissue\",\"Skin structure\"],\"ai\":1,\"ex\":\"Bone tissue is hard, dense connective tissue that forms most of the adult skeleton.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"What function of the skeletal system is directly enabled by bones providing attachment points for muscles?\",\"op\":[\"Organ protection\",\"Mineral storage\",\"Movement facilitation\",\"Blood cell production\"],\"ai\":2,\"ex\":\"Movement facilitation is enabled by bones providing attachment points for muscles.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Hard, dense connective tissue\",\"df\":\"A type of tissue that is soft and flexible, like the tissue found in the ear.\",\"eg\":\"The bone tissue forms the main structure of the adult skeleton.\",\"mi\":\"This tissue is primarily responsible for secreting hormones.\",\"cx\":\"Hard, dense connective tissue is the material that makes up the majority of the adult skeleton.\",\"sourceFactIndexes\":[1]},{\"tr\":\"Attachment points\",\"df\":\"Areas on the body where structures connect to each other, such as joints.\",\"eg\":\"Bones provide attachment points for muscles to facilitate movement.\",\"mi\":\"Attachment points are exclusively found in the skin layer.\",\"cx\":\"Attachment points are the locations where bones connect to muscles to enable movement.\",\"sourceFactIndexes\":[2]}]}}}}",
+  "savedAt": "2026-07-16T22:40:40.579Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-course-group-breadth-v0.16.47.json",
+    "campaignManifestSha256": "54233a8e64074f0060a69d3ac778f719850220092ba51eb87ca10ef1fa0c3693",
+    "promptSetSha256": "5a44124735946a0ae568082769b29d43575b9bffa20cea1c81a520d7d48df40f",
+    "courseInputSha256": "f56acfff0d29bdc297cd65da104e05b7c79a2440a4c94236f739dfa609200209",
+    "courseGroupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+    "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/anatomy-intro.json",
+      "sourceArtifactSha256": "bd4ddecb051add0069a8e7010cd9af0b241fc124d23b235ac391c5524f0763cb",
+      "kernels": [
+        {
+          "id": "anatomy/levels-of-organization",
+          "term": "Levels of structural organization",
+          "definition": "Human anatomy and physiology organizes body structure from chemical components to cells, tissues, organs, organ systems, and the organism, so students can connect form to function across scales.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1-organization",
+            "loc": "1.2",
+            "quote": "Life processes of the human body are maintained at several levels of structural organization"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A cell is the smallest independently functioning unit of a living organism.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#1-organization",
+                "loc": "1.2",
+                "quote": "A cell is the smallest independently functioning unit of a living organism"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Organs are anatomically distinct structures made of two or more tissue types.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#1-organization",
+                "loc": "1.2",
+                "quote": "An organ is an anatomically distinct structure of the body composed of two or more tissue types"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/homeostasis-feedback",
+          "term": "Homeostasis and feedback regulation",
+          "definition": "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+            "loc": "1.5",
+            "quote": "Negative feedback is a mechanism that reverses a deviation from the set point"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A set point is the physiological value around which the normal range fluctuates.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+                "loc": "1.5",
+                "quote": "A set point is the physiological value around which the normal range fluctuates"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A feedback loop includes a sensor, a control center, and an effector.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#1-homeostasis",
+                "loc": "1.5",
+                "quote": "An effector is the component in a feedback system that causes a change to reverse the situation and return the value to the normal range"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/tissue-types",
+          "term": "Four primary tissue types",
+          "definition": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#4-1",
+            "loc": "4.1",
+            "quote": "they are organized into four broad categories of tissues: epithelial, connective, muscle, and nervous"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Histology studies tissue appearance, organization, and function under the microscope.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#4-1",
+                "loc": "4.1",
+                "quote": "histology, the microscopic study of tissue appearance, organization, and function"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Tissue cells share morphological features and an orderly arrangement that supports tissue function.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#4-1",
+                "loc": "4.1",
+                "quote": "share morphological features and are arranged in an orderly pattern that achieves the tissue's functions"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/integumentary-skin-layers",
+          "term": "Integumentary system and skin layers",
+          "definition": "The integumentary system includes the skin and accessory structures; skin has epidermal and dermal layers that support protection and communication.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#5-1",
+            "loc": "5.1",
+            "quote": "The skin and its accessory structures make up the integumentary system"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The skin has two main layers: the epidermis and dermis.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#5-1",
+                "loc": "5.1",
+                "quote": "The skin is composed of two main layers: the epidermis"
+              }
+            },
+            {
+              "index": 1,
+              "text": "The epidermis is made of keratinized stratified squamous epithelium.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#5-1",
+                "loc": "5.1",
+                "quote": "The epidermis is composed of keratinized, stratified squamous epithelium"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        },
+        {
+          "id": "anatomy/skeletal-system-functions",
+          "term": "Skeletal system functions",
+          "definition": "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "definitionAnchor": {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "supports the body, facilitates movement, protects internal organs, produces blood cells, stores and releases minerals and fat"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#6-1",
+                "loc": "6.1",
+                "quote": "Bone, or osseous tissue, is a hard, dense connective tissue"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Bones facilitate movement by providing attachment points for muscles.",
+              "anchor": {
+                "src": "openstax:anatomy-and-physiology-2e#6-1",
+                "loc": "6.1",
+                "quote": "Bones also facilitate movement by serving as points of attachment for your muscles"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax Anatomy and Physiology 2e"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-16T22:40:40.579Z",
+    "admittedPromptIds": [
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization",
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/homeostasis-feedback",
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/tissue-types",
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/integumentary-skin-layers",
+      "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/skeletal-system-functions"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization",
+          "kernelId": "anatomy/levels-of-organization",
+          "promptSha256": "f7e0def712cde4901bc85395738f285c595693b714fe3354b9f66b9e745407ac",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which level of structural organization is the smallest independently functioning unit of a living organism?",
+                "op": [
+                  "Tissue",
+                  "Organ",
+                  "Cell, because it is the smallest independently functioning unit of a living organism",
+                  "Organ system"
+                ],
+                "ai": 2,
+                "ex": "The cell is the smallest independently functioning unit of a living organism, which is the correct choice. A common misconception is confusing the cell with a tissue, which is a larger structure made of many cells.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What structure is anatomically distinct and made of two or more tissue types?",
+                "op": [
+                  "Cellular component",
+                  "Organ",
+                  "Organ, because organs are anatomically distinct structures made of two or more tissue types",
+                  "Chemical component"
+                ],
+                "ai": 2,
+                "ex": "An organ is anatomically distinct and made of two or more tissue types, which is the correct choice. A plausible misconception is selecting a cell, which is the smallest unit, or an organ system, which is a higher level of organization.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Smallest functional unit",
+                "df": "The cell is the smallest independently functioning unit of a living organism.",
+                "eg": "A single neuron functions as the smallest independently functioning unit of a living organism.",
+                "mi": "A tissue is the smallest independently functioning unit of a living organism.",
+                "cx": "The cell is the smallest independently functioning unit of a living organism.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Distinct structure",
+                "df": "Organs are anatomically distinct structures made of two or more tissue types.",
+                "eg": "The heart is an anatomically distinct structure made of two or more tissue types.",
+                "mi": "A cell is an anatomically distinct structure made of two or more tissue types.",
+                "cx": "Organs are anatomically distinct structures made of two or more tissue types.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "916cfa8573cc135f714bb1b8b14414cc7b6197f4344c061279fc0bf928d0a077",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-option-homogeneity",
+              "mc-0-clang-association-cue",
+              "mc-0-longest-option-cue",
+              "mc-1-option-homogeneity",
+              "mc-1-clang-association-cue",
+              "mc-1-longest-option-cue",
+              "key-term-0-misconception-repeats-definition",
+              "key-term-0-correction-repeats-definition",
+              "key-term-0-correction-repeats-misconception",
+              "key-term-0-misconception-repeats-known-fact",
+              "key-term-1-circular-definition",
+              "key-term-1-correction-repeats-definition",
+              "key-term-1-misconception-repeats-example",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:35:30.670Z",
+          "durationMs": 13033
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/homeostasis-feedback",
+          "kernelId": "anatomy/homeostasis-feedback",
+          "promptSha256": "14a650685e12d7c52b49f382cd1bc1b7450be27caed8c605653838b67d6824e8",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which mechanism describes the process where a system detects a deviation from a set point and initiates a response to restore stability?",
+                "op": [
+                  "A feedback loop",
+                  "A set point",
+                  "A sensor",
+                  "A control center"
+                ],
+                "ai": 0,
+                "ex": "A feedback loop includes a sensor, a control center, and an effector.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "What is the primary function of the physiological value that a system maintains stability around?",
+                "op": [
+                  "A deviation",
+                  "A set point",
+                  "A response",
+                  "A sensor"
+                ],
+                "ai": 1,
+                "ex": "A set point is the physiological value around which the normal range fluctuates.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Homeostasis",
+                "df": "The maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+                "eg": "Maintaining a constant body temperature through sweating when it rises above the set point.",
+                "mi": "Homeostasis is achieved only through positive feedback loops that amplify the initial change.",
+                "cx": "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Feedback loop",
+                "df": "A feedback loop includes a sensor, a control center, and an effector.",
+                "eg": "The process of regulating blood sugar where a sensor detects high glucose, the control center processes the signal, and the effector releases insulin.",
+                "mi": "A feedback loop is solely responsible for increasing the initial deviation from the set point.",
+                "cx": "A feedback loop includes a sensor, a control center, and an effector.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "8134821fad59f7523264c995835635218934a10fe07a66ba3f1b833392cfddf2",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which mechanism describes the process where a system detects a deviation from a set point and initiates a response to restore stability?",
+                "op": [
+                  "A feedback loop",
+                  "A set point",
+                  "A sensor",
+                  "A control center"
+                ],
+                "ai": 0,
+                "ex": "A feedback loop includes a sensor, a control center, and an effector.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "What is the primary function of the physiological value that a system maintains stability around?",
+                "op": [
+                  "A deviation",
+                  "A set point",
+                  "A response",
+                  "A sensor"
+                ],
+                "ai": 1,
+                "ex": "A set point is the physiological value around which the normal range fluctuates.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "52df96946aa6cf8b31db8a8e00048074f57c8a84f1800ac778589545055ee1b9",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-correction-repeats-definition",
+              "key-term-1-circular-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:35:43.704Z",
+          "durationMs": 7525
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/tissue-types",
+          "kernelId": "anatomy/tissue-types",
+          "promptSha256": "d62d1974e059bd008ca61edb3f5f6bdacef25b0007db8fb361f24529695cd57d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which tissue type is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function?",
+                "op": [
+                  "Connective tissue",
+                  "Muscle tissue",
+                  "Epithelial tissue",
+                  "Nervous tissue"
+                ],
+                "ai": 2,
+                "ex": "Epithelial tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function. Connective tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "What is the primary focus of histology studies?",
+                "op": [
+                  "Feedback regulation mechanisms",
+                  "Tissue appearance, organization, and function under the microscope",
+                  "Levels of organization and feedback regulation",
+                  "Skin structure classification"
+                ],
+                "ai": 1,
+                "ex": "Tissue appearance, organization, and function under the microscope is the primary focus of histology studies. Levels of organization and feedback regulation is the primary focus of histology studies.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Four broad tissue categories",
+                "df": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+                "eg": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+                "mi": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+                "cx": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Histology",
+                "df": "Histology studies tissue appearance, organization, and function under the microscope.",
+                "eg": "Histology studies tissue appearance, organization, and function under the microscope.",
+                "mi": "Histology studies tissue appearance, organization, and function under the microscope.",
+                "cx": "Histology studies tissue appearance, organization, and function under the microscope.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "86d3d3d978eedd0e9806e53dfb217c37440e0673450ffbb5dc49ba0655ef9447",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which tissue type is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function?",
+                "op": [
+                  "Connective tissue",
+                  "Muscle tissue",
+                  "Epithelial tissue",
+                  "Nervous tissue"
+                ],
+                "ai": 2,
+                "ex": "Epithelial tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function. Connective tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "What is the primary focus of histology studies?",
+                "op": [
+                  "Feedback regulation mechanisms",
+                  "Tissue appearance, organization, and function under the microscope",
+                  "Levels of organization and feedback regulation",
+                  "Skin structure classification"
+                ],
+                "ai": 1,
+                "ex": "Tissue appearance, organization, and function under the microscope is the primary focus of histology studies. Levels of organization and feedback regulation is the primary focus of histology studies.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "150cf7032a62cc2c840002487143b71330a1f8b446593f8e21f724eea755e6bf",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-circular-definition",
+              "key-term-0-example-repeats-definition",
+              "key-term-0-misconception-repeats-definition",
+              "key-term-0-correction-repeats-definition",
+              "key-term-0-misconception-repeats-example",
+              "key-term-0-correction-repeats-example",
+              "key-term-0-correction-repeats-misconception",
+              "key-term-0-misconception-repeats-known-fact",
+              "key-term-1-circular-definition",
+              "key-term-1-example-repeats-definition",
+              "key-term-1-misconception-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "key-term-1-misconception-repeats-example",
+              "key-term-1-correction-repeats-example",
+              "key-term-1-correction-repeats-misconception",
+              "key-term-1-misconception-repeats-known-fact",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:35:51.235Z",
+          "durationMs": 8159
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/integumentary-skin-layers",
+          "kernelId": "anatomy/integumentary-skin-layers",
+          "promptSha256": "21fea912b025eafc579699203c08ab8d572f498cd52c7e027467f111dd14d20d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which tissue layer is composed of keratinized stratified squamous epithelium?",
+                "op": [
+                  "Dermis",
+                  "Epidermis",
+                  "Accessory structures",
+                  "Integumentary system"
+                ],
+                "ai": 1,
+                "ex": "The epidermis is made of keratinized stratified squamous epithelium.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What structures within the skin support protection and communication?",
+                "op": [
+                  "Epidermis and dermis",
+                  "Keratinized epithelium",
+                  "Accessory structures",
+                  "Stratified squamous epithelium"
+                ],
+                "ai": 2,
+                "ex": "Skin has epidermal and dermal layers that support protection and communication.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Epidermis",
+                "df": "This layer is characterized by keratinized stratified squamous epithelium.",
+                "eg": "The epidermis provides the primary barrier against external agents.",
+                "mi": "The epidermis is the layer that contains the dermal connective tissue.",
+                "cx": "The epidermis is the outermost layer of the skin composed of keratinized stratified squamous epithelium.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Dermis",
+                "df": "This layer is composed of connective tissue that supports protection and communication.",
+                "eg": "The dermis provides structural support beneath the outer skin layer.",
+                "mi": "The dermis is made of keratinized stratified squamous epithelium.",
+                "cx": "The dermis is the layer beneath the epidermis that supports protection and communication.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "2e651e218fb61408571a3993f5ebb67e6cfa7bf4239679dbe0d75c74594cefe9",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which tissue layer is composed of keratinized stratified squamous epithelium?",
+                "op": [
+                  "Dermis",
+                  "Epidermis",
+                  "Accessory structures",
+                  "Integumentary system"
+                ],
+                "ai": 1,
+                "ex": "The epidermis is made of keratinized stratified squamous epithelium.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "What structures within the skin support protection and communication?",
+                "op": [
+                  "Epidermis and dermis",
+                  "Keratinized epithelium",
+                  "Accessory structures",
+                  "Stratified squamous epithelium"
+                ],
+                "ai": 2,
+                "ex": "Skin has epidermal and dermal layers that support protection and communication.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Epidermis",
+                "df": "This layer is characterized by keratinized stratified squamous epithelium.",
+                "eg": "The epidermis provides the primary barrier against external agents.",
+                "mi": "The epidermis is the layer that contains the dermal connective tissue.",
+                "cx": "The epidermis is the outermost layer of the skin composed of keratinized stratified squamous epithelium.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "07955fdd8acc92d53c789f766764e3e494585311bdba92f5ca3eaae01df165b8",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-1-misconception-repeats-known-fact"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:35:59.394Z",
+          "durationMs": 6660
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/skeletal-system-functions",
+          "kernelId": "anatomy/skeletal-system-functions",
+          "promptSha256": "1fcde06885fa57516e713938fa01349b0f14fb9b8c09ab50d652a7505340e383",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which component of the body is characterized by being hard, dense connective tissue that constitutes the majority of the adult skeleton?",
+                "op": [
+                  "Cartilage",
+                  "Bone tissue",
+                  "Muscle tissue",
+                  "Skin structure"
+                ],
+                "ai": 1,
+                "ex": "Bone tissue is hard, dense connective tissue that forms most of the adult skeleton.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What function of the skeletal system is directly enabled by bones providing attachment points for muscles?",
+                "op": [
+                  "Organ protection",
+                  "Mineral storage",
+                  "Movement facilitation",
+                  "Blood cell production"
+                ],
+                "ai": 2,
+                "ex": "Movement facilitation is enabled by bones providing attachment points for muscles.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Hard, dense connective tissue",
+                "df": "A type of tissue that is soft and flexible, like the tissue found in the ear.",
+                "eg": "The bone tissue forms the main structure of the adult skeleton.",
+                "mi": "This tissue is primarily responsible for secreting hormones.",
+                "cx": "Hard, dense connective tissue is the material that makes up the majority of the adult skeleton.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Attachment points",
+                "df": "Areas on the body where structures connect to each other, such as joints.",
+                "eg": "Bones provide attachment points for muscles to facilitate movement.",
+                "mi": "Attachment points are exclusively found in the skin layer.",
+                "cx": "Attachment points are the locations where bones connect to muscles to enable movement.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "967a03e6e3e4b3f9958019155a583a8f4e8912bb9eca674158164238c10ad584",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which component of the body is characterized by being hard, dense connective tissue that constitutes the majority of the adult skeleton?",
+                "op": [
+                  "Cartilage",
+                  "Bone tissue",
+                  "Muscle tissue",
+                  "Skin structure"
+                ],
+                "ai": 1,
+                "ex": "Bone tissue is hard, dense connective tissue that forms most of the adult skeleton.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What function of the skeletal system is directly enabled by bones providing attachment points for muscles?",
+                "op": [
+                  "Organ protection",
+                  "Mineral storage",
+                  "Movement facilitation",
+                  "Blood cell production"
+                ],
+                "ai": 2,
+                "ex": "Movement facilitation is enabled by bones providing attachment points for muscles.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Hard, dense connective tissue",
+                "df": "A type of tissue that is soft and flexible, like the tissue found in the ear.",
+                "eg": "The bone tissue forms the main structure of the adult skeleton.",
+                "mi": "This tissue is primarily responsible for secreting hormones.",
+                "cx": "Hard, dense connective tissue is the material that makes up the majority of the adult skeleton.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Attachment points",
+                "df": "Areas on the body where structures connect to each other, such as joints.",
+                "eg": "Bones provide attachment points for muscles to facilitate movement.",
+                "mi": "Attachment points are exclusively found in the skin layer.",
+                "cx": "Attachment points are the locations where bones connect to muscles to enable movement.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "967a03e6e3e4b3f9958019155a583a8f4e8912bb9eca674158164238c10ad584",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:36:06.055Z",
+          "durationMs": 6909
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization",
+          "kernelId": "anatomy/levels-of-organization",
+          "promptSha256": "f7e0def712cde4901bc85395738f285c595693b714fe3354b9f66b9e745407ac",
+          "generationPromptSha256": "c74beadb88ee755e4aee36eb9bff0c57d01ea3a98c7e13a63e681ec85f2604a1",
+          "rawCallSha256": "1f095f0bab9fe2cf0e14d1336c0428575d9f705ff1e99379e18a92f930d78bf9",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which level of organization includes the organism as the highest level?",
+                "op": [
+                  "Cellular",
+                  "Tissue",
+                  "Organ System",
+                  "Organism"
+                ],
+                "ai": 3,
+                "ex": "The organism is the highest level because it encompasses all other structures.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is the smallest independently functioning unit of a living organism?",
+                "op": [
+                  "Tissue",
+                  "Cellular",
+                  "Organ",
+                  "Organ System"
+                ],
+                "ai": 1,
+                "ex": "A cell is the smallest independently functioning unit of a living organism.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Levels of structural organization",
+                "df": "The process of moving from chemical components to the organism.",
+                "eg": "The progression from chemical components to cells to tissues to organs to the organism demonstrates the levels of structural organization.",
+                "mi": "Levels of structural organization is only about chemical components and cells.",
+                "cx": "Levels of structural organization includes chemical components, cells, tissues, organs, organ systems, and the organism.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Cell",
+                "df": "The smallest independently functioning unit of a living organism.",
+                "eg": "A cell is the smallest independently functioning unit of a living organism.",
+                "mi": "A cell is a structure made of two or more tissue types.",
+                "cx": "A cell is the smallest independently functioning unit of a living organism.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "d9fad5704ccf787f27d45f247eb50eb538bd7406f1a9271d385acda4e4600e9f",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which level of organization includes the organism as the highest level?",
+                "op": [
+                  "Cellular",
+                  "Tissue",
+                  "Organ System",
+                  "Organism"
+                ],
+                "ai": 3,
+                "ex": "The organism is the highest level because it encompasses all other structures.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is the smallest independently functioning unit of a living organism?",
+                "op": [
+                  "Tissue",
+                  "Cellular",
+                  "Organ",
+                  "Organ System"
+                ],
+                "ai": 1,
+                "ex": "A cell is the smallest independently functioning unit of a living organism.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Levels of structural organization",
+                "df": "The process of moving from chemical components to the organism.",
+                "eg": "The progression from chemical components to cells to tissues to organs to the organism demonstrates the levels of structural organization.",
+                "mi": "Levels of structural organization is only about chemical components and cells.",
+                "cx": "Levels of structural organization includes chemical components, cells, tissues, organs, organ systems, and the organism.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "7d55abca81a90ae722c23a0a7db945758dc62aef9e25ec924fa858697bb26d05",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-1-example-repeats-definition",
+              "key-term-1-correction-repeats-definition",
+              "key-term-1-correction-repeats-example"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:40:23.593Z",
+          "durationMs": 9687,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/homeostasis-feedback",
+          "kernelId": "anatomy/homeostasis-feedback",
+          "promptSha256": "14a650685e12d7c52b49f382cd1bc1b7450be27caed8c605653838b67d6824e8",
+          "generationPromptSha256": "c0a6ac0135e80a85aec432b9de806196d02cf62ed01eb0717fae230602f9c55d",
+          "rawCallSha256": "1e1edacf80065a6c0468b12194664a482716b390d96db2706901e94730b79074",
+          "response": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Homeostasis",
+                "df": "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+                "eg": "The body maintains a stable core temperature of 98.6°F through negative feedback.",
+                "mi": "Homeostasis is achieved primarily through positive feedback loops.",
+                "cx": "Homeostasis is achieved through negative feedback loops that reverse deviations from a set point.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Set Point",
+                "df": "A set point is the physiological value around which the normal range fluctuates.",
+                "eg": "The normal blood sugar level is the set point for glucose regulation.",
+                "mi": "A set point is the range of values that a system fluctuates within.",
+                "cx": "A set point is the physiological value around which the normal range fluctuates.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "0f5f210da787a452543c992249aeda74f5d28633e129ae9ebec5a692f6eb3a17",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-0-circular-definition",
+              "key-term-1-circular-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 0,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:40:33.281Z",
+          "durationMs": 3027,
+          "recoveryTarget": {
+            "mcItems": 0,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/tissue-types",
+          "kernelId": "anatomy/tissue-types",
+          "promptSha256": "d62d1974e059bd008ca61edb3f5f6bdacef25b0007db8fb361f24529695cd57d",
+          "generationPromptSha256": "32c5a5b96276df6571088dc5ab155cc4fee3d96ba55feb68b5266c0c24a50af7",
+          "rawCallSha256": "21b86527a006f7b53c39c8221e2ad53ca307103971871ec21f8b0a7a7dfdf8f3",
+          "response": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Four primary tissue types",
+                "df": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+                "eg": "Epithelial tissue forms the outer layer of the skin.",
+                "mi": "Connective tissue is the only tissue that lacks cells.",
+                "cx": "Connective tissue contains cells that are not epithelial.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Histology",
+                "df": "Histology studies tissue appearance, organization, and function under the microscope.",
+                "eg": "A student examines a tissue sample under a microscope to determine its structure.",
+                "mi": "Histology only studies the function of tissues.",
+                "cx": "Histology studies the appearance, organization, and function of tissues.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "ddde9cb7d396ad6c8d43dd5fc0499c10f878d8cb17ef8111918c36531b142af9",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Four primary tissue types",
+                "df": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+                "eg": "Epithelial tissue forms the outer layer of the skin.",
+                "mi": "Connective tissue is the only tissue that lacks cells.",
+                "cx": "Connective tissue contains cells that are not epithelial.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "17f83f91b61349f0c2d52ed863c3a921765dde8ca0108d117f8dab27ee6630e7",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-1-circular-definition",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 0,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:40:36.314Z",
+          "durationMs": 2821,
+          "recoveryTarget": {
+            "mcItems": 0,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/integumentary-skin-layers",
+          "kernelId": "anatomy/integumentary-skin-layers",
+          "promptSha256": "21fea912b025eafc579699203c08ab8d572f498cd52c7e027467f111dd14d20d",
+          "generationPromptSha256": "e27af9115dc956f5c652035be814b541d8fd1ae4a69d1be2e74d6363f7cfe17a",
+          "rawCallSha256": "775dd1fe16c8d1f3bd2bdfae178d0df2f2b6cb8f6ce0aab3147feae1a5a2d316",
+          "response": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Epidermis",
+                "df": "The epidermis is made of keratinized stratified squamous epithelium.",
+                "eg": "The epidermis is the outermost layer of the skin.",
+                "mi": "The epidermis is composed of simple squamous epithelium.",
+                "cx": "The epidermis is composed of keratinized stratified squamous epithelium.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "fd7be70e7aedd5d96fd0ff0195eae89de4419e2f2fb53abb8e1902674fc9d39f",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "key-term-0-circular-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 0,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 1,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:40:39.135Z",
+          "durationMs": 1444,
+          "recoveryTarget": {
+            "mcItems": 0,
+            "keyTerms": 1
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization",
+        "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/tissue-types"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/levels-of-organization",
+        "kernelId": "anatomy/levels-of-organization",
+        "promptSha256": "f7e0def712cde4901bc85395738f285c595693b714fe3354b9f66b9e745407ac",
+        "generationPromptSha256": "c74beadb88ee755e4aee36eb9bff0c57d01ea3a98c7e13a63e681ec85f2604a1",
+        "rawCallSha256": "1f095f0bab9fe2cf0e14d1336c0428575d9f705ff1e99379e18a92f930d78bf9",
+        "recoveryCallSha256": "4b8e12e5a91cfb02595b33dc1438ccc2702f3e276fe0758f122487f88fb5bffc",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which level of organization includes the organism as the highest level?",
+              "op": [
+                "Cellular",
+                "Tissue",
+                "Organ System",
+                "Organism"
+              ],
+              "ai": 3,
+              "ex": "The organism is the highest level because it encompasses all other structures.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What is the smallest independently functioning unit of a living organism?",
+              "op": [
+                "Tissue",
+                "Cellular",
+                "Organ",
+                "Organ System"
+              ],
+              "ai": 1,
+              "ex": "A cell is the smallest independently functioning unit of a living organism.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Levels of structural organization",
+              "df": "The process of moving from chemical components to the organism.",
+              "eg": "The progression from chemical components to cells to tissues to organs to the organism demonstrates the levels of structural organization.",
+              "mi": "Levels of structural organization is only about chemical components and cells.",
+              "cx": "Levels of structural organization includes chemical components, cells, tissues, organs, organ systems, and the organism.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "7d55abca81a90ae722c23a0a7db945758dc62aef9e25ec924fa858697bb26d05",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which level of organization includes the organism as the highest level?",
+              "op": [
+                "Cellular",
+                "Tissue",
+                "Organ System",
+                "Organism"
+              ],
+              "ai": 3,
+              "ex": "The organism is the highest level because it encompasses all other structures.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "What is the smallest independently functioning unit of a living organism?",
+              "op": [
+                "Tissue",
+                "Cellular",
+                "Organ",
+                "Organ System"
+              ],
+              "ai": 1,
+              "ex": "A cell is the smallest independently functioning unit of a living organism.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Levels of structural organization",
+              "df": "The process of moving from chemical components to the organism.",
+              "eg": "The progression from chemical components to cells to tissues to organs to the organism demonstrates the levels of structural organization.",
+              "mi": "Levels of structural organization is only about chemical components and cells.",
+              "cx": "Levels of structural organization includes chemical components, cells, tissues, organs, organ systems, and the organism.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "7d55abca81a90ae722c23a0a7db945758dc62aef9e25ec924fa858697bb26d05",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-count"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 1,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T22:40:23.593Z",
+        "durationMs": 9687
+      },
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/homeostasis-feedback",
+        "kernelId": "anatomy/homeostasis-feedback",
+        "promptSha256": "14a650685e12d7c52b49f382cd1bc1b7450be27caed8c605653838b67d6824e8",
+        "generationPromptSha256": "c0a6ac0135e80a85aec432b9de806196d02cf62ed01eb0717fae230602f9c55d",
+        "rawCallSha256": "1e1edacf80065a6c0468b12194664a482716b390d96db2706901e94730b79074",
+        "recoveryCallSha256": "75398271ddc13e4ffbbb1c9df7184fe04cf947fd538985fbef2c18eb4ec576ee",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which mechanism describes the process where a system detects a deviation from a set point and initiates a response to restore stability?",
+              "op": [
+                "A feedback loop",
+                "A set point",
+                "A sensor",
+                "A control center"
+              ],
+              "ai": 0,
+              "ex": "A feedback loop includes a sensor, a control center, and an effector.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "What is the primary function of the physiological value that a system maintains stability around?",
+              "op": [
+                "A deviation",
+                "A set point",
+                "A response",
+                "A sensor"
+              ],
+              "ai": 1,
+              "ex": "A set point is the physiological value around which the normal range fluctuates.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "responseSha256": "52df96946aa6cf8b31db8a8e00048074f57c8a84f1800ac778589545055ee1b9",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which mechanism describes the process where a system detects a deviation from a set point and initiates a response to restore stability?",
+              "op": [
+                "A feedback loop",
+                "A set point",
+                "A sensor",
+                "A control center"
+              ],
+              "ai": 0,
+              "ex": "A feedback loop includes a sensor, a control center, and an effector.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "What is the primary function of the physiological value that a system maintains stability around?",
+              "op": [
+                "A deviation",
+                "A set point",
+                "A response",
+                "A sensor"
+              ],
+              "ai": 1,
+              "ex": "A set point is the physiological value around which the normal range fluctuates.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "52df96946aa6cf8b31db8a8e00048074f57c8a84f1800ac778589545055ee1b9",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-count",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T22:40:33.281Z",
+        "durationMs": 3027
+      },
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/tissue-types",
+        "kernelId": "anatomy/tissue-types",
+        "promptSha256": "d62d1974e059bd008ca61edb3f5f6bdacef25b0007db8fb361f24529695cd57d",
+        "generationPromptSha256": "32c5a5b96276df6571088dc5ab155cc4fee3d96ba55feb68b5266c0c24a50af7",
+        "rawCallSha256": "21b86527a006f7b53c39c8221e2ad53ca307103971871ec21f8b0a7a7dfdf8f3",
+        "recoveryCallSha256": "e1a88b2b6bd260c8287e5ad0e318492c71943f900494b07be4ba26f42b1b0826",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which tissue type is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function?",
+              "op": [
+                "Connective tissue",
+                "Muscle tissue",
+                "Epithelial tissue",
+                "Nervous tissue"
+              ],
+              "ai": 2,
+              "ex": "Epithelial tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function. Connective tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "What is the primary focus of histology studies?",
+              "op": [
+                "Feedback regulation mechanisms",
+                "Tissue appearance, organization, and function under the microscope",
+                "Levels of organization and feedback regulation",
+                "Skin structure classification"
+              ],
+              "ai": 1,
+              "ex": "Tissue appearance, organization, and function under the microscope is the primary focus of histology studies. Levels of organization and feedback regulation is the primary focus of histology studies.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Four primary tissue types",
+              "df": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+              "eg": "Epithelial tissue forms the outer layer of the skin.",
+              "mi": "Connective tissue is the only tissue that lacks cells.",
+              "cx": "Connective tissue contains cells that are not epithelial.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "20ee3cde2878cbb4b6f2f3968e3846feed9d5fcba81cd86c565f1968ff86a672",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which tissue type is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function?",
+              "op": [
+                "Connective tissue",
+                "Muscle tissue",
+                "Epithelial tissue",
+                "Nervous tissue"
+              ],
+              "ai": 2,
+              "ex": "Epithelial tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function. Connective tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "What is the primary focus of histology studies?",
+              "op": [
+                "Feedback regulation mechanisms",
+                "Tissue appearance, organization, and function under the microscope",
+                "Levels of organization and feedback regulation",
+                "Skin structure classification"
+              ],
+              "ai": 1,
+              "ex": "Tissue appearance, organization, and function under the microscope is the primary focus of histology studies. Levels of organization and feedback regulation is the primary focus of histology studies.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Four primary tissue types",
+              "df": "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+              "eg": "Epithelial tissue forms the outer layer of the skin.",
+              "mi": "Connective tissue is the only tissue that lacks cells.",
+              "cx": "Connective tissue contains cells that are not epithelial.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "20ee3cde2878cbb4b6f2f3968e3846feed9d5fcba81cd86c565f1968ff86a672",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-count"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 1,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T22:40:36.314Z",
+        "durationMs": 2821
+      },
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/integumentary-skin-layers",
+        "kernelId": "anatomy/integumentary-skin-layers",
+        "promptSha256": "21fea912b025eafc579699203c08ab8d572f498cd52c7e027467f111dd14d20d",
+        "generationPromptSha256": "e27af9115dc956f5c652035be814b541d8fd1ae4a69d1be2e74d6363f7cfe17a",
+        "rawCallSha256": "775dd1fe16c8d1f3bd2bdfae178d0df2f2b6cb8f6ce0aab3147feae1a5a2d316",
+        "recoveryCallSha256": "52078f740b8dd078b31e58fa6e0f59b153ac5344dbedf274bc593c5b76bcac36",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which tissue layer is composed of keratinized stratified squamous epithelium?",
+              "op": [
+                "Dermis",
+                "Epidermis",
+                "Accessory structures",
+                "Integumentary system"
+              ],
+              "ai": 1,
+              "ex": "The epidermis is made of keratinized stratified squamous epithelium.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "What structures within the skin support protection and communication?",
+              "op": [
+                "Epidermis and dermis",
+                "Keratinized epithelium",
+                "Accessory structures",
+                "Stratified squamous epithelium"
+              ],
+              "ai": 2,
+              "ex": "Skin has epidermal and dermal layers that support protection and communication.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Epidermis",
+              "df": "This layer is characterized by keratinized stratified squamous epithelium.",
+              "eg": "The epidermis provides the primary barrier against external agents.",
+              "mi": "The epidermis is the layer that contains the dermal connective tissue.",
+              "cx": "The epidermis is the outermost layer of the skin composed of keratinized stratified squamous epithelium.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "07955fdd8acc92d53c789f766764e3e494585311bdba92f5ca3eaae01df165b8",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which tissue layer is composed of keratinized stratified squamous epithelium?",
+              "op": [
+                "Dermis",
+                "Epidermis",
+                "Accessory structures",
+                "Integumentary system"
+              ],
+              "ai": 1,
+              "ex": "The epidermis is made of keratinized stratified squamous epithelium.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "What structures within the skin support protection and communication?",
+              "op": [
+                "Epidermis and dermis",
+                "Keratinized epithelium",
+                "Accessory structures",
+                "Stratified squamous epithelium"
+              ],
+              "ai": 2,
+              "ex": "Skin has epidermal and dermal layers that support protection and communication.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Epidermis",
+              "df": "This layer is characterized by keratinized stratified squamous epithelium.",
+              "eg": "The epidermis provides the primary barrier against external agents.",
+              "mi": "The epidermis is the layer that contains the dermal connective tissue.",
+              "cx": "The epidermis is the outermost layer of the skin composed of keratinized stratified squamous epithelium.",
+              "sourceFactIndexes": [
+                1,
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "07955fdd8acc92d53c789f766764e3e494585311bdba92f5ca3eaae01df165b8",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-count"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 1,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T22:40:39.135Z",
+        "durationMs": 1444
+      },
+      {
+        "promptId": "anatomy-homeostasis-tissues-diagnostic-lab:anatomy/skeletal-system-functions",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "promptSha256": "1fcde06885fa57516e713938fa01349b0f14fb9b8c09ab50d652a7505340e383",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which component of the body is characterized by being hard, dense connective tissue that constitutes the majority of the adult skeleton?",
+              "op": [
+                "Cartilage",
+                "Bone tissue",
+                "Muscle tissue",
+                "Skin structure"
+              ],
+              "ai": 1,
+              "ex": "Bone tissue is hard, dense connective tissue that forms most of the adult skeleton.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "What function of the skeletal system is directly enabled by bones providing attachment points for muscles?",
+              "op": [
+                "Organ protection",
+                "Mineral storage",
+                "Movement facilitation",
+                "Blood cell production"
+              ],
+              "ai": 2,
+              "ex": "Movement facilitation is enabled by bones providing attachment points for muscles.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Hard, dense connective tissue",
+              "df": "A type of tissue that is soft and flexible, like the tissue found in the ear.",
+              "eg": "The bone tissue forms the main structure of the adult skeleton.",
+              "mi": "This tissue is primarily responsible for secreting hormones.",
+              "cx": "Hard, dense connective tissue is the material that makes up the majority of the adult skeleton.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Attachment points",
+              "df": "Areas on the body where structures connect to each other, such as joints.",
+              "eg": "Bones provide attachment points for muscles to facilitate movement.",
+              "mi": "Attachment points are exclusively found in the skin layer.",
+              "cx": "Attachment points are the locations where bones connect to muscles to enable movement.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "967a03e6e3e4b3f9958019155a583a8f4e8912bb9eca674158164238c10ad584",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which component of the body is characterized by being hard, dense connective tissue that constitutes the majority of the adult skeleton?",
+              "op": [
+                "Cartilage",
+                "Bone tissue",
+                "Muscle tissue",
+                "Skin structure"
+              ],
+              "ai": 1,
+              "ex": "Bone tissue is hard, dense connective tissue that forms most of the adult skeleton.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "What function of the skeletal system is directly enabled by bones providing attachment points for muscles?",
+              "op": [
+                "Organ protection",
+                "Mineral storage",
+                "Movement facilitation",
+                "Blood cell production"
+              ],
+              "ai": 2,
+              "ex": "Movement facilitation is enabled by bones providing attachment points for muscles.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Hard, dense connective tissue",
+              "df": "A type of tissue that is soft and flexible, like the tissue found in the ear.",
+              "eg": "The bone tissue forms the main structure of the adult skeleton.",
+              "mi": "This tissue is primarily responsible for secreting hormones.",
+              "cx": "Hard, dense connective tissue is the material that makes up the majority of the adult skeleton.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Attachment points",
+              "df": "Areas on the body where structures connect to each other, such as joints.",
+              "eg": "Bones provide attachment points for muscles to facilitate movement.",
+              "mi": "Attachment points are exclusively found in the skin layer.",
+              "cx": "Attachment points are the locations where bones connect to muscles to enable movement.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "967a03e6e3e4b3f9958019155a583a8f4e8912bb9eca674158164238c10ad584",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-16T22:36:06.055Z",
+        "durationMs": 6909
+      }
+    ]
+  }
+}

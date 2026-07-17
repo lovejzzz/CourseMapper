@@ -1,0 +1,937 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-546d143d0e1424e070e2",
+    "packetDigest": "546d143d0e1424e070e27bc7f03c90d6c753d375e74b6a26db25a5a93e7c8312",
+    "organizerDigest": "e9e3826260e2c77e9f32ec180334fd6bf25f04a38f021b2fcd9a39098436eeff"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-0e7138dc9de8868f113d",
+      "caseDigest": "ce4ff5e4e013c5553dad5a7deaebd6d46d137eded9900aad0f7937148d42d4a0",
+      "domain": "physics",
+      "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+      "sourceContextSha256": "a62095b5592eb883443e140183a119f3dea3947689ffed63c1af715cfa164587",
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-charge",
+        "term": "Electric charge",
+        "claims": [
+          "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+          "Like charges repel and unlike charges attract.",
+          "Net charge is conserved in an isolated system."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "980945c49fce04daaae84753c36580e25b43ae25e8d28a6ce671d98bc96c6577",
+          "artifact": {
+            "tr": "Net charge",
+            "df": "The sum of all individual electric charges present in a specific system.",
+            "eg": "If a system has two $+2$ charges and one $-2$ charge, the net charge is zero.",
+            "mi": "Net charge is a quantity that changes over time in an open system.",
+            "cx": "Net charge is conserved in an isolated system."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "690215c4a9b40741d4cc09532cf93a017ac73e4af1298a5ba78c92a4006a1e56",
+          "artifact": {
+            "tr": "Like charges",
+            "df": "Two charges with the same sign, which interact by pushing apart.",
+            "eg": "Two positively charged tape pieces move away from each other when brought close.",
+            "mi": "They always cancel each other out.",
+            "cx": "Same-sign charges repel; opposite-sign charges attract."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "980945c49fce04daaae84753c36580e25b43ae25e8d28a6ce671d98bc96c6577",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "690215c4a9b40741d4cc09532cf93a017ac73e4af1298a5ba78c92a4006a1e56",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2306d1b9141ce2b6cdc0",
+      "caseDigest": "913ac4ac41f96eb990976b037c3ef71abdc0f71f2dd4cd5a8f6147de3f83a3b8",
+      "domain": "economics",
+      "courseGroupSha256": "9426f3e12b3325688e416610cd8e80ad451c6206c0546f0c7a384639a8f29961",
+      "sourceContextSha256": "f31534456a06ad64dc1ba94cf336d3ff42dbed98d7add44c63e42b06ae991ac4",
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/consumer-choice",
+        "term": "Consumer choice",
+        "claims": [
+          "Consumer choice theory models how a consumer maximizes utility subject to a budget constraint.",
+          "The consumer selects the affordable bundle of goods that yields the highest satisfaction.",
+          "At the optimal choice, utility cannot be increased without exceeding the budget, so the consumer faces a tradeoff between goods."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "aa8a0f23de0104a111b5120c18b3889359178ca1deafdb90352be455fce02650",
+          "artifact": {
+            "tr": "Consumer choice theory",
+            "df": "The study of how individuals select goods to maximize their satisfaction within financial limits.",
+            "eg": "A student chooses to buy a textbook or a movie ticket based on their available money.",
+            "mi": "This theory suggests that a consumer's satisfaction is determined solely by the absolute quantity of goods they possess.",
+            "cx": "The systematic process by which a person decides which combination of items to purchase given their spending capacity."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6a36d184410f8c9ad632a5b8f73565446d22c0f183d317a9c99b8221035efb95",
+          "artifact": {
+            "tr": "budget constraint",
+            "df": "A spending limit that the chosen bundle must fit within.",
+            "eg": "In the course task, a student can only select snack combinations whose total cost stays within the available money.",
+            "mi": "It means the consumer may buy whatever seems nicest, even if it costs more than they have.",
+            "cx": "The correction is that the budget sets a limit, and the choice has to remain affordable."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "aa8a0f23de0104a111b5120c18b3889359178ca1deafdb90352be455fce02650",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6a36d184410f8c9ad632a5b8f73565446d22c0f183d317a9c99b8221035efb95",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-39e553dbb451a5d0dd2d",
+      "caseDigest": "bbd0104afbbc013b15f65383bfe6ab07eac8f6cabcce90683b288c4a91a8d6d4",
+      "domain": "economics",
+      "courseGroupSha256": "4ffd5d5cf1b8cc2c9a11861897b918345bc147d926d7f3b2a711e682fb5c12fa",
+      "sourceContextSha256": "f5a602133a446d192908c0913fcfcc58e9de0e954e88da628c0a8d56e43c681b",
+      "sourceContext": {
+        "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+        "kernelId": "econ/capital-accumulation",
+        "term": "Capital accumulation",
+        "claims": [
+          "The capital stock is the total quantity of equipment, structures, and tools available for production; it rises through gross investment and falls through depreciation.",
+          "Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period.",
+          "The capital stock grows only when net investment is positive."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 7"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "259f90a9875fa55890816e73f11c77fdd9fd76d73194c5f2160655a683a6b5c2",
+          "artifact": {
+            "tr": "Capital stock",
+            "df": "The amount of productive equipment, structures, and tools available at a point in time.",
+            "eg": "A firm's plant, machines, and tools at the end of March are part of its capital stock.",
+            "mi": "It means the dollar value of sales during a year.",
+            "cx": "Use the stock idea to describe what is on hand at a moment, not what is earned over a period."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6b195ec732700a6a9d3f265eaa1f9b1b4e631f267a9baf9d818fcbaa1e4ddfb9",
+          "artifact": {
+            "tr": "The total quantity of equipment, structures, and tools used.",
+            "df": "This measure represents the entire inventory of production assets, such as machinery and buildings, available for use.",
+            "eg": "The total quantity of equipment, structures, and tools used in a factory is the capital stock.",
+            "mi": "The total quantity of equipment, structures, and tools used is determined solely by the rate at which depreciation occurs.",
+            "cx": "The total quantity of equipment, structures, and tools used is determined by the sum of gross investment minus depreciation."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "259f90a9875fa55890816e73f11c77fdd9fd76d73194c5f2160655a683a6b5c2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6b195ec732700a6a9d3f265eaa1f9b1b4e631f267a9baf9d818fcbaa1e4ddfb9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-626f3d29147d92c1873f",
+      "caseDigest": "a23354f92422d2cef8899f0325da21371c9c4f16ee494db4dd485b98378e1f98",
+      "domain": "anatomy",
+      "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+      "sourceContextSha256": "51410721edc1c02b8f27a44aed825cbde8d3107e03cf16b0bbed847191feed6e",
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "term": "Skeletal system functions",
+        "claims": [
+          "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+          "Bones facilitate movement by providing attachment points for muscles."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c8759a232bfd93a82d8423f025967c9395aefd85bf6f3490e9d5151806edbeb4",
+          "artifact": {
+            "tr": "Bone",
+            "df": "A hard, dense connective tissue that makes up most of the adult skeleton.",
+            "eg": "A femur specimen in the lab would be an example of bone tissue in the adult skeleton.",
+            "mi": "It is a soft tissue that mainly cushions organs.",
+            "cx": "Bone is a dense connective tissue, not a soft cushioning tissue."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6f55c66be47415019fe581aa183d61f730805acaf8458f6f4595406bf1dce1c0",
+          "artifact": {
+            "tr": "Attachment points",
+            "df": "Areas on the body where structures connect to each other, such as joints.",
+            "eg": "Bones provide attachment points for muscles to facilitate movement.",
+            "mi": "Attachment points are exclusively found in the skin layer.",
+            "cx": "Attachment points are the locations where bones connect to muscles to enable movement."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c8759a232bfd93a82d8423f025967c9395aefd85bf6f3490e9d5151806edbeb4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6f55c66be47415019fe581aa183d61f730805acaf8458f6f4595406bf1dce1c0",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-93756d0152e65bb889da",
+      "caseDigest": "2abebf7c58efb4b850cb2a02e57ef36dc34e17f01b2c50b209083d6196f99869",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "01cefe3f1903e144ad1670e0b2cf2563bbd3a42ee41445b0962018868a959384",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/nervous-tissue",
+        "term": "Nervous tissue",
+        "claims": [
+          "Nervous tissue is excitable tissue made mainly of neurons and neuroglia; neurons propagate information through electrochemical impulses called action potentials.",
+          "Nervous tissue sends and receives electrochemical signals that provide the body with information.",
+          "Neuroglia support neurons and modulate information propagation."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e5d03ca2f886e0d0e126e14ad4f6c61c952325580bec42e5ff9cdd20aeb8ffc6",
+          "artifact": {
+            "tr": "Action potentials",
+            "df": "These are the specific electrochemical impulses that neurons use to transmit data.",
+            "eg": "Action potentials allow neurons to propagate information throughout the body.",
+            "mi": "Action potentials are chemical signals that travel through the body.",
+            "cx": "Neurons propagate information through electrochemical impulses called action potentials."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "27c79811e7645e9162a7d6d8f8a375a1c80d9e9b8feb0b74e51adbedbc8c2328",
+          "artifact": {
+            "tr": "Neuroglia",
+            "df": "Support cells in nervous tissue that help neurons and adjust how signals move.",
+            "eg": "When a case asks which cells help keep neuronal signaling organized during a neural pathway activity, the support cells are neuroglia.",
+            "mi": "They are the cells that generate the main electrochemical impulses.",
+            "cx": "The impulses are propagated by neurons; neuroglia assist and shape the signaling environment instead."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "e5d03ca2f886e0d0e126e14ad4f6c61c952325580bec42e5ff9cdd20aeb8ffc6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "27c79811e7645e9162a7d6d8f8a375a1c80d9e9b8feb0b74e51adbedbc8c2328",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e4d36a735e3770349f40",
+      "caseDigest": "049385789fabe3fc9c1a70abe7b68880a8f4f7995d091e9ef82c8b18da29e03b",
+      "domain": "physics",
+      "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+      "sourceContextSha256": "e52b9f723ec7dd8eeadc444efa0ad09c8e8624f60dc87e4f1cb335ffc937b90a",
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/resistance-ohms-law",
+        "term": "Ohmic resistance in electric circuits",
+        "claims": [
+          "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+          "For an ohmic device at fixed temperature, current is proportional to voltage.",
+          "Resistance depends on material, length, cross-sectional area, and temperature."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9ca541c69645e92901435c599d32837a69cb825d042cbb90751f1c0daffc3d93",
+          "artifact": {
+            "tr": "Ohmic conductor",
+            "df": "A device whose current changes in direct proportion to voltage when temperature stays fixed.",
+            "eg": "When the voltage across the ohmic resistor was doubled, the current also doubled.",
+            "mi": "An ohmic conductor always keeps current identical no matter the voltage.",
+            "cx": "The key relation is proportional change: at fixed temperature, higher voltage means proportionally higher current."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "3d2dcabe46c40b975aa4655faf43c1c633a090e574c7c098a1ae496f319df65a",
+          "artifact": {
+            "tr": "Ohm's law",
+            "df": "The relationship that connects voltage, current, and resistance for devices that exhibit ohmic behavior.",
+            "eg": "Using Ohm's law allows us to calculate the current flowing through a resistor given the applied voltage.",
+            "mi": "Ohm's law applies only to non-ohmic components like diodes.",
+            "cx": "Ohm's law relates voltage, current, and resistance for ohmic conductors."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9ca541c69645e92901435c599d32837a69cb825d042cbb90751f1c0daffc3d93",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "3d2dcabe46c40b975aa4655faf43c1c633a090e574c7c098a1ae496f319df65a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-b1a4826f169b69cb36f1",
+      "caseDigest": "419d5c167af9d483dc6090daacaa1db9ac74d361d8ce24779b33b9a34bec84d2",
+      "domain": "physics",
+      "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+      "sourceContextSha256": "e52b9f723ec7dd8eeadc444efa0ad09c8e8624f60dc87e4f1cb335ffc937b90a",
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/resistance-ohms-law",
+        "term": "Ohmic resistance in electric circuits",
+        "claims": [
+          "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+          "For an ohmic device at fixed temperature, current is proportional to voltage.",
+          "Resistance depends on material, length, cross-sectional area, and temperature."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "78223324fba27d16b66ac65fa6e6670d2474e8ae1cbc273007262dfadd0e3a1b",
+          "artifact": {
+            "q": "Which factor influences the opposition to current in a material?",
+            "op": [
+              "The material's chemical composition",
+              "The material's length and cross-sectional area",
+              "The material's temperature only",
+              "The material's voltage"
+            ],
+            "ai": 1,
+            "ex": "The material's length and cross-sectional area influence resistance because resistance depends on material, length, cross-sectional area, and temperature."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "2b186eb703a98cdc10c37bc35d294f955cc4c5e56e69bd195afe6d54f5028193",
+          "artifact": {
+            "q": "Which statement best describes an ohmic device at fixed temperature?",
+            "op": [
+              "Current rises in direct proportion to voltage.",
+              "Current is unrelated to voltage.",
+              "Resistance is always zero.",
+              "Voltage is fixed when current changes."
+            ],
+            "ai": 0,
+            "ex": "Yes: in an ohmic device, current is proportional to voltage. This is about resistance, not resistivity."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "78223324fba27d16b66ac65fa6e6670d2474e8ae1cbc273007262dfadd0e3a1b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "2b186eb703a98cdc10c37bc35d294f955cc4c5e56e69bd195afe6d54f5028193",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-eb9c3e3578342afdf59d",
+      "caseDigest": "aea442499a00f8a8c3a2af345d73930c3b208e96d689226e3c6a1db9c72856e0",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "eca23bab65b39f7895db0bfc6e99847a5a1bf9c84873d62c967a654915a05440",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/endocrine-hormone-signaling",
+        "term": "Endocrine hormone signaling",
+        "claims": [
+          "Hormones circulate through the bloodstream but affect only target cells with the appropriate receptors, triggering target-cell responses that regulate physiological processes.",
+          "Hormone binding initiates a chain of events that leads to a target-cell response.",
+          "Hormones regulate processes including growth, metabolism, fluid balance, electrolyte balance, and sleep."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f0b2daf9e11b30b89f357baf82ab28467b0fe14ac4ff6e3784a79edb6bb300d4",
+          "artifact": {
+            "q": "A student says a hormone was carried in blood, so the target cell response already happened. What is the best correction?",
+            "op": [
+              "Transport in blood is separate from the response; binding to receptors starts the response",
+              "Blood transport and target-cell response are the same event",
+              "The hormone causes a response before it reaches any cell",
+              "Receptors stop a hormone from circulating"
+            ],
+            "ai": 0,
+            "ex": "Transport through the bloodstream does not by itself produce the response; receptor binding starts a chain of events in the target cell. The nearest-neighbor misconception is to treat movement in blood as the response itself, but the response begins after binding."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e068eb00b09650194530f267830f66b57662247410cfad53d3966e7a16dc49ec",
+          "artifact": {
+            "q": "What is the primary mechanism by which a circulating substance causes a change in a cell's function?",
+            "op": [
+              "The substance physically binds to the cell membrane.",
+              "The substance initiates a sequence leading to a cellular reaction.",
+              "The substance alters the cell's internal structure directly.",
+              "The substance only affects processes like sleep and fluid balance."
+            ],
+            "ai": 1,
+            "ex": "The substance initiates a sequence leading to a cellular reaction. Hormone binding initiates a chain of events that leads to a target-cell response."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "f0b2daf9e11b30b89f357baf82ab28467b0fe14ac4ff6e3784a79edb6bb300d4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e068eb00b09650194530f267830f66b57662247410cfad53d3966e7a16dc49ec",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-c43eeab2fcb1c71036b5",
+      "caseDigest": "e7d87c2a04d9dc66a117c7db6bcc559beb229ddd0b092aa6d80128cfbd715fbf",
+      "domain": "physics",
+      "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+      "sourceContextSha256": "98213a9351019aa9a4bc0f8e584c6ed65d0f2cbca800f4152f9932463074c650",
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-potential",
+        "term": "Electric potential",
+        "claims": [
+          "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+          "Only potential differences affect work and energy changes in electrostatics.",
+          "Electric field points in the direction of decreasing electric potential."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 7"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "cf351ac3a238ccf5f790919e2b506bd674910a29469b30276775fce16dbac036",
+          "artifact": {
+            "q": "If electric potential is higher on the left than on the right, which way does the electric field point?",
+            "op": [
+              "from left to right",
+              "from right to left",
+              "upward",
+              "it has no direction"
+            ],
+            "ai": 0,
+            "ex": "The electric field points toward lower electric potential, so it points from left to right in this situation. The opposite direction would go toward higher potential, which contradicts the stated relation."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a00f88eaad6b45434d33f72c294371d9bef65a4dd9f2efe3eb20db64cb795ecc",
+          "artifact": {
+            "q": "In electrostatics, which factor determines the work required to move a charge between two locations?",
+            "op": [
+              "The magnitude of the electric field",
+              "The potential difference between the two points",
+              "The total stored charge in the system",
+              "The direction of the electric field"
+            ],
+            "ai": 1,
+            "ex": "The potential difference between the two points determines the work required because only potential differences affect work and energy changes in electrostatics."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "cf351ac3a238ccf5f790919e2b506bd674910a29469b30276775fce16dbac036",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a00f88eaad6b45434d33f72c294371d9bef65a4dd9f2efe3eb20db64cb795ecc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,977 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-546d143d0e1424e070e2",
+    "packetDigest": "546d143d0e1424e070e27bc7f03c90d6c753d375e74b6a26db25a5a93e7c8312",
+    "organizerDigest": "e9e3826260e2c77e9f32ec180334fd6bf25f04a38f021b2fcd9a39098436eeff"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-10203d490ccba11e09a4",
+      "caseDigest": "b7bff54ab50ae3003f658f9e0bc221d6f47e41c0a1a05fa8db892d8046ed7772",
+      "domain": "physics",
+      "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+      "sourceContextSha256": "b9a783084a1c5d24b49701bef5705a78e13d4b3bdb36071677d1c07638c51b39",
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/electric-field",
+        "term": "Electric field",
+        "claims": [
+          "An electric field describes the electric force per unit positive test charge at each point in space.",
+          "The direction of the electric field is the direction a positive test charge would accelerate.",
+          "Field-line density indicates relative field strength."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "daa37e6c6cd876121429a37ac782cc0c9737d352d023089457ccf722ad5edf8a",
+          "artifact": {
+            "q": "What does the direction of an electric field tell you?",
+            "op": [
+              "The way a positive test charge would accelerate",
+              "The way a negative test charge would accelerate",
+              "Where the field is strongest everywhere",
+              "How much charge is moving through the region"
+            ],
+            "ai": 0,
+            "ex": "The field points in the direction a positive test charge would accelerate, so that is the correct choice. A tempting mistake is to reverse the direction because negative charges respond oppositely, but the stated direction is defined using a positive test charge."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3f8a2591d86b20ff4bb7b110c2cef7a0fc3f1320719b6cbea6a4a552e50af04a",
+          "artifact": {
+            "q": "What does the field-line density represent in relation to the electric field?",
+            "op": [
+              "The relative field strength",
+              "The direction of the electric force",
+              "The direction of the positive test charge acceleration",
+              "The magnitude of the electric force"
+            ],
+            "ai": 0,
+            "ex": "Field-line density indicates relative field strength because the electric field describes the electric force per unit positive test charge at each point in space."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "daa37e6c6cd876121429a37ac782cc0c9737d352d023089457ccf722ad5edf8a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3f8a2591d86b20ff4bb7b110c2cef7a0fc3f1320719b6cbea6a4a552e50af04a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-108adbf8101a93745f14",
+      "caseDigest": "908609b8bd18370c260aa6dd7670ead70aa48e6e52bd1af485e01becf55f08a8",
+      "domain": "economics",
+      "courseGroupSha256": "9426f3e12b3325688e416610cd8e80ad451c6206c0546f0c7a384639a8f29961",
+      "sourceContextSha256": "15bde448dc51628f8b0057df980a4d1dbbe46c787bdbfabb4952b36b23ef0c0a",
+      "sourceContext": {
+        "sourcePacketSha256": "a0512852dc293dd8aeff7a2de56b26a5f38487ab033bcb97f0d8105e3c8d0016",
+        "kernelId": "econ/demand-curve",
+        "term": "Demand curve",
+        "claims": [
+          "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3412b1a89e5790fe9f87bf08e038040ebccbdd6e1f2cfd074c45f985236c8ff8",
+          "artifact": {
+            "q": "A designer jacket becomes fashionable, so buyers are willing to purchase more at every price. What happens?",
+            "op": [
+              "The demand curve shifts right.",
+              "The quantity demanded moves down the curve.",
+              "The curve becomes flatter because tastes changed.",
+              "The price level falls because demand changed."
+            ],
+            "ai": 0,
+            "ex": "The correct choice is that the demand curve shifts right: a change in tastes shifts the curve. The other choices either describe a movement caused by price, treat slope as the same thing as a shift, or infer a price result that is not given by the claim."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cb19b7a7a11ab4b4c0d7a78d5c62bbedeceb8610dab6497ecec47fa0fec47f5c",
+          "artifact": {
+            "q": "If consumer tastes change, how is the demand curve affected?",
+            "op": [
+              "The quantity demanded moves along the curve",
+              "The demand curve shifts to the right",
+              "The demand curve shifts to the left",
+              "The demand curve remains stationary"
+            ],
+            "ai": 2,
+            "ex": "The demand curve shifts to the left because a change in tastes causes the curve to shift."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3412b1a89e5790fe9f87bf08e038040ebccbdd6e1f2cfd074c45f985236c8ff8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cb19b7a7a11ab4b4c0d7a78d5c62bbedeceb8610dab6497ecec47fa0fec47f5c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-63495cd757855e73dacf",
+      "caseDigest": "24f53f7b3d6b7ad62d13f5f9a94de4bdf5ddcc3e7c0241c1847b0c8e431366cb",
+      "domain": "economics",
+      "courseGroupSha256": "4ffd5d5cf1b8cc2c9a11861897b918345bc147d926d7f3b2a711e682fb5c12fa",
+      "sourceContextSha256": "f5a602133a446d192908c0913fcfcc58e9de0e954e88da628c0a8d56e43c681b",
+      "sourceContext": {
+        "sourcePacketSha256": "e9f427a7da383126dd19d56273ca87e774b8cbbe6c48d07f46e1c850d680e1ce",
+        "kernelId": "econ/capital-accumulation",
+        "term": "Capital accumulation",
+        "claims": [
+          "The capital stock is the total quantity of equipment, structures, and tools available for production; it rises through gross investment and falls through depreciation.",
+          "Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period.",
+          "The capital stock grows only when net investment is positive."
+        ],
+        "attribution": [
+          "OpenStax Principles of Macroeconomics 2e, Ch. 7"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3e9685a388c101b0ee22106258e6cfc81289b94ee84ee051e8dee7daa84b85fc",
+          "artifact": {
+            "q": "A factory has 100 machines at the start of the year. During the year, the firm buys 12 new machines and retires 5 old ones. What is the change in its equipment stock over the year?",
+            "op": [
+              "An increase of 7 machines",
+              "An increase of 12 machines",
+              "A decrease of 5 machines",
+              "No change in the equipment stock"
+            ],
+            "ai": 0,
+            "ex": "An increase of 7 machines is correct because net investment equals gross investment minus depreciation, so 12 minus 5 gives a 7-machine rise in the capital stock. The tempting mistake is to count only purchases; that ignores the machines lost from depreciation and overstates the stock change."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "487b2aa35134846a76594b103e6377a32c16d6bafa8527783b71e19be2f3700e",
+          "artifact": {
+            "q": "What drives the increase in the total quantity of equipment, structures, and tools used for production?",
+            "op": [
+              "The decrease in depreciation",
+              "The fall in net investment",
+              "The rise in gross investment",
+              "The total quantity of capital stock"
+            ],
+            "ai": 2,
+            "ex": "The capital stock grows only when net investment is positive. The rise in gross investment is the primary driver because it is the component that, when positive, leads to an increase in the capital stock."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "3e9685a388c101b0ee22106258e6cfc81289b94ee84ee051e8dee7daa84b85fc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "487b2aa35134846a76594b103e6377a32c16d6bafa8527783b71e19be2f3700e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-55a64a0b24eee52fdef0",
+      "caseDigest": "f30cf58f5d093c9b1eb201d53f8fb5ae20abfc253acd1b63c0a0963f135c0656",
+      "domain": "anatomy",
+      "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+      "sourceContextSha256": "8bf20067d98b0a91d077166ce7831c28aad08296c8a6d4158fd0ff5c4a2d15c2",
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/homeostasis-feedback",
+        "term": "Homeostasis and feedback regulation",
+        "claims": [
+          "Homeostasis is the maintenance of stable internal conditions, usually through negative-feedback loops that detect a deviation from a set point and activate a response that reverses it.",
+          "A set point is the physiological value around which the normal range fluctuates.",
+          "A feedback loop includes a sensor, a control center, and an effector."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ed7ded3255490d616850734d71739d514245a1ea36231c00936d981529279220",
+          "artifact": {
+            "q": "Which statement best describes a set point?",
+            "op": [
+              "the physiological value around which the normal range fluctuates",
+              "the response that reverses a deviation",
+              "the structure that detects a deviation",
+              "the stable internal condition after correction"
+            ],
+            "ai": 0,
+            "ex": "A set point is the physiological value around which the normal range fluctuates. It is not the reversing response itself, which belongs to negative feedback."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f0daed27e48c031c288fdd52b02660c18ec31d1fb922ed1c09b1be5046d705ee",
+          "artifact": {
+            "q": "What is the primary function of the physiological value that a system maintains stability around?",
+            "op": [
+              "A deviation",
+              "A set point",
+              "A response",
+              "A sensor"
+            ],
+            "ai": 1,
+            "ex": "A set point is the physiological value around which the normal range fluctuates."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ed7ded3255490d616850734d71739d514245a1ea36231c00936d981529279220",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f0daed27e48c031c288fdd52b02660c18ec31d1fb922ed1c09b1be5046d705ee",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-3f514518d3adfd5a2fbf",
+      "caseDigest": "b98b1c79870cb019ed6880438e6ba450955c0bb39b3790d5392c6c77fa707457",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "567f976c861e00bf1ac110fcaf3b316e8b57a913f0c864624be38bd1c2ef48a2",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/muscle-tissue-types",
+        "term": "Muscle tissue types and contraction",
+        "claims": [
+          "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force.",
+          "All three muscle tissue types share excitability.",
+          "Skeletal muscle depends on nervous-system signaling to work properly."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "022b759e381af45ef2feb46b68b6013702438bd8e18344df579ef98a4359a705",
+          "artifact": {
+            "q": "What characteristic do all muscle tissue types share regarding their ability to be stimulated?",
+            "op": [
+              "Contractility",
+              "Excitability",
+              "Attachment points",
+              "Shortening with force"
+            ],
+            "ai": 1,
+            "ex": "All three muscle tissue types share excitability. This is correct because all three muscle tissue types share excitability, contrasting with the misconception that only one type possesses this property."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "5a27610d9fa21f4ff235e8599c3f7df43eeaffffbf079b52a92ffbe787425d1f",
+          "artifact": {
+            "q": "In a review of muscle tissue, which property is shared by skeletal, cardiac, and smooth muscle?",
+            "op": [
+              "Excitability",
+              "Attachment-point pulling",
+              "Nervous-system dependence",
+              "Force shortening"
+            ],
+            "ai": 0,
+            "ex": "Excitability is shared by skeletal, cardiac, and smooth muscle. A nearby misconception is to treat the ability to pull on attachment points or shorten with force as the shared trait, but those describe how muscle contracts rather than the one property all three types have in common."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "022b759e381af45ef2feb46b68b6013702438bd8e18344df579ef98a4359a705",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "5a27610d9fa21f4ff235e8599c3f7df43eeaffffbf079b52a92ffbe787425d1f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-abde34380d0c33087793",
+      "caseDigest": "54210903e1a220d6a28c05cea8da6ae61c2bc96122770bd141bb873d59b84d8b",
+      "domain": "physics",
+      "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+      "sourceContextSha256": "e52b9f723ec7dd8eeadc444efa0ad09c8e8624f60dc87e4f1cb335ffc937b90a",
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/resistance-ohms-law",
+        "term": "Ohmic resistance in electric circuits",
+        "claims": [
+          "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+          "For an ohmic device at fixed temperature, current is proportional to voltage.",
+          "Resistance depends on material, length, cross-sectional area, and temperature."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "34e4b6653a4647ad1d2c00358c804cc0c59c390af09c039967ccef61a9c2ebba",
+          "artifact": {
+            "q": "If the temperature of an ohmic device is held constant, how does the current relate to the voltage?",
+            "op": [
+              "Current is inversely proportional to voltage",
+              "Current is directly proportional to voltage",
+              "Current is independent of voltage",
+              "Current is proportional to the square of the voltage"
+            ],
+            "ai": 1,
+            "ex": "Current is directly proportional to voltage because for an ohmic device at fixed temperature, current is proportional to voltage."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "51b8a4be448d77867925e7fae8002c364e323b95cf8b9b7592d8bc0b50e53720",
+          "artifact": {
+            "q": "A student says an ohmic device at fixed temperature has the same current whenever the voltage is doubled. Which statement best fits the source claim?",
+            "op": [
+              "Current is proportional to voltage",
+              "Resistance is proportional to voltage",
+              "Current is proportional to resistance",
+              "Voltage is proportional to material"
+            ],
+            "ai": 0,
+            "ex": "Current is proportional to voltage is correct because that is the defining relation for an ohmic device at fixed temperature. The nearby misconception is to swap the roles of current and resistance, but resistance is a separate property that depends on material, size, and temperature."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "34e4b6653a4647ad1d2c00358c804cc0c59c390af09c039967ccef61a9c2ebba",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "51b8a4be448d77867925e7fae8002c364e323b95cf8b9b7592d8bc0b50e53720",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e78949942f5ac17a87d7",
+      "caseDigest": "e265f6311b80b7f2e4ebc42761a8c1d8d31fdb75eed5a4de1f8581fe2fe5a99c",
+      "domain": "anatomy",
+      "courseGroupSha256": "72fff549259c4bf7e1c1fde7d9e913aee6d199f5864119361bb3fb89cf7dddef",
+      "sourceContextSha256": "b47f69941f61f5e7d4c60cefbb54d60eda26ee078f741893c9877f6ef1e8439e",
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/synovial-joints",
+        "term": "Synovial joints",
+        "claims": [
+          "Synovial joints are common movable joints with a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion.",
+          "A key structural feature of a synovial joint is a fluid-filled joint cavity.",
+          "Ligaments support synovial joints by holding bones together and resisting abnormal motion."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9a9390ef09fc7aa58e5cb718329b8e1a8ad55620a7589543d4133bf4ffed451f",
+          "artifact": {
+            "tr": "Synovial joint",
+            "df": "A common movable joint built around a fluid-filled cavity with cartilage, synovial fluid, and supportive ligaments.",
+            "eg": "In the case studio, the knee is used as the example of a synovial joint because it can move smoothly while being stabilized by ligaments.",
+            "mi": "It is just any place where two bones meet, even if there is no cavity.",
+            "cx": "The correction is that a synovial joint is identified by its cavity and related supporting features, not simply by the fact that bones meet."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f9e319381eafb0a6962943d45196bdc9b4beb7422ea846d20b8a59eed12cdb5b",
+          "artifact": {
+            "tr": "Movable joint type",
+            "df": "A joint that permits movement between bones, such as a hinge or ball-and-socket joint.",
+            "eg": "The knee is an example of a movable joint type.",
+            "mi": "All joints that have a joint cavity are movable joints.",
+            "cx": "Movable joints are characterized by having a joint cavity, articular cartilage, synovial fluid, and supporting ligaments that allow smooth motion."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "9a9390ef09fc7aa58e5cb718329b8e1a8ad55620a7589543d4133bf4ffed451f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "f9e319381eafb0a6962943d45196bdc9b4beb7422ea846d20b8a59eed12cdb5b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e19551b799cbfe02954b",
+      "caseDigest": "8a20ad5c57b3d5bbddded61ac499db5796a495b1eab4764b893d6e56891b4ba7",
+      "domain": "anatomy",
+      "courseGroupSha256": "82b15925eb326aab00b33bba61f86dbde928f4fe6f715c68d7777a5eb1def439",
+      "sourceContextSha256": "1a8dfe1d7994762cfef28852d469b26cba7892d5e4167f0c722254b3501e5695",
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/tissue-types",
+        "term": "Four primary tissue types",
+        "claims": [
+          "The four broad tissue categories are epithelial, connective, muscle, and nervous tissue, each with structures and functions that support body organization.",
+          "Histology studies tissue appearance, organization, and function under the microscope.",
+          "Tissue cells share morphological features and an orderly arrangement that supports tissue function."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "a93b8d10b98fef1db1396160fef0f466dc34289f4dda6393fe14c6f65c431771",
+          "artifact": {
+            "q": "Which tissue type is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function?",
+            "op": [
+              "Connective tissue",
+              "Muscle tissue",
+              "Epithelial tissue",
+              "Nervous tissue"
+            ],
+            "ai": 2,
+            "ex": "Epithelial tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function. Connective tissue is characterized by cells sharing morphological features and an orderly arrangement that supports tissue function."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6ab1d82b84cb138a7a5afe1c43e791befec5e0c8d75cc747d36212587ef4d86f",
+          "artifact": {
+            "q": "A student looks at a microscope image and identifies cells with shared shape and an orderly arrangement that help the structure work. Which course idea best matches that observation?",
+            "op": [
+              "Histology studies tissue appearance, organization, and function under the microscope.",
+              "The body is organized first into organs, then tissues, then cells.",
+              "Skin is classified as connective tissue because it covers the body surface.",
+              "A negative feedback loop always increases the original change."
+            ],
+            "ai": 0,
+            "ex": "Histology is the study of tissue appearance, organization, and function under the microscope. That fits the microscope-based observation better than the nearby but incorrect ideas about body level order, skin classification, or feedback regulation."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "a93b8d10b98fef1db1396160fef0f466dc34289f4dda6393fe14c6f65c431771",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6ab1d82b84cb138a7a5afe1c43e791befec5e0c8d75cc747d36212587ef4d86f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-d76719130eed38687b85",
+      "caseDigest": "7e7c63e90a51cfa0add0cffa2e12fa02bcbe0de7249891602f7211db66149755",
+      "domain": "physics",
+      "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+      "sourceContextSha256": "ce496339f518fba2814a943e49766cdb6eb95e9de62dacd3077a872a610601d1",
+      "sourceContext": {
+        "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+        "kernelId": "physics/dc-circuits",
+        "term": "DC circuits",
+        "claims": [
+          "A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules.",
+          "Series components share the same current; parallel branches share the same voltage.",
+          "Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 10"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "63d75672437a9ebabcd2ce271dc03fa629dd3714337ad4824affa4b69bab94bd",
+          "artifact": {
+            "q": "In a DC circuit, what is true regarding components connected in series?",
+            "op": [
+              "Series components share the same current",
+              "Parallel branches share the same voltage",
+              "Components in series have different currents",
+              "Components in series share the same voltage"
+            ],
+            "ai": 0,
+            "ex": "Series components share the same current because the current flows through every part of the conducting path sequentially."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a655116e66adc1693d4b56219da057f6c8a80692beba983ac8ad90acbe5ecf0e",
+          "artifact": {
+            "q": "In a simple circuit path with components in a single chain, which statement about current is correct?",
+            "op": [
+              "The same current passes through each series component.",
+              "Each series component has the same voltage across it.",
+              "Current is shared only by the source and the first component.",
+              "Current becomes zero after the first component."
+            ],
+            "ai": 0,
+            "ex": "The same current passes through each series component, which is the decisive rule for components in series. A common misconception is to swap this with the voltage rule; equal voltage applies to parallel branches, not to series components."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "63d75672437a9ebabcd2ce271dc03fa629dd3714337ad4824affa4b69bab94bd",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "a655116e66adc1693d4b56219da057f6c8a80692beba983ac8ad90acbe5ecf0e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

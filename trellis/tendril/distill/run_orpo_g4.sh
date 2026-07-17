@@ -36,6 +36,7 @@ BASE_MODEL=google/gemma-4-E2B-it-qat-q4_0-unquantized
 BASE_REVISION=1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce
 MODEL_CACHE=${SCION_MODEL_CACHE:-$HOME/.cache/coursemapper/scion-models}
 OUTPUT_ROOT=${SCION_ADAPTER_OUTPUT_ROOT:-$HOME/.cache/coursemapper/scion-adapters}
+RESEARCH_PREFERENCE_SOURCE=${SCION_RESEARCH_PREFERENCE_SOURCE:-evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-readiness-gap.jsonl}
 SEED=${SCION_TRAIN_SEED:-16031}
 LANE=production
 $SMOKE && LANE=smoke
@@ -57,7 +58,12 @@ mkdir -p "$DATASET_DIR" "$OUTPUT_ROOT"
 if $SMOKE; then
   node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --generated-at "$GENERATED_AT" --allow-smoke
 elif $RESEARCH; then
-  node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --generated-at "$GENERATED_AT" --research
+  node scripts/scionAdapterDataset.mjs \
+    --source "$RESEARCH_PREFERENCE_SOURCE" \
+    --output "$DATASET_DIR" \
+    --generated-at "$GENERATED_AT" \
+    --research \
+    --semantic-profile strict
 else
   node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --generated-at "$GENERATED_AT"
 fi

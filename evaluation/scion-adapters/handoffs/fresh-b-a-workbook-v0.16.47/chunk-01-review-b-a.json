@@ -1,0 +1,1049 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1c6adccdcb9edfab7231",
+    "packetDigest": "1c6adccdcb9edfab7231627b2205bbd3e5ce36032c854fb90024b351ea7e0393",
+    "organizerDigest": "6026ed4bdf7145d7b5dc9fcf2ecca5cffc29c74001baaab46c604dea1da65363"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-6ed7a1e76072b2df755d",
+      "caseDigest": "0082c29d7fb9589f9e366a9d52fa7b53b0c40d932690cfe1a0c7c8476604dac4",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "c70a8deaee462a861b2cb5d3a1276686991cdf60f0212bf74babf077d4d9f90c",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/classes",
+        "term": "Objects and classes",
+        "claims": [
+          "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "A class is a blueprint for creating objects.",
+          "Individual objects created from a class are called instances.",
+          "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "3af4f9ab0a5cb69820736db4a808d961fc3885f274909299fc437575a1e990e7",
+          "artifact": {
+            "tr": "Instance",
+            "df": "A specific entity created from a class definition.",
+            "eg": "A specific Car object created from the Car class is an instance.",
+            "mi": "Confusing the class definition with the actual object created from it.",
+            "cx": "Individual objects created from a class are called instances."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "92b2ada05af5242b47ac9a2c2bbf4fd0ef1a9717c5d15ab9d1eb272c5dfa088e",
+          "artifact": {
+            "tr": "Class",
+            "df": "A reusable blueprint that specifies what data and behavior objects will have.",
+            "eg": "A course program might use a class to describe a bank account with balances and deposit actions.",
+            "mi": "It is a single object already holding one set of values.",
+            "cx": "A class is the source pattern; objects made from it are the instances."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "3af4f9ab0a5cb69820736db4a808d961fc3885f274909299fc437575a1e990e7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "92b2ada05af5242b47ac9a2c2bbf4fd0ef1a9717c5d15ab9d1eb272c5dfa088e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-057bd80eba6e15a0de16",
+      "caseDigest": "7d7d674b364642789923489919899820f8f35e311a6cf97d6098b2630dec4a0b",
+      "domain": "computer-science",
+      "courseGroupSha256": "a57b8b121bb7e6a648ad18f451be33b8830a4062aecaa167f52ddc58adc0e987",
+      "sourceContextSha256": "e5499ea5a98dff3fc3e3f5e3c5ba7c8e1e617bd6f670ada224b9fa780f443665",
+      "sourceContext": {
+        "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+        "kernelId": "cs/conditionals",
+        "term": "Conditionals and boolean logic",
+        "claims": [
+          "A conditional statement chooses which block of code to run based on whether a condition is true; if-else takes exactly one branch, and boolean operators (and, or, not) build compound conditions.",
+          "An if statement runs its body only when the condition is true, and skips it when the condition is false.",
+          "An else clause holds statements that run when the if condition is false.",
+          "and returns True only if both conditions are true; or returns True if either is true; not inverts a single condition."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §4.2 If-else statements; §4.3 Boolean operations"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6e39038f0bbc48e65c3b3f15ddce6260642494cf5e579b62dc4d8fe6feb85d06",
+          "artifact": {
+            "q": "A debugging print shows `x = 4` and `y = 9`. Which condition makes the `if` body run only when both values are above 5?",
+            "op": [
+              "x > 5 and y > 5",
+              "x > 5 or y > 5",
+              "not x > 5 and y > 5",
+              "x > 5 and not y > 5"
+            ],
+            "ai": 0,
+            "ex": "`and` is the only operator here that is true only when both comparisons are true. The closest distractor is `or`, but that would run the body when just one value is above 5, which is a different state from the one required."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "c1d4a04c62463e687336d3cff886949f28d9ccb7cde45d895b601bbb30ec4c15",
+          "artifact": {
+            "q": "Which statement describes the behavior of an if statement?",
+            "op": [
+              "An if statement runs its body only when the condition is true",
+              "An if statement runs its body only when the condition is false",
+              "An if statement runs its body when the condition is true or false",
+              "An if statement skips its body when the condition is true"
+            ],
+            "ai": 1,
+            "ex": "An if statement runs its body only when the condition is true. This is because the if statement runs its body only when the condition is true."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6e39038f0bbc48e65c3b3f15ddce6260642494cf5e579b62dc4d8fe6feb85d06",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "c1d4a04c62463e687336d3cff886949f28d9ccb7cde45d895b601bbb30ec4c15",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-727c07b26e5d956f4bf1",
+      "caseDigest": "2babd309df7f4ed36ecf6a6cc84133a01cfd84d33487f20d47469bc164c4f15a",
+      "domain": "computer-science",
+      "courseGroupSha256": "b5c02986dcab6c1fcb8fd5172f462004df30e0429a40327fd509afcb83daa037",
+      "sourceContextSha256": "a6e3adac30b518fe4db5ac98239a5c3b1d8a25ef53bf6c3712091cfe360be45f",
+      "sourceContext": {
+        "sourcePacketSha256": "2735bbd307dd162ce4336e81a60168cee98878533740af1ebd8430e0efec45ea",
+        "kernelId": "cs/dictionaries",
+        "term": "Dictionaries",
+        "claims": [
+          "A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.",
+          "Because a dictionary looks up values using keys, it cannot hold duplicate keys.",
+          "Dictionaries are written with curly braces in key: value form and are ideal when data is naturally labeled rather than ordered."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §10.1 Dictionary basics"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "795c23fd33d872b2794dee3c248abe236a2d89e0610d67cad0372e82abddb9b4",
+          "artifact": {
+            "tr": "Label-based storage",
+            "df": "A method of organizing data where items are accessed via descriptive labels instead of numerical indices.",
+            "eg": "Using 'name': 'Alice' instead of accessing the third element in a list.",
+            "mi": "Believing that data organization in this structure is inherently sequential.",
+            "cx": "Data organization is based on descriptive labels, making it ideal when data is naturally labeled rather than ordered."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "132b536e06374c4302b105c484becb50d8ba239fb82e3b8586792f8df89769cd",
+          "artifact": {
+            "tr": "Duplicate key",
+            "df": "A repeated label that a key-based mapping cannot hold as a second entry.",
+            "eg": "Trying to store two values under the key \"year\" in one mapping.",
+            "mi": "Two identical labels can both stay in the same mapping as separate pairs.",
+            "cx": "The correction is that the same key cannot be duplicated because the value is found through that key."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "795c23fd33d872b2794dee3c248abe236a2d89e0610d67cad0372e82abddb9b4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "132b536e06374c4302b105c484becb50d8ba239fb82e3b8586792f8df89769cd",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-1e0a6b8d2a2345a84e07",
+      "caseDigest": "64e13ff247e7da4d13d71755890fb9fb83b5bb29a24a87eb1e30b625677c8502",
+      "domain": "geology",
+      "courseGroupSha256": "41db303891dbbffdd4bc29d5aa9c2988e5e44317cff1397d41fa982ec4a22b26",
+      "sourceContextSha256": "fe312934727b1881579ff8494fbc1d68928765bcce9c0a391826897506371465",
+      "sourceContext": {
+        "sourcePacketSha256": "afe665d7a9599479da3ab654f9e9865ac0ce1d3112c5b05d29eb2f83fcebb6fe",
+        "kernelId": "geo/igneous-rocks",
+        "term": "Igneous rocks and magma",
+        "claims": [
+          "Igneous rock forms when molten magma or lava cools and crystallizes; how fast it cools controls crystal size, distinguishing coarse intrusive rocks from fine-grained extrusive rocks.",
+          "Lava cooling quickly at the surface forms tiny crystals, while magma cooling slowly at depth forms large crystals.",
+          "Magma that cools slowly deep within the crust forms intrusive (plutonic) rock with a coarse-grained texture.",
+          "Lava cooling at or near the surface forms extrusive (volcanic) rock with a fine-grained texture."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4.1 Magma generation and igneous textures"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "eafa444f6c22a2f58c974e4717f453dd6cdbd9f18f44d2bfda2590132eb76a2f",
+          "artifact": {
+            "tr": "Extrusive rock",
+            "df": "A rock formed when lava cools quickly at or near the surface, resulting in a fine-grained texture.",
+            "eg": "Basalt, formed from quickly cooling lava.",
+            "mi": "Extrusive rocks form when magma cools slowly deep within the crust.",
+            "cx": "Extrusive rocks form when lava cools quickly at or near the surface."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7edd346c6430af4f3fa08eb6f1299a40e6be51a0de7997325e1a4ce13060fc68",
+          "artifact": {
+            "tr": "extrusive rock",
+            "df": "Igneous rock that forms when lava cools quickly at or near the surface, producing a fine-grained texture.",
+            "eg": "A volcanic lava flow that solidifies into a fine-grained basaltic rock.",
+            "mi": "Fine grains always mean the rock formed under water.",
+            "cx": "Fine grains can result from rapid cooling of lava at the surface, not from water deposition."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "eafa444f6c22a2f58c974e4717f453dd6cdbd9f18f44d2bfda2590132eb76a2f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "7edd346c6430af4f3fa08eb6f1299a40e6be51a0de7997325e1a4ce13060fc68",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-53d9c6b8526ea5739f4f",
+      "caseDigest": "ad9384db76bad882b609c8f7c20ba698f642b46bc89c2b485ec86bece658091c",
+      "domain": "geology",
+      "courseGroupSha256": "af478b3b946a56f3e9d594fc6fc9d3d007b88dc09de874f62a898860542b0ddc",
+      "sourceContextSha256": "ddb03b14ba78bfe50e16ab1f1c1484d55825e89e9acea378961cf567f8f93c27",
+      "sourceContext": {
+        "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+        "kernelId": "geo/rock-cycle",
+        "term": "The rock cycle",
+        "claims": [
+          "The rock cycle describes how Earth's three rock families — igneous, sedimentary, and metamorphic — form and continually transform into one another through geologic processes.",
+          "The rock cycle describes the major Earth materials, the processes that form them, and how they relate to each other.",
+          "Igneous rock forms when liquid rock freezes solid; lithified sediment becomes sedimentary rock; pre-existing rock can transform into metamorphic rock.",
+          "If conditions melt the rocks into magma, the cycle begins anew with new igneous rocks."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §4 The rock cycle"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "1c405957113a68cd391c8beae4e24fa5e27b222c22353b30942133e1a07f0fbe",
+          "artifact": {
+            "tr": "Igneous rock",
+            "df": "Rock formed when liquid rock freezes solid and lithifies.",
+            "eg": "Basalt or granite.",
+            "mi": "Assuming all rock types are formed solely through the process of lithified sediment.",
+            "cx": "Igneous rock forms when liquid rock freezes solid."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "23b5df5cbc1204ba77df5476ce0f2459d5f9e3ad8351dcce65e935b3934c11e7",
+          "artifact": {
+            "tr": "The rock cycle",
+            "df": "A linked set of processes that forms Earth’s major rock families and changes them into one another.",
+            "eg": "Sediment can lithify into sedimentary rock, and melted rock can later freeze into new igneous rock.",
+            "mi": "The cycle is a one-way path from one rock type to the next.",
+            "cx": "The cycle is continual, with rock families transforming back and forth through geologic processes."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "1c405957113a68cd391c8beae4e24fa5e27b222c22353b30942133e1a07f0fbe",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "23b5df5cbc1204ba77df5476ce0f2459d5f9e3ad8351dcce65e935b3934c11e7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-239e1c6ccc4d04bb7a37",
+      "caseDigest": "d2279a16cc70c6efc6818f973b052725dd4b4a8dd8c6693b20afb281af87a412",
+      "domain": "music-theory",
+      "courseGroupSha256": "6280ddd32cb07b8ee70f74fbe8a2d79205efa545aa9360a1f13e86996096df8d",
+      "sourceContextSha256": "3a6721bcbbf0b5e86f30d6fa2b57e661dc7d421a7da9db8da7e7e78064c09d81",
+      "sourceContext": {
+        "sourcePacketSha256": "e3b0f206c41fd8f910ccfc596c4f6bc3ee9e4c98c0dda44d1b35a5d654760938",
+        "kernelId": "music/staff-clefs-pitch-notation",
+        "term": "Staff and clefs",
+        "claims": [
+          "In Western musical notation, the staff (UK usually stave); (plural: staves), also occasionally referred to as a pentagram, is a set of horizontal lines (usually five) with spaces between them, that each represent a different musical pitch.",
+          "Which staff positions represent which notes is determined by a clef placed at the beginning of the staff.",
+          "A clef (from French: clef 'key') is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+          "The treble clef is also the upper staff of the grand staff used for harp and keyboard instruments.",
+          "Bass clef is the bottom clef in the grand staff for harp and keyboard instruments."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "876273fe8f965f3356fa287079cbad06a7c00864024a017652396f310110af17",
+          "artifact": {
+            "tr": "staff",
+            "df": "A set of horizontal lines, usually five, with spaces between them that each stand for different pitches.",
+            "eg": "A violin part written on five lines uses the staff to place notes at different heights.",
+            "mi": "It means the symbol that tells you which notes the lines represent.",
+            "cx": "That description belongs to a clef, not the staff itself."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e0282a24e613306625276353544897b2e2b5e59d46c46fb566d9bdcd96e6cf7d",
+          "artifact": {
+            "tr": "Staff",
+            "df": "A set of horizontal lines (usually five) with spaces between them, that each represent a different musical pitch.",
+            "eg": "The five horizontal lines and spaces on a musical staff.",
+            "mi": "A staff is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff. It is not the set of lines and spaces themselves.",
+            "cx": "A staff is the set of horizontal lines and spaces on which musical pitches are represented."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "876273fe8f965f3356fa287079cbad06a7c00864024a017652396f310110af17",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e0282a24e613306625276353544897b2e2b5e59d46c46fb566d9bdcd96e6cf7d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-cf896d8279cc5f263d22",
+      "caseDigest": "094d3374d6c16ae523e1d99540226ea28a1cd3cc16bdd63a67afc2e2b72e3430",
+      "domain": "music-theory",
+      "courseGroupSha256": "abd9179b4ea6b87d8a66c2873abc3d80d2536ff2e260ceea34f67f4728b84d82",
+      "sourceContextSha256": "acedb5a0451f3f5dbade57ae6dbf317f0222f5f8484f650e8a33fd8f1a0411f7",
+      "sourceContext": {
+        "sourcePacketSha256": "4f8665de42ed5888872183fe359968e2ed762767005c9b442852fad349e4fd12",
+        "kernelId": "music/staff-clefs-pitch-notation",
+        "term": "Staff and clefs",
+        "claims": [
+          "In Western musical notation, the staff (UK usually stave); (plural: staves), also occasionally referred to as a pentagram, is a set of horizontal lines (usually five) with spaces between them, that each represent a different musical pitch.",
+          "Which staff positions represent which notes is determined by a clef placed at the beginning of the staff.",
+          "A clef (from French: clef 'key') is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+          "The treble clef is also the upper staff of the grand staff used for harp and keyboard instruments.",
+          "Bass clef is the bottom clef in the grand staff for harp and keyboard instruments."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b786d44f6f4fcda875c5d3d52a7fa76810abd951fb64cc07e46e6e500c96b037",
+          "artifact": {
+            "q": "Which symbol is used to denote the upper staff of the grand staff for instruments like the harp?",
+            "op": [
+              "Bass clef",
+              "Treble clef",
+              "Staff",
+              "Clef 'key'"
+            ],
+            "ai": 1,
+            "ex": "The correct choice is the treble clef, which is also the upper staff of the grand staff used for harp and keyboard instruments. The misconception is selecting the bass clef, which is the bottom clef in the grand staff for harp and keyboard instruments."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "0646a5b54fd0b46e18ce21f0914132f92e875eae4f4e6c44dda0ba13731fdeeb",
+          "artifact": {
+            "q": "In a grand staff for harp or keyboard instruments, which staff is the treble clef?",
+            "op": [
+              "The upper staff of the grand staff",
+              "The lower staff of the grand staff",
+              "The staff between the two clefs",
+              "The staff without any clef"
+            ],
+            "ai": 0,
+            "ex": "The upper staff is correct because the treble clef is identified as the upper staff of the grand staff for harp and keyboard instruments. The most plausible misconception is to confuse it with the bass clef, which is the bottom clef in the grand staff."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b786d44f6f4fcda875c5d3d52a7fa76810abd951fb64cc07e46e6e500c96b037",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "0646a5b54fd0b46e18ce21f0914132f92e875eae4f4e6c44dda0ba13731fdeeb",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e2c5df60398c3ea4bd9f",
+      "caseDigest": "a439c359034b378f0e1b081920c18a4a27d3a489fb4508976e82ef10d9c698bd",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "066b2a92278e7cc3ad0251333c3249993f512a9e25a5f158f842da330c3d584e",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/triads-and-seventh-chords",
+        "term": "Triads and seventh chords",
+        "claims": [
+          "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+          "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+          "There are four different inversions of a seventh chord."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9ed5f622cbbeec13f5fc8113b9114acaa873484657b0d350f2fb41535205f2b6",
+          "artifact": {
+            "q": "A student stacks scale degrees 1–3–5 in thirds to label a sonority before adding one more note a seventh above the root. Which description fits the finished sonority best?",
+            "op": [
+              "a triad",
+              "a seventh chord",
+              "a suspended chord",
+              "a pedal point"
+            ],
+            "ai": 1,
+            "ex": "A seventh chord is triad plus a note a seventh above the root. The common misconception is to stop at the three-note stack; that describes a triad, not the completed four-note sonority."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "3c56add69426c05994696610b82930ebff27ce66e601289e74e9fee694aec969",
+          "artifact": {
+            "q": "What is the fundamental structure of a triad in music?",
+            "op": [
+              "A) A set of four notes stacked vertically in fourths.",
+              "b) A set of three notes stacked vertically in thirds.",
+              "c) A set of five notes stacked vertically in thirds.",
+              "d) A set of two notes stacked vertically in thirds."
+            ],
+            "ai": 1,
+            "ex": "Option B is correct because a triad is defined as a set of three notes stacked vertically in thirds. Option A is incorrect because a triad involves three notes, not four, and the interval is a third, not a fourth."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9ed5f622cbbeec13f5fc8113b9114acaa873484657b0d350f2fb41535205f2b6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "3c56add69426c05994696610b82930ebff27ce66e601289e74e9fee694aec969",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2770681aba21af810e41",
+      "caseDigest": "650833f38c3add3fb7fdd760d857e9164323639346ea333690c09aff22ff5697",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "06ab2cdeac734edd8ef5df93070d35408285ceb632fbba18e19ae1247777989a",
+      "sourceContextSha256": "ab10b15269aa5d7e3e8b051f33db9774e4921e4969bd1a9591587a2099e8c480",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "term": "Accessibility and usability evaluation",
+        "claims": [
+          "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "A single disabled participant's experience should not be generalized to all people with disabilities."
+        ],
+        "attribution": [
+          "W3C Web Accessibility Initiative",
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "W3C Document License and U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "900419b4074c6880b04bbb2d23194a4fcd4048a74af53e2dcf77bfdf740cbc9b",
+          "artifact": {
+            "tr": "WCAG principles",
+            "df": "Four organizing goals used to structure web accessibility requirements.",
+            "eg": "A design review checks whether a form is perceivable, operable, understandable, and robust.",
+            "mi": "They are a list of visual style preferences.",
+            "cx": "Use them to organize an accessibility review, not to infer user intent or motivation."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b9dbe16192a0e26df612010d11964be68b613e6e0e6cb84ccdc863971448234a",
+          "artifact": {
+            "tr": "Standards-based conformance checks",
+            "df": "A systematic review against established guidelines.",
+            "eg": "Checking a website against WCAG guidelines.",
+            "mi": "This is the only way to test if a product works.",
+            "cx": "This is a component of accessibility and usability evaluation, used alongside user observation."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "900419b4074c6880b04bbb2d23194a4fcd4048a74af53e2dcf77bfdf740cbc9b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b9dbe16192a0e26df612010d11964be68b613e6e0e6cb84ccdc863971448234a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-61a70390b92564e171cb",
+      "caseDigest": "963dcf54c42bcd7c3eb60b46308bc8e84c9a21a0ecbb78abffad7e0d3a6ed361",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "61d4c90977f13b23b93368a208941fd2db304b807bfe6bf7728b4b6b9f222097",
+      "sourceContextSha256": "471021c72436fa6231d8dd61a49771729d516e477c19bb99bce13f4c25bad276",
+      "sourceContext": {
+        "sourcePacketSha256": "f0261b4e9d65d69eb1fd27b6e93e9702910c6f23322aeb3fcf3b799bb742fa6d",
+        "kernelId": "ux/research-planning",
+        "term": "Research planning",
+        "claims": [
+          "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "The team should agree what it wants to learn from the research round before selecting study details.",
+          "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+          "Researchers should run through test tasks on the day before the research session.",
+          "A practice session with a team member can expose procedure problems before participants arrive."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "169c323993d256bf24500b4ca6d74a955e18138bad6d406c3fa2b0459652aba6",
+          "artifact": {
+            "tr": "Actionable learning objectives",
+            "df": "The specific goals derived from a research plan.",
+            "eg": "Defining the precise learning goals for a usability test.",
+            "mi": "Assuming the plan dictates the exact tasks to be performed.",
+            "cx": "The plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "48beabd532fc6d4ba6d37be25bd4c093870deb405b68a6465e551d45de761b49",
+          "artifact": {
+            "tr": "Learning objectives",
+            "df": "Specific things the study is meant to find out.",
+            "eg": "A team asks whether the checkout flow confuses first-time users before changing the interface.",
+            "mi": "Thinking the research plan is mainly a schedule or slide deck.",
+            "cx": "A research plan turns a decision need into actionable learning objectives and related study setup."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "169c323993d256bf24500b4ca6d74a955e18138bad6d406c3fa2b0459652aba6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "48beabd532fc6d4ba6d37be25bd4c093870deb405b68a6465e551d45de761b49",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

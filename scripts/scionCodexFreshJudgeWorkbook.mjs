@@ -82,6 +82,12 @@ function validIdentity(value) {
   return normalized.length >= 3 && !/^(?:unknown|unset|placeholder|tbd|todo|replace|n\/a)$/i.test(normalized);
 }
 
+function portableHomePath(value) {
+  const normalized = String(value || '');
+  const home = os.homedir();
+  return normalized.startsWith(`${home}${path.sep}`) ? `~/${normalized.slice(home.length + 1)}` : normalized;
+}
+
 function publicJudgeIdentity(judge = {}) {
   return {
     model: judge.model,
@@ -217,15 +223,19 @@ function metadataWithoutReviews(template) {
   return metadata;
 }
 
-function reverseOrderTaskInstructions({ chunks, requiredJudgeIdentity, release }) {
+function reverseOrderTaskInstructions({ chunks, requiredJudgeIdentity, release, instructionRouting = null }) {
   const chunkList = chunks
     .map((chunk) => `- \`${chunk.templateFile}\` + \`${chunk.decisionsFile}\` — ${chunk.caseCount} anonymous cases`)
     .join('\n');
-  const workingDecisions = `verification-output/scion-codex-fresh-b-a-working-${release}`;
-  const sealedOutput = `verification-output/scion-codex-sealed-passes/${release}-b-a.sealed.json`;
-  const keyOutput = `~/.codex/scion-secrets/CourseMapper/${release}-b-a.key`;
-  const outputDir = `evaluation/scion-adapters/handoffs/fresh-b-a-workbook-${release}`;
-  const receiptFile = `evaluation/scion-adapters/evidence/fresh-b-a-workbook-${release}.json`;
+  const workingDecisions =
+    instructionRouting?.workingDecisionsDir || `verification-output/scion-codex-fresh-b-a-working-${release}`;
+  const sealedOutput =
+    instructionRouting?.sealedOutput || `verification-output/scion-codex-sealed-passes/${release}-b-a.sealed.json`;
+  const keyOutput = instructionRouting?.keyOutput || `~/.codex/scion-secrets/CourseMapper/${release}-b-a.key`;
+  const outputDir =
+    instructionRouting?.handoffDir || `evaluation/scion-adapters/handoffs/fresh-b-a-workbook-${release}`;
+  const receiptFile =
+    instructionRouting?.receiptFile || `evaluation/scion-adapters/evidence/fresh-b-a-workbook-${release}.json`;
   const identity = requiredJudgeIdentity?.identity;
   const launchProfile = requiredJudgeIdentity?.launchProfile;
   const launchSurface = launchProfile?.runtime?.startsWith('codex-cli')
@@ -257,7 +267,7 @@ mkdir -p ${workingDecisions}
 cp ${outputDir}/chunk-*-decisions-b-a.json ${workingDecisions}/
 \`\`\`
 
-Process chunks in numeric order. For each case, score both artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`. Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
+Process chunks in numeric order. For each case, score both artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`. For a positional win, set \`preference.decision\` to the exact token \`winner\` and set \`winnerPosition\` to \`1\` or \`2\`; never use \`first-artifact\` or \`second-artifact\` as decision tokens. Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
 
 Every completed chunk must carry the same exact judge revision, runtime, fresh session ID, completion time, no-prior-outcome statement, context-reset attestation, and judgment attestation. Edit only the working decisions copies; never modify this hash-bound workbook.${identityInstruction ? `\n\n${identityInstruction}` : ''}
 
@@ -280,15 +290,19 @@ Return only the sealed envelope path, a separately transferred key path, and the
 `;
 }
 
-function firstOrderTaskInstructions({ chunks, release, requiredJudgeIdentity }) {
+function firstOrderTaskInstructions({ chunks, release, requiredJudgeIdentity, instructionRouting = null }) {
   const chunkList = chunks
     .map((chunk) => `- \`${chunk.templateFile}\` + \`${chunk.decisionsFile}\` — ${chunk.caseCount} anonymous cases`)
     .join('\n');
-  const workingDecisions = `verification-output/scion-codex-fresh-a-b-working-${release}`;
-  const sealedOutput = `verification-output/scion-codex-sealed-passes/${release}-a-b.sealed.json`;
-  const keyOutput = `~/.codex/scion-secrets/CourseMapper/${release}-a-b.key`;
-  const outputDir = `evaluation/scion-adapters/handoffs/fresh-a-b-workbook-${release}`;
-  const receiptFile = `evaluation/scion-adapters/evidence/fresh-a-b-workbook-${release}.json`;
+  const workingDecisions =
+    instructionRouting?.workingDecisionsDir || `verification-output/scion-codex-fresh-a-b-working-${release}`;
+  const sealedOutput =
+    instructionRouting?.sealedOutput || `verification-output/scion-codex-sealed-passes/${release}-a-b.sealed.json`;
+  const keyOutput = instructionRouting?.keyOutput || `~/.codex/scion-secrets/CourseMapper/${release}-a-b.key`;
+  const outputDir =
+    instructionRouting?.handoffDir || `evaluation/scion-adapters/handoffs/fresh-a-b-workbook-${release}`;
+  const receiptFile =
+    instructionRouting?.receiptFile || `evaluation/scion-adapters/evidence/fresh-a-b-workbook-${release}.json`;
   const identity = requiredJudgeIdentity.identity;
   const launchProfile = requiredJudgeIdentity.launchProfile;
   const launchSurface = launchProfile?.runtime?.startsWith('codex-cli')
@@ -317,7 +331,7 @@ ${launchPreflight ? `${launchPreflight}\n\n` : ''}Before scoring any case, verif
 
 ## Review schedule
 
-Read and follow \`${PROMPT_FILE}\`. The ${chunks.reduce((sum, chunk) => sum + chunk.caseCount, 0)}-case A/B pass is divided into immutable chunks. Process chunks in numeric order. Score both anonymous artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`. Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
+Read and follow \`${PROMPT_FILE}\`. The ${chunks.reduce((sum, chunk) => sum + chunk.caseCount, 0)}-case A/B pass is divided into immutable chunks. Process chunks in numeric order. Score both anonymous artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`. For a positional win, set \`preference.decision\` to the exact token \`winner\` and set \`winnerPosition\` to \`1\` or \`2\`; never use \`first-artifact\` or \`second-artifact\` as decision tokens. Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
 
 ${chunkList}
 
@@ -601,6 +615,7 @@ export async function buildScionCodexFreshJudgeWorkbook({
   release = SCION_CODEX_FRESH_WORKBOOK_RELEASE,
   declaredJudgeIdentity = null,
   declaredJudgeLaunchProfile = null,
+  instructionRouting = null,
 } = {}) {
   if (!['A/B', 'B/A'].includes(order)) throw new Error(`Unsupported Codex workbook order: ${order}`);
   if (order === 'A/B' && !declaredJudgeIdentity) {
@@ -716,8 +731,9 @@ export async function buildScionCodexFreshJudgeWorkbook({
             chunks: descriptors,
             release,
             requiredJudgeIdentity,
+            instructionRouting,
           })
-        : reverseOrderTaskInstructions({ chunks: descriptors, requiredJudgeIdentity, release });
+        : reverseOrderTaskInstructions({ chunks: descriptors, requiredJudgeIdentity, release, instructionRouting });
     await fs.writeFile(path.join(absoluteOutput, INSTRUCTIONS_FILE), instructionBytes);
     const files = Object.fromEntries(
       await Promise.all(
@@ -786,6 +802,7 @@ export async function buildScionCodexFreshJudgeWorkbook({
         exclusiveOutputs: true,
         outcomeDisclosure: 'sealed',
       },
+      ...(instructionRouting ? { instructionRouting } : {}),
       claimBoundary:
         order === 'A/B'
           ? 'This workbook proves a blank, chunked A/B-only first-order input set with a predeclared Codex identity. It proves no judgment, preference, adapter improvement, model win, human evidence, or paid-reference parity.'
@@ -955,6 +972,7 @@ export async function auditTrackedWorkbook(
         expectedReceipt.requiredJudgeIdentity?.source === 'declared-first-order-judge-identity'
           ? expectedReceipt.requiredJudgeIdentity.launchProfile || null
           : null,
+      instructionRouting: expectedReceipt.instructionRouting || null,
     });
     const reconstruction = await verifyScionCodexFreshJudgeWorkbook({
       handoffDir: result.outputDir,
@@ -1104,6 +1122,16 @@ async function main() {
               internalBuildRevisionAvailable: false,
             }
           : null,
+    instructionRouting:
+      args.decisionsDir || args.sealedOutput || args.keyOutput
+        ? {
+            workingDecisionsDir: args.decisionsDir,
+            sealedOutput: args.sealedOutput,
+            keyOutput: portableHomePath(args.keyOutput),
+            handoffDir: args.handoffDir,
+            receiptFile: args.receiptOutput || args.receiptFile,
+          }
+        : null,
   });
   if (expectedReceipt) {
     const verification = await verifyScionCodexFreshJudgeWorkbook({

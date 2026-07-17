@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-grounded-atom-capture-v1",
+  "release": "v0.16.47",
+  "coveragePolicy": {
+    "protocol": "scion-source-capture-targeted-domain-gap-v1",
+    "domains": ["anatomy", "economics", "physics"],
+    "reason": "The first v0.16.47 preference campaign reused all available computer-science and geology kernels and most music and UX kernels. This additive campaign measures thirty-four previously unjudged CC-BY-4.0 kernels in three new domains without touching the five held-out benchmark domains."
+  },
+  "groups": [
+    {
+      "id": "anatomy-structure-regulation-systems-studio",
+      "domain": "anatomy",
+      "title": "Anatomy Structure, Regulation, and Systems Studio",
+      "courseBrief": "Anatomy Structure, Regulation, and Systems Studio, a ten-session evidence course connecting levels of organization, homeostatic regulation, tissue categories, body systems, sensory processing, and endocrine signaling through source-grounded classification and mechanism decisions.",
+      "qualityFocus": "Stress structure-function distinctions and causal boundaries. Separate tissue categories from organs, negative from positive feedback, epithelial from connective roles, joint structure from movement, sensory transduction from perception, and endocrine signaling from direct neural transmission. Require each explanation to rule out the nearest anatomical misconception without adding unsupported clinical claims.",
+      "sourceFile": "public/genome/anatomy-intro.json",
+      "kernels": [
+        { "id": "anatomy/levels-of-organization" },
+        { "id": "anatomy/homeostasis-feedback" },
+        { "id": "anatomy/tissue-types" },
+        { "id": "anatomy/integumentary-skin-layers" },
+        { "id": "anatomy/skeletal-system-functions" },
+        { "id": "anatomy/synovial-joints" },
+        { "id": "anatomy/muscle-tissue-types" },
+        { "id": "anatomy/nervous-tissue" },
+        { "id": "anatomy/sensory-perception" },
+        { "id": "anatomy/endocrine-hormone-signaling" }
+      ]
+    },
+    {
+      "id": "economics-models-markets-evidence-lab",
+      "domain": "economics",
+      "title": "Economics Models, Markets, and Evidence Lab",
+      "courseBrief": "Economics Models, Markets, and Evidence Lab, a twelve-session source-grounded course in which students interpret demand, elasticity, equilibrium, choice, inflation dynamics, natural experiments, circular flows, accumulation, proxy measures, labor-force categories, and opportunity cost.",
+      "qualityFocus": "Stress model assumptions and near-neighbor economic concepts. Separate movements from shifts, elasticity from slope, equilibrium from fairness, correlation from a natural experiment, proxy measures from the target construct, unemployment from nonparticipation, and accounting flows from causal claims. Keep numerical or policy conclusions inside the supplied evidence.",
+      "sourceFile": "public/genome/econ-intro.json",
+      "kernels": [
+        { "id": "econ/price-elasticity-of-demand" },
+        { "id": "econ/demand-curve" },
+        { "id": "econ/market-equilibrium" },
+        { "id": "econ/wage-price-spiral" },
+        { "id": "econ/consumer-choice" },
+        { "id": "econ/economic-model" },
+        { "id": "econ/natural-experiment" },
+        { "id": "econ/circular-flow-of-income" },
+        { "id": "econ/capital-accumulation" },
+        { "id": "econ/proxy-variable" },
+        { "id": "econ/labor-force-classification" },
+        { "id": "econ/opportunity-cost" }
+      ]
+    },
+    {
+      "id": "physics-fields-circuits-induction-workshop",
+      "domain": "physics",
+      "title": "Physics Fields, Circuits, and Induction Workshop",
+      "courseBrief": "Physics Fields, Circuits, and Induction Workshop, a twelve-session source-grounded course moving from charge, fields, potential, and capacitance through current, resistance, DC circuits, magnetism, induction, and inductance.",
+      "qualityFocus": "Stress sign, direction, and representation boundaries. Separate field from force, potential from potential energy, current from charge, resistance from resistivity, electric from magnetic effects, flux from field strength, and Faraday induction from stored inductive energy. Require qualitative reasoning that is valid without inventing quantities absent from the source.",
+      "sourceFile": "public/genome/physics-intro.json",
+      "kernels": [
+        { "id": "physics/electric-charge" },
+        { "id": "physics/electric-field" },
+        { "id": "physics/gausss-law" },
+        { "id": "physics/electric-potential" },
+        { "id": "physics/capacitance" },
+        { "id": "physics/electric-current" },
+        { "id": "physics/resistance-ohms-law" },
+        { "id": "physics/dc-circuits" },
+        { "id": "physics/magnetic-field" },
+        { "id": "physics/magnetic-force" },
+        { "id": "physics/faradays-law" },
+        { "id": "physics/inductance" }
+      ]
+    }
+  ],
+  "claimBoundary": "This campaign captures neutral model outputs for thirty-four previously unjudged public source kernels in three non-holdout domains. It supplies no preference labels and proves no adapter, classroom, paid-reference, or production win."
+}

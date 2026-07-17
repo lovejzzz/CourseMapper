@@ -1,0 +1,153 @@
+{
+  "version": "0.16.47",
+  "date": "July 17, 2026",
+  "title": "Open the Lab, Not Production: authorize one evidence-bound Scion adapter experiment",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:semantic-admission:v0.16.47",
+      "npm run audit:scion:novel-breadth-evidence:v0.16.47",
+      "npm run audit:scion:course-group-breadth-judge-evidence:v0.16.47",
+      "npm run audit:scion:readiness-gap-judge-evidence:v0.16.47",
+      "npm run audit:scion:adapter:corpus-readiness:v0.16.47",
+      "npm run audit:scion:adapter:training:contract",
+      "npm run audit:scion:adapter:training:toolchain",
+      "npm test",
+      "npm run format:check",
+      "npm run lint",
+      "npm run audit:release-history",
+      "npm run build"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rebuild the strict corpus, evidence receipts, release ledger, test suite, and production bundle after the coherent branch is pushed."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "The research gate is open, but no adapter-versus-base held-out win, browser adapter activation, or production promotion is claimed yet."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of merge and required remote verification."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The evidence campaigns use retained, hash-bound local and GPT-5.4-mini responses. No fresh provider result is claimed by the release ledger."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human, instructor, classroom, or independent multi-judge preference is claimed; the paired readings use one identified Codex judge profile."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "research-training-authorized-single-model-judge-only",
+      "note": "Strict source binding, semantic admission, diversity, license disclosure, and holdout separation authorize one non-promotable research experiment. They do not establish adapter quality or production fitness."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01647-strict-corpus-research-readiness",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "The strict rebuild admits 143 of 145 source-bound preferences across seven domains, thirty-two course groups, eighty-one task groups, and sixty-four source kernels with a disjoint frozen holdout and zero research blockers.",
+      "anchors": [
+        "scripts/scionAdapterCorpusReadinessV01647.mjs",
+        "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.47.json",
+        "tests/scion-adapter-corpus-readiness-v01647.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:adapter:corpus-readiness:v0.16.47",
+        "npx vitest run tests/scion-adapter-corpus-readiness-v01647.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01647-focused-paired-order-campaign",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Two isolated presentation orders score fifteen focused cases and agree on thirteen outcomes, yielding eleven stable preferences: eight for GPT-5.4-mini and three for the captured Scion-base pipeline.",
+      "anchors": [
+        "scripts/scionReadinessGapJudgeCampaign.mjs",
+        "evaluation/scion-adapters/evidence/judge-campaign-readiness-gap-v0.16.47.json",
+        "evaluation/scion-adapters/evidence/codex-review-readiness-gap-v0.16.47-a-b.sealed.json",
+        "evaluation/scion-adapters/evidence/codex-review-readiness-gap-v0.16.47-b-a.sealed.json"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:readiness-gap-judge-evidence:v0.16.47",
+        "npm run audit:scion:readiness-gap-judge-evidence:local:v0.16.47"
+      ],
+      "proofScopes": ["static-audit"]
+    },
+    {
+      "id": "v01647-strict-semantic-admission",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Strict semantic admission detects fifty of seventy-eight measured weak artifacts while retaining all seventy-eight preferred counterparts, and the dataset keeps two newly exposed weak chosen rows in quarantine.",
+      "anchors": [
+        "src/lib/scionPreferenceGate.js",
+        "src/lib/scionKeyTermContract.js",
+        "src/lib/scionAnswerKeyAlignment.js",
+        "evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.47.json",
+        "tests/scion-semantic-admission-v2.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:semantic-admission:v0.16.47",
+        "npx vitest run tests/scion-semantic-admission-v2.test.js tests/scion-adapter-corpus-readiness-v01647.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01647-research-training-contract",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "The research launcher consumes the exact strict readiness corpus and binds its split bytes, the immutable public Gemma base, frozen holdout, clean Git tree, seed, explicit ORPO parameters, and pinned MLX toolchain before producing a non-promotable plan.",
+      "anchors": [
+        "scripts/scionAdapterDataset.mjs",
+        "scripts/scionAdapterTrainingRun.mjs",
+        "trellis/tendril/distill/run_orpo_g4.sh",
+        "evaluation/scion-adapters/training-toolchain-v1.json",
+        "tests/scion-adapter-training-run.test.js",
+        "tests/scion-adapter-tooling.test.js"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:adapter:training:contract",
+        "npm run audit:scion:adapter:training:toolchain",
+        "npm run test:scion:adapter:training"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01647-rejected-authoring-experiments",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "V3 and V4 authoring experiments both regress sharply against V2, including V4 admitting only one raw key term, so neither experimental prompt is activated.",
+      "anchors": [
+        "scripts/scionAuthoringV2ComparisonAudit.mjs",
+        "scripts/scionAuthoringV3LocalExperiment.mjs",
+        "scripts/scionAuthoringV4LocalExperiment.mjs",
+        "evaluation/scion-adapters/evidence/authoring-v2-comparison-v0.16.47.json",
+        "evaluation/scion-adapters/evidence/authoring-v3-local-experiment-v0.16.47.json",
+        "evaluation/scion-adapters/evidence/authoring-v4-local-experiment-v0.16.47.json"
+      ],
+      "proofCommands": [
+        "npm run audit:scion:authoring-v2-comparison:v0.16.47",
+        "npm run audit:scion:authoring-v3-local-experiment:v0.16.47",
+        "npm run audit:scion:authoring-v4-local-experiment:v0.16.47"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01647-honest-research-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "No quality adapter is active or promoted, production training remains license-blocked, and the single-model paired-order evidence is not represented as human preference, classroom value, or paid-reference parity.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/scion-adapters/evidence/training-corpus-readiness-v0.16.47.json"
+      ],
+      "proofCommands": ["npm run audit:scion:adapter:corpus-readiness:v0.16.47", "npm run audit:release-history"],
+      "proofScopes": ["static-audit", "doc"]
+    }
+  ]
+}

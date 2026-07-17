@@ -9,7 +9,7 @@ import { pathToFileURL } from 'node:url';
 import {
   buildScionAdapterDataset,
   SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK,
-  SCION_ADAPTER_DEFAULT_SOURCES,
+  SCION_ADAPTER_LEGACY_SOURCES,
 } from './scionAdapterDataset.mjs';
 
 export const SCION_ADAPTER_CORPUS_READINESS_RELEASE = 'v0.16.46';
@@ -277,7 +277,7 @@ function pairedJudgeCampaign(manifest, baseEvidence, campaignRaw) {
 
 export async function buildScionAdapterCorpusReadinessSnapshot({ generatedAt, profile }) {
   const release = profile || SCION_ADAPTER_CORPUS_READINESS_RELEASE;
-  const sources = release === LEGACY_RELEASE ? LEGACY_SOURCES : SCION_ADAPTER_DEFAULT_SOURCES;
+  const sources = release === LEGACY_RELEASE ? LEGACY_SOURCES : SCION_ADAPTER_LEGACY_SOURCES;
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-corpus-readiness-'));
   try {
     const { manifest } = await buildScionAdapterDataset({
@@ -295,6 +295,9 @@ export async function buildScionAdapterCorpusReadinessSnapshot({ generatedAt, pr
         SOURCE_AWARE_RELEASE,
         SCION_ADAPTER_CORPUS_READINESS_RELEASE,
       ].includes(release),
+      sourceBoundPrompt: false,
+      requireSourceBoundModelJudge: false,
+      legacyTrainingContract: true,
     });
     const replayPath =
       release === SCION_ADAPTER_CORPUS_READINESS_RELEASE

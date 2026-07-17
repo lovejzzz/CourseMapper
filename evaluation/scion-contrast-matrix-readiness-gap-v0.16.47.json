@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-contrast-matrix-v1",
+  "release": "v0.16.47",
+  "promptPolicy": "source-atom-authoring-v2",
+  "pairs": [
+    {
+      "id": "economics-market-structure-policy-clinic-authoring-v2-vs-gpt54mini",
+      "domain": "economics",
+      "courseGroupId": "economics-market-structure-policy-clinic",
+      "candidateRoute": "local-scion-base-source-compiler-recovery-authoring-v2-v0.16.47",
+      "candidateModel": "Scion base + compiler recovery (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-and-controlled-breadth-only",
+      "sourcePacketSha256": "878d3d2aa608ca0d7f2fa0a79df36f89c18c30475c9e6430bade711746575cbd",
+      "candidate": "evaluation/scion-source-capture-readiness-gap-evidence/economics-market-structure-policy-clinic-local.json",
+      "reference": "evaluation/scion-source-capture-readiness-gap-evidence/economics-market-structure-policy-clinic-reference.json"
+    },
+    {
+      "id": "music-rhythm-meter-listening-lab-authoring-v2-vs-gpt54mini",
+      "domain": "music-theory",
+      "courseGroupId": "music-rhythm-meter-listening-lab",
+      "candidateRoute": "local-scion-base-source-compiler-recovery-authoring-v2-v0.16.47",
+      "candidateModel": "Scion base + compiler recovery (Gemma 4 E2B)",
+      "referenceModel": "GPT-5.4-mini",
+      "artifactStatus": "source-grounded-raw-and-recovered-atom-capture",
+      "evaluationUse": "blind-review-and-controlled-breadth-only",
+      "sourcePacketSha256": "9010d732b2a3acafe2891a7d47adb3f480d7265e81dc5fd004735359a8b8854f",
+      "candidate": "evaluation/scion-source-capture-readiness-gap-evidence/music-rhythm-meter-listening-lab-local.json",
+      "reference": "evaluation/scion-source-capture-readiness-gap-evidence/music-rhythm-meter-listening-lab-reference.json"
+    }
+  ],
+  "evidence": {
+    "campaign": {
+      "path": "evaluation/scion-source-capture-readiness-gap-v0.16.47.json",
+      "sha256": "fa81d207826fd4226aa9302855b8a56543a91f5e1d73145214ff79c94dffe613",
+      "promptSetSha256": "2c92b418e427a0d6648b2348bfabbd20c31e2225935594bcd3cc7218fc4f7cb2"
+    },
+    "artifacts": [
+      {
+        "path": "evaluation/scion-source-capture-readiness-gap-evidence/economics-market-structure-policy-clinic-local.json",
+        "bytes": 77274,
+        "sha256": "7b750d326427c6ec99ddceb48d0a357d8f730c6d30f338944049eb054afc2553"
+      },
+      {
+        "path": "evaluation/scion-source-capture-readiness-gap-evidence/economics-market-structure-policy-clinic-reference.json",
+        "bytes": 80177,
+        "sha256": "23093b07cae69466bea46e4e2b21e1acc741fe6835dc4d71d5172cd9f9127cd3"
+      },
+      {
+        "path": "evaluation/scion-source-capture-readiness-gap-evidence/music-rhythm-meter-listening-lab-local.json",
+        "bytes": 19239,
+        "sha256": "6e9d81884b72e75728362c47d29ce6ab4c315c52ae42cc03c19d1ce4db882b02"
+      },
+      {
+        "path": "evaluation/scion-source-capture-readiness-gap-evidence/music-rhythm-meter-listening-lab-reference.json",
+        "bytes": 20182,
+        "sha256": "53cd7331db9cf4445383673148b0eb4e3047f104460dd500d22aa41893083bf5"
+      }
+    ],
+    "courseGroupsByDomain": {
+      "economics": 1,
+      "music-theory": 1
+    },
+    "sourceKernels": 5
+  },
+  "claimBoundary": "These two neutral source-grounded capture pairs cover four previously unrepresented economics kernels and one newly curated music-theory kernel under the accepted v2 authoring policy. They supply no preference label, adapter authorization, or quality win."
+}

@@ -1,0 +1,939 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1e87a4687c50f0ecf255",
+    "packetDigest": "1e87a4687c50f0ecf2557df7677fd08bf0f5037609907a03531c41ee059e44c7",
+    "organizerDigest": "f401694ee81d1355305749bebeb325cc48264de5e778e0a5fba1bb2994aaadcb"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-0ee6608145656bc54a49",
+      "caseDigest": "16a445999e8e8f1152f21d0089669049746d2d9c2b2f50ffa74196c6136d541f",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "5ebf213df410eed66f28b2c6b277f530a80a720fe8dd603fcaf8ca4aa4f589ac",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/magnetic-force",
+        "term": "Magnetic force",
+        "claims": [
+          "Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.",
+          "The magnetic force is perpendicular to both the velocity and the magnetic field.",
+          "A charge moving parallel to a magnetic field experiences no magnetic force."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "1434d168f235562bb5ba61cefe0b52afe2229d6f62be7edc26729e3b682cbb0a",
+          "artifact": {
+            "tr": "parallel motion relative to a field",
+            "df": "Motion in the same direction as a field, so the angle between them is zero.",
+            "eg": "A charge traveling along magnetic field lines experiences no magnetic force.",
+            "mi": "Any motion through a field must produce a magnetic force.",
+            "cx": "The source gives the special case that parallel motion produces no magnetic force."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ca4bd92c601f57f6d011c4e1355a15b9e3f9d20a245a8e00d4bba1b2a353921a",
+          "artifact": {
+            "tr": "Magnetic field",
+            "df": "A region of space where magnetic effects are present, influencing the motion of charged particles.",
+            "eg": "The invisible influence surrounding a permanent magnet that affects the path of a nearby moving electron.",
+            "mi": "The field only exists where there is a moving charge.",
+            "cx": "The field is a region of space that influences the motion of charged particles."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "1434d168f235562bb5ba61cefe0b52afe2229d6f62be7edc26729e3b682cbb0a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ca4bd92c601f57f6d011c4e1355a15b9e3f9d20a245a8e00d4bba1b2a353921a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-415e93166a5e7efd9113",
+      "caseDigest": "518f8f699c41f51246e54c3b5dfd591a212e67aab12f52cc2044aca635b734de",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "4c333cb54d38cbd45fe7613583748a45aacb6bb7888966d97fa462f657dee24d",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/dc-circuits",
+        "term": "DC circuits",
+        "claims": [
+          "A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules.",
+          "Series components share the same current; parallel branches share the same voltage.",
+          "Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 10"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "eba2d0d978a4efe7b80942e379a72c349b2e46d7670e661e9fc854b163bcee0b",
+          "artifact": {
+            "tr": "Junction Rule",
+            "df": "A rule expressing charge conservation in a circuit.",
+            "eg": "Applying Kirchhoff's junction rule to determine the total current entering a node.",
+            "mi": "Confusing the junction rule with the loop rule, which deals with energy conservation.",
+            "cx": "The junction rule ensures that the total charge entering a junction equals the total charge leaving it."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e96fc41407103975b37cf698a0f26758add1b059aaaa19bcf8a3b2f50fc2ff37",
+          "artifact": {
+            "tr": "Series circuit",
+            "df": "An arrangement where components lie on one conducting path and therefore share one current.",
+            "eg": "Two lamps placed one after another in a single DC path.",
+            "mi": "Series means the components automatically have the same voltage.",
+            "cx": "The shared quantity in series is current; voltage can be different across individual components."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "eba2d0d978a4efe7b80942e379a72c349b2e46d7670e661e9fc854b163bcee0b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "e96fc41407103975b37cf698a0f26758add1b059aaaa19bcf8a3b2f50fc2ff37",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4bc2b616693dbe23fdc5",
+      "caseDigest": "6fe005795ff41bd3e219981626407ea326dfb6c78f710c2b5e71c9e345a9e4dd",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "721b4bb8452a3de3c9e3b55bd27cda4d853f6e2073a640ffbf42bb604c821c99",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/electric-charge",
+        "term": "Electric charge",
+        "claims": [
+          "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+          "Like charges repel and unlike charges attract.",
+          "Net charge is conserved in an isolated system."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ece9beb0d2ab60d07efae439a26a83b50de2196b60e1cb9f84331f9d5d09cc99",
+          "artifact": {
+            "tr": "Net charge",
+            "df": "The total charge of a system after positive and negative contributions are combined.",
+            "eg": "An isolated system can have charges rearranged inside it while its net charge stays the same.",
+            "mi": "Net charge can change just because charges move around inside the system.",
+            "cx": "Charge can move between objects, but in an isolated system the net charge is conserved."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "704e9cb65c699bf253bdd6b1d1ad578456f8f6e7be4e44d5f6c2d059fc4387c1",
+          "artifact": {
+            "tr": "Like charges",
+            "df": "Particles possessing the same type of electric charge.",
+            "eg": "Two positive protons.",
+            "mi": "Assuming like charges attract.",
+            "cx": "Like charges repel and unlike charges attract."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "ece9beb0d2ab60d07efae439a26a83b50de2196b60e1cb9f84331f9d5d09cc99",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "704e9cb65c699bf253bdd6b1d1ad578456f8f6e7be4e44d5f6c2d059fc4387c1",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-598f20e8b39d21a5ceb1",
+      "caseDigest": "2b6bf79406895095bdb082109dbdf9e07ebdcd4b1687d9ca4222951e80d1221e",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "91948b0219160f47df87b37a776d20f63c609664ab41077d06d2c9f5c44be3be",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/resistance-ohms-law",
+        "term": "Ohmic resistance in electric circuits",
+        "claims": [
+          "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+          "For an ohmic device at fixed temperature, current is proportional to voltage.",
+          "Resistance depends on material, length, cross-sectional area, and temperature."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 9"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "99d54917eebaf0c4766c3a0efa68c54e4549c4e98964664f05fb012c235d8944",
+          "artifact": {
+            "tr": "Ohmic resistance",
+            "df": "A material property describing how strongly a substance opposes the flow of electrical current.",
+            "eg": "A simple wire used in a circuit where the relationship between voltage and current is linear.",
+            "mi": "Resistance is solely determined by the material type.",
+            "cx": "Resistance is determined by material, length, cross-sectional area, and temperature."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "b9e93b386e2e024a7ba2e653f4e545627abf520bd2a58df2fe6f6f45a6ca2be4",
+          "artifact": {
+            "tr": "resistance",
+            "df": "Opposition to current flow by a material or device.",
+            "eg": "A longer wire may offer more resistance than a shorter one made from the same material.",
+            "mi": "Resistance is the same thing as current.",
+            "cx": "Current is what flows; resistance is what opposes that flow."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "99d54917eebaf0c4766c3a0efa68c54e4549c4e98964664f05fb012c235d8944",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "b9e93b386e2e024a7ba2e653f4e545627abf520bd2a58df2fe6f6f45a6ca2be4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-8764a3006a61736892a7",
+      "caseDigest": "f2b3de81c35414a4eaa834b77ef710ceb97e6c647be89c5ed203adf5295b9f67",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "721b4bb8452a3de3c9e3b55bd27cda4d853f6e2073a640ffbf42bb604c821c99",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/electric-charge",
+        "term": "Electric charge",
+        "claims": [
+          "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+          "Like charges repel and unlike charges attract.",
+          "Net charge is conserved in an isolated system."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c98c3dcc92b71dc045fb323e1c2dd520e347d8df47bc3a33743022efb33948d8",
+          "artifact": {
+            "tr": "Electric charge",
+            "df": "A conserved property of matter that dictates electric interactions.",
+            "eg": "A proton and an electron.",
+            "mi": "Believing charge can be created or destroyed during an interaction.",
+            "cx": "Charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "dad5efb8ed24e9c60431975d096043dd85207651a11f25dda5fd8450007d10f8",
+          "artifact": {
+            "tr": "Electric charge",
+            "df": "A conserved property of matter with positive and negative forms that governs electric interactions.",
+            "eg": "A rubbed object can end up with positive or negative charge and then attract or repel other charged objects.",
+            "mi": "Charge is only a kind of force.",
+            "cx": "Charge is a property of matter, not the force itself; it helps determine electric interactions."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c98c3dcc92b71dc045fb323e1c2dd520e347d8df47bc3a33743022efb33948d8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "dad5efb8ed24e9c60431975d096043dd85207651a11f25dda5fd8450007d10f8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-987ea3487b45609d0c5e",
+      "caseDigest": "19fc3b4f8aa728acaf40ee13924b640724e5b69564a7dece3cb357a1b6d756c1",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "c857fc9e9a6ebe5ff857f9fbb9d0df61c9aeab63a532984ad7a53705b624c8a8",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/magnetic-field",
+        "term": "Magnetic field",
+        "claims": [
+          "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+          "Currents produce magnetic fields."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11-12"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "254a11a9995beb3cc49207c7584cbacdeed40516cfa29ef2c361c97cce7b6345",
+          "artifact": {
+            "q": "What is a characteristic of magnetic field lines?",
+            "op": [
+              "They originate from magnetic charges.",
+              "They are open lines that extend to infinity.",
+              "They form closed loops.",
+              "They only exist around moving currents."
+            ],
+            "ai": 2,
+            "ex": "The correct choice notes that magnetic field lines form closed loops. The misconception is that field lines are open and extend to infinity; the source specifies they form closed loops (Claim 1)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ca528282413257e15f3a1de14889d936709de3bdaf43372be49286bcc9539182",
+          "artifact": {
+            "q": "What do magnetic field lines do?",
+            "op": [
+              "They form closed loops.",
+              "They start on positive charges and end on negative charges.",
+              "They show the path of a current through a wire.",
+              "They measure the strength of electric potential."
+            ],
+            "ai": 0,
+            "ex": "Correct. Magnetic field lines do not begin or end on isolated magnetic charges."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "254a11a9995beb3cc49207c7584cbacdeed40516cfa29ef2c361c97cce7b6345",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "ca528282413257e15f3a1de14889d936709de3bdaf43372be49286bcc9539182",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-f83c03cb0a7a5f33dbc8",
+      "caseDigest": "e09c98d9aeb09bba197d0e9f7e66b4b9d753118231e356e76576566400d08dc5",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "49084902fd5d4d054c3efce0301e2e580ca82b9482b8ffecd85c01da71de4775",
+      "sourceContextSha256": "5a0f5e55fd0d9a3292fa4fe7777b6bc360baaadba19cf665592314236b0f9142",
+      "sourceContext": {
+        "sourcePacketSha256": "91025e358b91265f110903e864438a936557a07bce01795345fa49826e0ca607",
+        "kernelId": "ux/service-blueprinting",
+        "term": "Service blueprinting",
+        "claims": [
+          "A service blueprint maps how a service works across user actions, visible interactions, backstage activities, and supporting operations.",
+          "A service blueprint clarifies relationships among systems and processes and can expose improvement opportunities.",
+          "Unlike a journey map, a service blueprint includes operational layers beyond the user perspective.",
+          "The diagram separates user steps, frontstage actions, backstage actions, and support processes.",
+          "Blueprint evidence can come from desk research and interviews with users, staff, and stakeholders."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "529aaa3ced1ff15c1f55ea362c125b6ef5dcc37f12e44296a44a7dcacedcafaf",
+          "artifact": {
+            "q": "Which evidence source can support a service blueprint?",
+            "op": [
+              "Desk research and interviews with users, staff, and stakeholders",
+              "Only a decorative status color choice",
+              "A moderator coaching script during observation",
+              "A feature walkthrough written from memory"
+            ],
+            "ai": 0,
+            "ex": "Blueprint evidence can come from desk research and interviews. It is not limited to coached observation or a walkthrough."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "b5922ab94b1fe024b59863688ac4548c3e39df85b6b2f5a333dbb12167bcfc0a",
+          "artifact": {
+            "q": "Which diagram type maps how a service functions by detailing user actions, visible interactions, backstage activities, and supporting operations?",
+            "op": [
+              "Journey map",
+              "Service blueprint",
+              "Feature walkthrough",
+              "User scenario"
+            ],
+            "ai": 1,
+            "ex": "A journey map focuses primarily on the user's experience, whereas a service blueprint includes operational layers beyond the user perspective."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "529aaa3ced1ff15c1f55ea362c125b6ef5dcc37f12e44296a44a7dcacedcafaf",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "b5922ab94b1fe024b59863688ac4548c3e39df85b6b2f5a333dbb12167bcfc0a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-d59c11d5cf25d0d78da5",
+      "caseDigest": "705185acc52fd696475345a8d079ed081a0db66cf6cbbbea19bfc961495499ba",
+      "domain": "economics",
+      "courseGroupSha256": "df6e467dd79911cf8ac7f7535116b3076b2d908b121fd6048e62c242db871f4a",
+      "sourceContextSha256": "074c1c8f9bf495a9bf7e7a9c1b65db58fa0aac8d11680cf37cf2c6f00d051465",
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/demand-curve",
+        "term": "Demand curve",
+        "claims": [
+          "A demand curve shows the quantity of a good consumers are willing and able to purchase at each price, holding other factors constant.",
+          "Demand curves typically slope downward, reflecting the law of demand.",
+          "A change in price causes a movement along the demand curve, while a change in income or tastes shifts the curve."
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 3"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "eb8a0bbdebce940a7d5ea366b1fda546c7d60b5742c8d6bc8a3eb12ba0e841c2",
+          "artifact": {
+            "q": "What causes a movement along a demand curve?",
+            "op": [
+              "A change in price",
+              "B a change in income",
+              "C a change in tastes",
+              "D a shift in the curve"
+            ],
+            "ai": 0,
+            "ex": "A change in price causes a movement along the demand curve. A change in income or tastes shifts the curve."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "bce3bc9c009bc78a1cd2b2f0f29258065681706ac40581ef4147e0c7d1ec8807",
+          "artifact": {
+            "q": "A store lowers the price of a snack bar while shoppers’ income and tastes stay the same. Which description best fits the demand curve?",
+            "op": [
+              "The curve shifts right because the lower price raises demand at every price.",
+              "There is a movement along the curve to a larger quantity purchased.",
+              "The curve shifts left because price and quantity always move together.",
+              "There is no change because demand curves only move when income changes."
+            ],
+            "ai": 1,
+            "ex": "The correct choice is a movement along the demand curve: a price change changes quantity purchased, holding other factors constant. A common mistake is to call every increase in quantity a shift; shifts are for changes in income or tastes, not price."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "eb8a0bbdebce940a7d5ea366b1fda546c7d60b5742c8d6bc8a3eb12ba0e841c2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "bce3bc9c009bc78a1cd2b2f0f29258065681706ac40581ef4147e0c7d1ec8807",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-b2ab3277ed298e613ef1",
+      "caseDigest": "d4f5ec36d05a7b6af678c571d36e211cb28649560a136c886c1a73eab4d07a80",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "c857fc9e9a6ebe5ff857f9fbb9d0df61c9aeab63a532984ad7a53705b624c8a8",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/magnetic-field",
+        "term": "Magnetic field",
+        "claims": [
+          "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+          "Currents produce magnetic fields."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 11-12"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7df4d8a35f49d7fb275b2ed665f69064fcc92a26d5e5e443d6c3e965fca98903",
+          "artifact": {
+            "tr": "Magnetic field lines",
+            "df": "Lines representing the direction of the magnetic influence, which always form closed loops.",
+            "eg": "The lines surrounding a bar magnet.",
+            "mi": "Field lines are open and extend indefinitely.",
+            "cx": "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6392fee5307ddca38ca603b8f35ac62d13b2cd0f3b904fea3af326f51b03ab3e",
+          "artifact": {
+            "tr": "Magnetic field lines",
+            "df": "Imaginary lines used to represent magnetic influence in space, shown as closed loops.",
+            "eg": "A sketch of a bar magnet shows looping lines outside and through the region around it.",
+            "mi": "They start at one magnetic pole and end at another.",
+            "cx": "The source says magnetic field lines form closed loops and do not begin or end on isolated magnetic charges."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "7df4d8a35f49d7fb275b2ed665f69064fcc92a26d5e5e443d6c3e965fca98903",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "6392fee5307ddca38ca603b8f35ac62d13b2cd0f3b904fea3af326f51b03ab3e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

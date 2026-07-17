@@ -1,0 +1,431 @@
+{
+  "id": "music-scion-v01647",
+  "discipline": "music",
+  "level": "intro",
+  "conceptCount": 4,
+  "kernels": [
+    {
+      "id": "music/musical-texture",
+      "rev": 1,
+      "term": "Musical texture",
+      "aliases": [
+        "texture",
+        "monophony",
+        "homophony",
+        "polyphony",
+        "heterophony"
+      ],
+      "discipline": "music",
+      "tags": [
+        "texture",
+        "voices",
+        "aural analysis"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Musical texture describes the density of a passage and the way its simultaneous voices or layers interact.",
+        "anchor": {
+          "src": "omt:texture",
+          "loc": "Key Takeaways",
+          "quote": "density of and interaction between"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Monophony presents one melodic line without an independent accompaniment.",
+          "anchor": {
+            "src": "omt:texture",
+            "loc": "Monophony",
+            "quote": "unaccompanied melodic line"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Heterophony presents simultaneous variants of essentially the same melody.",
+          "anchor": {
+            "src": "omt:texture",
+            "loc": "Heterophony",
+            "quote": "multiple variants of a single melodic line"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Homophony coordinates multiple voices at a shared harmonic pace, often as melody with accompaniment.",
+          "anchor": {
+            "src": "omt:texture",
+            "loc": "Homophony",
+            "quote": "multiple voices harmonically moving together"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Polyphony combines voices that carry independent melodic lines and rhythms.",
+          "anchor": {
+            "src": "omt:texture",
+            "loc": "Polyphony",
+            "quote": "separate melodic lines and rhythms"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may label any passage with several performers as polyphonic.",
+          "corrective": "Classify the relationship among lines: several performers can reinforce one monophonic line or form a homophonic melody-and-accompaniment texture.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A listener compares a solo unaccompanied melody, a singer over block-chord accompaniment, and two independent imitative melodies.",
+          "domain": "music",
+          "anchor": null
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "accessed 2026-07-16",
+        "reviewBy": "2027-07-16",
+        "volatility": "low"
+      },
+      "license": "CC-BY-SA-4.0",
+      "attribution": [
+        "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+      ],
+      "standards": []
+    },
+    {
+      "id": "music/dynamics-articulation-tempo",
+      "rev": 1,
+      "term": "Dynamics, articulation, and tempo",
+      "aliases": [
+        "expressive markings",
+        "dynamics",
+        "articulation",
+        "tempo"
+      ],
+      "discipline": "music",
+      "tags": [
+        "notation",
+        "performance",
+        "expression"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Dynamics, articulation, and tempo are distinct performance dimensions: loudness, the attack or connection of notes, and performance speed.",
+        "anchor": {
+          "src": "omt:other-notation",
+          "loc": "Introduction",
+          "quote": "dynamics, articulations, tempi"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "Dynamic markings communicate loudness rather than speed or note length.",
+          "anchor": {
+            "src": "omt:other-notation",
+            "loc": "Dynamics",
+            "quote": "Dynamics indicate the loudness of music"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A crescendo increases loudness, while a decrescendo or diminuendo decreases it.",
+          "anchor": {
+            "src": "omt:other-notation",
+            "loc": "Dynamics",
+            "quote": "increase in loudness"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Articulation describes how notes connect or separate and how their attacks are emphasized.",
+          "anchor": {
+            "src": "omt:other-notation",
+            "loc": "Articulations",
+            "quote": "connection or separation between notes"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Tempo indicates how fast or slowly a composition is performed and may be stated with text or beats per minute.",
+          "anchor": {
+            "src": "omt:other-notation",
+            "loc": "Tempo",
+            "quote": "how fast or slow"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may treat a louder marking as a request to play faster.",
+          "corrective": "Read each dimension separately: dynamics change loudness, tempo changes speed, and articulation changes connection or attack.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "A performer plays the same phrase softly, at an unchanged tempo, with staccato rather than legato articulation.",
+          "domain": "music",
+          "anchor": null
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "accessed 2026-07-16",
+        "reviewBy": "2027-07-16",
+        "volatility": "low"
+      },
+      "license": "CC-BY-SA-4.0",
+      "attribution": [
+        "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+      ],
+      "standards": []
+    },
+    {
+      "id": "music/phrases-and-cadences",
+      "rev": 1,
+      "term": "Phrases and cadences",
+      "aliases": [
+        "phrase",
+        "cadence",
+        "antecedent and consequent",
+        "period"
+      ],
+      "discipline": "music",
+      "tags": [
+        "form",
+        "closure",
+        "phrase analysis"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "A musical phrase is a relatively complete thought directed toward a goal, and a cadence is a harmonic event that can mark its ending.",
+        "anchor": {
+          "src": "omt:phrase-archetypes",
+          "loc": "Key Takeaways",
+          "quote": "trajectory toward a goal"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A sentence is a phrase archetype with a presentation followed by a continuation.",
+          "anchor": {
+            "src": "omt:phrase-archetypes",
+            "loc": "Key Takeaways",
+            "quote": "presentation and a continuation"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A period combines an antecedent phrase with a consequent phrase.",
+          "anchor": {
+            "src": "omt:phrase-archetypes",
+            "loc": "The Period",
+            "quote": "antecedent and a consequent"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The antecedent normally ends with a weaker cadence than the consequent.",
+          "anchor": {
+            "src": "omt:phrase-archetypes",
+            "loc": "The Period",
+            "quote": "ends with a weaker cadence"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Cadential closure is a common phrase goal in tonal classical music, but other musical styles can establish different goals.",
+          "anchor": {
+            "src": "omt:phrase-archetypes",
+            "loc": "Key Takeaways",
+            "quote": "traditional cadence types"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may mark every pause or repeated motive as the end of a phrase.",
+          "corrective": "Test for a larger directed unit and evidence of closure; a local pause or motive boundary alone does not establish a phrase ending.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "An analyst hears a four-measure antecedent end inconclusively and a consequent answer it with stronger closure.",
+          "domain": "music",
+          "anchor": null
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "accessed 2026-07-16",
+        "reviewBy": "2027-07-16",
+        "volatility": "low"
+      },
+      "license": "CC-BY-SA-4.0",
+      "attribution": [
+        "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+      ],
+      "standards": []
+    },
+    {
+      "id": "music/tonicization-and-modulation",
+      "rev": 1,
+      "term": "Tonicization and modulation",
+      "aliases": [
+        "key change",
+        "temporary tonic",
+        "pivot-chord modulation"
+      ],
+      "discipline": "music",
+      "tags": [
+        "harmony",
+        "tonality",
+        "key relationships"
+      ],
+      "level": "intro",
+      "difficulty": 2,
+      "bloomCeiling": "Analyze",
+      "definition": {
+        "text": "Tonicization briefly makes a non-tonic harmony sound like a tonic, while modulation establishes a longer-term change of tonic.",
+        "anchor": {
+          "src": "omt:modulation",
+          "loc": "Key Takeaways",
+          "quote": "longer-term change of tonic"
+        },
+        "tier": 2,
+        "verifiedBy": 0
+      },
+      "facts": [
+        {
+          "text": "A modulation may introduce the new key directly and abruptly.",
+          "anchor": {
+            "src": "omt:modulation",
+            "loc": "Key Takeaways",
+            "quote": "direct, abrupt modulation"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "A pivot-chord modulation uses a shared chord to make the move between keys more subtle.",
+          "anchor": {
+            "src": "omt:modulation",
+            "loc": "Key Takeaways",
+            "quote": "pivot chord modulation"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "Extended tonicization can blur the boundary between a temporary tonic and a full modulation.",
+          "anchor": {
+            "src": "omt:modulation",
+            "loc": "Key Takeaways",
+            "quote": "extended tonicizations"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        },
+        {
+          "text": "The duration and structural stability of the new tonic help distinguish modulation from a momentary tonicization.",
+          "anchor": {
+            "src": "omt:modulation",
+            "loc": "Introduction",
+            "quote": "temporary nature of tonicization"
+          },
+          "tier": 2,
+          "verifiedBy": 0,
+          "contested": false
+        }
+      ],
+      "misconceptions": [
+        {
+          "text": "Students may call every chromatic dominant chord a key change.",
+          "corrective": "Determine whether the music sustains and structurally confirms a new tonic; a brief applied chord can tonicize without modulating.",
+          "anchor": null,
+          "tier": 1
+        }
+      ],
+      "examples": [
+        {
+          "text": "An analyst compares a single applied dominant resolving immediately in the home key with a pivot chord followed by a sustained new key.",
+          "domain": "music",
+          "anchor": null
+        }
+      ],
+      "workedExamples": [],
+      "mcBank": [],
+      "edges": {},
+      "variants": [],
+      "freshness": {
+        "sourceEdition": "accessed 2026-07-16",
+        "reviewBy": "2027-07-16",
+        "volatility": "low"
+      },
+      "license": "CC-BY-SA-4.0",
+      "attribution": [
+        "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+      ],
+      "standards": []
+    }
+  ],
+  "index": {
+    "postings": {}
+  }
+}

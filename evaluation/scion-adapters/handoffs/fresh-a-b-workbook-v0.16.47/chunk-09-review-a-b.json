@@ -1,0 +1,1059 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1c6adccdcb9edfab7231",
+    "packetDigest": "1c6adccdcb9edfab7231627b2205bbd3e5ce36032c854fb90024b351ea7e0393",
+    "organizerDigest": "6026ed4bdf7145d7b5dc9fcf2ecca5cffc29c74001baaab46c604dea1da65363"
+  },
+  "order": "A/B",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-9ef43553b501a6b2ddfc",
+      "caseDigest": "310de6ea4de73924ecfaa1163b3b59852ba993628657b1094c97c87ac9675939",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "7d6e604b7ee6db3e0be91d9564d34598a9733454c22b6464b355e905067c2fc3",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/strings",
+        "term": "Strings and slicing",
+        "claims": [
+          "A string is a sequence of characters indexed from left to right starting at 0; slicing extracts a contiguous substring with the [a:b] notation.",
+          "For a string s, the left-most character is index 0 and the right-most is index len(s) - 1.",
+          "Negative indexing refers to characters from right to left starting at -1.",
+          "A slice s[a:b] returns characters from index a (inclusive) up to index b (exclusive)."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §1.4 String basics; §8.2 String slicing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c80266954844605f905afb408e03165ded66232b96ccbe38a27271b06625cac7",
+          "artifact": {
+            "tr": "String slicing",
+            "df": "Extracting a contiguous substring using the [a:b] notation.",
+            "eg": "The slice 's[1:4]' extracts characters from index 1 up to (but not including) index 4.",
+            "mi": "Thinking slicing includes the character at the end index.",
+            "cx": "Slicing returns characters from index a (inclusive) up to index b (exclusive)."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "11fe3f2023f2148bdbe781481cef0bbca476471bdb54bf2283de49deeccb2a7d",
+          "artifact": {
+            "tr": "Slice",
+            "df": "A way to extract a contiguous part of a string using start and stop positions.",
+            "eg": "In \"studio\", s[1:4] gives \"tud\".",
+            "mi": "The stop number is included in the result.",
+            "cx": "A slice s[a:b] includes index a but excludes index b."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c80266954844605f905afb408e03165ded66232b96ccbe38a27271b06625cac7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "11fe3f2023f2148bdbe781481cef0bbca476471bdb54bf2283de49deeccb2a7d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-5a8ab174dcb52350e5d1",
+      "caseDigest": "ecac29fecd891ad48e6c3ede375149fde2fdc3b673d1fdeb6ba4b6a1de368e87",
+      "domain": "computer-science",
+      "courseGroupSha256": "b5c02986dcab6c1fcb8fd5172f462004df30e0429a40327fd509afcb83daa037",
+      "sourceContextSha256": "9eea78769507f8377b5e6997df5beaad4e3cca31a494d6d3ac5f69cbf7f6bfc9",
+      "sourceContext": {
+        "sourcePacketSha256": "2735bbd307dd162ce4336e81a60168cee98878533740af1ebd8430e0efec45ea",
+        "kernelId": "cs/lists",
+        "term": "Lists",
+        "claims": [
+          "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+          "A list is written with square brackets [] holding comma-separated values.",
+          "Individual elements are accessed directly using an index.",
+          "Indexes begin at 0 and end at one less than the length of the sequence.",
+          "A for loop can iterate through a list, visiting each element in order."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §3.4 List basics; §9.1 Modifying and iterating lists"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c60174ffd4434366b84124bfd3f8238598bb950162cc14317a35b52631863eda",
+          "artifact": {
+            "q": "How is a list fundamentally structured according to the source claims?",
+            "op": [
+              "A list is an ordered collection of values written in square brackets; each element has an index",
+              "A list is written with square brackets [] holding comma-separated values",
+              "Individual elements are accessed directly using an index",
+              "A list is a mutable sequence where elements are accessed by their value"
+            ],
+            "ai": 0,
+            "ex": "A list is an ordered collection of values written in square brackets; each element has an index. Indexes begin at 0 and end at one less than the length of the sequence."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0ce9f6651bfa2033ac18591cc8d2c0b52c6666eb9446663dc42aab36fa6eb662",
+          "artifact": {
+            "q": "A student has the list [10, 20, 30]. Which access returns the middle value directly?",
+            "op": [
+              "numbers[0]",
+              "numbers[1]",
+              "numbers[2]",
+              "numbers[3]"
+            ],
+            "ai": 1,
+            "ex": "numbers[1] is correct because list indexes start at 0, so the middle value is at index 1. A common misconception is to count the first element as 1 and choose numbers[2], but that would select the last value here."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "c60174ffd4434366b84124bfd3f8238598bb950162cc14317a35b52631863eda",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "0ce9f6651bfa2033ac18591cc8d2c0b52c6666eb9446663dc42aab36fa6eb662",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2548e9c1988aa4ec21d3",
+      "caseDigest": "2cde9a63297c656d307c359802870be3e958049cf77731745a99f9a2e0c43ab6",
+      "domain": "geology",
+      "courseGroupSha256": "af478b3b946a56f3e9d594fc6fc9d3d007b88dc09de874f62a898860542b0ddc",
+      "sourceContextSha256": "ba9d0081417a3994271ae6d7e884fb496aa22b2a6bc4e194678dda331b94eda8",
+      "sourceContext": {
+        "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+        "kernelId": "geo/geologic-time",
+        "term": "Geologic time and relative dating",
+        "claims": [
+          "Geologic time spans the roughly 4.5-billion-year history of Earth; relative dating orders events by which is older or younger, while absolute dating assigns numerical ages in years.",
+          "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock.",
+          "By the principle of superposition, in an undisturbed sequence the bottom layers are oldest and the upper layers younger.",
+          "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+          "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2e5534d86a333b16bf778305fbf7829db46bf5ec394bfbfe83bf79aa7e545335",
+          "artifact": {
+            "tr": "Relative dating",
+            "df": "A method that places geologic events in order from older to younger without giving a year value.",
+            "eg": "Using a stack of rock layers to decide which bed is older than another.",
+            "mi": "It always gives a precise number of years.",
+            "cx": "That describes absolute dating; relative dating only orders events."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cd30e91b3652e3c60897fba344c8ba0c35988aee2c234cdc02701e22b8a4b25d",
+          "artifact": {
+            "tr": "Numerical age assignment",
+            "df": "Assigning specific years to rock material based on dating methods.",
+            "eg": "Determining the exact age of a specific quartz grain in granite.",
+            "mi": "Assuming that relative dating methods inherently provide precise numerical years.",
+            "cx": "Absolute dating assigns specific ages in years to mineral grains within a rock."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2e5534d86a333b16bf778305fbf7829db46bf5ec394bfbfe83bf79aa7e545335",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "cd30e91b3652e3c60897fba344c8ba0c35988aee2c234cdc02701e22b8a4b25d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9efd2610679156250d1b",
+      "caseDigest": "6ae05e74ff1c733ee9fc950b64433a2ebc90ce16ad30ca0dc7855ce5827bb9cf",
+      "domain": "geology",
+      "courseGroupSha256": "af478b3b946a56f3e9d594fc6fc9d3d007b88dc09de874f62a898860542b0ddc",
+      "sourceContextSha256": "f71edcc444043ab015b56b26b0cb20db07d4ee6d103d6c13bfaab60fa9c78b2d",
+      "sourceContext": {
+        "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+        "kernelId": "geo/plate-tectonics",
+        "term": "Plate tectonics and boundaries",
+        "claims": [
+          "Plate tectonics holds that Earth's rigid lithosphere is broken into plates that move over the ductile asthenosphere; most geologic action occurs at their three kinds of boundaries.",
+          "At divergent boundaries, lithospheric plates move away from each other and new lithosphere is created.",
+          "At convergent boundaries, two or more plates move toward each other and lithosphere is destroyed.",
+          "At a transform boundary, plates slide horizontally past each other."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §2.4 Plate boundaries"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f0a09e67b4234861b7048b7a58873da69b472ae0d34a0601a2884aca71c0116d",
+          "artifact": {
+            "q": "What is the primary mechanism driving the movement of Earth's rigid lithosphere according to plate tectonics?",
+            "op": [
+              "Movement over the ductile asthenosphere",
+              "Creation of new lithosphere at divergent boundaries",
+              "Destruction of lithosphere at convergent boundaries",
+              "Horizontal sliding past each other at transform boundaries"
+            ],
+            "ai": 0,
+            "ex": "Movement over the ductile asthenosphere is the primary mechanism. This process allows plates to move across the asthenosphere."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "390dfb3379dd0db7a68ab6ba5ece883069738491b7822bd0921aa74295e29b54",
+          "artifact": {
+            "q": "A geologist maps a ridge where new oceanic crust is forming as two plates move apart. Which boundary best fits the evidence?",
+            "op": [
+              "Divergent boundary",
+              "Convergent boundary",
+              "Transform boundary",
+              "Intracontinental boundary"
+            ],
+            "ai": 0,
+            "ex": "Divergent boundary is correct because the plates move away from each other and new lithosphere is created there. A common misconception is choosing a convergent boundary, but that would require plates moving toward each other and lithosphere being destroyed instead."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "f0a09e67b4234861b7048b7a58873da69b472ae0d34a0601a2884aca71c0116d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "390dfb3379dd0db7a68ab6ba5ece883069738491b7822bd0921aa74295e29b54",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-c5f783cebe71209f5e92",
+      "caseDigest": "60c719ea44b91b4d838bbdab63fc738a86794f755451f93538c3ba205b04ea29",
+      "domain": "geology",
+      "courseGroupSha256": "af478b3b946a56f3e9d594fc6fc9d3d007b88dc09de874f62a898860542b0ddc",
+      "sourceContextSha256": "2549749e8747fe2424c054ab0253f01e14035dac46b1cb74a0e76b84c9f403da",
+      "sourceContext": {
+        "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+        "kernelId": "geo/metamorphic-rocks",
+        "term": "Metamorphic rocks and protoliths",
+        "claims": [
+          "Metamorphic rock forms when heat, pressure, and fluids change a preexisting parent rock (the protolith) in the solid state, without melting it.",
+          "Metamorphism changes a solid rock's composition and texture without the mineral crystals melting.",
+          "The starting rock that undergoes metamorphism is called the parent rock, or protolith.",
+          "Directed stress aligns mineral crystals into planes, producing foliation."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §6.1 Metamorphism and metamorphic rocks"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "cb94ea62238e25e9bf2bff4b91cdaa06e489f254f1a7df2ee043365ae3d2a138",
+          "artifact": {
+            "tr": "Foliation",
+            "df": "Directed stress aligns mineral crystals into planes.",
+            "eg": "Banding in schist.",
+            "mi": "The process of rock transformation.",
+            "cx": "Foliation is the alignment of mineral crystals into planes due to directed stress."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "60e66df417557d974ae14d67731d2dcfb5513cf5d82b976ba1fc7390a8473b22",
+          "artifact": {
+            "tr": "foliation",
+            "df": "A planar texture created when directed stress aligns mineral crystals.",
+            "eg": "A metamorphic rock with visible mineral bands formed under directed stress.",
+            "mi": "Any banded rock must be foliation, including layers deposited in water.",
+            "cx": "Foliation is produced by stress-driven crystal alignment, not by sediment deposition."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "cb94ea62238e25e9bf2bff4b91cdaa06e489f254f1a7df2ee043365ae3d2a138",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "60e66df417557d974ae14d67731d2dcfb5513cf5d82b976ba1fc7390a8473b22",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7cd671546be36f549a8e",
+      "caseDigest": "631495b0680fa10e64cf9fd7c17d798c66bdb8bde63cf8020586cedaafcedd54",
+      "domain": "music-theory",
+      "courseGroupSha256": "6280ddd32cb07b8ee70f74fbe8a2d79205efa545aa9360a1f13e86996096df8d",
+      "sourceContextSha256": "a9d404a2e67d0dc76545e2ef57e13ebfdfdd2137d94c7bd9a8c1f1e901833c99",
+      "sourceContext": {
+        "sourcePacketSha256": "e3b0f206c41fd8f910ccfc596c4f6bc3ee9e4c98c0dda44d1b35a5d654760938",
+        "kernelId": "music/triads-and-seventh-chords",
+        "term": "Triads and seventh chords",
+        "claims": [
+          "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+          "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+          "There are four different inversions of a seventh chord."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "766ec64f32418c78891f6a6bf641b759b90c7caf03aa4845a7f872df51b22b01",
+          "artifact": {
+            "tr": "Three-note vertical stacking",
+            "df": "The arrangement of three notes stacked vertically in thirds.",
+            "eg": "A basic triad structure.",
+            "mi": "A scale, which is a sequence of notes.",
+            "cx": "A scale is a sequence of notes, not a vertical stacking of three notes."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3ed2fd8b42e187db6a43bf85a253c03768f1d2c742d7fb95a183fca53dc897ee",
+          "artifact": {
+            "tr": "Triad",
+            "df": "A three-note pitch-class set that can be stacked vertically in thirds.",
+            "eg": "A harmony built from three notes arranged in thirds on the page or in a chord stack.",
+            "mi": "A triad must contain four notes.",
+            "cx": "This claim is false because the defining count is three notes, not four."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "766ec64f32418c78891f6a6bf641b759b90c7caf03aa4845a7f872df51b22b01",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3ed2fd8b42e187db6a43bf85a253c03768f1d2c742d7fb95a183fca53dc897ee",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-6030805961ac82a4d628",
+      "caseDigest": "5646ae52804eefb17d59b09a9f9349624cd9e33879c4a22601029bc01ddf7efd",
+      "domain": "music-theory",
+      "courseGroupSha256": "bdc5f740594dfde48fe072660a390e7dd5892b4d5aba2b6d961980baad4899ae",
+      "sourceContextSha256": "c3ffae4e492976d037e7b7d0e56f1fcfaff2f08cd0aef01503d37840fc731e51",
+      "sourceContext": {
+        "sourcePacketSha256": "e38bfea2b79bdd4b3cfff63de22c63df96e995c7028500ab2b803ee35f367642",
+        "kernelId": "music/triads-and-seventh-chords",
+        "term": "Triads and seventh chords",
+        "claims": [
+          "In music, a triad is a set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+          "A seventh chord is a chord consisting of a triad plus a note forming an interval of a seventh above the chord's root.",
+          "The seventh destabilized the triad, and allowed the composer to emphasize movement in a given direction.",
+          "There are four different inversions of a seventh chord."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "98c0feae20399a393c0ae45c0ec4c9260418722f0a445ab987e3aad1a45abaca",
+          "artifact": {
+            "tr": "Triad",
+            "df": "A three-note chord built by stacking pitches in thirds.",
+            "eg": "A student hears three pitches arranged in thirds and identifies the sonority as a triad.",
+            "mi": "Thinking any three-note texture is automatically a triad.",
+            "cx": "The correction is that the notes must be a vertical stack in thirds, not just any three simultaneous notes."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "caf1f4785a0a9b58bf3d5842e7cc92eb4df6f4930e95f26bf50e2a16eec82679",
+          "artifact": {
+            "tr": "Triad",
+            "df": "A set of three notes (or \"pitch classes\") that can be stacked vertically in thirds.",
+            "eg": "C-E-G in C major.",
+            "mi": "Confusing a triad with a seventh chord.",
+            "cx": "A triad is defined by three notes stacked in thirds, whereas a seventh chord includes an additional note."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "98c0feae20399a393c0ae45c0ec4c9260418722f0a445ab987e3aad1a45abaca",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "caf1f4785a0a9b58bf3d5842e7cc92eb4df6f4930e95f26bf50e2a16eec82679",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-36e3038ec345230bcce1",
+      "caseDigest": "361f8de7ea04a652fa468a6899e299e685f16fa4ef960b24df6a0f4d5c302d2b",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "61d4c90977f13b23b93368a208941fd2db304b807bfe6bf7728b4b6b9f222097",
+      "sourceContextSha256": "c0d8fb4dbc8f9b003086468ee2796135300c84b5d26f9c11a5330ebc60c7e612",
+      "sourceContext": {
+        "sourcePacketSha256": "f0261b4e9d65d69eb1fd27b6e93e9702910c6f23322aeb3fcf3b799bb742fa6d",
+        "kernelId": "ux/task-flow-analysis",
+        "term": "Task flow analysis",
+        "claims": [
+          "A task flow analysis diagrams the steps and decision points through which a user interacts with a system to reach a defined goal.",
+          "Task flow analysis can validate the team's understanding of user goals, common scenarios, and tasks.",
+          "A task flow should show how a user progresses through tasks to accomplish a goal.",
+          "Task flow analysis should surface obstacles that stand between users and their goals.",
+          "The diagram may include multiple possible paths, task sequences, and decision points."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2842e6cc2936c05491da02ed8e4a8b4aa1f57960488ad687382d549b0b1e5a7a",
+          "artifact": {
+            "tr": "Task sequence",
+            "df": "An ordered set of actions a user follows to reach a goal.",
+            "eg": "Search for an item, add it to cart, review the cart, and submit payment.",
+            "mi": "It means any random collection of features on a page.",
+            "cx": "A task sequence has an order tied to accomplishing a goal, not a loose feature list."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3cc897dd3a72daa015f3590a27734da9d8d32d228eef486b7cce6cd3420b2cf1",
+          "artifact": {
+            "tr": "Goal progression visualization",
+            "df": "A visual representation detailing how a user moves through tasks to reach a defined objective.",
+            "eg": "Showing the sequence of clicks required to submit a form.",
+            "mi": "Believing the visualization only needs to show the final result, not the steps taken.",
+            "cx": "A task flow should show how a user progresses through tasks to accomplish a goal."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "2842e6cc2936c05491da02ed8e4a8b4aa1f57960488ad687382d549b0b1e5a7a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "3cc897dd3a72daa015f3590a27734da9d8d32d228eef486b7cce6cd3420b2cf1",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-44ff4c68393838056b33",
+      "caseDigest": "015f8bc1e6f6b75bd49f49fd18bdecf32d922fa1eac3f4bd778203b5b9ac95e6",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "61d4c90977f13b23b93368a208941fd2db304b807bfe6bf7728b4b6b9f222097",
+      "sourceContextSha256": "26d782fa7fd70592014e3e0067eea6304f354cda0ddb4074fd965b12c9750ad2",
+      "sourceContext": {
+        "sourcePacketSha256": "f0261b4e9d65d69eb1fd27b6e93e9702910c6f23322aeb3fcf3b799bb742fa6d",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "cd317f630338a634b4b70a9d868f45aad92e1a639c0bc43d5082f458b0b0bf1e",
+          "artifact": {
+            "q": "How can a design concept be validated using a functional prototype?",
+            "op": [
+              "By requiring every production detail.",
+              "By combining it with usability testing or a cognitive walkthrough.",
+              "By showing major interactions even when not every interaction is functional.",
+              "By ensuring it supports fast iteration."
+            ],
+            "ai": 2,
+            "ex": "The correct choice is that functional prototypes allow a team to observe how users interact with a product (Claim 2). The misconception is that a prototype must show major interactions even when not every interaction is functional (Claim 3), which is not the sole requirement."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "935f0f15147b31ffc71cd0fb8bf35555bd14b9c68de842d646861152745314ce",
+          "artifact": {
+            "q": "Which statement best describes interactive prototyping?",
+            "op": [
+              "A testable representation of how a planned experience looks and works without every production",
+              "A finished production build with all details implemented",
+              "A visual-only mockup that cannot be used to test interaction",
+              "A document used only to list requirements"
+            ],
+            "ai": 0,
+            "ex": "It matches the claim that prototypes are testable representations without every production detail. It is not a finished build or a noninteractive document."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "cd317f630338a634b4b70a9d868f45aad92e1a639c0bc43d5082f458b0b0bf1e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "935f0f15147b31ffc71cd0fb8bf35555bd14b9c68de842d646861152745314ce",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-abe556a784ae303db5fd",
+      "caseDigest": "744fdc66d00073777909d8a2fcc22b721289f854ba60981047c6e2402d8f7b2d",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "06ab2cdeac734edd8ef5df93070d35408285ceb632fbba18e19ae1247777989a",
+      "sourceContextSha256": "ab10b15269aa5d7e3e8b051f33db9774e4921e4969bd1a9591587a2099e8c480",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "term": "Accessibility and usability evaluation",
+        "claims": [
+          "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "A single disabled participant's experience should not be generalized to all people with disabilities."
+        ],
+        "attribution": [
+          "W3C Web Accessibility Initiative",
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "W3C Document License and U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "a299fc90f13e78bf61801b3da5b647d45acea5303f2ddd5875bd6e556c19ac24",
+          "artifact": {
+            "q": "Which method is best suited for finding barriers that conformance evaluation alone might miss?",
+            "op": [
+              "Conformance evaluation",
+              "Usability test",
+              "Accessibility and usability evaluation",
+              "Observation of representative users"
+            ],
+            "ai": 2,
+            "ex": "Accessibility and usability evaluation is the best fit because it combines standards-based checks with user observation, which can reveal barriers conformance evaluation alone misses. A usability test is less suitable because it focuses on task performance, not necessarily conformance to standards."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d9a330d0834523fda08f7c170487cecd9f4f7584257bf478645acd9da2feb6e0",
+          "artifact": {
+            "q": "Which method combines standards-based conformance checks with observing representative users on realistic tasks?",
+            "op": [
+              "Accessibility and usability evaluation",
+              "A usability test",
+              "A card sort",
+              "A persona workshop"
+            ],
+            "ai": 0,
+            "ex": "It combines standards checks with real-user task observation. A usability test observes users, but not the standards check."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "A",
+          "artifactSha256": "a299fc90f13e78bf61801b3da5b647d45acea5303f2ddd5875bd6e556c19ac24",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "B",
+          "artifactSha256": "d9a330d0834523fda08f7c170487cecd9f4f7584257bf478645acd9da2feb6e0",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,2148 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-physics-circuits-magnetism-induction-lab-reference",
+  "provider": "openai",
+  "modelId": "gpt-5.4-mini",
+  "modelName": "gpt-5.4-mini",
+  "promptText": "Physics Circuits, Magnetism, and Induction Lab, a six-session course in which students reason qualitatively about resistance, DC circuits, magnetic fields and forces, Faraday induction, and inductance.",
+  "fileNames": [
+    "source-packet-5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd.json"
+  ],
+  "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Physics Circuits, Magnetism, and Induction Lab\",\"sessions\":[{\"number\":1,\"title\":\"Ohmic resistance in electric circuits\"},{\"number\":2,\"title\":\"DC circuits\"},{\"number\":3,\"title\":\"Magnetic field\"},{\"number\":4,\"title\":\"Magnetic force\"},{\"number\":5,\"title\":\"Faraday's law of induction\"},{\"number\":6,\"title\":\"Inductance\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"A student says an ohmic device at fixed temperature has the same current whenever the voltage is doubled. Which statement best fits the source claim?\",\"op\":[\"Current is proportional to voltage\",\"Resistance is proportional to voltage\",\"Current is proportional to resistance\",\"Voltage is proportional to material\"],\"ai\":0,\"ex\":\"Current is proportional to voltage is correct because that is the defining relation for an ohmic device at fixed temperature. The nearby misconception is to swap the roles of current and resistance, but resistance is a separate property that depends on material, size, and temperature.\",\"sourceFactIndexes\":[0,1,2],\"type\":\"multiple_choice\"},{\"q\":\"Which statement best describes an ohmic device at fixed temperature?\",\"op\":[\"Current rises in direct proportion to voltage.\",\"Current is unrelated to voltage.\",\"Resistance is always zero.\",\"Voltage is fixed when current changes.\"],\"ai\":0,\"ex\":\"Yes: in an ohmic device, current is proportional to voltage. This is about resistance, not resistivity.\",\"sourceFactIndexes\":[1,0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Resistance\",\"df\":\"A property that measures how strongly a material or device opposes current.\",\"eg\":\"In the lab, the longer wire had greater resistance than the shorter wire of the same material and temperature.\",\"mi\":\"Resistance is the same thing as voltage.\",\"cx\":\"The correction is that voltage can drive current, while resistance is the property that opposes that current.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Ohmic conductor\",\"df\":\"A device whose current changes in direct proportion to voltage when temperature stays fixed.\",\"eg\":\"When the voltage across the ohmic resistor was doubled, the current also doubled.\",\"mi\":\"An ohmic conductor always keeps current identical no matter the voltage.\",\"cx\":\"The key relation is proportional change: at fixed temperature, higher voltage means proportionally higher current.\",\"sourceFactIndexes\":[0,1]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"In a simple circuit path with components in a single chain, which statement about current is correct?\",\"op\":[\"The same current passes through each series component.\",\"Each series component has the same voltage across it.\",\"Current is shared only by the source and the first component.\",\"Current becomes zero after the first component.\"],\"ai\":0,\"ex\":\"The same current passes through each series component, which is the decisive rule for components in series. A common misconception is to swap this with the voltage rule; equal voltage applies to parallel branches, not to series components.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"},{\"q\":\"Which statement correctly matches a circuit rule with what it conserves?\",\"op\":[\"The junction rule expresses charge conservation, and the loop rule expresses energy with around\",\"The loop rule expresses charge conservation, and the junction rule expresses energy around\",\"The junction rule expresses energy conservation, and the loop rule expresses charge flow\",\"The loop rule applies only to voltage, while the junction rule applies only to resistance\"],\"ai\":0,\"ex\":\"The junction rule expresses charge conservation, and the loop rule expresses energy conservation, so that pairing is the correct one. The likely mix-up is to swap the two rules; charge balance belongs to junctions, while energy balance belongs to loops.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Series components\",\"df\":\"Components arranged so that one current path runs through each part in turn.\",\"eg\":\"In a single-loop lab circuit, two bulbs placed one after the other are series components.\",\"mi\":\"Series parts always have different currents.\",\"cx\":\"The current is the same through each series component, so a change in one place affects the same flow through the whole chain.\",\"sourceFactIndexes\":[1]},{\"tr\":\"Parallel branches\",\"df\":\"Separate paths in a circuit that connect across the same two points.\",\"eg\":\"Two resistors connected side by side between the same pair of nodes form parallel branches.\",\"mi\":\"Parallel branches must carry the same current.\",\"cx\":\"Branches in parallel share the same voltage, while the current can divide among them.\",\"sourceFactIndexes\":[1]}]},\"lesson-3\":{\"quizItems\":[{\"q\":\"A wire in a circuit carries current. What does that current produce?\",\"op\":[\"A magnetic field around the wire\",\"A magnetic force without any field\",\"Closed field lines that start at the wire\",\"Only a change in resistance\"],\"ai\":0,\"ex\":\"The correct choice matches the stated relation that currents produce magnetic fields. A common mistake is to confuse the field with the force itself; the force is what the field can exert on moving charges and currents.\",\"sourceFactIndexes\":[2,0],\"type\":\"multiple_choice\"},{\"q\":\"Which statement best describes magnetic field lines?\",\"op\":[\"They form closed loops and do not begin or end on isolated magnetic charges\",\"They are the forces acting directly on stationary charges\",\"They start on a north pole and end on a south pole\",\"They are created only by permanent magnets\"],\"ai\":0,\"ex\":\"The correct choice follows the statement that magnetic field lines form closed loops and do not begin or end on isolated magnetic charges. A nearby misconception is to treat field lines like arrows that start and stop at separate magnetic charges, but the source relation rules that out.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Magnetic field\",\"df\":\"A region in space that describes magnetic influence and sets the force on moving charges and currents.\",\"eg\":\"In the lab, we used a compass near a current-carrying wire to reason about the magnetic field around the wire.\",\"mi\":\"A magnetic field is just the same thing as the push on a charge.\",\"cx\":\"That is incorrect because the field is the influence in space, while the force is what the field can produce on moving charges or currents.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Magnetic field lines\",\"df\":\"Imagined paths used to show the direction and shape of magnetic influence.\",\"eg\":\"When we sketched the field around a loop of wire, we drew the field lines as closed curves.\",\"mi\":\"These lines begin at one magnetic charge and end at another.\",\"cx\":\"They do not start or stop on isolated magnetic charges; instead, they form closed loops.\",\"sourceFactIndexes\":[1]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"A proton moves parallel to a uniform magnetic field. What is best supported about the magnetic force on it?\",\"op\":[\"No magnetic force acts on the proton.\",\"A magnetic force acts perpendicular to its motion.\",\"A stronger force acts because its speed matches the field.\",\"A force appears only if the field changes in size.\"],\"ai\":0,\"ex\":\"No magnetic force acts on the proton when its motion is parallel to the field. The nearby misconception is that any moving charge must be forced, but the decisive relation is that parallel motion gives no magnetic force.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"},{\"q\":\"A charged particle moves through a magnetic field and the force is present. Which statement about the force direction is best supported?\",\"op\":[\"The force points along the particle's velocity.\",\"The force points along the magnetic field.\",\"The force is perpendicular to both the velocity and the magnetic field.\",\"The force vanishes whenever the charge is moving.\"],\"ai\":2,\"ex\":\"The force is perpendicular to both the particle's velocity and the magnetic field. A plausible misconception is that the force should line up with the motion, but the decisive relation is perpendicularity to both directions.\",\"sourceFactIndexes\":[1,0],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Magnetic force\",\"df\":\"A push on a moving charge caused by a magnetic field.\",\"eg\":\"An electron curving through a field is showing magnetic force.\",\"mi\":\"It acts on charges whether or not they are moving.\",\"cx\":\"The force appears for moving charges in the presence of a magnetic field.\",\"sourceFactIndexes\":[0,1,2]},{\"tr\":\"Parallel motion\",\"df\":\"Movement in the same direction as a field line or reference direction.\",\"eg\":\"A proton traveling along the field direction is in parallel motion.\",\"mi\":\"It means the object is speeding up most of the time.\",\"cx\":\"For this course, parallel motion matters because it can give zero magnetic force.\",\"sourceFactIndexes\":[2]}]},\"lesson-5\":{\"quizItems\":[{\"q\":\"A loop sits in a magnetic field. Which change can induce an emf in the loop?\",\"op\":[\"Increase the field strength through the loop\",\"Increase the wire’s resistance\",\"Lower the loop’s resistivity\",\"Warm the metal so charges move faster\"],\"ai\":0,\"ex\":\"Increasing the field strength changes the magnetic flux through the circuit, which induces an emf. The tempting mistake is to focus on resistance or resistivity, but those do not by themselves create the flux change named in Faraday’s law.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"A current is induced in a closed circuit because the magnetic flux through it is increasing. Which direction does the induced current take?\",\"op\":[\"It strengthens the increase in flux\",\"It opposes the change in flux\",\"It follows the external field without regard to change\",\"It always flows clockwise\"],\"ai\":1,\"ex\":\"The induced current opposes the change in magnetic flux that produced it. A common misconception is to think the current reinforces the change, but Lenz’s law gives the opposite direction.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Magnetic flux\",\"df\":\"The amount of magnetic field passing through a chosen surface.\",\"eg\":\"Rotating a flat loop in a steady field can change the flux through the loop even when the field itself stays the same.\",\"mi\":\"Flux is the same thing as the field strength alone.\",\"cx\":\"Changing the field strength, the loop area, or the loop’s orientation can change the flux.\",\"sourceFactIndexes\":[2]},{\"tr\":\"Lenz’s law\",\"df\":\"The direction rule that makes an induced current resist the flux change that produced it.\",\"eg\":\"If the flux through a coil is rising, the induced current points in the direction that counters that rise.\",\"mi\":\"Lenz’s law says induced current always boosts the change that caused it.\",\"cx\":\"This direction rule works together with the flux-change condition in Faraday’s law.\",\"sourceFactIndexes\":[0,1]}]},\"lesson-6\":{\"quizItems\":[{\"q\":\"In a loop with an inductor, the current starts to rise faster than before. What follows from that change?\",\"op\":[\"A back emf is induced because the current change alters magnetic flux.\",\"The inductor stops storing any magnetic energy immediately.\",\"The magnetic field stays fixed because current is changing.\",\"The current change only affects resistance, not flux.\"],\"ai\":0,\"ex\":\"The first option is correct because a changing current creates changing magnetic flux, and that flux induces a back emf. The nearby misconception is to treat the effect as a resistance change or a fixed field, but the key relation is current change leading to induced opposition.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Inductance\",\"df\":\"A property of a circuit element that opposes changes in current through induced emf from changing magnetic flux.\",\"eg\":\"In the lab, the coil showed inductance when a rising current triggered a back emf that slowed the increase.\",\"mi\":\"It is just the wire's resistance to current.\",\"cx\":\"Resistance describes opposition to current flow, while this property is about opposition to changes in current.\",\"sourceFactIndexes\":[0,2]},{\"tr\":\"Inductor\",\"df\":\"A circuit element that stores energy in its magnetic field and can oppose current changes.\",\"eg\":\"The coil in the circuit acted as an inductor by holding energy in its magnetic field during the experiment.\",\"mi\":\"It stores energy only in the battery, not in the circuit element.\",\"cx\":\"The energy is associated with the magnetic field of the element itself, not merely with the power source.\",\"sourceFactIndexes\":[1]}]}}}}",
+  "savedAt": "2026-07-16T22:42:51.165Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "reference",
+    "campaignManifest": "evaluation/scion-source-capture-course-group-breadth-v0.16.47.json",
+    "campaignManifestSha256": "54233a8e64074f0060a69d3ac778f719850220092ba51eb87ca10ef1fa0c3693",
+    "promptSetSha256": "5a44124735946a0ae568082769b29d43575b9bffa20cea1c81a520d7d48df40f",
+    "courseInputSha256": "09a2104531eb86f5bf546e83d06e132b3153bde17335606d7fd732696e3c635b",
+    "courseGroupId": "physics-circuits-magnetism-induction-lab",
+    "courseGroupSha256": "d3a6ee15a391d159a79e065dd0082968ebf3615259f994028dc1282696097a25",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/physics-intro.json",
+      "sourceArtifactSha256": "e835894a631f70075ac477d482f226b605f0a268a230acad19bf344fb75d90cc",
+      "kernels": [
+        {
+          "id": "physics/resistance-ohms-law",
+          "term": "Ohmic resistance in electric circuits",
+          "definition": "Electrical resistance describes how strongly a material or device opposes current; Ohm's law relates voltage, current, and resistance for ohmic conductors.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#9",
+            "loc": "9.4",
+            "quote": "The current that flows through most substances is directly proportional to the voltage V applied to it"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "For an ohmic device at fixed temperature, current is proportional to voltage.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#9",
+                "loc": "9.4",
+                "quote": "current is proportional to the voltage"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Resistance depends on material, length, cross-sectional area, and temperature.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#9",
+                "loc": "9.3",
+                "quote": "resistance depends on the geometry and material"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 9"
+          ]
+        },
+        {
+          "id": "physics/dc-circuits",
+          "term": "DC circuits",
+          "definition": "A DC circuit is a conducting path with steady current, sources, and components whose voltages and currents obey conservation rules.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#10",
+            "loc": "10.1",
+            "quote": "direct-current circuits"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Series components share the same current; parallel branches share the same voltage.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#10",
+                "loc": "10.2",
+                "quote": "series and parallel resistors"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Kirchhoff's junction rule expresses charge conservation, and the loop rule expresses energy conservation.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#10",
+                "loc": "10.3",
+                "quote": "Kirchhoff's rules"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 10"
+          ]
+        },
+        {
+          "id": "physics/magnetic-field",
+          "term": "Magnetic field",
+          "definition": "A magnetic field describes magnetic influence in space and determines magnetic forces on moving charges and currents.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#11",
+            "loc": "11.1",
+            "quote": "magnetic field"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Magnetic field lines form closed loops and do not begin or end on isolated magnetic charges.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#11",
+                "loc": "11.1",
+                "quote": "magnetic field lines are continuous"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Currents produce magnetic fields.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#12",
+                "loc": "12.1",
+                "quote": "currents produce magnetic fields"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 11-12"
+          ]
+        },
+        {
+          "id": "physics/magnetic-force",
+          "term": "Magnetic force",
+          "definition": "Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#11",
+            "loc": "11.4",
+            "quote": "force on a moving charge in a magnetic field"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The magnetic force is perpendicular to both the velocity and the magnetic field.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#11",
+                "loc": "11.4",
+                "quote": "perpendicular to the velocity and magnetic field"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A charge moving parallel to a magnetic field experiences no magnetic force.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#11",
+                "loc": "11.4",
+                "quote": "zero when velocity is parallel to the field"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 11"
+          ]
+        },
+        {
+          "id": "physics/faradays-law",
+          "term": "Faraday's law of induction",
+          "definition": "Faraday's law states that a changing magnetic flux through a circuit induces an emf, with direction constrained by Lenz's law.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#13",
+            "loc": "13.2",
+            "quote": "changing magnetic flux induces an emf"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Induced current direction opposes the change in magnetic flux that produced it.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#13",
+                "loc": "13.3",
+                "quote": "opposes the change in flux"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Changing field strength, area, or orientation can change magnetic flux.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#13",
+                "loc": "13.2",
+                "quote": "magnetic flux"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 13"
+          ]
+        },
+        {
+          "id": "physics/inductance",
+          "term": "Inductance",
+          "definition": "Inductance measures how a circuit element resists changes in current by inducing emf through changing magnetic flux.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#14",
+            "loc": "14.1",
+            "quote": "self-induced emf opposes the change in current"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "An inductor stores energy in its magnetic field.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#14",
+                "loc": "14.3",
+                "quote": "energy stored in the magnetic field"
+              }
+            },
+            {
+              "index": 1,
+              "text": "A changing current creates a changing magnetic flux that induces back emf.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#14",
+                "loc": "14.1",
+                "quote": "Inductance is the property of a device that tells us how effectively it induces an emf in another device"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 14"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "5bd90d3a1de6b690adc800823ec5104c3215db8fc404f6ac8578ebf71d8928dd",
+    "model": {
+      "provider": "openai",
+      "id": "gpt-5.4-mini",
+      "name": "gpt-5.4-mini",
+      "route": "responses-api",
+      "reasoningEffort": "low",
+      "maxOutputTokens": 4000
+    },
+    "modelSha256": "a692013a28f66f939f0dd739e63f48e3a340431993eeee8ed744e3a2c4b893b2",
+    "completedAt": "2026-07-16T22:42:51.165Z",
+    "admittedPromptIds": [
+      "physics-circuits-magnetism-induction-lab:physics/resistance-ohms-law",
+      "physics-circuits-magnetism-induction-lab:physics/dc-circuits",
+      "physics-circuits-magnetism-induction-lab:physics/magnetic-field",
+      "physics-circuits-magnetism-induction-lab:physics/magnetic-force",
+      "physics-circuits-magnetism-induction-lab:physics/faradays-law",
+      "physics-circuits-magnetism-induction-lab:physics/inductance"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "physics-circuits-magnetism-induction-lab:physics/resistance-ohms-law",
+          "kernelId": "physics/resistance-ohms-law",
+          "promptSha256": "46b29c39fc2315350d43fbeaabf34d7d9028f53fb970cfca2664dfa8ea6e3e5f",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A lab group compares two wire samples of the same material at the same temperature. Which change would make the wire’s resistance larger?",
+                "op": [
+                  "Making the wire longer",
+                  "Making the wire thicker",
+                  "Lowering the applied voltage",
+                  "Measuring it at the same current"
+                ],
+                "ai": 0,
+                "ex": "Making the wire longer is the correct choice because resistance depends on length, along with material, cross-sectional area, and temperature. A common misconception is that resistance is fixed by voltage alone, but for an ohmic conductor at fixed temperature, voltage and current are related by Ohm;",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "q": "A student says an ohmic device at fixed temperature has the same current whenever the voltage is doubled. Which statement best fits the source claim?",
+                "op": [
+                  "Current is proportional to voltage",
+                  "Resistance is proportional to voltage",
+                  "Current is proportional to resistance",
+                  "Voltage is proportional to material"
+                ],
+                "ai": 0,
+                "ex": "Current is proportional to voltage is correct because that is the defining relation for an ohmic device at fixed temperature. The nearby misconception is to swap the roles of current and resistance, but resistance is a separate property that depends on material, size, and temperature.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Resistance",
+                "df": "A property that measures how strongly a material or device opposes current.",
+                "eg": "In the lab, the longer wire had greater resistance than the shorter wire of the same material and temperature.",
+                "mi": "Resistance is the same thing as voltage.",
+                "cx": "The correction is that voltage can drive current, while resistance is the property that opposes that current.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Ohmic conductor",
+                "df": "A device whose current changes in direct proportion to voltage when temperature stays fixed.",
+                "eg": "When the voltage across the ohmic resistor was doubled, the current also doubled.",
+                "mi": "An ohmic conductor always keeps current identical no matter the voltage.",
+                "cx": "The key relation is proportional change: at fixed temperature, higher voltage means proportionally higher current.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "a509c6253e41acde30749966054b3bf01f558d7527fae7a2b3afae6fa3163b7b",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A student says an ohmic device at fixed temperature has the same current whenever the voltage is doubled. Which statement best fits the source claim?",
+                "op": [
+                  "Current is proportional to voltage",
+                  "Resistance is proportional to voltage",
+                  "Current is proportional to resistance",
+                  "Voltage is proportional to material"
+                ],
+                "ai": 0,
+                "ex": "Current is proportional to voltage is correct because that is the defining relation for an ohmic device at fixed temperature. The nearby misconception is to swap the roles of current and resistance, but resistance is a separate property that depends on material, size, and temperature.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Resistance",
+                "df": "A property that measures how strongly a material or device opposes current.",
+                "eg": "In the lab, the longer wire had greater resistance than the shorter wire of the same material and temperature.",
+                "mi": "Resistance is the same thing as voltage.",
+                "cx": "The correction is that voltage can drive current, while resistance is the property that opposes that current.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Ohmic conductor",
+                "df": "A device whose current changes in direct proportion to voltage when temperature stays fixed.",
+                "eg": "When the voltage across the ohmic resistor was doubled, the current also doubled.",
+                "mi": "An ohmic conductor always keeps current identical no matter the voltage.",
+                "cx": "The key relation is proportional change: at fixed temperature, higher voltage means proportionally higher current.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "178ed151cd6a4996c1faba42df92e6496058a0d0fbd5d0a0cab2b151496a2abf",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-truncated-explanation"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_05d633379ac6ffbb006a595df41788819d8579c513354c599c",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 747,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 542,
+              "output_tokens_details": {
+                "reasoning_tokens": 95
+              },
+              "total_tokens": 1289
+            }
+          },
+          "startedAt": "2026-07-16T22:40:52.017Z",
+          "durationMs": 3674
+        },
+        {
+          "promptId": "physics-circuits-magnetism-induction-lab:physics/dc-circuits",
+          "kernelId": "physics/dc-circuits",
+          "promptSha256": "520a65b2de892734b24c155c81b4b6af22ab2ec55dc81767e9d8fdfaa13a9a68",
+          "response": {
+            "mcItems": [
+              {
+                "q": "In a simple circuit path with components in a single chain, which statement about current is correct?",
+                "op": [
+                  "The same current passes through each series component.",
+                  "Each series component has the same voltage across it.",
+                  "Current is shared only by the source and the first component.",
+                  "Current becomes zero after the first component."
+                ],
+                "ai": 0,
+                "ex": "The same current passes through each series component, which is the decisive rule for components in series. A common misconception is to swap this with the voltage rule; equal voltage applies to parallel branches, not to series components.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "Which statement correctly matches a circuit rule with what it conserves?",
+                "op": [
+                  "The junction rule expresses charge conservation, and the loop rule expresses energy with around",
+                  "The loop rule expresses charge conservation, and the junction rule expresses energy around",
+                  "The junction rule expresses energy conservation, and the loop rule expresses charge flow",
+                  "The loop rule applies only to voltage, while the junction rule applies only to resistance"
+                ],
+                "ai": 0,
+                "ex": "The junction rule expresses charge conservation, and the loop rule expresses energy conservation, so that pairing is the correct one. The likely mix-up is to swap the two rules; charge balance belongs to junctions, while energy balance belongs to loops.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Series components",
+                "df": "Components arranged so that one current path runs through each part in turn.",
+                "eg": "In a single-loop lab circuit, two bulbs placed one after the other are series components.",
+                "mi": "Series parts always have different currents.",
+                "cx": "The current is the same through each series component, so a change in one place affects the same flow through the whole chain.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Parallel branches",
+                "df": "Separate paths in a circuit that connect across the same two points.",
+                "eg": "Two resistors connected side by side between the same pair of nodes form parallel branches.",
+                "mi": "Parallel branches must carry the same current.",
+                "cx": "Branches in parallel share the same voltage, while the current can divide among them.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "0e45a660b4b1ff14c8711988e62a059df47dbcad6de63ee0fb1b196c0be4db38",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "In a simple circuit path with components in a single chain, which statement about current is correct?",
+                "op": [
+                  "The same current passes through each series component.",
+                  "Each series component has the same voltage across it.",
+                  "Current is shared only by the source and the first component.",
+                  "Current becomes zero after the first component."
+                ],
+                "ai": 0,
+                "ex": "The same current passes through each series component, which is the decisive rule for components in series. A common misconception is to swap this with the voltage rule; equal voltage applies to parallel branches, not to series components.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "q": "Which statement correctly matches a circuit rule with what it conserves?",
+                "op": [
+                  "The junction rule expresses charge conservation, and the loop rule expresses energy with around",
+                  "The loop rule expresses charge conservation, and the junction rule expresses energy around",
+                  "The junction rule expresses energy conservation, and the loop rule expresses charge flow",
+                  "The loop rule applies only to voltage, while the junction rule applies only to resistance"
+                ],
+                "ai": 0,
+                "ex": "The junction rule expresses charge conservation, and the loop rule expresses energy conservation, so that pairing is the correct one. The likely mix-up is to swap the two rules; charge balance belongs to junctions, while energy balance belongs to loops.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Series components",
+                "df": "Components arranged so that one current path runs through each part in turn.",
+                "eg": "In a single-loop lab circuit, two bulbs placed one after the other are series components.",
+                "mi": "Series parts always have different currents.",
+                "cx": "The current is the same through each series component, so a change in one place affects the same flow through the whole chain.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Parallel branches",
+                "df": "Separate paths in a circuit that connect across the same two points.",
+                "eg": "Two resistors connected side by side between the same pair of nodes form parallel branches.",
+                "mi": "Parallel branches must carry the same current.",
+                "cx": "Branches in parallel share the same voltage, while the current can divide among them.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "0e45a660b4b1ff14c8711988e62a059df47dbcad6de63ee0fb1b196c0be4db38",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0efc4790797aefd2006a595df7c594819e9e93e9a93ded3827",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 740,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 582,
+              "output_tokens_details": {
+                "reasoning_tokens": 140
+              },
+              "total_tokens": 1322
+            }
+          },
+          "startedAt": "2026-07-16T22:40:55.692Z",
+          "durationMs": 5898
+        },
+        {
+          "promptId": "physics-circuits-magnetism-induction-lab:physics/magnetic-field",
+          "kernelId": "physics/magnetic-field",
+          "promptSha256": "a5060352d0d0bf4220bc42fbc896028f8e58c7dc416704f2497c711ee6f550b4",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A wire in a circuit carries current. What does that current produce?",
+                "op": [
+                  "A magnetic field around the wire",
+                  "A magnetic force without any field",
+                  "Closed field lines that start at the wire",
+                  "Only a change in resistance"
+                ],
+                "ai": 0,
+                "ex": "The correct choice matches the stated relation that currents produce magnetic fields. A common mistake is to confuse the field with the force itself; the force is what the field can exert on moving charges and currents.",
+                "sourceFactIndexes": [
+                  2,
+                  0
+                ]
+              },
+              {
+                "q": "Which statement best describes magnetic field lines?",
+                "op": [
+                  "They form closed loops and do not begin or end on isolated magnetic charges",
+                  "They are the forces acting directly on stationary charges",
+                  "They start on a north pole and end on a south pole",
+                  "They are created only by permanent magnets"
+                ],
+                "ai": 0,
+                "ex": "The correct choice follows the statement that magnetic field lines form closed loops and do not begin or end on isolated magnetic charges. A nearby misconception is to treat field lines like arrows that start and stop at separate magnetic charges, but the source relation rules that out.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Magnetic field",
+                "df": "A region in space that describes magnetic influence and sets the force on moving charges and currents.",
+                "eg": "In the lab, we used a compass near a current-carrying wire to reason about the magnetic field around the wire.",
+                "mi": "A magnetic field is just the same thing as the push on a charge.",
+                "cx": "That is incorrect because the field is the influence in space, while the force is what the field can produce on moving charges or currents.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Magnetic field lines",
+                "df": "Imagined paths used to show the direction and shape of magnetic influence.",
+                "eg": "When we sketched the field around a loop of wire, we drew the field lines as closed curves.",
+                "mi": "These lines begin at one magnetic charge and end at another.",
+                "cx": "They do not start or stop on isolated magnetic charges; instead, they form closed loops.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "4d50775bcd4e57c7396c160723f29ab928a39f1767ce00c4254fdf817b721eaf",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A wire in a circuit carries current. What does that current produce?",
+                "op": [
+                  "A magnetic field around the wire",
+                  "A magnetic force without any field",
+                  "Closed field lines that start at the wire",
+                  "Only a change in resistance"
+                ],
+                "ai": 0,
+                "ex": "The correct choice matches the stated relation that currents produce magnetic fields. A common mistake is to confuse the field with the force itself; the force is what the field can exert on moving charges and currents.",
+                "sourceFactIndexes": [
+                  2,
+                  0
+                ]
+              },
+              {
+                "q": "Which statement best describes magnetic field lines?",
+                "op": [
+                  "They form closed loops and do not begin or end on isolated magnetic charges",
+                  "They are the forces acting directly on stationary charges",
+                  "They start on a north pole and end on a south pole",
+                  "They are created only by permanent magnets"
+                ],
+                "ai": 0,
+                "ex": "The correct choice follows the statement that magnetic field lines form closed loops and do not begin or end on isolated magnetic charges. A nearby misconception is to treat field lines like arrows that start and stop at separate magnetic charges, but the source relation rules that out.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Magnetic field",
+                "df": "A region in space that describes magnetic influence and sets the force on moving charges and currents.",
+                "eg": "In the lab, we used a compass near a current-carrying wire to reason about the magnetic field around the wire.",
+                "mi": "A magnetic field is just the same thing as the push on a charge.",
+                "cx": "That is incorrect because the field is the influence in space, while the force is what the field can produce on moving charges or currents.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Magnetic field lines",
+                "df": "Imagined paths used to show the direction and shape of magnetic influence.",
+                "eg": "When we sketched the field around a loop of wire, we drew the field lines as closed curves.",
+                "mi": "These lines begin at one magnetic charge and end at another.",
+                "cx": "They do not start or stop on isolated magnetic charges; instead, they form closed loops.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "4d50775bcd4e57c7396c160723f29ab928a39f1767ce00c4254fdf817b721eaf",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0eaeb17f88d6876d006a595dfdab3c81a196a084640504644d",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 727,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 961,
+              "output_tokens_details": {
+                "reasoning_tokens": 516
+              },
+              "total_tokens": 1688
+            }
+          },
+          "startedAt": "2026-07-16T22:41:01.591Z",
+          "durationMs": 5743
+        },
+        {
+          "promptId": "physics-circuits-magnetism-induction-lab:physics/magnetic-force",
+          "kernelId": "physics/magnetic-force",
+          "promptSha256": "6db508a1b7dda307bf691ab3b82371ca8e468a09ea295f81b599ee5060d1ee64",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A proton moves parallel to a uniform magnetic field. What is best supported about the magnetic force on it?",
+                "op": [
+                  "No magnetic force acts on the proton.",
+                  "A magnetic force acts perpendicular to its motion.",
+                  "A stronger force acts because its speed matches the field.",
+                  "A force appears only if the field changes in size."
+                ],
+                "ai": 0,
+                "ex": "No magnetic force acts on the proton when its motion is parallel to the field. The nearby misconception is that any moving charge must be forced, but the decisive relation is that parallel motion gives no magnetic force.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "q": "A charged particle moves through a magnetic field and the force is present. Which statement about the force direction is best supported?",
+                "op": [
+                  "The force points along the particle's velocity.",
+                  "The force points along the magnetic field.",
+                  "The force is perpendicular to both the velocity and the magnetic field.",
+                  "The force vanishes whenever the charge is moving."
+                ],
+                "ai": 2,
+                "ex": "The force is perpendicular to both the particle's velocity and the magnetic field. A plausible misconception is that the force should line up with the motion, but the decisive relation is perpendicularity to both directions.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Magnetic force",
+                "df": "A push on a moving charge caused by a magnetic field.",
+                "eg": "An electron curving through a field is showing magnetic force.",
+                "mi": "It acts on charges whether or not they are moving.",
+                "cx": "The force appears for moving charges in the presence of a magnetic field.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Parallel motion",
+                "df": "Movement in the same direction as a field line or reference direction.",
+                "eg": "A proton traveling along the field direction is in parallel motion.",
+                "mi": "It means the object is speeding up most of the time.",
+                "cx": "For this course, parallel motion matters because it can give zero magnetic force.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "87879799c20c1e45202fb69be61c6aea36c9b4d7c62d713b5b1784f4eb8fd4fc",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A proton moves parallel to a uniform magnetic field. What is best supported about the magnetic force on it?",
+                "op": [
+                  "No magnetic force acts on the proton.",
+                  "A magnetic force acts perpendicular to its motion.",
+                  "A stronger force acts because its speed matches the field.",
+                  "A force appears only if the field changes in size."
+                ],
+                "ai": 0,
+                "ex": "No magnetic force acts on the proton when its motion is parallel to the field. The nearby misconception is that any moving charge must be forced, but the decisive relation is that parallel motion gives no magnetic force.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "q": "A charged particle moves through a magnetic field and the force is present. Which statement about the force direction is best supported?",
+                "op": [
+                  "The force points along the particle's velocity.",
+                  "The force points along the magnetic field.",
+                  "The force is perpendicular to both the velocity and the magnetic field.",
+                  "The force vanishes whenever the charge is moving."
+                ],
+                "ai": 2,
+                "ex": "The force is perpendicular to both the particle's velocity and the magnetic field. A plausible misconception is that the force should line up with the motion, but the decisive relation is perpendicularity to both directions.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Magnetic force",
+                "df": "A push on a moving charge caused by a magnetic field.",
+                "eg": "An electron curving through a field is showing magnetic force.",
+                "mi": "It acts on charges whether or not they are moving.",
+                "cx": "The force appears for moving charges in the presence of a magnetic field.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "tr": "Parallel motion",
+                "df": "Movement in the same direction as a field line or reference direction.",
+                "eg": "A proton traveling along the field direction is in parallel motion.",
+                "mi": "It means the object is speeding up most of the time.",
+                "cx": "For this course, parallel motion matters because it can give zero magnetic force.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "87879799c20c1e45202fb69be61c6aea36c9b4d7c62d713b5b1784f4eb8fd4fc",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0f9f75914286cb2e006a595e036dc88191bfe51a1bd41f143e",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 734,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 1179,
+              "output_tokens_details": {
+                "reasoning_tokens": 766
+              },
+              "total_tokens": 1913
+            }
+          },
+          "startedAt": "2026-07-16T22:41:07.335Z",
+          "durationMs": 7392
+        },
+        {
+          "promptId": "physics-circuits-magnetism-induction-lab:physics/faradays-law",
+          "kernelId": "physics/faradays-law",
+          "promptSha256": "881bc0c22e14fc27b3b4dbb03120cc277480fa260f04ad4f939a1acc96f5d3a3",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A loop sits in a magnetic field. Which change can induce an emf in the loop?",
+                "op": [
+                  "Increase the field strength through the loop",
+                  "Increase the wire’s resistance",
+                  "Lower the loop’s resistivity",
+                  "Warm the metal so charges move faster"
+                ],
+                "ai": 0,
+                "ex": "Increasing the field strength changes the magnetic flux through the circuit, which induces an emf. The tempting mistake is to focus on resistance or resistivity, but those do not by themselves create the flux change named in Faraday’s law.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "A current is induced in a closed circuit because the magnetic flux through it is increasing. Which direction does the induced current take?",
+                "op": [
+                  "It strengthens the increase in flux",
+                  "It opposes the change in flux",
+                  "It follows the external field without regard to change",
+                  "It always flows clockwise"
+                ],
+                "ai": 1,
+                "ex": "The induced current opposes the change in magnetic flux that produced it. A common misconception is to think the current reinforces the change, but Lenz’s law gives the opposite direction.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Magnetic flux",
+                "df": "The amount of magnetic field passing through a chosen surface.",
+                "eg": "Rotating a flat loop in a steady field can change the flux through the loop even when the field itself stays the same.",
+                "mi": "Flux is the same thing as the field strength alone.",
+                "cx": "Changing the field strength, the loop area, or the loop’s orientation can change the flux.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Lenz’s law",
+                "df": "The direction rule that makes an induced current resist the flux change that produced it.",
+                "eg": "If the flux through a coil is rising, the induced current points in the direction that counters that rise.",
+                "mi": "Lenz’s law says induced current always boosts the change that caused it.",
+                "cx": "This direction rule works together with the flux-change condition in Faraday’s law.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "71d874ef4caf8885c8c52a48974a44707b5c15fb1aa9b6b1d8c3e26238613d62",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "A loop sits in a magnetic field. Which change can induce an emf in the loop?",
+                "op": [
+                  "Increase the field strength through the loop",
+                  "Increase the wire’s resistance",
+                  "Lower the loop’s resistivity",
+                  "Warm the metal so charges move faster"
+                ],
+                "ai": 0,
+                "ex": "Increasing the field strength changes the magnetic flux through the circuit, which induces an emf. The tempting mistake is to focus on resistance or resistivity, but those do not by themselves create the flux change named in Faraday’s law.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "A current is induced in a closed circuit because the magnetic flux through it is increasing. Which direction does the induced current take?",
+                "op": [
+                  "It strengthens the increase in flux",
+                  "It opposes the change in flux",
+                  "It follows the external field without regard to change",
+                  "It always flows clockwise"
+                ],
+                "ai": 1,
+                "ex": "The induced current opposes the change in magnetic flux that produced it. A common misconception is to think the current reinforces the change, but Lenz’s law gives the opposite direction.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Magnetic flux",
+                "df": "The amount of magnetic field passing through a chosen surface.",
+                "eg": "Rotating a flat loop in a steady field can change the flux through the loop even when the field itself stays the same.",
+                "mi": "Flux is the same thing as the field strength alone.",
+                "cx": "Changing the field strength, the loop area, or the loop’s orientation can change the flux.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Lenz’s law",
+                "df": "The direction rule that makes an induced current resist the flux change that produced it.",
+                "eg": "If the flux through a coil is rising, the induced current points in the direction that counters that rise.",
+                "mi": "Lenz’s law says induced current always boosts the change that caused it.",
+                "cx": "This direction rule works together with the flux-change condition in Faraday’s law.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "71d874ef4caf8885c8c52a48974a44707b5c15fb1aa9b6b1d8c3e26238613d62",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_066b5946cb96b7f1006a595e0acd3481a39ba64b26a274c749",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 741,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 515,
+              "output_tokens_details": {
+                "reasoning_tokens": 88
+              },
+              "total_tokens": 1256
+            }
+          },
+          "startedAt": "2026-07-16T22:41:14.728Z",
+          "durationMs": 3535
+        },
+        {
+          "promptId": "physics-circuits-magnetism-induction-lab:physics/inductance",
+          "kernelId": "physics/inductance",
+          "promptSha256": "56d36fcb2c710b89c28f565e3e3f375388dfa6eaef763797d0e240b8490ecc82",
+          "response": {
+            "mcItems": [
+              {
+                "q": "A student wants the label for the circuit property that opposes a change in current by producing an emf when magnetic flux changes. Which option matches that idea?",
+                "op": [
+                  "It resists current changes by inducing emf from changing magnetic flux.",
+                  "It increases resistance by heating the wire more strongly.",
+                  "It keeps current steady by eliminating all magnetic fields.",
+                  "It measures how much charge the circuit can hold."
+                ],
+                "ai": 0,
+                "ex": "The first option matches because changing magnetic flux can induce an emf that opposes a change in current. A common mistake is to choose resistance or charge storage, but this property is about current change and induced emf, not heating or holding charge.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "In a loop with an inductor, the current starts to rise faster than before. What follows from that change?",
+                "op": [
+                  "A back emf is induced because the current change alters magnetic flux.",
+                  "The inductor stops storing any magnetic energy immediately.",
+                  "The magnetic field stays fixed because current is changing.",
+                  "The current change only affects resistance, not flux."
+                ],
+                "ai": 0,
+                "ex": "The first option is correct because a changing current creates changing magnetic flux, and that flux induces a back emf. The nearby misconception is to treat the effect as a resistance change or a fixed field, but the key relation is current change leading to induced opposition.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Inductance",
+                "df": "A property of a circuit element that opposes changes in current through induced emf from changing magnetic flux.",
+                "eg": "In the lab, the coil showed inductance when a rising current triggered a back emf that slowed the increase.",
+                "mi": "It is just the wire's resistance to current.",
+                "cx": "Resistance describes opposition to current flow, while this property is about opposition to changes in current.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Inductor",
+                "df": "A circuit element that stores energy in its magnetic field and can oppose current changes.",
+                "eg": "The coil in the circuit acted as an inductor by holding energy in its magnetic field during the experiment.",
+                "mi": "It stores energy only in the battery, not in the circuit element.",
+                "cx": "The energy is associated with the magnetic field of the element itself, not merely with the power source.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "a032b91ff284836e9147f49612fce47f5592ca36d2e2574691e787e1fc11559a",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "In a loop with an inductor, the current starts to rise faster than before. What follows from that change?",
+                "op": [
+                  "A back emf is induced because the current change alters magnetic flux.",
+                  "The inductor stops storing any magnetic energy immediately.",
+                  "The magnetic field stays fixed because current is changing.",
+                  "The current change only affects resistance, not flux."
+                ],
+                "ai": 0,
+                "ex": "The first option is correct because a changing current creates changing magnetic flux, and that flux induces a back emf. The nearby misconception is to treat the effect as a resistance change or a fixed field, but the key relation is current change leading to induced opposition.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Inductance",
+                "df": "A property of a circuit element that opposes changes in current through induced emf from changing magnetic flux.",
+                "eg": "In the lab, the coil showed inductance when a rising current triggered a back emf that slowed the increase.",
+                "mi": "It is just the wire's resistance to current.",
+                "cx": "Resistance describes opposition to current flow, while this property is about opposition to changes in current.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Inductor",
+                "df": "A circuit element that stores energy in its magnetic field and can oppose current changes.",
+                "eg": "The coil in the circuit acted as an inductor by holding energy in its magnetic field during the experiment.",
+                "mi": "It stores energy only in the battery, not in the circuit element.",
+                "cx": "The energy is associated with the magnetic field of the element itself, not merely with the power source.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "63ab261014387ba8ea349e91de95fd588646017c3a5fb481382e71161c5714f9",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-clang-association-cue"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0a9fa1e0486566c4006a595e0e57ac819287f19ebeec6f5095",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 728,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 745,
+              "output_tokens_details": {
+                "reasoning_tokens": 260
+              },
+              "total_tokens": 1473
+            }
+          },
+          "startedAt": "2026-07-16T22:41:18.264Z",
+          "durationMs": 5481
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "physics-circuits-magnetism-induction-lab:physics/resistance-ohms-law",
+          "kernelId": "physics/resistance-ohms-law",
+          "promptSha256": "46b29c39fc2315350d43fbeaabf34d7d9028f53fb970cfca2664dfa8ea6e3e5f",
+          "generationPromptSha256": "5d71de90c74be212efedaf15f19388a8b01297d6ac6ad6837a57254ca5f01df7",
+          "rawCallSha256": "96ff6b66f9d2da34e97e78518b89b637b02b3bfa7d1dfbb3b1f4f3063194d92d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which statement best describes an ohmic device at fixed temperature?",
+                "op": [
+                  "Current rises in direct proportion to voltage.",
+                  "Current is unrelated to voltage.",
+                  "Resistance is always zero.",
+                  "Voltage is fixed when current changes."
+                ],
+                "ai": 0,
+                "ex": "Yes: in an ohmic device, current is proportional to voltage. This is about resistance, not resistivity.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "602b44f74c977075aa2c1c23b4d26572b9d636b0a3008f8f3e368f030d3e724f",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which statement best describes an ohmic device at fixed temperature?",
+                "op": [
+                  "Current rises in direct proportion to voltage.",
+                  "Current is unrelated to voltage.",
+                  "Resistance is always zero.",
+                  "Voltage is fixed when current changes."
+                ],
+                "ai": 0,
+                "ex": "Yes: in an ohmic device, current is proportional to voltage. This is about resistance, not resistivity.",
+                "sourceFactIndexes": [
+                  1,
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "602b44f74c977075aa2c1c23b4d26572b9d636b0a3008f8f3e368f030d3e724f",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_0a31c593cfa56111006a595e65753881a0845fc91c23815cc2",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 692,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 162,
+              "output_tokens_details": {
+                "reasoning_tokens": 59
+              },
+              "total_tokens": 854
+            }
+          },
+          "startedAt": "2026-07-16T22:42:45.181Z",
+          "durationMs": 2449,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "physics-circuits-magnetism-induction-lab:physics/inductance",
+          "kernelId": "physics/inductance",
+          "promptSha256": "56d36fcb2c710b89c28f565e3e3f375388dfa6eaef763797d0e240b8490ecc82",
+          "generationPromptSha256": "5c875f183ded4d1e8ea39a026c0f8e0407bdc042b7d334dc3f4edc1e262362a6",
+          "rawCallSha256": "bfea3cb878078b11fb0e1eb7c6d197444cf2a973c53322a9e675861f6a6770be",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What does inductance describe?",
+                "op": [
+                  "How a circuit element resists changes in current by inducing emf from changing magnetic flux.",
+                  "How much electric charge a circuit element can hold.",
+                  "How strongly a wire's resistance increases when current grows.",
+                  "How much magnetic field a material permanently keeps."
+                ],
+                "ai": 0,
+                "ex": "It resists current change by induced emf from changing flux. It is not stored energy; energy is stored in the magnetic field.",
+                "sourceFactIndexes": [
+                  0,
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "b05ee4f91d05b36238a41ed45d45003d1eda84650b56966bd0375b98c72983da",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "mc-0-longest-option-cue",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "openai",
+            "responseId": "resp_039beae7f5a94495006a595e67b7c88191bdcba5d32c726bd2",
+            "model": "gpt-5.4-mini-2026-03-17",
+            "usage": {
+              "input_tokens": 675,
+              "input_tokens_details": {
+                "cache_write_tokens": 0,
+                "cached_tokens": 0
+              },
+              "output_tokens": 445,
+              "output_tokens_details": {
+                "reasoning_tokens": 322
+              },
+              "total_tokens": 1120
+            }
+          },
+          "startedAt": "2026-07-16T22:42:47.633Z",
+          "durationMs": 3532,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "physics-circuits-magnetism-induction-lab:physics/resistance-ohms-law"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "physics-circuits-magnetism-induction-lab:physics/resistance-ohms-law",
+        "kernelId": "physics/resistance-ohms-law",
+        "promptSha256": "46b29c39fc2315350d43fbeaabf34d7d9028f53fb970cfca2664dfa8ea6e3e5f",
+        "generationPromptSha256": "5d71de90c74be212efedaf15f19388a8b01297d6ac6ad6837a57254ca5f01df7",
+        "rawCallSha256": "96ff6b66f9d2da34e97e78518b89b637b02b3bfa7d1dfbb3b1f4f3063194d92d",
+        "recoveryCallSha256": "dc64b01f3d43df72fbe8c6cc30c7f3b5a1abe0b8f91af4f66b02f99b8d39b91d",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A student says an ohmic device at fixed temperature has the same current whenever the voltage is doubled. Which statement best fits the source claim?",
+              "op": [
+                "Current is proportional to voltage",
+                "Resistance is proportional to voltage",
+                "Current is proportional to resistance",
+                "Voltage is proportional to material"
+              ],
+              "ai": 0,
+              "ex": "Current is proportional to voltage is correct because that is the defining relation for an ohmic device at fixed temperature. The nearby misconception is to swap the roles of current and resistance, but resistance is a separate property that depends on material, size, and temperature.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which statement best describes an ohmic device at fixed temperature?",
+              "op": [
+                "Current rises in direct proportion to voltage.",
+                "Current is unrelated to voltage.",
+                "Resistance is always zero.",
+                "Voltage is fixed when current changes."
+              ],
+              "ai": 0,
+              "ex": "Yes: in an ohmic device, current is proportional to voltage. This is about resistance, not resistivity.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Resistance",
+              "df": "A property that measures how strongly a material or device opposes current.",
+              "eg": "In the lab, the longer wire had greater resistance than the shorter wire of the same material and temperature.",
+              "mi": "Resistance is the same thing as voltage.",
+              "cx": "The correction is that voltage can drive current, while resistance is the property that opposes that current.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Ohmic conductor",
+              "df": "A device whose current changes in direct proportion to voltage when temperature stays fixed.",
+              "eg": "When the voltage across the ohmic resistor was doubled, the current also doubled.",
+              "mi": "An ohmic conductor always keeps current identical no matter the voltage.",
+              "cx": "The key relation is proportional change: at fixed temperature, higher voltage means proportionally higher current.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "c7e4c65b4b862756e263625fadeaa44c950678171a4a06443a13acd16d8c8b14",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A student says an ohmic device at fixed temperature has the same current whenever the voltage is doubled. Which statement best fits the source claim?",
+              "op": [
+                "Current is proportional to voltage",
+                "Resistance is proportional to voltage",
+                "Current is proportional to resistance",
+                "Voltage is proportional to material"
+              ],
+              "ai": 0,
+              "ex": "Current is proportional to voltage is correct because that is the defining relation for an ohmic device at fixed temperature. The nearby misconception is to swap the roles of current and resistance, but resistance is a separate property that depends on material, size, and temperature.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "q": "Which statement best describes an ohmic device at fixed temperature?",
+              "op": [
+                "Current rises in direct proportion to voltage.",
+                "Current is unrelated to voltage.",
+                "Resistance is always zero.",
+                "Voltage is fixed when current changes."
+              ],
+              "ai": 0,
+              "ex": "Yes: in an ohmic device, current is proportional to voltage. This is about resistance, not resistivity.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Resistance",
+              "df": "A property that measures how strongly a material or device opposes current.",
+              "eg": "In the lab, the longer wire had greater resistance than the shorter wire of the same material and temperature.",
+              "mi": "Resistance is the same thing as voltage.",
+              "cx": "The correction is that voltage can drive current, while resistance is the property that opposes that current.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Ohmic conductor",
+              "df": "A device whose current changes in direct proportion to voltage when temperature stays fixed.",
+              "eg": "When the voltage across the ohmic resistor was doubled, the current also doubled.",
+              "mi": "An ohmic conductor always keeps current identical no matter the voltage.",
+              "cx": "The key relation is proportional change: at fixed temperature, higher voltage means proportionally higher current.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "c7e4c65b4b862756e263625fadeaa44c950678171a4a06443a13acd16d8c8b14",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:45.181Z",
+        "durationMs": 2449
+      },
+      {
+        "promptId": "physics-circuits-magnetism-induction-lab:physics/dc-circuits",
+        "kernelId": "physics/dc-circuits",
+        "promptSha256": "520a65b2de892734b24c155c81b4b6af22ab2ec55dc81767e9d8fdfaa13a9a68",
+        "response": {
+          "mcItems": [
+            {
+              "q": "In a simple circuit path with components in a single chain, which statement about current is correct?",
+              "op": [
+                "The same current passes through each series component.",
+                "Each series component has the same voltage across it.",
+                "Current is shared only by the source and the first component.",
+                "Current becomes zero after the first component."
+              ],
+              "ai": 0,
+              "ex": "The same current passes through each series component, which is the decisive rule for components in series. A common misconception is to swap this with the voltage rule; equal voltage applies to parallel branches, not to series components.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "Which statement correctly matches a circuit rule with what it conserves?",
+              "op": [
+                "The junction rule expresses charge conservation, and the loop rule expresses energy with around",
+                "The loop rule expresses charge conservation, and the junction rule expresses energy around",
+                "The junction rule expresses energy conservation, and the loop rule expresses charge flow",
+                "The loop rule applies only to voltage, while the junction rule applies only to resistance"
+              ],
+              "ai": 0,
+              "ex": "The junction rule expresses charge conservation, and the loop rule expresses energy conservation, so that pairing is the correct one. The likely mix-up is to swap the two rules; charge balance belongs to junctions, while energy balance belongs to loops.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Series components",
+              "df": "Components arranged so that one current path runs through each part in turn.",
+              "eg": "In a single-loop lab circuit, two bulbs placed one after the other are series components.",
+              "mi": "Series parts always have different currents.",
+              "cx": "The current is the same through each series component, so a change in one place affects the same flow through the whole chain.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Parallel branches",
+              "df": "Separate paths in a circuit that connect across the same two points.",
+              "eg": "Two resistors connected side by side between the same pair of nodes form parallel branches.",
+              "mi": "Parallel branches must carry the same current.",
+              "cx": "Branches in parallel share the same voltage, while the current can divide among them.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "0e45a660b4b1ff14c8711988e62a059df47dbcad6de63ee0fb1b196c0be4db38",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "In a simple circuit path with components in a single chain, which statement about current is correct?",
+              "op": [
+                "The same current passes through each series component.",
+                "Each series component has the same voltage across it.",
+                "Current is shared only by the source and the first component.",
+                "Current becomes zero after the first component."
+              ],
+              "ai": 0,
+              "ex": "The same current passes through each series component, which is the decisive rule for components in series. A common misconception is to swap this with the voltage rule; equal voltage applies to parallel branches, not to series components.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "q": "Which statement correctly matches a circuit rule with what it conserves?",
+              "op": [
+                "The junction rule expresses charge conservation, and the loop rule expresses energy with around",
+                "The loop rule expresses charge conservation, and the junction rule expresses energy around",
+                "The junction rule expresses energy conservation, and the loop rule expresses charge flow",
+                "The loop rule applies only to voltage, while the junction rule applies only to resistance"
+              ],
+              "ai": 0,
+              "ex": "The junction rule expresses charge conservation, and the loop rule expresses energy conservation, so that pairing is the correct one. The likely mix-up is to swap the two rules; charge balance belongs to junctions, while energy balance belongs to loops.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Series components",
+              "df": "Components arranged so that one current path runs through each part in turn.",
+              "eg": "In a single-loop lab circuit, two bulbs placed one after the other are series components.",
+              "mi": "Series parts always have different currents.",
+              "cx": "The current is the same through each series component, so a change in one place affects the same flow through the whole chain.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Parallel branches",
+              "df": "Separate paths in a circuit that connect across the same two points.",
+              "eg": "Two resistors connected side by side between the same pair of nodes form parallel branches.",
+              "mi": "Parallel branches must carry the same current.",
+              "cx": "Branches in parallel share the same voltage, while the current can divide among them.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "0e45a660b4b1ff14c8711988e62a059df47dbcad6de63ee0fb1b196c0be4db38",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0efc4790797aefd2006a595df7c594819e9e93e9a93ded3827",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 740,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 582,
+            "output_tokens_details": {
+              "reasoning_tokens": 140
+            },
+            "total_tokens": 1322
+          }
+        },
+        "startedAt": "2026-07-16T22:40:55.692Z",
+        "durationMs": 5898
+      },
+      {
+        "promptId": "physics-circuits-magnetism-induction-lab:physics/magnetic-field",
+        "kernelId": "physics/magnetic-field",
+        "promptSha256": "a5060352d0d0bf4220bc42fbc896028f8e58c7dc416704f2497c711ee6f550b4",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A wire in a circuit carries current. What does that current produce?",
+              "op": [
+                "A magnetic field around the wire",
+                "A magnetic force without any field",
+                "Closed field lines that start at the wire",
+                "Only a change in resistance"
+              ],
+              "ai": 0,
+              "ex": "The correct choice matches the stated relation that currents produce magnetic fields. A common mistake is to confuse the field with the force itself; the force is what the field can exert on moving charges and currents.",
+              "sourceFactIndexes": [
+                2,
+                0
+              ]
+            },
+            {
+              "q": "Which statement best describes magnetic field lines?",
+              "op": [
+                "They form closed loops and do not begin or end on isolated magnetic charges",
+                "They are the forces acting directly on stationary charges",
+                "They start on a north pole and end on a south pole",
+                "They are created only by permanent magnets"
+              ],
+              "ai": 0,
+              "ex": "The correct choice follows the statement that magnetic field lines form closed loops and do not begin or end on isolated magnetic charges. A nearby misconception is to treat field lines like arrows that start and stop at separate magnetic charges, but the source relation rules that out.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Magnetic field",
+              "df": "A region in space that describes magnetic influence and sets the force on moving charges and currents.",
+              "eg": "In the lab, we used a compass near a current-carrying wire to reason about the magnetic field around the wire.",
+              "mi": "A magnetic field is just the same thing as the push on a charge.",
+              "cx": "That is incorrect because the field is the influence in space, while the force is what the field can produce on moving charges or currents.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Magnetic field lines",
+              "df": "Imagined paths used to show the direction and shape of magnetic influence.",
+              "eg": "When we sketched the field around a loop of wire, we drew the field lines as closed curves.",
+              "mi": "These lines begin at one magnetic charge and end at another.",
+              "cx": "They do not start or stop on isolated magnetic charges; instead, they form closed loops.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "4d50775bcd4e57c7396c160723f29ab928a39f1767ce00c4254fdf817b721eaf",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A wire in a circuit carries current. What does that current produce?",
+              "op": [
+                "A magnetic field around the wire",
+                "A magnetic force without any field",
+                "Closed field lines that start at the wire",
+                "Only a change in resistance"
+              ],
+              "ai": 0,
+              "ex": "The correct choice matches the stated relation that currents produce magnetic fields. A common mistake is to confuse the field with the force itself; the force is what the field can exert on moving charges and currents.",
+              "sourceFactIndexes": [
+                2,
+                0
+              ]
+            },
+            {
+              "q": "Which statement best describes magnetic field lines?",
+              "op": [
+                "They form closed loops and do not begin or end on isolated magnetic charges",
+                "They are the forces acting directly on stationary charges",
+                "They start on a north pole and end on a south pole",
+                "They are created only by permanent magnets"
+              ],
+              "ai": 0,
+              "ex": "The correct choice follows the statement that magnetic field lines form closed loops and do not begin or end on isolated magnetic charges. A nearby misconception is to treat field lines like arrows that start and stop at separate magnetic charges, but the source relation rules that out.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Magnetic field",
+              "df": "A region in space that describes magnetic influence and sets the force on moving charges and currents.",
+              "eg": "In the lab, we used a compass near a current-carrying wire to reason about the magnetic field around the wire.",
+              "mi": "A magnetic field is just the same thing as the push on a charge.",
+              "cx": "That is incorrect because the field is the influence in space, while the force is what the field can produce on moving charges or currents.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Magnetic field lines",
+              "df": "Imagined paths used to show the direction and shape of magnetic influence.",
+              "eg": "When we sketched the field around a loop of wire, we drew the field lines as closed curves.",
+              "mi": "These lines begin at one magnetic charge and end at another.",
+              "cx": "They do not start or stop on isolated magnetic charges; instead, they form closed loops.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "4d50775bcd4e57c7396c160723f29ab928a39f1767ce00c4254fdf817b721eaf",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0eaeb17f88d6876d006a595dfdab3c81a196a084640504644d",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 727,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 961,
+            "output_tokens_details": {
+              "reasoning_tokens": 516
+            },
+            "total_tokens": 1688
+          }
+        },
+        "startedAt": "2026-07-16T22:41:01.591Z",
+        "durationMs": 5743
+      },
+      {
+        "promptId": "physics-circuits-magnetism-induction-lab:physics/magnetic-force",
+        "kernelId": "physics/magnetic-force",
+        "promptSha256": "6db508a1b7dda307bf691ab3b82371ca8e468a09ea295f81b599ee5060d1ee64",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A proton moves parallel to a uniform magnetic field. What is best supported about the magnetic force on it?",
+              "op": [
+                "No magnetic force acts on the proton.",
+                "A magnetic force acts perpendicular to its motion.",
+                "A stronger force acts because its speed matches the field.",
+                "A force appears only if the field changes in size."
+              ],
+              "ai": 0,
+              "ex": "No magnetic force acts on the proton when its motion is parallel to the field. The nearby misconception is that any moving charge must be forced, but the decisive relation is that parallel motion gives no magnetic force.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "A charged particle moves through a magnetic field and the force is present. Which statement about the force direction is best supported?",
+              "op": [
+                "The force points along the particle's velocity.",
+                "The force points along the magnetic field.",
+                "The force is perpendicular to both the velocity and the magnetic field.",
+                "The force vanishes whenever the charge is moving."
+              ],
+              "ai": 2,
+              "ex": "The force is perpendicular to both the particle's velocity and the magnetic field. A plausible misconception is that the force should line up with the motion, but the decisive relation is perpendicularity to both directions.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Magnetic force",
+              "df": "A push on a moving charge caused by a magnetic field.",
+              "eg": "An electron curving through a field is showing magnetic force.",
+              "mi": "It acts on charges whether or not they are moving.",
+              "cx": "The force appears for moving charges in the presence of a magnetic field.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Parallel motion",
+              "df": "Movement in the same direction as a field line or reference direction.",
+              "eg": "A proton traveling along the field direction is in parallel motion.",
+              "mi": "It means the object is speeding up most of the time.",
+              "cx": "For this course, parallel motion matters because it can give zero magnetic force.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "87879799c20c1e45202fb69be61c6aea36c9b4d7c62d713b5b1784f4eb8fd4fc",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A proton moves parallel to a uniform magnetic field. What is best supported about the magnetic force on it?",
+              "op": [
+                "No magnetic force acts on the proton.",
+                "A magnetic force acts perpendicular to its motion.",
+                "A stronger force acts because its speed matches the field.",
+                "A force appears only if the field changes in size."
+              ],
+              "ai": 0,
+              "ex": "No magnetic force acts on the proton when its motion is parallel to the field. The nearby misconception is that any moving charge must be forced, but the decisive relation is that parallel motion gives no magnetic force.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "q": "A charged particle moves through a magnetic field and the force is present. Which statement about the force direction is best supported?",
+              "op": [
+                "The force points along the particle's velocity.",
+                "The force points along the magnetic field.",
+                "The force is perpendicular to both the velocity and the magnetic field.",
+                "The force vanishes whenever the charge is moving."
+              ],
+              "ai": 2,
+              "ex": "The force is perpendicular to both the particle's velocity and the magnetic field. A plausible misconception is that the force should line up with the motion, but the decisive relation is perpendicularity to both directions.",
+              "sourceFactIndexes": [
+                1,
+                0
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Magnetic force",
+              "df": "A push on a moving charge caused by a magnetic field.",
+              "eg": "An electron curving through a field is showing magnetic force.",
+              "mi": "It acts on charges whether or not they are moving.",
+              "cx": "The force appears for moving charges in the presence of a magnetic field.",
+              "sourceFactIndexes": [
+                0,
+                1,
+                2
+              ]
+            },
+            {
+              "tr": "Parallel motion",
+              "df": "Movement in the same direction as a field line or reference direction.",
+              "eg": "A proton traveling along the field direction is in parallel motion.",
+              "mi": "It means the object is speeding up most of the time.",
+              "cx": "For this course, parallel motion matters because it can give zero magnetic force.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "87879799c20c1e45202fb69be61c6aea36c9b4d7c62d713b5b1784f4eb8fd4fc",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_0f9f75914286cb2e006a595e036dc88191bfe51a1bd41f143e",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 734,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 1179,
+            "output_tokens_details": {
+              "reasoning_tokens": 766
+            },
+            "total_tokens": 1913
+          }
+        },
+        "startedAt": "2026-07-16T22:41:07.335Z",
+        "durationMs": 7392
+      },
+      {
+        "promptId": "physics-circuits-magnetism-induction-lab:physics/faradays-law",
+        "kernelId": "physics/faradays-law",
+        "promptSha256": "881bc0c22e14fc27b3b4dbb03120cc277480fa260f04ad4f939a1acc96f5d3a3",
+        "response": {
+          "mcItems": [
+            {
+              "q": "A loop sits in a magnetic field. Which change can induce an emf in the loop?",
+              "op": [
+                "Increase the field strength through the loop",
+                "Increase the wire’s resistance",
+                "Lower the loop’s resistivity",
+                "Warm the metal so charges move faster"
+              ],
+              "ai": 0,
+              "ex": "Increasing the field strength changes the magnetic flux through the circuit, which induces an emf. The tempting mistake is to focus on resistance or resistivity, but those do not by themselves create the flux change named in Faraday’s law.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "A current is induced in a closed circuit because the magnetic flux through it is increasing. Which direction does the induced current take?",
+              "op": [
+                "It strengthens the increase in flux",
+                "It opposes the change in flux",
+                "It follows the external field without regard to change",
+                "It always flows clockwise"
+              ],
+              "ai": 1,
+              "ex": "The induced current opposes the change in magnetic flux that produced it. A common misconception is to think the current reinforces the change, but Lenz’s law gives the opposite direction.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Magnetic flux",
+              "df": "The amount of magnetic field passing through a chosen surface.",
+              "eg": "Rotating a flat loop in a steady field can change the flux through the loop even when the field itself stays the same.",
+              "mi": "Flux is the same thing as the field strength alone.",
+              "cx": "Changing the field strength, the loop area, or the loop’s orientation can change the flux.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Lenz’s law",
+              "df": "The direction rule that makes an induced current resist the flux change that produced it.",
+              "eg": "If the flux through a coil is rising, the induced current points in the direction that counters that rise.",
+              "mi": "Lenz’s law says induced current always boosts the change that caused it.",
+              "cx": "This direction rule works together with the flux-change condition in Faraday’s law.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "71d874ef4caf8885c8c52a48974a44707b5c15fb1aa9b6b1d8c3e26238613d62",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "A loop sits in a magnetic field. Which change can induce an emf in the loop?",
+              "op": [
+                "Increase the field strength through the loop",
+                "Increase the wire’s resistance",
+                "Lower the loop’s resistivity",
+                "Warm the metal so charges move faster"
+              ],
+              "ai": 0,
+              "ex": "Increasing the field strength changes the magnetic flux through the circuit, which induces an emf. The tempting mistake is to focus on resistance or resistivity, but those do not by themselves create the flux change named in Faraday’s law.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "A current is induced in a closed circuit because the magnetic flux through it is increasing. Which direction does the induced current take?",
+              "op": [
+                "It strengthens the increase in flux",
+                "It opposes the change in flux",
+                "It follows the external field without regard to change",
+                "It always flows clockwise"
+              ],
+              "ai": 1,
+              "ex": "The induced current opposes the change in magnetic flux that produced it. A common misconception is to think the current reinforces the change, but Lenz’s law gives the opposite direction.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Magnetic flux",
+              "df": "The amount of magnetic field passing through a chosen surface.",
+              "eg": "Rotating a flat loop in a steady field can change the flux through the loop even when the field itself stays the same.",
+              "mi": "Flux is the same thing as the field strength alone.",
+              "cx": "Changing the field strength, the loop area, or the loop’s orientation can change the flux.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Lenz’s law",
+              "df": "The direction rule that makes an induced current resist the flux change that produced it.",
+              "eg": "If the flux through a coil is rising, the induced current points in the direction that counters that rise.",
+              "mi": "Lenz’s law says induced current always boosts the change that caused it.",
+              "cx": "This direction rule works together with the flux-change condition in Faraday’s law.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "71d874ef4caf8885c8c52a48974a44707b5c15fb1aa9b6b1d8c3e26238613d62",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "openai",
+          "responseId": "resp_066b5946cb96b7f1006a595e0acd3481a39ba64b26a274c749",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "usage": {
+            "input_tokens": 741,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 515,
+            "output_tokens_details": {
+              "reasoning_tokens": 88
+            },
+            "total_tokens": 1256
+          }
+        },
+        "startedAt": "2026-07-16T22:41:14.728Z",
+        "durationMs": 3535
+      },
+      {
+        "promptId": "physics-circuits-magnetism-induction-lab:physics/inductance",
+        "kernelId": "physics/inductance",
+        "promptSha256": "56d36fcb2c710b89c28f565e3e3f375388dfa6eaef763797d0e240b8490ecc82",
+        "generationPromptSha256": "5c875f183ded4d1e8ea39a026c0f8e0407bdc042b7d334dc3f4edc1e262362a6",
+        "rawCallSha256": "bfea3cb878078b11fb0e1eb7c6d197444cf2a973c53322a9e675861f6a6770be",
+        "recoveryCallSha256": "c87c5242d564d0eac0b54f64af885ad985a859443cd2ad10325a9c4f3b1e581a",
+        "response": {
+          "mcItems": [
+            {
+              "q": "In a loop with an inductor, the current starts to rise faster than before. What follows from that change?",
+              "op": [
+                "A back emf is induced because the current change alters magnetic flux.",
+                "The inductor stops storing any magnetic energy immediately.",
+                "The magnetic field stays fixed because current is changing.",
+                "The current change only affects resistance, not flux."
+              ],
+              "ai": 0,
+              "ex": "The first option is correct because a changing current creates changing magnetic flux, and that flux induces a back emf. The nearby misconception is to treat the effect as a resistance change or a fixed field, but the key relation is current change leading to induced opposition.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Inductance",
+              "df": "A property of a circuit element that opposes changes in current through induced emf from changing magnetic flux.",
+              "eg": "In the lab, the coil showed inductance when a rising current triggered a back emf that slowed the increase.",
+              "mi": "It is just the wire's resistance to current.",
+              "cx": "Resistance describes opposition to current flow, while this property is about opposition to changes in current.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Inductor",
+              "df": "A circuit element that stores energy in its magnetic field and can oppose current changes.",
+              "eg": "The coil in the circuit acted as an inductor by holding energy in its magnetic field during the experiment.",
+              "mi": "It stores energy only in the battery, not in the circuit element.",
+              "cx": "The energy is associated with the magnetic field of the element itself, not merely with the power source.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "63ab261014387ba8ea349e91de95fd588646017c3a5fb481382e71161c5714f9",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "In a loop with an inductor, the current starts to rise faster than before. What follows from that change?",
+              "op": [
+                "A back emf is induced because the current change alters magnetic flux.",
+                "The inductor stops storing any magnetic energy immediately.",
+                "The magnetic field stays fixed because current is changing.",
+                "The current change only affects resistance, not flux."
+              ],
+              "ai": 0,
+              "ex": "The first option is correct because a changing current creates changing magnetic flux, and that flux induces a back emf. The nearby misconception is to treat the effect as a resistance change or a fixed field, but the key relation is current change leading to induced opposition.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Inductance",
+              "df": "A property of a circuit element that opposes changes in current through induced emf from changing magnetic flux.",
+              "eg": "In the lab, the coil showed inductance when a rising current triggered a back emf that slowed the increase.",
+              "mi": "It is just the wire's resistance to current.",
+              "cx": "Resistance describes opposition to current flow, while this property is about opposition to changes in current.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Inductor",
+              "df": "A circuit element that stores energy in its magnetic field and can oppose current changes.",
+              "eg": "The coil in the circuit acted as an inductor by holding energy in its magnetic field during the experiment.",
+              "mi": "It stores energy only in the battery, not in the circuit element.",
+              "cx": "The energy is associated with the magnetic field of the element itself, not merely with the power source.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "63ab261014387ba8ea349e91de95fd588646017c3a5fb481382e71161c5714f9",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "openai",
+          "recoveryConstrained": null
+        },
+        "startedAt": "2026-07-16T22:42:47.633Z",
+        "durationMs": 3532
+      }
+    ]
+  }
+}

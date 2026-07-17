@@ -1,0 +1,1069 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1c6adccdcb9edfab7231",
+    "packetDigest": "1c6adccdcb9edfab7231627b2205bbd3e5ce36032c854fb90024b351ea7e0393",
+    "organizerDigest": "6026ed4bdf7145d7b5dc9fcf2ecca5cffc29c74001baaab46c604dea1da65363"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-31b7534a14871ff74750",
+      "caseDigest": "eecb13108399464b46d4d0236054897b927003612865e2da4db4ea4930f006f9",
+      "domain": "computer-science",
+      "courseGroupSha256": "b5c02986dcab6c1fcb8fd5172f462004df30e0429a40327fd509afcb83daa037",
+      "sourceContextSha256": "9eea78769507f8377b5e6997df5beaad4e3cca31a494d6d3ac5f69cbf7f6bfc9",
+      "sourceContext": {
+        "sourcePacketSha256": "2735bbd307dd162ce4336e81a60168cee98878533740af1ebd8430e0efec45ea",
+        "kernelId": "cs/lists",
+        "term": "Lists",
+        "claims": [
+          "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+          "A list is written with square brackets [] holding comma-separated values.",
+          "Individual elements are accessed directly using an index.",
+          "Indexes begin at 0 and end at one less than the length of the sequence.",
+          "A for loop can iterate through a list, visiting each element in order."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §3.4 List basics; §9.1 Modifying and iterating lists"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "db6b65f8ad607aa163eb834c76145063cd42b94a62eac70ce9c85b5650186070",
+          "artifact": {
+            "q": "What does a for loop do when it runs through a list of names?",
+            "op": [
+              "It visits each element in order",
+              "It changes every element automatically",
+              "It starts at the last element first",
+              "It uses only the final element"
+            ],
+            "ai": 0,
+            "ex": "It visits each element in order is correct. A plausible misconception is that a loop would jump to the last item or mutate items by itself, but the listed behavior is only iteration through the elements in sequence."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "36add9be2e07b2d76b181b979c893e64c7dda72379cbe328836108158c280b4d",
+          "artifact": {
+            "q": "What is the correct way to access an element in a list?",
+            "op": [
+              "By using the element's value as a key",
+              "By using the element's position in the sequence",
+              "By using a function that returns the element",
+              "By using a direct reference to the element"
+            ],
+            "ai": 2,
+            "ex": "Individual elements are accessed directly using an index. Indexes begin at 0 and end at one less than the length of the sequence."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "db6b65f8ad607aa163eb834c76145063cd42b94a62eac70ce9c85b5650186070",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "36add9be2e07b2d76b181b979c893e64c7dda72379cbe328836108158c280b4d",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-1b46d1992d18062645af",
+      "caseDigest": "58051dd3cb9821ae9a304bd3b5cc3556676ee3dc4c09c03fbb995d69f91dc9b1",
+      "domain": "computer-science",
+      "courseGroupSha256": "a57b8b121bb7e6a648ad18f451be33b8830a4062aecaa167f52ddc58adc0e987",
+      "sourceContextSha256": "c2d734a6fe7e88c5802fc1268bdc5d8041825e9604aff263e8f8adee484e2832",
+      "sourceContext": {
+        "sourcePacketSha256": "5e7862a012e6583051c6d8a7f6dc305cc23e0ba165daf802984ba9ee852ede90",
+        "kernelId": "cs/for-loops",
+        "term": "For loops and range",
+        "claims": [
+          "A for loop iterates over each element of a container — a range of numbers, a string, or a list — binding a loop variable to one element at a time.",
+          "A container can be a range of numbers, a string of characters, or a list of values.",
+          "The loop retrieves the objects of a container one at a time.",
+          "range() produces a sequence of integers and is commonly paired with a for loop to repeat the body a fixed number of times; range(n) yields 0 through n-1."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §5.2 For loop"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8cbc2c3c16e05ede436c5a586ec6486b09b11180438a1fd9848975930a23c105",
+          "artifact": {
+            "q": "What does range(n) produce in a for loop?",
+            "op": [
+              "A sequence of integers from 0 through n-1",
+              "A list of characters from 0 through n-1",
+              "A sequence of integers from 1 through n",
+              "A single repeated integer n times"
+            ],
+            "ai": 0,
+            "ex": "range(n) yields 0 through n-1. It does not start at 1 or repeat one value."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "c4b0b1b72e5f89a42efc5ebe73fd5db2db39ae34d6d6a73a4143143fc482642e",
+          "artifact": {
+            "q": "If a range function is used with a for loop, what is the resulting sequence of integers?",
+            "op": [
+              "It yields 0 through n.",
+              "It yields 1 through n.",
+              "It yields 0 through n-1.",
+              "It yields n through 2n."
+            ],
+            "ai": 3,
+            "ex": "The correct choice is that it yields 0 through n-1. The most plausible misconception is that it yields 0 through n, which is incorrect because the range function excludes the upper bound."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8cbc2c3c16e05ede436c5a586ec6486b09b11180438a1fd9848975930a23c105",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "c4b0b1b72e5f89a42efc5ebe73fd5db2db39ae34d6d6a73a4143143fc482642e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-05c19726286d277bbbcb",
+      "caseDigest": "84dc50e66b750cb4f8dbcb426ee9b1a1bc1fdfbe5d26eb3e3acd122d33f88c9d",
+      "domain": "geology",
+      "courseGroupSha256": "41db303891dbbffdd4bc29d5aa9c2988e5e44317cff1397d41fa982ec4a22b26",
+      "sourceContextSha256": "b92ae6e3d5719905860944df265b3d990c2f26633c8cfe937d6b3e474876bede",
+      "sourceContext": {
+        "sourcePacketSha256": "afe665d7a9599479da3ab654f9e9865ac0ce1d3112c5b05d29eb2f83fcebb6fe",
+        "kernelId": "geo/silicate-structures",
+        "term": "Silicate structures",
+        "claims": [
+          "Silicate minerals, built from the silicon-oxygen tetrahedron, are the most abundant rock-forming minerals; the way tetrahedra link together defines the major silicate structures.",
+          "The silicon-oxygen tetrahedron (SiO4) is one silicon atom at the center bonded to four oxygen atoms at the corners.",
+          "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+          "How much oxygen is shared between tetrahedra controls the silicate group — isolated tetrahedra, single chains, sheets, or frameworks like quartz."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §3.1 Silicate minerals"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "4e8da8118ca9ad5476932052e9d4e23221da3bb13f6c976fd81ec92267744843",
+          "artifact": {
+            "tr": "silicate framework",
+            "df": "A three-dimensional network formed when tetrahedra share enough oxygen atoms to connect widely.",
+            "eg": "Quartz has a framework structure.",
+            "mi": "It means all silicate minerals are isolated tetrahedra.",
+            "cx": "Frameworks are one linkage pattern, not the only one; silicates can also form chains or sheets."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "d307df2bd7cbdde9cd122536a6736cb629207e5ad7b7d8f92112ea86bc5de387",
+          "artifact": {
+            "tr": "Tetrahedral unit",
+            "df": "The basic structural unit of silicate minerals.",
+            "eg": "Quartz, which exhibits a framework structure.",
+            "mi": "Thinking the unit is a single silicon atom bonded to four silicon atoms.",
+            "cx": "The unit is one silicon atom at the center bonded to four oxygen atoms at the corners."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "4e8da8118ca9ad5476932052e9d4e23221da3bb13f6c976fd81ec92267744843",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "d307df2bd7cbdde9cd122536a6736cb629207e5ad7b7d8f92112ea86bc5de387",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a5117ee65cdc91980e26",
+      "caseDigest": "dbc48e59dba2f865f8af120d78e2c84f91c3887b4c50bbe0736a5cff87c12e3a",
+      "domain": "geology",
+      "courseGroupSha256": "41db303891dbbffdd4bc29d5aa9c2988e5e44317cff1397d41fa982ec4a22b26",
+      "sourceContextSha256": "b92ae6e3d5719905860944df265b3d990c2f26633c8cfe937d6b3e474876bede",
+      "sourceContext": {
+        "sourcePacketSha256": "afe665d7a9599479da3ab654f9e9865ac0ce1d3112c5b05d29eb2f83fcebb6fe",
+        "kernelId": "geo/silicate-structures",
+        "term": "Silicate structures",
+        "claims": [
+          "Silicate minerals, built from the silicon-oxygen tetrahedron, are the most abundant rock-forming minerals; the way tetrahedra link together defines the major silicate structures.",
+          "The silicon-oxygen tetrahedron (SiO4) is one silicon atom at the center bonded to four oxygen atoms at the corners.",
+          "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+          "How much oxygen is shared between tetrahedra controls the silicate group — isolated tetrahedra, single chains, sheets, or frameworks like quartz."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §3.1 Silicate minerals"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "763e124883a738c486669b9b76cd35dcd2a614116abb030846fe2ceb7445a843",
+          "artifact": {
+            "tr": "Silicate linkage",
+            "df": "The method by which silicon-oxygen tetrahedra connect.",
+            "eg": "The difference between isolated tetrahedra and sheets.",
+            "mi": "Assuming the linkage is always the same regardless of the resulting structure.",
+            "cx": "How much oxygen is shared between tetrahedra controls the silicate group — isolated tetrahedra, single chains, sheets, or frameworks like quartz."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "96f09f3fd21d0a7aa4a98c779ecb84be7a5287eaa22bb6a06b89c3e7da6dd801",
+          "artifact": {
+            "tr": "Silicate structures",
+            "df": "The way silicon-oxygen tetrahedra are linked together in silicate minerals.",
+            "eg": "Tetrahedra can join into chains, sheets, or three-dimensional frameworks.",
+            "mi": "Silicate structures are determined by what metal element a mineral contains.",
+            "cx": "The structure comes from how tetrahedra share oxygen atoms, not from metal content alone."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "763e124883a738c486669b9b76cd35dcd2a614116abb030846fe2ceb7445a843",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "96f09f3fd21d0a7aa4a98c779ecb84be7a5287eaa22bb6a06b89c3e7da6dd801",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-f4a908491b52779d67b4",
+      "caseDigest": "1f8dcb9f30aa5b84a043c92339edefce042c5aec840ea7fdcda6c34bd4c29651",
+      "domain": "geology",
+      "courseGroupSha256": "af478b3b946a56f3e9d594fc6fc9d3d007b88dc09de874f62a898860542b0ddc",
+      "sourceContextSha256": "2549749e8747fe2424c054ab0253f01e14035dac46b1cb74a0e76b84c9f403da",
+      "sourceContext": {
+        "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+        "kernelId": "geo/metamorphic-rocks",
+        "term": "Metamorphic rocks and protoliths",
+        "claims": [
+          "Metamorphic rock forms when heat, pressure, and fluids change a preexisting parent rock (the protolith) in the solid state, without melting it.",
+          "Metamorphism changes a solid rock's composition and texture without the mineral crystals melting.",
+          "The starting rock that undergoes metamorphism is called the parent rock, or protolith.",
+          "Directed stress aligns mineral crystals into planes, producing foliation."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §6.1 Metamorphism and metamorphic rocks"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "a11cc20b433b41f8b936be3108685c6f54ca016b3e4676f55af5acf830828b38",
+          "artifact": {
+            "q": "A quartzite layer is described as having formed when heat, pressure, and fluids changed an earlier sandstone body without melting. What is that earlier sandstone body called?",
+            "op": [
+              "metamorphic band",
+              "protolith",
+              "melted source",
+              "surface cover"
+            ],
+            "ai": 1,
+            "ex": "The correct choice is protolith, because it is the starting rock that undergoes metamorphism. The other plausible distractor is metamorphic band, but that describes the product’s fabric, not the original parent rock."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b103ab65ae377e159087b1a56476af8836f4a22a306f7e2efe15405eea51d82b",
+          "artifact": {
+            "q": "What is the term for the starting rock that undergoes metamorphism?",
+            "op": [
+              "Metamorphic rock",
+              "Foliated rock",
+              "Protolith",
+              "Igneous rock"
+            ],
+            "ai": 2,
+            "ex": "The starting rock that undergoes metamorphism is called the protolith. Metamorphic rock is the resulting rock, not the starting material."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "a11cc20b433b41f8b936be3108685c6f54ca016b3e4676f55af5acf830828b38",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b103ab65ae377e159087b1a56476af8836f4a22a306f7e2efe15405eea51d82b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-07dbf06569a3fc139dd0",
+      "caseDigest": "15bb51129560cc3a76ff8da80d354a7b84cc6e8302f1da8052e3e8e23f4d560b",
+      "domain": "music-theory",
+      "courseGroupSha256": "bdc5f740594dfde48fe072660a390e7dd5892b4d5aba2b6d961980baad4899ae",
+      "sourceContextSha256": "f591d0a0840e5a237d837995e2d011bb45264960f4ce3772f17961f9741af377",
+      "sourceContext": {
+        "sourcePacketSha256": "e38bfea2b79bdd4b3cfff63de22c63df96e995c7028500ab2b803ee35f367642",
+        "kernelId": "music/scales-and-key-signatures",
+        "term": "Scales and key signatures",
+        "claims": [
+          "In music theory, a scale is \"any consecutive series of notes that form a progression between one note and its octave\", typically by order of pitch or fundamental frequency.",
+          "A measure of the width of each scale step provides a method to classify scales.",
+          "Scales can be abstracted from performance or composition.",
+          "Therefore, any scale is distinguishable by its \"step-pattern\", or how its intervals interact with each other.",
+          "A specific scale is defined by its characteristic interval pattern and by a special note, known as its first degree (or tonic).",
+          "The expression scale degree refers to these numerical labels."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b91b5f6523f65747f86094128dcb92806c1ec8a78197e9c821d01601cb744475",
+          "artifact": {
+            "tr": "Scale degree",
+            "df": "The numerical labels assigned to the notes within a scale.",
+            "eg": "Identifying the note labeled 'three' in a specific mode.",
+            "mi": "The specific note or its numerical label.",
+            "cx": "The characteristic interval pattern and the first degree."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6eb41d2d2b7b3c09ed8c1c36a0295986eabe65d2b35350eec4e9fc3a1aa30fa7",
+          "artifact": {
+            "tr": "Scale",
+            "df": "A consecutive note series that progresses from one pitch to its octave.",
+            "eg": "A major or minor collection heard as an ordered rise through the notes to the octave.",
+            "mi": "Any group of notes in a song is a scale.",
+            "cx": "That is too broad: a scale is defined by ordered progression and octave span, not just any note collection."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b91b5f6523f65747f86094128dcb92806c1ec8a78197e9c821d01601cb744475",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "6eb41d2d2b7b3c09ed8c1c36a0295986eabe65d2b35350eec4e9fc3a1aa30fa7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-fe261315cbeb4453de38",
+      "caseDigest": "58dcd917f8ff258a8f4892d716801dd494c6271960fd0bd98471d9fd3ec2cb86",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "5f18a980ba2c17a3065865cd9b4b4a65d17eea22c603b12eff77d6ad61020a2b",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/staff-clefs-pitch-notation",
+        "term": "Staff and clefs",
+        "claims": [
+          "In Western musical notation, the staff (UK usually stave); (plural: staves), also occasionally referred to as a pentagram, is a set of horizontal lines (usually five) with spaces between them, that each represent a different musical pitch.",
+          "Which staff positions represent which notes is determined by a clef placed at the beginning of the staff.",
+          "A clef (from French: clef 'key') is a musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+          "The treble clef is also the upper staff of the grand staff used for harp and keyboard instruments.",
+          "Bass clef is the bottom clef in the grand staff for harp and keyboard instruments."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "bbaa6613ac31a6fa709cd99ad73d52ebd124258ac046307370bf6bb9f0ef5cae",
+          "artifact": {
+            "tr": "Clef",
+            "df": "A musical symbol used to indicate which notes are represented by the lines and spaces on a musical staff.",
+            "eg": "The symbol placed at the beginning of the staff that dictates note representation.",
+            "mi": "A specific musical pitch.",
+            "cx": "A set of horizontal lines and spaces."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "84b7617fc2e2be72c576ed5f847091db13e84994b90eea2f5afd8671a5adcc1e",
+          "artifact": {
+            "tr": "clef",
+            "df": "A musical symbol placed at the start of a staff to show how its positions map to notes.",
+            "eg": "A treble clef at the beginning of a keyboard part shows how the upper staff’s notes should be read.",
+            "mi": "It tells the performer the volume or tempo.",
+            "cx": "It identifies note names for the staff’s lines and spaces, not dynamics or speed."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "bbaa6613ac31a6fa709cd99ad73d52ebd124258ac046307370bf6bb9f0ef5cae",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "84b7617fc2e2be72c576ed5f847091db13e84994b90eea2f5afd8671a5adcc1e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-03ee0e0491976cfdb16e",
+      "caseDigest": "10b13e67daabac0b423cec32543016023e7cb09285be49379413dfe30397ed5d",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "06ab2cdeac734edd8ef5df93070d35408285ceb632fbba18e19ae1247777989a",
+      "sourceContextSha256": "7a8d84dcbd224902c1dfbc78d084ea42da660261c25e27e186ed0750b76c0d40",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/evidence-based-personas",
+        "term": "Personas",
+        "claims": [
+          "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "Personas are one way to present research findings so other people can understand and share them.",
+          "User needs are generally higher-level and more stable over time than individual interface requests.",
+          "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+          "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ab4cbde409df3cbb7e4ad3148f91bae87a7d8c83db1e18796924b39699595528",
+          "artifact": {
+            "tr": "Research-based persona",
+            "df": "A shareable profile built from evidence about a user group with similar behavior and needs.",
+            "eg": "A team summarizes interview patterns into one profile so design decisions stay tied to evidence.",
+            "mi": "It is just a fictional marketing character.",
+            "cx": "The correction is that it must reflect research findings and help others understand and share them."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b8ac0585f147b2e129474e9330233b950a94a46b363a9b896370f1b8cc91cd1c",
+          "artifact": {
+            "tr": "Personas",
+            "df": "A shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+            "eg": "A profile detailing the needs of frequent mobile app users.",
+            "mi": "Personas are used to turn user needs into user stories.",
+            "cx": "Personas are used to connect design choices to evidence, whereas user stories describe features intended to meet needs."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "ab4cbde409df3cbb7e4ad3148f91bae87a7d8c83db1e18796924b39699595528",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "b8ac0585f147b2e129474e9330233b950a94a46b363a9b896370f1b8cc91cd1c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-45d91abec9d8f555e796",
+      "caseDigest": "7f3e8a077c9bfc65f0ae4b24b38eb2dec22b545c76277aa2ae22f636e88f3a30",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "06ab2cdeac734edd8ef5df93070d35408285ceb632fbba18e19ae1247777989a",
+      "sourceContextSha256": "ab10b15269aa5d7e3e8b051f33db9774e4921e4969bd1a9591587a2099e8c480",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/accessibility-usability-evaluation",
+        "term": "Accessibility and usability evaluation",
+        "claims": [
+          "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks.",
+          "WCAG organizes web accessibility around the principles perceivable, operable, understandable, and robust.",
+          "Evaluation with disabled and older users can find barriers that conformance evaluation alone does not reveal.",
+          "A usability test observes users attempting to use a product or service while thinking aloud.",
+          "A single disabled participant's experience should not be generalized to all people with disabilities."
+        ],
+        "attribution": [
+          "W3C Web Accessibility Initiative",
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "W3C Document License and U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "d548a78cc5b6f1b188e3872dfa40cab40509d8a30645757ce5d7ec3858e1ab13",
+          "artifact": {
+            "q": "Which evaluation can reveal barriers that conformance checks alone may miss?",
+            "op": [
+              "Evaluation with disabled and older users",
+              "A WCAG conformance review",
+              "A card sort",
+              "A heuristic brainstorm"
+            ],
+            "ai": 0,
+            "ex": "It can surface barriers conformance alone misses. One disabled participant does not represent all people with disabilities."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "0c8952b57a3afa59b9f1ccaa53a71ea26d2c60f7ad7ca23d0508fad34cc7f24c",
+          "artifact": {
+            "q": "Which method is best suited to find barriers that conformance evaluation alone does not reveal?",
+            "op": [
+              "Accessibility and usability evaluation",
+              "WCAG organization",
+              "Usability test",
+              "Single disabled participant experience"
+            ],
+            "ai": 0,
+            "ex": "Accessibility and usability evaluation combines standards-based conformance checks with observation of representative users completing realistic tasks. A usability test observes users attempting to use a product or service while thinking aloud."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "d548a78cc5b6f1b188e3872dfa40cab40509d8a30645757ce5d7ec3858e1ab13",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "0c8952b57a3afa59b9f1ccaa53a71ea26d2c60f7ad7ca23d0508fad34cc7f24c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-7027e01f88265713e276",
+      "caseDigest": "ec79eeef2b2599069bb5903a4d1a2ac490e191c63f74114143655d394243b243",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "61d4c90977f13b23b93368a208941fd2db304b807bfe6bf7728b4b6b9f222097",
+      "sourceContextSha256": "11dcc0fba503fe53be6481603b7232f3c6cf7fdf6770f9740958181a8a41801e",
+      "sourceContext": {
+        "sourcePacketSha256": "f0261b4e9d65d69eb1fd27b6e93e9702910c6f23322aeb3fcf3b799bb742fa6d",
+        "kernelId": "ux/evidence-based-personas",
+        "term": "Personas",
+        "claims": [
+          "A research-based persona is a shareable profile of a user group with similar behavior and needs, used to keep design choices connected to evidence.",
+          "Personas are one way to present research findings so other people can understand and share them.",
+          "User needs are generally higher-level and more stable over time than individual interface requests.",
+          "Teams turn user needs into user stories that describe features and content intended to meet those needs.",
+          "Keeping each user story linked to its source need enables evaluation of whether the need is being met."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "0a729563d2433cb08a2d4dabf25688389a816b94a2c67bcb5617d8b70df03c2e",
+          "artifact": {
+            "q": "Why should a team keep each user story linked to its source need?",
+            "op": [
+              "So they can evaluate whether the need is being met",
+              "So the story becomes more stable than the need itself",
+              "So interface requests override higher-level needs",
+              "So the link can be removed after planning"
+            ],
+            "ai": 0,
+            "ex": "The link lets teams check whether the need is being met. It does not make interface requests more important than needs."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e1298ad8cfec1c6912dcfa1b7ed05e26c60a0a456d5ff931339360409f0d68c4",
+          "artifact": {
+            "q": "What is the primary function of a research-based persona?",
+            "op": [
+              "To describe individual interface requests.",
+              "To present research findings for sharing.",
+              "To keep design choices connected to evidence.",
+              "To detail specific feature content."
+            ],
+            "ai": 2,
+            "ex": "Option 2 is incorrect because user needs are generally higher-level and more stable than individual interface requests (Claim 2)."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "0a729563d2433cb08a2d4dabf25688389a816b94a2c67bcb5617d8b70df03c2e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e1298ad8cfec1c6912dcfa1b7ed05e26c60a0a456d5ff931339360409f0d68c4",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

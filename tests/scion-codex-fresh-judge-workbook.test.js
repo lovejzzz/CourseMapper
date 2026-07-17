@@ -334,6 +334,13 @@ describe('Scion fresh Codex judge workbook', () => {
       promptPath: 'evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md',
       promptSha256: '0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7',
     };
+    const instructionRouting = {
+      workingDecisionsDir: 'verification-output/campaign-specific-decisions',
+      sealedOutput: 'evaluation/scion-adapters/evidence/campaign-specific-a-b.sealed.json',
+      keyOutput: '~/.codex/scion-secrets/CourseMapper/campaign-specific-a-b.key',
+      handoffDir: 'evaluation/scion-adapters/handoffs/campaign-specific-a-b',
+      receiptFile: 'evaluation/scion-adapters/evidence/campaign-specific-a-b.json',
+    };
     await buildScionCodexFreshJudgeWorkbook({
       packetDir,
       outputDir: handoffDir,
@@ -351,6 +358,7 @@ describe('Scion fresh Codex judge workbook', () => {
         selectionMode: 'explicit-codex-thread-launch',
         internalBuildRevisionAvailable: false,
       },
+      instructionRouting,
     });
 
     await expect(auditTrackedWorkbook(receiptOutput, handoffDir, packetDir)).resolves.toMatchObject({
@@ -360,6 +368,11 @@ describe('Scion fresh Codex judge workbook', () => {
     const instructions = await fs.readFile(path.join(handoffDir, 'FRESH_TASK_INSTRUCTIONS.md'), 'utf8');
     expect(instructions).toContain('Start one new ephemeral Codex CLI task');
     expect(instructions).toContain('runtime `codex-cli-0.144.2` exactly');
+    expect(instructions).toContain(instructionRouting.workingDecisionsDir);
+    expect(instructions).toContain(instructionRouting.sealedOutput);
+    expect(instructions).toContain(instructionRouting.keyOutput);
+    expect(instructions).toContain(`--handoff ${instructionRouting.handoffDir}`);
+    expect(instructions).toContain(`--receipt ${instructionRouting.receiptFile}`);
     expect(instructions).not.toContain('Start a newly created Codex Desktop task');
   });
 

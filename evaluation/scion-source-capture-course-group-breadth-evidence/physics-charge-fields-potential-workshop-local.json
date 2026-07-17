@@ -1,0 +1,1981 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-physics-charge-fields-potential-workshop-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "Physics Charge, Fields, and Potential Workshop, a six-session qualitative-reasoning course covering charge, electric fields, Gauss's law, potential, capacitance, and current with source-bounded representations.",
+  "fileNames": [
+    "source-packet-3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f.json"
+  ],
+  "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Physics Charge, Fields, and Potential Workshop\",\"sessions\":[{\"number\":1,\"title\":\"Electric charge\"},{\"number\":2,\"title\":\"Electric field\"},{\"number\":3,\"title\":\"Gauss's law\"},{\"number\":4,\"title\":\"Electric potential\"},{\"number\":5,\"title\":\"Capacitance\"},{\"number\":6,\"title\":\"Electric current\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[{\"q\":\"If a system has a net charge of zero, what must be true about the total electric charge within that system?\",\"op\":[\"The total electric charge is conserved.\",\"The total electric charge is always positive.\",\"The total electric charge is always negative.\",\"The total electric charge is determined by the interactions between like charges.\"],\"ai\":0,\"ex\":\"The total electric charge is conserved because net charge is conserved in an isolated system.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"If two particles have the same sign of electric charge, what will happen when they are brought near each other?\",\"op\":[\"They will attract\",\"They will repel\",\"They will have no interaction\",\"They will change their charge\"],\"ai\":1,\"ex\":\"Like charges repel because they have the same sign. Unlike charges attract because they have opposite signs.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Electric charge\",\"df\":\"A fundamental property of matter that dictates how it participates in electric interactions.\",\"eg\":\"A single electron possesses a negative electric charge.\",\"mi\":\"Electric charge is a force that pulls or pushes objects together.\",\"cx\":\"Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Net charge\",\"df\":\"The sum of all individual electric charges present in a specific system.\",\"eg\":\"If a system has two $+2$ charges and one $-2$ charge, the net charge is zero.\",\"mi\":\"Net charge is a quantity that changes over time in an open system.\",\"cx\":\"Net charge is conserved in an isolated system.\",\"sourceFactIndexes\":[2]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"If an electric field is present at a point, what does its direction indicate regarding a positive test charge?\",\"op\":[\"The direction the positive test charge would accelerate\",\"The direction the electric field lines flow\",\"The direction the field-line density is highest\",\"The direction the electric force is weakest\"],\"ai\":0,\"ex\":\"The direction the positive test charge would accelerate is the correct choice because the electric field describes the electric force per unit positive test charge at each point in space.\",\"sourceFactIndexes\":[0,1],\"type\":\"multiple_choice\"},{\"q\":\"What does the field-line density represent in relation to the electric field?\",\"op\":[\"The relative field strength\",\"The direction of the electric force\",\"The direction of the positive test charge acceleration\",\"The magnitude of the electric force\"],\"ai\":0,\"ex\":\"Field-line density indicates relative field strength because the electric field describes the electric force per unit positive test charge at each point in space.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-3\":{\"quizItems\":[],\"keyTerms\":[{\"tr\":\"Gaussian surface\",\"df\":\"A closed boundary used to relate the total electric flux to the total charge contained within it.\",\"eg\":\"A spherical surface used to determine the electric field strength outside a point charge.\",\"mi\":\"A Gaussian surface is only useful when the enclosed charge is zero.\",\"cx\":\"A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.\",\"sourceFactIndexes\":[1]},{\"tr\":\"Electric flux\",\"df\":\"The measure of the net electric field passing through a given surface.\",\"eg\":\"Calculating the total electric flux through a cylinder to find the enclosed charge.\",\"mi\":\"Electric flux is always zero if there is a net charge inside the surface.\",\"cx\":\"Electric flux is related to the net charge enclosed by a closed surface.\",\"sourceFactIndexes\":[0]}]},\"lesson-4\":{\"quizItems\":[{\"q\":\"If the electric field points toward a region of lower electric potential, what is the relationship between the field direction and the potential change?\",\"op\":[\"The field points in the direction of increasing electric potential\",\"The field points in the direction of decreasing electric potential\",\"The field points perpendicular to the potential change\",\"The field direction is independent of the potential change\"],\"ai\":1,\"ex\":\"The field points in the direction of decreasing electric potential because electric field points in the direction of decreasing electric potential.\",\"sourceFactIndexes\":[0,2],\"type\":\"multiple_choice\"},{\"q\":\"In electrostatics, which factor determines the work required to move a charge between two locations?\",\"op\":[\"The magnitude of the electric field\",\"The potential difference between the two points\",\"The total stored charge in the system\",\"The direction of the electric field\"],\"ai\":1,\"ex\":\"The potential difference between the two points determines the work required because only potential differences affect work and energy changes in electrostatics.\",\"sourceFactIndexes\":[1],\"type\":\"multiple_choice\"}],\"keyTerms\":[]},\"lesson-5\":{\"quizItems\":[{\"q\":\"If the stored charge on a capacitor is doubled while keeping the potential difference constant, what happens to the capacitance?\",\"op\":[\"Capacitance is halved\",\"Capacitance is doubled\",\"Capacitance remains the same\",\"Capacitance is quadrupled\"],\"ai\":1,\"ex\":\"Capacitance is doubled because it is the ratio of stored charge to potential difference.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"When considering a parallel-plate capacitor, how does changing the distance between the plates affect its capacitance?\",\"op\":[\"Capacitance increases\",\"Capacitance decreases\",\"Capacitance remains unchanged\",\"Capacitance is proportional to the area\"],\"ai\":1,\"ex\":\"Capacitance decreases because increasing the separation decreases capacitance.\",\"sourceFactIndexes\":[2],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Ratio of stored charge to potential difference\",\"df\":\"This ratio quantifies how much charge a system can hold relative to the voltage applied across it.\",\"eg\":\"The capacitance of a capacitor is calculated by dividing the amount of charge it holds by the voltage difference between its plates.\",\"mi\":\"The ratio of stored charge to potential difference is the same as the stored energy in the electric field.\",\"cx\":\"The ratio of stored charge to potential difference is the measure of capacitance.\",\"sourceFactIndexes\":[0]},{\"tr\":\"Energy stored in the electric field\",\"df\":\"This energy is contained within the electric field existing between the conductors of a capacitor.\",\"eg\":\"A capacitor stores energy in the electric field situated between its two conductive plates.\",\"mi\":\"Energy stored in the electric field is directly proportional to the stored charge.\",\"cx\":\"Energy stored in the electric field is the energy stored in the electric field between the conductors.\",\"sourceFactIndexes\":[1]}]},\"lesson-6\":{\"quizItems\":[{\"q\":\"What is the definition of electric current?\",\"op\":[\"The rate at which charge passes through a surface\",\"The direction positive charge would move\",\"The speed of microscopic drift\",\"The propagation speed of the electric signal\"],\"ai\":0,\"ex\":\"Electric current is the rate at which charge passes through a surface. This is different from the direction positive charge would move.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"}],\"keyTerms\":[]}}}}",
+  "savedAt": "2026-07-16T22:41:40.236Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-course-group-breadth-v0.16.47.json",
+    "campaignManifestSha256": "54233a8e64074f0060a69d3ac778f719850220092ba51eb87ca10ef1fa0c3693",
+    "promptSetSha256": "5a44124735946a0ae568082769b29d43575b9bffa20cea1c81a520d7d48df40f",
+    "courseInputSha256": "81ef6cab5cc18c975b0523a6acbb80f8be10b5a56bf0a205b047441bd4086c32",
+    "courseGroupId": "physics-charge-fields-potential-workshop",
+    "courseGroupSha256": "617454049e03e67f819d3df1c3aef7c408301eb5a42d88a62f9768704752a092",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/physics-intro.json",
+      "sourceArtifactSha256": "e835894a631f70075ac477d482f226b605f0a268a230acad19bf344fb75d90cc",
+      "kernels": [
+        {
+          "id": "physics/electric-charge",
+          "term": "Electric charge",
+          "definition": "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.1",
+            "quote": "Electric charge is a conserved property of matter."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Like charges repel and unlike charges attract.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#5",
+                "loc": "5.1",
+                "quote": "Like charges repel and unlike charges attract."
+              }
+            },
+            {
+              "index": 1,
+              "text": "Net charge is conserved in an isolated system.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#5",
+                "loc": "5.1",
+                "quote": "charge is conserved"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 5"
+          ]
+        },
+        {
+          "id": "physics/electric-field",
+          "term": "Electric field",
+          "definition": "An electric field describes the electric force per unit positive test charge at each point in space.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#5",
+            "loc": "5.5",
+            "quote": "The electric field is the electric force per unit charge."
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The direction of the electric field is the direction a positive test charge would accelerate.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#5",
+                "loc": "5.5",
+                "quote": "the direction of the force on a positive test charge"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Field-line density indicates relative field strength.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#5",
+                "loc": "5.6",
+                "quote": "closer field lines indicate a stronger field"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 5"
+          ]
+        },
+        {
+          "id": "physics/gausss-law",
+          "term": "Gauss's law",
+          "definition": "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#6",
+            "loc": "6.3",
+            "quote": "electric flux through any closed surface is proportional to the enclosed electric charge"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#6",
+                "loc": "6.4",
+                "quote": "Use symmetry to determine the electric field"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#6",
+                "loc": "6.3",
+                "quote": "the net flux depends only on the charge enclosed"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 6"
+          ]
+        },
+        {
+          "id": "physics/electric-potential",
+          "term": "Electric potential",
+          "definition": "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#7",
+            "loc": "7.1",
+            "quote": "electric potential energy per unit charge"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Only potential differences affect work and energy changes in electrostatics.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#7",
+                "loc": "7.1",
+                "quote": "only differences in potential energy are physically meaningful"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Electric field points in the direction of decreasing electric potential.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#7",
+                "loc": "7.5",
+                "quote": "electric field points in the direction of decreasing potential"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 7"
+          ]
+        },
+        {
+          "id": "physics/capacitance",
+          "term": "Capacitance",
+          "definition": "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#8",
+            "loc": "8.1",
+            "quote": "capacitance is the amount of charge stored per volt"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "A capacitor stores energy in the electric field between its conductors.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#8",
+                "loc": "8.3",
+                "quote": "energy stored in a capacitor"
+              }
+            },
+            {
+              "index": 1,
+              "text": "For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#8",
+                "loc": "8.2",
+                "quote": "capacitance is directly proportional to the area and inversely proportional to the separation"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 8"
+          ]
+        },
+        {
+          "id": "physics/electric-current",
+          "term": "Electric current",
+          "definition": "Electric current is the rate at which charge passes through a surface.",
+          "definitionAnchor": {
+            "src": "openstax:university-physics-volume-2#9",
+            "loc": "9.1",
+            "quote": "electric current is the rate at which charge flows"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Conventional current direction is the direction positive charge would move.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#9",
+                "loc": "9.1",
+                "quote": "direction of positive charge flow"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly.",
+              "anchor": {
+                "src": "openstax:university-physics-volume-2#9",
+                "loc": "9.2",
+                "quote": "constant velocity, known as the drift velocity"
+              }
+            }
+          ],
+          "license": "CC-BY-4.0",
+          "attribution": [
+            "OpenStax University Physics Volume 2, Ch. 9"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-16T22:41:40.236Z",
+    "admittedPromptIds": [
+      "physics-charge-fields-potential-workshop:physics/electric-charge",
+      "physics-charge-fields-potential-workshop:physics/electric-field",
+      "physics-charge-fields-potential-workshop:physics/gausss-law",
+      "physics-charge-fields-potential-workshop:physics/electric-potential",
+      "physics-charge-fields-potential-workshop:physics/capacitance",
+      "physics-charge-fields-potential-workshop:physics/electric-current"
+    ],
+    "rejectedPromptIds": [],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-partial-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/electric-charge",
+          "kernelId": "physics/electric-charge",
+          "promptSha256": "34eaaa0feda981897852c58bbafc98123fb02934539b6d8640880353483d04f4",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If a system has a net charge of zero, what must be true about the total electric charge within that system?",
+                "op": [
+                  "The total electric charge is conserved.",
+                  "The total electric charge is always positive.",
+                  "The total electric charge is always negative.",
+                  "The total electric charge is determined by the interactions between like charges."
+                ],
+                "ai": 0,
+                "ex": "The total electric charge is conserved because net charge is conserved in an isolated system.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "When two particles possess the same type of electric charge, what is the resulting interaction between them?",
+                "op": [
+                  "The particles attract each other.",
+                  "The particles repel each other.",
+                  "The particles have no interaction.",
+                  "The particles attract each other because they are like charges."
+                ],
+                "ai": 1,
+                "ex": "The particles repel each other because like charges repel.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric charge",
+                "df": "A fundamental property of matter that dictates how it participates in electric interactions.",
+                "eg": "A single electron possesses a negative electric charge.",
+                "mi": "Electric charge is a force that pulls or pushes objects together.",
+                "cx": "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Net charge",
+                "df": "The sum of all individual electric charges present in a specific system.",
+                "eg": "If a system has two $+2$ charges and one $-2$ charge, the net charge is zero.",
+                "mi": "Net charge is a quantity that changes over time in an open system.",
+                "cx": "Net charge is conserved in an isolated system.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "9f92efee4214434dc5938fa74c28afd118fd2a8d178cbde65afaff7de5b53f52",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If a system has a net charge of zero, what must be true about the total electric charge within that system?",
+                "op": [
+                  "The total electric charge is conserved.",
+                  "The total electric charge is always positive.",
+                  "The total electric charge is always negative.",
+                  "The total electric charge is determined by the interactions between like charges."
+                ],
+                "ai": 0,
+                "ex": "The total electric charge is conserved because net charge is conserved in an isolated system.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric charge",
+                "df": "A fundamental property of matter that dictates how it participates in electric interactions.",
+                "eg": "A single electron possesses a negative electric charge.",
+                "mi": "Electric charge is a force that pulls or pushes objects together.",
+                "cx": "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Net charge",
+                "df": "The sum of all individual electric charges present in a specific system.",
+                "eg": "If a system has two $+2$ charges and one $-2$ charge, the net charge is zero.",
+                "mi": "Net charge is a quantity that changes over time in an open system.",
+                "cx": "Net charge is conserved in an isolated system.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "b1e448b633be449ed6f2431fcef2b318c39958d33d92cf0af27c1dc630da2b96",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-explanation-key-conflict"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:38:32.071Z",
+          "durationMs": 6930
+        },
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/electric-field",
+          "kernelId": "physics/electric-field",
+          "promptSha256": "9dc8a8738c6c8e70f05b1150922bca65cea4f5f19036ae75f945efdd1d125122",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If an electric field is present at a point, what does its direction indicate regarding a positive test charge?",
+                "op": [
+                  "The direction the positive test charge would accelerate",
+                  "The direction the electric field lines flow",
+                  "The direction the field-line density is highest",
+                  "The direction the electric force is weakest"
+                ],
+                "ai": 0,
+                "ex": "The direction the positive test charge would accelerate is the correct choice because the electric field describes the electric force per unit positive test charge at each point in space.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What does the field-line density represent in relation to the electric field?",
+                "op": [
+                  "The relative field strength",
+                  "The direction of the electric force",
+                  "The direction of the positive test charge acceleration",
+                  "The magnitude of the electric force"
+                ],
+                "ai": 0,
+                "ex": "Field-line density indicates relative field strength because the electric field describes the electric force per unit positive test charge at each point in space.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric field",
+                "df": "A physical quantity describing the electric force experienced by a positive test charge at a specific location in space.",
+                "eg": "When a positive test charge is placed in a region, the electric field describes the electric force per unit positive test charge at each point in space.",
+                "mi": "The electric field is the total electric force acting on a charge.",
+                "cx": "The electric field is the electric force per unit positive test charge at each point in space.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Field-line density",
+                "df": "A measure used to show the relative strength of the electric field at a particular location.",
+                "eg": "The field-line density indicates relative field strength because the electric field describes the electric force per unit positive test charge at each point in space.",
+                "mi": "Field-line density is the direction a positive test charge would accelerate.",
+                "cx": "Field-line density indicates relative field strength.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "af81d0aa59b58abcb55938cb9604880682f7b3cde39b2c76270f96e719c7f4ff",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If an electric field is present at a point, what does its direction indicate regarding a positive test charge?",
+                "op": [
+                  "The direction the positive test charge would accelerate",
+                  "The direction the electric field lines flow",
+                  "The direction the field-line density is highest",
+                  "The direction the electric force is weakest"
+                ],
+                "ai": 0,
+                "ex": "The direction the positive test charge would accelerate is the correct choice because the electric field describes the electric force per unit positive test charge at each point in space.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What does the field-line density represent in relation to the electric field?",
+                "op": [
+                  "The relative field strength",
+                  "The direction of the electric force",
+                  "The direction of the positive test charge acceleration",
+                  "The magnitude of the electric force"
+                ],
+                "ai": 0,
+                "ex": "Field-line density indicates relative field strength because the electric field describes the electric force per unit positive test charge at each point in space.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "831940607b9a90fda32fafbab2cf328031fb47bf613cd82ff6b2128d3d489ff6",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-correction-repeats-example",
+              "key-term-1-correction-repeats-example",
+              "key-term-1-misconception-repeats-known-fact",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:38:39.002Z",
+          "durationMs": 8282
+        },
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/gausss-law",
+          "kernelId": "physics/gausss-law",
+          "promptSha256": "4ac10441484ff5d080d21c6efe825cfcd832bec7260d59f3fe1962d52a791c62",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If a closed surface encloses a net charge, what is the relationship between the net electric flux passing through that surface and the charge inside it?",
+                "op": [
+                  "The net electric flux is directly proportional to the net charge enclosed.",
+                  "The net electric flux is zero if the enclosed charge is non-zero.",
+                  "The net electric flux is equal to the net charge enclosed.",
+                  "The net electric flux is independent of the enclosed charge."
+                ],
+                "ai": 2,
+                "ex": "The net electric flux is zero if the enclosed charge is non-zero. This is incorrect because zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "When using a Gaussian surface, what condition simplifies the calculation of the electric field magnitude or direction?",
+                "op": [
+                  "The surface must enclose a net charge.",
+                  "The surface must be non-closed.",
+                  "Symmetry must make the field magnitude or direction simple on the surface.",
+                  "The surface must have a non-zero net flux."
+                ],
+                "ai": 2,
+                "ex": "Symmetry must make the field magnitude or direction simple on the surface. This is incorrect because zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface.",
+                "sourceFactIndexes": [
+                  1,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Gaussian surface",
+                "df": "A closed boundary used to relate the total electric flux to the total charge contained within it.",
+                "eg": "A spherical surface used to determine the electric field strength outside a point charge.",
+                "mi": "A Gaussian surface is only useful when the enclosed charge is zero.",
+                "cx": "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Electric flux",
+                "df": "The measure of the net electric field passing through a given surface.",
+                "eg": "Calculating the total electric flux through a cylinder to find the enclosed charge.",
+                "mi": "Electric flux is always zero if there is a net charge inside the surface.",
+                "cx": "Electric flux is related to the net charge enclosed by a closed surface.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "4808d77dbf4c7986cb6dc276121aac9ae0fc93376a5ccd827969ce5434cc6bf5",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Gaussian surface",
+                "df": "A closed boundary used to relate the total electric flux to the total charge contained within it.",
+                "eg": "A spherical surface used to determine the electric field strength outside a point charge.",
+                "mi": "A Gaussian surface is only useful when the enclosed charge is zero.",
+                "cx": "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              },
+              {
+                "tr": "Electric flux",
+                "df": "The measure of the net electric field passing through a given surface.",
+                "eg": "Calculating the total electric flux through a cylinder to find the enclosed charge.",
+                "mi": "Electric flux is always zero if there is a net charge inside the surface.",
+                "cx": "Electric flux is related to the net charge enclosed by a closed surface.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "536d95af567e5e31ded76abe673b2e3ca85e18c9409dc43648095b9c3209341d",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-0-explanation-key-conflict",
+              "mc-1-clang-association-cue",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:38:47.285Z",
+          "durationMs": 8627
+        },
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/electric-potential",
+          "kernelId": "physics/electric-potential",
+          "promptSha256": "a8e2cceeae876d1390cb2a162c4171acc550a9dfbdc6b00485251c2e0657d368",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If the electric field points toward a region of lower electric potential, what is the relationship between the field direction and the potential change?",
+                "op": [
+                  "The field points in the direction of increasing electric potential",
+                  "The field points in the direction of decreasing electric potential",
+                  "The field points perpendicular to the potential change",
+                  "The field direction is independent of the potential change"
+                ],
+                "ai": 1,
+                "ex": "The field points in the direction of decreasing electric potential because electric field points in the direction of decreasing electric potential.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "In electrostatics, which factor determines the work required to move a charge between two locations?",
+                "op": [
+                  "The magnitude of the electric field",
+                  "The potential difference between the two points",
+                  "The total stored charge in the system",
+                  "The direction of the electric field"
+                ],
+                "ai": 1,
+                "ex": "The potential difference between the two points determines the work required because only potential differences affect work and energy changes in electrostatics.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric potential",
+                "df": "The electric potential is defined as electric potential energy per unit charge.",
+                "eg": "The electric potential at a specific point in space is measured in volts, representing the potential energy per unit charge at that location.",
+                "mi": "Electric potential is the total energy stored in the field itself.",
+                "cx": "Electric potential is the electric potential energy divided by the charge.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Potential difference",
+                "df": "Potential difference is the work per unit charge needed to move between two points.",
+                "eg": "The potential difference between two points tells you how much work you must do per unit charge to move a test charge from one point to the other.",
+                "mi": "Potential difference is the total work done by the electric field on a charge.",
+                "cx": "Potential difference is the work done by the electric field per unit charge.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "e9226dde24640107eecd4790152f1fc415074d8f3d8bc8d0b80c97bad951ef87",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If the electric field points toward a region of lower electric potential, what is the relationship between the field direction and the potential change?",
+                "op": [
+                  "The field points in the direction of increasing electric potential",
+                  "The field points in the direction of decreasing electric potential",
+                  "The field points perpendicular to the potential change",
+                  "The field direction is independent of the potential change"
+                ],
+                "ai": 1,
+                "ex": "The field points in the direction of decreasing electric potential because electric field points in the direction of decreasing electric potential.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "q": "In electrostatics, which factor determines the work required to move a charge between two locations?",
+                "op": [
+                  "The magnitude of the electric field",
+                  "The potential difference between the two points",
+                  "The total stored charge in the system",
+                  "The direction of the electric field"
+                ],
+                "ai": 1,
+                "ex": "The potential difference between the two points determines the work required because only potential differences affect work and energy changes in electrostatics.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "d76b5dee4de8095d195203a6df53de016b867ee08fafbab9476d67747eac55b2",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-0-circular-definition",
+              "key-term-1-circular-definition",
+              "key-term-1-correction-repeats-misconception",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:38:55.913Z",
+          "durationMs": 7890
+        },
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/capacitance",
+          "kernelId": "physics/capacitance",
+          "promptSha256": "5d03898c15260b1370781f32371e0cfc18baedb01e10c278ad8a51a2d3b4649f",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If the stored charge on a capacitor is doubled while keeping the potential difference constant, what happens to the capacitance?",
+                "op": [
+                  "Capacitance is halved",
+                  "Capacitance is doubled",
+                  "Capacitance remains the same",
+                  "Capacitance is quadrupled"
+                ],
+                "ai": 1,
+                "ex": "Capacitance is doubled because it is the ratio of stored charge to potential difference.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "When considering a parallel-plate capacitor, how does changing the distance between the plates affect its capacitance?",
+                "op": [
+                  "Capacitance increases",
+                  "Capacitance decreases",
+                  "Capacitance remains unchanged",
+                  "Capacitance is proportional to the area"
+                ],
+                "ai": 1,
+                "ex": "Capacitance decreases because increasing the separation decreases capacitance.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Ratio of stored charge to potential difference",
+                "df": "This ratio quantifies how much charge a system can hold relative to the voltage applied across it.",
+                "eg": "The capacitance of a capacitor is calculated by dividing the amount of charge it holds by the voltage difference between its plates.",
+                "mi": "The ratio of stored charge to potential difference is the same as the stored energy in the electric field.",
+                "cx": "The ratio of stored charge to potential difference is the measure of capacitance.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Energy stored in the electric field",
+                "df": "This energy is contained within the electric field existing between the conductors of a capacitor.",
+                "eg": "A capacitor stores energy in the electric field situated between its two conductive plates.",
+                "mi": "Energy stored in the electric field is directly proportional to the stored charge.",
+                "cx": "Energy stored in the electric field is the energy stored in the electric field between the conductors.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "7f75a9b99d3ec5570a09b0bd5f6bda68208273611759166660ec366fb3a65042",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If the stored charge on a capacitor is doubled while keeping the potential difference constant, what happens to the capacitance?",
+                "op": [
+                  "Capacitance is halved",
+                  "Capacitance is doubled",
+                  "Capacitance remains the same",
+                  "Capacitance is quadrupled"
+                ],
+                "ai": 1,
+                "ex": "Capacitance is doubled because it is the ratio of stored charge to potential difference.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "When considering a parallel-plate capacitor, how does changing the distance between the plates affect its capacitance?",
+                "op": [
+                  "Capacitance increases",
+                  "Capacitance decreases",
+                  "Capacitance remains unchanged",
+                  "Capacitance is proportional to the area"
+                ],
+                "ai": 1,
+                "ex": "Capacitance decreases because increasing the separation decreases capacitance.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Ratio of stored charge to potential difference",
+                "df": "This ratio quantifies how much charge a system can hold relative to the voltage applied across it.",
+                "eg": "The capacitance of a capacitor is calculated by dividing the amount of charge it holds by the voltage difference between its plates.",
+                "mi": "The ratio of stored charge to potential difference is the same as the stored energy in the electric field.",
+                "cx": "The ratio of stored charge to potential difference is the measure of capacitance.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Energy stored in the electric field",
+                "df": "This energy is contained within the electric field existing between the conductors of a capacitor.",
+                "eg": "A capacitor stores energy in the electric field situated between its two conductive plates.",
+                "mi": "Energy stored in the electric field is directly proportional to the stored charge.",
+                "cx": "Energy stored in the electric field is the energy stored in the electric field between the conductors.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "7f75a9b99d3ec5570a09b0bd5f6bda68208273611759166660ec366fb3a65042",
+          "assessment": {
+            "eligible": true,
+            "issues": [],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 2
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:39:03.804Z",
+          "durationMs": 7150
+        },
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/electric-current",
+          "kernelId": "physics/electric-current",
+          "promptSha256": "8a113f70d531816a6fc27330f2f836bc1542c2086ab41aa843afc9c9655441ed",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What describes the rate at which charge passes through a surface?",
+                "op": [
+                  "Electric current is the rate at which charge passes through a surface.",
+                  "Electric current is the total amount of charge that passes through a surface.",
+                  "Electric current is the speed at which charge moves through a surface.",
+                  "Electric current is the direction positive charge would move."
+                ],
+                "ai": 0,
+                "ex": "Electric current is the rate at which charge passes through a surface.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "In what direction is the conventional current defined?",
+                "op": [
+                  "Conventional current direction is the direction positive charge would move.",
+                  "Conventional current direction is the direction negative charge would move.",
+                  "Conventional current direction is the direction of the microscopic drift speed.",
+                  "Conventional current direction is the direction the electric signal propagates through a wire."
+                ],
+                "ai": 1,
+                "ex": "Conventional current direction is the direction positive charge would move.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric current",
+                "df": "The rate at which charge passes through a surface is measured in amperes.",
+                "eg": "When a steady flow of electrons moves past a cross-section of a wire, the resulting flow rate is the electric current.",
+                "mi": "Electric current is the total amount of charge that passes through a surface.",
+                "cx": "Electric current is the rate at which charge passes through a surface.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Conventional current direction",
+                "df": "This direction is defined as the path a positive charge would travel.",
+                "eg": "If you observe a flow of positive ions in a conductor, the conventional current flows in the direction those positive ions would move.",
+                "mi": "Conventional current direction is the direction negative charge would move.",
+                "cx": "Conventional current direction is the direction positive charge would move.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ]
+          },
+          "responseSha256": "e044024f96949fa4d02794fbfba66a8010e9059a4e9f15f7cd10a37bc36e3ae7",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-explanation-repeats-answer",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-misconception-repeats-known-fact",
+              "key-term-1-misconception-repeats-known-fact",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:39:10.955Z",
+          "durationMs": 7300
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/electric-charge",
+          "kernelId": "physics/electric-charge",
+          "promptSha256": "34eaaa0feda981897852c58bbafc98123fb02934539b6d8640880353483d04f4",
+          "generationPromptSha256": "528b248895c620c099c5ffd01e8941ee534a5fd89cc8a54bd54e93eb718b82af",
+          "rawCallSha256": "0aa83dbd5c8dcbac59ab5a8d34e4986085061e9a74fab2222a97d8516f974d92",
+          "response": {
+            "mcItems": [
+              {
+                "q": "If two particles have the same sign of electric charge, what will happen when they are brought near each other?",
+                "op": [
+                  "They will attract",
+                  "They will repel",
+                  "They will have no interaction",
+                  "They will change their charge"
+                ],
+                "ai": 1,
+                "ex": "Like charges repel because they have the same sign. Unlike charges attract because they have opposite signs.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "ca64691eb5ff25e84807803f832327dcbbef201511a43828d3f03f07b16f37d1",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "If two particles have the same sign of electric charge, what will happen when they are brought near each other?",
+                "op": [
+                  "They will attract",
+                  "They will repel",
+                  "They will have no interaction",
+                  "They will change their charge"
+                ],
+                "ai": 1,
+                "ex": "Like charges repel because they have the same sign. Unlike charges attract because they have opposite signs.",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "ca64691eb5ff25e84807803f832327dcbbef201511a43828d3f03f07b16f37d1",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:41:23.737Z",
+          "durationMs": 1823,
+          "recoveryTarget": {
+            "mcItems": 1,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/electric-field",
+          "kernelId": "physics/electric-field",
+          "promptSha256": "9dc8a8738c6c8e70f05b1150922bca65cea4f5f19036ae75f945efdd1d125122",
+          "generationPromptSha256": "0decf84b2fbedaddb67c200b942fa1f04a683d26af918f3d2ab58bc5e9102982",
+          "rawCallSha256": "985bc72ead09475ff3aeaac7f43c4b35f30f11e52e0ebb5bb0deed62ca281a7b",
+          "response": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Electric field",
+                "df": "An electric field describes the electric force per unit positive test charge at each point in space.",
+                "eg": "At a point in space, the electric field is the force experienced by a tiny positive charge placed there.",
+                "mi": "The electric field is the force exerted on a negative test charge.",
+                "cx": "The electric field is the force exerted on a positive test charge.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Field-line density",
+                "df": "Field-line density indicates relative field strength.",
+                "eg": "A region with a higher field-line density shows a stronger electric field.",
+                "mi": "Field-line density indicates the direction of the electric field.",
+                "cx": "Field-line density indicates relative field strength.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "9c6db625a5f4d48cf682ffa1b39fc7e0dc92602fdb7fbc76167f5e36965ba255",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-0-circular-definition",
+              "key-term-0-correction-repeats-misconception",
+              "key-term-1-circular-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 0,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:41:25.561Z",
+          "durationMs": 2720,
+          "recoveryTarget": {
+            "mcItems": 0,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/gausss-law",
+          "kernelId": "physics/gausss-law",
+          "promptSha256": "4ac10441484ff5d080d21c6efe825cfcd832bec7260d59f3fe1962d52a791c62",
+          "generationPromptSha256": "83cd8813429d9e5658f540afa8a77baa7c5b0242c690eed69ac65e2f97a3d83e",
+          "rawCallSha256": "b769416907249d440499d52028056f07b5bc49b21672003afc507f874931a85b",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What does Gauss's law primarily relate?",
+                "op": [
+                  "net electric flux through a closed surface",
+                  "the net charge enclosed by that surface",
+                  "the electric field magnitude on the surface",
+                  "the potential energy of the enclosed charge"
+                ],
+                "ai": 0,
+                "ex": "net electric flux through a closed surface",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "When is a Gaussian surface particularly useful for calculating fields?",
+                "op": [
+                  "when symmetry makes the field magnitude or direction simple on the surface",
+                  "when the enclosed charge is zero",
+                  "when the net flux is zero",
+                  "when the potential is constant"
+                ],
+                "ai": 1,
+                "ex": "when symmetry makes the field magnitude or direction simple on the surface",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "responseSha256": "e355e46c450e4ed3bd36a0d814b9edf2d21c7626d218bc2c864e5185fde676a9",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "key-term-count",
+              "mc-0-explanation-repeats-answer",
+              "mc-0-truncated-explanation",
+              "mc-1-truncated-explanation",
+              "mc-1-source-answer-conflict",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:41:28.282Z",
+          "durationMs": 3718,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 0
+          }
+        },
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/electric-potential",
+          "kernelId": "physics/electric-potential",
+          "promptSha256": "a8e2cceeae876d1390cb2a162c4171acc550a9dfbdc6b00485251c2e0657d368",
+          "generationPromptSha256": "b23f0d453439e91d8f4f11ab3574665835302b38984875c4c05af2071b9c2156",
+          "rawCallSha256": "1aa046e5e0fbbb3b667b92d54ab6733f92759924cdaa67880796ab08a820a64f",
+          "response": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Electric potential",
+                "df": "Electric potential is electric potential energy per unit charge.",
+                "eg": "The electric potential at a point is 5 volts per coulomb.",
+                "mi": "Electric potential is the work done to move a charge between two points.",
+                "cx": "Electric potential is electric potential energy per unit charge; potential difference is the work per unit charge required to move between two points.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Potential difference",
+                "df": "Potential difference is the work per unit charge required to move between two points.",
+                "eg": "A potential difference of 10 volts means 10 joules of work are needed per coulomb.",
+                "mi": "Potential difference is the energy stored in a charge.",
+                "cx": "Potential difference is the work per unit charge required to move between two points.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ]
+          },
+          "responseSha256": "07fda62bb7e5f95ce4c88b3eaef305814ca53ff305a8af993970e8f25755c424",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-count",
+              "key-term-0-circular-definition",
+              "key-term-0-correction-repeats-definition",
+              "key-term-0-misconception-repeats-known-fact",
+              "key-term-1-circular-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 0,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:41:32.001Z",
+          "durationMs": 2830,
+          "recoveryTarget": {
+            "mcItems": 0,
+            "keyTerms": 2
+          }
+        },
+        {
+          "promptId": "physics-charge-fields-potential-workshop:physics/electric-current",
+          "kernelId": "physics/electric-current",
+          "promptSha256": "8a113f70d531816a6fc27330f2f836bc1542c2086ab41aa843afc9c9655441ed",
+          "generationPromptSha256": "78d66e330f94c3e89655af97c00a62d37c4869d0484621fa925bb225c22d7164",
+          "rawCallSha256": "b23e171e05a06d27419585b75d643dab9330823d831966fe3e868027a03a570d",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What is the definition of electric current?",
+                "op": [
+                  "The rate at which charge passes through a surface",
+                  "The direction positive charge would move",
+                  "The speed of microscopic drift",
+                  "The propagation speed of the electric signal"
+                ],
+                "ai": 0,
+                "ex": "Electric current is the rate at which charge passes through a surface. This is different from the direction positive charge would move.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "What is the conventional direction for electric current?",
+                "op": [
+                  "The direction positive charge would move",
+                  "The direction the electric signal propagates",
+                  "The direction of microscopic drift",
+                  "The rate at which charge passes through a surface"
+                ],
+                "ai": 1,
+                "ex": "Conventional current direction is the direction positive charge would move. Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly.",
+                "sourceFactIndexes": [
+                  1
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Electric current",
+                "df": "Electric current is the rate at which charge passes through a surface.",
+                "eg": "When a wire carries 1 ampere, one coulomb of charge passes through it every second.",
+                "mi": "Electric current is the direction positive charge would move.",
+                "cx": "Electric current is the rate at which charge passes through a surface.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "tr": "Microscopic drift speed",
+                "df": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly.",
+                "eg": "The actual movement of electrons in a conductor is slow.",
+                "mi": "Microscopic drift speed is the rate at which charge passes through a surface.",
+                "cx": "Microscopic drift speed is slow even though the electric signal through a circuit propagates rapidly.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "feb18dbc7954a7f92b46b9321bcf28cd090355aace705a5ddc84e946db43b2c4",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "What is the definition of electric current?",
+                "op": [
+                  "The rate at which charge passes through a surface",
+                  "The direction positive charge would move",
+                  "The speed of microscopic drift",
+                  "The propagation speed of the electric signal"
+                ],
+                "ai": 0,
+                "ex": "Electric current is the rate at which charge passes through a surface. This is different from the direction positive charge would move.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              }
+            ],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "79a4371cd531a3599097da98a53495cb511765bb046d3a4eb19b53ca704c11bc",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-1-source-answer-conflict",
+              "key-term-0-circular-definition",
+              "key-term-0-correction-repeats-definition",
+              "key-term-0-misconception-repeats-known-fact",
+              "key-term-1-circular-definition",
+              "key-term-1-correction-repeats-definition",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 1,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-16T22:41:34.832Z",
+          "durationMs": 5404,
+          "recoveryTarget": {
+            "mcItems": 2,
+            "keyTerms": 2
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "physics-charge-fields-potential-workshop:physics/electric-charge",
+        "physics-charge-fields-potential-workshop:physics/electric-current"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "physics-charge-fields-potential-workshop:physics/electric-charge",
+        "kernelId": "physics/electric-charge",
+        "promptSha256": "34eaaa0feda981897852c58bbafc98123fb02934539b6d8640880353483d04f4",
+        "generationPromptSha256": "528b248895c620c099c5ffd01e8941ee534a5fd89cc8a54bd54e93eb718b82af",
+        "rawCallSha256": "0aa83dbd5c8dcbac59ab5a8d34e4986085061e9a74fab2222a97d8516f974d92",
+        "recoveryCallSha256": "7b20cd70de34b073c00c6a1c2b294c10dfdb268365cc4fb89090c67180e7ed27",
+        "response": {
+          "mcItems": [
+            {
+              "q": "If a system has a net charge of zero, what must be true about the total electric charge within that system?",
+              "op": [
+                "The total electric charge is conserved.",
+                "The total electric charge is always positive.",
+                "The total electric charge is always negative.",
+                "The total electric charge is determined by the interactions between like charges."
+              ],
+              "ai": 0,
+              "ex": "The total electric charge is conserved because net charge is conserved in an isolated system.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "If two particles have the same sign of electric charge, what will happen when they are brought near each other?",
+              "op": [
+                "They will attract",
+                "They will repel",
+                "They will have no interaction",
+                "They will change their charge"
+              ],
+              "ai": 1,
+              "ex": "Like charges repel because they have the same sign. Unlike charges attract because they have opposite signs.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Electric charge",
+              "df": "A fundamental property of matter that dictates how it participates in electric interactions.",
+              "eg": "A single electron possesses a negative electric charge.",
+              "mi": "Electric charge is a force that pulls or pushes objects together.",
+              "cx": "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Net charge",
+              "df": "The sum of all individual electric charges present in a specific system.",
+              "eg": "If a system has two $+2$ charges and one $-2$ charge, the net charge is zero.",
+              "mi": "Net charge is a quantity that changes over time in an open system.",
+              "cx": "Net charge is conserved in an isolated system.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "1461c057fdedcf45c681bb87b9c95c863b5904e7bfb27ebcf3e4601c9eedc2e7",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "If a system has a net charge of zero, what must be true about the total electric charge within that system?",
+              "op": [
+                "The total electric charge is conserved.",
+                "The total electric charge is always positive.",
+                "The total electric charge is always negative.",
+                "The total electric charge is determined by the interactions between like charges."
+              ],
+              "ai": 0,
+              "ex": "The total electric charge is conserved because net charge is conserved in an isolated system.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "If two particles have the same sign of electric charge, what will happen when they are brought near each other?",
+              "op": [
+                "They will attract",
+                "They will repel",
+                "They will have no interaction",
+                "They will change their charge"
+              ],
+              "ai": 1,
+              "ex": "Like charges repel because they have the same sign. Unlike charges attract because they have opposite signs.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Electric charge",
+              "df": "A fundamental property of matter that dictates how it participates in electric interactions.",
+              "eg": "A single electron possesses a negative electric charge.",
+              "mi": "Electric charge is a force that pulls or pushes objects together.",
+              "cx": "Electric charge is a conserved property of matter that comes in positive and negative forms and determines electric interactions.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Net charge",
+              "df": "The sum of all individual electric charges present in a specific system.",
+              "eg": "If a system has two $+2$ charges and one $-2$ charge, the net charge is zero.",
+              "mi": "Net charge is a quantity that changes over time in an open system.",
+              "cx": "Net charge is conserved in an isolated system.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "1461c057fdedcf45c681bb87b9c95c863b5904e7bfb27ebcf3e4601c9eedc2e7",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T22:41:23.737Z",
+        "durationMs": 1823
+      },
+      {
+        "promptId": "physics-charge-fields-potential-workshop:physics/electric-field",
+        "kernelId": "physics/electric-field",
+        "promptSha256": "9dc8a8738c6c8e70f05b1150922bca65cea4f5f19036ae75f945efdd1d125122",
+        "generationPromptSha256": "0decf84b2fbedaddb67c200b942fa1f04a683d26af918f3d2ab58bc5e9102982",
+        "rawCallSha256": "985bc72ead09475ff3aeaac7f43c4b35f30f11e52e0ebb5bb0deed62ca281a7b",
+        "recoveryCallSha256": "b7238c0791972d61d696ecc15ed75b332f48e720238df1f08f5a818d2659baaf",
+        "response": {
+          "mcItems": [
+            {
+              "q": "If an electric field is present at a point, what does its direction indicate regarding a positive test charge?",
+              "op": [
+                "The direction the positive test charge would accelerate",
+                "The direction the electric field lines flow",
+                "The direction the field-line density is highest",
+                "The direction the electric force is weakest"
+              ],
+              "ai": 0,
+              "ex": "The direction the positive test charge would accelerate is the correct choice because the electric field describes the electric force per unit positive test charge at each point in space.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "What does the field-line density represent in relation to the electric field?",
+              "op": [
+                "The relative field strength",
+                "The direction of the electric force",
+                "The direction of the positive test charge acceleration",
+                "The magnitude of the electric force"
+              ],
+              "ai": 0,
+              "ex": "Field-line density indicates relative field strength because the electric field describes the electric force per unit positive test charge at each point in space.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "responseSha256": "831940607b9a90fda32fafbab2cf328031fb47bf613cd82ff6b2128d3d489ff6",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "If an electric field is present at a point, what does its direction indicate regarding a positive test charge?",
+              "op": [
+                "The direction the positive test charge would accelerate",
+                "The direction the electric field lines flow",
+                "The direction the field-line density is highest",
+                "The direction the electric force is weakest"
+              ],
+              "ai": 0,
+              "ex": "The direction the positive test charge would accelerate is the correct choice because the electric field describes the electric force per unit positive test charge at each point in space.",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "What does the field-line density represent in relation to the electric field?",
+              "op": [
+                "The relative field strength",
+                "The direction of the electric force",
+                "The direction of the positive test charge acceleration",
+                "The magnitude of the electric force"
+              ],
+              "ai": 0,
+              "ex": "Field-line density indicates relative field strength because the electric field describes the electric force per unit positive test charge at each point in space.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "831940607b9a90fda32fafbab2cf328031fb47bf613cd82ff6b2128d3d489ff6",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-count",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T22:41:25.561Z",
+        "durationMs": 2720
+      },
+      {
+        "promptId": "physics-charge-fields-potential-workshop:physics/gausss-law",
+        "kernelId": "physics/gausss-law",
+        "promptSha256": "4ac10441484ff5d080d21c6efe825cfcd832bec7260d59f3fe1962d52a791c62",
+        "generationPromptSha256": "83cd8813429d9e5658f540afa8a77baa7c5b0242c690eed69ac65e2f97a3d83e",
+        "rawCallSha256": "b769416907249d440499d52028056f07b5bc49b21672003afc507f874931a85b",
+        "recoveryCallSha256": "7081181ac4f34c0b905204dc35d9e0040cb27751632bbaa3f4a31e2fc45558e8",
+        "response": {
+          "mcItems": [],
+          "keyTerms": [
+            {
+              "tr": "Gaussian surface",
+              "df": "A closed boundary used to relate the total electric flux to the total charge contained within it.",
+              "eg": "A spherical surface used to determine the electric field strength outside a point charge.",
+              "mi": "A Gaussian surface is only useful when the enclosed charge is zero.",
+              "cx": "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Electric flux",
+              "df": "The measure of the net electric field passing through a given surface.",
+              "eg": "Calculating the total electric flux through a cylinder to find the enclosed charge.",
+              "mi": "Electric flux is always zero if there is a net charge inside the surface.",
+              "cx": "Electric flux is related to the net charge enclosed by a closed surface.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "responseSha256": "536d95af567e5e31ded76abe673b2e3ca85e18c9409dc43648095b9c3209341d",
+        "admittedResponse": {
+          "mcItems": [],
+          "keyTerms": [
+            {
+              "tr": "Gaussian surface",
+              "df": "A closed boundary used to relate the total electric flux to the total charge contained within it.",
+              "eg": "A spherical surface used to determine the electric field strength outside a point charge.",
+              "mi": "A Gaussian surface is only useful when the enclosed charge is zero.",
+              "cx": "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+              "sourceFactIndexes": [
+                1
+              ]
+            },
+            {
+              "tr": "Electric flux",
+              "df": "The measure of the net electric field passing through a given surface.",
+              "eg": "Calculating the total electric flux through a cylinder to find the enclosed charge.",
+              "mi": "Electric flux is always zero if there is a net charge inside the surface.",
+              "cx": "Electric flux is related to the net charge enclosed by a closed surface.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "536d95af567e5e31ded76abe673b2e3ca85e18c9409dc43648095b9c3209341d",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "no-admitted-mc-items"
+          ],
+          "counts": {
+            "generatedMcItems": 0,
+            "admittedMcItems": 0,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T22:41:28.282Z",
+        "durationMs": 3718
+      },
+      {
+        "promptId": "physics-charge-fields-potential-workshop:physics/electric-potential",
+        "kernelId": "physics/electric-potential",
+        "promptSha256": "a8e2cceeae876d1390cb2a162c4171acc550a9dfbdc6b00485251c2e0657d368",
+        "generationPromptSha256": "b23f0d453439e91d8f4f11ab3574665835302b38984875c4c05af2071b9c2156",
+        "rawCallSha256": "1aa046e5e0fbbb3b667b92d54ab6733f92759924cdaa67880796ab08a820a64f",
+        "recoveryCallSha256": "17d77145d4878a6688f771da1c27b799286cb82f4fa261273f827c3881b36a23",
+        "response": {
+          "mcItems": [
+            {
+              "q": "If the electric field points toward a region of lower electric potential, what is the relationship between the field direction and the potential change?",
+              "op": [
+                "The field points in the direction of increasing electric potential",
+                "The field points in the direction of decreasing electric potential",
+                "The field points perpendicular to the potential change",
+                "The field direction is independent of the potential change"
+              ],
+              "ai": 1,
+              "ex": "The field points in the direction of decreasing electric potential because electric field points in the direction of decreasing electric potential.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "In electrostatics, which factor determines the work required to move a charge between two locations?",
+              "op": [
+                "The magnitude of the electric field",
+                "The potential difference between the two points",
+                "The total stored charge in the system",
+                "The direction of the electric field"
+              ],
+              "ai": 1,
+              "ex": "The potential difference between the two points determines the work required because only potential differences affect work and energy changes in electrostatics.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "responseSha256": "d76b5dee4de8095d195203a6df53de016b867ee08fafbab9476d67747eac55b2",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "If the electric field points toward a region of lower electric potential, what is the relationship between the field direction and the potential change?",
+              "op": [
+                "The field points in the direction of increasing electric potential",
+                "The field points in the direction of decreasing electric potential",
+                "The field points perpendicular to the potential change",
+                "The field direction is independent of the potential change"
+              ],
+              "ai": 1,
+              "ex": "The field points in the direction of decreasing electric potential because electric field points in the direction of decreasing electric potential.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "q": "In electrostatics, which factor determines the work required to move a charge between two locations?",
+              "op": [
+                "The magnitude of the electric field",
+                "The potential difference between the two points",
+                "The total stored charge in the system",
+                "The direction of the electric field"
+              ],
+              "ai": 1,
+              "ex": "The potential difference between the two points determines the work required because only potential differences affect work and energy changes in electrostatics.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "d76b5dee4de8095d195203a6df53de016b867ee08fafbab9476d67747eac55b2",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-count",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T22:41:32.001Z",
+        "durationMs": 2830
+      },
+      {
+        "promptId": "physics-charge-fields-potential-workshop:physics/capacitance",
+        "kernelId": "physics/capacitance",
+        "promptSha256": "5d03898c15260b1370781f32371e0cfc18baedb01e10c278ad8a51a2d3b4649f",
+        "response": {
+          "mcItems": [
+            {
+              "q": "If the stored charge on a capacitor is doubled while keeping the potential difference constant, what happens to the capacitance?",
+              "op": [
+                "Capacitance is halved",
+                "Capacitance is doubled",
+                "Capacitance remains the same",
+                "Capacitance is quadrupled"
+              ],
+              "ai": 1,
+              "ex": "Capacitance is doubled because it is the ratio of stored charge to potential difference.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "When considering a parallel-plate capacitor, how does changing the distance between the plates affect its capacitance?",
+              "op": [
+                "Capacitance increases",
+                "Capacitance decreases",
+                "Capacitance remains unchanged",
+                "Capacitance is proportional to the area"
+              ],
+              "ai": 1,
+              "ex": "Capacitance decreases because increasing the separation decreases capacitance.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Ratio of stored charge to potential difference",
+              "df": "This ratio quantifies how much charge a system can hold relative to the voltage applied across it.",
+              "eg": "The capacitance of a capacitor is calculated by dividing the amount of charge it holds by the voltage difference between its plates.",
+              "mi": "The ratio of stored charge to potential difference is the same as the stored energy in the electric field.",
+              "cx": "The ratio of stored charge to potential difference is the measure of capacitance.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Energy stored in the electric field",
+              "df": "This energy is contained within the electric field existing between the conductors of a capacitor.",
+              "eg": "A capacitor stores energy in the electric field situated between its two conductive plates.",
+              "mi": "Energy stored in the electric field is directly proportional to the stored charge.",
+              "cx": "Energy stored in the electric field is the energy stored in the electric field between the conductors.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "responseSha256": "7f75a9b99d3ec5570a09b0bd5f6bda68208273611759166660ec366fb3a65042",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "If the stored charge on a capacitor is doubled while keeping the potential difference constant, what happens to the capacitance?",
+              "op": [
+                "Capacitance is halved",
+                "Capacitance is doubled",
+                "Capacitance remains the same",
+                "Capacitance is quadrupled"
+              ],
+              "ai": 1,
+              "ex": "Capacitance is doubled because it is the ratio of stored charge to potential difference.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "When considering a parallel-plate capacitor, how does changing the distance between the plates affect its capacitance?",
+              "op": [
+                "Capacitance increases",
+                "Capacitance decreases",
+                "Capacitance remains unchanged",
+                "Capacitance is proportional to the area"
+              ],
+              "ai": 1,
+              "ex": "Capacitance decreases because increasing the separation decreases capacitance.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Ratio of stored charge to potential difference",
+              "df": "This ratio quantifies how much charge a system can hold relative to the voltage applied across it.",
+              "eg": "The capacitance of a capacitor is calculated by dividing the amount of charge it holds by the voltage difference between its plates.",
+              "mi": "The ratio of stored charge to potential difference is the same as the stored energy in the electric field.",
+              "cx": "The ratio of stored charge to potential difference is the measure of capacitance.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "tr": "Energy stored in the electric field",
+              "df": "This energy is contained within the electric field existing between the conductors of a capacitor.",
+              "eg": "A capacitor stores energy in the electric field situated between its two conductive plates.",
+              "mi": "Energy stored in the electric field is directly proportional to the stored charge.",
+              "cx": "Energy stored in the electric field is the energy stored in the electric field between the conductors.",
+              "sourceFactIndexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "7f75a9b99d3ec5570a09b0bd5f6bda68208273611759166660ec366fb3a65042",
+        "assessment": {
+          "eligible": true,
+          "issues": [],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 2
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-16T22:39:03.804Z",
+        "durationMs": 7150
+      },
+      {
+        "promptId": "physics-charge-fields-potential-workshop:physics/electric-current",
+        "kernelId": "physics/electric-current",
+        "promptSha256": "8a113f70d531816a6fc27330f2f836bc1542c2086ab41aa843afc9c9655441ed",
+        "generationPromptSha256": "78d66e330f94c3e89655af97c00a62d37c4869d0484621fa925bb225c22d7164",
+        "rawCallSha256": "b23e171e05a06d27419585b75d643dab9330823d831966fe3e868027a03a570d",
+        "recoveryCallSha256": "bea235afb1a906689f938691bdc72ce48207b83e9ed777ccb74f9dd6156a306a",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What is the definition of electric current?",
+              "op": [
+                "The rate at which charge passes through a surface",
+                "The direction positive charge would move",
+                "The speed of microscopic drift",
+                "The propagation speed of the electric signal"
+              ],
+              "ai": 0,
+              "ex": "Electric current is the rate at which charge passes through a surface. This is different from the direction positive charge would move.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "responseSha256": "79a4371cd531a3599097da98a53495cb511765bb046d3a4eb19b53ca704c11bc",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "What is the definition of electric current?",
+              "op": [
+                "The rate at which charge passes through a surface",
+                "The direction positive charge would move",
+                "The speed of microscopic drift",
+                "The propagation speed of the electric signal"
+              ],
+              "ai": 0,
+              "ex": "Electric current is the rate at which charge passes through a surface. This is different from the direction positive charge would move.",
+              "sourceFactIndexes": [
+                0
+              ]
+            }
+          ],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "79a4371cd531a3599097da98a53495cb511765bb046d3a4eb19b53ca704c11bc",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "key-term-count",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 1,
+            "generatedKeyTerms": 0,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "scion-compiler",
+          "action": "merge-admitted-raw-and-recovery-atoms",
+          "recoveryProvider": "local",
+          "recoveryConstrained": "schema"
+        },
+        "startedAt": "2026-07-16T22:41:34.832Z",
+        "durationMs": 5404
+      }
+    ]
+  }
+}

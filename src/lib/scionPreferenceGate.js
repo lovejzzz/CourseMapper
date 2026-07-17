@@ -1,7 +1,10 @@
 import { lintItemAdmission } from './itemAdmissionLint.js';
 import { analyzeDecisionScenario } from './scenarioContract.js';
 import {
+  findScionAffirmativeOptionConflict,
   findScionExplanationKeyConflict,
+  findScionExplicitNegativeKeyConflict,
+  findScionMultipleSourceSupportedOptions,
   findScionSourceAnswerConflict,
   normalizeScionMcItem,
   normalizeScionOptionIdentity,
@@ -17,7 +20,15 @@ const PROCESS_LEAK_RE =
 const META_SURFACE_RE =
   /\b(?:evidence move|success criteri\w*|course evidence|lesson evidence|rubric|the (?:Week\s*\d+|weekly) \w+|this (?:course|lesson)|the lesson|artifact|submission|checkpoint)\b/i;
 const TERMINAL_PUNCT_RE = /[.!?][\])}"']?$/;
+const TRUNCATED_OPTION_FRAGMENT_RE =
+  /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|by|each|every|for|from|in|of|on|or|the|to|with|without))$/i;
 const PLACEHOLDER_OPTION_RE = /^(?:index|option|choice|answer)\s*[:#=\-]?\s*(?:[0-9]+|[a-d])$/i;
+const OPTION_LABEL_PREFIX_RE = /^(?:(?:option|choice|answer)\s*)?(?:[a-d]|[1-4])\s*[).:\-]\s*/i;
+// Generated options sometimes retain a source/list label at the end (for
+// example, "0 [1]"). Requiring whitespace before the bracket keeps real code
+// such as scores[1] or map[key] out of this presentation-only check.
+const OPTION_LABEL_SUFFIX_RE = /\s\[(?:[a-d]|[0-4])\]$/i;
+const CLAIM_MARKER_RE = /(?:\(|\[)?\s*claims?\s*#?\s*\d+(?:\s*[,–-]\s*\d+)*\s*(?:\)|\])?/i;
 const NON_DISTINCTIVE_GROUNDING = new Set([
   'and',
   'claim',
@@ -46,7 +57,7 @@ export const SCION_PREFERENCE_GATE_VERSION = '1.0.0';
 // training pair is admitted only when the chosen side clears the whole gate
 // and the rejected side fails exclusively inside this non-semantic set.
 const DETERMINISTIC_CONTRACT_ISSUE_RE =
-  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|explanation-length|explanation-repeats-answer|truncated-explanation|process-leakage|meta-surface|all-none-of-above|longest-option-cue|clang-association-cue))$/;
+  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|truncated-option|option-label-suffixes|explanation-length|explanation-repeats-answer|truncated-explanation|process-leakage|meta-surface|all-none-of-above|longest-option-cue|clang-association-cue))$/;
 
 function clean(value) {
   return String(value ?? '')
@@ -85,16 +96,24 @@ export function assessScionMcItem(
     topicWords = [],
     sourceClaims = [],
     semanticAdmission = true,
+    semanticProfile = 'legacy',
     allowFirstSentenceLexicalCue = semanticAdmission,
     rejectNegativeEvidence = semanticAdmission,
   } = {},
 ) {
   const normalized = normalizeScionMcItem(item);
+  const strictSemanticAdmission = semanticAdmission && semanticProfile === 'strict';
   const issues = [];
   if (!stringInBand(normalized.question, 25, 300)) issues.push('stem-length');
   if (normalized.options.length !== 4) issues.push('option-count');
   if (normalized.options.length === 4 && normalized.options.some((option) => !stringInBand(option, 5, 95))) {
     issues.push('option-length');
+  }
+  if (
+    strictSemanticAdmission &&
+    normalized.options.some((option) => TRUNCATED_OPTION_FRAGMENT_RE.test(clean(option)))
+  ) {
+    issues.push('truncated-option');
   }
   if (normalized.options.length === 4) {
     const optionLengths = normalized.options.map((option) => clean(option).length);
@@ -108,6 +127,18 @@ export function assessScionMcItem(
   }
   if (normalized.options.filter((option) => PLACEHOLDER_OPTION_RE.test(option)).length >= 2) {
     issues.push('placeholder-options');
+  }
+  if (
+    strictSemanticAdmission &&
+    normalized.options.filter((option) => OPTION_LABEL_PREFIX_RE.test(option)).length >= 2
+  ) {
+    issues.push('option-label-prefixes');
+  }
+  if (
+    strictSemanticAdmission &&
+    normalized.options.filter((option) => OPTION_LABEL_SUFFIX_RE.test(option)).length >= 2
+  ) {
+    issues.push('option-label-suffixes');
   }
   if (!Number.isInteger(normalized.answerIndex) || normalized.answerIndex < 0 || normalized.answerIndex > 3) {
     issues.push('answer-index');
@@ -124,6 +155,7 @@ export function assessScionMcItem(
     issues.push('explanation-repeats-answer');
   }
   if (normalized.explanation && !TERMINAL_PUNCT_RE.test(normalized.explanation)) issues.push('truncated-explanation');
+  if (strictSemanticAdmission && CLAIM_MARKER_RE.test(normalized.explanation)) issues.push('claim-marker-residue');
   if (PROCESS_LEAK_RE.test([normalized.question, ...normalized.options, normalized.explanation].join(' '))) {
     issues.push('process-leakage');
   }
@@ -131,8 +163,17 @@ export function assessScionMcItem(
     issues.push('meta-surface');
   }
   if (/\b(?:all|none) of the above\b/i.test(normalized.options.join(' '))) issues.push('all-none-of-above');
-  if (semanticAdmission && findScionSourceAnswerConflict(normalized, { sourceClaims })) {
+  if (strictSemanticAdmission && findScionExplicitNegativeKeyConflict(normalized)) {
+    issues.push('explanation-negates-key');
+  } else if (
+    semanticAdmission &&
+    findScionSourceAnswerConflict(normalized, { sourceClaims, strict: strictSemanticAdmission })
+  ) {
     issues.push('source-answer-conflict');
+  } else if (strictSemanticAdmission && findScionMultipleSourceSupportedOptions(normalized, { sourceClaims })) {
+    issues.push('multiple-source-supported-options');
+  } else if (strictSemanticAdmission && findScionAffirmativeOptionConflict(normalized)) {
+    issues.push('explanation-key-conflict');
   } else if (
     findScionExplanationKeyConflict(normalized, {
       allowAffirmativeLead: semanticAdmission,
@@ -157,8 +198,8 @@ export function assessScionMcItem(
   };
 }
 
-export function assessScionKeyTerm(term = {}, { lessonTitle = '', knownFacts = [] } = {}) {
-  const result = assessScionKeyTermContract(term, { lessonTitle, knownFacts, definitionMin: 45 });
+export function assessScionKeyTerm(term = {}, { lessonTitle = '', knownFacts = [], semanticProfile = 'legacy' } = {}) {
+  const result = assessScionKeyTermContract(term, { lessonTitle, knownFacts, definitionMin: 45, semanticProfile });
   return { eligible: result.eligible, issues: result.issues, score: result.score };
 }
 
@@ -172,7 +213,7 @@ export function assessScionKernelLesson(lesson = {}) {
   const keyTerms = Array.isArray(lesson?.keyTerms) ? lesson.keyTerms : [];
   if (keyTerms.length < 3 || keyTerms.length > 6) issues.push('key-terms-count');
   keyTerms.forEach((term, index) => {
-    for (const issue of assessScionKeyTerm(term, { knownFacts: facts }).issues)
+    for (const issue of assessScionKeyTerm(term, { knownFacts: facts, semanticProfile: 'strict' }).issues)
       issues.push(`key-term-${index}:${issue}`);
   });
 
@@ -200,7 +241,9 @@ export function assessScionKernelLesson(lesson = {}) {
   const mc = Array.isArray(lesson?.mc) ? lesson.mc : [];
   if (mc.length !== 4) issues.push('mc-count');
   mc.forEach((item, index) => {
-    for (const issue of assessScionMcItem(item).issues) issues.push(`mc-${index}:${issue}`);
+    for (const issue of assessScionMcItem(item, { semanticProfile: 'strict' }).issues) {
+      issues.push(`mc-${index}:${issue}`);
+    }
   });
 
   const deduped = [...new Set(issues)];
@@ -261,16 +304,32 @@ export function deriveDeterministicContractEvidence(
  */
 export function assessScionPreferencePair(
   { kind, chosen, rejected, preferenceEvidence } = {},
-  { semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission } = {},
+  {
+    semanticAdmission = true,
+    semanticProfile = 'legacy',
+    sourceClaims = [],
+    knownFacts = sourceClaims,
+    allowFirstSentenceLexicalCue = semanticAdmission,
+  } = {},
 ) {
   let chosenResult;
   let rejectedResult;
   if (kind === 'mc-item') {
-    chosenResult = assessScionMcItem(chosen, { semanticAdmission, allowFirstSentenceLexicalCue });
-    rejectedResult = assessScionMcItem(rejected, { semanticAdmission, allowFirstSentenceLexicalCue });
+    chosenResult = assessScionMcItem(chosen, {
+      semanticAdmission,
+      semanticProfile,
+      sourceClaims,
+      allowFirstSentenceLexicalCue,
+    });
+    rejectedResult = assessScionMcItem(rejected, {
+      semanticAdmission,
+      semanticProfile,
+      sourceClaims,
+      allowFirstSentenceLexicalCue,
+    });
   } else if (kind === 'key-term') {
-    chosenResult = assessScionKeyTerm(chosen);
-    rejectedResult = assessScionKeyTerm(rejected);
+    chosenResult = assessScionKeyTerm(chosen, { knownFacts, semanticProfile });
+    rejectedResult = assessScionKeyTerm(rejected, { knownFacts, semanticProfile });
   } else if (kind === 'lesson') {
     chosenResult = assessScionKernelLesson(chosen);
     rejectedResult = assessScionKernelLesson(rejected);

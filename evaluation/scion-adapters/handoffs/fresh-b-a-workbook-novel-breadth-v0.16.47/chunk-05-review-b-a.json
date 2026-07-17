@@ -1,0 +1,949 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1e87a4687c50f0ecf255",
+    "packetDigest": "1e87a4687c50f0ecf2557df7677fd08bf0f5037609907a03531c41ee059e44c7",
+    "organizerDigest": "f401694ee81d1355305749bebeb325cc48264de5e778e0a5fba1bb2994aaadcb"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-34e9ca9fd2ecc553ef82",
+      "caseDigest": "875265711ff94e1764146ebe71ab75f12d3f7a95ac1f0a519541dbd7fdc5172f",
+      "domain": "music-theory",
+      "courseGroupSha256": "401dd40680d08067f6c0debce0848d39237733e48557e4a9fc7d7044c749bbfc",
+      "sourceContextSha256": "6f16b362ea863781da58335b444c6f579283979115ef720c9bb9122e4a8e9012",
+      "sourceContext": {
+        "sourcePacketSha256": "c26ea1c9f80603e5033c58cdb550be737fc96676b603d66a0ff04abaf6dff145",
+        "kernelId": "music/phrases-and-cadences",
+        "term": "Phrases and cadences",
+        "claims": [
+          "A musical phrase is a relatively complete thought directed toward a goal, and a cadence is a harmonic event that can mark its ending.",
+          "A sentence is a phrase archetype with a presentation followed by a continuation.",
+          "A period combines an antecedent phrase with a consequent phrase.",
+          "The antecedent normally ends with a weaker cadence than the consequent.",
+          "Cadential closure is a common phrase goal in tonal classical music, but other musical styles can establish different goals."
+        ],
+        "attribution": [
+          "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "78da61ac95e2fe615f01a2cd0fae5672882b5da8cf1409ba846196169791957f",
+          "artifact": {
+            "tr": "Harmonic event marking phrase termination",
+            "df": "A harmonic event that can mark its ending of a musical phrase.",
+            "eg": "A cadence in a piece of classical music.",
+            "mi": "A sustained modulation.",
+            "cx": "A sustained modulation is a change of tonic, whereas a cadence is a specific harmonic event marking a phrase end."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "90b3f0e19189c2923315e1ca053d67c8efac55ddaef798c0cfdcb71423d29c12",
+          "artifact": {
+            "tr": "phrase",
+            "df": "A relatively complete musical thought aimed toward a goal.",
+            "eg": "In a short class listening example, one melody line can sound like it reaches a goal even before the next idea begins.",
+            "mi": "Any ending pause must be a phrase.",
+            "cx": "A pause may happen inside a phrase; the phrase is the whole directed thought, while a cadence is the event that can mark its ending."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "78da61ac95e2fe615f01a2cd0fae5672882b5da8cf1409ba846196169791957f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "90b3f0e19189c2923315e1ca053d67c8efac55ddaef798c0cfdcb71423d29c12",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4cb3819b6dd87ce8bfb1",
+      "caseDigest": "8c871a977d44b60e5c91bf85c2dc1613d3bed78ac3ad43b284b935ae8aecd154",
+      "domain": "music-theory",
+      "courseGroupSha256": "401dd40680d08067f6c0debce0848d39237733e48557e4a9fc7d7044c749bbfc",
+      "sourceContextSha256": "e0af83c48edc936abc5e63cf8c343706edfbff42b427ca8b60aa0589aeec70a9",
+      "sourceContext": {
+        "sourcePacketSha256": "c26ea1c9f80603e5033c58cdb550be737fc96676b603d66a0ff04abaf6dff145",
+        "kernelId": "music/musical-texture",
+        "term": "Musical texture",
+        "claims": [
+          "Musical texture describes the density of a passage and the way its simultaneous voices or layers interact.",
+          "Monophony presents one melodic line without an independent accompaniment.",
+          "Heterophony presents simultaneous variants of essentially the same melody.",
+          "Homophony coordinates multiple voices at a shared harmonic pace, often as melody with accompaniment.",
+          "Polyphony combines voices that carry independent melodic lines and rhythms."
+        ],
+        "attribution": [
+          "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6e86ff4637fcb801d0b6795e2a1f9bdb1b89b4b7b8f385503232d8ccb3ab1203",
+          "artifact": {
+            "tr": "Musical texture",
+            "df": "The density of a passage and how its simultaneous layers interact.",
+            "eg": "A class listening exercise that asks whether a passage feels single-lined, chordal, or independently layered.",
+            "mi": "Texture is the same as how many instruments are playing.",
+            "cx": "The number of instruments can help describe a passage, but texture is about the density and interaction of the voices or layers, not count alone."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "476c85796fc44934d90ad682d76b10e6d67f818226a7f8fb2f4432664042468f",
+          "artifact": {
+            "tr": "Density of simultaneous musical lines",
+            "df": "Describes how many independent melodic lines are present at once.",
+            "eg": "A solo singer accompanied by a simple piano chord.",
+            "mi": "Believing density only relates to the volume of the sound.",
+            "cx": "Density relates to the number of simultaneous voices or layers interacting."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6e86ff4637fcb801d0b6795e2a1f9bdb1b89b4b7b8f385503232d8ccb3ab1203",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "476c85796fc44934d90ad682d76b10e6d67f818226a7f8fb2f4432664042468f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-5926f9a170e59d7711ac",
+      "caseDigest": "ec82c64bebd164f951c12cc359dc62806ea818a95c7ecfa0df954cecd37645d4",
+      "domain": "music-theory",
+      "courseGroupSha256": "401dd40680d08067f6c0debce0848d39237733e48557e4a9fc7d7044c749bbfc",
+      "sourceContextSha256": "337e26b3eae2f37ee25404d83cec9b1bea6ade929c016225e1f8b1e997bef662",
+      "sourceContext": {
+        "sourcePacketSha256": "c26ea1c9f80603e5033c58cdb550be737fc96676b603d66a0ff04abaf6dff145",
+        "kernelId": "music/tonicization-and-modulation",
+        "term": "Tonicization and modulation",
+        "claims": [
+          "Tonicization briefly makes a non-tonic harmony sound like a tonic, while modulation establishes a longer-term change of tonic.",
+          "A modulation may introduce the new key directly and abruptly.",
+          "A pivot-chord modulation uses a shared chord to make the move between keys more subtle.",
+          "Extended tonicization can blur the boundary between a temporary tonic and a full modulation.",
+          "The duration and structural stability of the new tonic help distinguish modulation from a momentary tonicization."
+        ],
+        "attribution": [
+          "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "47186c904a98dad2b6877c8564158bdfb516dcb6b03fe28d5d99b1e15275214b",
+          "artifact": {
+            "tr": "tonicization",
+            "df": "A brief local event that makes a non-tonic harmony sound temporarily like home.",
+            "eg": "A short passage points to V/V as if it were a temporary center, then the music moves on without establishing a new key.",
+            "mi": "Any strong cadence must be a full key change.",
+            "cx": "Strong local emphasis can still be only temporary; the key has not necessarily changed."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "47af15a44205912d3e0525fc47ab8c2063454295994da71b77fd78187222dabb",
+          "artifact": {
+            "tr": "Brief key re-establishment",
+            "df": "A momentary sounding of a key center within a larger harmonic context.",
+            "eg": "A brief tonicization in a secondary key.",
+            "mi": "A full modulation that establishes a new key center for an extended period.",
+            "cx": "The distinction lies in the duration and structural stability of the new tonic."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "47186c904a98dad2b6877c8564158bdfb516dcb6b03fe28d5d99b1e15275214b",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "47af15a44205912d3e0525fc47ab8c2063454295994da71b77fd78187222dabb",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-647896af72598be5b942",
+      "caseDigest": "c3ef46cd06260f98e15752770e6f5bc8124d2647f7ec2312237e19b4e4ff03ff",
+      "domain": "music-theory",
+      "courseGroupSha256": "401dd40680d08067f6c0debce0848d39237733e48557e4a9fc7d7044c749bbfc",
+      "sourceContextSha256": "337e26b3eae2f37ee25404d83cec9b1bea6ade929c016225e1f8b1e997bef662",
+      "sourceContext": {
+        "sourcePacketSha256": "c26ea1c9f80603e5033c58cdb550be737fc96676b603d66a0ff04abaf6dff145",
+        "kernelId": "music/tonicization-and-modulation",
+        "term": "Tonicization and modulation",
+        "claims": [
+          "Tonicization briefly makes a non-tonic harmony sound like a tonic, while modulation establishes a longer-term change of tonic.",
+          "A modulation may introduce the new key directly and abruptly.",
+          "A pivot-chord modulation uses a shared chord to make the move between keys more subtle.",
+          "Extended tonicization can blur the boundary between a temporary tonic and a full modulation.",
+          "The duration and structural stability of the new tonic help distinguish modulation from a momentary tonicization."
+        ],
+        "attribution": [
+          "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8db0ccc3021686085c18959be511794390b6ca2f9e9f1a869f24c55bcccca402",
+          "artifact": {
+            "tr": "modulation",
+            "df": "A longer-lasting shift that establishes a different tonic as the new key center.",
+            "eg": "The music moves into G major and stays structurally stable there for a while.",
+            "mi": "If the new key is introduced suddenly, it cannot be a modulation.",
+            "cx": "A modulation can be direct and abrupt, or it can be smoothed by a pivot chord."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "1ce4ce68541642d1adfd32634d4ccfa07719a157be5c5a331e849aaa70c5eacc",
+          "artifact": {
+            "tr": "Subtle key transition",
+            "df": "A key change achieved using a shared chord to make the move between keys less distinct.",
+            "eg": "A pivot-chord modulation.",
+            "mi": "A direct and abrupt introduction of a new key.",
+            "cx": "A pivot-chord modulation uses a shared chord to make the move between keys more subtle."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8db0ccc3021686085c18959be511794390b6ca2f9e9f1a869f24c55bcccca402",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "1ce4ce68541642d1adfd32634d4ccfa07719a157be5c5a331e849aaa70c5eacc",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-9887b5bdb09342457869",
+      "caseDigest": "2295208f8f1aadc42d1d2eb5e5be91a6c12670b91b426abe7d6674c927901c13",
+      "domain": "music-theory",
+      "courseGroupSha256": "401dd40680d08067f6c0debce0848d39237733e48557e4a9fc7d7044c749bbfc",
+      "sourceContextSha256": "e0af83c48edc936abc5e63cf8c343706edfbff42b427ca8b60aa0589aeec70a9",
+      "sourceContext": {
+        "sourcePacketSha256": "c26ea1c9f80603e5033c58cdb550be737fc96676b603d66a0ff04abaf6dff145",
+        "kernelId": "music/musical-texture",
+        "term": "Musical texture",
+        "claims": [
+          "Musical texture describes the density of a passage and the way its simultaneous voices or layers interact.",
+          "Monophony presents one melodic line without an independent accompaniment.",
+          "Heterophony presents simultaneous variants of essentially the same melody.",
+          "Homophony coordinates multiple voices at a shared harmonic pace, often as melody with accompaniment.",
+          "Polyphony combines voices that carry independent melodic lines and rhythms."
+        ],
+        "attribution": [
+          "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "93bef8609954e49dc73c4ccd5e9e7b1f746f246d42762139f8c4e190478760c6",
+          "artifact": {
+            "tr": "Melodic line without accompaniment",
+            "df": "Refers to a single melodic line lacking independent supporting voices.",
+            "eg": "A single vocal line sung without instrumental support.",
+            "mi": "Assuming all music must have an accompanying part.",
+            "cx": "This is the definition of monophony."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "141838e4cbc18c2b0a19c7a07596497a84f47b353538d5bee374a791b4d127e6",
+          "artifact": {
+            "tr": "Polyphony",
+            "df": "A texture in which voices carry independent melodic lines and rhythms.",
+            "eg": "Two vocal parts entering with different rhythms and contour instead of simply supporting one melody.",
+            "mi": "Any music with more than one instrument is polyphonic.",
+            "cx": "Multiple instruments do not automatically make polyphony; the voices must have independent melodic lines and rhythms."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "93bef8609954e49dc73c4ccd5e9e7b1f746f246d42762139f8c4e190478760c6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "141838e4cbc18c2b0a19c7a07596497a84f47b353538d5bee374a791b4d127e6",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-cf1ab63b4e40c272c803",
+      "caseDigest": "cf9a7896ec436fce17578b4c4ba12c0c3fb4ef7188cf3267c0e2802fddd6c6c7",
+      "domain": "music-theory",
+      "courseGroupSha256": "401dd40680d08067f6c0debce0848d39237733e48557e4a9fc7d7044c749bbfc",
+      "sourceContextSha256": "bed8403122900426aa6c83d5130e8968f3673cbbdbd885e5094083dc496e1569",
+      "sourceContext": {
+        "sourcePacketSha256": "c26ea1c9f80603e5033c58cdb550be737fc96676b603d66a0ff04abaf6dff145",
+        "kernelId": "music/dynamics-articulation-tempo",
+        "term": "Dynamics, articulation, and tempo",
+        "claims": [
+          "Dynamics, articulation, and tempo are distinct performance dimensions: loudness, the attack or connection of notes, and performance speed.",
+          "Dynamic markings communicate loudness rather than speed or note length.",
+          "A crescendo increases loudness, while a decrescendo or diminuendo decreases it.",
+          "Articulation describes how notes connect or separate and how their attacks are emphasized.",
+          "Tempo indicates how fast or slowly a composition is performed and may be stated with text or beats per minute."
+        ],
+        "attribution": [
+          "Open Music Theory by Mark Gotham, Kyle Gullings, Chelsey Hamm, Bryn Hughes, Brian Jarvis, Megan Lavengood, John Peterson, and contributors"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "34af410666b3658ab940fcfd8bd68ae2cee1b3c17d1e965f8e0c1eb65519daca",
+          "artifact": {
+            "tr": "Performance speed",
+            "df": "Indicates how fast or slowly a composition is performed and may be stated with text or beats per minute.",
+            "eg": "A piece marked 'Allegro' is performed quickly.",
+            "mi": "Confusing speed with loudness.",
+            "cx": "Speed is indicated by tempo, not dynamics."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a1723d3e4e27a528057bf13f6866ea59d501ea070723f9d56155fa64d7692c98",
+          "artifact": {
+            "tr": "Dynamics",
+            "df": "The performance dimension that controls how loud or soft the music is.",
+            "eg": "A score marked mezzo forte followed later by a crescendo asks the performer to increase loudness.",
+            "mi": "It means the same thing as tempo.",
+            "cx": "Tempo changes speed; dynamics change loudness, so a crescendo is not a speed-up instruction."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "34af410666b3658ab940fcfd8bd68ae2cee1b3c17d1e965f8e0c1eb65519daca",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "a1723d3e4e27a528057bf13f6866ea59d501ea070723f9d56155fa64d7692c98",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-aaa9d0a5679e1c4a3e67",
+      "caseDigest": "2e9a1319a8c16e1211db90b044ac6b44e3591f3d22c9768702cda88c6dc53b93",
+      "domain": "physics",
+      "courseGroupSha256": "be6cede127cec691ff54f837a092e8123277af0d6219b9e57d58b0ef8b1cc746",
+      "sourceContextSha256": "e1a44f3fea11fa35d5d5227315dbc7be99b63dea3d4a82d0b23c47fba47721e8",
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/electric-field",
+        "term": "Electric field",
+        "claims": [
+          "An electric field describes the electric force per unit positive test charge at each point in space.",
+          "The direction of the electric field is the direction a positive test charge would accelerate.",
+          "Field-line density indicates relative field strength."
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6132c0f5dd780794a59f71dd8236011d625af73e28b22a5acd664c417581281a",
+          "artifact": {
+            "q": "A student places a small positive test charge at a point in space and asks which way the electric field points there. Which choice matches the field direction?",
+            "op": [
+              "The direction the test charge would accelerate",
+              "The direction the test charge would move only if it were negative",
+              "The direction of the nearest wire or surface",
+              "The direction of strongest electric potential"
+            ],
+            "ai": 0,
+            "ex": "Correct: the electric field points in the direction a positive test charge would accelerate. A common misconception is to treat field direction as the path of any charge, but the source statement ties direction specifically to a positive test charge."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "78123ecac78e52266df887dbd4bafcab8d8539c3f359b2bc3b88193b10776db1",
+          "artifact": {
+            "q": "If a positive test charge is placed in a region where the electric field is directed toward a specific point, what is the resulting motion of that charge?",
+            "op": [
+              "The charge will accelerate in the direction the field points.",
+              "The charge will accelerate opposite the direction the field points.",
+              "The charge will remain stationary.",
+              "The charge will move perpendicular to the field lines."
+            ],
+            "ai": 0,
+            "ex": "The correct choice is the first option because the direction of the electric field is the direction a positive test charge would accelerate (Claim 1). The most plausible misconception is the second option, which incorrectly suggests the charge accelerates opposite the field direction."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "6132c0f5dd780794a59f71dd8236011d625af73e28b22a5acd664c417581281a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "78123ecac78e52266df887dbd4bafcab8d8539c3f359b2bc3b88193b10776db1",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-bd69451c7de0364a1ba6",
+      "caseDigest": "a1b0e9f0bdb862abb0ca3eb5d54b98506388d2423993ec96bfcb63694f21a00b",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "96adb79f0eb76e3848098a8722d16e950ff5b2bc7473387a4c756c1516dba8a4",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/muscle-tissue-types",
+        "term": "Muscle tissue types and contraction",
+        "claims": [
+          "Muscle tissue includes skeletal, cardiac, and smooth muscle; all are excitable, and contractility lets muscle pull on attachment points and shorten with force.",
+          "All three muscle tissue types share excitability.",
+          "Skeletal muscle depends on nervous-system signaling to work properly."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "93ceb24bfc12b492c0c724503c255ee3363558e638026ef081841355fc771638",
+          "artifact": {
+            "q": "Which statement about skeletal muscle is supported by the source?",
+            "op": [
+              "It depends on nervous-system signaling to work properly.",
+              "It works properly without any nervous-system signaling.",
+              "It is controlled directly by the endocrine system.",
+              "It is a connective tissue that does not contract."
+            ],
+            "ai": 0,
+            "ex": "Skeletal muscle depends on nervous-system signaling to work properly. It is not described as working independently of nerves."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "672185cf2bd0228367c56d803c551d4b945c01e7b2e396063fa8ab5dcf1e5cef",
+          "artifact": {
+            "q": "Which statement accurately describes muscle tissue function?",
+            "op": [
+              "Skeletal muscle contracts by pulling on attachment points to shorten with force",
+              "Cardiac muscle is excitable but does not contract",
+              "Smooth muscle relies solely on direct neural transmission for contraction",
+              "All muscle types share the same mechanism of contraction"
+            ],
+            "ai": 0,
+            "ex": "Skeletal muscle contracts by pulling on attachment points to shorten with force. This mechanism distinguishes it from smooth muscle, which contracts via internal mechanisms."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "93ceb24bfc12b492c0c724503c255ee3363558e638026ef081841355fc771638",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "672185cf2bd0228367c56d803c551d4b945c01e7b2e396063fa8ab5dcf1e5cef",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-e933c8d252b231baa1c5",
+      "caseDigest": "9f12cf0b4b84852dda3ea474c7f1e685be674b717d55905f3b68f30214b21b54",
+      "domain": "anatomy",
+      "courseGroupSha256": "3e5cb0f2288b76baeeb42328f895b5dce12a53fa9bd05326fcb3f4026bb7f7e5",
+      "sourceContextSha256": "5db053ef22c2b52292028832febb591cf7c78866b61f8c893d841be77b1fdd5e",
+      "sourceContext": {
+        "sourcePacketSha256": "c7c91fd6e67090a9c77348bed5c1ef57a5d982ad0def5beb8851dcf171faef66",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "term": "Skeletal system functions",
+        "claims": [
+          "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+          "Bones facilitate movement by providing attachment points for muscles."
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9719408872629d22d9a116c897c36fe2ce7828c5ff2d9e97c9f53c6239ec4432",
+          "artifact": {
+            "q": "A student says cartilage is the main hard tissue that forms most of the adult skeleton. Which correction is best supported?",
+            "op": [
+              "Bone is the hard, dense connective tissue that forms most of the adult skeleton.",
+              "Cartilage is the tissue that forms most adult bone.",
+              "Bone is a soft epithelial tissue used for protection.",
+              "The skeletal system contains only bones, not cartilage."
+            ],
+            "ai": 0,
+            "ex": "Bone, not cartilage, is identified as the hard, dense connective tissue that makes up most of the adult skeleton. This rules out the common mix-up of treating cartilage as the principal hard framework while still preserving the source’s statement that cartilage is part of the skeletal system."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "01b6b22240259e5c3c1d1c6110951ae255c87067f3b9ae23d405940bd922e7fa",
+          "artifact": {
+            "q": "What material composition characterizes the majority of the adult skeleton?",
+            "op": [
+              "Cartilage",
+              "Hard, dense connective tissue",
+              "Soft tissue",
+              "Blood cells"
+            ],
+            "ai": 1,
+            "ex": "Option 2 is correct because bone is described as hard, dense connective tissue forming most of the adult skeleton. Option 1 is a different tissue type, Option 3 is not a primary skeletal component, and Option 4 is a cell type produced by the system."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "9719408872629d22d9a116c897c36fe2ce7828c5ff2d9e97c9f53c6239ec4432",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "01b6b22240259e5c3c1d1c6110951ae255c87067f3b9ae23d405940bd922e7fa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

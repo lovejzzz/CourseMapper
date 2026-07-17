@@ -1,0 +1,1060 @@
+{
+  "schemaVersion": 2,
+  "protocol": "scion-codex-training-review-v2",
+  "benchmarkProtocol": "honest-quality-benchmark-v1",
+  "policyId": "scion-codex-judge-policy-v1",
+  "sourcePacket": {
+    "protocol": "scion-blind-atom-packet-v4",
+    "packetId": "scion-review-1c6adccdcb9edfab7231",
+    "packetDigest": "1c6adccdcb9edfab7231627b2205bbd3e5ce36032c854fb90024b351ea7e0393",
+    "organizerDigest": "6026ed4bdf7145d7b5dc9fcf2ecca5cffc29c74001baaab46c604dea1da65363"
+  },
+  "order": "B/A",
+  "judge": {
+    "model": "openai/codex",
+    "revision": "",
+    "runtime": "",
+    "sessionId": "",
+    "promptPath": "evaluation/quality-benchmark/v1/single-model-training-atom-judge-prompt-v2.md",
+    "promptSha256": "0f062d551af9e2704892e5f1ebdf9b4c66a6d79de6ac1c9cf39b7cb4fa15ecd7"
+  },
+  "evidenceClass": "single-model-judge",
+  "humanEvidence": false,
+  "independentEvidence": false,
+  "previousOutcomeAvailable": null,
+  "contextResetAttestation": false,
+  "attestation": false,
+  "completedAt": "",
+  "claimBoundary": "This is one provenance-bound Codex pass. It is single-model evidence, not human, instructor, independent, classroom, or multi-judge validation.",
+  "reviews": [
+    {
+      "pairId": "scion-abb4f68ad38a17292c7d",
+      "caseDigest": "24f0add87a5e5c6c3f1ab5050c6a190ba7699775429f653b41b1e1be7bec9c48",
+      "domain": "computer-science",
+      "courseGroupSha256": "a221877bef9b05f6d79d1385030773dfb135b99f93ad11a5141bdee946750954",
+      "sourceContextSha256": "23dab0a9add28285e651a8bbf017b313ad7fb9cab5175d5841b1e96a220a38b4",
+      "sourceContext": {
+        "sourcePacketSha256": "c1e5a229ef1b1eb91b61a6f4c7d6271ce7329726a592602dacb9e2e4ce844b34",
+        "kernelId": "cs/lists",
+        "term": "Lists",
+        "claims": [
+          "A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0.",
+          "A list is written with square brackets [] holding comma-separated values.",
+          "Individual elements are accessed directly using an index.",
+          "Indexes begin at 0 and end at one less than the length of the sequence.",
+          "A for loop can iterate through a list, visiting each element in order."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §3.4 List basics; §9.1 Modifying and iterating lists"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c548df6c94a0b1194dbc5f504038a1a1f8a7a9d8620cd87667bb22a08667bbf2",
+          "artifact": {
+            "q": "A student stores quiz scores as 12, 15, and 18 in one Python sequence. Which notation matches a list of those scores?",
+            "op": [
+              "[12, 15, 18]",
+              "(12, 15, 18)",
+              "{12, 15, 18}",
+              "12, 15, 18"
+            ],
+            "ai": 0,
+            "ex": "[12, 15, 18] is correct because a list is written with square brackets holding comma-separated values. The parenthesized choice is a tuple-shaped misconception, while braces suggest a different container."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "76a082632de9bcef5733f7fcabbb154cb84a4e7b506f9a55dd3908b870160cc9",
+          "artifact": {
+            "q": "If a list has a length of 5, what is the highest valid index for an element?",
+            "op": [
+              "5 (since indexing starts at 1)",
+              "4 (since indexes end one less than length)",
+              "6 (since indexes start at 0)",
+              "5 (since indexes begin at 0)"
+            ],
+            "ai": 1,
+            "ex": "Indexes begin at 0 and end at one less than the length of the sequence."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "c548df6c94a0b1194dbc5f504038a1a1f8a7a9d8620cd87667bb22a08667bbf2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "76a082632de9bcef5733f7fcabbb154cb84a4e7b506f9a55dd3908b870160cc9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-4fc07f209b336bf36871",
+      "caseDigest": "f5708330f1601aad6833731661fc41bc9416bb804681a18cd376d33ba4fdf419",
+      "domain": "computer-science",
+      "courseGroupSha256": "b5c02986dcab6c1fcb8fd5172f462004df30e0429a40327fd509afcb83daa037",
+      "sourceContextSha256": "7c0005bfc68ee646108db744a3f629e4aaad4600d1c0ad5ad10a54e787efcafa",
+      "sourceContext": {
+        "sourcePacketSha256": "2735bbd307dd162ce4336e81a60168cee98878533740af1ebd8430e0efec45ea",
+        "kernelId": "cs/classes",
+        "term": "Objects and classes",
+        "claims": [
+          "A class defines a type of object with attributes (data) and methods (behavior); it is a blueprint, and each object built from it is an instance.",
+          "A class is a blueprint for creating objects.",
+          "Individual objects created from a class are called instances.",
+          "Each instance carries its own copy of the attributes, while the methods defined by the class are shared by every instance."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §11.1 Object-oriented programming basics; §11.2 Classes and instances"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7aba241b9545dd63e51e3b2947a00f78b96b6e8dc30ff340a9c2d656aa21368a",
+          "artifact": {
+            "q": "A student writes a class for `Rocket`. Which claim best matches what a class does in Python?",
+            "op": [
+              "It defines a type of object with data and behavior.",
+              "It is one object copied into every program.",
+              "It stores only method names, not data.",
+              "It is the same thing as an instance."
+            ],
+            "ai": 0,
+            "ex": "Correct: a class is a blueprint that defines a type of object with attributes and methods. A common misconception is that the class itself is one finished object; that would describe an instance, not the blueprint."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "1605142f052fd97a5959d5d411d8b88f434ffb404c736c21ae523fce4a096e06",
+          "artifact": {
+            "q": "How are individual objects created from a class referred to?",
+            "op": [
+              "A instances",
+              "B blueprints",
+              "C attributes",
+              "D methods"
+            ],
+            "ai": 2,
+            "ex": "Individual objects created from a class are called instances. This distinguishes them from the class itself."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "7aba241b9545dd63e51e3b2947a00f78b96b6e8dc30ff340a9c2d656aa21368a",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "1605142f052fd97a5959d5d411d8b88f434ffb404c736c21ae523fce4a096e06",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-fb0e588dc685acbb0940",
+      "caseDigest": "c456a6eeda61a99d35d0734bb16c908fdcaa20db6b25ecbc854f2e53aff3669c",
+      "domain": "computer-science",
+      "courseGroupSha256": "68bde296d611263f64c94be53c6da50ff57d4e26c9fe574aca2cc0523222e1fc",
+      "sourceContextSha256": "4085d08bdb0b443dbd2af7d263e9f9a90b20c2cf8c41ed543473e0c9ba58cede",
+      "sourceContext": {
+        "sourcePacketSha256": "fcaa13f176a76ca483f7b246776528f38bcd89d679b51979a6c13763df234b00",
+        "kernelId": "cs/file-io",
+        "term": "File input and output",
+        "claims": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "4aab10eaa89f2f29fbc0c4f0ee988def217f843c70f102d459c974979df401d1",
+          "artifact": {
+            "tr": "File object",
+            "df": "The data structure returned by the open() function that allows interaction with the file.",
+            "eg": "Using the file object to call read() to get a string from the file.",
+            "mi": "Thinking the file object is the file itself, rather than the handle to the file.",
+            "cx": "The file object is the program's interface for reading or writing file contents."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "481a2f2a7b843f3da28190ce1f76f8350ea1b4a6c6a8483913dd91b5df04f827",
+          "artifact": {
+            "tr": "File I/O",
+            "df": "A way for a program to work with data stored in files by opening the file, using its contents, and then closing it.",
+            "eg": "A student script opens a text file of survey answers, reads the lines, and then closes the file.",
+            "mi": "It only means saving information, not reading it.",
+            "cx": "It includes both reading from files and writing into files."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "4aab10eaa89f2f29fbc0c4f0ee988def217f843c70f102d459c974979df401d1",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "481a2f2a7b843f3da28190ce1f76f8350ea1b4a6c6a8483913dd91b5df04f827",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-2989e5d3b6dc4a928a52",
+      "caseDigest": "704e539dc6a78504fc1e709f218b9173130f8472f14eb616a1c3a48a7366587e",
+      "domain": "geology",
+      "courseGroupSha256": "af478b3b946a56f3e9d594fc6fc9d3d007b88dc09de874f62a898860542b0ddc",
+      "sourceContextSha256": "ba9d0081417a3994271ae6d7e884fb496aa22b2a6bc4e194678dda331b94eda8",
+      "sourceContext": {
+        "sourcePacketSha256": "9783ba3bf131803ad14ae597552219bbc36180c6b24bbe50c837cbc4fe7e9127",
+        "kernelId": "geo/geologic-time",
+        "term": "Geologic time and relative dating",
+        "claims": [
+          "Geologic time spans the roughly 4.5-billion-year history of Earth; relative dating orders events by which is older or younger, while absolute dating assigns numerical ages in years.",
+          "Absolute (numerical) dating assigns specific ages in years to mineral grains within a rock.",
+          "By the principle of superposition, in an undisturbed sequence the bottom layers are oldest and the upper layers younger.",
+          "By original horizontality, sediments and lava flows are laid down horizontally, so tilted layers were disturbed after deposition.",
+          "The Earth is about 4.54 billion years old, and this vastness of geologic time allowed life to evolve."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §7.1 Relative dating and geologic time"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "4b67396377280610d7a629640b981000c1f453fc7d9a59cc37093343e408a612",
+          "artifact": {
+            "tr": "Absolute dating",
+            "df": "A method that assigns a specific numerical age in years to material from a rock.",
+            "eg": "Measuring zircon grains and reporting an age such as 2.1 billion years.",
+            "mi": "It only tells whether one layer is above or below another.",
+            "cx": "That is relative dating; absolute dating gives a year-based age."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "d514b2e628dd946620eb49a41070f02406e5cc3dc45bc3982ce23dc1ea491c85",
+          "artifact": {
+            "tr": "Relative ordering",
+            "df": "Ordering events based on which is older or younger.",
+            "eg": "Determining that a layer of sediment is older than the layer above it.",
+            "mi": "Confusing relative dating with absolute dating, believing relative terms imply specific year counts.",
+            "cx": "Relative dating orders events by which is older or younger."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "4b67396377280610d7a629640b981000c1f453fc7d9a59cc37093343e408a612",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "d514b2e628dd946620eb49a41070f02406e5cc3dc45bc3982ce23dc1ea491c85",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-c15ef30a901733820158",
+      "caseDigest": "0cf42a9f43bfa752e2600bebe295033a74bbe2663abbe391969098ab1abba9be",
+      "domain": "geology",
+      "courseGroupSha256": "dcdbfc9dbc933a5a5911a8fc0a73f820e079778a45c66ca52d0663c150782d1e",
+      "sourceContextSha256": "29f38881f5140b6f3b7a2e46dcb223d3573cb3fbb3c1464c584b5900b200ef7b",
+      "sourceContext": {
+        "sourcePacketSha256": "f2cd95feeced42582f4973f64988d904b5dd97a67d40adfd350a99813f517c3a",
+        "kernelId": "geo/metamorphic-rocks",
+        "term": "Metamorphic rocks and protoliths",
+        "claims": [
+          "Metamorphic rock forms when heat, pressure, and fluids change a preexisting parent rock (the protolith) in the solid state, without melting it.",
+          "Metamorphism changes a solid rock's composition and texture without the mineral crystals melting.",
+          "The starting rock that undergoes metamorphism is called the parent rock, or protolith.",
+          "Directed stress aligns mineral crystals into planes, producing foliation."
+        ],
+        "attribution": [
+          "An Introduction to Geology (opengeology.org), §6.1 Metamorphism and metamorphic rocks"
+        ],
+        "license": "CC-BY-NC-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "708a4874f54b01d5c2ee9955aff2f0c11aa2c6895dfe3dd2cca3c9097ff98f40",
+          "artifact": {
+            "tr": "metamorphism",
+            "df": "Change in a solid rock caused by heat, pressure, and fluids without melting.",
+            "eg": "A buried shale becoming a metamorphic rock while remaining solid.",
+            "mi": "It requires the rock to melt first.",
+            "cx": "The correction is that the mineral crystals stay solid during the change."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e1302aed5501f49ae5ccf3061f2e93ec2a1364061a6e2b4b7f2caa5bcf6dbfaa",
+          "artifact": {
+            "tr": "Protolith",
+            "df": "The initial rock subjected to metamorphic change.",
+            "eg": "Shale undergoing metamorphism.",
+            "mi": "The final metamorphic rock.",
+            "cx": "The starting rock that undergoes metamorphism."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "708a4874f54b01d5c2ee9955aff2f0c11aa2c6895dfe3dd2cca3c9097ff98f40",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e1302aed5501f49ae5ccf3061f2e93ec2a1364061a6e2b4b7f2caa5bcf6dbfaa",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-c1bc4a89331396b196d5",
+      "caseDigest": "5b98ab9a41079a9250cd4184233929f892b228524dbc81e25438346aba26e625",
+      "domain": "music-theory",
+      "courseGroupSha256": "8c5aa5da8d645c5e8c2cc6e6efb4c58755d7c2a3fca9deda17b011c87f16beed",
+      "sourceContextSha256": "2ea0a82c55c2fb5b937f262e1f58db93de4805417c315713417de3388ea7494d",
+      "sourceContext": {
+        "sourcePacketSha256": "ebae870a2a1d36bc48b8a4dbf1a1d96d40db43e1f70de0146214ff42b924ea50",
+        "kernelId": "music/musical-form",
+        "term": "Musical form",
+        "claims": [
+          "In music, form refers to the structure of a musical composition or performance.",
+          "The term \"binary form\" is used to describe a musical piece with two sections that are about equal in length.",
+          "Musical form unfolds over time through the expansion and development of these ideas.",
+          "Form in music is the result of the interaction of the four structural elements described above [sound, harmony, melody, rhythm].",
+          "Subdivisions of each large musical unit are shown by lowercase letters (a, b, and so on).",
+          "The next level concerns the entire structure of any single self-contained musical piece or movement."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "1492d02a7ebfad867d2ad7349cf94e8f84ca24e68b2aebe730eaedd9b8b181e8",
+          "artifact": {
+            "tr": "Musical form",
+            "df": "The organized structure of a composition or performance.",
+            "eg": "A self-contained movement can be examined as its sections unfold over time.",
+            "mi": "It means only the melody line.",
+            "cx": "It also involves the interaction of sound, harmony, melody, and rhythm."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "5846a3d453e6364f48ed8dd3f25e17603f34fe6efd896be6763f529b8596575e",
+          "artifact": {
+            "tr": "Structure of a musical work",
+            "df": "The overall arrangement of a musical composition or performance.",
+            "eg": "Analyzing the entire structure of a single movement.",
+            "mi": "A specific melodic line or chord progression.",
+            "cx": "The overall structure of any single self-contained musical piece or movement."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "1492d02a7ebfad867d2ad7349cf94e8f84ca24e68b2aebe730eaedd9b8b181e8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "5846a3d453e6364f48ed8dd3f25e17603f34fe6efd896be6763f529b8596575e",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-166328f79ec6c5caa5ac",
+      "caseDigest": "416087c13bd13ec82b29a67fc6b48913f48a767aa7584cbebdd5174f465770e9",
+      "domain": "music-theory",
+      "courseGroupSha256": "bdc5f740594dfde48fe072660a390e7dd5892b4d5aba2b6d961980baad4899ae",
+      "sourceContextSha256": "20a6ea952f745f31d2ddc22e697da15168e79b7a023bd48edf55c18694ba56f9",
+      "sourceContext": {
+        "sourcePacketSha256": "e38bfea2b79bdd4b3cfff63de22c63df96e995c7028500ab2b803ee35f367642",
+        "kernelId": "music/harmony-and-progressions",
+        "term": "Harmony and chord progressions",
+        "claims": [
+          "In music, harmony is the concept of combining different sounds in order to create new, distinct musical ideas.",
+          "In these genres, chord progressions are the defining feature on which melody and rhythm are built.",
+          "Chord progressions are the foundation of harmony in Western musical tradition from the common practice era of classical music to the 21st century.",
+          "A first chord forms a 'progression' with a second chord, and a second with a third.",
+          "For example, the relative minor of C major is A minor, and in the key of A minor, the i, iv and v chords are A minor, D minor and E minor.",
+          "In many styles of popular and traditional music, chord progressions are expressed using the name and \"quality\" of the chords."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "21f991dfde6a2b8407940015c5f951e5d084adfc410b4ca168c154ca18d319a7",
+          "artifact": {
+            "tr": "Chord function",
+            "df": "The specific role or quality assigned to a chord within a progression, often expressed by its name.",
+            "eg": "Identifying the i, iv, and v chords in the key of A minor.",
+            "mi": "Assuming all chords in a progression share the same function.",
+            "cx": "Understanding that chord function dictates the harmonic relationship between chords in a progression."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "3756c524858820122fa5451c7394fab694d229e07369ea2af8b392ee47ae02d2",
+          "artifact": {
+            "tr": "Chord progression",
+            "df": "A sequence in which one chord leads to another and then to another.",
+            "eg": "A move from one chord to a second, then a third, as the source describes.",
+            "mi": "It is the same thing as melody or rhythm.",
+            "cx": "The packet says progressions are a foundation for harmony, while melody and rhythm are built on them in some genres; that keeps the roles distinct."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "21f991dfde6a2b8407940015c5f951e5d084adfc410b4ca168c154ca18d319a7",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "3756c524858820122fa5451c7394fab694d229e07369ea2af8b392ee47ae02d2",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-be9191548ec564b16369",
+      "caseDigest": "a0f5a1bf861646bea5242d068f8f25c9ac5c1c970a86eb877eb6b954be116128",
+      "domain": "music-theory",
+      "courseGroupSha256": "bdc5f740594dfde48fe072660a390e7dd5892b4d5aba2b6d961980baad4899ae",
+      "sourceContextSha256": "ce15a63628945f900a904658c741b900d422acc1a9634c33914f34cb6e697667",
+      "sourceContext": {
+        "sourcePacketSha256": "e38bfea2b79bdd4b3cfff63de22c63df96e995c7028500ab2b803ee35f367642",
+        "kernelId": "music/intervals",
+        "term": "Interval (music)",
+        "claims": [
+          "In music theory, an interval is a difference in pitch between two sounds.",
+          "In physical terms, an interval is the ratio between two sonic frequencies.",
+          "Intervals between successive notes of a scale are also known as scale steps."
+        ],
+        "attribution": [
+          "Wikipedia (see fact anchors)"
+        ],
+        "license": "CC-BY-SA-4.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b23ee56548f2e4ebd6c14918905e9c46cf3afabb872e4ad91d4b311fd887928c",
+          "artifact": {
+            "q": "What is the primary definition of an interval in music theory?",
+            "op": [
+              "A) The ratio between two sonic frequencies.",
+              "B) The difference in pitch between two sounds.",
+              "C) The ratio between two sonic frequencies and two sounds.",
+              "D) The difference in pitch between two sounds and scale steps."
+            ],
+            "ai": 1,
+            "ex": "Option B is correct because an interval is defined as the difference in pitch between two sounds (claims[0]). Option A is a physical description, not the primary theoretical definition. Option C combines two distinct concepts. Option D incorrectly conflates intervals with scale steps."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "56bba17593a07dcf3390c295c4215f7fabd3e337044bd33e43f74000413d0c09",
+          "artifact": {
+            "q": "A student hears two notes and asks for the interval in the most basic music-theory sense. Which description fits best?",
+            "op": [
+              "The difference in pitch between the two sounds",
+              "The chord built from those two notes",
+              "The pattern made by repeating the notes in order",
+              "The overall form of the passage"
+            ],
+            "ai": 0,
+            "ex": "Correct: an interval is the pitch difference between two sounds. The most plausible misconception is to treat the interval as a chord or a larger formal pattern, but those describe harmony or form, not the relation between just two pitches."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "b23ee56548f2e4ebd6c14918905e9c46cf3afabb872e4ad91d4b311fd887928c",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "56bba17593a07dcf3390c295c4215f7fabd3e337044bd33e43f74000413d0c09",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-41f4171fc0b8a1996d17",
+      "caseDigest": "6f7a66150e897e1c25be4c1523faaa203d29fdd6dbf1927efb258f005b5e6b9c",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "61d4c90977f13b23b93368a208941fd2db304b807bfe6bf7728b4b6b9f222097",
+      "sourceContextSha256": "26d782fa7fd70592014e3e0067eea6304f354cda0ddb4074fd965b12c9750ad2",
+      "sourceContext": {
+        "sourcePacketSha256": "f0261b4e9d65d69eb1fd27b6e93e9702910c6f23322aeb3fcf3b799bb742fa6d",
+        "kernelId": "ux/interactive-prototyping",
+        "term": "Interactive prototyping",
+        "claims": [
+          "Interactive prototyping builds a testable representation of how a planned experience looks and works without requiring every production detail.",
+          "Prototypes can be combined with usability testing or a cognitive walkthrough to test whether a design concept works.",
+          "Functional prototypes allow a team to observe how users interact with a product.",
+          "A prototype should show the major interactions even when not every interaction is functional.",
+          "Prototypes should support fast iteration and be inexpensive enough to discard after learning from them."
+        ],
+        "attribution": [
+          "Digital.gov, U.S. General Services Administration"
+        ],
+        "license": "U.S. Government Work"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8c408030a63364f680837255cf462748e7b39ec62ec0226311ec8b1d63c1b9f9",
+          "artifact": {
+            "tr": "Interactive prototyping",
+            "df": "Creating a testable stand-in for a planned experience before all production details are finished.",
+            "eg": "A course team builds a clickable checkout mockup and runs a quick usability check on it.",
+            "mi": "It is the same as a finished product.",
+            "cx": "It is a learning tool, not a final release, so it can be incomplete and still useful."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e44f1d7ffb12917f433e9c4b1c5944cea87e0368867f44733ba0dbe7c31073c8",
+          "artifact": {
+            "tr": "Testable representation",
+            "df": "A model used to verify an experience's viability.",
+            "eg": "A low-fidelity wireframe used to test the main navigation flow.",
+            "mi": "A representation that includes every production detail.",
+            "cx": "A representation that shows how an experience looks and works without needing every production detail."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "8c408030a63364f680837255cf462748e7b39ec62ec0226311ec8b1d63c1b9f9",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "e44f1d7ffb12917f433e9c4b1c5944cea87e0368867f44733ba0dbe7c31073c8",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    },
+    {
+      "pairId": "scion-a6485eea884380a81d69",
+      "caseDigest": "986cd7a1168bb7d3c0624dc04d7ece652f73412b1d291c8f04d7eedbba72bce6",
+      "domain": "user-experience-design",
+      "courseGroupSha256": "983914b4b63604a7a3257bf6b703a6d31ddc618d482164fc0bec3d93965d0b1a",
+      "sourceContextSha256": "a70c8f06affd7fff739a324888bb31d80cb05b1c9851142e36fd91f46f1cf18f",
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/research-planning",
+        "term": "Research planning",
+        "claims": [
+          "A UX research plan turns a decision need into actionable learning objectives, participants, tasks, evidence-capture roles, and a rehearsal-ready study setup.",
+          "The team should agree what it wants to learn from the research round before selecting study details.",
+          "A prototype used in research should work end-to-end and be usable and accessible in the research venue.",
+          "Researchers should run through test tasks on the day before the research session.",
+          "A practice session with a team member can expose procedure problems before participants arrive."
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "evidenceScope": {
+        "unit": "source-bound-training-atom",
+        "excludedConstructs": [
+          "export-integrity",
+          "package-integrity",
+          "compiler-burden",
+          "full-course-coherence",
+          "device-runtime",
+          "speed",
+          "cost"
+        ]
+      },
+      "presentation": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "5f6a64bfcccd46c81dac1d9d2f15264a5dfb2311826147074342605072c3441f",
+          "artifact": {
+            "q": "What should the team establish prior to selecting study details?",
+            "op": [
+              "The specific evidence capture roles",
+              "The desired learning objectives",
+              "The rehearsal-ready study setup",
+              "The specific tasks"
+            ],
+            "ai": 1,
+            "ex": "Selecting study details should follow agreement on what the team wants to learn from the research round. Choosing the specific tasks is premature before defining the learning goals."
+          }
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "810176216ee9626c73801631cdaf9e56d683b6a0b6933f969ef82b6adfaa77ef",
+          "artifact": {
+            "q": "What preparation best supports a research session for a prototype being tested with users?",
+            "op": [
+              "Ensure the prototype works end-to-end and is usable and accessible in the venue.",
+              "Add extra features so participants can explore beyond the task.",
+              "Delay practice until after the first participant finishes.",
+              "Use a partial mockup if the final screens are not ready."
+            ],
+            "ai": 0,
+            "ex": "Correct: the prototype should work end-to-end and be usable and accessible in the research venue. The most plausible misconception is that a partial mockup is enough for testing; the source says the prototype used in research should already function across the flow and fit the venue conditions."
+          }
+        }
+      ],
+      "scorecards": [
+        {
+          "position": 1,
+          "anonymousSide": "B",
+          "artifactSha256": "5f6a64bfcccd46c81dac1d9d2f15264a5dfb2311826147074342605072c3441f",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        },
+        {
+          "position": 2,
+          "anonymousSide": "A",
+          "artifactSha256": "810176216ee9626c73801631cdaf9e56d683b6a0b6933f969ef82b6adfaa77ef",
+          "evaluationStatus": "pending",
+          "scores": {
+            "factualCorrectness": null,
+            "sourceFidelity": null,
+            "teachability": null,
+            "coherence": null,
+            "taskQuality": null
+          },
+          "evidence": [],
+          "defects": []
+        }
+      ],
+      "preference": {
+        "scoredBeforePreference": false,
+        "decision": null,
+        "winnerPosition": null,
+        "rationale": "",
+        "decisionDefects": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-grounded-atom-capture-v1",
+  "promptPolicy": "source-atom-authoring-v2",
+  "release": "v0.16.47",
+  "coveragePolicy": {
+    "protocol": "scion-source-capture-targeted-domain-gap-v1",
+    "domains": ["economics", "music-theory"],
+    "reason": "This bounded campaign targets the two remaining research-readiness gaps: at least one additional strict economics preference and at least one stable preference from a tenth distinct music-theory source kernel. It uses four previously unrepresented economics kernels and one newly curated music-theory kernel without changing the accepted v2 authoring policy."
+  },
+  "groups": [
+    {
+      "id": "economics-market-structure-policy-clinic",
+      "domain": "economics",
+      "title": "Economics Market Structure and Policy Clinic",
+      "courseBrief": "Economics Market Structure and Policy Clinic, a four-session source-grounded course in which students distinguish supply shifts, comparative advantage, external costs, and monopoly power through bounded decisions.",
+      "qualityFocus": "Keep movements distinct from shifts, absolute advantage distinct from comparative advantage, private cost distinct from social cost, and market power distinct from firm size. Every answer must be licensed by the supplied claims.",
+      "sourceFile": "public/genome/econ-intro.json",
+      "kernels": [
+        { "id": "econ/supply-curve" },
+        { "id": "econ/comparative-advantage" },
+        { "id": "econ/externality" },
+        { "id": "econ/monopoly" }
+      ]
+    },
+    {
+      "id": "music-rhythm-meter-listening-lab",
+      "domain": "music-theory",
+      "title": "Music Rhythm and Meter Listening Lab",
+      "courseBrief": "Music Rhythm and Meter Listening Lab, a focused source-grounded course in which students classify beat groupings, beat divisions, measures, and simple-meter time signatures.",
+      "qualityFocus": "Keep beat grouping separate from beat division and keep the two time-signature numbers distinct. Use concrete listening or notation decisions without inventing facts outside the source claims.",
+      "sourceFile": "public/genome/music-scion-v01647.json",
+      "kernels": [{ "id": "music/rhythm-and-meter" }]
+    }
+  ],
+  "claimBoundary": "This campaign is a bounded readiness-gap collection on five non-holdout kernels. It can add source-bound single-model-judge preferences but cannot prove human preference, adapter quality, classroom value, causality, speed, or production readiness."
+}
