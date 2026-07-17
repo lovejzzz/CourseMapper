@@ -223,7 +223,13 @@ function metadataWithoutReviews(template) {
   return metadata;
 }
 
-function reverseOrderTaskInstructions({ chunks, requiredJudgeIdentity, release, instructionRouting = null }) {
+function reverseOrderTaskInstructions({
+  chunks,
+  requiredJudgeIdentity,
+  release,
+  instructionRouting = null,
+  includePositionalDecisionInstructions = true,
+}) {
   const chunkList = chunks
     .map((chunk) => `- \`${chunk.templateFile}\` + \`${chunk.decisionsFile}\` — ${chunk.caseCount} anonymous cases`)
     .join('\n');
@@ -267,7 +273,7 @@ mkdir -p ${workingDecisions}
 cp ${outputDir}/chunk-*-decisions-b-a.json ${workingDecisions}/
 \`\`\`
 
-Process chunks in numeric order. For each case, score both artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`. For a positional win, set \`preference.decision\` to the exact token \`winner\` and set \`winnerPosition\` to \`1\` or \`2\`; never use \`first-artifact\` or \`second-artifact\` as decision tokens. Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
+Process chunks in numeric order. For each case, score both artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`.${includePositionalDecisionInstructions ? ' For a positional win, set `preference.decision` to the exact token `winner` and set `winnerPosition` to `1` or `2`; never use `first-artifact` or `second-artifact` as decision tokens.' : ''} Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
 
 Every completed chunk must carry the same exact judge revision, runtime, fresh session ID, completion time, no-prior-outcome statement, context-reset attestation, and judgment attestation. Edit only the working decisions copies; never modify this hash-bound workbook.${identityInstruction ? `\n\n${identityInstruction}` : ''}
 
@@ -290,7 +296,13 @@ Return only the sealed envelope path, a separately transferred key path, and the
 `;
 }
 
-function firstOrderTaskInstructions({ chunks, release, requiredJudgeIdentity, instructionRouting = null }) {
+function firstOrderTaskInstructions({
+  chunks,
+  release,
+  requiredJudgeIdentity,
+  instructionRouting = null,
+  includePositionalDecisionInstructions = true,
+}) {
   const chunkList = chunks
     .map((chunk) => `- \`${chunk.templateFile}\` + \`${chunk.decisionsFile}\` — ${chunk.caseCount} anonymous cases`)
     .join('\n');
@@ -331,7 +343,7 @@ ${launchPreflight ? `${launchPreflight}\n\n` : ''}Before scoring any case, verif
 
 ## Review schedule
 
-Read and follow \`${PROMPT_FILE}\`. The ${chunks.reduce((sum, chunk) => sum + chunk.caseCount, 0)}-case A/B pass is divided into immutable chunks. Process chunks in numeric order. Score both anonymous artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`. For a positional win, set \`preference.decision\` to the exact token \`winner\` and set \`winnerPosition\` to \`1\` or \`2\`; never use \`first-artifact\` or \`second-artifact\` as decision tokens. Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
+Read and follow \`${PROMPT_FILE}\`. The ${chunks.reduce((sum, chunk) => sum + chunk.caseCount, 0)}-case A/B pass is divided into immutable chunks. Process chunks in numeric order. Score both anonymous artifacts before recording \`winner\`, \`tie\`, or \`insufficient-evidence\`.${includePositionalDecisionInstructions ? ' For a positional win, set `preference.decision` to the exact token `winner` and set `winnerPosition` to `1` or `2`; never use `first-artifact` or `second-artifact` as decision tokens.' : ''} Preserve real ties, low-quality relative winners, and insufficient evidence. Do not manufacture a training preference.
 
 ${chunkList}
 
@@ -616,6 +628,7 @@ export async function buildScionCodexFreshJudgeWorkbook({
   declaredJudgeIdentity = null,
   declaredJudgeLaunchProfile = null,
   instructionRouting = null,
+  includePositionalDecisionInstructions = true,
 } = {}) {
   if (!['A/B', 'B/A'].includes(order)) throw new Error(`Unsupported Codex workbook order: ${order}`);
   if (order === 'A/B' && !declaredJudgeIdentity) {
@@ -732,8 +745,15 @@ export async function buildScionCodexFreshJudgeWorkbook({
             release,
             requiredJudgeIdentity,
             instructionRouting,
+            includePositionalDecisionInstructions,
           })
-        : reverseOrderTaskInstructions({ chunks: descriptors, requiredJudgeIdentity, release, instructionRouting });
+        : reverseOrderTaskInstructions({
+            chunks: descriptors,
+            requiredJudgeIdentity,
+            release,
+            instructionRouting,
+            includePositionalDecisionInstructions,
+          });
     await fs.writeFile(path.join(absoluteOutput, INSTRUCTIONS_FILE), instructionBytes);
     const files = Object.fromEntries(
       await Promise.all(
@@ -943,6 +963,13 @@ export async function auditTrackedWorkbook(
   const expectedReceipt = JSON.parse(await fs.readFile(receiptFile, 'utf8'));
   const tracked = await verifyScionCodexFreshJudgeWorkbook({ handoffDir, expectedReceipt });
   if (!tracked.valid) return tracked;
+  // Historical workbooks remain immutable after judgment. Newer task guides
+  // clarify positional decision tokens, but that copy-only refinement must not
+  // invalidate an older sealed campaign. The tracked file has already passed
+  // its receipt hash above, so its wording safely selects the matching
+  // versioned reconstruction path without trusting unbound input.
+  const trackedInstructions = await fs.readFile(path.join(path.resolve(handoffDir), INSTRUCTIONS_FILE), 'utf8');
+  const includePositionalDecisionInstructions = trackedInstructions.includes('For a positional win, set');
   if (
     expectedReceipt.order === 'B/A' &&
     expectedReceipt.requiredJudgeIdentity?.source === 'sealed-first-order-envelope-metadata' &&
@@ -973,6 +1000,7 @@ export async function auditTrackedWorkbook(
           ? expectedReceipt.requiredJudgeIdentity.launchProfile || null
           : null,
       instructionRouting: expectedReceipt.instructionRouting || null,
+      includePositionalDecisionInstructions,
     });
     const reconstruction = await verifyScionCodexFreshJudgeWorkbook({
       handoffDir: result.outputDir,
