@@ -7,16 +7,16 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export const SCION_SEMANTIC_ADMISSION_PROTOCOL = 'scion-semantic-admission-replay-v1';
-export const SCION_SEMANTIC_ADMISSION_RELEASE = 'v0.16.46';
+export const SCION_SEMANTIC_ADMISSION_RELEASE = 'v0.16.47';
 export const SCION_SEMANTIC_ADMISSION_CORPUS =
   'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.42.jsonl';
 export const SCION_SEMANTIC_ADMISSION_CAMPAIGN = 'evaluation/scion-adapters/evidence/judge-campaign-v0.16.42.json';
 export const SCION_SEMANTIC_ADMISSION_BASELINE =
   'evaluation/scion-adapters/evidence/semantic-admission-baseline-v0.16.42.json';
 export const SCION_SEMANTIC_ADMISSION_RECEIPT =
-  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.46.json';
+  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.47.json';
 export const SCION_SEMANTIC_ADMISSION_PREVIOUS_RECEIPT =
-  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.45.json';
+  'evaluation/scion-adapters/evidence/semantic-admission-replay-v0.16.46.json';
 export const SCION_SEMANTIC_ADMISSION_SOURCE_WORKBOOK_RECEIPT =
   'evaluation/scion-adapters/evidence/fresh-a-b-workbook-v0.16.41.json';
 export const SCION_SEMANTIC_ADMISSION_SOURCE_WORKBOOK_DIR =
@@ -34,6 +34,23 @@ const EXPECTED_CURRENT = {
   reviewedStableLosses: 46,
   acceptedWithoutInterception: 26,
   intercepted: 20,
+  repaired: 5,
+  rejectedForRegeneration: 15,
+  responseTextMutations: 0,
+  repairFieldMutations: 5,
+  issues: {
+    'claim-marker-residue': 4,
+    'duplicate-options': 2,
+    'explanation-key-conflict': 3,
+    'explanation-repeats-answer': 4,
+    'misconception-repeats-known-fact': 3,
+  },
+};
+
+const EXPECTED_PREVIOUS = {
+  reviewedStableLosses: 46,
+  acceptedWithoutInterception: 26,
+  intercepted: 20,
   repaired: 8,
   rejectedForRegeneration: 12,
   responseTextMutations: 0,
@@ -44,32 +61,17 @@ const EXPECTED_CURRENT = {
     'explanation-repeats-answer': 4,
     'misconception-repeats-known-fact': 3,
   },
-};
-
-const EXPECTED_PREVIOUS = {
-  reviewedStableLosses: 46,
-  acceptedWithoutInterception: 28,
-  intercepted: 18,
-  repaired: 6,
-  rejectedForRegeneration: 12,
-  responseTextMutations: 0,
-  repairFieldMutations: 6,
-  issues: {
-    'claim-marker-residue': 4,
-    'duplicate-options': 2,
-    'explanation-repeats-answer': 4,
-    'misconception-repeats-known-fact': 3,
-  },
   repairCues: {
     'explicit-affirmative-lead': 2,
     'explicit-option-text': 1,
     'first-sentence-lexical-margin': 3,
+    'source-question-option-alignment': 2,
   },
   byDomain: {
     'computer-science': 3,
-    geology: 2,
+    geology: 3,
     'music-theory': 10,
-    'user-experience-design': 3,
+    'user-experience-design': 4,
   },
 };
 
@@ -355,12 +357,11 @@ export async function buildScionSemanticAdmissionReport({
       release: parsedBaseline.release,
       acceptedWithoutInterception: parsedBaseline.summary.acceptedWithoutInterception,
     };
-    assertExact('v0.16.46 semantic admission summary', summary, {
+    assertExact('v0.16.47 semantic admission summary', summary, {
       ...EXPECTED_CURRENT,
       repairCues: {
         'explicit-affirmative-lead': 2,
         'explicit-option-text': 1,
-        'first-sentence-lexical-margin': 3,
         'source-question-option-alignment': 2,
       },
       byDomain: {
@@ -374,8 +375,8 @@ export async function buildScionSemanticAdmissionReport({
 
   const previousRaw = await fs.readFile(path.join(root, SCION_SEMANTIC_ADMISSION_PREVIOUS_RECEIPT), 'utf8');
   const previous = JSON.parse(previousRaw);
-  if (previous.release !== 'v0.16.45') throw new Error('Semantic admission previous-release identity drifted.');
-  assertExact('v0.16.45 semantic admission summary', previous.summary, EXPECTED_PREVIOUS);
+  if (previous.release !== 'v0.16.46') throw new Error('Semantic admission previous-release identity drifted.');
+  assertExact('v0.16.46 semantic admission summary', previous.summary, EXPECTED_PREVIOUS);
   if (previous.inputs?.corpus?.sha256 !== corpusSha256) {
     throw new Error('Semantic admission previous release used a different stable-loss corpus.');
   }
@@ -421,14 +422,14 @@ export async function buildScionSemanticAdmissionReport({
     unresolvedStableLosses: rows.length - intercepted.length,
     productBehavior: {
       repairs:
-        'Only the answer-index field changes when an exact affirmative cue, a unique first-sentence lexical margin, or a uniquely question-relevant supplied source claim supports another option.',
+        'Only the answer-index field changes when an exact affirmative cue or a uniquely question-relevant supplied source claim supports another option. Lexical-only conflicts are rejected for regeneration.',
       rejections:
         'Cosmetic duplicate options, answer-only feedback, internal claim markers, and source facts mislabeled as misconceptions are rejected at shared admission and enter the existing regeneration path.',
       modelNeutralBenefit:
         'The shared admission rejections apply to Scion and paid-model outputs; the local Scion parser additionally records conservative answer-key repairs.',
     },
     claimBoundary:
-      'This replay measures interception of defects in stable paired-order losses from one Codex model. Two additional wrong keys are repaired only when one supplied claim is uniquely relevant to the question and one different option has strong contained support. Three misconception failures align with retained judge defects; four directly visible internal claim markers are deterministic process residue, and one was explicitly named by the judge. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Twenty-six stable losses remain unresolved.',
+      'This replay measures interception of defects in stable paired-order losses from one Codex model. Five answer keys are conservatively repaired from explicit or source-bound evidence; three lexical-only conflicts are rejected for regeneration after a live Astronomy package proved that overlap can point at a false distractor. Three misconception failures align with retained judge defects; four directly visible internal claim markers are deterministic process residue, and one was explicitly named by the judge. It is not human, independent, classroom, adapter, paid-reference-parity, or broad factual-correctness evidence. Twenty-six stable losses remain unresolved.',
   };
   report.identity = {
     algorithm: 'sha256-canonical-scion-semantic-admission-replay-v1',

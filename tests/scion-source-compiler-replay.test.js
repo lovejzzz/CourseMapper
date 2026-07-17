@@ -19,43 +19,40 @@ describe('Scion source compiler replay', () => {
       outputDir: path.join(root, 'projects'),
       receiptOutput: path.join(root, 'receipt.json'),
       generatedAt: '2026-07-16T10:00:00.000Z',
-      publishedOutputDir: 'evaluation/scion-source-compiler-replay-v0.16.46',
+      publishedOutputDir: 'evaluation/scion-source-compiler-replay-v0.16.47',
     });
 
     expect(result.receipt).toMatchObject({
       protocol: 'scion-source-compiler-replay-v1',
-      release: 'v0.16.46',
+      release: 'v0.16.47',
       summary: {
         projectCount: 12,
         domainCount: 4,
         courseGroupCount: 12,
         responseMutationCount: 0,
-        recoveredAtoms: -3,
-        burdenAtomReduction: -3,
+        recoveredAtoms: -12,
+        burdenAtomReduction: -12,
         historicalCompiledBurden: { admittedAtoms: 133, burdenAtoms: 59 },
-        replayedCompiledBurden: { admittedAtoms: 130, burdenAtoms: 62 },
+        replayedCompiledBurden: { admittedAtoms: 121, burdenAtoms: 71 },
         priorReleaseDelta: {
-          previousRelease: 'v0.16.45',
-          admittedAtoms: -1,
-          burdenAtoms: 1,
-          fullPassCalls: 0,
-          partialCalls: 0,
-          rejectedCalls: 0,
-          admissionRate: -0.005209,
-          newlyRejectedForRetry: 1,
+          previousRelease: 'v0.16.46',
+          admittedAtoms: -9,
+          burdenAtoms: 9,
+          admissionRate: -0.046875,
+          newlyRejectedForRetry: 9,
         },
         repairEvolution: {
           sourceAnswerAlignment: 10,
-          replacedExplanationKeyAlignment: 8,
-          newSourceAnswerAlignment: 2,
-          removedExplanationKeyAlignment: 1,
+          replacedExplanationKeyAlignment: 0,
+          newSourceAnswerAlignment: 10,
+          removedExplanationKeyAlignment: 14,
         },
       },
     });
     expect(result.receipt.summary.repairCounts).toEqual({
-      total: 78,
+      total: 64,
       incompleteExplanationTail: 20,
-      explanationKeyAlignment: 48,
+      explanationKeyAlignment: 34,
       sourceAnswerAlignment: 10,
     });
     expect(fs.readdirSync(result.outputDir)).toHaveLength(12);

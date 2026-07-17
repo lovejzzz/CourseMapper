@@ -1,0 +1,1027 @@
+{
+  "formatVersion": "scion-source-capture-project-v1",
+  "projectId": "scion-source-capture-igneous-volcanic-processes-local",
+  "provider": "local",
+  "modelId": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+  "modelName": "Scion base (Gemma 4 E2B)",
+  "promptText": "Igneous and Volcanic Processes, a six-session undergraduate geology module using mineral evidence, magma composition, cooling history, and hazard observations to explain rock textures and eruption styles.",
+  "fileNames": [
+    "source-packet-daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9.json"
+  ],
+  "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9",
+  "lessonScope": {
+    "type": "all"
+  },
+  "hasGenerated": true,
+  "courseGraphJson": "{\"schemaVersion\":1,\"title\":\"Igneous and Volcanic Processes\",\"sessions\":[{\"number\":1,\"title\":\"Silicate structures\"},{\"number\":2,\"title\":\"Igneous rocks and magma\"}],\"enrichmentOverlay\":{\"lessonContent\":{\"lesson-1\":{\"quizItems\":[],\"keyTerms\":[{\"tr\":\"Tetrahedral linkage\",\"df\":\"Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.\",\"eg\":\"Quartz exhibits a framework structure.\",\"mi\":\"Tetrahedral linkage is the process where silicon-oxygen tetrahedra connect.\",\"cx\":\"Tetrahedral linkage is the process of linking silicon-oxygen tetrahedra by sharing corner oxygen atoms.\",\"sourceFactIndexes\":[2]}]},\"lesson-2\":{\"quizItems\":[{\"q\":\"Which process dictates the crystal size in igneous rock formation?\",\"op\":[\"The rate of cooling determines crystal size.\",\"The depth of the magma dictates crystal size.\",\"The magma composition dictates crystal size.\",\"The surface area dictates crystal size.\"],\"ai\":0,\"ex\":\"The rate of cooling determines crystal size. (Correct) This contrasts with the misconception that magma composition is the primary factor, as cooling speed is the controlling variable.\",\"sourceFactIndexes\":[0],\"type\":\"multiple_choice\"},{\"q\":\"A rock with a fine-grained texture is typically formed by which cooling scenario?\",\"op\":[\"Slow cooling deep within the crust.\",\"Rapid cooling at or near the surface.\",\"Slow cooling at the surface.\",\"Rapid cooling deep within the crust.\"],\"ai\":1,\"ex\":\"Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism.\",\"sourceFactIndexes\":[3],\"type\":\"multiple_choice\"}],\"keyTerms\":[{\"tr\":\"Intrusive rock\",\"df\":\"Rock formed when molten material cools slowly beneath the Earth's surface.\",\"eg\":\"Granite (coarse-grained)\",\"mi\":\"Rock formed by rapid cooling at the surface.\",\"cx\":\"Rock formed by slow cooling deep within the crust.\",\"sourceFactIndexes\":[2]}]}}}}",
+  "savedAt": "2026-07-13T14:31:42.606Z",
+  "scionSourceCapture": {
+    "protocol": "scion-source-grounded-atom-capture-v1",
+    "arm": "local",
+    "campaignManifest": "evaluation/scion-source-capture-campaign.json",
+    "campaignManifestSha256": "6ee0853266ab984049f930ec4844345113bebdf82dc23c6e54e75b4e95e6ce1a",
+    "promptSetSha256": "9c6aa9c773430b8f316fdce9fb6ac36127f5087061abbe0eaf57e2a552fcfc4d",
+    "courseInputSha256": "ab467c9c265dbab1f380e074b3e397ca05af7996b2bc82db0e6ca0ef57e33e47",
+    "courseGroupId": "igneous-volcanic-processes",
+    "courseGroupSha256": "19100d3e734a3486006f9dd67ed9f35322cc9cc7d549b3cabb3114748621df27",
+    "sourcePacket": {
+      "schemaVersion": 1,
+      "sourceFile": "public/genome/geo-intro.json",
+      "sourceArtifactSha256": "d210fd2d2412af5d0f65c8e8f8a9614cd92f5886badc264694fe88e5cc020f14",
+      "kernels": [
+        {
+          "id": "geo/silicate-structures",
+          "term": "Silicate structures",
+          "definition": "Silicate minerals, built from the silicon-oxygen tetrahedron, are the most abundant rock-forming minerals; the way tetrahedra link together defines the major silicate structures.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#3.1",
+            "loc": "3.1",
+            "quote": "Silicate minerals form the largest group of minerals on Earth, comprising the vast majority of the Earth's mantle and crust"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "The silicon-oxygen tetrahedron (SiO4) is one silicon atom at the center bonded to four oxygen atoms at the corners.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#3.1",
+                "loc": "3.1",
+                "quote": "The silicon-oxygen tetrahedron (SiO4) consists of a single silicon atom at the center and four oxygen atoms located at the four corners of the tetrahedron"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#3.1",
+                "loc": "3.1",
+                "quote": "Polymers are chains, sheets, or three-dimensional structures, and are formed by multiple tetrahedra covalently bonded via their corner oxygen atoms"
+              }
+            },
+            {
+              "index": 2,
+              "text": "How much oxygen is shared between tetrahedra controls the silicate group — isolated tetrahedra, single chains, sheets, or frameworks like quartz.",
+              "anchor": null
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §3.1 Silicate minerals"
+          ]
+        },
+        {
+          "id": "geo/igneous-rocks",
+          "term": "Igneous rocks and magma",
+          "definition": "Igneous rock forms when molten magma or lava cools and crystallizes; how fast it cools controls crystal size, distinguishing coarse intrusive rocks from fine-grained extrusive rocks.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#4.1",
+            "loc": "4.1",
+            "quote": "Igneous rock is formed when liquid rock freezes into a solid rock"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Lava cooling quickly at the surface forms tiny crystals, while magma cooling slowly at depth forms large crystals.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.1",
+                "loc": "4.1",
+                "quote": "Lava cools quickly on the surface of the earth and forms tiny microscopic crystals"
+              }
+            },
+            {
+              "index": 1,
+              "text": "Magma that cools slowly deep within the crust forms intrusive (plutonic) rock with a coarse-grained texture.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.1",
+                "loc": "4.1",
+                "quote": "If magma cools slowly, deep within the crust, the resulting rock is called intrusive or plutonic"
+              }
+            },
+            {
+              "index": 2,
+              "text": "Lava cooling at or near the surface forms extrusive (volcanic) rock with a fine-grained texture.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.1",
+                "loc": "4.1",
+                "quote": "the resulting igneous rock is called extrusive or volcanic"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §4.1 Magma generation and igneous textures"
+          ]
+        },
+        {
+          "id": "geo/volcanism",
+          "term": "Volcanism and volcanic hazards",
+          "definition": "A volcano's eruptive style is set largely by magma viscosity, which rises with silica content: runny low-silica magma erupts gently, while sticky high-silica magma traps gas and erupts explosively.",
+          "definitionAnchor": {
+            "src": "opengeology:introduction-to-geology#4.4",
+            "loc": "4.4",
+            "quote": "Silica content controls magma viscosity and the eruptive style of volcanoes"
+          },
+          "facts": [
+            {
+              "index": 0,
+              "text": "Low-viscosity (low-silica, basaltic) magma flows easily like syrup, producing the gentle eruptions of Hawaiian shield volcanoes.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.4",
+                "loc": "4.4",
+                "quote": "Low viscosity magma flows easily more like syrup, the basaltic volcanism that occurs in Hawaii on shield volcanoes"
+              }
+            },
+            {
+              "index": 1,
+              "text": "High-viscosity (high-silica, felsic) magma is thick and sticky and flows slowly like toothpaste, trapping gas until it erupts violently.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.4",
+                "loc": "4.4",
+                "quote": "High viscosity means a thick and sticky magma, typically felsic or intermediate, that flows slowly, similar to toothpaste"
+              }
+            },
+            {
+              "index": 2,
+              "text": "The most dangerous volcanic hazard is the pyroclastic flow, a fast cloud of hot ash and gas typical of explosive high-silica volcanoes.",
+              "anchor": {
+                "src": "opengeology:introduction-to-geology#4.4",
+                "loc": "4.4",
+                "quote": "The most dangerous volcanic hazard are pyroclastic flows"
+              }
+            }
+          ],
+          "license": "CC-BY-NC-SA-4.0",
+          "attribution": [
+            "An Introduction to Geology (opengeology.org), §4.4 Volcanic eruptions and hazards"
+          ]
+        }
+      ]
+    },
+    "sourcePacketSha256": "daa2b927dc9b1eb4bba2358a1bb13721b3e8fc3037787ffd701b1226cfdfebe9",
+    "model": {
+      "provider": "local",
+      "id": "google/gemma-4-E2B-it-qat-q4_0-unquantized",
+      "name": "Scion base (Gemma 4 E2B)",
+      "revision": "1ca4dd94b623b6e0dd9da00c2239ab84b4f3e5ce",
+      "route": "mlx-vlm-base-only",
+      "decoding": "greedy-json-schema",
+      "maxOutputTokens": 2200
+    },
+    "modelSha256": "8fba101868831cd3611762043ded4f1b334b2b13cbe21d47b60387b03edaf9ba",
+    "completedAt": "2026-07-13T14:31:42.606Z",
+    "admittedPromptIds": [
+      "igneous-volcanic-processes:geo/silicate-structures",
+      "igneous-volcanic-processes:geo/igneous-rocks"
+    ],
+    "rejectedPromptIds": [
+      "igneous-volcanic-processes:geo/volcanism"
+    ],
+    "compilerRecovery": {
+      "protocol": "scion-source-compiler-recovery-v1",
+      "rawCalls": [
+        {
+          "promptId": "igneous-volcanic-processes:geo/silicate-structures",
+          "kernelId": "geo/silicate-structures",
+          "promptSha256": "503832bcb57055951cc15ec3fe28f048fb952d920d637630c9f0b094cd2721b9",
+          "rawResponseSha256": "3de650653561bff2b6c564684f7b8b9a84fedadfdb8f27ab6a8c917419d59b57",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "invalid-model-response"
+            ],
+            "counts": {
+              "generatedMcItems": 0,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 0,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "error": "source atom response did not contain a JSON object",
+          "startedAt": "2026-07-13T14:16:03.131Z",
+          "durationMs": 29360
+        },
+        {
+          "promptId": "igneous-volcanic-processes:geo/igneous-rocks",
+          "kernelId": "geo/igneous-rocks",
+          "promptSha256": "503bb56ac31cc516eca1dfee1c5b703ac66c836ec9c2f74c7d4e9252bd4dcb49",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which process dictates the crystal size in igneous rock formation?",
+                "op": [
+                  "The rate of cooling determines crystal size.",
+                  "The depth of the magma dictates crystal size.",
+                  "The magma composition dictates crystal size.",
+                  "The surface area dictates crystal size."
+                ],
+                "ai": 0,
+                "ex": "The rate of cooling determines crystal size. (Correct) This contrasts with the misconception that magma composition is the primary factor, as cooling speed is the controlling variable.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "A rock with a fine-grained texture is typically formed by which cooling scenario?",
+                "op": [
+                  "Slow cooling deep within the crust.",
+                  "Rapid cooling at or near the surface.",
+                  "Slow cooling at the surface.",
+                  "Rapid cooling deep within the crust."
+                ],
+                "ai": 3,
+                "ex": "Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Intrusive rock",
+                "df": "Rock formed when molten material cools slowly beneath the Earth's surface.",
+                "eg": "Granite (coarse-grained)",
+                "mi": "Rock formed by rapid cooling at the surface.",
+                "cx": "Rock formed by slow cooling deep within the crust.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              },
+              {
+                "tr": "Extrusive rock",
+                "df": "Rock formed when molten material cools quickly at or near the Earth's surface.",
+                "eg": "Basalt (fine-grained)",
+                "mi": "Rock formed by slow cooling deep within the crust.",
+                "cx": "Rock formed by rapid cooling at or near the surface.",
+                "sourceFactIndexes": [
+                  4
+                ]
+              }
+            ]
+          },
+          "responseSha256": "9ab49368008bed6fa3feb4095664827a551bbf07182acc0f1e9ef3b06e581dec",
+          "admittedResponse": {
+            "mcItems": [
+              {
+                "q": "Which process dictates the crystal size in igneous rock formation?",
+                "op": [
+                  "The rate of cooling determines crystal size.",
+                  "The depth of the magma dictates crystal size.",
+                  "The magma composition dictates crystal size.",
+                  "The surface area dictates crystal size."
+                ],
+                "ai": 0,
+                "ex": "The rate of cooling determines crystal size. (Correct) This contrasts with the misconception that magma composition is the primary factor, as cooling speed is the controlling variable.",
+                "sourceFactIndexes": [
+                  0
+                ]
+              },
+              {
+                "q": "A rock with a fine-grained texture is typically formed by which cooling scenario?",
+                "op": [
+                  "Slow cooling deep within the crust.",
+                  "Rapid cooling at or near the surface.",
+                  "Slow cooling at the surface.",
+                  "Rapid cooling deep within the crust."
+                ],
+                "ai": 1,
+                "ex": "Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Intrusive rock",
+                "df": "Rock formed when molten material cools slowly beneath the Earth's surface.",
+                "eg": "Granite (coarse-grained)",
+                "mi": "Rock formed by rapid cooling at the surface.",
+                "cx": "Rock formed by slow cooling deep within the crust.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "33f3f74355a6258206cc5dde565c4b0cd3dc565c93d9852012523b30f50abc9b",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "key-term-1-source-fact-index"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 2,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-13T14:16:32.492Z",
+          "durationMs": 7230,
+          "compilerRepairs": [
+            {
+              "kind": "mc-item",
+              "pass": "explanationKeyAlignment",
+              "lessonId": "igneous-volcanic-processes:geo/igneous-rocks",
+              "item": 1,
+              "action": "realigned",
+              "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+              "rejected": {
+                "question": "A rock with a fine-grained texture is typically formed by which cooling scenario?",
+                "options": [
+                  "Slow cooling deep within the crust.",
+                  "Rapid cooling at or near the surface.",
+                  "Slow cooling at the surface.",
+                  "Rapid cooling deep within the crust."
+                ],
+                "answerIndex": 3,
+                "explanation": "Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism."
+              },
+              "chosen": {
+                "question": "A rock with a fine-grained texture is typically formed by which cooling scenario?",
+                "options": [
+                  "Slow cooling deep within the crust.",
+                  "Rapid cooling at or near the surface.",
+                  "Slow cooling at the surface.",
+                  "Rapid cooling deep within the crust."
+                ],
+                "answerIndex": 1,
+                "explanation": "Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism."
+              },
+              "trainingEligible": true,
+              "preferenceEvidence": {
+                "kind": "deterministic-explanation-key-conflict",
+                "verified": true,
+                "declaredIndex": 3,
+                "supportedIndex": 1,
+                "scores": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "supportMethod": "explicit-explanation-cue",
+                "explicitCues": [
+                  {
+                    "supportedIndex": 1,
+                    "type": "explicit-option-text",
+                    "surface": "Rapid cooling at or near the surface. (Correct)"
+                  }
+                ],
+                "minimumBestScore": 3,
+                "minimumMargin": 3
+              },
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "compilerRepairCounts": {
+            "total": 1,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 1,
+            "sourceAnswerAlignment": 0,
+            "redundantDefinitionLead": 0
+          }
+        },
+        {
+          "promptId": "igneous-volcanic-processes:geo/volcanism",
+          "kernelId": "geo/volcanism",
+          "promptSha256": "5fba199f5bb3678b7feb35022d8d90b2b01c421a522a2160a73812c1d7e86a62",
+          "response": {
+            "mcItems": [
+              {
+                "q": "Which magma characteristic primarily dictates a gentle eruption style?",
+                "op": [
+                  "High silica content",
+                  "Low viscosity",
+                  "High gas trapping",
+                  "High silica content"
+                ],
+                "ai": 1,
+                "ex": "Low-viscosity (low-silica, basaltic) magma flows easily like syrup, producing the gentle eruptions of Hawaiian shield volcanoes. (Misconception: High silica content causes gentle eruptions.)",
+                "sourceFactIndexes": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "q": "What hazard is most characteristic of explosive high-silica volcanoes?",
+                "op": [
+                  "Lava flow",
+                  "Pyroclastic flow",
+                  "Gentle effusion",
+                  "Syrup-like flow"
+                ],
+                "ai": 3,
+                "ex": "The most dangerous volcanic hazard is the pyroclastic flow, a fast cloud of hot ash and gas typical of explosive high-silica volcanoes. (Misconception: Lava flow is the most dangerous hazard.)",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Magma viscosity",
+                "df": "The resistance of molten rock to flow. Example: Basaltic magma has low viscosity; felsic magma has high viscosity. Misconception: Viscosity is solely determined by silica content. Correction: Viscosity rises with silica content.",
+                "eg": "Low-silica magma flows easily like syrup, producing the gentle eruptions of Hawaiian shield volcanoes.",
+                "mi": "High silica content always results in high viscosity.",
+                "cx": "Magma viscosity rises with silica content.",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              },
+              {
+                "tr": "Pyroclastic flow",
+                "df": "A fast-moving cloud of hot ash and gas. Example: Typical of explosive high-silica volcanoes. Misconception: It is a slow, viscous lava flow. Correction: It is a fast cloud of hot ash and gas.",
+                "eg": "The most dangerous volcanic hazard is the pyroclastic flow, a fast cloud of hot ash and gas typical of explosive high-silica volcanoes.",
+                "mi": "Pyroclastic flow is a slow, viscous lava flow.",
+                "cx": "Pyroclastic flow is a fast cloud of hot ash and gas.",
+                "sourceFactIndexes": [
+                  3
+                ]
+              }
+            ]
+          },
+          "responseSha256": "725938f477c89dc8054fa8da6f1adece09ce039ff9397f33a218c1775a8e636a",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": []
+          },
+          "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+          "assessment": {
+            "eligible": false,
+            "issues": [
+              "mc-0-duplicate-options",
+              "mc-1-explanation-key-conflict",
+              "key-term-0-embedded-field-label",
+              "key-term-1-embedded-field-label",
+              "no-admitted-mc-items",
+              "no-admitted-key-terms"
+            ],
+            "counts": {
+              "generatedMcItems": 2,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 2,
+              "admittedKeyTerms": 0
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-13T14:16:39.722Z",
+          "durationMs": 7524,
+          "compilerRepairs": [],
+          "compilerRepairCounts": {
+            "total": 0,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 0,
+            "sourceAnswerAlignment": 0,
+            "redundantDefinitionLead": 0
+          }
+        }
+      ],
+      "recoveryCalls": [
+        {
+          "promptId": "igneous-volcanic-processes:geo/silicate-structures",
+          "kernelId": "geo/silicate-structures",
+          "promptSha256": "503832bcb57055951cc15ec3fe28f048fb952d920d637630c9f0b094cd2721b9",
+          "generationPromptSha256": "5693cec37e33bff8b70fd15d8a777a648960bc7b602e4dd66ab27c0abbef6a87",
+          "rawCallSha256": "21e96e84c5d021b08cdc9ec00bd12f5c7e07a310572969c13cd2b4b88f14e5a1",
+          "response": {
+            "mcItems": [
+              {
+                "q": "What defines the major silicate structures in rock-forming minerals?",
+                "op": [
+                  "Isolated tetrahedra",
+                  "Chains, sheets, or three-dimensional frameworks",
+                  "The silicon-oxygen tetrahedron's bonding pattern",
+                  "The abundance of silicon-oxygen atoms"
+                ],
+                "ai": 2,
+                "ex": "Chains, sheets, or three-dimensional frameworks",
+                "sourceFactIndexes": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "keyTerms": [
+              {
+                "tr": "Tetrahedral linkage",
+                "df": "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+                "eg": "Quartz exhibits a framework structure.",
+                "mi": "Tetrahedral linkage is the process where silicon-oxygen tetrahedra connect.",
+                "cx": "Tetrahedral linkage is the process of linking silicon-oxygen tetrahedra by sharing corner oxygen atoms.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "responseSha256": "4bc44c5cd7d261daf23e0a9783c389acd37bde7cb2e540ffc53aa79335449e64",
+          "admittedResponse": {
+            "mcItems": [],
+            "keyTerms": [
+              {
+                "tr": "Tetrahedral linkage",
+                "df": "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+                "eg": "Quartz exhibits a framework structure.",
+                "mi": "Tetrahedral linkage is the process where silicon-oxygen tetrahedra connect.",
+                "cx": "Tetrahedral linkage is the process of linking silicon-oxygen tetrahedra by sharing corner oxygen atoms.",
+                "sourceFactIndexes": [
+                  2
+                ]
+              }
+            ]
+          },
+          "admittedResponseSha256": "79c00b46a9b498d7572af96e692671e3a6eb000771f8cab219e60d08af1dd7b0",
+          "assessment": {
+            "eligible": true,
+            "issues": [
+              "mc-count",
+              "key-term-count",
+              "mc-0-truncated-explanation",
+              "mc-0-explanation-key-conflict",
+              "no-admitted-mc-items"
+            ],
+            "counts": {
+              "generatedMcItems": 1,
+              "admittedMcItems": 0,
+              "generatedKeyTerms": 1,
+              "admittedKeyTerms": 1
+            }
+          },
+          "receipt": {
+            "provider": "local",
+            "constrained": "json-schema",
+            "adapterActive": false
+          },
+          "startedAt": "2026-07-13T14:31:38.677Z",
+          "durationMs": 3929,
+          "compilerRepairs": [],
+          "compilerRepairCounts": {
+            "total": 0,
+            "incompleteExplanationTail": 0,
+            "explanationKeyAlignment": 0,
+            "sourceAnswerAlignment": 0,
+            "redundantDefinitionLead": 0
+          }
+        }
+      ],
+      "recoveredPromptIds": [
+        "igneous-volcanic-processes:geo/silicate-structures"
+      ]
+    },
+    "calls": [
+      {
+        "promptId": "igneous-volcanic-processes:geo/silicate-structures",
+        "kernelId": "geo/silicate-structures",
+        "promptSha256": "503832bcb57055951cc15ec3fe28f048fb952d920d637630c9f0b094cd2721b9",
+        "generationPromptSha256": "5693cec37e33bff8b70fd15d8a777a648960bc7b602e4dd66ab27c0abbef6a87",
+        "rawCallSha256": "21e96e84c5d021b08cdc9ec00bd12f5c7e07a310572969c13cd2b4b88f14e5a1",
+        "response": {
+          "mcItems": [
+            {
+              "q": "What defines the major silicate structures in rock-forming minerals?",
+              "op": [
+                "Isolated tetrahedra",
+                "Chains, sheets, or three-dimensional frameworks",
+                "The silicon-oxygen tetrahedron's bonding pattern",
+                "The abundance of silicon-oxygen atoms"
+              ],
+              "ai": 2,
+              "ex": "Chains, sheets, or three-dimensional frameworks",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Tetrahedral linkage",
+              "df": "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+              "eg": "Quartz exhibits a framework structure.",
+              "mi": "Tetrahedral linkage is the process where silicon-oxygen tetrahedra connect.",
+              "cx": "Tetrahedral linkage is the process of linking silicon-oxygen tetrahedra by sharing corner oxygen atoms.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "responseSha256": "4bc44c5cd7d261daf23e0a9783c389acd37bde7cb2e540ffc53aa79335449e64",
+        "admittedResponse": {
+          "mcItems": [],
+          "keyTerms": [
+            {
+              "tr": "Tetrahedral linkage",
+              "df": "Tetrahedra link by sharing corner oxygen atoms into chains, sheets, or three-dimensional frameworks.",
+              "eg": "Quartz exhibits a framework structure.",
+              "mi": "Tetrahedral linkage is the process where silicon-oxygen tetrahedra connect.",
+              "cx": "Tetrahedral linkage is the process of linking silicon-oxygen tetrahedra by sharing corner oxygen atoms.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "79c00b46a9b498d7572af96e692671e3a6eb000771f8cab219e60d08af1dd7b0",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "mc-count",
+            "key-term-count",
+            "mc-0-truncated-explanation",
+            "mc-0-explanation-key-conflict",
+            "no-admitted-mc-items"
+          ],
+          "counts": {
+            "generatedMcItems": 1,
+            "admittedMcItems": 0,
+            "generatedKeyTerms": 1,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-13T14:31:38.677Z",
+        "durationMs": 3929,
+        "compilerRepairs": [],
+        "compilerRepairCounts": {
+          "total": 0,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 0,
+          "sourceAnswerAlignment": 0,
+          "redundantDefinitionLead": 0
+        }
+      },
+      {
+        "promptId": "igneous-volcanic-processes:geo/igneous-rocks",
+        "kernelId": "geo/igneous-rocks",
+        "promptSha256": "503bb56ac31cc516eca1dfee1c5b703ac66c836ec9c2f74c7d4e9252bd4dcb49",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which process dictates the crystal size in igneous rock formation?",
+              "op": [
+                "The rate of cooling determines crystal size.",
+                "The depth of the magma dictates crystal size.",
+                "The magma composition dictates crystal size.",
+                "The surface area dictates crystal size."
+              ],
+              "ai": 0,
+              "ex": "The rate of cooling determines crystal size. (Correct) This contrasts with the misconception that magma composition is the primary factor, as cooling speed is the controlling variable.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "A rock with a fine-grained texture is typically formed by which cooling scenario?",
+              "op": [
+                "Slow cooling deep within the crust.",
+                "Rapid cooling at or near the surface.",
+                "Slow cooling at the surface.",
+                "Rapid cooling deep within the crust."
+              ],
+              "ai": 3,
+              "ex": "Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Intrusive rock",
+              "df": "Rock formed when molten material cools slowly beneath the Earth's surface.",
+              "eg": "Granite (coarse-grained)",
+              "mi": "Rock formed by rapid cooling at the surface.",
+              "cx": "Rock formed by slow cooling deep within the crust.",
+              "sourceFactIndexes": [
+                2
+              ]
+            },
+            {
+              "tr": "Extrusive rock",
+              "df": "Rock formed when molten material cools quickly at or near the Earth's surface.",
+              "eg": "Basalt (fine-grained)",
+              "mi": "Rock formed by slow cooling deep within the crust.",
+              "cx": "Rock formed by rapid cooling at or near the surface.",
+              "sourceFactIndexes": [
+                4
+              ]
+            }
+          ]
+        },
+        "responseSha256": "9ab49368008bed6fa3feb4095664827a551bbf07182acc0f1e9ef3b06e581dec",
+        "admittedResponse": {
+          "mcItems": [
+            {
+              "q": "Which process dictates the crystal size in igneous rock formation?",
+              "op": [
+                "The rate of cooling determines crystal size.",
+                "The depth of the magma dictates crystal size.",
+                "The magma composition dictates crystal size.",
+                "The surface area dictates crystal size."
+              ],
+              "ai": 0,
+              "ex": "The rate of cooling determines crystal size. (Correct) This contrasts with the misconception that magma composition is the primary factor, as cooling speed is the controlling variable.",
+              "sourceFactIndexes": [
+                0
+              ]
+            },
+            {
+              "q": "A rock with a fine-grained texture is typically formed by which cooling scenario?",
+              "op": [
+                "Slow cooling deep within the crust.",
+                "Rapid cooling at or near the surface.",
+                "Slow cooling at the surface.",
+                "Rapid cooling deep within the crust."
+              ],
+              "ai": 1,
+              "ex": "Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Intrusive rock",
+              "df": "Rock formed when molten material cools slowly beneath the Earth's surface.",
+              "eg": "Granite (coarse-grained)",
+              "mi": "Rock formed by rapid cooling at the surface.",
+              "cx": "Rock formed by slow cooling deep within the crust.",
+              "sourceFactIndexes": [
+                2
+              ]
+            }
+          ]
+        },
+        "admittedResponseSha256": "33f3f74355a6258206cc5dde565c4b0cd3dc565c93d9852012523b30f50abc9b",
+        "assessment": {
+          "eligible": true,
+          "issues": [
+            "key-term-1-source-fact-index"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 2,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 1
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-13T14:16:32.492Z",
+        "durationMs": 7230,
+        "compilerRepairs": [
+          {
+            "kind": "mc-item",
+            "pass": "explanationKeyAlignment",
+            "lessonId": "igneous-volcanic-processes:geo/igneous-rocks",
+            "item": 1,
+            "action": "realigned",
+            "prompt": "Choose the answer index supported by the affirmative explanation for this multiple-choice item.",
+            "rejected": {
+              "question": "A rock with a fine-grained texture is typically formed by which cooling scenario?",
+              "options": [
+                "Slow cooling deep within the crust.",
+                "Rapid cooling at or near the surface.",
+                "Slow cooling at the surface.",
+                "Rapid cooling deep within the crust."
+              ],
+              "answerIndex": 3,
+              "explanation": "Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism."
+            },
+            "chosen": {
+              "question": "A rock with a fine-grained texture is typically formed by which cooling scenario?",
+              "options": [
+                "Slow cooling deep within the crust.",
+                "Rapid cooling at or near the surface.",
+                "Slow cooling at the surface.",
+                "Rapid cooling deep within the crust."
+              ],
+              "answerIndex": 1,
+              "explanation": "Rapid cooling at or near the surface. (Correct) This contrasts with the misconception that slow cooling at the surface produces fine-grained rock, as rapid cooling at the surface is the mechanism."
+            },
+            "trainingEligible": true,
+            "preferenceEvidence": {
+              "kind": "deterministic-explanation-key-conflict",
+              "verified": true,
+              "declaredIndex": 3,
+              "supportedIndex": 1,
+              "scores": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "supportMethod": "explicit-explanation-cue",
+              "explicitCues": [
+                {
+                  "supportedIndex": 1,
+                  "type": "explicit-option-text",
+                  "surface": "Rapid cooling at or near the surface. (Correct)"
+                }
+              ],
+              "minimumBestScore": 3,
+              "minimumMargin": 3
+            },
+            "sourceFactIndexes": [
+              3
+            ]
+          }
+        ],
+        "compilerRepairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1,
+          "sourceAnswerAlignment": 0,
+          "redundantDefinitionLead": 0
+        }
+      },
+      {
+        "promptId": "igneous-volcanic-processes:geo/volcanism",
+        "kernelId": "geo/volcanism",
+        "promptSha256": "5fba199f5bb3678b7feb35022d8d90b2b01c421a522a2160a73812c1d7e86a62",
+        "response": {
+          "mcItems": [
+            {
+              "q": "Which magma characteristic primarily dictates a gentle eruption style?",
+              "op": [
+                "High silica content",
+                "Low viscosity",
+                "High gas trapping",
+                "High silica content"
+              ],
+              "ai": 1,
+              "ex": "Low-viscosity (low-silica, basaltic) magma flows easily like syrup, producing the gentle eruptions of Hawaiian shield volcanoes. (Misconception: High silica content causes gentle eruptions.)",
+              "sourceFactIndexes": [
+                0,
+                1
+              ]
+            },
+            {
+              "q": "What hazard is most characteristic of explosive high-silica volcanoes?",
+              "op": [
+                "Lava flow",
+                "Pyroclastic flow",
+                "Gentle effusion",
+                "Syrup-like flow"
+              ],
+              "ai": 3,
+              "ex": "The most dangerous volcanic hazard is the pyroclastic flow, a fast cloud of hot ash and gas typical of explosive high-silica volcanoes. (Misconception: Lava flow is the most dangerous hazard.)",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ],
+          "keyTerms": [
+            {
+              "tr": "Magma viscosity",
+              "df": "The resistance of molten rock to flow. Example: Basaltic magma has low viscosity; felsic magma has high viscosity. Misconception: Viscosity is solely determined by silica content. Correction: Viscosity rises with silica content.",
+              "eg": "Low-silica magma flows easily like syrup, producing the gentle eruptions of Hawaiian shield volcanoes.",
+              "mi": "High silica content always results in high viscosity.",
+              "cx": "Magma viscosity rises with silica content.",
+              "sourceFactIndexes": [
+                0,
+                2
+              ]
+            },
+            {
+              "tr": "Pyroclastic flow",
+              "df": "A fast-moving cloud of hot ash and gas. Example: Typical of explosive high-silica volcanoes. Misconception: It is a slow, viscous lava flow. Correction: It is a fast cloud of hot ash and gas.",
+              "eg": "The most dangerous volcanic hazard is the pyroclastic flow, a fast cloud of hot ash and gas typical of explosive high-silica volcanoes.",
+              "mi": "Pyroclastic flow is a slow, viscous lava flow.",
+              "cx": "Pyroclastic flow is a fast cloud of hot ash and gas.",
+              "sourceFactIndexes": [
+                3
+              ]
+            }
+          ]
+        },
+        "responseSha256": "725938f477c89dc8054fa8da6f1adece09ce039ff9397f33a218c1775a8e636a",
+        "admittedResponse": {
+          "mcItems": [],
+          "keyTerms": []
+        },
+        "admittedResponseSha256": "280e927f726ba6bd3168e0178b84a1a29497a4844b749399b5a46813375df170",
+        "assessment": {
+          "eligible": false,
+          "issues": [
+            "mc-0-duplicate-options",
+            "mc-1-explanation-key-conflict",
+            "key-term-0-embedded-field-label",
+            "key-term-1-embedded-field-label",
+            "no-admitted-mc-items",
+            "no-admitted-key-terms"
+          ],
+          "counts": {
+            "generatedMcItems": 2,
+            "admittedMcItems": 0,
+            "generatedKeyTerms": 2,
+            "admittedKeyTerms": 0
+          }
+        },
+        "receipt": {
+          "provider": "local",
+          "constrained": "json-schema",
+          "adapterActive": false
+        },
+        "startedAt": "2026-07-13T14:16:39.722Z",
+        "durationMs": 7524,
+        "compilerRepairs": [],
+        "compilerRepairCounts": {
+          "total": 0,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 0,
+          "sourceAnswerAlignment": 0,
+          "redundantDefinitionLead": 0
+        }
+      }
+    ]
+  },
+  "scionCompilerReplay": {
+    "schemaVersion": 1,
+    "protocol": "scion-source-compiler-replay-v1",
+    "release": "v0.16.47",
+    "generatedAt": "2026-07-17T05:53:23Z",
+    "sourceProject": {
+      "path": "evaluation/scion-source-capture-evidence/igneous-volcanic-processes-local.json",
+      "bytes": 42509,
+      "sha256": "df5bc5b48c806ffc937469202267bb8b415850fa9fd11c3aa863d3d7c53704eb",
+      "projectId": "scion-source-capture-igneous-volcanic-processes-local",
+      "captureProtocol": "scion-source-grounded-atom-capture-v1",
+      "captureCompletedAt": "2026-07-13T14:31:42.606Z"
+    },
+    "compilerSources": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 34390,
+        "sha256": "f9a2d406b0ded6363384abe09afae2784d0e469556b598962ecac3e86827c434"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 18719,
+        "sha256": "355f9bf6bca51af968ae47ef6a6f19021932ae1a06b5ee688e0d3b7932bd4c74"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 50444,
+        "sha256": "a45b664d94d47afeccd69f46ddf0700ee890b7309f05bfb9c3d12e6099813871"
+      },
+      {
+        "path": "scripts/scionSourceCompilerReplay.mjs",
+        "bytes": 20983,
+        "sha256": "b8de39532544eaf0fdd62633a2d5449381dce2bfdbe29be66a752ac24466ae55"
+      }
+    ],
+    "responseMutationCount": 0,
+    "repairRows": [
+      {
+        "promptId": "igneous-volcanic-processes:geo/igneous-rocks",
+        "responseSha256": "9ab49368008bed6fa3feb4095664827a551bbf07182acc0f1e9ef3b06e581dec",
+        "admittedResponseSha256": "33f3f74355a6258206cc5dde565c4b0cd3dc565c93d9852012523b30f50abc9b",
+        "repairCounts": {
+          "total": 1,
+          "incompleteExplanationTail": 0,
+          "explanationKeyAlignment": 1,
+          "sourceAnswerAlignment": 0
+        },
+        "repairsSha256": "41d25a52c147223bfe4755e9d1658d9d16d91d4539c89aafcc652d82ebdc9050"
+      }
+    ],
+    "repairCounts": {
+      "total": 1,
+      "incompleteExplanationTail": 0,
+      "explanationKeyAlignment": 1,
+      "sourceAnswerAlignment": 0
+    },
+    "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
+    "identity": {
+      "algorithm": "sha256-canonical-source-compiler-replay-v1",
+      "sha256": "e37b53c0316366f13127b8bb9d5e8b9b59612e715028347245725a0bcb60efea"
+    }
+  }
+}

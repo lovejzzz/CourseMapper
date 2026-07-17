@@ -16,12 +16,12 @@ import {
 } from './lib/scionSourceCapture.mjs';
 
 export const SCION_SOURCE_COMPILER_REPLAY_PROTOCOL = 'scion-source-compiler-replay-v1';
-export const SCION_SOURCE_COMPILER_REPLAY_RELEASE = 'v0.16.46';
-export const SCION_SOURCE_COMPILER_REPLAY_OUTPUT = 'evaluation/scion-source-compiler-replay-v0.16.46';
+export const SCION_SOURCE_COMPILER_REPLAY_RELEASE = 'v0.16.47';
+export const SCION_SOURCE_COMPILER_REPLAY_OUTPUT = 'evaluation/scion-source-compiler-replay-v0.16.47';
 export const SCION_SOURCE_COMPILER_REPLAY_RECEIPT =
-  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.46.json';
+  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.47.json';
 export const SCION_SOURCE_COMPILER_REPLAY_PREVIOUS_RECEIPT =
-  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.45.json';
+  'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.46.json';
 
 const DEFAULT_CAMPAIGNS = [
   {
@@ -243,25 +243,25 @@ export async function buildScionSourceCompilerReplay({
   const previousRaw = await fs.readFile(SCION_SOURCE_COMPILER_REPLAY_PREVIOUS_RECEIPT, 'utf8');
   const previous = JSON.parse(previousRaw);
   if (
-    previous.release !== 'v0.16.45' ||
-    previous.summary?.replayedCompiledBurden?.admittedAtoms !== 131 ||
-    previous.summary?.replayedCompiledBurden?.burdenAtoms !== 61 ||
+    previous.release !== 'v0.16.46' ||
+    previous.summary?.replayedCompiledBurden?.admittedAtoms !== 130 ||
+    previous.summary?.replayedCompiledBurden?.burdenAtoms !== 62 ||
     previous.summary?.responseMutationCount !== 0
   ) {
-    throw new Error('The v0.16.45 source compiler baseline drifted.');
+    throw new Error('The v0.16.46 source compiler baseline drifted.');
   }
   const compilerSources = await Promise.all(COMPILER_SOURCES.map(fileReceipt));
   const previousProjects = await Promise.all(
     (previous.projects || []).map(async (entry) => {
       const raw = await fs.readFile(entry.path);
       if (raw.length !== entry.bytes || fileSha256(raw) !== entry.sha256) {
-        throw new Error(`The v0.16.45 source compiler project drifted: ${entry.path}`);
+        throw new Error(`The v0.16.46 source compiler project drifted: ${entry.path}`);
       }
       return JSON.parse(raw.toString('utf8'));
     }),
   );
   if (previousProjects.length !== previous.summary?.projectCount) {
-    throw new Error('The v0.16.45 source compiler project inventory drifted.');
+    throw new Error('The v0.16.46 source compiler project inventory drifted.');
   }
   const absoluteOutput = path.resolve(outputDir);
   await fs.rm(absoluteOutput, { recursive: true, force: true });
@@ -345,17 +345,17 @@ export async function buildScionSourceCompilerReplay({
         identity,
         priorDeclaredIndex: prior?.preferenceEvidence?.declaredIndex,
         priorSupportedIndex: prior?.preferenceEvidence?.supportedIndex,
-        disposition: 'source-confirmed-declared-key-blocked-explanation-only-repair',
+        disposition: 'lexical-only-key-repair-disabled-after-live-false-flip',
       };
     }),
   };
   if (
     repairEvolution.sourceAnswerAlignment !== 10 ||
-    repairEvolution.replacedExplanationKeyAlignment !== 8 ||
-    repairEvolution.newSourceAnswerAlignment !== 2 ||
-    repairEvolution.removedExplanationKeyAlignment !== 1
+    repairEvolution.replacedExplanationKeyAlignment !== 0 ||
+    repairEvolution.newSourceAnswerAlignment !== 10 ||
+    repairEvolution.removedExplanationKeyAlignment !== 14
   ) {
-    throw new Error(`The v0.16.46 source repair evolution drifted: ${JSON.stringify(repairEvolution)}.`);
+    throw new Error(`The v0.16.47 source repair evolution drifted: ${JSON.stringify(repairEvolution)}.`);
   }
   const priorReleaseDelta = {
     previousRelease: previous.release,
@@ -395,7 +395,7 @@ export async function buildScionSourceCompilerReplay({
       recoveredAtoms: replayBurden.admittedAtoms - historicalBurden.admittedAtoms,
       burdenAtomReduction: historicalBurden.burdenAtoms - replayBurden.burdenAtoms,
       claimBoundary:
-        'The v0.16.46 source-answer repair changes only an answer index when the question identifies a unique supplied claim and one different option has strong contained source support. Exact response text remains unchanged, and replayed candidates stay anonymous and unlabeled until both required Codex presentation orders agree above the training floor.',
+        'The v0.16.47 replay changes an answer index only from exact explanation cues or uniquely question-relevant supplied claims. Fourteen prior explanation-overlap repairs are disabled after a live Hubble-law false flip; nine additional atoms are now rejected for retry instead of receiving an unverified key mutation. Exact response text remains unchanged, and replayed candidates stay anonymous and unlabeled until both required Codex presentation orders agree above the training floor.',
     },
   };
   receipt.identity = {

@@ -10,31 +10,32 @@ describe('Scion semantic admission replay', () => {
 
     expect(report).toMatchObject({
       protocol: 'scion-semantic-admission-replay-v1',
-      release: 'v0.16.46',
+      release: 'v0.16.47',
       evidenceClass: 'single-model-judge-same-identity-paired-order-replay',
       summary: {
         reviewedStableLosses: 46,
         acceptedWithoutInterception: 26,
         intercepted: 20,
-        repaired: 8,
-        rejectedForRegeneration: 12,
+        repaired: 5,
+        rejectedForRegeneration: 15,
         responseTextMutations: 0,
-        repairFieldMutations: 8,
+        repairFieldMutations: 5,
         issues: {
           'claim-marker-residue': 4,
           'duplicate-options': 2,
+          'explanation-key-conflict': 3,
           'explanation-repeats-answer': 4,
           'misconception-repeats-known-fact': 3,
         },
       },
       unresolvedStableLosses: 26,
     });
-    expect(report.intercepted.filter((entry) => entry.action === 'answer-index-repaired')).toHaveLength(8);
+    expect(report.intercepted.filter((entry) => entry.action === 'answer-index-repaired')).toHaveLength(5);
     expect(
       report.intercepted
         .flatMap((entry) => entry.repairs)
         .filter((repair) => repair.supportMethod === 'first-sentence-lexical-margin'),
-    ).toHaveLength(3);
+    ).toHaveLength(0);
     expect(
       report.intercepted
         .flatMap((entry) => entry.repairs)
@@ -55,8 +56,8 @@ describe('Scion semantic admission replay', () => {
       acceptedWithoutInterception: 46,
     });
     expect(report.inputs.previousRelease).toMatchObject({
-      release: 'v0.16.45',
-      summary: { intercepted: 18, repaired: 6, rejectedForRegeneration: 12 },
+      release: 'v0.16.46',
+      summary: { intercepted: 20, repaired: 8, rejectedForRegeneration: 12 },
     });
   });
 });

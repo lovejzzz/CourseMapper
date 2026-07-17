@@ -4,7 +4,12 @@ import { lintItemAdmission } from './itemAdmissionLint';
 import { projectKernelToSurfaces } from './kernelProjection';
 import { assessTargetLanguagePresence, detectForeignLanguageTeachingContent } from './languageIdentityGuard';
 import { lintDecisionScenario } from './scenarioContract';
-import { normalizeScionOptionIdentity, repairScionMcItem } from './scionAnswerKeyAlignment';
+import {
+  findScionExplanationKeyConflict,
+  findScionSourceAnswerSupport,
+  normalizeScionOptionIdentity,
+  repairScionMcItem,
+} from './scionAnswerKeyAlignment';
 import { assessScionKeyTermContract } from './scionKeyTermContract';
 
 const DEFAULT_MAX_LESSONS = 12;
@@ -925,7 +930,7 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
   };
 }
 
-export function lintEnrichedQuizItem(item, { groundingText = '' } = {}) {
+export function lintEnrichedQuizItem(item, { groundingText = '', sourceClaims = [] } = {}) {
   const issues = [];
   const question = cleanText(item?.question);
   if (question.length < 20) issues.push('stem-too-short');
@@ -951,6 +956,8 @@ export function lintEnrichedQuizItem(item, { groundingText = '' } = {}) {
     ) {
       issues.push('explanation-repeats-answer');
     }
+    const sourceSupport = findScionSourceAnswerSupport(item, { sourceClaims });
+    if (!sourceSupport && findScionExplanationKeyConflict(item)) issues.push('explanation-key-conflict');
     // CurriculumOS V1 Phase A: test-wiseness battery shared with the foundry
     // admission gate — cues that reveal the key without knowing the content.
     issues.push(...lintItemAdmission({ ...item, options }));
@@ -1589,7 +1596,10 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
         : [];
       const repaired = repairScionMcItem(item, { lessonId, itemIndex: index, sourceClaims: citedSourceClaims });
       const admittedItem = repaired.item;
-      const problems = lintEnrichedQuizItem({ ...admittedItem, type: 'multiple_choice' }, { groundingText });
+      const problems = lintEnrichedQuizItem(
+        { ...admittedItem, type: 'multiple_choice' },
+        { groundingText, sourceClaims: citedSourceClaims },
+      );
       if (rawSourceFactIndexes !== undefined && !sourceFactIndexesValid) problems.push('source-fact-index');
       if (problems.length > 0) issues.push({ lessonId, surface: 'mc', index, problems });
       else {

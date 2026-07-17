@@ -63,10 +63,7 @@ describe('Scion strict semantic admission', () => {
     expect(assessScionMcItem(item, { semanticProfile: 'strict' }).issues).toContain('explanation-key-conflict');
     expect(repairScionMcItem(item).repairs).toHaveLength(0);
     const repaired = repairScionMcItem(item, { strictSourceAlignment: true });
-    expect(repaired.item.ai).toBe(2);
-    expect(repaired.repairs).toEqual([
-      expect.objectContaining({ pass: 'explanationKeyAlignment', action: 'realigned' }),
-    ]);
+    expect(repaired).toEqual({ item, repairs: [] });
   });
 
   it('uses a two-token question-to-claim anchor only when strict source support uniquely contradicts the key', () => {

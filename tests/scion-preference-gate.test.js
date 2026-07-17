@@ -222,7 +222,7 @@ describe('Scion preference admission gate', () => {
     expect(assessScionMcItem(conflicted).issues).toContain('explanation-key-conflict');
   });
 
-  it('repairs a contradicted key again at the persisted CourseGraph boundary', () => {
+  it('does not mutate a persisted CourseGraph key from lexical overlap alone', () => {
     const conflicted = goodMc({
       ai: undefined,
       answerIndex: 0,
@@ -250,12 +250,12 @@ describe('Scion preference admission gate', () => {
       },
     });
 
-    expect(graph.enrichmentOverlay.lessonContent['lesson-1'].quizItems[0].answerIndex).toBe(1);
-    expect(graph.concepts[0].kernel.quizItems[0].answerIndex).toBe(1);
-    expect(graph.enrichmentOverlay.semanticRepairs).toHaveLength(1);
-    const trainingAssessment = assessCorpusRow(graph.enrichmentOverlay.semanticRepairs[0]);
-    expect(trainingAssessment.eligible).toBe(false);
-    expect(trainingAssessment.issues).toContain('unsupported-preference-evidence-kind');
+    expect(graph.enrichmentOverlay.lessonContent['lesson-1'].quizItems[0].answerIndex).toBe(0);
+    expect(graph.concepts[0].kernel.quizItems[0].answerIndex).toBe(0);
+    expect(graph.enrichmentOverlay.semanticRepairs || []).toHaveLength(0);
+    expect(assessScionMcItem(graph.concepts[0].kernel.quizItems[0]).issues).toContain(
+      'explanation-key-conflict',
+    );
   });
 
   it('requires the complete kernel contract including study-guide strategy', () => {

@@ -19,16 +19,13 @@ const TRUNCATED_CONFLICT = {
 };
 
 describe('Scion MC contract recovery', () => {
-  it('retains only complete model-authored sentences and then realigns a decisive key', () => {
+  it('retains only complete model-authored sentences without trusting lexical key overlap', () => {
     const repaired = repairScionMcItem(TRUNCATED_CONFLICT, { lessonId: 'lesson-2', itemIndex: 1 });
     expect(repaired.item).toMatchObject({
-      ai: 1,
+      ai: 3,
       ex: 'Creating user stories that describe features turns stable needs into actionable product work.',
     });
-    expect(repaired.repairs.map((entry) => entry.pass)).toEqual([
-      'incompleteExplanationTail',
-      'explanationKeyAlignment',
-    ]);
+    expect(repaired.repairs.map((entry) => entry.pass)).toEqual(['incompleteExplanationTail']);
     expect(repaired.repairs[0]).toMatchObject({
       trainingEligible: false,
       action: 'trimmed-incomplete-tail',
@@ -36,11 +33,6 @@ describe('Scion MC contract recovery', () => {
         verified: true,
         removedTail: 'Focusing only on interface requests is too narrow because',
       },
-    });
-    expect(repaired.repairs[1]).toMatchObject({
-      trainingEligible: true,
-      rejected: { answerIndex: 3 },
-      chosen: { answerIndex: 1 },
     });
   });
 
@@ -68,7 +60,7 @@ describe('Scion MC contract recovery', () => {
     expect(repaired.repairs).toEqual([]);
   });
 
-  it('persists both repairs and their provenance when an enrichment graph is reopened', () => {
+  it('persists only the safe sentence-boundary repair when an enrichment graph is reopened', () => {
     const enrichment = {
       lessonContent: {
         'lesson-2': {
@@ -78,13 +70,10 @@ describe('Scion MC contract recovery', () => {
     };
     const result = repairScionEnrichmentAnswerKeys(enrichment);
     expect(result.enrichment.lessonContent['lesson-2'].quizItems[0]).toMatchObject({
-      ai: 1,
+      ai: 3,
       ex: 'Creating user stories that describe features turns stable needs into actionable product work.',
     });
-    expect(result.enrichment.semanticRepairs.map((entry) => entry.pass)).toEqual([
-      'incompleteExplanationTail',
-      'explanationKeyAlignment',
-    ]);
+    expect(result.enrichment.semanticRepairs.map((entry) => entry.pass)).toEqual(['incompleteExplanationTail']);
     expect(enrichment.lessonContent['lesson-2'].quizItems[0]).toEqual({
       ...TRUNCATED_CONFLICT,
       type: 'multiple_choice',
@@ -230,8 +219,8 @@ describe('Scion MC contract recovery', () => {
       supportedIndex: 1,
       scores: [1, 2, 0, 1],
     },
-  ])('realigns from $name without reading later distractor prose', ({ item, supportedIndex, scores }) => {
-    const repaired = repairScionMcItem(item);
+  ])('can replay the historical lexical repair for $name', ({ item, supportedIndex, scores }) => {
+    const repaired = repairScionMcItem(item, { allowUnverifiedLexicalRepair: true });
     expect(repaired.item.ai).toBe(supportedIndex);
     expect(repaired.repairs[0].preferenceEvidence).toMatchObject({
       supportMethod: 'first-sentence-lexical-margin',
@@ -244,6 +233,23 @@ describe('Scion MC contract recovery', () => {
     });
   });
 
+  it('does not flip a correct Hubble-law key from lexical overlap with a false directional distractor', () => {
+    const item = {
+      q: "Hubble's law implies the universe is expanding because",
+      op: [
+        'recession speed grows in proportion to distance for galaxies in every direction',
+        'all galaxies have exactly the same speed',
+        'nearby galaxies recede faster than distant ones',
+        'the Milky Way is at the exact center of the cosmos',
+      ],
+      ai: 0,
+      ex: 'Because nearly all galaxies recede, with the most distant receding fastest, the universe must be expanding. By contrast, “nearby galaxies recede faster than distant ones” does not address the same evidence or decision criterion.',
+    };
+
+    expect(repairScionMcItem(item)).toEqual({ item, repairs: [] });
+    expect(repairScionMcItem(item, { allowUnverifiedLexicalRepair: true }).item.ai).toBe(2);
+  });
+
   it('can replay the pre-first-sentence contract without rewriting historical receipts', () => {
     const item = {
       q: 'What is the primary action performed by the open() function?',
@@ -251,7 +257,12 @@ describe('Scion MC contract recovery', () => {
       ai: 1,
       ex: 'open() returns a file object that the program then reads from or writes to.',
     };
-    expect(repairScionMcItem(item, { keyConflictOptions: { allowFirstSentenceLexicalCue: false } })).toEqual({
+    expect(
+      repairScionMcItem(item, {
+        allowUnverifiedLexicalRepair: true,
+        keyConflictOptions: { allowFirstSentenceLexicalCue: false },
+      }),
+    ).toEqual({
       item,
       repairs: [],
     });
@@ -439,7 +450,7 @@ describe('Scion MC contract recovery', () => {
       'Silicate minerals, built from the silicon-oxygen tetrahedron, are rock-forming minerals; the way tetrahedra link together defines the major silicate structures.',
       'Tetrahedra can link into chains, sheets, or three-dimensional frameworks.',
     ];
-    expect(repairScionMcItem(item)).toMatchObject({ item: { ai: 1 } });
+    expect(repairScionMcItem(item)).toEqual({ item, repairs: [] });
     expect(repairScionMcItem(item, { sourceClaims })).toEqual({ item, repairs: [] });
   });
 

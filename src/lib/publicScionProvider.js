@@ -32,8 +32,8 @@ export function isPublicScionProvider(provider) {
 
 // The shared repair module stays lightweight and does not import the full
 // preference gate. Browser preprocessing and canonical admission share one
-// repair order; the browser's retained two-token paraphrase exception is
-// explicit below and its evidence is always marked non-training.
+// repair order. Only explicit answer text/labels or uniquely cited source
+// claims may move a key; lexical overlap remains a rejection signal.
 function repairPublicScionMcItems(parsed) {
   const repairs = [];
   if (!parsed || !Array.isArray(parsed.lessons)) return { parsed, repairs };
@@ -55,28 +55,8 @@ function repairPublicScionMcItems(parsed) {
         lessonId: lesson.lessonId,
         itemIndex,
         sourceClaims: citedSourceClaims,
-        // Preserve the browser parser's proven question/steps paraphrase
-        // recovery. Canonical admission and benchmark replay keep the more
-        // conservative shared default (3 overlapping tokens, margin 3).
-        keyConflictOptions: { minimumBestScore: 2, minimumMargin: 1 },
       });
-      repairs.push(
-        ...result.repairs.map((repair) =>
-          repair.pass === 'explanationKeyAlignment'
-            ? {
-                ...repair,
-                // The browser parser intentionally accepts one proven
-                // two-token paraphrase family. It improves the product path
-                // but must not enter the stricter training-preference lane.
-                trainingEligible: false,
-                preferenceEvidence: {
-                  ...repair.preferenceEvidence,
-                  evidenceScope: 'browser-relaxed-paraphrase-recovery',
-                },
-              }
-            : repair,
-        ),
-      );
+      repairs.push(...result.repairs);
       return result.item;
     });
   }

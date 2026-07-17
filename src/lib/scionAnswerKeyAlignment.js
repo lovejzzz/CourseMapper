@@ -779,6 +779,7 @@ export function repairScionMcItem(
     sourceClaims = [],
     strictSourceAlignment = false,
     keyConflictOptions,
+    allowUnverifiedLexicalRepair = false,
   } = {},
 ) {
   let next = item;
@@ -804,7 +805,20 @@ export function repairScionMcItem(
       const conflict =
         findScionExplanationKeyConflict(next, keyConflictOptions) ||
         (strictSourceAlignment ? findScionAffirmativeOptionConflict(next) : null);
-      const keyRepair = buildScionAnswerKeyRepair({ item: next, lessonId, itemIndex, conflict });
+      // Exact answer labels/text are deterministic evidence. Lexical overlap
+      // is only a useful defect detector: an explanation can repeat the words
+      // of a false distractor while refuting its direction (the live Hubble's
+      // law package did exactly that). Keep the historical switch solely for
+      // receipt replay; production sends such conflicts to semantic admission
+      // and regeneration instead of mutating the key.
+      const autoRepairableConflict =
+        conflict?.supportMethod === 'explicit-explanation-cue' || allowUnverifiedLexicalRepair ? conflict : null;
+      const keyRepair = buildScionAnswerKeyRepair({
+        item: next,
+        lessonId,
+        itemIndex,
+        conflict: autoRepairableConflict,
+      });
       if (keyRepair) {
         next = replaceAnswerIndex(next, keyRepair.chosen.answerIndex);
         repairs.push(keyRepair);
