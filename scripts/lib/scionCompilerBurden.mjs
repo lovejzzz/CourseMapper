@@ -71,6 +71,8 @@ export function summarizeScionCompilerBurden(events, { lessonCount = 0 } = {}) {
   }
   const lessons = Number(lessonCount) || 0;
   const mcItemCalls = Number(byCallType.mc_item) || 0;
+  const mcBatchCalls = Number(byCallType.mc_verify_repair_batch) || 0;
+  const mcRepairCalls = mcItemCalls + mcBatchCalls;
   const verifiedMcRepairs = parsedActions.filter(
     (action) => action.pass === 'mcVerify' && action.action === 'regenerated',
   ).length;
@@ -98,10 +100,12 @@ export function summarizeScionCompilerBurden(events, { lessonCount = 0 } = {}) {
       byAction,
       rejectionReasons,
       mcRepairEfficiency: {
-        calls: mcItemCalls,
+        calls: mcRepairCalls,
+        individualCalls: mcItemCalls,
+        batchCalls: mcBatchCalls,
         verifiedRepairs: verifiedMcRepairs,
-        yield: mcItemCalls > 0 ? Number((verifiedMcRepairs / mcItemCalls).toFixed(3)) : null,
-        callsWithoutVerifiedRepair: Math.max(0, mcItemCalls - verifiedMcRepairs),
+        yield: mcRepairCalls > 0 ? Number((verifiedMcRepairs / mcRepairCalls).toFixed(3)) : null,
+        callsWithoutVerifiedRepair: Math.max(0, mcRepairCalls - verifiedMcRepairs),
       },
     },
   };
@@ -150,7 +154,8 @@ export function compareScionCompilerBurden(candidate, control) {
         code: `${side}-low-yield-mc-repair`,
         detail:
           `${side === 'candidate' ? 'Candidate' : 'Control'} admitted ${efficiency.verifiedRepairs} verified MC ` +
-          `repair(s) from ${efficiency.calls} individual repair calls (${(efficiency.yield * 100).toFixed(1)}% yield).`,
+          `repair(s) from ${efficiency.calls} repair generation call(s) (${(efficiency.yield * 100).toFixed(1)} repairs per 100 calls; ` +
+          `${Number(efficiency.individualCalls) || 0} individual, ${Number(efficiency.batchCalls) || 0} batched).`,
       });
     }
   }

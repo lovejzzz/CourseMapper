@@ -129,12 +129,15 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
         // proposition into a zero-based integer.
         return JSON.stringify({ answers: ['Perfect fifth'] });
       }
-      if (schemaProfile.name === 'mc_item') {
+      if (schemaProfile.name === 'mc_verify_repair_batch') {
         return JSON.stringify({
-          q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
-          op: ['A. Perfect fourth', 'B. Perfect fifth', 'C. Major third', 'D. Octave'],
-          ai: 1,
-          ex: 'Seven semitones with the 3:2 just ratio defines the perfect fifth interval.',
+          repairs: [{
+            index: 0,
+            q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
+            op: ['A. Perfect fourth', 'B. Perfect fifth', 'C. Major third', 'D. Octave'],
+            ai: 1,
+            ex: 'Seven semitones with the 3:2 just ratio defines the perfect fifth interval.',
+          }],
         });
       }
       return JSON.stringify({
@@ -167,6 +170,45 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     const event = events.find((entry) => entry.pass === 'mcVerify' && entry.action === 'regenerated');
     expect(event).toMatchObject({ trainingEligible: true });
     expect(event.preferenceEvidence).toMatchObject({ verified: true, chosenAnswers: [1, 1] });
+  });
+
+  it('D3: batches multiple double-blind key repairs into one generation call', async () => {
+    const faulty = (suffix) => ({
+      q: `Which interval has a 3:2 frequency ratio in just intonation ${suffix}?`,
+      op: ['Minor third', 'Major second', 'Perfect fifth', 'Minor seventh'],
+      ai: 0,
+      ex: 'The perfect fifth is the 3:2 interval in just intonation.',
+    });
+    const lesson = { lessonId: 'lesson-1', mc: [faulty('one'), faulty('two')] };
+    const calls = [];
+    const generateJson = async ({ schemaProfile, user }) => {
+      calls.push(schemaProfile.name);
+      if (schemaProfile.name === 'blind_solve') {
+        const items = JSON.parse(user);
+        return JSON.stringify({ answers: items.map(() => 'Perfect fifth') });
+      }
+      if (schemaProfile.name === 'mc_verify_repair_batch') {
+        return JSON.stringify({
+          repairs: [0, 1].map((index) => ({
+            index,
+            q: `Which interval spans seven semitones and rings at a 3:2 ratio in example ${index + 1}?`,
+            op: ['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave'],
+            ai: 1,
+            ex: 'Seven semitones with the 3:2 just ratio defines the perfect fifth interval.',
+          })),
+        });
+      }
+      return JSON.stringify({});
+    };
+    const result = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Intervals', topics: 'intervals consonance' }],
+      generateJson,
+    });
+    const patched = JSON.parse(result.text).lessons[0];
+    expect(calls.filter((name) => name === 'mc_verify_repair_batch')).toHaveLength(1);
+    expect(calls.filter((name) => name === 'blind_solve')).toHaveLength(4);
+    expect(patched.mc.map((item) => item.ai)).toEqual([1, 1]);
+    expect(result.events.filter((event) => event.pass === 'mcVerify' && event.action === 'regenerated')).toHaveLength(2);
   });
 
   it('D3: safely restores a missing lesson id for an unambiguous single-lesson call', async () => {
@@ -223,10 +265,13 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     const generateJson = async ({ schemaProfile }) => {
       if (schemaProfile.name === 'blind_solve') return JSON.stringify({ answers: [2] });
       return JSON.stringify({
-        q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
-        op: ['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave'],
-        ai: 1,
-        ex: 'This explanation claims the answer is correct but the cold solver rejects that key.',
+        repairs: [{
+          index: 0,
+          q: 'Which interval spans seven semitones and rings at a 3:2 ratio?',
+          op: ['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave'],
+          ai: 1,
+          ex: 'This explanation claims the answer is correct but the cold solver rejects that key.',
+        }],
       });
     };
     const result = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
