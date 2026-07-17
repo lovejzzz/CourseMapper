@@ -107,6 +107,10 @@ evaluation/scion-adapters/evidence/*v0.16.47*
 evaluation/scion-adapters/handoffs/*v0.16.47
 evaluation/scion-adapters/source-snapshots
 evaluation/scion-source-capture-*-evidence
+# v0.16.48 semantic-admission and retry-burden receipts are reconstructed
+# byte-for-byte by their dedicated audits; preserve that canonical encoding.
+evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.48.json
+evaluation/scion-adapters/evidence/source-grounding-burden-v0.16.48.json
 .firebase
 .claude
 **/.venv*/

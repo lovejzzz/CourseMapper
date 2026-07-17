@@ -806,6 +806,38 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(elapsed).toBeLessThanOrEqual(190);
   });
 
+  it('keeps the completed build duration frozen while the user chats with Agent', () => {
+    const now = Date.now();
+    const buildFinishedAt = now - 100_000;
+    const budget = createApiCallBudget({
+      startedAt: now - 200_000,
+      updatedAt: buildFinishedAt,
+      buildUpdatedAt: buildFinishedAt,
+      courseMapCalls: 1,
+    });
+    const modelBeforeAgent = buildBuildRibbonModel({
+      budget,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: false, doneCount: 5, totalCount: 5 },
+      packageQualityPass: readyPass(),
+    });
+    const afterAgent = applyApiCallBudgetEvent(budget, {
+      type: 'agentLoopCall',
+      task: 'agent',
+      label: 'Agent loop provider call',
+    });
+    const modelAfterAgent = buildBuildRibbonModel({
+      budget: afterAgent,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: false, doneCount: 5, totalCount: 5 },
+      packageQualityPass: readyPass(),
+    });
+
+    expect(afterAgent.updatedAt).toBeGreaterThan(afterAgent.buildUpdatedAt);
+    expect(modelBeforeAgent.elapsedDisplay).toBe('Ready in 100s');
+    expect(modelAfterAgent.elapsedDisplay).toBe(modelBeforeAgent.elapsedDisplay);
+  });
+
   it('chips render only when their pipeline data exists', () => {
     // A finish pass on a workspace whose budget never saw linker/judgment/
     // enrichment events (e.g. deterministic-only finish) — no chips invented.

@@ -16,6 +16,12 @@ const MISCONCEPTION_CUE_RE =
 const NEGATION_RE = /\b(?:not|never|none|cannot|can't|no)\b/i;
 const MISCONCEPTION_CONTRAST_RE =
   /\b(?:not|never|always|only|all|none|every|must|cannot|can't|exactly|identical|equally|entirely|solely)\b/i;
+const PLACEHOLDER_EXAMPLE_RE =
+  /\b(?:lorem ipsum|tbd|todo|insert .{0,40} here|as (?:a|an) [^,.;]{1,30},? i want x so that y)\b/i;
+const PRECISE_SOURCE_HEDGE_RE = /\b(?:about|approximately|roughly)\b/i;
+const SOURCE_TERM_STOP_WORDS = new Set(
+  'a an and are as at be by for from in into is it its of on or the to with'.split(' '),
+);
 const REPETITION_STOP_WORDS = new Set(
   'a an and are as at be because been being both but by can could did do does each for from had has have if in into is it its may more most must of on one or other should so than that the their then there these they this those through to true two under when where which while with would your'.split(
     ' ',
@@ -96,6 +102,69 @@ function repeatsOwnClause(value) {
   );
 }
 
+function sourceTermToken(value) {
+  const normalized = String(value || '').toLowerCase();
+  if (!/^[a-z0-9]+$/.test(normalized)) return normalized;
+  if (/[^aeiou]ies$/.test(normalized)) return `${normalized.slice(0, -3)}y`;
+  if (/(?:ches|shes|xes|zes)$/.test(normalized)) return normalized.slice(0, -2);
+  if (normalized.length > 3 && /s$/.test(normalized) && !/(?:ss|us|is)$/.test(normalized)) {
+    return normalized.slice(0, -1);
+  }
+  return normalized;
+}
+
+function sourceTermTokens(value) {
+  return (
+    cleanScionKeyTermText(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]+/gu)
+      ?.filter((token) => !SOURCE_TERM_STOP_WORDS.has(token))
+      .map(sourceTermToken)
+      .filter((token) => token.length > 1) ?? []
+  );
+}
+
+function termIsSourceAnchored(term, sourceTerm, knownFacts) {
+  const candidateTokens = sourceTermTokens(term);
+  if (candidateTokens.length === 0) return true;
+  // Word segmentation and inflection rules below are deliberately limited to
+  // Latin-script source packets. Do not turn incomplete multilingual tooling
+  // into false rejection of an otherwise valid local-model response.
+  if (/[^\u0000-\u024f\u1e00-\u1eff]/u.test(term)) return true;
+  const sources = [sourceTerm, ...(Array.isArray(knownFacts) ? knownFacts : [])]
+    .map(cleanScionKeyTermText)
+    .filter(Boolean);
+  if (sources.length === 0) return true;
+  return sources.some((source) => {
+    const sourceTokens = new Set(sourceTermTokens(source));
+    return candidateTokens.every((token) => sourceTokens.has(token));
+  });
+}
+
+function correctionUsesCircularTerm(term, correction) {
+  const normalizedTerm = comparableScionKeyTermText(term);
+  if (normalizedTerm.length < 8 || normalizedTerm.split(' ').length < 2) return false;
+  const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  return new RegExp(
+    `^(?:a|an|the)?\\s*${escaped}\\s+(?:is|are|means|creates?|builds?|describes?)\\s+(?:a|an|the)?\\s*${escaped}\\b`,
+    'i',
+  ).test(comparableScionKeyTermText(correction));
+}
+
+function dropsPreciseSourceHedge(value, knownFacts) {
+  const candidateTokens = sourceTermTokens(value);
+  if (candidateTokens.length < 2 || PRECISE_SOURCE_HEDGE_RE.test(value)) return false;
+  const candidateSet = new Set(candidateTokens);
+  return (Array.isArray(knownFacts) ? knownFacts : []).some((fact) => {
+    const normalized = cleanScionKeyTermText(fact);
+    const match = normalized.match(/\b(?:about|approximately|roughly)\s+([^.!?;:]{1,80})/i);
+    if (!match) return false;
+    const qualifiedTokens = sourceTermTokens(match[1]).slice(0, 4);
+    return qualifiedTokens.length >= 2 && qualifiedTokens.every((token) => candidateSet.has(token));
+  });
+}
+
 export function cleanScionKeyTermText(value) {
   return String(value ?? '')
     .replace(/\s+/g, ' ')
@@ -114,10 +183,18 @@ export function normalizeScionKeyTerm(term = {}) {
 
 export function assessScionKeyTermContract(
   term = {},
-  { lessonTitle = '', definitionMin = 45, maxLength = 380, knownFacts = [], semanticProfile = 'legacy' } = {},
+  {
+    lessonTitle = '',
+    definitionMin = 45,
+    maxLength = 380,
+    knownFacts = [],
+    sourceTerm = '',
+    semanticProfile = 'legacy',
+  } = {},
 ) {
   const normalized = normalizeScionKeyTerm(term);
-  const strictSemanticAdmission = semanticProfile === 'strict';
+  const sourceGroundedSemanticAdmission = semanticProfile === 'source-strict';
+  const strictSemanticAdmission = semanticProfile === 'strict' || sourceGroundedSemanticAdmission;
   const issues = [];
   const minTermLength = NON_LATIN_SCRIPT_RE.test(normalized.term) ? 1 : 3;
   const meaningfulMin = (value, latinMinimum) => (NON_LATIN_SCRIPT_RE.test(value) ? 4 : latinMinimum);
@@ -149,6 +226,23 @@ export function assessScionKeyTermContract(
   ];
   if (EMBEDDED_FIELD_LABEL_RE.test(instructionalFields.join(' '))) issues.push('embedded-field-label');
   if (instructionalFields.some((value) => CLAIM_MARKER_RESIDUE_RE.test(value))) issues.push('claim-marker-residue');
+  if (sourceGroundedSemanticAdmission && !termIsSourceAnchored(normalized.term, sourceTerm, knownFacts)) {
+    issues.push('term-not-source-anchored');
+  }
+  if (sourceGroundedSemanticAdmission && PLACEHOLDER_EXAMPLE_RE.test(normalized.example)) {
+    issues.push('example-placeholder');
+  }
+  if (sourceGroundedSemanticAdmission && correctionUsesCircularTerm(normalized.term, normalized.correction)) {
+    issues.push('correction-circular-term');
+  }
+  if (
+    sourceGroundedSemanticAdmission &&
+    [normalized.definition, normalized.example, normalized.correction].some((value) =>
+      dropsPreciseSourceHedge(value, knownFacts),
+    )
+  ) {
+    issues.push('source-precision-overstatement');
+  }
   for (const [field, value] of [
     ['df', normalized.definition],
     ['eg', normalized.example],
@@ -222,9 +316,16 @@ function escapeScionKeyTermRegExp(value) {
  */
 export function repairScionKeyTermContract(
   term = {},
-  { lessonTitle = '', definitionMin = 45, maxLength = 380, knownFacts = [], semanticProfile = 'legacy' } = {},
+  {
+    lessonTitle = '',
+    definitionMin = 45,
+    maxLength = 380,
+    knownFacts = [],
+    sourceTerm = '',
+    semanticProfile = 'legacy',
+  } = {},
 ) {
-  const assessmentOptions = { lessonTitle, definitionMin, maxLength, knownFacts, semanticProfile };
+  const assessmentOptions = { lessonTitle, definitionMin, maxLength, knownFacts, sourceTerm, semanticProfile };
   const before = assessScionKeyTermContract(term, assessmentOptions);
   if (!before.issues.includes('circular-definition') || !before.normalized.term) {
     return { term, assessment: before, repairs: [] };

@@ -118,6 +118,12 @@ describe('Scion strict semantic admission', () => {
     expect(strict.issues).toEqual(
       expect.arrayContaining(['option-label-prefixes', 'claim-marker-residue', 'multiple-source-supported-options']),
     );
+
+    const sourceStrict = assessScionMcItem(item, {
+      sourceClaims: ['Intervals between successive notes of a scale are called scale steps.'],
+      semanticProfile: 'source-strict',
+    });
+    expect(sourceStrict.issues).toEqual(expect.arrayContaining(strict.issues));
   });
 
   it('rejects source-grounded key terms with token examples or self-repeating corrections', () => {
@@ -143,6 +149,78 @@ describe('Scion strict semantic admission', () => {
     expect(assessScionKeyTerm(repetitive, { knownFacts: LIST_CLAIMS, semanticProfile: 'strict' }).issues).toContain(
       'cx-repeats-itself',
     );
+  });
+
+  it('requires strict key-term names to use terminology present in the source packet', () => {
+    const knownFacts = [
+      'A dictionary stores key-value pairs and looks up each value by its key rather than by a numeric position.',
+      'Dictionaries are written with curly braces in key: value form.',
+    ];
+    const generic = {
+      tr: 'Key-value mapping',
+      df: 'A process that associates a unique label with a stored piece of data.',
+      eg: 'A roster associates each student identifier with one score.',
+      mi: 'The records must be retrieved only by their numerical positions.',
+      cx: 'Labels retrieve the stored values without requiring a numerical position.',
+    };
+    const disciplinary = { ...generic, tr: 'Dictionary' };
+
+    expect(
+      assessScionKeyTerm(generic, { knownFacts, sourceTerm: 'Dictionaries', semanticProfile: 'source-strict' }).issues,
+    ).toContain('term-not-source-anchored');
+    expect(
+      assessScionKeyTerm(disciplinary, {
+        knownFacts,
+        sourceTerm: 'Dictionaries',
+        semanticProfile: 'source-strict',
+      }).issues,
+    ).not.toContain('term-not-source-anchored');
+  });
+
+  it('accepts source terminology with harmless word-order and plural changes', () => {
+    const term = {
+      tr: 'Case-sensitive variable names',
+      df: 'Names that are treated as different when their letters use different capitalization.',
+      eg: 'total and Total can refer to two different variables in a program.',
+      mi: 'Changing only capitalization leaves the variable name unchanged.',
+      cx: 'Python distinguishes total from Total, so capitalization matters.',
+    };
+    const knownFacts = ['Variable names are case-sensitive, so total and Total are two different variables.'];
+
+    expect(assessScionKeyTerm(term, { knownFacts, semanticProfile: 'source-strict' }).issues).not.toContain(
+      'term-not-source-anchored',
+    );
+  });
+
+  it('rejects tautological corrections, template examples, and dropped precision qualifiers', () => {
+    const base = {
+      tr: 'Binary form',
+      df: 'A musical pattern built from two sections that are about equal in length.',
+      eg: 'A dance movement contains one A section followed by one B section.',
+      mi: 'It means any piece containing exactly two notes.',
+      cx: 'The label describes two balanced sections rather than two individual notes.',
+    };
+    const knownFacts = ['Binary form describes a musical piece with two sections that are about equal in length.'];
+
+    expect(
+      assessScionKeyTerm(
+        { ...base, cx: 'Binary form describes binary form as two sections of a piece.' },
+        { knownFacts, semanticProfile: 'source-strict' },
+      ).issues,
+    ).toContain('correction-circular-term');
+    expect(
+      assessScionKeyTerm(
+        { ...base, eg: 'As a user, I want X so that Y.' },
+        { knownFacts, semanticProfile: 'source-strict' },
+      ).issues,
+    ).toContain('example-placeholder');
+    expect(
+      assessScionKeyTerm(
+        { ...base, df: 'A musical pattern built from two sections of equal length.' },
+        { knownFacts, semanticProfile: 'source-strict' },
+      ).issues,
+    ).toContain('source-precision-overstatement');
+    expect(assessScionKeyTerm(base, { knownFacts, semanticProfile: 'source-strict' }).eligible).toBe(true);
   });
 
   it('keeps a clean applied item eligible', () => {

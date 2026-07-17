@@ -309,6 +309,7 @@ async function capturePromptCall({
     assessment = assessSourceAtomResponse(response, {
       sourceClaimCount: basePrompt.sourceClaims.length,
       sourceClaims: basePrompt.sourceClaims,
+      sourceTerm: basePrompt.sourceTerm || basePrompt.lessonTitle,
       ...(assessmentTarget ? { expectedCounts: assessmentTarget } : {}),
     });
   } catch (error) {
@@ -373,6 +374,7 @@ function reassessCapturedCall(call, prompt, rawCall = null) {
   const assessment = assessSourceAtomResponse(call.response, {
     sourceClaimCount: prompt.sourceClaims.length,
     sourceClaims: prompt.sourceClaims,
+    sourceTerm: prompt.sourceTerm || prompt.lessonTitle,
     ...(call.assessmentContract === SOURCE_TARGETED_ASSESSMENT_CONTRACT && call.recoveryTarget
       ? { expectedCounts: call.recoveryTarget }
       : {}),
@@ -461,6 +463,7 @@ export async function generateSourceCapture({ campaign, arm, model, checkpointPa
         assessment = assessSourceAtomResponse(response, {
           sourceClaimCount: prompt.sourceClaims.length,
           sourceClaims: prompt.sourceClaims,
+          sourceTerm: prompt.sourceTerm || prompt.lessonTitle,
         });
       } catch (error) {
         const call = {

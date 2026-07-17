@@ -23,6 +23,7 @@ import { getChunkCount } from './parallelGenerator';
 import { getCustomDeliverable } from './customDeliverableLibrary';
 import { buildObservationProtocol } from './observationProtocols';
 import { recordLegacyPathHit } from './legacyPathTelemetry';
+import { buildBayesianFallbackQuizAtoms, hasBayesianDecisionEvidence } from './bayesianQuizFrames';
 // Leaf import (deriveFromCourseMap → schema only; no cycle): the ONE
 // assessment-kind classifier, shared with graph derivation and the export
 // manifest so compile-time and manifest-time never disagree about exams.
@@ -941,7 +942,7 @@ function hasStatisticsInferenceEvidence(text = '') {
     /\b(confidence interval|hypothesis test|hypothesis testing|null hypothesis|alternative hypothesis|p[-\s]?value|p value|statistical significance|sampling distribution|standard error|margin of error|test statistic|t[-\s]?test|chi[-\s]?square|anova|regression inference|assumption check|effect size|type i error|type ii error|inference decision)\b/.test(
       text,
     );
-  return hasStatisticsDomain && hasInferencePractice;
+  return (hasStatisticsDomain && hasInferencePractice) || hasBayesianDecisionEvidence(text);
 }
 
 function hasInformationLiteracyEvidence(text = '') {
@@ -1166,6 +1167,15 @@ function inferDisciplineLens(courseName, concepts = []) {
       'solution-strategy decision',
       'physics problem solver',
       'field, circuit, or induction scenario',
+    );
+  }
+  if (hasBayesianDecisionEvidence(text)) {
+    return disciplineLens(
+      'Bayesian inference and decision analysis',
+      'prior, likelihood, and observed evidence',
+      'posterior decision',
+      'Bayesian decision analyst',
+      'product experiment scenario',
     );
   }
   if (hasStatisticsInferenceEvidence(text)) {
@@ -17856,6 +17866,12 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
   );
 }
 
+// When the local lesson kernel cannot clear admission after its retry budget,
+// the compiler still owes the instructor subject knowledge—not polished
+// course-process filler. Bayesian reasoning is especially well suited to a
+// conservative deterministic fallback because its core relations are stable,
+// calculable, and can be assessed without inventing a source or citation.
+// Authored kernel items still overlay these frames later in the normal path.
 export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
   const lens = blueprintLens(blueprint);
   const concept = primaryConceptForLesson(lesson);
@@ -17883,128 +17899,132 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
     ? lessonFocus
     : `${lessonFocus} ${decisionNoun}`;
   const quizPlan = buildQuizQuestionPlan({ lesson, assessment, targetCount: 6 });
-  const atoms = [
-    buildMultipleChoiceQuestion({
-      lesson,
-      index: 0,
-      bloom: quizPlan[0].bloom,
-      difficulty: quizPlan[0].difficulty,
-      objective: quizPlan[0].objective,
-      concept,
-      use: quizPlan[0].use,
-      prompt: `Which statement best explains why ${concept} matters for a ${quizDecision}?`,
-      correct: `${sentenceCase(concept)} helps a team choose relevant evidence and justify the ${decisionNoun}.`,
-      plan: quizPlan[0],
-      artifactOverride: quizDecision,
-    }),
-    buildMultipleChoiceQuestion({
-      lesson,
-      index: 1,
-      bloom: quizPlan[1].bloom,
-      difficulty: quizPlan[1].difficulty,
-      objective: quizPlan[1].objective,
-      concept,
-      use: quizPlan[1].use,
-      prompt: lessonVariant(lesson, [
-        `A student team is preparing a ${quizDecision}. Which action best applies ${concept}?`,
-        `During a ${lessonFocus} case review, which move uses ${concept} most clearly?`,
-        `Which preparation choice best uses ${concept} before recommending a ${decisionNoun}?`,
-        `A ${quizDecision} needs stronger ${concept} evidence. Which action should happen next?`,
-      ]),
-      correct: lessonVariant(lesson, [
-        `Use ${concept} to select a concrete example, connect it to the objective, and revise the ${decisionNoun}.`,
-        `Choose evidence that shows ${concept} in action, explain why it fits the objective, and revise the ${decisionNoun}.`,
-        `Apply ${concept} by testing one source detail against the objective before making the ${decisionNoun}.`,
-        `Connect ${concept} to an inspectable example, then use the result to improve the ${decisionNoun}.`,
-      ]),
-      plan: quizPlan[1],
-      artifactOverride: quizDecision,
-    }),
-    buildMultipleChoiceQuestion({
-      lesson,
-      index: 2,
-      bloom: quizPlan[2].bloom,
-      difficulty: quizPlan[2].difficulty,
-      objective: quizPlan[2].objective,
-      concept: secondary,
-      use: quizPlan[2].use,
-      prompt: `In the ${lessonFocus} case, a student team reviews ${evidenceCue}. Which approach best applies ${secondary} before recommending a ${decisionNoun}?`,
-      correct: `Compare two details from ${evidenceCue}, explain how each bears on ${secondary}, and choose the better-supported ${decisionNoun}.`,
-      plan: quizPlan[2],
-      artifactOverride: quizDecision,
-    }),
-    // v0.15.188 (Prof catch): when the assessment is AUTOGRADED, the weekly
-    // quiz must be machine-scorable — an essay under an "autograded quiz"
-    // label is a broken promise the deep grader can't see (the course brief
-    // asked for autograded quizzes; the panel flagged essays with no scoring
-    // rule). Slots 3 and 5 hold the constructed-response items; swap them for
-    // multiple-choice when autograded. Exams keep their essay/short-answer
-    // items (a midterm may legitimately be written).
-    machineScored
-      ? buildMultipleChoiceQuestion({
+  const atoms = hasBayesianDecisionEvidence(
+    `${blueprint?.courseName || ''} ${lens.domain || ''} ${(lesson.keyConcepts || []).join(' ')}`.toLowerCase(),
+  )
+    ? buildBayesianFallbackQuizAtoms(lesson, quizPlan, quizTags)
+    : [
+        buildMultipleChoiceQuestion({
           lesson,
-          index: 3,
-          bloom: quizPlan[3].bloom,
-          difficulty: quizPlan[3].difficulty,
-          objective: quizPlan[3].objective,
+          index: 0,
+          bloom: quizPlan[0].bloom,
+          difficulty: quizPlan[0].difficulty,
+          objective: quizPlan[0].objective,
           concept,
-          use: quizPlan[3].use,
-          prompt: `Which statement most accurately describes ${concept}?`,
-          correct: `${sentenceCase(concept)} is used to ${lowercaseSentenceLead(stripTerminalPunctuation(quizPlan[3].objective || `support the ${decisionNoun}`))}.`,
-          plan: quizPlan[3],
+          use: quizPlan[0].use,
+          prompt: `Which statement best explains why ${concept} matters for a ${quizDecision}?`,
+          correct: `${sentenceCase(concept)} helps a team choose relevant evidence and justify the ${decisionNoun}.`,
+          plan: quizPlan[0],
           artifactOverride: quizDecision,
-        })
-      : buildShortAnswerQuestion({
-          lesson,
-          index: 3,
-          bloom: quizPlan[3].bloom,
-          objective: quizPlan[3].objective,
-          concept,
-          lens,
-          plan: quizPlan[3],
         }),
-    buildMultipleChoiceQuestion({
-      lesson,
-      index: 4,
-      bloom: quizPlan[4].bloom,
-      difficulty: quizPlan[4].difficulty,
-      objective: quizPlan[4].objective,
-      concept,
-      use: quizPlan[4].use,
-      prompt: `Which use of evidence from ${evidenceCue} best supports a claim for a ${quizDecision}?`,
-      correct: lessonVariant(lesson, [
-        `Cite a specific detail from ${evidenceCue} that shows ${concept} at work, then state what it changes in the ${decisionNoun}.`,
-        `Use an inspectable ${evidenceCue} detail to show ${concept} at work, then explain the ${decisionNoun} it changes.`,
-        `Choose a concrete clue from ${evidenceCue}, connect it to ${concept}, and name the resulting ${decisionNoun} change.`,
-        `Point to the ${evidenceCue} evidence, explain how it supports ${concept}, and revise the relevant ${decisionNoun} claim.`,
-      ]),
-      plan: quizPlan[4],
-      artifactOverride: quizDecision,
-    }),
-    machineScored
-      ? buildMultipleChoiceQuestion({
+        buildMultipleChoiceQuestion({
           lesson,
-          index: 5,
-          bloom: quizPlan[5].bloom,
-          difficulty: quizPlan[5].difficulty,
-          objective: quizPlan[5].objective,
+          index: 1,
+          bloom: quizPlan[1].bloom,
+          difficulty: quizPlan[1].difficulty,
+          objective: quizPlan[1].objective,
+          concept,
+          use: quizPlan[1].use,
+          prompt: lessonVariant(lesson, [
+            `A student team is preparing a ${quizDecision}. Which action best applies ${concept}?`,
+            `During a ${lessonFocus} case review, which move uses ${concept} most clearly?`,
+            `Which preparation choice best uses ${concept} before recommending a ${decisionNoun}?`,
+            `A ${quizDecision} needs stronger ${concept} evidence. Which action should happen next?`,
+          ]),
+          correct: lessonVariant(lesson, [
+            `Use ${concept} to select a concrete example, connect it to the objective, and revise the ${decisionNoun}.`,
+            `Choose evidence that shows ${concept} in action, explain why it fits the objective, and revise the ${decisionNoun}.`,
+            `Apply ${concept} by testing one source detail against the objective before making the ${decisionNoun}.`,
+            `Connect ${concept} to an inspectable example, then use the result to improve the ${decisionNoun}.`,
+          ]),
+          plan: quizPlan[1],
+          artifactOverride: quizDecision,
+        }),
+        buildMultipleChoiceQuestion({
+          lesson,
+          index: 2,
+          bloom: quizPlan[2].bloom,
+          difficulty: quizPlan[2].difficulty,
+          objective: quizPlan[2].objective,
           concept: secondary,
-          use: quizPlan[5].use,
-          prompt: `A classmate applies ${secondary} while preparing a ${quizDecision}. Which choice best uses it correctly?`,
-          correct: `Apply ${secondary} to a concrete detail from ${evidenceCue}, then revise the ${decisionNoun} it changes.`,
-          plan: quizPlan[5],
+          use: quizPlan[2].use,
+          prompt: `In the ${lessonFocus} case, a student team reviews ${evidenceCue}. Which approach best applies ${secondary} before recommending a ${decisionNoun}?`,
+          correct: `Compare two details from ${evidenceCue}, explain how each bears on ${secondary}, and choose the better-supported ${decisionNoun}.`,
+          plan: quizPlan[2],
           artifactOverride: quizDecision,
-        })
-      : buildEssayQuestion({
-          lesson,
-          index: 5,
-          bloom: quizPlan[5].bloom,
-          objective: quizPlan[5].objective,
-          concept,
-          lens,
-          plan: quizPlan[5],
         }),
-  ];
+        // v0.15.188 (Prof catch): when the assessment is AUTOGRADED, the weekly
+        // quiz must be machine-scorable — an essay under an "autograded quiz"
+        // label is a broken promise the deep grader can't see (the course brief
+        // asked for autograded quizzes; the panel flagged essays with no scoring
+        // rule). Slots 3 and 5 hold the constructed-response items; swap them for
+        // multiple-choice when autograded. Exams keep their essay/short-answer
+        // items (a midterm may legitimately be written).
+        machineScored
+          ? buildMultipleChoiceQuestion({
+              lesson,
+              index: 3,
+              bloom: quizPlan[3].bloom,
+              difficulty: quizPlan[3].difficulty,
+              objective: quizPlan[3].objective,
+              concept,
+              use: quizPlan[3].use,
+              prompt: `Which statement most accurately describes ${concept}?`,
+              correct: `${sentenceCase(concept)} is used to ${lowercaseSentenceLead(stripTerminalPunctuation(quizPlan[3].objective || `support the ${decisionNoun}`))}.`,
+              plan: quizPlan[3],
+              artifactOverride: quizDecision,
+            })
+          : buildShortAnswerQuestion({
+              lesson,
+              index: 3,
+              bloom: quizPlan[3].bloom,
+              objective: quizPlan[3].objective,
+              concept,
+              lens,
+              plan: quizPlan[3],
+            }),
+        buildMultipleChoiceQuestion({
+          lesson,
+          index: 4,
+          bloom: quizPlan[4].bloom,
+          difficulty: quizPlan[4].difficulty,
+          objective: quizPlan[4].objective,
+          concept,
+          use: quizPlan[4].use,
+          prompt: `Which use of evidence from ${evidenceCue} best supports a claim for a ${quizDecision}?`,
+          correct: lessonVariant(lesson, [
+            `Cite a specific detail from ${evidenceCue} that shows ${concept} at work, then state what it changes in the ${decisionNoun}.`,
+            `Use an inspectable ${evidenceCue} detail to show ${concept} at work, then explain the ${decisionNoun} it changes.`,
+            `Choose a concrete clue from ${evidenceCue}, connect it to ${concept}, and name the resulting ${decisionNoun} change.`,
+            `Point to the ${evidenceCue} evidence, explain how it supports ${concept}, and revise the relevant ${decisionNoun} claim.`,
+          ]),
+          plan: quizPlan[4],
+          artifactOverride: quizDecision,
+        }),
+        machineScored
+          ? buildMultipleChoiceQuestion({
+              lesson,
+              index: 5,
+              bloom: quizPlan[5].bloom,
+              difficulty: quizPlan[5].difficulty,
+              objective: quizPlan[5].objective,
+              concept: secondary,
+              use: quizPlan[5].use,
+              prompt: `A classmate applies ${secondary} while preparing a ${quizDecision}. Which choice best uses it correctly?`,
+              correct: `Apply ${secondary} to a concrete detail from ${evidenceCue}, then revise the ${decisionNoun} it changes.`,
+              plan: quizPlan[5],
+              artifactOverride: quizDecision,
+            })
+          : buildEssayQuestion({
+              lesson,
+              index: 5,
+              bloom: quizPlan[5].bloom,
+              objective: quizPlan[5].objective,
+              concept,
+              lens,
+              plan: quizPlan[5],
+            }),
+      ];
   const framed = atoms.slice(0, targetCount).map((atom, index) => ({ ...atom, id: quizQuestionId(lesson, index) }));
   // v0.14.1 (5.4) Bloom honesty: the tag follows the stem verb of the FINAL
   // question text (after any enrichment overlay), not the frame's planned

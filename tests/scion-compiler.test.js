@@ -532,7 +532,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       lessonId: 'lesson-1',
       mc: [],
       facts: ['Thematic coding groups recurring evidence from qualitative records.'],
-      keyTerms: [{ tr: 'Thematic coding', df: 'Too short', eg: 'Example', mi: 'Wrong', cx: 'Fix' }],
+      keyTerms: [{ tr: 'Generic coding process', df: 'Too short', eg: 'Example', mi: 'Wrong', cx: 'Fix' }],
       scenario: {
         su: 'A researcher compares three interview transcripts before selecting a coding method.',
         ma: 'Three transcripts and a coding worksheet',
@@ -555,7 +555,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       if (schemaProfile.name === 'blind_solve') return JSON.stringify({ answers: [] });
       if (schemaProfile.name === 'key_term_admission_batch') {
         return JSON.stringify({
-          repairs: ['Thematic coding', 'Codebook', 'Analytic memo'].map((tr, index) => ({
+          repairs: ['Thematic coding', 'Qualitative records', 'Recurring evidence'].map((tr, index) => ({
             index,
             tr,
             df: 'A structured concept used to organize and interpret recurring evidence in qualitative records.',
@@ -578,6 +578,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       minimumKeyTermCount: 3,
     });
     const patched = JSON.parse(result.text).lessons[0];
+    expect(patched.keyTerms[0].tr).toBe('Thematic coding');
     expect(patched.keyTerms.every((term) => assessScionKeyTerm(term).eligible)).toBe(true);
     const repairs = result.events.filter(
       (event) => event.pass === 'keyTermAdmission' && event.action === 'regenerated',

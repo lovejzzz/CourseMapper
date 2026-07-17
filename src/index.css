@@ -375,6 +375,19 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Large animated workspaces plus nested backdrop filters can produce black
+   compositor tiles on Chromium GPUs while tabs or compiler stages update.
+   Dark surfaces are already opaque enough to preserve their depth without a
+   live blur, so prefer stable paint and smoother local-model progress frames. */
+.dark .glass,
+.dark .glass-light,
+.dark .glass-heavy,
+.dark .glass-dark,
+.dark [class*='backdrop-blur'] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 /* Header — only apply dark background to sticky/bordered workspace headers */
 .dark header[class*='border-b'],
 .dark header[class*='sticky'] {

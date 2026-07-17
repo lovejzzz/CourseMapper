@@ -7,11 +7,12 @@ import { pathToFileURL } from 'node:url';
 
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
 
-const RELEASE = 'v0.16.47';
-const GENERATED_AT = '2026-07-16T22:15:00.000Z';
+const RELEASE = 'v0.16.48';
+const GENERATED_AT = '2026-07-17T09:10:00.000Z';
 const CORPUS = 'evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47.jsonl';
 const JUDGE_CAMPAIGN = 'evaluation/scion-adapters/evidence/judge-campaign-v0.16.47.json';
-const RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.47.json';
+const RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.48.json';
+const PREVIOUS_RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.47.json';
 const IMPLEMENTATION = [
   'src/lib/scionAnswerKeyAlignment.js',
   'src/lib/scionPreferenceGate.js',
@@ -44,6 +45,7 @@ function assess(row, side, semanticProfile) {
   }
   return assessScionKeyTerm(artifact, {
     knownFacts: row.sourceContext?.claims || [],
+    sourceTerm: row.sourceContext?.term || '',
     semanticProfile,
   });
 }
@@ -53,8 +55,8 @@ function summarize(rows) {
     row,
     legacyChosen: assess(row, 'chosen', 'legacy'),
     legacyRejected: assess(row, 'rejected', 'legacy'),
-    strictChosen: assess(row, 'chosen', 'strict'),
-    strictRejected: assess(row, 'rejected', 'strict'),
+    strictChosen: assess(row, 'chosen', 'source-strict'),
+    strictRejected: assess(row, 'rejected', 'source-strict'),
   }));
   const caught = evaluated.filter((entry) => !entry.strictRejected.eligible);
   const preferredRegressions = evaluated.filter((entry) => !entry.strictChosen.eligible);
@@ -105,9 +107,10 @@ function summarize(rows) {
 
 export async function buildScionSemanticAdmissionV2Audit({ cwd = process.cwd() } = {}) {
   const root = path.resolve(cwd);
-  const [corpusRaw, campaignRaw, implementation] = await Promise.all([
+  const [corpusRaw, campaignRaw, previousRaw, implementation] = await Promise.all([
     fs.readFile(path.join(root, CORPUS), 'utf8'),
     fs.readFile(path.join(root, JUDGE_CAMPAIGN), 'utf8'),
+    fs.readFile(path.join(root, PREVIOUS_RECEIPT), 'utf8'),
     Promise.all(
       IMPLEMENTATION.map(async (file) => {
         const raw = await fs.readFile(path.join(root, file));
@@ -116,14 +119,18 @@ export async function buildScionSemanticAdmissionV2Audit({ cwd = process.cwd() }
     ),
   ]);
   const campaign = JSON.parse(campaignRaw);
+  const previous = JSON.parse(previousRaw);
   const rows = corpusRaw
     .split('\n')
     .map((line) => line.trim())
     .filter(Boolean)
     .map(JSON.parse);
   const currentRows = rows.filter((row) => row.reviewPacketId === campaign.packet.packetId);
+  const historicalRows = rows.filter((row) => row.reviewPacketId !== campaign.packet.packetId);
   const all = summarize(rows);
   const currentCampaign = summarize(currentRows);
+  const historicalCore = summarize(historicalRows);
+  const detectionDelta = all.strict.rejectedDetected - previous.allStablePreferences.strict.rejectedDetected;
   const assertions = {
     corpusBound:
       campaign.approvedCorpus.path === CORPUS &&
@@ -133,23 +140,42 @@ export async function buildScionSemanticAdmissionV2Audit({ cwd = process.cwd() }
     exactCurrentCampaignRows: currentRows.length === 32,
     noPreferredArtifactRegression: all.strict.preferredRegressions === 0,
     stableLossDetectionLift:
-      all.strict.rejectedDetected === 50 &&
-      all.strict.preferredOnlyMargins === 50 &&
+      previous.release === 'v0.16.47' &&
+      previous.allStablePreferences.strict.rejectedDetected === 50 &&
+      all.strict.rejectedDetected === 64 &&
+      all.strict.preferredOnlyMargins === 64 &&
+      all.strict.byKind['key-term'].rejectedDetected === 23 &&
+      detectionDelta === 14 &&
       all.strict.rejectedDetected > all.legacy.rejectedDetected,
     currentCampaignDetection:
-      currentCampaign.strict.rejectedDetected === 20 && currentCampaign.strict.preferredRegressions === 0,
+      currentCampaign.strict.rejectedDetected === 23 && currentCampaign.strict.preferredRegressions === 0,
+    historicalCoreDetection:
+      historicalCore.rows === 46 &&
+      historicalCore.strict.rejectedDetected === 41 &&
+      historicalCore.strict.preferredRegressions === 0,
   };
   const failures = Object.entries(assertions)
     .filter(([, value]) => !value)
     .map(([name]) => name);
-  if (failures.length > 0) throw new Error(`Semantic admission v2 audit failed: ${failures.join(', ')}`);
+  if (failures.length > 0) {
+    throw new Error(
+      `Semantic admission v2 audit failed: ${failures.join(', ')}; observed=${JSON.stringify({
+        allDetected: all.strict.rejectedDetected,
+        allMargins: all.strict.preferredOnlyMargins,
+        keyTermsDetected: all.strict.byKind['key-term']?.rejectedDetected,
+        currentDetected: currentCampaign.strict.rejectedDetected,
+        historicalDetected: historicalCore.strict.rejectedDetected,
+        preferredRegressions: all.strict.preferredRegressions,
+      })}`,
+    );
+  }
 
   return {
     schemaVersion: 1,
     protocol: 'scion-semantic-admission-v2-replay-v1',
     release: RELEASE,
     generatedAt: GENERATED_AT,
-    status: 'stable-loss-detection-improved',
+    status: 'source-grounded-key-term-detection-improved',
     evidence: {
       approvedCorpus: {
         path: CORPUS,
@@ -159,13 +185,32 @@ export async function buildScionSemanticAdmissionV2Audit({ cwd = process.cwd() }
       },
       judgeCampaign: { path: JUDGE_CAMPAIGN, bytes: Buffer.byteLength(campaignRaw), sha256: sha256(campaignRaw) },
       currentPacketId: campaign.packet.packetId,
+      previousRelease: {
+        path: PREVIOUS_RECEIPT,
+        bytes: Buffer.byteLength(previousRaw),
+        sha256: sha256(previousRaw),
+        release: previous.release,
+        rejectedDetected: previous.allStablePreferences.strict.rejectedDetected,
+      },
       implementation,
     },
     allStablePreferences: all,
     currentCampaign,
+    historicalCore,
+    deltas: {
+      stableLossesDetected: detectionDelta,
+      keyTermLossesDetected:
+        all.strict.byKind['key-term'].rejectedDetected -
+        previous.allStablePreferences.strict.byKind['key-term'].rejectedDetected,
+      stableLossesRemaining: rows.length - all.strict.rejectedDetected,
+      historicalCoreLossesRemaining: historicalRows.length - historicalCore.strict.rejectedDetected,
+      preferredRegressions: all.strict.preferredRegressions,
+    },
     assertions,
+    interpretation:
+      'The strict compiler now requires Latin-script key-term names to be traceable to terminology in the supplied source packet, rejects common placeholder examples and narrow circular corrections, and preserves approximate source qualifiers. On the frozen 78-loss replay this adds 14 detections, all in previously missed key-term failures, without rejecting a preferred artifact.',
     claimBoundary:
-      'This retrospective replay proves deterministic detection lift on 78 already judged stable losses with zero rejection of their preferred counterparts. It is not an independent, human, held-out, classroom, or adapter-quality result; unseen-output precision remains a separate gate.',
+      'This retrospective replay proves deterministic detection lift on 78 already judged stable losses with zero rejection of their preferred counterparts. The source-term rule is skipped for non-Latin terms until the compiler has a trustworthy tokenizer. This is not an independent, human, held-out, classroom, adapter-quality, or unseen-output precision result; live retry burden and fresh-package behavior remain separate gates.',
   };
 }
 
