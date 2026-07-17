@@ -344,9 +344,53 @@ function recoverExplicitLessonSequence(sourceText, expectedCount) {
   if (!match) return [];
   const topics = match[1]
     .split(/\s*;\s*/)
-    .map((value) => cleanText(value.replace(/^(?:and\s+)?(?:an?|the)\s+/i, ''), 120))
+    .map((value) => cleanText(value.replace(/^and\s+/i, '').replace(/^(?:an?|the)\s+/i, ''), 120))
     .filter(Boolean);
   return topics.length === expectedCount ? topics : [];
+}
+
+const LESSON_SEQUENCE_GENERIC_WORDS = new Set([
+  'and',
+  'course',
+  'exam',
+  'final',
+  'for',
+  'from',
+  'introduction',
+  'lesson',
+  'midterm',
+  'overview',
+  'project',
+  'review',
+  'the',
+  'with',
+]);
+
+function lessonSequenceTokens(value) {
+  return cleanText(value, 300)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[’']/g, '')
+    .match(/[a-z0-9]+/g)
+    ?.map((token) => {
+      if (/^(?:stellar|stars?)$/.test(token)) return 'star';
+      if (/^(?:spectra|spectral|spectrum)$/.test(token)) return 'spectr';
+      if (token.length > 5 && token.endsWith('ies')) return `${token.slice(0, -3)}y`;
+      if (token.length > 5 && token.endsWith('es')) return token.slice(0, -2);
+      if (token.length > 4 && token.endsWith('s')) return token.slice(0, -1);
+      return token;
+    })
+    .filter((token) => token.length >= 3 && !LESSON_SEQUENCE_GENERIC_WORDS.has(token)) || [];
+}
+
+function explicitLessonSequenceMisalignments(sessions, topics) {
+  return topics.flatMap((topic, index) => {
+    const expected = new Set(lessonSequenceTokens(topic));
+    const actual = lessonSequenceTokens(sessions[index]?.title);
+    const aligned = actual.some((token) => expected.has(token));
+    return aligned ? [] : [index + 1];
+  });
 }
 
 function hasExcessiveSessionTitleReuse(sessions = []) {
@@ -558,8 +602,16 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
   }
   let sessionSequenceRecovery = null;
   const sourceLessonSequence = recoverExplicitLessonSequence(sourceText, sessions.length);
-  if (sourceLessonSequence.length === sessions.length && hasExcessiveSessionTitleReuse(sessions)) {
-    const repeatedTitles = sessions.map((session) => session.title);
+  const repeatedSessionTitles = hasExcessiveSessionTitleReuse(sessions);
+  const misalignedOrders =
+    sourceLessonSequence.length === sessions.length
+      ? explicitLessonSequenceMisalignments(sessions, sourceLessonSequence)
+      : [];
+  if (
+    sourceLessonSequence.length === sessions.length &&
+    (repeatedSessionTitles || misalignedOrders.length >= 2)
+  ) {
+    const authoredTitles = sessions.map((session) => session.title);
     sessions = sessions.map((session, index) => ({
       ...session,
       title: sourceLessonSequence[index],
@@ -568,7 +620,9 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
     sessionSequenceRecovery = {
       kind: 'explicit-source-lesson-sequence',
       recoveredCount: sessions.length,
-      repeatedTitles,
+      reason: repeatedSessionTitles ? 'repeated-titles' : 'ordered-topic-misalignment',
+      authoredTitles,
+      misalignedOrders,
     };
   }
 

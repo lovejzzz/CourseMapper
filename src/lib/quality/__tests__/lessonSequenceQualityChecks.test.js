@@ -42,4 +42,51 @@ describe('explicit lesson-sequence quality checks', () => {
     );
     expect(findings.list).toEqual([]);
   });
+
+  it('blocks omitted and shifted ordered topics even when the lesson titles are unique', () => {
+    const findings = collector();
+    const titles = [
+      'Diurnal motion',
+      'Celestial coordinates',
+      'Seasons and tilt',
+      'Moon phases',
+      'Planetary motion',
+      'Electromagnetic spectrum',
+      'Stellar spectra',
+      'Stellar brightness',
+      'Solar system formation',
+      'Hubble’s law',
+      'Course review',
+      'Midterm exam',
+    ];
+    checkExplicitLessonSequenceReuse(
+      findings,
+      new Map(titles.map((title, index) => [index + 1, [{ title, path: `L${index + 1}.docx` }]])),
+      {
+        prompt:
+          'Lessons cover: diurnal motion and the apparent daily motion of the sky; the celestial sphere and celestial coordinates; the seasons and axial tilt with solstice and equinox; phases of the Moon; Kepler’s third law and the laws of planetary motion; the electromagnetic spectrum and wavelengths of light; spectral lines, absorption and emission spectra of stars; telescope light-gathering power and aperture; stellar parallax and celestial distances measured in parsecs; apparent magnitude and the brightness of stars; the solar nebula hypothesis and the formation of the solar system; and Hubble’s law and the expanding universe with a course review.',
+      },
+    );
+
+    expect(findings.list).toEqual([
+      expect.objectContaining({
+        severity: 'P0',
+        detail: 'Explicit source lesson sequence omits or shifts 5 ordered topic(s)',
+        evidence: expect.stringContaining('L8 expected "telescope light-gathering power and aperture"'),
+      }),
+    ]);
+  });
+
+  it('accepts concise titles that preserve the ordered source topics', () => {
+    const findings = collector();
+    checkExplicitLessonSequenceReuse(
+      findings,
+      new Map([
+        [1, [{ title: 'Stellar spectra', path: 'L1.docx' }]],
+        [2, [{ title: 'Moon phases', path: 'L2.docx' }]],
+      ]),
+      { prompt: 'Lessons cover: spectral lines and spectra of stars; and phases of the Moon.' },
+    );
+    expect(findings.list).toEqual([]);
+  });
 });

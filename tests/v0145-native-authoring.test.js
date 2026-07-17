@@ -309,7 +309,48 @@ describe('Pass A skeleton contract (B1)', () => {
     expect(skeleton.sessionSequenceRecovery).toMatchObject({
       kind: 'explicit-source-lesson-sequence',
       recoveredCount: 14,
-      repeatedTitles: expect.arrayContaining(['Final project']),
+      reason: 'repeated-titles',
+      authoredTitles: expect.arrayContaining(['Final project']),
+    });
+  });
+
+  it('restores omitted and shifted explicit topics even when every authored title is unique', () => {
+    const sourceText =
+      'Introduction to Astronomy, a 12-lesson course. Lessons cover: diurnal motion and the apparent daily motion of the sky; the celestial sphere and celestial coordinates; the seasons and axial tilt with solstice and equinox; phases of the Moon; Kepler’s third law and the laws of planetary motion; the electromagnetic spectrum and wavelengths of light; spectral lines, absorption and emission spectra of stars; telescope light-gathering power and aperture; stellar parallax and celestial distances measured in parsecs; apparent magnitude and the brightness of stars; the solar nebula hypothesis and the formation of the solar system; and Hubble’s law and the expanding universe with a course review.';
+    const modelTitles = [
+      'Diurnal motion',
+      'Celestial coordinates',
+      'Seasons and tilt',
+      'Moon phases',
+      'Planetary motion',
+      'Electromagnetic spectrum',
+      'Stellar spectra',
+      'Stellar brightness',
+      'Solar system formation',
+      'Hubble’s law',
+      'Course review',
+      'Midterm exam',
+    ];
+    const skeleton = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'Introduction to Astronomy', term: 'FA26' },
+        sessions: modelTitles.map((title, index) => ({
+          id: `s${index + 1}`,
+          order: index + 1,
+          title,
+          sectionTitles: [title],
+        })),
+      }),
+      { expectedLessons: 12, sourceText },
+    );
+
+    expect(skeleton.sessions[7].title).toBe('telescope light-gathering power and aperture');
+    expect(skeleton.sessions[8].title).toBe('stellar parallax and celestial distances measured in parsecs');
+    expect(skeleton.sessions[11].title).toBe('Hubble’s law and the expanding universe with a course review');
+    expect(skeleton.sessionSequenceRecovery).toMatchObject({
+      kind: 'explicit-source-lesson-sequence',
+      reason: 'ordered-topic-misalignment',
+      misalignedOrders: [8, 9, 10, 11, 12],
     });
   });
 
