@@ -9,7 +9,6 @@ import { assessCorpusRow } from './scionPreferenceCorpusAudit.mjs';
 import { sha256File } from './scionAdapterPackage.mjs';
 import { validateScionHeldoutBenchmark } from './scionAdapterPairedEvidence.mjs';
 import { deriveDeterministicContractEvidence } from '../src/lib/scionPreferenceGate.js';
-import { validateScionTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
 import {
   SCION_ADAPTER_TASK_FAMILIES,
   SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM,
@@ -365,12 +364,9 @@ function withDerivedContractEvidence(
   row,
   { semanticAdmission = true, allowFirstSentenceLexicalCue = semanticAdmission } = {},
 ) {
-  if (
-    row?.preferenceEvidence?.kind === 'single-model-judge-preference' &&
-    validateScionTrainingPreferenceEvidence(row.preferenceEvidence).valid
-  ) {
-    return row;
-  }
+  // A claimed model-judge preference must pass its own evidence protocol. Never
+  // downgrade malformed judge or teacher lineage into deterministic evidence.
+  if (row?.preferenceEvidence?.kind === 'single-model-judge-preference') return row;
   const kind = pairKind(row);
   if (!kind) return row;
   const chosen = ['lesson', 'lesson-kernel'].includes(kind) ? lessonValue(row.chosen) : parsed(row.chosen);

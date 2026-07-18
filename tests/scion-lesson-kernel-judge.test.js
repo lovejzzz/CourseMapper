@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
 import {
   SCION_LESSON_KERNEL_JUDGE_DIMENSIONS,
@@ -12,7 +15,7 @@ import {
   validateScionLessonKernelJudgeReview,
 } from '../scripts/lib/scionLessonKernelJudge.mjs';
 import { scionLessonKernelSha256 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
-import { toScionOrpoTrainingRow } from '../scripts/scionAdapterDataset.mjs';
+import { buildScionAdapterDataset, toScionOrpoTrainingRow } from '../scripts/scionAdapterDataset.mjs';
 import { assessCorpusRow } from '../scripts/scionPreferenceCorpusAudit.mjs';
 import { validateScionTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
 import { SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE } from './fixtures/scionLessonKernelAdmissionV01654.js';
@@ -287,7 +290,7 @@ describe('Scion lesson-kernel paired-order judge', () => {
     );
   });
 
-  it('binds a teacher-revised winner to its source-only revision and compiler lineage', () => {
+  it('binds a teacher-revised winner to its source-only revision and compiler lineage', async () => {
     const inputs = fixture();
     const teacherCall = inputs.referenceReport.calls[0];
     teacherCall.arm = 'teacher-revision';
@@ -360,6 +363,30 @@ describe('Scion lesson-kernel paired-order judge', () => {
     expect(assessCorpusRow(tampered, 'teacher-lineage-fixture').issues).toContain(
       'lesson-kernel-teacher-lineage-binding',
     );
+
+    const temporary = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-teacher-lineage-test-'));
+    try {
+      const source = path.join(temporary, 'preferences.jsonl');
+      await fs.writeFile(source, `${JSON.stringify(tampered)}\n`);
+      const dataset = await buildScionAdapterDataset({
+        sources: [source],
+        outputDir: path.join(temporary, 'dataset'),
+        domainMapPath: path.join(temporary, 'missing-domain-map.json'),
+        generatedAt: '2026-07-18T18:30:00.000Z',
+        minimumPairs: 1,
+        minimumDomains: 1,
+        minimumGroupsPerDomain: 1,
+        minimumTaskGroupsPerDomain: 1,
+        minimumSourceKernelsPerDomain: 1,
+        minimumModelJudgePairs: 1,
+        minimumModelJudgeDomains: 1,
+        minimumModelJudgePairsPerDomain: 1,
+        allowSmoke: true,
+      });
+      expect(dataset.manifest.counts).toMatchObject({ loaded: 1, total: 0, quarantined: 1 });
+    } finally {
+      await fs.rm(temporary, { recursive: true, force: true });
+    }
   });
 
   it('rejects route leakage, changed identity, and reuse of one judge session across orders', () => {
