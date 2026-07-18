@@ -15,6 +15,10 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { sGenerate, startItems, stopS } from '../../trellis/tendril/sModel.mjs';
 import { sha256File, verifyScionAdapterPackage } from '../scionAdapterPackage.mjs';
 import { computeScionAdapterPackageIdentity } from '../lib/scionBrowserDeviceMatrix.mjs';
+import {
+  normalizeScionAdapterTaskFamily,
+  resolveScionAdapterTaskRoute,
+} from '../../src/lib/scionAdapterTaskScope.js';
 
 const PORT = Number(process.argv[2] ?? 8799);
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
@@ -54,6 +58,7 @@ let adapterManifestSha256 = '';
 let adapterPackageIdentitySha256 = '';
 let adapterScale = null;
 let adapterError = '';
+let verifiedAdapterManifest = null;
 const requestMetrics = new AsyncLocalStorage();
 
 async function prepareScionAdapter() {
@@ -85,6 +90,7 @@ async function prepareScionAdapter() {
   adapterManifestSha256 = await sha256File(report.manifestPath);
   adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(manifest).sha256;
   adapterScale = Number(manifest.adapter?.scale ?? 1);
+  verifiedAdapterManifest = manifest;
   adapterState = 'verified';
   adapterError = '';
 }
@@ -135,19 +141,42 @@ async function generate({ system, user, maxTokens, schema, jsonMode, temperature
   await ensureLocalModelReady();
   calls += 1;
   inFlightCalls += 1;
-  const metrics = requestMetrics.getStore();
+  const requestContext = requestMetrics.getStore();
+  const metrics = requestContext?.metrics || requestContext;
   if (metrics) metrics.modelCalls += 1;
   // task:'items' is the g4 venv route. timeoutMs is queue-INCLUSIVE (serve_g4
   // is serial; the compiler batches parallel calls) — 20min so a deep queue
   // is slow, not a fake failure.
   try {
-    const text = await sGenerate(
-      { system, user, task: 'items', maxTokens, schema, jsonMode, temperature },
-      { timeoutMs: 1_200_000 },
+    const result = await sGenerate(
+      {
+        system,
+        user,
+        task: 'items',
+        maxTokens,
+        schema,
+        jsonMode,
+        temperature,
+        adapterMode: requestContext?.adapterRoute?.mode || 'base-only',
+      },
+      { timeoutMs: 1_200_000, includeMetadata: true },
     );
+    const requestedMode = requestContext?.adapterRoute?.mode || 'base-only';
+    if (
+      !result ||
+      result.adapterMode !== requestedMode ||
+      result.nativeAdapterActive !== (requestedMode === 'adapter')
+    ) {
+      throw new Error(`Native Scion route proof mismatch for ${requestedMode}`);
+    }
+    requestContext?.routeProofs?.push({
+      adapterMode: result.adapterMode,
+      nativeAdapterActive: result.nativeAdapterActive,
+      adapterScale: result.adapterScale,
+    });
     completedCalls += 1;
     if (metrics) metrics.completedModelCalls += 1;
-    return String(text ?? '');
+    return String(result.text ?? '');
   } catch (error) {
     failedModelCalls += 1;
     if (metrics) metrics.failedModelCalls += 1;
@@ -189,11 +218,11 @@ function extractJsonContract(body, isResponses) {
 }
 
 // ── The kernel contract, grammar-enforced (E2B-MAX V2, round-5 lesson) ──────
-// The Pass B / lesson-kernel call ships as json_object with its shape only in
-// PROMPT TEXT (buildLessonKernelPrompt), so the permissive grammar let the
-// model skip every optional field — round 5 returned lessons with NO
-// facts/keyTerms/mc at all and 7/7 fell back to template. This derives a
-// STRICT schema from the app's own contract + lint floor
+// The Pass B / lesson-kernel call may ship either a json_object hint or the
+// app's declared json_schema. In both cases the prompt identifies the call as
+// a knowledge kernel, so route it through the per-lesson generator instead of
+// treating an app schema as a reason to bypass the measured local path. This
+// derives a STRICT schema from the app's own contract + lint floor
 // (lintKernelFact ≥20ch, lintEnrichedKeyTerm df ≥40ch, lintEnrichedQuizItem
 // exactly-4 options, parse loop's per-lesson usability rule): required kernel
 // atoms, exact requested lessonIds, lint-compliant lengths. llguidance turns
@@ -1229,9 +1258,10 @@ const server = http.createServer(async (req, res) => {
   // D1 contract handoff: an app-declared schema call also controls its own
   // temperature (greedy default; recovery retries sample) — honor it.
   const declaredTemperature = Number(body.temperature) || 0;
-  const kernel = contract.jsonMode ? kernelContract(system, user) : null;
+  const hasJsonContract = Boolean(contract.schema || contract.jsonMode);
+  const kernel = hasJsonContract ? kernelContract(system, user) : null;
   let isSkeleton = false;
-  if (!kernel && contract.jsonMode) {
+  if (!kernel && hasJsonContract) {
     const pinned = courseIRContract(system, user) || skeletonContract(system, user);
     if (pinned) {
       contract = { schema: pinned.schema };
@@ -1245,7 +1275,7 @@ const server = http.createServer(async (req, res) => {
   try {
     text = await requestMetrics.run(modelMetrics, async () => {
       let generated = kernel
-        ? await kernelChunkedGenerate({ system, user, kernel, temperature })
+        ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })
         : await generate({
             system,
             user,

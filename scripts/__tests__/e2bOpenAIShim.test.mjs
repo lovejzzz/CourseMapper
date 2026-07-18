@@ -105,6 +105,90 @@ input.on('line', (line) => {
   expect(rows[0].modelMetrics).toEqual({ modelCalls: 1, completedModelCalls: 1, failedModelCalls: 0 });
 });
 
+it('routes declared-schema knowledge kernels through the strict per-lesson generator', async () => {
+  fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-shim-kernel-route-'));
+  const workerPath = path.join(fixtureDir, 'worker.mjs');
+  const bodyLogPath = path.join(fixtureDir, 'kernel.jsonl');
+  await fs.writeFile(
+    workerPath,
+    `import readline from 'node:readline';
+process.stdout.write(JSON.stringify({ ready: true, constrained: true }) + '\\n');
+function value(schema = {}) {
+  if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
+  if (schema.type === 'object') return Object.fromEntries((schema.required || []).map((key) => [key, value(schema.properties?.[key])]));
+  if (schema.type === 'array') return Array.from({ length: Math.max(0, Number(schema.minItems) || 0) }, () => value(schema.items));
+  if (schema.type === 'integer') return Number(schema.minimum) || 0;
+  if (schema.type === 'number') return Number(schema.minimum) || 0;
+  if (schema.type === 'boolean') return false;
+  if (schema.type === 'string') return 'x'.repeat(Math.max(1, Number(schema.minLength) || 1));
+  return null;
+}
+const input = readline.createInterface({ input: process.stdin });
+input.on('line', (line) => {
+  const request = JSON.parse(line);
+  process.stdout.write(JSON.stringify({ id: request.id, text: JSON.stringify(value(request.schema || { type: 'object', properties: {}, required: [] })), constrained: 'object' }) + '\\n');
+});
+`,
+  );
+
+  const port = 27_000 + Math.floor(Math.random() * 2_000);
+  const baseUrl = `http://127.0.0.1:${port}`;
+  serverProcess = spawn(process.execPath, ['scripts/crucible/e2bOpenAIShim.mjs', String(port)], {
+    cwd: process.cwd(),
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: {
+      ...process.env,
+      TENDRIL_ITEMS_PYTHON: process.execPath,
+      TENDRIL_ITEMS_SCRIPT: workerPath,
+      SHIM_BODY_LOG: bodyLogPath,
+      LOCAL_MODEL_ID: 'fake-scion',
+      LOCAL_MODEL_NAME: 'Fake Scion',
+      SCION_MODEL: 'test/fake-scion',
+    },
+  });
+  await waitForHealth(baseUrl, (health) => health.modelReady === true);
+
+  const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'fake-scion',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'For every lesson in the request, return one knowledge kernel: 5-8 facts, 4 keyTerms, and exactly 1 mc items.',
+        },
+        {
+          role: 'user',
+          content: 'Course: Testing Basics\\nLessons:\\n[{"lessonId":"lesson-1","title":"Lesson 1: Testing"}]',
+        },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'kernel_lesson_batch',
+          strict: true,
+          schema: { type: 'object', properties: { lessons: { type: 'array' } }, required: ['lessons'] },
+        },
+      },
+    }),
+  });
+  const payload = await response.json();
+  const generated = JSON.parse(payload.choices[0].message.content);
+  expect(generated.lessons[0]).toMatchObject({ lessonId: 'lesson-1' });
+  expect(generated.lessons[0]).toHaveProperty('facts');
+  expect(generated.lessons[0]).toHaveProperty('scenario');
+  expect(generated.lessons[0]).toHaveProperty('mc');
+
+  const rows = (await fs.readFile(bodyLogPath, 'utf8'))
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+  expect(rows).toHaveLength(1);
+  expect(rows[0].modelMetrics.modelCalls).toBeGreaterThan(1);
+});
+
 it('refuses a bare adapter folder without an integrity manifest', async () => {
   fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-shim-bare-adapter-'));
   const adapterDir = path.join(fixtureDir, 'adapter');
