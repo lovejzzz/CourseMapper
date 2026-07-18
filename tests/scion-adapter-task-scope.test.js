@@ -36,6 +36,7 @@ describe('Scion adapter task scope', () => {
     expect(scionAdapterTaskFamilyForProviderTask('scionPass')).toBe('lesson-kernel');
     expect(scionAdapterTaskFamilyForProviderTask('course-map')).toBe('course-map');
     expect(scionAdapterTaskFamilyForProviderTask('chat')).toBe('agent-advisory');
+    expect(scionAdapterTaskFamilyForProviderTask('verification')).toBe('compiler-repair');
     expect(scionAdapterTaskFamilyForProviderTask('something-new')).toBe('unclassified');
     expect(normalizeScionAdapterTaskFamily('made-up')).toBe('unclassified');
   });

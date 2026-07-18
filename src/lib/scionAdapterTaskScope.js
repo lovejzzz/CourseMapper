@@ -53,7 +53,7 @@ export function scionAdapterTaskFamilyForProviderTask(value) {
   if (['chat', 'agent', 'agent-advisory', 'agentadvisory'].includes(task)) {
     return SCION_ADAPTER_TASK_FAMILIES.AGENT_ADVISORY;
   }
-  if (['repair', 'compiler-repair', 'compilerrepair'].includes(task)) {
+  if (['repair', 'compiler-repair', 'compilerrepair', 'verification'].includes(task)) {
     return SCION_ADAPTER_TASK_FAMILIES.COMPILER_REPAIR;
   }
   if (['voicepass', 'voice-pass', 'voice-revision', 'voicerevision'].includes(task)) {
