@@ -304,9 +304,7 @@
         "atomIndex": 1,
         "artifactSha256": "23afefc30de98aa01ff7dcd895fbc6b5050b7cf604a6e25228f472431a1816c8",
         "artifactLabel": "readlines()",
-        "newIssues": [
-          "key-term-1-correction-omits-technical-reference"
-        ]
+        "newIssues": ["key-term-1-correction-omits-technical-reference"]
       },
       {
         "projectPath": "evaluation/scion-source-compiler-replay-v0.16.47/tonal-analysis-integration-studio-local.json",
@@ -316,9 +314,7 @@
         "atomIndex": 0,
         "artifactSha256": "25b441466fac528d284e5a3c6be229527a23ac4912744d4408343debe7f4edd6",
         "artifactLabel": "Scale degree",
-        "newIssues": [
-          "key-term-0-correction-drops-defining-identity"
-        ]
+        "newIssues": ["key-term-0-correction-drops-defining-identity"]
       }
     ]
   },

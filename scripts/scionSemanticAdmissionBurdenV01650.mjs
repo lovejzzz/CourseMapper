@@ -5,6 +5,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
+import * as prettier from 'prettier';
+
 import { assessScionKeyTerm, assessScionMcItem } from '../src/lib/scionPreferenceGate.js';
 import {
   compileSourceAtomResponse,
@@ -32,8 +34,9 @@ function sha256(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
-function canonical(value) {
-  return `${JSON.stringify(value, null, 2)}\n`;
+async function formattedReceipt(value, output) {
+  const options = (await prettier.resolveConfig(output)) || {};
+  return prettier.format(JSON.stringify(value), { ...options, filepath: output });
 }
 
 function histogram(values) {
@@ -278,8 +281,9 @@ export async function buildScionSemanticAdmissionBurdenV01650({ cwd = process.cw
 export async function runScionSemanticAdmissionBurdenV01650({ cwd = process.cwd(), write = false } = {}) {
   const report = await buildScionSemanticAdmissionBurdenV01650({ cwd });
   const output = path.resolve(cwd, RECEIPT);
-  if (write) await fs.writeFile(output, canonical(report));
-  else if ((await fs.readFile(output, 'utf8')) !== canonical(report)) {
+  const receipt = await formattedReceipt(report, output);
+  if (write) await fs.writeFile(output, receipt);
+  else if ((await fs.readFile(output, 'utf8')) !== receipt) {
     throw new Error('Tracked semantic-admission burden receipt is stale');
   }
   return { report, output, wrote: write };
