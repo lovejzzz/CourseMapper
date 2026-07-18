@@ -1,12 +1,19 @@
 import fs from 'node:fs/promises';
+import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { isDistFresh, normalizeLlmShimResponse } from '../scripts/lib/crucibleBrowser.mjs';
+import {
+  isAppServerPortFree,
+  isDistFresh,
+  isFatalAppConsoleMessage,
+  normalizeLlmShimResponse,
+} from '../scripts/lib/crucibleBrowser.mjs';
 
 const roots = [];
+const servers = [];
 
 async function fixture() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'crucible-freshness-'));
@@ -33,6 +40,14 @@ async function setMtime(file, epochMs) {
 }
 
 afterEach(async () => {
+  await Promise.all(
+    servers.splice(0).map(
+      (server) =>
+        new Promise((resolve) => {
+          server.close(resolve);
+        }),
+    ),
+  );
   await Promise.all(roots.splice(0).map((root) => fs.rm(root, { recursive: true, force: true })));
 });
 
@@ -59,6 +74,47 @@ describe('Crucible production-bundle freshness', () => {
     }
     await setMtime(path.join(root, 'dist', 'index.html'), base + 2_000);
     expect(await isDistFresh(root)).toBe(true);
+  });
+});
+
+describe('Crucible preview isolation', () => {
+  it('treats a wildcard-owned port as unavailable even when loopback could overlap it', async () => {
+    const server = net.createServer();
+    servers.push(server);
+    await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '0.0.0.0', resolve);
+    });
+
+    expect(await isAppServerPortFree(server.address().port)).toBe(false);
+  });
+
+  it('classifies app-origin transport loss and error-boundary entry as fatal', () => {
+    const appOrigin = 'http://127.0.0.1:4173';
+    expect(
+      isFatalAppConsoleMessage({
+        type: 'error',
+        text: 'Failed to load resource: net::ERR_CONNECTION_REFUSED',
+        url: `${appOrigin}/assets/ExportSidePanel.js`,
+        appOrigin,
+      }),
+    ).toBe(true);
+    expect(
+      isFatalAppConsoleMessage({
+        type: 'error',
+        text: 'ErrorBoundary caught: TypeError: Failed to fetch dynamically imported module',
+        url: `${appOrigin}/assets/AppFlow.js`,
+        appOrigin,
+      }),
+    ).toBe(true);
+    expect(
+      isFatalAppConsoleMessage({
+        type: 'error',
+        text: 'Failed to load resource: net::ERR_CONNECTION_REFUSED',
+        url: 'http://127.0.0.1:8799/v1/chat/completions',
+        appOrigin,
+      }),
+    ).toBe(false);
   });
 });
 

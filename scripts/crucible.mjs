@@ -729,6 +729,8 @@ const FLOW_BUNDLE_SELECTORS = [
   'readiness-status', // src/components/ExportSidePanel.jsx:352
   'readiness-finish-package', // src/components/ExportSidePanel.jsx:471
   'export-download-zip', // src/components/ExportSidePanel.jsx:1192
+  'landing-quick-start', // src/screens/Landing.jsx: full-package primary action
+  'landing-setup-button', // src/screens/Landing.jsx: customizable-package action
   'coursemapper-apikey', // localStorage seed key (src/contexts/AIConfigContext.jsx)
   'coursemapper-modelid',
   'coursemapper-authoring-mode', // WS-B3 native-authoring flag (src/lib/nativeGraphAuthoring.js)
@@ -780,17 +782,26 @@ async function dryRun(options) {
       .then(() => true)
       .catch(() => false);
     addCheck('landing: "Describe your course" input', describeVisible);
-    const continueButton = page.getByRole('button', { name: /^Continue$/ }).last();
-    const continueVisible = await continueButton
-      .waitFor({ timeout: 10_000 })
-      .then(() => true)
-      .catch(() => false);
-    addCheck('landing: Continue button', continueVisible);
     if (describeVisible)
       await describeBox
         .first()
         .fill('Dry-run wiring check — no generation.')
         .catch(() => {});
+    const quickStartButton = page.getByTestId('landing-quick-start');
+    const quickStartVisible = await quickStartButton
+      .waitFor({ timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    addCheck('landing: Generate full course action', quickStartVisible);
+    const customizeButton = page.getByTestId('landing-setup-button');
+    const customizeVisible = await customizeButton
+      .waitFor({ timeout: 10_000 })
+      .then(() => true)
+      .catch(() => false);
+    addCheck('landing: Customize package action', customizeVisible);
+    if (quickStartVisible)
+      addCheck('landing: full-course action enables from a brief', await quickStartButton.isEnabled());
+    if (customizeVisible) addCheck('landing: customize action enables from a brief', await customizeButton.isEnabled());
     await page.screenshot({ path: path.join(outDir, 'landing.png'), fullPage: true });
     log(`  screenshot saved: ${path.relative(repoRoot, path.join(outDir, 'landing.png'))}`);
 

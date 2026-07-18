@@ -201,15 +201,20 @@ async function verifyGitGate(skipGitGate) {
   };
 }
 
-async function isPortFree(port) {
+async function canBindPort(port, host) {
   return new Promise((resolve) => {
     const server = net.createServer();
     server.once('error', () => resolve(false));
     server.once('listening', () => {
       server.close(() => resolve(true));
     });
-    server.listen(port, '127.0.0.1');
+    server.listen(port, host);
   });
+}
+
+async function isPortFree(port) {
+  if (!(await canBindPort(port, '127.0.0.1'))) return false;
+  return canBindPort(port, '0.0.0.0');
 }
 
 async function findFreePort(startPort) {
@@ -237,10 +242,11 @@ async function waitForUrl(url, timeoutMs = 60_000) {
 
 async function startDevServer({ port, logPath }) {
   const output = await fs.open(logPath, 'a');
-  const child = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(port)], {
+  const child = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
     cwd: repoRoot,
     env: { ...process.env, BROWSER: 'none' },
     stdio: ['ignore', 'pipe', 'pipe'],
+    detached: true,
   });
 
   child.stdout.on('data', (chunk) => output.write(redact(chunk)));
@@ -254,7 +260,12 @@ async function startDevServer({ port, logPath }) {
     }
   };
 
-  child.once('exit', () => {
+  let resolveExit;
+  const exited = new Promise((resolve) => {
+    resolveExit = resolve;
+  });
+  child.once('exit', (code, signal) => {
+    resolveExit({ code, signal });
     closeOutput();
   });
 
@@ -263,7 +274,14 @@ async function startDevServer({ port, logPath }) {
   return {
     baseUrl: `http://127.0.0.1:${port}/`,
     async stop() {
-      if (!child.killed) child.kill('SIGTERM');
+      if (!child.killed) {
+        try {
+          process.kill(-child.pid, 'SIGTERM');
+        } catch {
+          child.kill('SIGTERM');
+        }
+        await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 3_000))]);
+      }
       await closeOutput();
     },
   };
@@ -330,6 +348,7 @@ export function isDownloadablePackageState(status, zipLabel) {
     /\bReady to download\b/i.test(normalizedStatus) ||
     /\bReview before download\b/i.test(normalizedStatus) ||
     /\bReady with notes\b/i.test(normalizedStatus) ||
+    /\bReview recommended\b/i.test(normalizedStatus) ||
     /^\s*Ready\s*$/i.test(normalizedStatus)
   );
 }
@@ -447,13 +466,15 @@ export async function assertCaveatedPackageCardUsesReviewState(page) {
   const hasCaveat =
     (Number.isFinite(qualityScore) && qualityScore < 100) ||
     (Number.isFinite(textureScore) && textureScore < 100) ||
-    /\b(?:export warnings?|P[12]|Review before download|Ready with notes)\b/i.test(combined);
+    /\b(?:export warnings?|P[12]|Review before download|Ready with notes|Review recommended)\b/i.test(combined);
 
   if (!hasCaveat) return { checked: false, reason: 'no-caveat' };
+  const informationalDownload =
+    /\bReady to download\b/i.test(surfaces.readinessStatus) && /Review notes in Agent/i.test(surfaces.exportPanel);
   const leaks = [];
   if (
-    !/\b(?:Review before download|Ready with notes)\b/i.test(surfaces.readinessStatus) ||
-    /Ready to download/i.test(surfaces.readinessStatus)
+    !/\b(?:Review before download|Ready with notes|Review recommended)\b/i.test(surfaces.readinessStatus) &&
+    !informationalDownload
   ) {
     leaks.push('readiness status');
   }

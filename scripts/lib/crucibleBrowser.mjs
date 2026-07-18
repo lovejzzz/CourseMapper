@@ -74,21 +74,29 @@ export async function loadApiKey(apiEnvPath = defaultApiEnvPath, provider = 'ope
   );
 }
 
-// Borrowed from scripts/liveBrowserQualityLoop.mjs (isPortFree/findFreePort).
-async function isPortFree(port) {
+// A loopback-only bind is not enough on macOS: a wildcard listener may own the
+// same port while 127.0.0.1 still appears bindable. That allowed two preview
+// builds to share 4173; when the older process exited, an in-flight Crucible
+// page lost its lazy chunks. Probe both scopes so one run owns one port.
+async function canBindPort(port, host) {
   return new Promise((resolve) => {
     const server = net.createServer();
     server.once('error', () => resolve(false));
     server.once('listening', () => {
       server.close(() => resolve(true));
     });
-    server.listen(port, '127.0.0.1');
+    server.listen(port, host);
   });
+}
+
+export async function isAppServerPortFree(port) {
+  if (!(await canBindPort(port, '127.0.0.1'))) return false;
+  return canBindPort(port, '0.0.0.0');
 }
 
 async function findFreePort(startPort) {
   for (let port = startPort; port < startPort + 50; port += 1) {
-    if (await isPortFree(port)) return port;
+    if (await isAppServerPortFree(port)) return port;
   }
   throw new Error(`Could not find a free port starting at ${startPort}`);
 }
@@ -202,9 +210,27 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
     cwd: repoRoot,
     env: { ...process.env, BROWSER: 'none' },
     stdio: ['ignore', 'pipe', 'pipe'],
+    detached: true,
   });
-  child.stdout.on('data', (chunk) => output?.write(redactSecrets(chunk)).catch(() => {}));
-  child.stderr.on('data', (chunk) => output?.write(redactSecrets(chunk)).catch(() => {}));
+  let startupOutput = '';
+  let startupSettled = false;
+  let resolveStartup;
+  let rejectStartup;
+  const startup = new Promise((resolve, reject) => {
+    resolveStartup = resolve;
+    rejectStartup = reject;
+  });
+  const recordOutput = (chunk) => {
+    const text = redactSecrets(chunk);
+    startupOutput = `${startupOutput}${text}`.slice(-4000);
+    output?.write(text).catch(() => {});
+    if (!startupSettled && /Local:\s+http:\/\//i.test(startupOutput)) {
+      startupSettled = true;
+      resolveStartup();
+    }
+  };
+  child.stdout.on('data', recordOutput);
+  child.stderr.on('data', recordOutput);
 
   const closeOutput = async () => {
     try {
@@ -213,21 +239,117 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
       // Output stream may already be closed if vite exits during cleanup.
     }
   };
-  child.once('exit', () => {
+  let stopping = false;
+  let exitInfo = null;
+  let resolveExit;
+  const exited = new Promise((resolve) => {
+    resolveExit = resolve;
+  });
+  child.once('error', (error) => {
+    if (!startupSettled) {
+      startupSettled = true;
+      rejectStartup(error);
+    }
+  });
+  child.once('exit', (code, signal) => {
+    exitInfo = { code, signal, unexpected: !stopping };
+    resolveExit(exitInfo);
+    if (!startupSettled) {
+      startupSettled = true;
+      rejectStartup(
+        new Error(
+          `vite preview exited before startup (code ${code ?? 'null'}, signal ${signal || 'none'})\n${startupOutput}`,
+        ),
+      );
+    }
     closeOutput();
   });
 
-  await waitForUrl(`http://127.0.0.1:${port}/`, 60_000);
+  let startupTimer;
+  try {
+    await Promise.race([
+      startup,
+      new Promise((_, reject) => {
+        startupTimer = setTimeout(
+          () => reject(new Error(`Timed out waiting for vite preview startup on port ${port}\n${startupOutput}`)),
+          60_000,
+        );
+      }),
+    ]);
+  } catch (error) {
+    stopping = true;
+    try {
+      process.kill(-child.pid, 'SIGTERM');
+    } catch {
+      child.kill('SIGTERM');
+    }
+    await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 3_000))]);
+    await closeOutput();
+    throw error;
+  } finally {
+    clearTimeout(startupTimer);
+  }
+  try {
+    await waitForUrl(`http://127.0.0.1:${port}/`, 60_000);
+  } catch (error) {
+    stopping = true;
+    try {
+      process.kill(-child.pid, 'SIGTERM');
+    } catch {
+      child.kill('SIGTERM');
+    }
+    await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 3_000))]);
+    await closeOutput();
+    throw error;
+  }
 
   return {
     baseUrl: `http://127.0.0.1:${port}/`,
     port,
     didBuild,
+    exited,
+    async assertHealthy() {
+      if (exitInfo) {
+        throw new Error(
+          `vite preview is no longer running (code ${exitInfo.code ?? 'null'}, signal ${exitInfo.signal || 'none'})`,
+        );
+      }
+      await waitForUrl(`http://127.0.0.1:${port}/`, 5_000);
+    },
     async stop() {
-      if (!child.killed) child.kill('SIGTERM');
+      if (stopping) return;
+      stopping = true;
+      if (!exitInfo) {
+        try {
+          process.kill(-child.pid, 'SIGTERM');
+        } catch {
+          child.kill('SIGTERM');
+        }
+        await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 3_000))]);
+      }
+      if (!exitInfo) {
+        try {
+          process.kill(-child.pid, 'SIGKILL');
+        } catch {
+          child.kill('SIGKILL');
+        }
+        await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 1_000))]);
+      }
       await closeOutput();
     },
   };
+}
+
+export function isFatalAppConsoleMessage({ type, text, url, appOrigin }) {
+  if (type !== 'error') return false;
+  const message = String(text || '');
+  if (/ErrorBoundary caught|Failed to fetch dynamically imported module/i.test(message)) return true;
+  if (!/ERR_CONNECTION_REFUSED/i.test(message) || !url || !appOrigin) return false;
+  try {
+    return new URL(url).origin === appOrigin;
+  } catch {
+    return false;
+  }
 }
 
 // Borrowed from scripts/liveBrowserQualityLoop.mjs (safeText).
@@ -540,6 +662,21 @@ export async function runCourseInBrowser({
     await context.route('https://api.openai.com/**', (route) => forwardToLlmShim(route, llmShimUrl));
   }
   const page = await context.newPage();
+  const appOrigin = new URL(baseUrl).origin;
+  let browserRunClosed = false;
+  let fatalPageError = null;
+  let rejectFatalPage;
+  const fatalPageSignal = new Promise((_, reject) => {
+    rejectFatalPage = reject;
+  });
+  // Keep a rejection handler attached even between guarded phases.
+  fatalPageSignal.catch(() => {});
+  const failPage = (error) => {
+    if (browserRunClosed || fatalPageError) return;
+    fatalPageError = error instanceof Error ? error : new Error(String(error));
+    rejectFatalPage(fatalPageError);
+  };
+  const guardPage = (promise) => Promise.race([Promise.resolve(promise), fatalPageSignal]);
 
   // Every console message, timestamped, message text VERBATIM — the [CM]
   // lines are the pipeline story and must be preserved exactly (only API
@@ -549,10 +686,60 @@ export async function runCourseInBrowser({
     appendConsoleLine(`${new Date().toISOString()} [${message.type()}] ${text}`);
     const digest = parseDigestLine(text);
     if (digest) lastDigest = digest;
+    const location = message.location();
+    if (
+      isFatalAppConsoleMessage({
+        type: message.type(),
+        text,
+        url: location?.url || '',
+        appOrigin,
+      })
+    ) {
+      failPage(new Error(`CourseMapper browser entered a fatal UI state: ${text}`));
+    }
   });
   page.on('pageerror', (error) => {
     appendConsoleLine(`${new Date().toISOString()} [pageerror] ${redactSecrets(error.message)}`);
+    failPage(new Error(`CourseMapper page error: ${redactSecrets(error.message)}`));
   });
+  page.on('requestfailed', (request) => {
+    let requestOrigin = '';
+    try {
+      requestOrigin = new URL(request.url()).origin;
+    } catch {
+      return;
+    }
+    if (requestOrigin !== appOrigin) return;
+    const reason = request.failure()?.errorText || 'request failed';
+    if (!/ERR_(?:CONNECTION|ADDRESS|EMPTY_RESPONSE|NAME_NOT_RESOLVED)/i.test(reason)) return;
+    failPage(new Error(`CourseMapper preview request failed: ${request.url()} (${reason})`));
+  });
+
+  // A fully loaded SPA can survive for minutes after its preview server dies,
+  // then fail only when a lazy export/view chunk is requested. Probe the exact
+  // origin throughout the run so infrastructure death fails in seconds rather
+  // than looking like slow local inference.
+  let heartbeatFailures = 0;
+  let heartbeatInFlight = false;
+  const heartbeat = globalThis.setInterval(async () => {
+    if (browserRunClosed || heartbeatInFlight) return;
+    heartbeatInFlight = true;
+    const controller = new AbortController();
+    const timeout = globalThis.setTimeout(() => controller.abort(), 5_000);
+    try {
+      const response = await fetch(baseUrl, { cache: 'no-store', signal: controller.signal });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      heartbeatFailures = 0;
+    } catch (error) {
+      heartbeatFailures += 1;
+      if (heartbeatFailures >= 2) {
+        failPage(new Error(`CourseMapper preview server became unreachable: ${error.message || error}`));
+      }
+    } finally {
+      globalThis.clearTimeout(timeout);
+      heartbeatInFlight = false;
+    }
+  }, 3_000);
 
   let phase = 'starting';
   let zipPath = null;
@@ -611,11 +798,11 @@ export async function runCourseInBrowser({
         flywheelDisabled: disableScionFlywheel,
       },
     );
-    await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+    await guardPage(page.goto(baseUrl, { waitUntil: 'domcontentloaded' }));
 
     phase = 'validating-provider';
     // "Connected" badge — src/screens/Landing.jsx:694 (selector borrowed from liveBrowserQualityLoop.mjs).
-    await expect(page.getByText('Connected').first()).toBeVisible({ timeout: remaining(120_000) });
+    await guardPage(expect(page.getByText('Connected').first()).toBeVisible({ timeout: remaining(120_000) }));
 
     phase = 'submitting-prompt';
     // aria-label "Describe your course" — src/screens/Landing.jsx:567.
@@ -669,14 +856,14 @@ export async function runCourseInBrowser({
     // per-stage caps; local runs may spend whatever remains of their bounded
     // 45-minute course budget.
     const stepCap = llmShimUrl || localEndpoint ? () => remaining() : remaining;
-    await page.getByTestId('workspace-shell').waitFor({ timeout: stepCap(600_000) });
+    await guardPage(page.getByTestId('workspace-shell').waitFor({ timeout: stepCap(600_000) }));
 
     phase = 'finalizing-package';
-    await ensurePackageReady(page, stepCap);
+    await guardPage(ensurePackageReady(page, stepCap));
 
     phase = 'downloading-zip';
     zipPath = path.join(outDir, `${course.id}-package.zip`);
-    await downloadZip(page, zipPath, remaining);
+    await guardPage(downloadZip(page, zipPath, remaining));
 
     // v0.14.9 C2: --voice ab — the same-generation A/B. The generation above
     // ran with the voice flag OFF, so the zip just saved is the QUIET twin.
@@ -685,19 +872,21 @@ export async function runCourseInBrowser({
     // packages from one generation, differing only by voiced surfaces.
     if (voiceMode === 'ab') {
       phase = 'voice-ab-pass';
-      const voiceOutcome = await page.evaluate(async () => {
-        localStorage.setItem('coursemapper-voice-pass', 'on');
-        return await new Promise((resolve) => {
-          const timer = setTimeout(() => resolve({ ran: false, reason: 'timeout waiting for voice pass' }), 240_000);
-          const onDone = (event) => {
-            clearTimeout(timer);
-            globalThis.removeEventListener('coursemapper:dev-voice-pass-done', onDone);
-            resolve(event.detail || null);
-          };
-          globalThis.addEventListener('coursemapper:dev-voice-pass-done', onDone);
-          globalThis.dispatchEvent(new CustomEvent('coursemapper:dev-run-voice-pass'));
-        });
-      });
+      const voiceOutcome = await guardPage(
+        page.evaluate(async () => {
+          localStorage.setItem('coursemapper-voice-pass', 'on');
+          return await new Promise((resolve) => {
+            const timer = setTimeout(() => resolve({ ran: false, reason: 'timeout waiting for voice pass' }), 240_000);
+            const onDone = (event) => {
+              clearTimeout(timer);
+              globalThis.removeEventListener('coursemapper:dev-voice-pass-done', onDone);
+              resolve(event.detail || null);
+            };
+            globalThis.addEventListener('coursemapper:dev-voice-pass-done', onDone);
+            globalThis.dispatchEvent(new CustomEvent('coursemapper:dev-run-voice-pass'));
+          });
+        }),
+      );
       appendConsoleLine(
         `${new Date().toISOString()} [crucible-driver] voice ab pass: ${JSON.stringify(voiceOutcome || null)}`,
       );
@@ -706,7 +895,7 @@ export async function runCourseInBrowser({
       }
       phase = 'voice-ab-download';
       const voicedZipPath = path.join(outDir, `${course.id}-voiced-package.zip`);
-      await downloadZip(page, voicedZipPath, remaining);
+      await guardPage(downloadZip(page, voicedZipPath, remaining));
       voiceAb = { voicedZipPath, outcome: voiceOutcome };
     }
 
@@ -722,7 +911,7 @@ export async function runCourseInBrowser({
     // Project autosave is deliberately debounced by 3s. Wait through that
     // boundary so the captured graph and deliverables describe the finished
     // package rather than the earlier `streaming` render.
-    await page.waitForTimeout(3500);
+    await guardPage(page.waitForTimeout(3500));
     const projectAtSuccess = await page.evaluate(() => localStorage.getItem('coursemapper-project')).catch(() => null);
     if (projectAtSuccess) {
       await fs.writeFile(path.join(outDir, 'project.json'), projectAtSuccess).catch(() => {});
@@ -748,6 +937,8 @@ export async function runCourseInBrowser({
       await fs.writeFile(path.join(outDir, `project-at-failure-${phase}.json`), projectDump).catch(() => {});
     }
   } finally {
+    browserRunClosed = true;
+    globalThis.clearInterval(heartbeat);
     await context.close().catch(() => {});
     if (!sharedBrowser) await browser.close().catch(() => {});
     await consoleWriteQueue.catch(() => {});
