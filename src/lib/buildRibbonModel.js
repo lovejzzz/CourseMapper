@@ -259,6 +259,10 @@ function semanticPassCheckpoint(event) {
 
 export function latestKnowledgeActivity(events = []) {
   const recent = Array.isArray(events) ? events : [];
+  const activeRecovery = recent.find(
+    (event) => event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event),
+  );
+  const recovery = recoveryAttemptFromEvent(activeRecovery);
   const activity = recent.find(
     (event) =>
       ['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type) ||
@@ -283,10 +287,14 @@ export function latestKnowledgeActivity(events = []) {
     const label = SCION_PASS_ACTIVITY[String(activity.detail)] || 'Running a semantic quality check';
     const lessonIds = [...String(activity.chunkLabel || '').matchAll(/lesson-(\d+)/g)].map((match) => match[1]);
     const range = formatLessonRange(lessonIds.join(','));
-    return range ? `${label} · lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}` : label;
+    const liveLabel = range
+      ? `${label} · lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}`
+      : label;
+    return recovery ? `Recovery ${recovery.attempt}/${recovery.total} · ${liveLabel}` : liveLabel;
   }
   if (activity?.label === 'Scion quality passes') {
     const detail = String(activity.detail);
+    if (detail.includes('passBudget:')) return 'Quality call budget reached · continuing safely';
     if (detail.includes('identityRepair:')) return 'Linking lesson to course map';
     if (detail.includes('keyTermAdmission:')) return 'Key terms checked';
     if (detail.includes('appliedDepth:')) return 'Applied questions checked';
@@ -437,6 +445,11 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
   }
   if (state === 'enriching') {
     const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
+    // Once an outer recovery begins, later semantic subcalls may revisit an
+    // early lesson number. Keep the whole-build meter in the reserved 45–49%
+    // recovery band instead of visibly falling from the last lesson to 31%.
+    const recoveryProgress = enrichmentRecoveryProgress(budget?.recentEvents, pipeline.activity);
+    if (recoveryProgress !== null) return recoveryProgress;
     const activityLessons = lessonNumbersFromEvent(pipeline.activity);
     const semanticCheckpoint = semanticPassCheckpoint(pipeline.activity);
     if (lessonCount > 0 && activityLessons.length > 0 && semanticCheckpoint !== null) {
@@ -448,8 +461,6 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
       if (semanticCheckpoint >= 1 && currentLesson >= lessonCount) return 50;
       return Math.max(30, Math.floor(30 + enrichmentFraction * 20));
     }
-    const recoveryProgress = enrichmentRecoveryProgress(budget?.recentEvents, pipeline.activity);
-    if (recoveryProgress !== null) return recoveryProgress;
     const knowledgeEvents = Array.isArray(budget?.recentEvents)
       ? budget.recentEvents.filter(isKnowledgeProgressEvent)
       : [];

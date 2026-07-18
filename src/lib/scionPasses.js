@@ -18,6 +18,12 @@ import { assessScionKeyTerm, assessScionMcItem } from './scionPreferenceGate.js'
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
 
 const APPLIED_MCQ_TARGET_PER_LESSON = 2;
+// A weak local draft can otherwise cascade through double-blind solving,
+// repair generation, re-solving, admission, topic, depth, key-term, and
+// polish calls. Five seats are enough to verify and replace one faulty MC
+// batch (two cold solves + one repair + two verification solves) while
+// placing a hard, user-visible ceiling on compensation for a bad draft.
+export const SCION_PASS_CALL_BUDGET_PER_LESSON = 5;
 const INVALID_MC_ANSWER = '__INVALID_OR_AMBIGUOUS__';
 const INVALID_MC_ANSWER_INDEX = -1;
 
@@ -214,7 +220,12 @@ async function generateVerifiedReplacementBatch({
 }) {
   const accepted = new Map();
   let pending = [...targets];
-  for (let attempt = 1; attempt <= 2 && pending.length > 0; attempt += 1) {
+  // One repair generation is the live compiler ceiling. Frozen browser
+  // evidence measured fourteen batch calls yielding only two verified
+  // repairs; a second speculative draft consumed three more verification
+  // seats without earning enough safe content. Unverified items remain
+  // quarantined and the outer kernel recovery owns the next model attempt.
+  for (let attempt = 1; attempt <= 1 && pending.length > 0; attempt += 1) {
     const indices = pending.map(({ index }) => index);
     const schema = {
       type: 'object',
@@ -1007,7 +1018,14 @@ async function polishProse(lesson, generateJson, events) {
  */
 export async function applyScionKernelPasses(
   rawText,
-  { promptLessons = [], generateJson, contentSourcedLessonIds = [], expectedMcCount = 0, minimumKeyTermCount = 0 } = {},
+  {
+    promptLessons = [],
+    generateJson,
+    contentSourcedLessonIds = [],
+    expectedMcCount = 0,
+    minimumKeyTermCount = 0,
+    maxCallsPerLesson = SCION_PASS_CALL_BUDGET_PER_LESSON,
+  } = {},
 ) {
   let parsed = null;
   try {
@@ -1044,12 +1062,48 @@ export async function applyScionKernelPasses(
     if (contentSourced.has(lesson?.lessonId)) continue; // library content — never touched
     normalizeMcOptionLabels(lesson);
     const promptLesson = promptLessons.find((entry) => entry?.lessonId === lesson?.lessonId) ?? null;
-    await verifyMcAnswers(lesson, promptLesson, generateJson, events);
-    await admissionGate(lesson, promptLesson, generateJson, events, expectedMcCount);
-    await topicGate(lesson, promptLesson, generateJson, events);
-    await appliedDepthGate(lesson, promptLesson, generateJson, events);
-    await keyTermAdmissionGate(lesson, promptLesson, generateJson, events, minimumKeyTermCount);
-    await polishProse(lesson, generateJson, events);
+    const callLimit = Math.max(1, Math.floor(Number(maxCallsPerLesson) || SCION_PASS_CALL_BUDGET_PER_LESSON));
+    let callsUsed = 0;
+    let budgetEventRecorded = false;
+    const budgetedGenerateJson = async (request) => {
+      if (callsUsed >= callLimit) {
+        const error = new Error(`Scion lesson-pass call budget exhausted (${callsUsed}/${callLimit}).`);
+        error.code = 'SCION_PASS_CALL_BUDGET_EXHAUSTED';
+        throw error;
+      }
+      callsUsed += 1;
+      return generateJson(request);
+    };
+    const runPass = async (passName, run) => {
+      if (callsUsed >= callLimit) {
+        if (!budgetEventRecorded) {
+          events.push({
+            pass: 'passBudget',
+            lessonId: lesson.lessonId,
+            action: 'bounded',
+            reason: `${callsUsed}/${callLimit}-calls-used-before-${passName}`,
+            trainingEligible: false,
+          });
+          budgetEventRecorded = true;
+        }
+        return;
+      }
+      await run();
+    };
+
+    // Safety order under pressure: answer correctness first, then admission
+    // and lesson focus, then source-grounded terminology. Applied-depth and
+    // cosmetic polish use only capacity the higher-value checks did not need.
+    await runPass('mcVerify', () => verifyMcAnswers(lesson, promptLesson, budgetedGenerateJson, events));
+    await runPass('admissionGate', () =>
+      admissionGate(lesson, promptLesson, budgetedGenerateJson, events, expectedMcCount),
+    );
+    await runPass('topicGate', () => topicGate(lesson, promptLesson, budgetedGenerateJson, events));
+    await runPass('keyTermAdmission', () =>
+      keyTermAdmissionGate(lesson, promptLesson, budgetedGenerateJson, events, minimumKeyTermCount),
+    );
+    await runPass('appliedDepth', () => appliedDepthGate(lesson, promptLesson, budgetedGenerateJson, events));
+    await runPass('polish', () => polishProse(lesson, budgetedGenerateJson, events));
     // A bounded replacement can arrive after the initial normalization. Keep
     // exporter-owned A/B/C/D labels out of the stored options regardless of
     // which repair pass authored the final item.

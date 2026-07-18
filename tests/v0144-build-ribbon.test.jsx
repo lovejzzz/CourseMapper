@@ -373,6 +373,38 @@ describe('B1 — buildRibbonModel selector', () => {
           state: 'enriching',
           activity: {
             type: 'pipelineDecision',
+            label: 'Scion pass call',
+            detail: 'key_term_admission_batch',
+            chunkLabel: 'lesson-2',
+            at: 40,
+          },
+        },
+        budget: {
+          recentEvents: [
+            {
+              type: 'pipelineDecision',
+              label: 'Scion pass call',
+              detail: 'key_term_admission_batch',
+              chunkLabel: 'lesson-2',
+              at: 40,
+            },
+            {
+              type: 'repairRetryCall',
+              label: 'Author lesson batch (native recovery 2/2)',
+              detail: 'Lessons 2 — source-bound kernel',
+              at: 30,
+            },
+          ],
+        },
+        generation: { lessonCount: 15 },
+      }),
+    ).toBe(48);
+    expect(
+      deriveRibbonProgress({
+        pipeline: {
+          state: 'enriching',
+          activity: {
+            type: 'pipelineDecision',
             label: 'Scion quality passes',
             detail: 'polish:lesson-14 applied',
             chunkLabel: 'lesson-14',
@@ -540,6 +572,32 @@ describe('B1 — buildRibbonModel selector', () => {
         ENRICH_CHUNK_EVENT,
       ]),
     ).toBe('Checking answer keys · lesson 7');
+    expect(
+      latestKnowledgeActivity([
+        {
+          type: 'pipelineDecision',
+          label: 'Scion pass call',
+          detail: 'key_term_admission_batch',
+          chunkLabel: 'lesson-2',
+          at: 40,
+        },
+        {
+          type: 'repairRetryCall',
+          label: 'Author lesson batch (native recovery 2/2)',
+          detail: 'Lessons 2 — source-bound kernel',
+          at: 30,
+        },
+      ]),
+    ).toBe('Recovery 2/2 · Checking key terms · lesson 2');
+    expect(
+      latestKnowledgeActivity([
+        {
+          type: 'pipelineDecision',
+          label: 'Scion quality passes',
+          detail: 'passBudget:lesson-2 bounded [5/5-calls-used-before-keyTermAdmission]',
+        },
+      ]),
+    ).toBe('Quality call budget reached · continuing safely');
     expect(
       latestKnowledgeActivity([
         { type: 'pipelineDecision', label: 'Scion pass call', detail: 'key_term_admission_batch' },

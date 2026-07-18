@@ -12,7 +12,7 @@ import {
   scionPassesEnabled,
   scionFlywheelEnabled,
 } from '../src/lib/scionContracts';
-import { applyScionKernelPasses } from '../src/lib/scionPasses';
+import { applyScionKernelPasses, SCION_PASS_CALL_BUDGET_PER_LESSON } from '../src/lib/scionPasses';
 import { getAdaptiveNativePassBBatchSize } from '../src/lib/adaptiveProviderBatching';
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
 import { isAppliedQuizStem } from '../src/lib/quality/quizItemDepth';
@@ -160,7 +160,16 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(events.some((event) => event.pass === 'mcVerify' && event.action === 'regenerated')).toBe(true);
     expect(patched.mc[0].ai).toBe(1); // the two-solve-confirmed regeneration landed
     expect(patched.mc[0].op).toEqual(['Perfect fourth', 'Perfect fifth', 'Major third', 'Octave']);
-    expect(events.some((event) => event.pass === 'polish')).toBe(true);
+    expect(events.some((event) => event.pass === 'polish')).toBe(false);
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        pass: 'passBudget',
+        lessonId: 'lesson-1',
+        action: 'bounded',
+        reason: '5/5-calls-used-before-admissionGate',
+      }),
+    );
+    expect(calls).toHaveLength(SCION_PASS_CALL_BUDGET_PER_LESSON);
     expect(calls.filter((name) => name === 'blind_solve').length).toBe(4); // original + replacement each solved twice
     expect(blindSchemas[0].properties.answers.prefixItems[0].enum).toEqual([
       'Minor third',
@@ -214,6 +223,62 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(result.events.filter((event) => event.pass === 'mcVerify' && event.action === 'regenerated')).toHaveLength(
       2,
     );
+  });
+
+  it('D3: bounds a repair-heavy lesson before lower-priority compensation can cascade', async () => {
+    const calls = [];
+    let blindSolveCount = 0;
+    const lesson = {
+      lessonId: 'lesson-1',
+      mc: [
+        {
+          q: 'Which unsupported option should be selected when the stem supplies no deciding evidence?',
+          op: ['Alpha evidence', 'Beta evidence', 'Gamma evidence', 'Delta evidence'],
+          ai: 0,
+          ex: 'The draft declares Alpha even though the stem supplies no evidence.',
+        },
+      ],
+    };
+    const generateJson = async ({ schemaProfile }) => {
+      calls.push(schemaProfile.name);
+      if (schemaProfile.name === 'blind_solve') {
+        blindSolveCount += 1;
+        return JSON.stringify({
+          answers: [blindSolveCount <= 2 ? '__INVALID_OR_AMBIGUOUS__' : 'Alpha evidence'],
+        });
+      }
+      if (schemaProfile.name === 'mc_verify_repair_batch') {
+        return JSON.stringify({
+          repairs: [
+            {
+              index: 0,
+              q: 'A record explicitly reports Alpha evidence. Which option matches the supplied record?',
+              op: ['Alpha evidence', 'Beta evidence', 'Gamma evidence', 'Delta evidence'],
+              ai: 0,
+              ex: 'Alpha evidence is explicitly reported; the alternatives are not present in the record.',
+            },
+          ],
+        });
+      }
+      throw new Error(`Unexpected pass after the budget: ${schemaProfile.name}`);
+    };
+
+    const result = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Evidence matching', topics: 'record evidence' }],
+      generateJson,
+    });
+
+    expect(calls).toEqual([
+      'blind_solve',
+      'blind_solve',
+      'mc_verify_repair_batch',
+      'blind_solve',
+      'blind_solve',
+    ]);
+    expect(result.events).toContainEqual(
+      expect.objectContaining({ pass: 'passBudget', action: 'bounded', reason: '5/5-calls-used-before-admissionGate' }),
+    );
+    expect(JSON.parse(result.text).lessons[0].mc[0].q).toContain('explicitly reports Alpha');
   });
 
   it('D3: routes incomplete keyed feedback through the live admission retry path', async () => {
