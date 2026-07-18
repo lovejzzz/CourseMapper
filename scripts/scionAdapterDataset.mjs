@@ -326,6 +326,11 @@ export function toScionOrpoTrainingRow(entry, { sourceBoundPrompt = true } = {})
   const row = entry?.row || entry;
   const boundPrompt = sourceBoundPrompt ? sourceBoundTrainingPrompt(row) : null;
   const prompt = boundPrompt?.text || trainingText(row?.prompt);
+  const winnerRole = normalize(row?.winnerRole || row?.preferenceEvidence?.winnerRole);
+  const rejectedRole = normalize(row?.rejectedRole || row?.preferenceEvidence?.rejectedRole);
+  const teacherRevisionLineageSha256 = normalize(
+    row?.preferenceEvidence?.teacherRevisionLineage?.lineageSha256,
+  );
   const sequence = (response) => [
     { role: 'user', content: prompt },
     { role: 'assistant', content: trainingText(response) },
@@ -345,11 +350,9 @@ export function toScionOrpoTrainingRow(entry, { sourceBoundPrompt = true } = {})
       taskFamily: scionAdapterTaskFamilyForPairKind(pairKind(row)),
       preferenceEvidenceKind: normalize(row?.preferenceEvidence?.kind),
       preferenceEvidenceScope: normalize(row?.preferenceEvidence?.scope),
-      winnerRole: normalize(row?.winnerRole || row?.preferenceEvidence?.winnerRole),
-      rejectedRole: normalize(row?.rejectedRole || row?.preferenceEvidence?.rejectedRole),
-      teacherRevisionLineageSha256: normalize(
-        row?.preferenceEvidence?.teacherRevisionLineage?.lineageSha256,
-      ),
+      ...(winnerRole ? { winnerRole } : {}),
+      ...(rejectedRole ? { rejectedRole } : {}),
+      ...(teacherRevisionLineageSha256 ? { teacherRevisionLineageSha256 } : {}),
       ...(boundPrompt
         ? {
             promptProtocol: boundPrompt.protocol,
