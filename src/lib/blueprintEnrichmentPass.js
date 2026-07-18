@@ -907,7 +907,7 @@ export function buildLessonContentEnrichmentPrompt(courseMap, lessonIndices, opt
         keyTerms: [
           {
             tr: 'real disciplinary term',
-            df: 'correct 1-2 sentence definition in subject language',
+            df: 'exactly one complete, precise definition sentence in subject language',
             eg: 'concrete domain example',
             mi: 'common student misunderstanding of this term',
             cx: 'a direct correction that refutes mi in different wording and does not repeat df',
@@ -1225,7 +1225,7 @@ function buildKernelSchema() {
         keyTerms: [
           {
             tr: 'real disciplinary term',
-            df: 'correct 1-2 sentence definition in subject language',
+            df: 'exactly one complete, precise definition sentence in subject language',
             eg: 'concrete domain example',
             mi: 'common student misunderstanding of this term',
             cx: 'the accurate corrective statement that directly counters the misconception (NOT a restated definition)',

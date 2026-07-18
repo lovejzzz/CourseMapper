@@ -667,6 +667,14 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(selectEnrichmentRecoveryChunk([8], [8], 1)).toEqual([8]);
   });
 
+  it('asks for the same one-sentence definition contract that admission enforces', () => {
+    const kernelPrompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    expect(kernelPrompt.systemPrompt).toContain(
+      'exactly one complete, precise definition sentence in subject language',
+    );
+    expect(kernelPrompt.systemPrompt).not.toContain('correct 1-2 sentence definition');
+  });
+
   it('drops invalid kernel atoms individually and keeps the lesson', () => {
     const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
     const withBadAtoms = JSON.parse(shortKeyResponse);
