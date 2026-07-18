@@ -48,6 +48,18 @@ export function spendGuardDecision({
 // ── E3: retry bookkeeping ───────────────────────────────────────────────────
 
 /**
+ * Retry browser/infrastructure failures, not an honestly blocked package.
+ * Re-running a deterministic quality verdict spends another full generation
+ * and cannot make the evidence more valid.
+ */
+export function shouldRetryCourseAttempt(attempt) {
+  if (!attempt || attempt.status === 'passed') return false;
+  const error = String(attempt.error || '');
+  if (/Package was not ready to download after finalization/i.test(error)) return false;
+  return true;
+}
+
+/**
  * Summarize 1–2 generation attempts for one course. Spend counts EVERY
  * attempt's digest (a failed attempt may still have billed provider calls);
  * status comes from the final attempt; the round table label says

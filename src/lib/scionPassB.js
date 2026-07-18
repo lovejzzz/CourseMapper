@@ -84,6 +84,7 @@ export async function runScionPasses({
       promptLessons: prompt.lessons,
       generateJson,
       contentSourcedLessonIds,
+      courseName,
     });
     if (passOutcome.events.length > 0) {
       recordEvent({

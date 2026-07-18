@@ -151,6 +151,7 @@ import {
   sampleJudgeArtifacts,
   sectionizeFile,
   spendGuardDecision,
+  shouldRetryCourseAttempt,
   summarizeCourseAttempts,
 } from './lib/crucibleRound.mjs';
 
@@ -1877,6 +1878,10 @@ async function runLiveRounds(options) {
           attempts.push(runResult);
           if (runResult.status === 'passed') break;
           await archiveFailedAttemptArtifacts(courseDir, attempt).catch(() => {});
+          if (!shouldRetryCourseAttempt(runResult)) {
+            log(`  ${course.id}: package blocked by deterministic quality gates — preserving the first verdict`);
+            break;
+          }
           if (attempt === 1) {
             log(`  ${course.id}: attempt 1 failed during ${runResult.phase} — retrying once with a fresh page`);
           }

@@ -16,6 +16,7 @@
 
 import { assessScionKeyTerm, assessScionMcItem } from './scionPreferenceGate.js';
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
+import { assessTargetLanguagePresence } from './languageIdentityGuard.js';
 
 const APPLIED_MCQ_TARGET_PER_LESSON = 2;
 // A weak local draft can otherwise cascade through double-blind solving,
@@ -26,6 +27,17 @@ const APPLIED_MCQ_TARGET_PER_LESSON = 2;
 export const SCION_PASS_CALL_BUDGET_PER_LESSON = 5;
 const INVALID_MC_ANSWER = '__INVALID_OR_AMBIGUOUS__';
 const INVALID_MC_ANSWER_INDEX = -1;
+
+const TARGET_LANGUAGE_PAIR_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    hanzi: { type: 'string', minLength: 1, maxLength: 24 },
+    pinyin: { type: 'string', minLength: 2, maxLength: 48 },
+    english: { type: 'string', minLength: 2, maxLength: 80 },
+  },
+  required: ['hanzi', 'pinyin', 'english'],
+};
 
 const TOPIC_STOPWORDS = new Set([
   'lesson',
@@ -1011,6 +1023,59 @@ async function polishProse(lesson, generateJson, events) {
 }
 
 /**
+ * Admission rejects a whole Mandarin lesson when its draft never shows the
+ * learner Hanzi paired with tone-marked Pinyin. Repair that prerequisite
+ * before spending calls polishing quiz atoms that would otherwise be thrown
+ * away with the lesson.
+ */
+async function targetLanguageIdentityGate(lesson, promptLesson, courseName, generateJson, events) {
+  const before = assessTargetLanguagePresence({ courseIdentity: courseName, text: JSON.stringify(lesson) });
+  if (!before.required || before.complete) return;
+  try {
+    const reply = await generateJson({
+      system:
+        'You repair one beginner Mandarin lesson with one accurate target-language example. Return ONLY JSON containing Hanzi, its matching tone-marked Pinyin, and a short English meaning. Ground the pair in the supplied lesson topic. Never return another language and never omit tone marks.',
+      user: JSON.stringify({
+        lesson: {
+          title: promptLesson?.title || '',
+          topics: promptLesson?.topics || '',
+        },
+        existingFacts: lessonSourceClaims(lesson).slice(0, 8),
+      }),
+      schemaProfile: { name: 'target_language_pair_repair', schema: TARGET_LANGUAGE_PAIR_SCHEMA, strict: true },
+      maxOutputTokens: 160,
+    });
+    const pair = JSON.parse(reply);
+    const hanzi = String(pair?.hanzi || '').trim();
+    const pinyin = String(pair?.pinyin || '').trim();
+    const english = String(pair?.english || '').trim();
+    const evidence = `${hanzi} (${pinyin}) means ${english}.`;
+    const after = assessTargetLanguagePresence({ courseIdentity: courseName, text: evidence });
+    if (!after.complete) throw new Error('repair did not contain a valid Hanzi/Pinyin pair');
+    if (!Array.isArray(lesson.facts)) lesson.facts = [];
+    if (!lesson.facts.some((fact) => String(fact).includes(hanzi) && String(fact).includes(pinyin))) {
+      lesson.facts.unshift(evidence);
+      lesson.facts = lesson.facts.slice(0, 8);
+    }
+    events.push({
+      pass: 'languageIdentity',
+      lessonId: lesson.lessonId,
+      action: 'repaired',
+      reason: before.missing.join(','),
+      trainingEligible: false,
+    });
+  } catch {
+    events.push({
+      pass: 'languageIdentity',
+      lessonId: lesson.lessonId,
+      action: 'failed',
+      reason: before.missing.join(','),
+      trainingEligible: false,
+    });
+  }
+}
+
+/**
  * Apply all Scion passes to a raw Pass B batch response.
  * @param {string} rawText the model's batch JSON
  * @param {object} options { promptLessons, generateJson, contentSourcedLessonIds, expectedMcCount, minimumKeyTermCount }
@@ -1025,6 +1090,7 @@ export async function applyScionKernelPasses(
     expectedMcCount = 0,
     minimumKeyTermCount = 0,
     maxCallsPerLesson = SCION_PASS_CALL_BUDGET_PER_LESSON,
+    courseName = '',
   } = {},
 ) {
   let parsed = null;
@@ -1091,9 +1157,14 @@ export async function applyScionKernelPasses(
       await run();
     };
 
-    // Safety order under pressure: answer correctness first, then admission
-    // and lesson focus, then source-grounded terminology. Applied-depth and
-    // cosmetic polish use only capacity the higher-value checks did not need.
+    // Safety order under pressure: preserve the lesson's language identity
+    // first (the downstream parser rejects the entire lesson without it),
+    // then answer correctness, admission, focus, and terminology. Applied
+    // depth and cosmetic polish use only capacity the higher-value checks did
+    // not need.
+    await runPass('languageIdentity', () =>
+      targetLanguageIdentityGate(lesson, promptLesson, courseName, budgetedGenerateJson, events),
+    );
     await runPass('mcVerify', () => verifyMcAnswers(lesson, promptLesson, budgetedGenerateJson, events));
     await runPass('admissionGate', () =>
       admissionGate(lesson, promptLesson, budgetedGenerateJson, events, expectedMcCount),

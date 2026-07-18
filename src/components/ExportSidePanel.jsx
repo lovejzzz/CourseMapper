@@ -348,10 +348,15 @@ function ReadinessPanel({
   const isBlocked = readiness.blockers.length > 0 || trustStatus.blocked;
   const hasWarnings = readiness.warnings.length > 0 || trustStatus.review || packageReviewIssues.length > 0;
   const issuesToShow = isBlocked ? [...readiness.blockers, ...packageBlockerIssues].slice(0, 3) : [];
-  const criticalIssueCount = Math.max(
+  const affectedItemCount = Math.max(
     isBlocked ? 1 : 0,
     readiness.blockers.length +
       packageBlockerIssues.reduce((total, issue) => total + Math.max(1, Number(issue?.count) || 1), 0),
+  );
+  const packageBlockerCount = Math.max(
+    isBlocked ? 1 : 0,
+    readiness.blockers.length + packageBlockerIssues.length,
+    Number(packageQualityPass?.blockers) || 0,
   );
   const hasPackageOnlyReview = packageReviewIssues.length > 0 && readiness.warnings.length === 0;
   const helperText = isBlocked
@@ -364,7 +369,10 @@ function ReadinessPanel({
         wrap: 'border-red-100 bg-red-50/70 text-red-700 dark:border-red-800/50 dark:bg-red-950/30 dark:text-red-200',
         icon: 'bg-red-100 text-red-600 dark:bg-red-900/70 dark:text-red-200',
         title: 'Finish package',
-        meta: `${criticalIssueCount} critical issue${criticalIssueCount === 1 ? '' : 's'}`,
+        meta:
+          affectedItemCount > packageBlockerCount
+            ? `${packageBlockerCount} blocker${packageBlockerCount === 1 ? '' : 's'} · ${affectedItemCount} affected items`
+            : `${packageBlockerCount} blocker${packageBlockerCount === 1 ? '' : 's'}`,
       }
     : hasPackageOnlyReview
       ? {

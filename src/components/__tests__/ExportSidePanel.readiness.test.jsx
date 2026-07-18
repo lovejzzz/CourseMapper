@@ -269,7 +269,7 @@ describe('ExportSidePanel readiness repair timing', () => {
 
     const panel = container.querySelector('[data-testid="readiness-panel"]');
     expect(panel?.textContent).toContain('Finish package');
-    expect(panel?.textContent).toContain('1 critical issue');
+    expect(panel?.textContent).toContain('1 blocker');
     expect(panel?.textContent).toContain('Quiz & Exam Bank: 1 export issue must be fixed before the ZIP is available.');
 
     const zipButton = container.querySelector('[data-testid="export-download-zip"]');

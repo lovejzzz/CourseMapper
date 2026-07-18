@@ -402,6 +402,43 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     ]);
   });
 
+  it('D3: repairs Mandarin target-language evidence before spending the lesson budget on quiz polish', async () => {
+    const calls = [];
+    const result = await applyScionKernelPasses(
+      JSON.stringify({
+        lessons: [
+          {
+            lessonId: 'lesson-1',
+            facts: ['The greeting nǐ hǎo uses tone marks to show pitch movement.'],
+            mc: [],
+          },
+        ],
+      }),
+      {
+        courseName: 'Elementary Mandarin Chinese I',
+        promptLessons: [{ lessonId: 'lesson-1', title: 'Greetings', topics: 'Greetings and introductions' }],
+        generateJson: async ({ schemaProfile }) => {
+          calls.push(schemaProfile.name);
+          if (schemaProfile.name === 'target_language_pair_repair') {
+            return JSON.stringify({ hanzi: '你好', pinyin: 'nǐ hǎo', english: 'hello' });
+          }
+          return JSON.stringify({});
+        },
+      },
+    );
+
+    const lesson = JSON.parse(result.text).lessons[0];
+    expect(lesson.facts[0]).toContain('你好 (nǐ hǎo)');
+    expect(calls[0]).toBe('target_language_pair_repair');
+    expect(result.events).toContainEqual({
+      pass: 'languageIdentity',
+      lessonId: 'lesson-1',
+      action: 'repaired',
+      reason: 'hanzi',
+      trainingEligible: false,
+    });
+  });
+
   it('D3: never guesses a missing lesson id when the response or prompt is ambiguous', async () => {
     const raw = JSON.stringify({ lessons: [{ goal: 'First' }] });
     const result = await applyScionKernelPasses(raw, {

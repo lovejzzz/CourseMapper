@@ -40,6 +40,7 @@ import {
   sampleJudgeArtifacts,
   sectionizeFile,
   spendGuardDecision,
+  shouldRetryCourseAttempt,
   summarizeCourseAttempts,
 } from '../scripts/lib/crucibleRound.mjs';
 import {
@@ -108,6 +109,19 @@ describe('E2 — spend guard accounting', () => {
 });
 
 describe('E3 — retry bookkeeping', () => {
+  it('does not regenerate an honestly blocked package', () => {
+    expect(
+      shouldRetryCourseAttempt({
+        status: 'failed',
+        phase: 'finalizing-package',
+        error: 'Error: Package was not ready to download after finalization.\nFinish package',
+      }),
+    ).toBe(false);
+    expect(
+      shouldRetryCourseAttempt({ status: 'failed', phase: 'generating-workspace', error: 'Page crashed' }),
+    ).toBe(true);
+  });
+
   it('single passing attempt: plain "passed", no retry', () => {
     const summary = summarizeCourseAttempts([{ status: 'passed', digest: digestOf(0.1), durationMs: 1000 }]);
     expect(summary).toMatchObject({ statusLabel: 'passed', status: 'passed', retried: false, attemptCount: 1 });
