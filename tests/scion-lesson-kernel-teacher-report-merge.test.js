@@ -61,11 +61,33 @@ describe('Scion lesson-kernel teacher report merge', () => {
       compilerAdmitted: 2,
       compilerRejected: 0,
       excludedCompilerRejected: 1,
+      excludedDirectQualified: 0,
       sourceReports: 3,
     });
     expect(merged.batchReports[0]).toMatchObject({
       sourceReportSha256: first.identity.sha256,
       sourceWorkbookSha256: first.workbookSha256,
+    });
+    expect(validateScionLessonKernelMergedTeacherReport(merged)).toEqual({ valid: true, issues: [] });
+  });
+
+  it('lets direct-qualified evidence own a case before teacher judgment', () => {
+    const direct = sourceReport({ caseId: 'case-direct', packet: '3' });
+    const teacherOnly = sourceReport({ caseId: 'case-teacher', packet: '4', reportSeed: 'teacher' });
+    const merged = mergeScionLessonKernelTeacherReports({
+      sources: [
+        { path: 'v1.json', report: direct },
+        { path: 'v2.json', report: teacherOnly },
+      ],
+      excludedQualifiedCases: ['case-direct'],
+      exclusionEvidence: { path: 'direct.json', resultSha256: '9'.repeat(64) },
+    });
+
+    expect(merged.calls.map((call) => call.caseId)).toEqual(['case-teacher']);
+    expect(merged.summary.excludedDirectQualified).toBe(1);
+    expect(merged.merge.exclusion).toEqual({
+      qualifiedCases: 1,
+      evidence: { path: 'direct.json', resultSha256: '9'.repeat(64) },
     });
     expect(validateScionLessonKernelMergedTeacherReport(merged)).toEqual({ valid: true, issues: [] });
   });

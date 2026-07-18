@@ -1,8 +1,7 @@
 import { SCION_LESSON_KERNEL_TEACHER_REPORT_PROTOCOL } from './scionLessonKernelTeacherRevision.mjs';
 import { scionLessonKernelSha256, stableScionLessonKernelJson } from './scionLessonKernelCampaign.mjs';
 
-export const SCION_LESSON_KERNEL_TEACHER_MERGE_PROTOCOL =
-  'scion-lesson-kernel-teacher-report-merge-v1';
+export const SCION_LESSON_KERNEL_TEACHER_MERGE_PROTOCOL = 'scion-lesson-kernel-teacher-report-merge-v2';
 
 function withoutIdentity(value = {}) {
   const next = structuredClone(value);
@@ -39,8 +38,13 @@ export function validateScionLessonKernelTeacherSourceReport(report = {}) {
   return { valid: issues.length === 0, issues: [...new Set(issues)] };
 }
 
-export function mergeScionLessonKernelTeacherReports({ sources = [] } = {}) {
+export function mergeScionLessonKernelTeacherReports({
+  sources = [],
+  excludedQualifiedCases = [],
+  exclusionEvidence = null,
+} = {}) {
   if (!Array.isArray(sources) || sources.length < 1) throw new Error('At least one teacher report is required');
+  const excludedQualified = new Set(excludedQualifiedCases);
   const campaignSha256 = sources[0]?.report?.campaignIdentity?.sha256;
   const reviser = sources[0]?.report?.reviser;
   const reviserIdentity = stableScionLessonKernelJson(reviser);
@@ -49,6 +53,7 @@ export function mergeScionLessonKernelTeacherReports({ sources = [] } = {}) {
   const sourceReports = [];
   const seenAdmittedCases = new Set();
   let compilerRejected = 0;
+  let directQualified = 0;
 
   for (const [index, source] of sources.entries()) {
     const report = source?.report || {};
@@ -63,13 +68,19 @@ export function mergeScionLessonKernelTeacherReports({ sources = [] } = {}) {
       throw new Error(`Teacher source report reviser changed: ${source?.path || index + 1}`);
     }
 
-    const eligibleCalls = report.calls.filter(admitted);
-    compilerRejected += report.calls.length - eligibleCalls.length;
-    for (const call of eligibleCalls) {
+    const admittedCalls = report.calls.filter(admitted);
+    compilerRejected += report.calls.length - admittedCalls.length;
+    const eligibleCalls = [];
+    for (const call of admittedCalls) {
       if (seenAdmittedCases.has(call.caseId)) {
         throw new Error(`Duplicate compiler-admitted teacher case: ${call.caseId}`);
       }
       seenAdmittedCases.add(call.caseId);
+      if (excludedQualified.has(call.caseId)) {
+        directQualified += 1;
+        continue;
+      }
+      eligibleCalls.push(call);
       calls.push(call);
     }
     const eligiblePackets = new Set(eligibleCalls.map((call) => call.revisionEvidence.packetSha256));
@@ -86,8 +97,10 @@ export function mergeScionLessonKernelTeacherReports({ sources = [] } = {}) {
       path: source?.path || null,
       reportSha256: report.identity.sha256,
       workbookSha256: report.workbookSha256,
-      compilerAdmitted: eligibleCalls.length,
-      compilerRejected: report.calls.length - eligibleCalls.length,
+      compilerAdmitted: admittedCalls.length,
+      compilerRejected: report.calls.length - admittedCalls.length,
+      mergedCandidates: eligibleCalls.length,
+      excludedDirectQualified: admittedCalls.length - eligibleCalls.length,
       caseIds: eligibleCalls.map((call) => call.caseId),
     });
   }
@@ -103,17 +116,22 @@ export function mergeScionLessonKernelTeacherReports({ sources = [] } = {}) {
     merge: {
       protocol: SCION_LESSON_KERNEL_TEACHER_MERGE_PROTOCOL,
       sourceReportCount: sourceReports.length,
-      admissionPolicy: 'compiler-admitted-only',
+      admissionPolicy: 'compiler-admitted-non-direct-qualified-only',
+      exclusion: {
+        qualifiedCases: excludedQualified.size,
+        evidence: exclusionEvidence,
+      },
     },
     summary: {
       cases: calls.length,
       compilerAdmitted: calls.length,
       compilerRejected: 0,
       excludedCompilerRejected: compilerRejected,
+      excludedDirectQualified: directQualified,
       sourceReports: sourceReports.length,
     },
     claimBoundary:
-      'This merge contains unique compiler-admitted source-constrained teacher revisions only. Every artifact still requires fresh anonymous paired-order judgment and is not human evidence, adapter-win evidence, or training authorization.',
+      'This merge contains unique compiler-admitted source-constrained teacher revisions that do not already have direct-qualified evidence. Every artifact still requires fresh anonymous paired-order judgment and is not human evidence, adapter-win evidence, or training authorization.',
   };
   report.identity = {
     algorithm: 'sha256-canonical-json',
@@ -126,7 +144,9 @@ export function validateScionLessonKernelMergedTeacherReport(report = {}) {
   const validation = validateScionLessonKernelTeacherSourceReport(report);
   const issues = [...validation.issues];
   if (report.merge?.protocol !== SCION_LESSON_KERNEL_TEACHER_MERGE_PROTOCOL) issues.push('merge-protocol');
-  if (report.merge?.admissionPolicy !== 'compiler-admitted-only') issues.push('admission-policy');
+  if (report.merge?.admissionPolicy !== 'compiler-admitted-non-direct-qualified-only') {
+    issues.push('admission-policy');
+  }
   if ((report.calls || []).some((call) => !admitted(call))) issues.push('compiler-rejected-call');
   if (new Set((report.calls || []).map((call) => call.caseId)).size !== (report.calls || []).length) {
     issues.push('duplicate-case');

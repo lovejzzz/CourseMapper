@@ -13,16 +13,24 @@ const DEFAULT_REPORTS = [
   'verification-output/scion-lesson-kernel-teacher-revision-v0.16.54/teacher-report.json',
   'verification-output/scion-lesson-kernel-teacher-revision-v2-v0.16.54/teacher-report.json',
 ];
-const DEFAULT_OUTPUT =
-  'verification-output/scion-lesson-kernel-teacher-revision-merged-v0.16.54/teacher-report.json';
+const DEFAULT_OUTPUT = 'verification-output/scion-lesson-kernel-teacher-revision-merged-v0.16.54/teacher-report.json';
+const DEFAULT_QUALIFIED_RESULT =
+  'verification-output/scion-lesson-kernel-judge-batches-v6-v0.16.54/paired-order-workbook-result.json';
 
 function parseArgs(argv) {
-  const args = { reports: [], output: DEFAULT_OUTPUT, audit: false };
+  const args = {
+    reports: [],
+    output: DEFAULT_OUTPUT,
+    excludeQualifiedResult: DEFAULT_QUALIFIED_RESULT,
+    audit: false,
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === '--report') args.reports.push(argv[++index] || '');
     else if (token === '--output') args.output = argv[++index] || args.output;
-    else if (token === '--audit') args.audit = true;
+    else if (token === '--exclude-qualified-result') {
+      args.excludeQualifiedResult = argv[++index] || '';
+    } else if (token === '--audit') args.audit = true;
     else if (token === '--help' || token === '-h') args.help = true;
     else throw new Error(`Unknown teacher report merge option: ${token}`);
   }
@@ -43,10 +51,34 @@ async function atomicWriteJson(file, value) {
   await fs.rename(temporary, absolute);
 }
 
+async function loadQualifiedCases(file) {
+  if (!file) return { caseIds: [], evidence: null };
+  const workbookResult = await readJson(file);
+  let results = workbookResult.results || [];
+  if (workbookResult.batchResults?.length) {
+    const root = path.dirname(file);
+    const aggregates = await Promise.all(
+      workbookResult.batchResults.map((entry) =>
+        readJson(path.join(root, 'batches', entry.batchId, 'paired-order-result.json')),
+      ),
+    );
+    results = aggregates.flatMap((aggregate) => aggregate.results || []);
+  }
+  return {
+    caseIds: results.filter((result) => result.trainingEligible).map((result) => result.caseId),
+    evidence: {
+      path: file,
+      resultSha256: workbookResult.identity?.sha256 || null,
+    },
+  };
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
-    console.log('Usage: node scripts/scionLessonKernelTeacherReportMerge.mjs [--report file ...] [--output file] [--audit]');
+    console.log(
+      'Usage: node scripts/scionLessonKernelTeacherReportMerge.mjs [--report file ...] [--output file] [--exclude-qualified-result file] [--audit]',
+    );
     return;
   }
   if (args.audit) {
@@ -56,8 +88,15 @@ async function main() {
     console.log(JSON.stringify(report.summary, null, 2));
     return;
   }
-  const sources = await Promise.all(args.reports.map(async (file) => ({ path: file, report: await readJson(file) })));
-  const report = mergeScionLessonKernelTeacherReports({ sources });
+  const [sources, qualified] = await Promise.all([
+    Promise.all(args.reports.map(async (file) => ({ path: file, report: await readJson(file) }))),
+    loadQualifiedCases(args.excludeQualifiedResult),
+  ]);
+  const report = mergeScionLessonKernelTeacherReports({
+    sources,
+    excludedQualifiedCases: qualified.caseIds,
+    exclusionEvidence: qualified.evidence,
+  });
   await atomicWriteJson(args.output, report);
   console.log(JSON.stringify(report.summary, null, 2));
 }
