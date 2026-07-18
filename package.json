@@ -138,6 +138,7 @@
     "audit:scion:lesson-kernel-judge:v0.16.54": "node scripts/scionLessonKernelJudgeBatches.mjs --audit",
     "ingest:scion:lesson-kernel-judge:v0.16.54": "node scripts/scionLessonKernelJudgeBatches.mjs --ingest",
     "run:scion:lesson-kernel-judge:v0.16.54": "node scripts/scionLessonKernelJudgeRunner.mjs",
+    "replay:scion:lesson-kernel-admission:v0.16.54": "node scripts/scionLessonKernelAdmissionReplay.mjs",
     "build:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionBatches.mjs --build",
     "run:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionRunner.mjs",
     "ingest:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionBatches.mjs --ingest",
