@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 import { validateScionLessonKernelTeacherRevisionResult } from './lib/scionLessonKernelTeacherRevision.mjs';
 
 const OUTPUT_DIR = 'verification-output/scion-lesson-kernel-teacher-revision-v0.16.54';
+const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
 
 function parseArgs(argv) {
   const args = { output: OUTPUT_DIR, model: 'gpt-5.6-sol', reasoning: 'xhigh', concurrency: 2, limit: 0 };
@@ -70,11 +71,25 @@ async function runCommand(command, args, options) {
     const child = spawn(command, args, { ...options, stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
+    let timedOut = false;
+    let forceKill = null;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      child.kill('SIGTERM');
+      forceKill = setTimeout(() => child.kill('SIGKILL'), 5_000);
+    }, SESSION_TIMEOUT_MS);
     child.stdout.on('data', (chunk) => (stdout += chunk));
     child.stderr.on('data', (chunk) => (stderr += chunk));
-    child.on('error', reject);
+    child.on('error', (error) => {
+      clearTimeout(timeout);
+      if (forceKill) clearTimeout(forceKill);
+      reject(error);
+    });
     child.on('close', (code) => {
-      if (code === 0) resolve({ stdout, stderr });
+      clearTimeout(timeout);
+      if (forceKill) clearTimeout(forceKill);
+      if (timedOut) reject(new Error(`Codex teacher revision timed out after ${SESSION_TIMEOUT_MS / 60_000} minutes`));
+      else if (code === 0) resolve({ stdout, stderr });
       else reject(new Error(`Codex teacher revision failed (${code}): ${(stderr || stdout).slice(-2000)}`));
     });
   });
