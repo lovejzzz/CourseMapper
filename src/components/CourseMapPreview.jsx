@@ -686,14 +686,20 @@ export default function CourseMapPreview({
           </div>
         </div>
       </h2>
-      <p className="mb-3 text-body text-ink-muted sm:hidden">Swipe the table to review every course-map field.</p>
+      <p id="course-map-scroll-help" className="mb-3 text-body text-ink-muted sm:hidden">
+        Swipe the table to review every course-map field.
+      </p>
       <div className="mb-3 sm:mb-5" />
 
       <div
         ref={tableRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="overflow-auto rounded-squircle-sm max-h-[70vh] border border-white/30 bg-white/60 shadow-glass dark:border-slate-700/80 dark:bg-slate-900/65"
+        role="region"
+        aria-label="Scrollable course map"
+        aria-describedby="course-map-scroll-help"
+        tabIndex={0}
+        className="overflow-auto rounded-squircle-sm max-h-[70vh] border border-white/30 bg-white/60 shadow-glass outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:border-slate-700/80 dark:bg-slate-900/65 dark:focus-visible:ring-indigo-300/70 dark:focus-visible:ring-offset-slate-950"
       >
         <table className="min-w-[1100px] table-fixed sm:min-w-full" role="grid" aria-label="Course Map">
           {/* A1: width hierarchy lives in the colgroup (table-fixed reads the

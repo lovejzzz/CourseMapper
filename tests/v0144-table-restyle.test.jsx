@@ -175,6 +175,17 @@ const sectionLabels = () =>
 // ── A1 — sticky light header, sentence case, width hierarchy ────────────────
 
 describe('A1 — header', () => {
+  it('makes the overflowing course map a named keyboard-scroll region', () => {
+    renderPreview(fixtureCourseMap());
+
+    const region = container.querySelector('[role="region"][aria-label="Scrollable course map"]');
+    expect(region).not.toBeNull();
+    expect(region.tabIndex).toBe(0);
+    expect(region.getAttribute('aria-describedby')).toBe('course-map-scroll-help');
+    expect(container.querySelector('#course-map-scroll-help')?.textContent).toContain('Swipe the table');
+    expect(region.className).toContain('focus-visible:ring-2');
+  });
+
   it('replaces the navy block with a sticky light header in sentence case', () => {
     renderPreview(fixtureCourseMap());
 

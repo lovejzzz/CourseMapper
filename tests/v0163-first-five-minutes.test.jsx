@@ -94,6 +94,8 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     expect(app).toContain('requestIdleCallback');
     expect(preview).toContain('Swipe the table to review every course-map field.');
     expect(preview).toContain('min-w-[1100px]');
+    expect(preview).toContain('aria-label="Scrollable course map"');
+    expect(preview).toContain('tabIndex={0}');
     expect(css).toMatch(/min-height:\s*44px/);
     expect(css).toMatch(/min-width:\s*44px/);
   });
