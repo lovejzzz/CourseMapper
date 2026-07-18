@@ -138,7 +138,9 @@ const input = readline.createInterface({ input: process.stdin });
 input.on('line', (line) => {
   const request = JSON.parse(line);
   fs.appendFileSync(process.env.SCHEMA_LOG, JSON.stringify(request.schema || null) + '\\n');
-  process.stdout.write(JSON.stringify({ id: request.id, text: JSON.stringify(value(request.schema || { type: 'object', properties: {}, required: [] })), constrained: 'object', adapterMode: request.adapterMode, nativeAdapterActive: request.adapterMode === 'adapter', adapterScale: request.adapterMode === 'adapter' ? 1 : 0 }) + '\\n');
+  let text = JSON.stringify(value(request.schema || { type: 'object', properties: {}, required: [] }));
+  if (request.user.includes('CONTENT-SOURCED lessons')) text = text.slice(0, -2);
+  process.stdout.write(JSON.stringify({ id: request.id, text, constrained: 'object', adapterMode: request.adapterMode, nativeAdapterActive: request.adapterMode === 'adapter', adapterScale: request.adapterMode === 'adapter' ? 1 : 0 }) + '\\n');
 });
 `,
   );
@@ -253,6 +255,7 @@ input.on('line', (line) => {
   expect(rows).toHaveLength(2);
   expect(rows[0].modelMetrics.modelCalls).toBeGreaterThan(1);
   expect(rows[1].modelMetrics.modelCalls).toBe(1);
+  expect(rows[1].jsonClosureRepair).toBe(']}');
 
   const schemas = (await fs.readFile(schemaLogPath, 'utf8'))
     .trim()

@@ -220,6 +220,52 @@ function extractJsonContract(body, isResponses) {
   return schema ? { schema: boundSchema(schema) } : { jsonMode: true };
 }
 
+// mlx-vlm may honor the schema grammar for ordinary tokens but still accept
+// an EOS token immediately after a complete inner object. That leaves a
+// structurally sound JSON prefix missing only its enclosing ]/} delimiters
+// (measured on content-sourced Pass B lessons). Close ONLY containers already
+// opened by the model; never invent strings, values, commas, or fields. The
+// app's parser and semantic admission gates still own contract acceptance.
+function closeJsonContainersAtEof(value) {
+  const text = String(value || '').trim();
+  if (!text) return { text, addedClosers: '' };
+  try {
+    JSON.parse(text);
+    return { text, addedClosers: '' };
+  } catch {
+    // Continue only when the prefix itself has balanced strings/delimiters.
+  }
+  const stack = [];
+  let inString = false;
+  let escaped = false;
+  for (const char of text) {
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === '{') stack.push('}');
+    else if (char === '[') stack.push(']');
+    else if (char === '}' || char === ']') {
+      if (stack.pop() !== char) return { text, addedClosers: '' };
+    }
+  }
+  if (inString || escaped || stack.length === 0) return { text, addedClosers: '' };
+  const addedClosers = stack.reverse().join('');
+  const closed = `${text}${addedClosers}`;
+  try {
+    JSON.parse(closed);
+    return { text: closed, addedClosers };
+  } catch {
+    return { text, addedClosers: '' };
+  }
+}
+
 // ── The kernel contract, grammar-enforced (E2B-MAX V2, round-5 lesson) ──────
 // The Pass B / lesson-kernel call may ship either a json_object hint or the
 // app's declared json_schema. In both cases the prompt identifies the call as
@@ -1312,6 +1358,7 @@ const server = http.createServer(async (req, res) => {
   if (!kernel && (contract.schema || contract.jsonMode)) system += RICHNESS_DIRECTIVE;
   let text = '';
   let generationError = '';
+  let jsonClosureRepair = '';
   const modelMetrics = { modelCalls: 0, completedModelCalls: 0, failedModelCalls: 0 };
   try {
     text = await requestMetrics.run({ metrics: modelMetrics, adapterRoute, routeProofs }, async () => {
@@ -1328,6 +1375,14 @@ const server = http.createServer(async (req, res) => {
                 ? { temperature }
                 : {}),
           });
+      if (hasJsonContract && generated) {
+        const closure = closeJsonContainersAtEof(generated);
+        generated = closure.text;
+        jsonClosureRepair = closure.addedClosers;
+        if (jsonClosureRepair) {
+          console.error(JSON.stringify({ jsonClosureRepair, call: calls, taskFamily: adapterRoute.taskFamily }));
+        }
+      }
       if (isSkeleton && generated) generated = await shortenSkeletonTitles(generated);
       return generated;
     });
@@ -1353,7 +1408,7 @@ const server = http.createServer(async (req, res) => {
     try {
       fs.appendFileSync(
         BODY_LOG,
-        `${JSON.stringify({ url: req.url, system, user, response: text, modelMetrics, adapterRoute: routeEvidence, ...(generationError ? { error: generationError } : {}) })}\n`,
+        `${JSON.stringify({ url: req.url, system, user, response: text, modelMetrics, adapterRoute: routeEvidence, ...(jsonClosureRepair ? { jsonClosureRepair } : {}), ...(generationError ? { error: generationError } : {}) })}\n`,
       );
     } catch (error) {
       bodyLogError = String(error?.message || error).slice(0, 500);

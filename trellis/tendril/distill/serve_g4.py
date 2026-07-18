@@ -10,9 +10,10 @@
 #   jsonMode: true — constrained to a permissive {"type":"object"}
 # Fallback ladder, DISCLOSED per response as "constrained":
 #   "schema" -> "object" (schema failed to compile) -> "none".
-# The long-JSON failure class (near-miss commas/brackets, the doubled
-# closing brace of ladder L2) becomes impossible at the decode layer —
-# the compiler-seat autopsy proved content was never the problem.
+# The grammar prevents illegal interior JSON tokens. mlx-vlm can still accept
+# EOS after a complete inner object before its enclosing array/root closes;
+# the Node shim repairs only those already-implied closing delimiters and
+# leaves required-field/semantic admission to the compiler.
 
 import json
 import os
