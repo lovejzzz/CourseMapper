@@ -13,7 +13,14 @@ const OUTPUT_DIR = 'verification-output/scion-lesson-kernel-teacher-revision-v0.
 const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
 
 function parseArgs(argv) {
-  const args = { output: OUTPUT_DIR, model: 'gpt-5.6-sol', reasoning: 'xhigh', concurrency: 2, limit: 0 };
+  const args = {
+    output: OUTPUT_DIR,
+    model: 'gpt-5.6-sol',
+    reasoning: 'xhigh',
+    concurrency: 2,
+    limit: 0,
+    batches: [],
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === '--output') args.output = argv[++index] || args.output;
@@ -21,6 +28,7 @@ function parseArgs(argv) {
     else if (token === '--reasoning') args.reasoning = argv[++index] || args.reasoning;
     else if (token === '--concurrency') args.concurrency = Number(argv[++index] || 0);
     else if (token === '--limit') args.limit = Number(argv[++index] || 0);
+    else if (token === '--batch') args.batches.push(argv[++index] || '');
     else if (token === '--help' || token === '-h') args.help = true;
     else throw new Error(`Unknown teacher revision runner option: ${token}`);
   }
@@ -28,6 +36,7 @@ function parseArgs(argv) {
     throw new Error('--concurrency must be an integer from 1 through 4');
   }
   if (!Number.isInteger(args.limit) || args.limit < 0) throw new Error('--limit must be a non-negative integer');
+  if (args.batches.some((batchId) => !batchId)) throw new Error('--batch requires a batch id');
   return args;
 }
 
@@ -172,13 +181,22 @@ async function runPool(tasks, concurrency, handler) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
-    console.log('Usage: node scripts/scionLessonKernelTeacherRevisionRunner.mjs [--concurrency 2] [--limit N]');
+    console.log(
+      'Usage: node scripts/scionLessonKernelTeacherRevisionRunner.mjs [--concurrency 2] [--limit N] [--batch batch-id]',
+    );
     return;
   }
   const codex = process.env.CODEX_CLI || path.join(os.homedir(), '.local', 'bin', 'codex');
   const runtimeVersion = await codexVersion(codex);
   const manifest = await readJson(path.join(args.output, 'workbook.json'));
   let tasks = (manifest.batches || []).map((entry) => ({ batchId: entry.batchId }));
+  if (args.batches.length > 0) {
+    const selected = new Set(args.batches);
+    tasks = tasks.filter((task) => selected.has(task.batchId));
+    const found = new Set(tasks.map((task) => task.batchId));
+    const missing = [...selected].filter((batchId) => !found.has(batchId));
+    if (missing.length > 0) throw new Error(`Unknown teacher revision batch: ${missing.join(', ')}`);
+  }
   if (args.limit > 0) tasks = tasks.slice(0, args.limit);
   const results = await runPool(tasks, args.concurrency, (task) => runTask(task, args, codex, runtimeVersion));
   console.log(
