@@ -90,6 +90,10 @@ async function canBindPort(port, host) {
 }
 
 export async function isAppServerPortFree(port) {
+  // 4190 is the registered ManageSieve port and is forbidden by the Fetch
+  // standard. Vite and curl can use it, while Chromium/Node Fetch reject it as
+  // ERR_UNSAFE_PORT / "bad port", so it can never host a browser audit.
+  if (Number(port) === 4190) return false;
   if (!(await canBindPort(port, '127.0.0.1'))) return false;
   return canBindPort(port, '0.0.0.0');
 }
@@ -102,10 +106,12 @@ async function findFreePort(startPort) {
 }
 
 // Borrowed from scripts/liveBrowserQualityLoop.mjs (waitForUrl).
-async function waitForUrl(url, timeoutMs = 60_000) {
+async function waitForUrl(url, timeoutMs = 60_000, getTerminalError = null) {
   const started = Date.now();
   let lastError = null;
   while (Date.now() - started < timeoutMs) {
+    const terminalError = getTerminalError?.();
+    if (terminalError) throw terminalError;
     try {
       const response = await fetch(url);
       if (response.ok) return;
@@ -115,6 +121,8 @@ async function waitForUrl(url, timeoutMs = 60_000) {
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
+  const terminalError = getTerminalError?.();
+  if (terminalError) throw terminalError;
   throw new Error(`Timed out waiting for ${url}: ${lastError?.message || 'no response'}`);
 }
 
@@ -206,7 +214,8 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
 
   const port = await findFreePort(preferredPort);
   const output = logPath ? await fs.open(logPath, 'a') : null;
-  const child = spawn('npx', ['vite', 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
+  const viteExecutable = path.join(repoRoot, 'node_modules', '.bin', 'vite');
+  const child = spawn(viteExecutable, ['preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
     cwd: repoRoot,
     env: { ...process.env, BROWSER: 'none' },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -254,6 +263,11 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
   child.once('exit', (code, signal) => {
     exitInfo = { code, signal, unexpected: !stopping };
     resolveExit(exitInfo);
+    output
+      ?.write(
+        `[crucible] vite preview exited (code ${code ?? 'null'}, signal ${signal || 'none'}, stopping ${stopping})\n`,
+      )
+      .catch(() => {});
     if (!startupSettled) {
       startupSettled = true;
       rejectStartup(
@@ -290,7 +304,13 @@ export async function startAppServer({ build = 'auto', port: preferredPort = 417
     clearTimeout(startupTimer);
   }
   try {
-    await waitForUrl(`http://127.0.0.1:${port}/`, 60_000);
+    await waitForUrl(`http://127.0.0.1:${port}/`, 60_000, () =>
+      exitInfo
+        ? new Error(
+            `vite preview exited before its health check (code ${exitInfo.code ?? 'null'}, signal ${exitInfo.signal || 'none'})`,
+          )
+        : null,
+    );
   } catch (error) {
     stopping = true;
     try {
