@@ -139,6 +139,16 @@ function pairFingerprint(row) {
   );
 }
 
+export function registerScionLessonKernelCase(seenCases, row) {
+  const lessonKernel = normalize(row?.kind) === 'lesson-kernel' || normalize(row?.taskFamily) === 'lesson-kernel';
+  if (!lessonKernel) return [];
+  const caseId = normalize(row?.caseId);
+  if (!caseId) return ['missing-lesson-kernel-case-id'];
+  if (seenCases.has(caseId)) return [`duplicate-lesson-kernel-case:${caseId}`];
+  seenCases.add(caseId);
+  return [];
+}
+
 function inferDomain(row, domainMap = {}) {
   const explicit = normalize(row?.context?.domain || row?.context?.discipline || row?.domain).toLowerCase();
   if (explicit) return { domain: explicit, source: 'row' };
@@ -480,6 +490,7 @@ export async function buildScionAdapterDataset({
   const eligible = [];
   const quarantine = [];
   const seen = new Set();
+  const seenLessonKernelCases = new Set();
   for (const entry of loaded) {
     const admissionOptions = { semanticAdmission, semanticProfile, allowFirstSentenceLexicalCue };
     const auditedRow = withDerivedContractEvidence(entry.row, admissionOptions);
@@ -512,6 +523,11 @@ export async function buildScionAdapterDataset({
       if (holdout.domainSet.has(domain)) holdout.receipt.excludedDomainPairCount += 1;
       if (holdout.courseIdSet.has(groupIdentity)) holdout.receipt.excludedCourseGroupPairCount += 1;
       quarantine.push({ source: entry.source, line: entry.line, issues: holdoutIssues });
+      continue;
+    }
+    const lessonKernelCaseIssues = registerScionLessonKernelCase(seenLessonKernelCases, auditedRow);
+    if (lessonKernelCaseIssues.length > 0) {
+      quarantine.push({ source: entry.source, line: entry.line, issues: lessonKernelCaseIssues });
       continue;
     }
     const fingerprint = pairFingerprint(auditedRow);

@@ -7,7 +7,7 @@ import { promisify } from 'node:util';
 import { afterEach, describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
 
-import { buildScionAdapterDataset } from '../scripts/scionAdapterDataset.mjs';
+import { buildScionAdapterDataset, registerScionLessonKernelCase } from '../scripts/scionAdapterDataset.mjs';
 import { getCourseById } from '../scripts/crucible/courses.mjs';
 import { computeScionAdapterPackageIdentity } from '../scripts/lib/scionBrowserDeviceMatrix.mjs';
 import { buildScionAdapterManifest, sha256File, verifyScionAdapterPackage } from '../scripts/scionAdapterPackage.mjs';
@@ -167,6 +167,25 @@ function bindSyntheticTrainingRun(manifest, lane = 'production') {
 }
 
 describe('Scion adapter tooling', () => {
+  it('refuses to inflate the lesson-kernel target with two preferences for one campaign case', () => {
+    const seenCases = new Set();
+    expect(
+      registerScionLessonKernelCase(seenCases, {
+        kind: 'lesson-kernel',
+        taskFamily: 'lesson-kernel',
+        caseId: 'scion-kernel-one',
+      }),
+    ).toEqual([]);
+    expect(
+      registerScionLessonKernelCase(seenCases, {
+        kind: 'lesson-kernel',
+        taskFamily: 'lesson-kernel',
+        caseId: 'scion-kernel-one',
+      }),
+    ).toEqual(['duplicate-lesson-kernel-case:scion-kernel-one']);
+    expect(registerScionLessonKernelCase(seenCases, { kind: 'mc-item' })).toEqual([]);
+  });
+
   it('builds a leakage-safe smoke dataset while quarantining duplicate pairs', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-adapter-dataset-'));
     const source = path.join(root, 'source.jsonl');
