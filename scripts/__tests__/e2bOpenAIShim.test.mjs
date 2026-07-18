@@ -118,9 +118,11 @@ it('routes declared-schema knowledge kernels through the strict per-lesson gener
   fixtureDir = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-shim-kernel-route-'));
   const workerPath = path.join(fixtureDir, 'worker.mjs');
   const bodyLogPath = path.join(fixtureDir, 'kernel.jsonl');
+  const schemaLogPath = path.join(fixtureDir, 'schemas.jsonl');
   await fs.writeFile(
     workerPath,
-    `import readline from 'node:readline';
+    `import fs from 'node:fs';
+import readline from 'node:readline';
 process.stdout.write(JSON.stringify({ ready: true, constrained: true }) + '\\n');
 function value(schema = {}) {
   if (Array.isArray(schema.enum) && schema.enum.length > 0) return schema.enum[0];
@@ -135,6 +137,7 @@ function value(schema = {}) {
 const input = readline.createInterface({ input: process.stdin });
 input.on('line', (line) => {
   const request = JSON.parse(line);
+  fs.appendFileSync(process.env.SCHEMA_LOG, JSON.stringify(request.schema || null) + '\\n');
   process.stdout.write(JSON.stringify({ id: request.id, text: JSON.stringify(value(request.schema || { type: 'object', properties: {}, required: [] })), constrained: 'object', adapterMode: request.adapterMode, nativeAdapterActive: request.adapterMode === 'adapter', adapterScale: request.adapterMode === 'adapter' ? 1 : 0 }) + '\\n');
 });
 `,
@@ -150,6 +153,7 @@ input.on('line', (line) => {
       TENDRIL_ITEMS_PYTHON: process.execPath,
       TENDRIL_ITEMS_SCRIPT: workerPath,
       SHIM_BODY_LOG: bodyLogPath,
+      SCHEMA_LOG: schemaLogPath,
       LOCAL_MODEL_ID: 'fake-scion',
       LOCAL_MODEL_NAME: 'Fake Scion',
       SCION_MODEL: 'test/fake-scion',
@@ -201,6 +205,23 @@ input.on('line', (line) => {
     .map((line) => JSON.parse(line));
   expect(rows).toHaveLength(1);
   expect(rows[0].modelMetrics.modelCalls).toBeGreaterThan(1);
+
+  const schemas = (await fs.readFile(schemaLogPath, 'utf8'))
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line));
+  const stringSchemas = [];
+  const visit = (node) => {
+    if (Array.isArray(node)) return node.forEach(visit);
+    if (!node || typeof node !== 'object') return;
+    if (node.type === 'string') stringSchemas.push(node);
+    Object.values(node).forEach(visit);
+  };
+  schemas.forEach(visit);
+  expect(stringSchemas.some((schema) => schema.pattern)).toBe(true);
+  expect(stringSchemas.every((schema) => !(schema.pattern && ('minLength' in schema || 'maxLength' in schema)))).toBe(
+    true,
+  );
 });
 
 it('refuses a bare adapter folder without an integrity manifest', async () => {

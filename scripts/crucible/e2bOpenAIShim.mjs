@@ -228,8 +228,19 @@ function extractJsonContract(body, isResponses) {
 // and eat the whole token budget (lesson-7 truncated byte-identically every
 // round; 0.37 chars/token). The word( word)* pattern makes the degenerate
 // loop ILLEGAL — the same lesson generated in 26s once banned.
-const NO_SPACE_RUNS = '^\\S+( \\S+)*$';
-const str = (minLength, maxLength) => ({ type: 'string', minLength, maxLength, pattern: NO_SPACE_RUNS });
+// llguidance cannot compile a JSON-Schema intersection between min/maxLength
+// and the old no-space-run regex. Express both intentions in ONE regex: a
+// bounded number of bounded, single-space-separated tokens. The app parser
+// still owns exact character admission; this grammar prevents empty fields,
+// runaway whitespace, and unbounded prose without falling back to `{}`.
+const str = (minLength, maxLength) => {
+  const minWords = Math.max(1, Math.ceil(minLength / 10));
+  const maxWords = Math.max(minWords, Math.ceil(maxLength / 5));
+  return {
+    type: 'string',
+    pattern: `^\\S{1,24}( \\S{1,24}){${minWords - 1},${maxWords - 1}}$`,
+  };
+};
 const arr = (items, minItems, maxItems) => ({ type: 'array', items, minItems, maxItems });
 // Lock every object node: without additionalProperties:false the model
 // free-rides extra fields and satisfies the required ones minimally.
