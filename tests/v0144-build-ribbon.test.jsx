@@ -22,7 +22,8 @@
  *      the ribbon while the finish pass runs.
  */
 import { describe, expect, it } from 'vitest';
-import React from 'react';
+import React, { act } from 'react';
+import { createRoot } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -875,6 +876,109 @@ describe('B1 — buildRibbonModel selector', () => {
     });
   });
 
+  it('shows observed source-retrieval counts without an amber warning while retrieval is active', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-reading-progress' },
+      ...MAP_EVENTS,
+      {
+        type: 'blueprintEnrichmentCall',
+        label: 'Author lesson batch (native Pass B)',
+        detail: 'Lessons 1',
+        outcome: { enrichedLessons: 0, requestedLessons: 4, missingLessons: [1, 2, 3, 4] },
+      },
+      {
+        type: 'knowledgeBackboneProgress',
+        stage: 'knowledge-backbone',
+        label: 'Checking open readings',
+        detail: '2/4 lessons checked · using fallback source',
+      },
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: { ...DONE_GENERATION, lessonCount: 4, mappedLessonCount: 4 },
+      deliverables: { isGenerating: true, doneCount: 0, totalCount: 2 },
+      packageQualityPass: { status: 'idle' },
+    });
+
+    expect(model.stage).toBe('enrich');
+    expect(model.stageLabel).toBe('Checking open readings · 2/4 lessons checked · using fallback source');
+    expect(model.compilerArtifacts.find((artifact) => artifact.id === 'knowledge')).toMatchObject({
+      status: 'active',
+      value: expect.stringContaining('2/4 lessons checked'),
+    });
+    expect(model.pipelineChips).toEqual([]);
+  });
+
+  it('distinguishes complementary source-finder progress from the first open-reading pass', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-complementary-progress' },
+      ...MAP_EVENTS,
+      {
+        type: 'knowledgeBackboneProgress',
+        stage: 'knowledge-backbone',
+        label: 'Checking complementary sources',
+        detail: '3/4 lessons checked',
+      },
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: { ...DONE_GENERATION, lessonCount: 4, mappedLessonCount: 4 },
+      deliverables: { isGenerating: true, doneCount: 0, totalCount: 2 },
+      packageQualityPass: { status: 'idle' },
+    });
+
+    expect(model.stage).toBe('enrich');
+    expect(model.stageLabel).toBe('Checking complementary sources · 3/4 lessons checked');
+  });
+
+  it('never moves Overall backward when source lookup overlaps observed compiler work', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-overlap' },
+      ...MAP_EVENTS,
+      {
+        type: 'deliverableChunkCall',
+        featureId: 'lessonPlans',
+        label: 'Generate Lesson Plans [1-4]',
+      },
+      {
+        type: 'knowledgeBackboneLookup',
+        stage: 'knowledge-backbone',
+        label: 'Finding open readings',
+        detail: 'Checking public sources for up to 4 lessons',
+      },
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: { ...DONE_GENERATION, lessonCount: 4, mappedLessonCount: 4 },
+      deliverables: { isGenerating: true, doneCount: 0, totalCount: 2 },
+      packageQualityPass: { status: 'idle' },
+    });
+
+    expect(model.stage).toBe('enrich');
+    expect(model.progressPct).toBe(50);
+  });
+
+  it('treats partial knowledge as active work, not a warning, until Enrich settles', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-active-partial' },
+      ...MAP_EVENTS,
+      {
+        type: 'blueprintEnrichmentCall',
+        label: 'Author lesson batch (native Pass B)',
+        detail: 'Lessons 1',
+        outcome: { enrichedLessons: 0, requestedLessons: 4, missingLessons: [1, 2, 3, 4] },
+      },
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: { ...DONE_GENERATION, lessonCount: 4, mappedLessonCount: 4 },
+      deliverables: { isGenerating: true, doneCount: 0, totalCount: 2 },
+      packageQualityPass: { status: 'idle' },
+    });
+
+    expect(model.compilerArtifacts.find((artifact) => artifact.id === 'knowledge')).toMatchObject({ status: 'active' });
+  });
+
   it('recovery sub-label: "Recovery 1/2 — lessons 1–3"', () => {
     const budget = applyEvents(createApiCallBudget(), [
       { type: 'reset', runId: 'run-ribbon-1' },
@@ -1169,6 +1273,34 @@ describe('B1 — BuildRibbon render', () => {
     expect(renderRibbon(null)).toBe('');
   });
 
+  it('keeps the rendered Overall meter monotonic within one run and resets for the next run', () => {
+    const base = {
+      activeStartedAt: 100,
+      compilerArtifacts: [],
+      compilerState: 'live',
+      pipelineChips: [],
+      progressPct: 50,
+      stageLabel: 'Compiling deliverables',
+      steps: [],
+    };
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    const previousActEnvironment = globalThis.IS_REACT_ACT_ENVIRONMENT;
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+    const progress = () =>
+      container.querySelector('[data-testid="build-progress-track"]')?.getAttribute('aria-valuenow');
+    act(() => root.render(<BuildRibbon model={base} />));
+    expect(progress()).toBe('50');
+
+    act(() => root.render(<BuildRibbon model={{ ...base, progressPct: 48, stageLabel: 'Finding open readings' }} />));
+    expect(progress()).toBe('50');
+
+    act(() => root.render(<BuildRibbon model={{ ...base, activeStartedAt: 200, progressPct: 16 }} />));
+    expect(progress()).toBe('16');
+    act(() => root.unmount());
+    globalThis.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
+  });
+
   it('generating state: pulsing active step, aria-live sub-label, cost ticker', () => {
     const budget = applyEvents(createApiCallBudget({ startedAt: Date.now() - 5_000 }), [
       ...MAP_EVENTS,
@@ -1264,6 +1396,7 @@ describe('B1 — BuildRibbon render', () => {
       value: '0/2 lesson kernels',
       status: 'warn',
     });
+    expect(model.steps.find((step) => step.id === 'enrich')).toMatchObject({ status: 'warn' });
     expect(html).toContain('Knowledge 0/2 · review needed');
     expect(html).not.toContain('Materials 0/2');
   });
@@ -1278,6 +1411,8 @@ describe('B1 — BuildRibbon render', () => {
       }),
     );
     expect(html).toContain('Needs review — 1 blocker');
+    expect(html).toContain('Review required');
+    expect(html).not.toContain('Build complete');
     expect(html).toContain('data-state="review"');
     expect(html).not.toContain('data-state="complete"');
   });

@@ -79,6 +79,7 @@ describe('source finder mini-shard', () => {
 
   it('caches by course + topic and stores only compact source snippets', async () => {
     const storage = memoryStorage();
+    const onProgress = vi.fn();
     const providers = {
       searchScholarlyReadings: vi.fn(async (query) => [source('openalex', `OpenAlex ${query}`)]),
       searchCrossrefWorks: vi.fn(async (query) => [source('crossref', `Crossref ${query}`)]),
@@ -91,6 +92,7 @@ describe('source finder mini-shard', () => {
       maxTopics: 2,
       limitPerTopic: 2,
       date: new Date(2026, 5, 17, 12),
+      onProgress,
     });
     const second = await findCourseSources(sampleGraph(), {
       storage,
@@ -109,6 +111,39 @@ describe('source finder mini-shard', () => {
     expect(first.topics[0].sources[0].snippet.length).toBeLessThanOrEqual(320);
     expect(first.topics[0].sources[0]).not.toHaveProperty('abstract');
     expect(first.topics[0].searchLinks[0].provider).toBe('oercommons');
+    expect(onProgress).toHaveBeenCalledTimes(2);
+    expect(onProgress).toHaveBeenLastCalledWith(expect.objectContaining({ completed: 2, total: 2, cached: false }));
+  });
+
+  it('checks two lessons concurrently while preserving lesson order in the mini-shard', async () => {
+    let active = 0;
+    let maxActive = 0;
+    const openalex = vi.fn(async (query) => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await new Promise((resolve) => setTimeout(resolve, /velocity/i.test(query) ? 30 : 5));
+      active -= 1;
+      return [source('openalex', `Physics evidence for ${query}`)];
+    });
+
+    const miniShard = await findCourseSources(sampleGraph(), {
+      storage: memoryStorage(),
+      maxTopics: 2,
+      limitPerTopic: 1,
+      minUsefulSources: 1,
+      topicConcurrency: 2,
+      providers: {
+        searchScholarlyReadings: openalex,
+        searchCrossrefWorks: vi.fn(async () => []),
+        searchWikipediaPages: vi.fn(async () => []),
+        searchBookMetadata: vi.fn(async () => []),
+        searchLibraryOfCongress: vi.fn(async () => []),
+        searchInternetArchiveTexts: vi.fn(async () => []),
+      },
+    });
+
+    expect(maxActive).toBe(2);
+    expect(miniShard.topics.map((topic) => topic.lessonNumber)).toEqual([1, 2]);
   });
 
   it('rejects academic title traps that match the word but not the classroom topic', async () => {

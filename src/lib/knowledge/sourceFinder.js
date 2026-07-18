@@ -544,34 +544,58 @@ export async function findCourseSources(input, options = {}) {
     providers,
     date = new Date(),
     minUsefulSources = 2,
+    topicConcurrency = 2,
+    onProgress,
   } = options;
   const topics = sourceTopicsFromCourse(input, { maxTopics });
   const courseName = cleanText(topics[0]?.courseName || input?.course?.name || input?.courseName || 'Untitled Course');
   const week = isoWeekStamp(date);
-  const results = [];
+  const results = new Array(topics.length);
+  let nextTopicIndex = 0;
+  let completedTopics = 0;
+  const workerCount = Math.max(1, Math.min(topics.length || 1, Number(topicConcurrency) || 1));
 
-  for (const topic of topics) {
-    const key = cacheKey({ courseName, query: topic.query, week });
-    const cached = cacheGet(key, storage);
-    if (cached?.sources) {
-      results.push({ ...topic, ...cached, cacheHit: true });
-      continue;
+  async function retrieveNextTopic() {
+    while (nextTopicIndex < topics.length) {
+      const index = nextTopicIndex;
+      nextTopicIndex += 1;
+      const topic = topics[index];
+      const key = cacheKey({ courseName, query: topic.query, week });
+      const cached = cacheGet(key, storage);
+      if (cached?.sources) {
+        results[index] = { ...topic, ...cached, cacheHit: true };
+        completedTopics += 1;
+        try {
+          onProgress?.({ completed: completedTopics, total: topics.length, lesson: topic.lessonNumber, cached: true });
+        } catch {
+          /* progress narration is best-effort */
+        }
+        continue;
+      }
+      const retrieved = await retrieveTopicSources(topic, {
+        courseName,
+        providers,
+        limitPerTopic,
+        signal,
+        minUsefulSources,
+      });
+      const cachedValue = {
+        sources: retrieved.sources,
+        searchLinks: retrieved.searchLinks,
+        providerPlan: retrieved.providerPlan,
+      };
+      if (!retrieved.degraded) cacheSet(key, cachedValue, storage);
+      results[index] = { ...topic, ...cachedValue, cacheHit: false, degraded: Boolean(retrieved.degraded) };
+      completedTopics += 1;
+      try {
+        onProgress?.({ completed: completedTopics, total: topics.length, lesson: topic.lessonNumber, cached: false });
+      } catch {
+        /* progress narration is best-effort */
+      }
     }
-    const retrieved = await retrieveTopicSources(topic, {
-      courseName,
-      providers,
-      limitPerTopic,
-      signal,
-      minUsefulSources,
-    });
-    const cachedValue = {
-      sources: retrieved.sources,
-      searchLinks: retrieved.searchLinks,
-      providerPlan: retrieved.providerPlan,
-    };
-    if (!retrieved.degraded) cacheSet(key, cachedValue, storage);
-    results.push({ ...topic, ...cachedValue, cacheHit: false, degraded: Boolean(retrieved.degraded) });
   }
+
+  await Promise.all(Array.from({ length: workerCount }, () => retrieveNextTopic()));
 
   return {
     id: `${SOURCE_FINDER_VERSION}:${stableHash(`${courseName}:${week}`)}`,

@@ -35,7 +35,9 @@ function deriveAgentStatus(progress, isStreaming, isAgentMode, _agentDryRun = fa
     return { label: 'Building', tone: 'indigo', detail: 'Starting workspace' };
   }
   if (!isAgentMode) return { label: 'Ask', tone: 'slate', detail: 'Ready' };
-  if (!progress && !isStreaming) return { label: 'Ready', tone: 'emerald', detail: 'Ready' };
+  // This badge describes Agent availability, not the package verdict.
+  // "Ready" beside a blocked workspace incorrectly reads as export-ready.
+  if (!progress && !isStreaming) return { label: 'Available', tone: 'emerald', detail: 'Available' };
   if (progress?.status === 'error') return { label: 'Needs you', tone: 'red', detail: 'Needs a decision' };
   if (progress?.status === 'complete') {
     const hasIssues = progress.steps?.some((step) => step.status === 'error' || step.status === 'partial');
@@ -1502,7 +1504,7 @@ export default function ChatPanel({
   const compactReadyDetail =
     ribbonModel?.stage === 'ready' && ribbonModel?.stageLabel ? ribbonModel.stageLabel : 'Ready to export';
   const headerAgentStatus = compactReady
-    ? { label: 'Ready', tone: 'emerald', detail: compactReadyDetail }
+    ? { label: 'Available', tone: 'emerald', detail: compactReadyDetail }
     : agentStatus;
   const landingContextSummary = useMemo(() => summarizeLandingAgentContext(chat.messages), [chat.messages]);
   const landingContextDetail = useMemo(

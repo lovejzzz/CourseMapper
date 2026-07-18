@@ -88,14 +88,33 @@ function cacheSet(key, value) {
   }
 }
 
-// v0.16.1: the Linear Algebra field run fired 14+ parallel OpenAlex GETs
-// (readings attach + cache warm + source finder) and exhausted anonymous
-// quota. Keep a per-host concurrency gate far below OpenAlex's per-second
-// ceiling; with that guard in place, treat a 429 as exhausted daily allowance
-// instead of retrying it into more delay and console noise. Transient 5xx
-// responses remain bounded.
-const HOST_CONCURRENCY = 4;
-const hostSlots = new Map(); // host -> { active: number, waiters: Array<() => void> }
+// v0.16.54: OpenAlex's current anonymous API is a tiny shared daily budget.
+// A lesson fan-out that begins after that budget is exhausted used to issue
+// every queued request anyway, producing one 429 per lesson and no additional
+// knowledge. Serialize OpenAlex and open a host circuit as soon as the first
+// 429 arrives. Other public providers keep modest parallelism.
+const DEFAULT_HOST_CONCURRENCY = 4;
+const HOST_POLICIES = Object.freeze({
+  'api.openalex.org': { concurrency: 1 },
+});
+const hostSlots = new Map(); // host -> { active, waiters, rateLimitedUntil }
+
+function rateLimitedError(until = 0) {
+  const error = new Error('429');
+  error.rateLimited = true;
+  error.rateLimitedUntil = Number(until) || 0;
+  return error;
+}
+
+function rateLimitResetAt(response, now = Date.now()) {
+  const rawReset = Number(response?.headers?.get?.('x-ratelimit-reset'));
+  const retryAfter = Number(response?.headers?.get?.('retry-after'));
+  const seconds = Number.isFinite(rawReset) && rawReset > 0 ? rawReset : retryAfter;
+  // OpenAlex documents X-RateLimit-Reset as seconds until midnight UTC. When
+  // a response omits both headers, keep the circuit open for this build long
+  // enough to drain queued calls without pretending we know tomorrow's state.
+  return now + (Number.isFinite(seconds) && seconds > 0 ? Math.min(seconds, 86_400) * 1000 : 5 * 60 * 1000);
+}
 
 async function withHostSlot(url, task) {
   let host = '';
@@ -106,15 +125,22 @@ async function withHostSlot(url, task) {
   }
   let slot = hostSlots.get(host);
   if (!slot) {
-    slot = { active: 0, waiters: [] };
+    slot = { active: 0, waiters: [], rateLimitedUntil: 0 };
     hostSlots.set(host, slot);
   }
-  if (slot.active >= HOST_CONCURRENCY) {
+  const concurrency = HOST_POLICIES[host]?.concurrency || DEFAULT_HOST_CONCURRENCY;
+  if (slot.active >= concurrency) {
     await new Promise((resolve) => slot.waiters.push(resolve));
   }
   slot.active += 1;
   try {
+    if (slot.rateLimitedUntil > Date.now()) throw rateLimitedError(slot.rateLimitedUntil);
     return await task();
+  } catch (error) {
+    if (isRateLimitedError(error)) {
+      slot.rateLimitedUntil = Math.max(slot.rateLimitedUntil, Number(error.rateLimitedUntil) || Date.now() + 300_000);
+    }
+    throw error;
   } finally {
     slot.active -= 1;
     const next = slot.waiters.shift();
@@ -155,11 +181,7 @@ async function cachedFetchJson(cacheKey, url, { signal, timeoutMs = 8000, rateLi
       if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true });
       try {
         const res = await fetch(url, { signal: controller.signal });
-        if (res.status === 429) {
-          const error = new Error(`${res.status}`);
-          error.rateLimited = true;
-          throw error;
-        }
+        if (res.status === 429) throw rateLimitedError(rateLimitResetAt(res));
         if (res.status >= 500) {
           const error = new Error(`${res.status}`);
           lastError = error;

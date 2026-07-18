@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * BuildRibbon — v0.14.4 WS-B1: the ONE status spine under the workspace
@@ -62,6 +62,22 @@ function useActiveElapsed(startedAt) {
   return seconds >= 2 ? `${seconds}s` : '';
 }
 
+function useVisibleProgress(model) {
+  const visible = useRef({ runStartedAt: 0, value: 0 });
+  if (!model) {
+    visible.current = { runStartedAt: 0, value: 0 };
+    return 0;
+  }
+  const runStartedAt = Number(model.activeStartedAt) || 0;
+  const next = Math.max(0, Math.min(100, Number(model.progressPct) || 0));
+  if (runStartedAt > 0 && runStartedAt !== visible.current.runStartedAt) {
+    visible.current = { runStartedAt, value: next };
+  } else {
+    visible.current.value = Math.max(visible.current.value, next);
+  }
+  return visible.current.value;
+}
+
 export function TabReadyTick({ status }) {
   if (status === 'done') {
     return (
@@ -96,6 +112,7 @@ export function TabReadyTick({ status }) {
 
 export default function BuildRibbon({ model }) {
   const activeElapsed = useActiveElapsed(model?.activeStartedAt || 0);
+  const visibleProgress = useVisibleProgress(model);
   if (!model) return null;
 
   const compilerState = model.compilerState || 'live';
@@ -136,7 +153,11 @@ export default function BuildRibbon({ model }) {
           data-testid="ribbon-progress-label"
           className="ml-auto shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
         >
-          {model.progressPct >= 100 ? 'Build complete' : `Build ${model.progressPct}%`}
+          {visibleProgress >= 100
+            ? compilerState === 'review'
+              ? 'Review required'
+              : 'Build complete'
+            : `Build ${visibleProgress}%`}
           {activeElapsed && (
             <span data-testid="ribbon-active-elapsed" className="font-medium text-slate-400 dark:text-slate-500">
               {' · '}
@@ -167,9 +188,11 @@ export default function BuildRibbon({ model }) {
                     className={`block h-1.5 w-1.5 flex-shrink-0 rounded-full ${
                       step.status === 'active'
                         ? 'animate-pulse bg-indigo-500 motion-reduce:animate-none dark:bg-indigo-400'
-                        : step.status === 'settled'
-                          ? 'bg-slate-400 dark:bg-slate-500'
-                          : 'bg-slate-300 dark:bg-slate-600'
+                        : step.status === 'warn'
+                          ? 'bg-amber-500 dark:bg-amber-300'
+                          : step.status === 'settled'
+                            ? 'bg-slate-400 dark:bg-slate-500'
+                            : 'bg-slate-300 dark:bg-slate-600'
                     }`}
                   />
                 )}
@@ -178,11 +201,13 @@ export default function BuildRibbon({ model }) {
                 className={`min-w-0 text-[12px] font-semibold ${
                   step.status === 'active'
                     ? 'text-indigo-600 dark:text-indigo-300'
-                    : step.status === 'done'
-                      ? 'text-emerald-500 sm:text-slate-600 dark:text-emerald-400 sm:dark:text-slate-300'
-                      : step.status === 'settled'
-                        ? 'text-slate-500 dark:text-slate-400'
-                        : 'text-slate-400 dark:text-slate-500'
+                    : step.status === 'warn'
+                      ? 'text-amber-700 dark:text-amber-200'
+                      : step.status === 'done'
+                        ? 'text-emerald-500 sm:text-slate-600 dark:text-emerald-400 sm:dark:text-slate-300'
+                        : step.status === 'settled'
+                          ? 'text-slate-500 dark:text-slate-400'
+                          : 'text-slate-400 dark:text-slate-500'
                 }`}
               >
                 {step.label}
@@ -275,17 +300,17 @@ export default function BuildRibbon({ model }) {
       <div
         data-testid="build-progress-track"
         role="progressbar"
-        aria-label={`Overall course build progress: ${model.progressPct}%`}
-        aria-valuetext={`${model.progressPct}% — ${model.stageLabel}`}
+        aria-label={`Overall course build progress: ${visibleProgress}%`}
+        aria-valuetext={`${visibleProgress}% — ${model.stageLabel}`}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-valuenow={model.progressPct}
+        aria-valuenow={visibleProgress}
         className="h-1 bg-slate-100 dark:bg-slate-800"
       >
         <div
           data-testid="build-progress-fill"
           className="h-full bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500 transition-[width] duration-500 ease-out motion-reduce:transition-none"
-          style={{ width: `${model.progressPct}%` }}
+          style={{ width: `${visibleProgress}%` }}
         />
       </div>
     </div>

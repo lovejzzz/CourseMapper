@@ -208,9 +208,13 @@ function enrichmentRecoveryProgress(events = [], activity = null) {
 
 function isKnowledgeProgressEvent(event) {
   if (
-    ['blueprintEnrichmentCall', 'knowledgeBackboneLookup', 'repairRetryCall', 'scionCompilerRepair'].includes(
-      event?.type,
-    )
+    [
+      'blueprintEnrichmentCall',
+      'knowledgeBackboneLookup',
+      'knowledgeBackboneProgress',
+      'repairRetryCall',
+      'scionCompilerRepair',
+    ].includes(event?.type)
   )
     return true;
   if (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) return true;
@@ -284,7 +288,9 @@ export function latestKnowledgeActivity(events = []) {
   const recovery = recoveryAttemptFromEvent(activeRecovery);
   const activity = recent.find(
     (event) =>
-      ['blueprintEnrichmentCall', 'knowledgeBackboneLookup', 'repairRetryCall'].includes(event?.type) ||
+      ['blueprintEnrichmentCall', 'knowledgeBackboneLookup', 'knowledgeBackboneProgress', 'repairRetryCall'].includes(
+        event?.type,
+      ) ||
       event?.type === 'scionCompilerRepair' ||
       (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) ||
       (event?.type === 'pipelineDecision' &&
@@ -293,8 +299,15 @@ export function latestKnowledgeActivity(events = []) {
   );
   if (activity?.type === 'knowledgeBackboneLookup') {
     const detail = String(activity.detail || '').trim();
-    const scope = detail.replace(/^Checking public sources for\s+/i, '');
-    return scope ? `Finding open readings · ${scope}` : 'Finding open readings';
+    const complementary = /complementary/i.test(`${activity.label || ''} ${detail}`);
+    const scope = detail.replace(/^Checking (?:complementary )?public sources for\s+/i, '');
+    const label = complementary ? 'Finding complementary sources' : 'Finding open readings';
+    return scope ? `${label} · ${scope}` : label;
+  }
+  if (activity?.type === 'knowledgeBackboneProgress') {
+    const detail = String(activity.detail || '').trim();
+    const label = String(activity.label || '').trim() || 'Checking open readings';
+    return detail ? `${label} · ${detail}` : label;
   }
   if (activity?.label === 'Language identity firewall') {
     const range = formatLessonRange(lessonNumbersFromEvent(activity).join(','));
@@ -421,7 +434,9 @@ export function buildLivingCompilerArtifacts({
         active: pipeline?.state === 'enriching',
         done: terminalReady && pipeline?.done?.enrich,
         settled: pipeline?.done?.enrich,
-        warn: partialKnowledge,
+        // Missing kernels are a review outcome only after Enrich settles.
+        // During source lookup or authoring, 0/N still describes active work.
+        warn: partialKnowledge && pipeline?.state !== 'enriching',
       }),
     },
     {
@@ -472,7 +487,15 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
     // settled and immediately before compilation. Give that observable phase
     // the final honest checkpoint in Enrich instead of leaving the UI at the
     // first-lesson mark during a bounded public-source network wait.
-    if (pipeline.activity?.type === 'knowledgeBackboneLookup') return 48;
+    if (['knowledgeBackboneLookup', 'knowledgeBackboneProgress'].includes(pipeline.activity?.type)) {
+      // Source discovery can overlap the first compiler call. Once a real
+      // deliverable call has started, keep Overall at that observed 50%
+      // checkpoint instead of visibly walking backward from 50% to 48%.
+      const compilationObserved = (Array.isArray(budget?.recentEvents) ? budget.recentEvents : []).some(
+        (event) => event?.type === 'deliverableChunkCall' || event?.featureId === 'compiler',
+      );
+      return compilationObserved ? 50 : 48;
+    }
     const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
     // Once an outer recovery begins, later semantic subcalls may revisit an
     // early lesson number. Keep the whole-build meter in the reserved 45–49%
@@ -634,12 +657,19 @@ export function buildBuildRibbonModel({
       ...steps.map((step) => (scionPreparing ? { ...step, status: 'pending' } : step)),
     ];
   }
+  if (knowledgeReviewNeeded && ['ready', 'blocked'].includes(pipeline.state)) {
+    steps = steps.map((step) => (step.id === 'enrich' ? { ...step, status: 'warn' } : step));
+  }
   if (scionPreparing) {
     stage = 'model';
     running = true;
     stageLabel = String(scionRuntime.message || '').trim() || 'Preparing Scion';
   }
-  const allPipelineChips = buildPipelineChips(budget);
+  const allPipelineChips = buildPipelineChips(budget).map((chip) =>
+    pipeline.state === 'enriching' && chip.id === 'coverage'
+      ? { ...chip, label: chip.label.replace(/\s*·\s*review needed$/i, ''), warn: false }
+      : chip,
+  );
 
   const costUsd = budget.tokenUsage?.costUsd || 0;
   const spendDisplay = costUsd > 0 ? formatUsd(costUsd) : '';

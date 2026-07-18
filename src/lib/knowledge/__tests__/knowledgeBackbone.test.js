@@ -126,16 +126,19 @@ describe('knowledge providers (P0)', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('does not retry OpenAlex 429 responses that indicate exhausted anonymous quota', async () => {
+  it('opens one OpenAlex circuit after a 429 instead of issuing one failed request per lesson', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: false,
       status: 429,
       headers: { get: () => '1' },
     });
     vi.stubGlobal('fetch', fetchMock);
-    const works = await searchScholarlyReadings('quota exhausted topic');
-    expect(works).toEqual([]);
-    expect(works.rateLimited).toBe(true);
+    const results = await Promise.all(
+      ['quota topic one', 'quota topic two', 'quota topic three', 'quota topic four'].map((query) =>
+        searchScholarlyReadings(query),
+      ),
+    );
+    expect(results.every((works) => works.rateLimited === true)).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -425,6 +428,43 @@ describe('reading-list engine (P2)', () => {
         }),
       ]),
     );
+  });
+
+  it('falls back from rate-limited OpenAlex to explicitly licensed Crossref work', async () => {
+    const graph = genomeLinkedGraph();
+    const rateLimited = [];
+    Object.defineProperty(rateLimited, 'rateLimited', { value: true, enumerable: false });
+    const providers = {
+      searchScholarlyReadings: vi.fn(async () => rateLimited),
+      searchCrossrefWorks: vi.fn(async (query) => [
+        {
+          provider: 'crossref',
+          title: `Open evidence for ${query}`,
+          authors: 'A. Researcher',
+          year: 2024,
+          url: 'https://doi.org/10.1234/open-evidence',
+          license: 'https://creativecommons.org/licenses/by/4.0/',
+          attribution: 'Crossref public metadata',
+          abstract: `${query} explains astronomy evidence for the celestial sphere and observation.`,
+        },
+      ]),
+      searchBookMetadata: vi.fn(async () => []),
+    };
+
+    const onProgress = vi.fn();
+    expect(await attachOpenReadings(graph, { providers, maxSessions: 1, onProgress })).toBe(1);
+    expect(providers.searchCrossrefWorks).toHaveBeenCalledTimes(1);
+    expect(onProgress).toHaveBeenLastCalledWith({
+      completed: 1,
+      total: 1,
+      lesson: 1,
+      provider: 'crossref fallback',
+    });
+    expect(graph.resources[0]).toMatchObject({
+      origin: 'crossref',
+      license: 'https://creativecommons.org/licenses/by/4.0/',
+      attribution: 'Crossref public metadata',
+    });
   });
 
   it('degrades to zero attachments when providers fail — compile never blocks', async () => {

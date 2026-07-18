@@ -20,7 +20,7 @@
  * through the existing supportingResources path — one write, every surface.
  */
 
-import { searchScholarlyReadings, searchBookMetadata } from './providers.js';
+import { searchScholarlyReadings, searchCrossrefWorks, searchBookMetadata } from './providers.js';
 import { isCourseAwareWeakSource, isLicenseAmbiguous } from './sourceLedger.js';
 // V0.14.1 round-2: the same discipline inference the genome linker uses maps
 // the course onto an OpenAlex field/domain allowlist (no import cycle —
@@ -815,7 +815,7 @@ export function scoreReadingRelevance(work, terms) {
 }
 
 function formatScholarlyCitation(work) {
-  const authors = work.authors || 'OpenAlex';
+  const authors = work.authors || work.attribution || 'Open source metadata';
   const year = work.year ? ` (${work.year})` : '';
   return `${authors}${year}. ${work.title}. Open-access via ${work.url} (${work.license})`;
 }
@@ -830,9 +830,16 @@ function hasExplicitReuseLicense(work) {
  * cached, degrading provider layer; this never throws. Returns the count
  * attached.
  */
-export async function attachOpenReadings(graph, { providers = {}, signal, maxSessions = 24 } = {}) {
+export async function attachOpenReadings(graph, { providers = {}, signal, maxSessions = 24, onProgress } = {}) {
   if (!graph || typeof graph !== 'object' || !Array.isArray(graph.resources)) return 0;
   const fetchReadings = providers.searchScholarlyReadings || searchScholarlyReadings;
+  // Crossref is the no-key continuity path when OpenAlex's anonymous daily
+  // allowance is unavailable. A Crossref result does not get a trust pass:
+  // it still faces the exact topic-fit and explicit-reuse-license gates below.
+  // Custom test/caller providers opt in explicitly, which prevents an injected
+  // fixture returning [] from accidentally reaching the real network.
+  const fetchFallbackReadings =
+    providers.searchCrossrefWorks || (!providers.searchScholarlyReadings ? searchCrossrefWorks : null);
   const fetchBooks = providers.searchBookMetadata || searchBookMetadata;
   // v0.14.5 (A4): the provenance principle — what the instructor already
   // said outranks what we can retrieve. Sessions whose registry slot is
@@ -881,16 +888,35 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
   if (!Array.isArray(graph.readingListDecisions)) graph.readingListDecisions = [];
   const decisions = graph.readingListDecisions;
   let attached = 0;
+  let completedLookups = 0;
 
   const lessonResults = await Promise.allSettled(
     sessions.map(async (session) => {
       const query = readingQueryForSession(graph, session);
-      if (!query) return { session, works: [] };
-      // V0.14.1 B: request several candidates (per relevance ranking) and
-      // anchor the search to the course discipline, so the gate has on-topic
-      // options to choose from.
-      const works = await fetchReadings(query, { limit: 6, signal, anchor });
-      return { session, works };
+      let provider = 'openalex';
+      try {
+        if (!query) return { session, works: [] };
+        // V0.14.1 B: request several candidates (per relevance ranking) and
+        // anchor the search to the course discipline, so the gate has on-topic
+        // options to choose from.
+        const works = await fetchReadings(query, { limit: 6, signal, anchor });
+        if ((works || []).length > 0 || typeof fetchFallbackReadings !== 'function') return { session, works };
+        provider = 'crossref fallback';
+        const fallbackWorks = await fetchFallbackReadings(`${query} ${anchor}`.trim(), { limit: 6, signal });
+        return { session, works: fallbackWorks };
+      } finally {
+        completedLookups += 1;
+        try {
+          onProgress?.({
+            completed: completedLookups,
+            total: sessions.length,
+            lesson: session.number ?? null,
+            provider,
+          });
+        } catch {
+          /* progress narration must never make source retrieval fail */
+        }
+      }
     }),
   );
   for (const settled of lessonResults) {
@@ -1039,10 +1065,10 @@ export async function attachOpenReadings(graph, { providers = {}, signal, maxSes
       citation,
       kind: 'peer-reviewed reading',
       sessionRefs: [],
-      origin: 'openalex',
+      origin: work.provider || 'openalex',
       url: work.url,
       license: work.license || 'open access',
-      attribution: work.attribution || 'OpenAlex (CC0 metadata)',
+      attribution: work.attribution || 'Open source metadata',
     });
     attached += 1;
   }

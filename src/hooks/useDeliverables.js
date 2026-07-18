@@ -2359,9 +2359,26 @@ export default function useDeliverables({
             label: 'Finding open readings',
             detail: `Checking public sources for up to ${Math.min(8, courseGraph.sessions?.length || 0)} lessons`,
           });
-          openReadingCount = await knowledge.attachOpenReadings(courseGraph, { maxSessions: 8 });
+          openReadingCount = await knowledge.attachOpenReadings(courseGraph, {
+            maxSessions: 8,
+            onProgress: ({ completed, total, provider }) => {
+              recordGenerationApiCallEvent({
+                type: 'knowledgeBackboneProgress',
+                stage: 'knowledge-backbone',
+                label: 'Checking open readings',
+                detail: `${completed}/${total} lessons checked${provider === 'crossref fallback' ? ' · using fallback source' : ''}`,
+              });
+            },
+          });
           let coverage = knowledge.knowledgeCoverage(courseGraph);
           if (knowledge.shouldRunSourceFinder?.(coverage)) {
+            const sourceTopicCount = Math.min(8, courseGraph.sessions?.length || 0);
+            recordGenerationApiCallEvent({
+              type: 'knowledgeBackboneLookup',
+              stage: 'knowledge-backbone',
+              label: 'Finding complementary sources',
+              detail: `Checking complementary public sources for up to ${sourceTopicCount} lessons`,
+            });
             const sourceMiniShard = await knowledge.findCourseSources(courseGraph, {
               maxTopics: 8,
               limitPerTopic: 3,
@@ -2369,6 +2386,14 @@ export default function useDeliverables({
               // finder should use complementary providers, not spend the same
               // anonymous quota again for the same lesson topics.
               providers: { openalex: async () => [] },
+              onProgress: ({ completed, total }) => {
+                recordGenerationApiCallEvent({
+                  type: 'knowledgeBackboneProgress',
+                  stage: 'knowledge-backbone',
+                  label: 'Checking complementary sources',
+                  detail: `${completed}/${total} lessons checked`,
+                });
+              },
             });
             sourceFinderCount = knowledge.attachSourceFinderResources(courseGraph, sourceMiniShard, {
               maxSourcesPerTopic: 1,
