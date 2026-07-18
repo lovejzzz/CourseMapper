@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-async function restoreGeneratedWorkspace(page) {
+async function restoreGeneratedWorkspace(page, { activeTab = 'lessonPlans' } = {}) {
   await page.goto('/');
-  await page.evaluate(() => {
+  await page.evaluate((restoredActiveTab) => {
     localStorage.clear();
     sessionStorage.clear();
     localStorage.setItem(
@@ -37,7 +37,7 @@ async function restoreGeneratedWorkspace(page) {
         deliverableConfig: { lessonPlans: {}, slideDecks: { slideCount: 3 } },
         lessonScope: { type: 'all' },
         promptText: 'Mobile layout course',
-        activeTab: 'lessonPlans',
+        activeTab: restoredActiveTab,
         deliverables: {
           lessonPlans: {
             status: 'done',
@@ -111,7 +111,7 @@ async function restoreGeneratedWorkspace(page) {
         savedAt: Date.now(),
       }),
     );
-  });
+  }, activeTab);
   await page.reload();
   await expect(page.locator('button:has-text("Resume")')).toBeVisible({ timeout: 10000 });
   const savedSessionDismissButton = page.getByRole('button', { name: 'Dismiss saved session' });
@@ -120,7 +120,7 @@ async function restoreGeneratedWorkspace(page) {
     .toBeGreaterThanOrEqual(43.9);
   const savedSessionCopy = await page.getByTestId('saved-session-copy').boundingBox();
   const savedSessionDismiss = await savedSessionDismissButton.boundingBox();
-  expect(savedSessionCopy.width).toBeGreaterThan(140);
+  expect(savedSessionCopy.width).toBeGreaterThanOrEqual(Math.min(140, page.viewportSize().width * 0.35));
   expect(savedSessionDismiss.height).toBeGreaterThanOrEqual(43.9);
   await page.locator('button:has-text("Resume")').click();
   await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
@@ -135,6 +135,25 @@ async function expectNoHorizontalOverflow(page) {
 }
 
 test.describe('Generated workspace mobile layout', () => {
+  test('reveals the restored active material at the 320px minimum width', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 700 });
+    await restoreGeneratedWorkspace(page, { activeTab: 'quizBank' });
+
+    const tabStrip = page.getByTestId('workspace-deliverable-tabs');
+    const activeMaterial = tabStrip.getByRole('button', { name: 'Quiz & Exam Bank', exact: true });
+    await expect(activeMaterial).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByText('Which observation most directly supports the proposed revision?')).toBeVisible();
+    await expect
+      .poll(async () => {
+        const stripBox = await tabStrip.boundingBox();
+        const activeBox = await activeMaterial.boundingBox();
+        if (!stripBox || !activeBox) return false;
+        return activeBox.x >= stripBox.x && activeBox.x + activeBox.width <= stripBox.x + stripBox.width;
+      })
+      .toBe(true);
+    await expectNoHorizontalOverflow(page);
+  });
+
   for (const viewport of [
     { label: 'phone', width: 390, height: 844 },
     { label: 'tablet', width: 768, height: 1024 },

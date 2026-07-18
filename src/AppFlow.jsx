@@ -791,7 +791,28 @@ export default function AppFlow({
   // Lesson count — estimated by regex first, then refined by AI when user proceeds
   const [lessonCount, setLessonCount] = useState(0);
   const [isDetectingLessons, setIsDetectingLessons] = useState(false);
+  const workspaceTabsContainerRef = useRef(null);
   const tabButtonRefs = useRef(new Map());
+  const tabButtonRefCallbacks = useRef(new Map());
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  const getTabButtonRef = useCallback((featureId) => {
+    if (!tabButtonRefCallbacks.current.has(featureId)) {
+      tabButtonRefCallbacks.current.set(featureId, (node) => {
+        if (node) {
+          tabButtonRefs.current.set(featureId, node);
+          if (activeTabRef.current === featureId) {
+            window.requestAnimationFrame(() => {
+              node.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
+            });
+          }
+        } else {
+          tabButtonRefs.current.delete(featureId);
+        }
+      });
+    }
+    return tabButtonRefCallbacks.current.get(featureId);
+  }, []);
   const trashDropRef = useRef(null);
   const suppressTabClickRef = useRef(false);
   // v0.15.1 C1: the tab drag/reorder/delete machinery lives in useTabDrag —
@@ -812,6 +833,26 @@ export default function AppFlow({
   // Shared focus: the deliverable item currently on the instructor's screen,
   // reported by DeliverableView and read by the chat agent's context builder.
   const viewportRef = useRef(null);
+
+  // Keep the selected material discoverable when a saved workspace opens on
+  // a narrow screen or the viewport changes orientation. Horizontal tab bars
+  // otherwise reset to their first item even when a later material is active.
+  useEffect(() => {
+    if (screen !== 'workspace') return undefined;
+
+    const revealActiveTab = () => {
+      const button = tabButtonRefs.current.get(activeTab);
+      if (!workspaceTabsContainerRef.current || !button) return;
+      button.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
+    };
+
+    const frame = window.requestAnimationFrame(revealActiveTab);
+    window.addEventListener('resize', revealActiveTab);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', revealActiveTab);
+    };
+  }, [activeTab, screen]);
 
   // ── AI Context Menu (inline AI editing) ──
   const chatSendRef = useRef(null);
@@ -3119,6 +3160,7 @@ export default function AppFlow({
               a full row of vertical rhythm. */}
           {workspaceTabs.length > 0 && (
             <div
+              ref={workspaceTabsContainerRef}
               data-testid="workspace-deliverable-tabs"
               className="flex items-center gap-1 overflow-x-auto rounded-lg border border-slate-200/70 bg-white/76 p-1 shadow-sm scrollbar-hide"
             >
@@ -3166,10 +3208,7 @@ export default function AppFlow({
                   <React.Fragment key={feature.id}>
                     {isDropTarget && !markerAfter && insertionMarker}
                     <button
-                      ref={(node) => {
-                        if (node) tabButtonRefs.current.set(feature.id, node);
-                        else tabButtonRefs.current.delete(feature.id);
-                      }}
+                      ref={getTabButtonRef(feature.id)}
                       onPointerDown={handleTabPointerDown(feature, tabIdx)}
                       onPointerMove={handleTabPointerMove(feature.id)}
                       onPointerUp={handleTabPointerUp(feature.id)}
@@ -3196,6 +3235,7 @@ export default function AppFlow({
                           });
                         }
                       }}
+                      aria-pressed={isActive}
                       className={`tactile flex min-h-11 flex-shrink-0 cursor-grab touch-none select-none items-center gap-2 whitespace-nowrap rounded-md px-3 text-xs font-semibold transition-all duration-200 active:cursor-grabbing lg:min-h-0 lg:py-1.5 ${
                         isDraggingThis
                           ? 'opacity-20 scale-95'
