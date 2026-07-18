@@ -1,5 +1,8 @@
 import { defineConfig } from '@playwright/test';
 
+const e2ePort = Number(process.env.COURSEMAPPER_E2E_PORT || 5180);
+const e2eBaseUrl = `http://127.0.0.1:${e2ePort}`;
+
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.js',
@@ -17,7 +20,7 @@ export default defineConfig({
     ['json', { outputFile: 'verification-output/e2e-report/results.json' }],
   ],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: e2eBaseUrl,
     headless: true,
     screenshot: 'only-on-failure',
     // Local runs have retries: 0, so 'on-first-retry' never captured a trace
@@ -26,9 +29,12 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'npm run dev',
-    port: 5173,
-    reuseExistingServer: true,
+    command: `npm run dev -- --host 127.0.0.1 --port ${e2ePort} --strictPort`,
+    url: e2eBaseUrl,
+    // The default Vite port is often occupied by a developer tab or an older
+    // audit. Reusing that transient process let it vanish midway through a
+    // 141-test run. The suite owns a dedicated strict port for its full life.
+    reuseExistingServer: false,
     timeout: 15000,
   },
   projects: [{ name: 'chromium', use: { browserName: 'chromium' } }],
