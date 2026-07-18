@@ -516,6 +516,7 @@ export async function createScionAdapterTrainingPlan({
   scionVersion,
   seed = 16031,
   iterations,
+  maxSequenceLength,
   generatedAt = new Date().toISOString(),
   repository,
   toolchainPolicyPath = path.resolve(codeRoot, DEFAULT_TOOLCHAIN_POLICY),
@@ -547,6 +548,8 @@ export async function createScionAdapterTrainingPlan({
   const hyperparameters = {
     ...SCION_ORPO_DEFAULTS,
     iterations: iterations == null ? (lane === 'smoke' ? 10 : SCION_ORPO_DEFAULTS.iterations) : Number(iterations),
+    maxSequenceLength:
+      maxSequenceLength == null ? SCION_ORPO_DEFAULTS.maxSequenceLength : Number(maxSequenceLength),
   };
   const hyperparameterIssues = validateHyperparameters(hyperparameters, lane, Number(seed));
   if (hyperparameterIssues.length > 0)
@@ -801,6 +804,7 @@ function parseArgs(argv) {
     else if (arg === '--result-file') args.resultPath = argv[++index];
     else if (arg === '--seed') args.seed = Number(argv[++index]);
     else if (arg === '--iterations') args.iterations = Number(argv[++index]);
+    else if (arg === '--max-sequence-length') args.maxSequenceLength = Number(argv[++index]);
     else if (arg === '--python') args.python = argv[++index];
   }
   return args;

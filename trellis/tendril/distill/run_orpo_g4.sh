@@ -2,11 +2,10 @@
 # E2B-MAX V2.1 Workstream A3 — ORPO preference training on Gemma-4-E2B.
 #
 # PRECONDITIONS (roadmap §2, pre-registered — DO NOT run undersized):
-#   1. production: the manifest-bound curated split holds ≥3000 verified
-#      pairs across five domains and fifteen course groups. Research mode is
-#      separately labeled and requires ≥100 independently admissible pairs,
-#      including ≥20 in each of four domains, and three course groups per
-#      domain; it cannot promote.
+#   1. production: either the general manifest-bound curated split holds ≥3000
+#      verified pairs, or the task-scoped lesson-kernel lane passes its locked
+#      ≥100-pair, source-grounded semantic admission and held-out firewall.
+#      Research mode is separately labeled and cannot promote.
 #   2. Phase-0 spike green (2026-07-07): ORPO trains/saves/serves on this
 #      stack — mlx_vlm.lora, 13.2M LoRA params, adapter loads via
 #      load(..., adapter_path).
@@ -95,6 +94,10 @@ fi
 
 ITERS=${ITERS:-600}
 $SMOKE && ITERS=10
+MAX_SEQUENCE_LENGTH=4096
+# The sealed v0.16.54 corpus has a measured maximum of 2,575 tokens. Keep a
+# five-token safety margin while refusing any future silent truncation.
+$LESSON_KERNEL_V01654 && MAX_SEQUENCE_LENGTH=2580
 
 BASE_PATH=$(
   "$PYTHON" trellis/tendril/distill/prepare_adapter_base.py \
@@ -105,6 +108,7 @@ BASE_PATH=$(
 TOOLCHAIN_RECEIPT=$(mktemp "${TMPDIR:-/tmp}/scion-toolchain.XXXXXX.json")
 trap 'rm -f "$TOOLCHAIN_RECEIPT"' EXIT
 "$PYTHON" trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py --inspect-toolchain > "$TOOLCHAIN_RECEIPT"
+"$PYTHON" trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py --mlx-self-test
 
 PLAN_JSON=$(node scripts/scionAdapterTrainingRun.mjs \
   --plan \
@@ -114,7 +118,8 @@ PLAN_JSON=$(node scripts/scionAdapterTrainingRun.mjs \
   --toolchain-receipt "$TOOLCHAIN_RECEIPT" \
   --output-root "$OUTPUT_ROOT" \
   --seed "$SEED" \
-  --iterations "$ITERS")
+  --iterations "$ITERS" \
+  --max-sequence-length "$MAX_SEQUENCE_LENGTH")
 OUTPUT=$(node -e 'const value=JSON.parse(process.argv[1]); process.stdout.write(value.outputDir)' "$PLAN_JSON")
 RUN_ID=$(node -e 'const value=JSON.parse(process.argv[1]); process.stdout.write(value.adapterId)' "$PLAN_JSON")
 PLAN="$OUTPUT/training-plan.json"
@@ -135,7 +140,7 @@ set +e
   --steps-per-eval 200 \
   --steps-per-save 100 \
   --val-batches 4 \
-  --max-seq-length 4096 \
+  --max-seq-length "$MAX_SEQUENCE_LENGTH" \
   --grad-checkpoint \
   --train-on-completions \
   --gradient-accumulation-steps 2 \

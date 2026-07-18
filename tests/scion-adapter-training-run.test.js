@@ -259,6 +259,7 @@ describe('Scion adapter training receipts', () => {
           gradientAccumulationSteps: 2,
           loraRank: 16,
           beta: 0.1,
+          maxSequenceLength: 4096,
         },
         command: expect.arrayContaining([
           '--scion-seed',
@@ -280,6 +281,31 @@ describe('Scion adapter training receipts', () => {
       identity: { sha256: expect.stringMatching(/^[a-f0-9]{64}$/) },
     });
     expect(fixture.adapterId).toBe(`scion-g4e2b-smoke-${fixture.plan.identity.sha256.slice(0, 16)}`);
+  });
+
+  it('binds a corpus-specific non-truncating context ceiling into the plan identity', async () => {
+    root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-training-context-'));
+    const dataset = await buildSmokeDataset(path.join(root, 'dataset'));
+    const baseSnapshotPath = path.join(root, SCION_GEMMA4_E2B_BASE.revision);
+    await fs.mkdir(baseSnapshotPath);
+    const result = await createScionAdapterTrainingPlan({
+      lane: 'smoke',
+      datasetManifestPath: dataset.manifestPath,
+      baseSnapshotPath,
+      toolchainReceipt: await toolchainReceipt(),
+      outputRoot: path.join(root, 'adapters'),
+      codeRoot: process.cwd(),
+      scionVersion: '0.16.31',
+      seed: 16031,
+      maxSequenceLength: 2580,
+      generatedAt: '2026-07-15T01:00:00.000Z',
+      repository: { commit: 'a'.repeat(40), tree: 'b'.repeat(40), dirty: false },
+    });
+
+    expect(result.plan.trainer.hyperparameters.maxSequenceLength).toBe(2580);
+    expect(result.plan.trainer.command).toEqual(
+      expect.arrayContaining(['--max-seq-length', '2580']),
+    );
   });
 
   it('completes and verifies a byte-bound run, then rejects weight or dataset mutation', async () => {

@@ -962,7 +962,22 @@ describe('Scion adapter tooling', () => {
     expect(launcher).toContain('codex-approved-preferences-v0.16.47-readiness-gap.jsonl');
     expect(launcher).toContain('--source "$RESEARCH_PREFERENCE_SOURCE"');
     expect(launcher).toContain('--semantic-profile strict');
+    expect(launcher).toContain('--mlx-self-test');
+    expect(launcher).toContain('$LESSON_KERNEL_V01654 && MAX_SEQUENCE_LENGTH=2580');
+    expect(launcher).toContain('--max-sequence-length "$MAX_SEQUENCE_LENGTH"');
+    expect(launcher).toContain('--max-seq-length "$MAX_SEQUENCE_LENGTH"');
     expect(launcher).not.toContain('BASE_MODEL=google/gemma-4-E2B-it\n');
+  });
+
+  it('checkpoints the real Gemma 4 decoder stack during ORPO training', async () => {
+    const wrapper = await fs.readFile('trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py', 'utf8');
+
+    expect(wrapper).toContain('model.language_model.model.layers');
+    expect(wrapper).toContain('grad_checkpoint(decoder_layers[0])');
+    expect(wrapper).toContain('args.grad_checkpoint = False');
+    expect(wrapper).toContain('SCION_LOGIT_CHUNK_TOKENS = 32');
+    expect(wrapper).toContain('mx.checkpoint(chunk_logps)');
+    expect(wrapper).not.toContain('outputs.logits.astype(mx.float32)');
   });
 
   it('keeps the MLX-to-PEFT bridge narrow enough to self-test without Apple ML dependencies', async () => {
