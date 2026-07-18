@@ -40,7 +40,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
   sections: [
     {
       label: 'Bind learning to one exact task',
-      icon: 'CHECK',
+      icon: 'SCOPE',
       color: 'emerald',
       items: [
         'Dataset rows no longer imply that every learned preference applies to every request. Key-term atoms, multiple-choice atoms, lesson kernels, course maps, Agent advice, compiler repair, voice revision, and genome extraction are distinct task families.',
@@ -51,7 +51,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
     },
     {
       label: 'Route weights request by request',
-      icon: 'CHECK',
+      icon: 'ROUTE',
       color: 'blue',
       items: [
         'The browser maps each provider task to an explicit family before inference. An exact allowlist match restores the already verified adapter bytes and confirms native Gemma 4 LoRA metadata before generation.',
@@ -62,7 +62,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
     },
     {
       label: 'Make the held-out comparison prove relevance',
-      icon: 'CHECK',
+      icon: 'PROOF',
       color: 'violet',
       items: [
         'Benchmark V5 preserves the V4 five-course, five-domain, exact-base, and transitive grader boundary while adding a frozen runtime task policy.',
@@ -73,7 +73,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
     },
     {
       label: 'Turn the failed run into the right next experiment',
-      icon: 'CHECK',
+      icon: 'NEXT',
       color: 'amber',
       items: [
         'The exact strict rebuild remains research-ready at 143 admitted rows across seven domains and 114/15/14 splits. Its task identity is 93 source-key-term atoms plus 50 source-MC atoms.',
@@ -81,6 +81,19 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'The result explains the train/serve mismatch in the rejected research adapter without pretending that mismatch alone caused every observed quality loss.',
         'The next dataset must contain stable, source-grounded full lesson-kernel preferences with diverse domains, courses, defect families, and production-compatible licenses. Only a task-matched candidate gets the five-course comparison.',
         'No hosted adapter is activated, no Gemma weight changed, and no quality, speed, paid-reference, human, instructor, classroom, or universal-output gain is claimed by this release.',
+      ],
+    },
+    {
+      label: 'Make every browser handoff tell the truth',
+      icon: 'QA',
+      color: 'blue',
+      items: [
+        'The Improve command now enters the contextual Agent loop instead of blindly regenerating the active material. Scion receives the active artifact, command policy, and attached files before it inspects, proposes, or edits anything.',
+        'Rubric repair treats an explicit lesson label as an identity boundary. A rubric can no longer borrow a weak token match from another lesson, and explicit lesson order survives when an earlier assessment is not rubric-worthy.',
+        'A critical finding discovered during final grading now owns the handoff sentence. The workspace cannot show a blocked package beside an earlier “ready to download” message.',
+        'Scion model-label tests derive the current Vx label from the release manifest, while historical changelog contracts retain their exact measured claims instead of failing whenever the current version advances.',
+        'Workspace footer text moved from ten-pixel translucent slate to a readable twelve-pixel slate treatment. The built desktop and phone frames retain the calm hierarchy without making navigation effectively invisible.',
+        'Timed Chromium frames at 0, 250, 750, and 2,000 milliseconds confirmed that the restore fade resolves by the 250-millisecond frame on desktop and phone. The complete browser suite passed 141/141 journeys; the production unit gate passed 4,763 tests.',
       ],
     },
   ],
@@ -181,11 +194,11 @@ export const HISTORICAL_RELEASE_CHANGELOGS = [
     date: 'July 16, 2026',
     title: 'Let the Source Hold the Key: stop explanations from overruling evidence',
     highlights: [
-      'The exact 46-loss replay intercepted twenty failures instead of eighteen: eight contradicted keys were repaired and twelve unusable artifacts were rejected, with zero model-authored text mutation.',
-      'Live Scion kernels required one or two fact citations per MC item; two newly caught wrong keys—absolute dating and a UX journey map—moved only when the question, exact claims, and one option aligned uniquely.',
-      'Across 192 retained source atoms, ten answer repairs used source alignment: eight replaced weaker explanation-only repairs, two were new, and one unsafe explanation-only repair was blocked because the source confirmed the declared key.',
+      'The exact replay intercepts 20/46 losses instead of eighteen: eight contradicted keys were repaired and twelve unusable artifacts were rejected, with zero model-authored text mutation.',
+      'Live Scion kernels required one or two fact citations per MC item and at least three supported content tokens; two newly caught wrong keys moved only when the question, exact claims, and one option aligned uniquely.',
+      'Across 192 retained source atoms, ten answer repairs used source alignment; eight replace explanation-only repairs, two were new, and one unsafe explanation-only repair was blocked because the source confirmed the declared key.',
       'The source/explanation conflict boundary deliberately admitted 130/192 atoms instead of 131/192 and raised retry burden from 61 to 62 rather than rewriting the incoherent item.',
-      'Twenty-six measured losses remained unresolved, corpus readiness remained 118/464 with 46/100 judge preferences, and no Gemma weight, quality adapter, or paid-reference claim changed.',
+      'Twenty-six measured losses remained unresolved, corpus readiness remained 118/464 with 46/100 judge preferences, and the adapter remains inactive; no Gemma weight or paid-reference claim changed.',
     ],
   },
   {
@@ -193,11 +206,11 @@ export const HISTORICAL_RELEASE_CHANGELOGS = [
     date: 'July 16, 2026',
     title: 'Stop Calling Truth a Misconception: bind semantic admission to the source',
     highlights: [
-      'The exact 46-loss replay intercepted eighteen failures instead of twelve: six contradicted keys were repaired and twelve unusable artifacts were rejected, with zero model-authored text mutation.',
-      'Three source facts mislabeled as misconceptions entered retry only after exact source-context hash binding, three-token support, 75% containment, and 35% whole-sentence overlap; explicit contrast language refused the rule.',
+      'The exact replay intercepts 18/46 losses instead of twelve: six contradicted keys were repaired and twelve unusable artifacts were rejected, with zero model-authored text mutation.',
+      'Three source facts mislabeled as misconceptions entered retry only after exact source-context hash binding, three shared content tokens, 75% containment, and 35% whole-sentence overlap; explicit contrast language refused the rule.',
       'Parenthesized internal markers such as `(Claim 0).` stopped leaking into learner-facing fields; four measured losses contained this visible process residue, and one overlapped the misconception set.',
-      'Across 192 retained source atoms, all 77 conservative repairs remained while admission moved from 141 to 131 and retry burden moved from 51 to 61; corpus readiness remained 118/464.',
-      'Twenty-eight measured losses remained unresolved, only 46/100 judge preferences existed, and no Gemma weight, quality adapter, or paid-reference claim changed.',
+      'Across 192 retained source atoms, all 77 conservative repairs remained while admission moved to 131/192 atoms and retry burden moved from 51 to 61; corpus readiness remained 118/464.',
+      'Twenty-eight measured losses remained unresolved, only 46/100 judge preferences existed, and the adapter remains inactive; no Gemma weight or paid-reference claim changed.',
     ],
   },
   {
@@ -205,11 +218,11 @@ export const HISTORICAL_RELEASE_CHANGELOGS = [
     date: 'July 16, 2026',
     title: 'Read the Evidence First: repair three more contradicted keys safely',
     highlights: [
-      'The exact 46-loss replay intercepted twelve failures instead of nine: six contradicted keys were repaired and six unusable items were rejected, with zero model-authored text mutation.',
+      'The exact replay intercepts 12/46 losses instead of nine: six answer-index repairs corrected contradicted keys and six unusable items were rejected, with zero model-authored text mutation.',
       'Three additional wrong keys were realigned only from the first affirmative sentence, conservative word-form agreement, a unique two-token minimum, and a positive score margin.',
       'Adversarial guards refused literal option labels, generic “correct choice” prose, negative or misconception sentences, ties, and the measured ambiguous UX case rather than guessing.',
       'Across 192 retained source atoms, key repairs rose from 52 to 57 while admission remained 141 and burden remained 51; five weak deterministic-only training pairs were quarantined, reducing the usable corpus from 123 to 118.',
-      'Thirty-four measured losses remained unresolved, the corpus still had only 46/100 judge preferences, and no quality adapter was trained or active.',
+      'Thirty-four measured losses remained unresolved, the corpus still had only 46/100 judge preferences, and no quality adapter is trained or active.',
     ],
   },
   {
@@ -217,11 +230,11 @@ export const HISTORICAL_RELEASE_CHANGELOGS = [
     date: 'July 16, 2026',
     title: 'Reject the False Pass: turn judged failures into semantic gates',
     highlights: [
-      'An exact replay turned all 46 stable paired-order Scion losses into executable compiler regressions; the v0.16.42 gate intercepted none, while v0.16.43 intercepted nine.',
-      'Three wrong answer keys were repaired only when one displayed option uniquely began an affirmative explanation; each repair changed one answer-index field and zero model-authored text.',
-      'Two cosmetically duplicated answer sets and four answer-only explanations were rejected into the existing regeneration path instead of passing a structural schema.',
-      'The stricter source replay honestly withdrew eight earlier low-quality admissions: 141/192 atoms passed instead of 149/192, with zero retained-response mutation and eight additional retry seats.',
-      'Thirty-seven measured losses remained unresolved, the research corpus remained at 46/100 judge preferences, and no quality adapter was trained or active.',
+      'An exact replay turned all 46 stable paired-order Scion losses into executable compiler regressions; the v0.16.43 semantic gate intercepts nine.',
+      'The gate repaired three answer-index contradictions only when one displayed option uniquely began an affirmative explanation; each repair changed one index field and zero model-authored text.',
+      'Two cosmetically duplicated answer sets and four explanations that merely repeat the keyed answer were rejected into the existing regeneration path instead of passing a structural schema.',
+      'The current retained-source replay admits 141/192 atoms instead of 149/192, so compiler burden rises from 43 to 51 retry seats with zero retained-response mutation.',
+      'Thirty-seven measured losses remained unresolved, the research corpus remained at 46/100 judge preferences, and there was no quality adapter active.',
     ],
   },
   {
@@ -230,10 +243,10 @@ export const HISTORICAL_RELEASE_CHANGELOGS = [
     title: 'Both Orders Agree: measure the gap before training Scion',
     highlights: [
       'A second ephemeral GPT-5.6-Luna/max clean room scored the same 100 source-grounded artifacts in reversed B/A order with the exact first-order model, runtime, prompt, and a distinct session identity.',
-      'The two independently sealed orders agree on 76/100 cases: 46 score-qualified winners and 30 stable ties; 23 winner/tie disagreements and one opposite-winner reversal remain quarantined.',
-      'All 46 stable winners favor GPT-5.4-mini over the captured Scion-base pipeline—10 in Computer Science, 6 in Geology, 19 in Music Theory, and 11 in User Experience Design.',
+      'The two independently sealed orders agree on 76/100 cases: 46 stable score-qualified GPT-5.4-mini winners and 30 stable ties; 23 winner/tie disagreements and one opposite-winner disagreement remain quarantined.',
+      'Scion base records zero stable wins across the captured pipeline; the 46 reference winners span Computer Science, Geology, Music Theory, and User Experience Design.',
       'The evidence gate accepts concrete losing-scorecard defects when the preference-level defect array is empty, retaining the judge’s original scores and decisions while admitting 46 immutable training rows.',
-      'Scion did not train or activate a quality adapter: 54 additional stable, score-qualified preferences remained required before the research-training gate could open.',
+      'The research gate remains closed at 46/100; Scion did not train or activate a quality adapter, and hosted Scion remains the pinned public Gemma base plus compiler.',
     ],
   },
   {
@@ -241,11 +254,11 @@ export const HISTORICAL_RELEASE_CHANGELOGS = [
     date: 'July 16, 2026',
     title: 'One Order Under Seal: judge 100 cases without learning the answer',
     highlights: [
-      'A packet-backed, byte-reconstructible A/B workbook bound 100 source-grounded cases into ten anonymous chunks and pinned GPT-5.6-Luna at max reasoning on Codex CLI 0.144.2 before judgment.',
+      'A packet-backed, byte-reconstructible A/B workbook bound 100 source-grounded cases into ten anonymous chunks. All ten chunks use one exact judge revision: GPT-5.6-Luna at max reasoning on Codex CLI 0.144.2.',
       'One new ephemeral clean-room session completed all 100 A/B cases without organizer mapping, reverse-order payload, prior outcome, repository context, or user configuration.',
-      'A tested bounded repair changed exactly 200 unsupported `complete` status labels to `scored` after proving all five numeric scores existed, changing no score or preference.',
-      'The canonical pass was encrypted directly into one AES-256-GCM envelope without writing combined judgment plaintext; two untracked 0600 key copies passed authenticated in-memory round trips.',
-      'The outcome remained sealed until the distinct v0.16.42 B/A reading, so v0.16.41 claimed no stable preference, training row, adapter improvement, or paid-reference result.',
+      'A tested bounded repair changed exactly 200 status labels to `scored` after proving all five numeric scores existed, changing no score or preference.',
+      'The canonical pass was encrypted directly into one AES-256-GCM envelope. No combined completed-review plaintext was written; two untracked 0600 key copies passed authenticated in-memory round trips.',
+      'One presentation order cannot establish a stable preference, so v0.16.41 claimed no training row, adapter improvement, or paid-reference result. Hosted Scion remains the pinned public Gemma base plus compiler.',
     ],
   },
   {
@@ -254,10 +267,10 @@ export const HISTORICAL_RELEASE_CHANGELOGS = [
     title: 'Repair, Then Judge: recover source-bound evidence without rewriting the model',
     highlights: [
       'A deterministic replay compiled the exact bytes from twelve immutable local Gemma source-capture projects, recorded every repair, and proved that no model response was mutated.',
-      'Conservative incomplete-explanation and answer-key-alignment repairs raised admitted source atoms from 133/192 to 149/192 while reducing compiler burden from 59 atoms to 43.',
+      'With conservative incomplete-explanation and answer-key-alignment repairs, admission rises from 133/192 (69.3%) to 149/192 (77.6%) while compiler burden falls from 59 atoms to 43.',
       'The neutral comparison ledger rebuilt exactly to 446 cases, including 138 source-grounded cases across sixteen course groups; the sealed historical campaigns remained unchanged.',
-      'A fail-closed source-only builder froze 100 anonymous, hash-bound cases—25 in each of four training domains, spanning twelve course groups—without filling shortages with ungrounded material.',
-      'The packet was ready for two fresh Codex presentation orders, but v0.16.40 contained zero judgments, approved zero preferences, trained zero weights, and established no adapter or paid-reference quality win.',
+      'A fail-closed source-only builder froze exactly 100 source-grounded comparisons—25 in each of four training domains, spanning twelve course groups—without filling shortages with ungrounded material.',
+      'The packet was ready for two fresh Codex presentation orders, but this release must not judge it: v0.16.40 contained zero judgments, preferences, or trained weights. Hosted Scion remains the pinned public Gemma base plus compiler.',
     ],
   },
   {
@@ -269,7 +282,7 @@ export const HISTORICAL_RELEASE_CHANGELOGS = [
       'The deterministic v0.16.31 smoke weights were converted through the pinned MLX-to-PEFT-to-GGUF pipeline into one 52,704,096-byte browser adapter bound to the exact public Gemma base and complete training receipts.',
       'That same lineage passed a real Chrome 150 Apple-Silicon lifecycle: public-base download recovery, native adapter activation, changed inference, exact rollback, cache recovery, GPU-process recovery, repeated completions, and measured memory.',
       'A recomputable lineage audit retained and verified the small training, result, source-manifest, conversion, browser-trace, runtime, hardware, and console receipts, distinguished expected GPU fault-injection errors from unexpected failures, and kept both base and adapter weights outside Git.',
-      'The review ledger deterministically rebuilt to 400 cases across sixteen groups, only 92 of them source-grounded; the corpus had zero same-identity model-judge preferences, so the stale 128-case workbook was prohibited from scoring and no quality win was claimed.',
+      'The review ledger deterministically rebuilt to 400 cases across sixteen groups, only 92 of them source-grounded; the corpus had zero same-identity model-judge preferences. This is a permanently non-promotable smoke adapter, so the stale workbook cannot score quality and hosted Scion stays base-only.',
     ],
   },
   {
@@ -277,11 +290,11 @@ export const HISTORICAL_RELEASE_CHANGELOGS = [
     date: 'July 16, 2026',
     title: 'Score Twice, Prove Every Score: make adapter judgment recomputable',
     highlights: [
-      'The adapter promotion verifier began reconstructing every model-judge scorecard from complete criterion-level quality reviews instead of trusting a hash-bound file containing claimed totals.',
+      'The adapter promotion verifier now reconstructs every model-judge scorecard from complete criterion-level quality reviews instead of trusting a hash-bound file containing claimed totals.',
       'A/B and B/A began requiring two isolated judge sessions, separate review bundles and pass scorecards, and preferences recorded only after both artifact scores were complete.',
       'Reverse-order winner labels began using the reversed anonymous mapping, preventing visible side labels from masquerading as artifact identity.',
       'Every winner or tie began carrying structured artifact, location, dimension, and defect-or-advantage evidence while the report exposed score-order effects.',
-      'The release hardened honest-quality-benchmark-v1 without running a model, changing weights, or claiming an adapter quality gain.',
+      'The release hardened honest-quality-benchmark-v1 without running a model or changing weights, and claims no adapter quality gain.',
     ],
   },
   {

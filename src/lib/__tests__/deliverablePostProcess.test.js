@@ -1489,6 +1489,80 @@ describe('Rubric and assignment post-processing', () => {
     expect(rubric.cr[0].cn).toContain('Diagnostic discussion post response');
   });
 
+  it('never rebinds an explicitly labeled rubric to another lesson when its assessment is not rubric-worthy', () => {
+    const localCourseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Export Reliability',
+          sections: [
+            {
+              learningObjectives: 'Verify that generated course artifacts can be downloaded.',
+              weeklyAssessments: 'Export checklist',
+            },
+          ],
+        },
+        {
+          title: 'Lesson 2: Portable Course Materials',
+          sections: [
+            {
+              learningObjectives: 'Choose an export format for a teaching workflow.',
+              weeklyAssessments: 'Format selection note',
+            },
+          ],
+        },
+      ],
+    };
+    let rubrics = {
+      rubrics: [
+        {
+          lessonTitle: 'Lesson 2: Portable Course Materials',
+          title: 'Format Selection Note Rubric',
+          totalPoints: 100,
+          criteria: [{ criterion: 'Format rationale', weight: 100, points: 100 }],
+        },
+      ],
+    };
+    rubrics = normalizeRubricCoverage(rubrics, localCourseMap).data;
+    rubrics = normalizeRubricSupport(rubrics).data;
+
+    const result = normalizeRubricAssessmentAlignment(rubrics, localCourseMap);
+
+    expect(result.data.rubrics.map((rubric) => rubric.lessonTitle)).toEqual([
+      'Lesson 1: Export Reliability',
+      'Lesson 2: Portable Course Materials',
+    ]);
+    expect(result.data.rubrics[1].title).toBe('Format Selection Note Rubric');
+  });
+
+  it('keeps explicit lesson order when an earlier rubric has no eligible assessment anchor', () => {
+    const localCourseMap = {
+      lessons: [
+        {
+          title: 'Lesson 1: Foundations',
+          sections: [{ weeklyAssessments: 'Foundations application check' }],
+        },
+        {
+          title: 'Lesson 2: Perspectives',
+          sections: [{ weeklyAssessments: 'Perspectives exit ticket' }],
+        },
+      ],
+    };
+    const rubrics = {
+      rubrics: [
+        { title: 'Lesson 1 Rubric', lessonTitle: 'Lesson 1: Foundations', criteria: [] },
+        { title: 'Lesson 2 Rubric', lessonTitle: 'Lesson 2: Perspectives', criteria: [] },
+      ],
+    };
+
+    const result = normalizeRubricAssessmentAlignment(rubrics, localCourseMap);
+
+    expect(result.data.rubrics.map((rubric) => rubric.lessonTitle)).toEqual([
+      'Lesson 1: Foundations',
+      'Lesson 2: Perspectives',
+    ]);
+    expect(result.reorderedRubrics).toBe(false);
+  });
+
   it('tightens generic assignment briefs with lesson assessment objectives', () => {
     const data = {
       assignments: [

@@ -297,7 +297,7 @@ describe('ChatPanel agent command strip', () => {
     container.remove();
   });
 
-  it('runs input-resolved Improve commands through deterministic regeneration', async () => {
+  it('runs input-resolved Improve commands through the contextual Agent', async () => {
     const onGenerateFeatures = vi.fn(() =>
       Promise.resolve({ status: 'generated', completedFeatureIds: ['lessonPlans'], failedFeatureIds: [] }),
     );
@@ -308,12 +308,14 @@ describe('ChatPanel agent command strip', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
 
-    expect(onGenerateFeatures).toHaveBeenCalledWith({
-      featureIds: ['lessonPlans'],
-      lessonFilter: null,
-      source: 'agent-plan',
-    });
-    expect(chatRouterMock.send).not.toHaveBeenCalled();
+    expect(onGenerateFeatures).not.toHaveBeenCalled();
+    expect(chatRouterMock.send).toHaveBeenCalledWith(
+      'Improve Lesson Plans',
+      expect.objectContaining({
+        displayText: 'Improve Lesson Plans',
+        agentPromptOverride: expect.stringContaining('Improve Lesson Plans for specificity'),
+      }),
+    );
   });
 
   it('hides the custom-tools header affordance when no custom tools exist', () => {
