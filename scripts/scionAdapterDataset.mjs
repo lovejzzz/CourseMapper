@@ -36,6 +36,31 @@ const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
 export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v5.json';
 const DEFAULT_SOURCES = SCION_ADAPTER_DEFAULT_SOURCES;
 const DEFAULT_HELDOUT_BENCHMARK = SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK;
+export const SCION_ADAPTER_DATASET_PROFILES = Object.freeze({
+  'lesson-kernel-v0.16.54': Object.freeze({
+    sources: Object.freeze([
+      'verification-output/scion-lesson-kernel-judge-batches-v6-v0.16.54/training-preferences.jsonl',
+      'verification-output/scion-lesson-kernel-teacher-judge-v0.16.54/training-preferences.jsonl',
+    ]),
+    minimumPairs: 100,
+    minimumDomains: 7,
+    minimumGroupsPerDomain: 2,
+    minimumTaskGroupsPerDomain: 6,
+    minimumSourceKernelsPerDomain: 6,
+    minimumModelJudgePairs: 100,
+    minimumModelJudgeDomains: 7,
+    minimumModelJudgePairsPerDomain: 8,
+    researchMinimumPairs: 100,
+    researchMinimumDomains: 7,
+    researchMinimumGroupsPerDomain: 2,
+    researchMinimumTaskGroupsPerDomain: 6,
+    researchMinimumSourceKernelsPerDomain: 6,
+    researchMinimumModelJudgePairs: 100,
+    researchMinimumModelJudgeDomains: 7,
+    researchMinimumModelJudgePairsPerDomain: 8,
+    semanticProfile: 'source-strict-v6',
+  }),
+});
 export const SCION_ADAPTER_SEMANTIC_PROFILES = Object.freeze([
   'legacy',
   'strict',
@@ -980,8 +1005,13 @@ export async function buildScionAdapterDataset({
 }
 
 function parseArgs(argv) {
+  const profileIndex = argv.indexOf('--profile');
+  const profileName = profileIndex >= 0 ? argv[profileIndex + 1] : '';
+  if (profileIndex >= 0 && !profileName) throw new Error('--profile requires a name');
+  const profile = profileName ? SCION_ADAPTER_DATASET_PROFILES[profileName] : null;
+  if (profileName && !profile) throw new Error(`Unknown adapter dataset profile: ${profileName}`);
   const args = {
-    sources: [],
+    sources: [...(profile?.sources || [])],
     outputDir: DEFAULT_OUTPUT,
     minimumPairs: 3000,
     minimumDomains: 5,
@@ -1001,10 +1031,15 @@ function parseArgs(argv) {
     researchMinimumModelJudgePairsPerDomain: 20,
     domainMapPath: DEFAULT_DOMAIN_MAP,
     heldoutBenchmarkPath: DEFAULT_HELDOUT_BENCHMARK,
+    ...(profile || {}),
   };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
-    if (arg === '--source') args.sources.push(argv[++index]);
+    if (arg === '--profile') index += 1;
+    else if (arg === '--source') {
+      if (profile) throw new Error('--source cannot be combined with --profile');
+      args.sources.push(argv[++index]);
+    }
     else if (arg === '--output') args.outputDir = argv[++index];
     else if (arg === '--minimum-pairs') args.minimumPairs = Number(argv[++index]);
     else if (arg === '--minimum-domains') args.minimumDomains = Number(argv[++index]);

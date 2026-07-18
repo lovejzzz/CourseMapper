@@ -838,6 +838,7 @@ async function main() {
       '--training-plan',
       '--training-result',
       '--semantic-profile strict-v3',
+      '--profile lesson-kernel-v0.16.54',
     ]) {
       if (!launcher.includes(required)) policyIssues.push(`launcher-missing:${required.replaceAll('\n', ' ')}`);
     }

@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
 
 import {
+  SCION_ADAPTER_DATASET_PROFILES,
   SCION_ADAPTER_SEMANTIC_PROFILES,
   buildScionAdapterDataset,
   registerScionLessonKernelCase,
@@ -173,6 +174,17 @@ function bindSyntheticTrainingRun(manifest, lane = 'production') {
 describe('Scion adapter tooling', () => {
   it('allows the exact source-strict V6 production admission profile for task-matched datasets', () => {
     expect(SCION_ADAPTER_SEMANTIC_PROFILES).toContain('source-strict-v6');
+    expect(SCION_ADAPTER_DATASET_PROFILES['lesson-kernel-v0.16.54']).toMatchObject({
+      minimumPairs: 100,
+      minimumDomains: 7,
+      minimumGroupsPerDomain: 2,
+      minimumSourceKernelsPerDomain: 6,
+      minimumModelJudgePairs: 100,
+      minimumModelJudgeDomains: 7,
+      minimumModelJudgePairsPerDomain: 8,
+      semanticProfile: 'source-strict-v6',
+    });
+    expect(SCION_ADAPTER_DATASET_PROFILES['lesson-kernel-v0.16.54'].sources).toHaveLength(2);
   });
 
   it('refuses to inflate the lesson-kernel target with two preferences for one campaign case', () => {

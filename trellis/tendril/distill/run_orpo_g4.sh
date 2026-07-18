@@ -24,10 +24,12 @@ cd "$(dirname "$0")/../../.."
 MODE=${1:-}
 SMOKE=false
 RESEARCH=false
+LESSON_KERNEL_V01654=false
 [ "$MODE" = "--smoke" ] && SMOKE=true
 [ "$MODE" = "--research" ] && RESEARCH=true
-if [ -n "$MODE" ] && ! $SMOKE && ! $RESEARCH; then
-  echo "REFUSING: unknown mode $MODE (expected --smoke or --research)."
+[ "$MODE" = "--lesson-kernel-v0.16.54" ] && LESSON_KERNEL_V01654=true
+if [ -n "$MODE" ] && ! $SMOKE && ! $RESEARCH && ! $LESSON_KERNEL_V01654; then
+  echo "REFUSING: unknown mode $MODE (expected --smoke, --research, or --lesson-kernel-v0.16.54)."
   exit 1
 fi
 
@@ -42,7 +44,9 @@ LANE=production
 $SMOKE && LANE=smoke
 $RESEARCH && LANE=research
 COMMIT=$(git rev-parse HEAD^{commit})
-DATASET_DIR=${SCION_ADAPTER_DATASET:-$HOME/.cache/coursemapper/scion-datasets/$LANE-$COMMIT}
+DATASET_KEY=$LANE-$COMMIT
+$LESSON_KERNEL_V01654 && DATASET_KEY=lesson-kernel-v01654-$COMMIT
+DATASET_DIR=${SCION_ADAPTER_DATASET:-$HOME/.cache/coursemapper/scion-datasets/$DATASET_KEY}
 GENERATED_AT=$(git show -s --format=%cI HEAD)
 
 if [ -n "${SCION_ADAPTER_ID:-}" ] || [ -n "${SCION_ADAPTER_OUTPUT:-}" ]; then
@@ -64,6 +68,11 @@ elif $RESEARCH; then
     --generated-at "$GENERATED_AT" \
     --research \
     --semantic-profile strict-v3
+elif $LESSON_KERNEL_V01654; then
+  node scripts/scionAdapterDataset.mjs \
+    --profile lesson-kernel-v0.16.54 \
+    --output "$DATASET_DIR" \
+    --generated-at "$GENERATED_AT"
 else
   node scripts/scionAdapterDataset.mjs --output "$DATASET_DIR" --generated-at "$GENERATED_AT"
 fi
