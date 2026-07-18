@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  JUDGMENT_CLASS_KEYS,
   REVIEW_CLASS_KEYS,
   REVIEW_CLASS_LABELS,
   buildFocusEventForTarget,
@@ -68,6 +69,15 @@ export default function ReviewQueue({
     [items, progress],
   );
 
+  const outstandingByKind = useMemo(() => {
+    const openInClass = (classKey) =>
+      (queue?.classes?.[classKey] || []).filter((item) => itemState(item, progress) === 'open').length;
+    return {
+      decisions: JUDGMENT_CLASS_KEYS.reduce((total, classKey) => total + openInClass(classKey), 0),
+      spotChecks: openInClass('spotChecks'),
+    };
+  }, [queue, progress]);
+
   // Opening (or re-opening focused on an observation) selects the requested
   // item, else the first still-open one.
   useEffect(() => {
@@ -130,7 +140,16 @@ export default function ReviewQueue({
                 ? 'Nothing to review.'
                 : allClear
                   ? `All ${items.length} item${items.length === 1 ? '' : 's'} handled.`
-                  : `${outstandingCount} of ${items.length} item${items.length === 1 ? '' : 's'} still open`}
+                  : [
+                      outstandingByKind.decisions > 0
+                        ? `${outstandingByKind.decisions} decision${outstandingByKind.decisions === 1 ? '' : 's'}`
+                        : null,
+                      outstandingByKind.spotChecks > 0
+                        ? `${outstandingByKind.spotChecks} routine spot-check${outstandingByKind.spotChecks === 1 ? '' : 's'}`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
             </p>
           </div>
           <div className="flex items-center gap-1.5">

@@ -1,4 +1,5 @@
 import { getCustomDeliverable } from '../customDeliverableLibrary.js';
+import { isInternalDeliverableMetadataKey } from '../internalDeliverableMetadata.js';
 import { loadPdfRuntime } from '../pdfRuntime.js';
 import { safeImport } from '../safeImport.js';
 
@@ -36,50 +37,8 @@ export const FEATURE_LABELS = {
   courseFaq: 'Course FAQ',
 };
 
-const INTERNAL_EXPORT_METADATA_KEYS = new Set([
-  'accessibilityPlan',
-  'anchorExampleSet',
-  'sourceGrounding',
-  'blueprintGrounding',
-  'classSessionPlan',
-  'classroomDryRun',
-  'classroomEvidenceLoop',
-  'compilerDecision',
-  'compilerDecisionMatrix',
-  'conceptDependencyPlan',
-  'courseModalityProfile',
-  'difficultyProfile',
-  'evidenceResponsePlan',
-  'feedbackCycle',
-  'instructorFeedbackLoad',
-  'instructionalMoveGuide',
-  'instructionalRationale',
-  'learnerContextCue',
-  'learningTransferPlan',
-  'masteryEvidencePlan',
-  'modalityCue',
-  'modalityDecode',
-  'objectiveEvidenceChecklist',
-  'practiceProgressionPlan',
-  'prerequisitePlan',
-  'readyToTeachSupport',
-  'reviewActionability',
-  'qualityReceipt',
-  'qualitySummary',
-  'blueprintQualityReceipt',
-  'sourceEvidenceTrace',
-  'sourceAnchors',
-  'sourceRisk',
-  'sourceRiskRegister',
-  'sourceConflictReport',
-  'blueprintAssumptionLedger',
-  'packageCoherenceMatrix',
-  'provenance',
-  'internalMetadata',
-]);
-
 export function isInternalExportMetadataKey(key) {
-  return INTERNAL_EXPORT_METADATA_KEYS.has(String(key || ''));
+  return isInternalDeliverableMetadataKey(key);
 }
 
 export function resolveFeatureLabel(id) {

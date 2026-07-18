@@ -37,6 +37,7 @@ import {
 import { sanitizeMessagesForPersistence } from '../lib/messageSanitizer';
 import { buildLocalAutosavePayload } from '../lib/projectAutosave';
 import { prepareProjectSnapshotForRestore, sanitizeProjectSnapshot } from '../lib/projectSnapshotSanitizer';
+import { restorePersistedPackageEvidence, selectPersistablePackageEvidence } from '../lib/packageQualityPersistence';
 import { compileCompactProjectDeliverables } from '../lib/projectRestoreCompiler';
 import { warn, error as logError } from '../lib/logger';
 
@@ -73,6 +74,10 @@ export default function useProjectPersistence({
   setLessonScope,
   promptText,
   setPromptText,
+  packageQualityPass,
+  setPackageQualityPass,
+  lastRunDigest,
+  setLastRunDigest,
   activeTab,
   setActiveTab,
   slideTheme,
@@ -119,6 +124,15 @@ export default function useProjectPersistence({
     }
   });
 
+  const restorePackageEvidence = useCallback(
+    (snapshot) => {
+      const restored = restorePersistedPackageEvidence(snapshot);
+      setPackageQualityPass(restored.packageQualityPass);
+      setLastRunDigest(restored.lastRunDigest);
+    },
+    [setLastRunDigest, setPackageQualityPass],
+  );
+
   useEffect(() => {
     try {
       if (activeDeveloperTemplateId)
@@ -132,6 +146,7 @@ export default function useProjectPersistence({
     (extra = {}) => {
       const safeCourseMap =
         courseMap && typeof courseMap === 'object' && Array.isArray(courseMap.lessons) ? courseMap : { lessons: [] };
+      const packageEvidence = selectPersistablePackageEvidence({ packageQualityPass, lastRunDigest });
       return sanitizeProjectSnapshot({
         // v0.13 formatVersion 2: the CourseGraph rides along as the source
         // of truth; v1 projects (no graph) derive one on restore.
@@ -162,6 +177,7 @@ export default function useProjectPersistence({
         deliverables: deliv.deliverables,
         slideTheme,
         apiCallBudgetReceipt: getApiCallBudgetReceipt?.(),
+        ...packageEvidence,
         savedAt: Date.now(),
         ...extra,
       });
@@ -181,6 +197,8 @@ export default function useProjectPersistence({
       deliverableConfig,
       lessonScope,
       promptText,
+      packageQualityPass,
+      lastRunDigest,
       activeTab,
       deliv.deliverables,
       slideTheme,
@@ -213,7 +231,12 @@ export default function useProjectPersistence({
       // the graph's enrichment overlay embeds model-shaped payloads we don't
       // fully control — the cloud copy of the graph travels as a JSON string.
       // prepareProjectSnapshotForRestore parses it back on open.
-      const { courseGraph: snapshotCourseGraph, ...cloudSnapshot } = snapshot;
+      const {
+        courseGraph: snapshotCourseGraph,
+        packageQualityPass: _packageQualityPass,
+        lastRunDigest: _lastRunDigest,
+        ...cloudSnapshot
+      } = snapshot;
       return {
         ...cloudSnapshot,
         ...(snapshotCourseGraph ? { courseGraphJson: JSON.stringify(snapshotCourseGraph) } : {}),
@@ -281,6 +304,7 @@ export default function useProjectPersistence({
       setSlideTheme(restored.slideTheme ?? null);
       restoreProjectAIConfig(restored);
       restoreApiCallBudgetReceipt?.(restored.apiCallBudgetReceipt);
+      restorePackageEvidence(restored);
       deliv.restoreDeliverables(
         restored.deliverables && typeof restored.deliverables === 'object' ? restored.deliverables : {},
       );
@@ -306,6 +330,7 @@ export default function useProjectPersistence({
       setPromptText,
       restoreProjectAIConfig,
       restoreApiCallBudgetReceipt,
+      restorePackageEvidence,
       setScreen,
       setSelectedFeatures,
       setSlideTheme,
@@ -536,6 +561,7 @@ export default function useProjectPersistence({
       setHasGenerated(true);
       restoreProjectAIConfig(saved, { providerFallback: 'openai' });
       restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
+      restorePackageEvidence(saved);
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
         setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
@@ -582,6 +608,7 @@ export default function useProjectPersistence({
         if (!saved.courseMap) throw new Error('Invalid .coursemapper file');
         restoreProjectAIConfig(saved);
         restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
+        restorePackageEvidence(saved);
         setCourseMap(saved.courseMap);
         adoptCourseGraph(saved);
         setOldCourseMap(null);
@@ -620,6 +647,7 @@ export default function useProjectPersistence({
       setOldCourseMap(null);
       setUserEdits([]);
       version.pushVersion(imported, `Opened ${file.name}`);
+      restorePackageEvidence({});
       setHasGenerated(true);
       setHasSavedSession(false);
       setScreen('workspace');
@@ -666,6 +694,7 @@ export default function useProjectPersistence({
       setHasGenerated(true);
       restoreProjectAIConfig(saved, { providerFallback: 'openai' });
       restoreApiCallBudgetReceipt?.(saved.apiCallBudgetReceipt);
+      restorePackageEvidence(saved);
       setUserEdits(saved.userEdits || []);
       if (saved.fileNames?.length > 0) {
         setFiles(saved.fileNames.map((name) => ({ name, size: 0, _restored: true })));
@@ -768,6 +797,7 @@ export default function useProjectPersistence({
     setNewProjectError('');
     setNewProjectCloudSaveFailed(false);
     restoreApiCallBudgetReceipt?.(null);
+    restorePackageEvidence({});
     setScreen('landing');
     onReturnToLanding?.();
   }

@@ -1219,10 +1219,17 @@ body {
   }
 }
 
-/* Tablet (641px – 1023px): side panel becomes narrower */
+/* Tablet (641px – 1023px): Export is its own workspace mode, so give the
+   handoff card a readable centered measure instead of the old 200px rail
+   that belonged to the former side-by-side layout. */
 @media (min-width: 641px) and (max-width: 1023px) {
+  [data-testid='workspace-export-panel'] {
+    width: 100%;
+  }
+
   .export-side-panel {
-    width: 200px !important;
+    width: min(100%, 420px) !important;
+    margin-inline: auto;
   }
 }
 

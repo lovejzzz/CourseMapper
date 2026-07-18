@@ -292,6 +292,15 @@ describe('chooseAgentFallbackText', () => {
     );
   });
 
+  it('unwraps a Scion reply object after a punctuation fragment', () => {
+    expect(
+      chooseAgentFallbackText(
+        '[")",{"chatReply":"Learners will identify bias and communicate ethical data decisions."}]',
+        [],
+      ),
+    ).toBe('Learners will identify bias and communicate ethical data decisions.');
+  });
+
   it('removes prompt-only lesson routing markers from user-facing Agent prose', () => {
     const raw = 'Inspect Lesson 1: Intervals (toolIndex=0), then compare its examples.';
     expect(stripInternalAgentMarkers(raw)).toBe('Inspect Lesson 1: Intervals, then compare its examples.');

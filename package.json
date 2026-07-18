@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.49",
+  "version": "0.16.50",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -128,8 +128,9 @@
     "audit:scion:semantic-admission:v2": "node scripts/scionSemanticAdmissionV2Audit.mjs",
     "audit:scion:semantic-admission:v0.16.48": "node scripts/scionSemanticAdmissionV2Audit.mjs",
     "audit:scion:semantic-admission:v0.16.49": "node scripts/scionSemanticAdmissionV2Audit.mjs",
-    "build:scion:semantic-admission-burden:v0.16.49": "node scripts/scionSemanticAdmissionBurdenV01649.mjs --write",
-    "audit:scion:semantic-admission-burden:v0.16.49": "node scripts/scionSemanticAdmissionBurdenV01649.mjs",
+    "audit:scion:semantic-admission:v0.16.50": "node scripts/scionSemanticAdmissionV2Audit.mjs",
+    "build:scion:semantic-admission-burden:v0.16.50": "node scripts/scionSemanticAdmissionBurdenV01650.mjs --write",
+    "audit:scion:semantic-admission-burden:v0.16.50": "node scripts/scionSemanticAdmissionBurdenV01650.mjs",
     "build:scion:source-grounding-burden:v0.16.48": "node scripts/scionSourceGroundingBurdenV01648.mjs --write",
     "audit:scion:source-grounding-burden:v0.16.48": "node scripts/scionSourceGroundingBurdenV01648.mjs",
     "audit:scion:semantic-admission:v0.16.47": "node scripts/scionSemanticAdmissionV2Audit.mjs",

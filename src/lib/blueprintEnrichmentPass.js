@@ -1016,7 +1016,7 @@ export function lintEnrichedKeyTerm(term, { lessonTitle = '', knownFacts = [] } 
     lessonTitle,
     knownFacts,
     definitionMin: 40,
-    semanticProfile: 'strict-v3',
+    semanticProfile: 'strict-v4',
   });
   const labels = {
     'tr-length': 'term-missing',

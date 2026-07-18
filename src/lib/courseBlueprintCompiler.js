@@ -103,9 +103,12 @@ const CUSTOM_CAPSTONE_PROGRESS_PATTERN =
   /\b(capstone progress|capstone checkpoint|capstone status|capstone progress report|capstone milestone|capstone update)\b/i;
 const CUSTOM_PROBLEM_SET_PATTERN =
   /\b(problem set worksheet|problem[-\s]?set|practice problem worksheet|calculation worksheet|quantitative worksheet|worked example worksheet)\b/i;
+const CUSTOM_STUDY_TRIP_PATTERN =
+  /\b(study trip|trip plan|field trip|site visit|study tour|learning trip|travel itinerary)\b/i;
 const CUSTOM_TEMPLATE_EXCLUDE_PATTERN = /\b(quiz|exam|rubric|slide|syllabus|faq|assignment|discussion)\b/i;
 const CUSTOM_PER_LESSON_PATTERN = /\b(lesson|week|per lesson|per week|each lesson|each week)\b/i;
 const CUSTOM_STRUCTURED_TEMPLATE_DEFINITIONS = [
+  { kind: 'study-trip-plan', defaultName: 'Study Trip Plan', pattern: CUSTOM_STUDY_TRIP_PATTERN },
   { kind: 'feedback-form', defaultName: 'Feedback Form', pattern: CUSTOM_FEEDBACK_FORM_PATTERN },
   {
     kind: 'project-milestone-checklist',
@@ -15442,11 +15445,24 @@ function getCompiledCustomTemplateKind(featureId, options = {}) {
   ]
     .map((value) => cleanText(value).toLowerCase())
     .join(' ');
+  const identityText = [custom.name, custom.description, custom.outputFormat]
+    .map((value) => cleanText(value).toLowerCase())
+    .join(' ');
 
   if (!CUSTOM_PER_LESSON_PATTERN.test(combinedText)) return null;
 
   const customName = cleanText(custom.name).toLowerCase();
   if (CUSTOM_TEMPLATE_EXCLUDE_PATTERN.test(customName)) return null;
+  // The user-facing identity wins over incidental language in a long prompt.
+  // A trip-planning template, for example, may mention peer feedback without
+  // becoming a feedback form. This keeps deterministic family selection tied
+  // to what the user named and described.
+  if (CUSTOM_READING_RESPONSE_PATTERN.test(identityText)) return 'reading-response';
+  if (CUSTOM_REFLECTION_PATTERN.test(identityText)) return 'reflection-check-in';
+  const identityTemplate = CUSTOM_STRUCTURED_TEMPLATE_DEFINITIONS.find((definition) =>
+    definition.pattern.test(identityText),
+  );
+  if (identityTemplate) return identityTemplate.kind;
   if (CUSTOM_READING_RESPONSE_PATTERN.test(combinedText)) return 'reading-response';
   if (CUSTOM_REFLECTION_PATTERN.test(combinedText)) return 'reflection-check-in';
   const structuredTemplate = CUSTOM_STRUCTURED_TEMPLATE_DEFINITIONS.find((definition) =>
@@ -15590,6 +15606,33 @@ function buildStructuredCustomFamilyFields(templateKind, context) {
         ],
         revisionUse: `Students use the feedback to revise ${artifactLabel} before the next checkpoint.`,
       };
+    case 'study-trip-plan':
+      return {
+        learningPurpose: `Use the visit or field experience to investigate ${concept} and collect evidence for ${artifactLabel}.`,
+        beforeVisitChecklist: [
+          `Review ${sourceCue} and write one question about ${alternate}.`,
+          `Confirm the destination, schedule, permissions, accessibility, travel, and safety arrangements with the instructor.`,
+          `Prepare a notes, photo, sketch, interview, or observation method that follows the site's rules.`,
+        ],
+        fieldEvidenceTasks: [
+          `Record one concrete observation connected to ${concept}.`,
+          `Separate what was directly observed from interpretation or assumption.`,
+          `Capture one limitation, missing perspective, or follow-up question.`,
+        ],
+        evidenceCaptureOptions: [
+          'Annotated notes',
+          'Sketch or diagram',
+          'Photo log where permitted',
+          'Short audio memo',
+        ],
+        returnToCourse: `Use the collected evidence to revise ${artifactLabel} and explain the next ${lens.decisionNoun}.`,
+        logisticsToConfirm: [
+          'Destination and meeting point',
+          'Date, travel time, and emergency contact',
+          'Cost, permission, accessibility, and accommodation needs',
+          'Site rules for privacy, photography, recording, and attribution',
+        ],
+      };
     case 'project-milestone-checklist':
       return {
         milestoneChecklist: [
@@ -15729,7 +15772,7 @@ function compileStructuredCustomDeliverable(featureId, blueprint, options = {}) 
       evidenceToUse: [
         `Use one concrete detail from ${sourceCue}.`,
         `Connect the detail to ${alternate} or ${artifact}.`,
-        `Name one uncertainty, limitation, or local-review item before finalizing.`,
+        `Name one uncertainty, limitation, or next evidence need before finalizing.`,
       ],
       completionChecklist: [
         `The response is specific to ${lesson.title}.`,
@@ -15737,7 +15780,6 @@ function compileStructuredCustomDeliverable(featureId, blueprint, options = {}) 
         `The response ends with a next action tied to feedback, revision, practice, or assessment.`,
       ],
       instructorReviewFocus: `Check whether the student links ${concept}, ${alternate}, and ${artifact} with inspectable evidence from ${activityCue}.`,
-      localReviewNote: lessonLocalReviewAction(lesson),
       sourceGrounding: lessonSourceGrounding(lesson, {
         compiledPattern: templateKind,
         evidenceRequirement: lesson.evidencePlan?.evidenceRequirement || '',

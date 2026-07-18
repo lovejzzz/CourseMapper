@@ -148,7 +148,7 @@ import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.j
 // 1.10.14 — concrete pitch pairs and named interval transformations count as
 // applied MC cases; the depth gate no longer demotes a rigorous notation bank
 // merely because its evidence is musical rather than prose/data.
-export const GRADER_VERSION = '1.10.15';
+export const GRADER_VERSION = '1.10.16';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -578,9 +578,10 @@ function checkStructure(findings, { files, manifest }, course) {
       if (!requested.includes(featureId)) continue;
       const folder = Object.keys(FOLDER_FEATURE).find((key) => FOLDER_FEATURE[key] === featureId);
       const featureFiles = files.filter((file) => file.featureId === featureId);
-      const declared = (manifest.files || []).filter(
-        (entry) => entry.featureId === featureId || entry.featureId === 'custom',
-      );
+      // A custom deliverable is its own package feature. Counting every
+      // custom file against every lesson-rooted built-in created a false +1
+      // mismatch for each folder whenever a package included one custom tool.
+      const declared = (manifest.files || []).filter((entry) => entry.featureId === featureId);
       if (lessonCount && featureFiles.length > 0 && featureFiles.length !== lessonCount) {
         findings.add({
           severity: 'P1',

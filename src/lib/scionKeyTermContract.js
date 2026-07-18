@@ -27,6 +27,45 @@ const REPETITION_STOP_WORDS = new Set(
     ' ',
   ),
 );
+const SOURCE_SEMANTIC_STOP_WORDS = new Set(
+  'a an and are as at be been being by can could each for from had has have in into is it its may means of on one only or should that the their these they this those through to used using when where which while with would'.split(
+    ' ',
+  ),
+);
+const SOURCE_SEMANTIC_ALIASES = new Map([
+  ['conditions', 'condition'],
+  ['dictionaries', 'dictionary'],
+  ['degrees', 'degree'],
+  ['functions', 'function'],
+  ['goals', 'goal'],
+  ['interactions', 'interact'],
+  ['interaction', 'interact'],
+  ['interactive', 'interact'],
+  ['interacts', 'interact'],
+  ['labels', 'label'],
+  ['labeled', 'label'],
+  ['lines', 'line'],
+  ['models', 'model'],
+  ['notes', 'note'],
+  ['objectives', 'objective'],
+  ['parts', 'condition'],
+  ['prototypes', 'prototype'],
+  ['represented', 'represent'],
+  ['representation', 'represent'],
+  ['represents', 'represent'],
+  ['researchers', 'researcher'],
+  ['returns', 'return'],
+  ['scales', 'scale'],
+  ['spaces', 'space'],
+  ['tasks', 'task'],
+  ['users', 'user'],
+]);
+const SOURCE_CLAIM_COPULA_RE = /\b(?:is|are|means|refers\s+to)\s+(?:defined\s+by\s+)?/i;
+const TECHNICAL_IDENTIFIER_RE = /[A-Za-z_]\w*\(\)/g;
+const SOURCE_IMPLICIT_CUE_RE = /\b(?:implicit(?:ly)?|automat(?:ic|ically))\b/i;
+const EXPLICIT_CUE_RE = /\bexplicit(?:ly)?\b/i;
+const DIRECT_CONTRAST_RE = /\b(?:instead|not|rather|unlike)\b/i;
+const DEFINING_IDENTITY_RE = /\b(?:labels?|names?|terms?)\b/i;
 
 function comparableScionKeyTermText(value) {
   return (
@@ -133,6 +172,200 @@ function sourceTermTokens(value) {
   );
 }
 
+function sourceSemanticToken(value) {
+  const normalized = String(value || '').toLowerCase();
+  return (
+    SOURCE_SEMANTIC_ALIASES.get(normalized) ||
+    SOURCE_SEMANTIC_ALIASES.get(sourceTermToken(normalized)) ||
+    sourceTermToken(normalized)
+  );
+}
+
+function sourceSemanticTokens(value) {
+  return (
+    cleanScionKeyTermText(value)
+      .normalize('NFKC')
+      .toLowerCase()
+      .match(/[\p{L}\p{N}]+/gu)
+      ?.map(sourceSemanticToken)
+      .filter((token) => token.length > 2 && !SOURCE_SEMANTIC_STOP_WORDS.has(token)) ?? []
+  );
+}
+
+function sourceSemanticTokenSet(value) {
+  return new Set(sourceSemanticTokens(value));
+}
+
+function sourceSemanticMatch(value, fact) {
+  const candidate = sourceSemanticTokenSet(value);
+  const source = sourceSemanticTokenSet(fact);
+  const overlap = [...candidate].filter((token) => source.has(token)).length;
+  return {
+    overlap,
+    jaccard: overlap / Math.max(1, new Set([...candidate, ...source]).size),
+  };
+}
+
+function includesSemanticSequence(value, sequence) {
+  const tokens = sourceSemanticTokens(value);
+  return (
+    sequence.length > 0 &&
+    tokens.some((_, index) => sequence.every((token, offset) => tokens[index + offset] === token))
+  );
+}
+
+function termPhraseAppearsInFact(term, fact) {
+  return includesSemanticSequence(fact, sourceSemanticTokens(term));
+}
+
+function technicalIdentifiers(value) {
+  return [
+    ...new Set((cleanScionKeyTermText(value).match(TECHNICAL_IDENTIFIER_RE) || []).map((entry) => entry.toLowerCase())),
+  ];
+}
+
+function correctionMissesSourceConfusion(_term, misconception, correction, knownFacts) {
+  // A correction may validly replace a false predicate with the source-backed
+  // definition of the term. Do not reject that normal teaching pattern merely
+  // because the misconception and correction align to different source claims.
+  // The bounded failure we can prove is narrower: the model turns a qualified
+  // source rule ("major ... even when not every") into an absolute requirement,
+  // then answers with an unrelated true fact instead of repairing that scope.
+  const assertsTotalRequirement =
+    /\b(?:must|always|only)\b[^.;]{0,100}\b(?:all|every)\b|\b(?:all|every)\b[^.;]{0,100}\b(?:must|always|required)\b/i.test(
+      misconception,
+    );
+  if (!assertsTotalRequirement) return false;
+
+  const qualifiedClaim = knownFacts.find(
+    (fact) =>
+      /\b(?:major|selected|some)\b/i.test(fact) &&
+      /\b(?:not|without)\b[^.;]{0,80}\b(?:all|every)\b|\b(?:all|every)\b[^.;]{0,80}\bnot\b/i.test(fact),
+  );
+  if (!qualifiedClaim) return false;
+
+  const repairTokens = sourceSemanticTokenSet(qualifiedClaim);
+  const correctionTokens = sourceSemanticTokenSet(correction);
+  const repairsScopeDirectly =
+    /\b(?:major|selected|some)\b|\b(?:not|without)\b[^.;]{0,80}\b(?:all|every)\b|\b(?:need|require)\w*\b[^.;]{0,40}\bnot\b/i.test(
+      correction,
+    );
+  const sharedScopeTokens = [...repairTokens].filter(
+    (token) => correctionTokens.has(token) && /^(?:major|select|some|every|all|function)$/.test(token),
+  );
+  return !repairsScopeDirectly && sharedScopeTokens.length === 0;
+}
+
+function booleanTruthSignatures(value) {
+  return cleanScionKeyTermText(value)
+    .split(/\s*;\s*/)
+    .flatMap((clause) => {
+      const signatures = [];
+      if (/\band\b[^.;]{0,100}\bboth\b[^.;]{0,80}\btrue\b/i.test(clause)) signatures.push('and-both-true');
+      if (/\bor\b[^.;]{0,100}\beither\b[^.;]{0,80}\btrue\b/i.test(clause)) signatures.push('or-either-true');
+      if (/\bnot\b[^.;]{0,100}\binvert\w*\b/i.test(clause)) signatures.push('not-inverts');
+      return signatures.map((signature) => ({ signature, negative: NEGATION_RE.test(clause) }));
+    });
+}
+
+function misconceptionRepeatsBooleanTruthCondition(misconception, knownFacts) {
+  const misconceptionSignatures = booleanTruthSignatures(misconception);
+  if (misconceptionSignatures.length === 0) return false;
+  const sourceSignatures = knownFacts.flatMap(booleanTruthSignatures);
+  return misconceptionSignatures.some((candidate) =>
+    sourceSignatures.some(
+      (source) => source.signature === candidate.signature && source.negative === candidate.negative,
+    ),
+  );
+}
+
+function correctionBorrowsUnrelatedSourcePredicate(term, correction, knownFacts) {
+  const cleanCorrection = cleanScionKeyTermText(correction);
+  // This rule is intentionally limited to compact definition-like answers.
+  // Longer corrections can resolve the misconception first and then add a
+  // second, true source fact; that is useful teaching, not concept drift.
+  if (cleanCorrection.length > 90) return false;
+
+  const termTokens = sourceSemanticTokens(term);
+  const termFacts = knownFacts.filter((fact) => {
+    const factTokens = sourceSemanticTokenSet(fact);
+    return termTokens.length > 0 && termTokens.every((token) => factTokens.has(token));
+  });
+  if (termFacts.length === 0) return false;
+
+  const bestTermFactMatch = Math.max(
+    ...termFacts.map((fact) => {
+      const match = sourceSemanticMatch(cleanCorrection, fact);
+      return match.overlap >= 3 ? match.jaccard : 0;
+    }),
+  );
+  if (bestTermFactMatch >= 0.24) return false;
+
+  const correctionTokens = sourceSemanticTokenSet(correction);
+  if (correctionTokens.size === 0) return false;
+  return knownFacts.some((fact) => {
+    const copula = cleanScionKeyTermText(fact).match(SOURCE_CLAIM_COPULA_RE);
+    if (!copula || termPhraseAppearsInFact(term, fact)) return false;
+    const predicate = cleanScionKeyTermText(fact).slice((copula.index || 0) + copula[0].length);
+    const predicateTokens = sourceSemanticTokenSet(predicate);
+    const overlap = [...correctionTokens].filter((token) => predicateTokens.has(token)).length;
+    return overlap >= 4 && overlap / correctionTokens.size >= 0.75;
+  });
+}
+
+function correctionOmitsTechnicalReference(term, misconception, correction) {
+  const termIds = new Set(technicalIdentifiers(term));
+  const correctionIds = new Set(technicalIdentifiers(correction));
+  return technicalIdentifiers(misconception).some(
+    (identifier) => !termIds.has(identifier) && !correctionIds.has(identifier),
+  );
+}
+
+function exampleConflictsWithSourceBackedTiming(example, correction, knownFacts) {
+  const source = knownFacts.join(' ');
+  const dayBefore = /\b(?:the\s+)?day\s+before\b/i;
+  const dayOf = /\b(?:on\s+)?the\s+day\s+of\b/i;
+  if (!dayBefore.test(source)) return false;
+  return (dayOf.test(example) && dayBefore.test(correction)) || (dayBefore.test(example) && dayOf.test(correction));
+}
+
+function correctionOmitsImplicitContrast(misconception, correction, knownFacts) {
+  return (
+    SOURCE_IMPLICIT_CUE_RE.test(knownFacts.join(' ')) &&
+    SOURCE_IMPLICIT_CUE_RE.test(misconception) &&
+    EXPLICIT_CUE_RE.test(correction) &&
+    !SOURCE_IMPLICIT_CUE_RE.test(correction) &&
+    !DIRECT_CONTRAST_RE.test(correction)
+  );
+}
+
+function exampleConfusesResearchLearningRole(term, definition, example, knownFacts) {
+  const source = knownFacts.join(' ');
+  return (
+    /\b(?:team|researchers?)\b[^.]{0,80}\b(?:want|wants|learn|learning)\b/i.test(source) &&
+    /\blearning objectives?\b/i.test(`${term} ${definition}`) &&
+    /\b(?:users?|participants?)\s+should\s+be\s+able\s+to\b/i.test(example)
+  );
+}
+
+function definitionOmitsInteractiveFunction(term, definition, knownFacts) {
+  return (
+    /\blooks?\s+and\s+works?\b/i.test(knownFacts.join(' ')) &&
+    /\bvisual\b/i.test(definition) &&
+    !/\b(?:behavio\w*|function\w*|interact\w*|works?)\b/i.test(definition) &&
+    !/\b(?:interact\w*|prototyp\w*)\b/i.test(term)
+  );
+}
+
+function correctionDropsDefiningIdentity(term, definition, correction, knownFacts) {
+  return (
+    DEFINING_IDENTITY_RE.test(definition) &&
+    !DEFINING_IDENTITY_RE.test(correction) &&
+    !/\b(?:means|refers)\b/i.test(correction) &&
+    knownFacts.some((fact) => termPhraseAppearsInFact(term, fact) && DEFINING_IDENTITY_RE.test(fact))
+  );
+}
+
 function termIsSourceAnchored(term, sourceTerm, knownFacts) {
   const candidateTokens = sourceTermTokens(term);
   if (candidateTokens.length === 0) return true;
@@ -201,10 +434,21 @@ export function assessScionKeyTermContract(
   } = {},
 ) {
   const normalized = normalizeScionKeyTerm(term);
-  const judgeInformedSemanticAdmission = semanticProfile === 'strict-v3' || semanticProfile === 'source-strict-v3';
-  const sourceGroundedSemanticAdmission = semanticProfile === 'source-strict' || semanticProfile === 'source-strict-v3';
+  const judgeInformedSemanticAdmission =
+    semanticProfile === 'strict-v3' ||
+    semanticProfile === 'source-strict-v3' ||
+    semanticProfile === 'strict-v4' ||
+    semanticProfile === 'source-strict-v4';
+  const judgeInformedSemanticAdmissionV4 = semanticProfile === 'strict-v4' || semanticProfile === 'source-strict-v4';
+  const sourceGroundedSemanticAdmission =
+    semanticProfile === 'source-strict' ||
+    semanticProfile === 'source-strict-v3' ||
+    semanticProfile === 'source-strict-v4';
   const strictSemanticAdmission =
-    semanticProfile === 'strict' || semanticProfile === 'strict-v3' || sourceGroundedSemanticAdmission;
+    semanticProfile === 'strict' ||
+    semanticProfile === 'strict-v3' ||
+    semanticProfile === 'strict-v4' ||
+    sourceGroundedSemanticAdmission;
   const issues = [];
   const minTermLength = NON_LATIN_SCRIPT_RE.test(normalized.term) ? 1 : 3;
   const meaningfulMin = (value, latinMinimum) => (NON_LATIN_SCRIPT_RE.test(value) ? 4 : latinMinimum);
@@ -252,6 +496,42 @@ export function assessScionKeyTermContract(
     )
   ) {
     issues.push('source-precision-overstatement');
+  }
+  const cleanKnownFacts = (Array.isArray(knownFacts) ? knownFacts : []).map(cleanScionKeyTermText).filter(Boolean);
+  if (judgeInformedSemanticAdmissionV4 && cleanKnownFacts.length > 0) {
+    if (misconceptionRepeatsBooleanTruthCondition(normalized.misconception, cleanKnownFacts)) {
+      issues.push('misconception-repeats-known-fact');
+    }
+    if (
+      correctionMissesSourceConfusion(normalized.term, normalized.misconception, normalized.correction, cleanKnownFacts)
+    ) {
+      issues.push('correction-source-claim-drift');
+    }
+    if (correctionBorrowsUnrelatedSourcePredicate(normalized.term, normalized.correction, cleanKnownFacts)) {
+      issues.push('correction-borrows-unrelated-source-predicate');
+    }
+    if (correctionOmitsTechnicalReference(normalized.term, normalized.misconception, normalized.correction)) {
+      issues.push('correction-omits-technical-reference');
+    }
+    if (exampleConflictsWithSourceBackedTiming(normalized.example, normalized.correction, cleanKnownFacts)) {
+      issues.push('example-correction-timing-conflict');
+    }
+    if (correctionOmitsImplicitContrast(normalized.misconception, normalized.correction, cleanKnownFacts)) {
+      issues.push('correction-omits-implicit-contrast');
+    }
+    if (
+      exampleConfusesResearchLearningRole(normalized.term, normalized.definition, normalized.example, cleanKnownFacts)
+    ) {
+      issues.push('example-confuses-research-learning-role');
+    }
+    if (definitionOmitsInteractiveFunction(normalized.term, normalized.definition, cleanKnownFacts)) {
+      issues.push('definition-omits-interactive-function');
+    }
+    if (
+      correctionDropsDefiningIdentity(normalized.term, normalized.definition, normalized.correction, cleanKnownFacts)
+    ) {
+      issues.push('correction-drops-defining-identity');
+    }
   }
   for (const [field, value] of [
     ['df', normalized.definition],

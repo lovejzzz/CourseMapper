@@ -382,3 +382,250 @@ describe('Scion strict semantic admission', () => {
     expect(pair.issues).toContain('chosen:explanation-key-conflict');
   });
 });
+
+describe('Scion source-strict-v4 key-term coherence', () => {
+  it('rejects a true boolean rule mislabeled as a misconception', () => {
+    const facts = [
+      'A conditional statement chooses a block based on whether a condition is true; if-else takes exactly one branch.',
+      'An if statement runs its body only when its condition is true.',
+      'An else clause runs when the if condition is false.',
+      'and returns True only if both conditions are true; or returns True if either is true; not inverts one condition.',
+    ];
+    const drifted = {
+      tr: 'Compound condition operator',
+      df: "Operators like 'and', 'or', and 'not' combine multiple tests into one condition.",
+      eg: "Use 'and' to check whether a value is above five and below ten.",
+      mi: "Believing 'and' always requires both parts to be true for the statement to be true.",
+      cx: "The 'and' operator returns True only if both conditions are true.",
+    };
+    const coherent = {
+      tr: 'Conditional statement',
+      df: 'A control structure that selects a code path according to whether a condition is true or false.',
+      eg: 'If a temperature is below freezing, print a warning; otherwise continue normally.',
+      mi: 'It always runs both branches.',
+      cx: 'Only one branch runs because if-else selects exactly one branch from the condition.',
+    };
+
+    expect(assessScionKeyTerm(drifted, { knownFacts: facts, semanticProfile: 'source-strict-v4' }).issues).toContain(
+      'misconception-repeats-known-fact',
+    );
+    expect(
+      assessScionKeyTerm(coherent, { knownFacts: facts, semanticProfile: 'source-strict-v4' }).issues,
+    ).not.toContain('misconception-repeats-known-fact');
+    expect(
+      assessScionKeyTerm(drifted, { knownFacts: facts, semanticProfile: 'source-strict-v3' }).issues,
+    ).not.toContain('misconception-repeats-known-fact');
+  });
+
+  it('requires a correction to repair a source-qualified scope that the misconception makes absolute', () => {
+    const facts = [
+      'Interactive prototyping builds a testable representation of how an experience looks and works.',
+      'Functional prototypes allow a team to observe how users interact with a product.',
+      'A prototype should show major interactions even when not every interaction is functional.',
+    ];
+    const drifted = {
+      tr: 'Functional prototype',
+      df: 'A working model that allows a team to observe user interaction.',
+      eg: 'A clickable checkout lets users navigate through its main screens.',
+      mi: 'A model must show every interaction even when not every interaction is functional.',
+      cx: 'A functional prototype lets a team observe how users interact with a product.',
+    };
+    const coherent = {
+      ...drifted,
+      cx: 'It should show the major interactions, but it does not need every interaction to be functional.',
+    };
+
+    expect(assessScionKeyTerm(drifted, { knownFacts: facts, semanticProfile: 'source-strict-v4' }).issues).toContain(
+      'correction-source-claim-drift',
+    );
+    expect(
+      assessScionKeyTerm(coherent, { knownFacts: facts, semanticProfile: 'source-strict-v4' }).issues,
+    ).not.toContain('correction-source-claim-drift');
+  });
+
+  it('accepts concise source-backed corrections that replace a false predicate', () => {
+    const cases = [
+      {
+        facts: [
+          'The epidermis is the outermost skin layer and is composed of keratinized stratified squamous epithelium.',
+          'The dermis is connective tissue beneath the epidermis.',
+        ],
+        term: {
+          tr: 'Epidermis',
+          df: 'The outermost skin layer made of keratinized stratified squamous epithelium.',
+          eg: 'The epidermis provides the primary barrier against external agents.',
+          mi: 'The epidermis contains the dermal connective tissue.',
+          cx: 'The epidermis is the outermost layer of keratinized stratified squamous epithelium.',
+        },
+      },
+      {
+        facts: [
+          'Net electric flux is the total electric flow through a closed surface.',
+          'Electric field strength describes the field at one location on the surface.',
+        ],
+        term: {
+          tr: 'Net electric flux',
+          df: 'The total electric flow through a closed surface, related to the enclosed charge.',
+          eg: 'A surface enclosing no net charge has zero net electric flux.',
+          mi: 'It is the electric field strength at one point on the surface.',
+          cx: 'Flux summarizes the whole closed surface, while field strength describes one location.',
+        },
+      },
+    ];
+
+    for (const entry of cases) {
+      expect(
+        assessScionKeyTerm(entry.term, {
+          knownFacts: entry.facts,
+          semanticProfile: 'source-strict-v4',
+        }).issues,
+      ).not.toContain('correction-source-claim-drift');
+    }
+  });
+
+  it('rejects a correction that borrows the predicate of a neighboring source concept', () => {
+    const facts = [
+      'A staff is a set of horizontal lines with spaces between them that represent different musical pitches.',
+      'Which staff positions represent which notes is determined by a clef at the beginning of the staff.',
+      'A clef is a musical symbol used to indicate which notes are represented by staff lines and spaces.',
+    ];
+    const drifted = {
+      tr: 'Clef',
+      df: 'A musical symbol that indicates which notes are represented by the lines and spaces on a staff.',
+      eg: 'A treble clef at the beginning of a staff establishes how its notes are read.',
+      mi: 'A clef is one specific musical pitch.',
+      cx: 'A set of horizontal lines and spaces.',
+    };
+    const coherent = {
+      ...drifted,
+      cx: 'A clef maps the staff positions to notes; the lines and spaces together are the staff.',
+    };
+
+    expect(assessScionKeyTerm(drifted, { knownFacts: facts, semanticProfile: 'source-strict-v4' }).issues).toContain(
+      'correction-borrows-unrelated-source-predicate',
+    );
+    expect(
+      assessScionKeyTerm(coherent, { knownFacts: facts, semanticProfile: 'source-strict-v4' }).issues,
+    ).not.toContain('correction-borrows-unrelated-source-predicate');
+  });
+
+  it('requires a correction to name a technical API that the misconception misstates', () => {
+    const facts = [
+      'read() reads the entire file and returns one string.',
+      'readline() returns the next line, while readlines() returns a list with every line.',
+    ];
+    const incomplete = {
+      tr: 'readlines()',
+      df: 'A file method that returns a list containing every line in a file.',
+      eg: 'A program calls readlines() to store all lines as a list.',
+      mi: 'Confusing readlines() with read(), which only returns the next single line.',
+      cx: 'readlines() is useful when every file line should be processed as a list.',
+    };
+    const coherent = {
+      ...incomplete,
+      cx: 'read() returns one string for the whole file; readlines() instead returns a list of lines.',
+    };
+
+    expect(assessScionKeyTerm(incomplete, { knownFacts: facts, semanticProfile: 'source-strict-v4' }).issues).toContain(
+      'correction-omits-technical-reference',
+    );
+    expect(
+      assessScionKeyTerm(coherent, { knownFacts: facts, semanticProfile: 'source-strict-v4' }).issues,
+    ).not.toContain('correction-omits-technical-reference');
+  });
+
+  it('rejects source-backed timing conflicts and missing explicit/implicit contrasts', () => {
+    const researchFacts = [
+      'Researchers should run through test tasks on the day before the research session.',
+      'A practice session can expose procedure problems before participants arrive.',
+    ];
+    const timingConflict = {
+      tr: 'Rehearsal setup',
+      df: 'Preparation of the study environment and tasks before participants arrive.',
+      eg: 'Run through the test tasks on the day of the research session.',
+      mi: 'Only participants need to rehearse the tasks.',
+      cx: 'Researchers should run through the tasks on the day before the research session.',
+    };
+    const conversionFacts = [
+      'Conversion functions move a value from one data type to another.',
+      'The interpreter performs implicit type conversion inside a mixed expression.',
+      'int() converts a value to an integer and removes its fractional part.',
+    ];
+    const missingContrast = {
+      tr: 'Type conversion',
+      df: 'The process of changing a value from one data type to another.',
+      eg: 'Using int(3.9) produces the integer value 3.',
+      mi: 'All operations automatically maintain the original data type.',
+      cx: 'Explicitly use conversion functions such as int() to change types.',
+    };
+
+    expect(
+      assessScionKeyTerm(timingConflict, {
+        knownFacts: researchFacts,
+        semanticProfile: 'source-strict-v4',
+      }).issues,
+    ).toContain('example-correction-timing-conflict');
+    expect(
+      assessScionKeyTerm(missingContrast, {
+        knownFacts: conversionFacts,
+        semanticProfile: 'source-strict-v4',
+      }).issues,
+    ).toContain('correction-omits-implicit-contrast');
+  });
+
+  it('keeps source roles, interactive function, and defining labels aligned', () => {
+    const researchFacts = [
+      'A research plan turns a decision need into actionable learning objectives, participants, tasks, and evidence roles.',
+      'The team should agree what it wants to learn before selecting study details.',
+    ];
+    const roleConfusion = {
+      tr: 'Actionable learning objectives',
+      df: 'Specific research goals derived from a need for learning.',
+      eg: 'Define what a user should be able to accomplish during a usability test.',
+      mi: 'Research objectives are only general ideas.',
+      cx: 'Specific learning goals turn the decision need into a research plan.',
+    };
+    const prototypeFacts = [
+      'Interactive prototyping builds a testable representation of how an experience looks and works.',
+      'Functional prototypes allow a team to observe how users interact with a product.',
+    ];
+    const visualOnly = {
+      tr: 'Testable representation',
+      df: 'A visual model of an experience that is used for testing.',
+      eg: 'A low-fidelity wireframe shows the main navigation flow.',
+      mi: 'A static drawing requires no interaction to evaluate.',
+      cx: 'The visual model can be tested for functionality and interaction.',
+    };
+    const scaleFacts = [
+      'A scale is a consecutive series of notes from one pitch to its octave.',
+      'A specific scale is defined by its interval pattern and first degree.',
+      'The expression scale degree refers to the numerical labels assigned to notes within a scale.',
+    ];
+    const identityDrop = {
+      tr: 'Scale degree',
+      df: 'The numerical labels assigned to notes within a scale.',
+      eg: 'In C major, the first scale degree is C.',
+      mi: 'A scale degree is the scale itself.',
+      cx: "The specific note that defines the scale's structure.",
+    };
+
+    expect(
+      assessScionKeyTerm(roleConfusion, {
+        knownFacts: researchFacts,
+        semanticProfile: 'source-strict-v4',
+      }).issues,
+    ).toContain('example-confuses-research-learning-role');
+    expect(
+      assessScionKeyTerm(visualOnly, {
+        knownFacts: prototypeFacts,
+        semanticProfile: 'source-strict-v4',
+      }).issues,
+    ).toContain('definition-omits-interactive-function');
+    expect(
+      assessScionKeyTerm(identityDrop, {
+        knownFacts: scaleFacts,
+        semanticProfile: 'source-strict-v4',
+      }).issues,
+    ).toContain('correction-drops-defining-identity');
+  });
+});
