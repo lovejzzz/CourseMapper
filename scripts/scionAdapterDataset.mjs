@@ -346,6 +346,11 @@ export function toScionOrpoTrainingRow(entry, { sourceBoundPrompt = true } = {})
       taskFamily: scionAdapterTaskFamilyForPairKind(pairKind(row)),
       preferenceEvidenceKind: normalize(row?.preferenceEvidence?.kind),
       preferenceEvidenceScope: normalize(row?.preferenceEvidence?.scope),
+      winnerRole: normalize(row?.winnerRole || row?.preferenceEvidence?.winnerRole),
+      rejectedRole: normalize(row?.rejectedRole || row?.preferenceEvidence?.rejectedRole),
+      teacherRevisionLineageSha256: normalize(
+        row?.preferenceEvidence?.teacherRevisionLineage?.lineageSha256,
+      ),
       ...(boundPrompt
         ? {
             promptProtocol: boundPrompt.protocol,
@@ -562,6 +567,16 @@ export async function buildScionAdapterDataset({
     (entry) =>
       normalize(entry.row?.preferenceEvidence?.kind) === 'single-model-judge-preference' &&
       sourceContextBindingIssues(entry.row).length === 0,
+  ).length;
+  const teacherRevisionPairs = eligible.filter(
+    (entry) => normalize(entry.row?.winnerRole || entry.row?.preferenceEvidence?.winnerRole) === 'teacher-revision',
+  ).length;
+  const teacherRevisionLineagePairs = eligible.filter(
+    (entry) =>
+      normalize(entry.row?.winnerRole || entry.row?.preferenceEvidence?.winnerRole) === 'teacher-revision' &&
+      /^[a-f0-9]{64}$/.test(
+        normalize(entry.row?.preferenceEvidence?.teacherRevisionLineage?.lineageSha256),
+      ),
   ).length;
   const modelJudgeLicenses = eligible
     .filter((entry) => normalize(entry.row?.preferenceEvidence?.kind) === 'single-model-judge-preference')
@@ -823,6 +838,7 @@ export async function buildScionAdapterDataset({
       singleModelJudgePairs,
       singleModelJudgeDomains,
       ...(!legacyTrainingContract ? { sourceBoundModelJudgePairs } : {}),
+      ...(!legacyTrainingContract ? { teacherRevisionPairs, teacherRevisionLineagePairs } : {}),
     },
     domains,
     evidenceCounts,

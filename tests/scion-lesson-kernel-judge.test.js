@@ -348,6 +348,12 @@ describe('Scion lesson-kernel paired-order judge', () => {
       issues: [],
     });
     expect(assessCorpusRow(preference, 'teacher-lineage-fixture')).toMatchObject({ eligible: true, issues: [] });
+    expect(toScionOrpoTrainingRow(preference).provenance).toMatchObject({
+      winnerRole: 'teacher-revision',
+      rejectedRole: 'local',
+      teacherRevisionLineageSha256:
+        preference.preferenceEvidence.teacherRevisionLineage.lineageSha256,
+    });
 
     const tampered = structuredClone(preference);
     tampered.preferenceEvidence.teacherRevisionLineage.revisionResultSha256 = 'f'.repeat(64);
