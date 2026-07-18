@@ -78,6 +78,10 @@ describe('Crucible production-bundle freshness', () => {
 });
 
 describe('Crucible preview isolation', () => {
+  it('never selects the browser-forbidden ManageSieve port', async () => {
+    expect(await isAppServerPortFree(4190)).toBe(false);
+  });
+
   it('treats a wildcard-owned port as unavailable even when loopback could overlap it', async () => {
     const server = net.createServer();
     servers.push(server);

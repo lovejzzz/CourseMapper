@@ -213,6 +213,7 @@ async function canBindPort(port, host) {
 }
 
 async function isPortFree(port) {
+  if (Number(port) === 4190) return false;
   if (!(await canBindPort(port, '127.0.0.1'))) return false;
   return canBindPort(port, '0.0.0.0');
 }
