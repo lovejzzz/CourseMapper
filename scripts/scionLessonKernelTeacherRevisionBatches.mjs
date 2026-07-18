@@ -31,6 +31,7 @@ function parseArgs(argv) {
     prompt: PROMPT,
     excludeAdmittedReport: '',
     excludeQualifiedResult: '',
+    maxCases: 0,
     generatedAt: new Date().toISOString(),
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -43,13 +44,26 @@ function parseArgs(argv) {
       args.excludeAdmittedReport = argv[++index] || '';
     } else if (token === '--exclude-qualified-result') {
       args.excludeQualifiedResult = argv[++index] || '';
-    }
+    } else if (token === '--max-cases') args.maxCases = Number(argv[++index] || 0);
     else if (token === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
     else if (token === '--help' || token === '-h') args.help = true;
     else throw new Error(`Unknown teacher revision option: ${token}`);
   }
   if (!args.build && !args.ingest && !args.help) args.build = true;
+  if (!Number.isInteger(args.maxCases) || args.maxCases < 0) {
+    throw new Error('--max-cases must be a non-negative integer');
+  }
   return args;
+}
+
+export function chunkScionTeacherRevisionResults(results = [], maxCases = 0) {
+  if (!Number.isInteger(maxCases) || maxCases < 0) throw new Error('maxCases must be a non-negative integer');
+  if (maxCases === 0 || results.length <= maxCases) return results.length > 0 ? [results] : [];
+  const chunks = [];
+  for (let index = 0; index < results.length; index += maxCases) {
+    chunks.push(results.slice(index, index + maxCases));
+  }
+  return chunks;
 }
 
 async function readJson(file) {
@@ -121,33 +135,37 @@ async function build(args) {
     const aggregatePath = path.join(args.judgeDir, 'batches', entry.batchId, 'paired-order-result.json');
     const aggregate = await readJsonIfExists(aggregatePath);
     if (!aggregate) continue;
-    const filteredAggregate = {
-      ...aggregate,
-      results: (aggregate.results || []).filter((result) => !excludedCaseIds.has(result.caseId)),
-    };
-    const packet = buildScionLessonKernelTeacherRevisionPacket({
-      batchId: entry.batchId,
-      campaign: inputs.campaign,
-      aggregate: filteredAggregate,
-      referenceReport: inputs.referenceReport,
-      prompt: inputs.prompt,
-      generatedAt: args.generatedAt,
-    });
-    if (packet.cases.length === 0) continue;
-    const validation = validateScionLessonKernelTeacherRevisionPacket(packet);
-    if (!validation.valid) throw new Error(`Invalid teacher packet ${entry.batchId}: ${validation.issues.join(', ')}`);
-    const directory = path.join(args.output, 'batches', entry.batchId);
-    const schema = buildScionLessonKernelTeacherRevisionSchema(packet);
-    await Promise.all([
-      atomicWriteJson(path.join(directory, 'packet.json'), packet),
-      atomicWriteJson(path.join(directory, 'result.schema.json'), schema),
-      fs.mkdir(directory, { recursive: true }).then(() => fs.writeFile(path.join(directory, 'teacher-prompt.md'), inputs.promptRaw)),
-    ]);
-    batches.push({
-      batchId: entry.batchId,
-      cases: packet.cases.length,
-      packetSha256: packet.identity.sha256,
-    });
+    const eligibleResults = (aggregate.results || []).filter((result) => !excludedCaseIds.has(result.caseId));
+    const chunks = chunkScionTeacherRevisionResults(eligibleResults, args.maxCases);
+    for (const [chunkIndex, results] of chunks.entries()) {
+      const batchId =
+        chunks.length === 1 ? entry.batchId : `${entry.batchId}-part-${String(chunkIndex + 1).padStart(2, '0')}`;
+      const packet = buildScionLessonKernelTeacherRevisionPacket({
+        batchId,
+        campaign: inputs.campaign,
+        aggregate: { ...aggregate, results },
+        referenceReport: inputs.referenceReport,
+        prompt: inputs.prompt,
+        generatedAt: args.generatedAt,
+      });
+      if (packet.cases.length === 0) continue;
+      const validation = validateScionLessonKernelTeacherRevisionPacket(packet);
+      if (!validation.valid) throw new Error(`Invalid teacher packet ${batchId}: ${validation.issues.join(', ')}`);
+      const directory = path.join(args.output, 'batches', batchId);
+      const schema = buildScionLessonKernelTeacherRevisionSchema(packet);
+      await Promise.all([
+        atomicWriteJson(path.join(directory, 'packet.json'), packet),
+        atomicWriteJson(path.join(directory, 'result.schema.json'), schema),
+        fs
+          .mkdir(directory, { recursive: true })
+          .then(() => fs.writeFile(path.join(directory, 'teacher-prompt.md'), inputs.promptRaw)),
+      ]);
+      batches.push({
+        batchId,
+        cases: packet.cases.length,
+        packetSha256: packet.identity.sha256,
+      });
+    }
   }
   const manifest = {
     schemaVersion: 1,
@@ -156,6 +174,7 @@ async function build(args) {
     campaignIdentity: inputs.campaign.identity,
     judgeWorkbookSha256: inputs.judgeWorkbook.identity?.sha256,
     prompt: inputs.prompt,
+    maxCasesPerBatch: args.maxCases || null,
     ...(args.excludeAdmittedReport || args.excludeQualifiedResult
       ? {
           exclusion: {
@@ -250,7 +269,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(
-      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--prompt file] [--exclude-admitted-report file] [--exclude-qualified-result file]',
+      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--prompt file] [--exclude-admitted-report file] [--exclude-qualified-result file] [--max-cases N]',
     );
     return;
   }

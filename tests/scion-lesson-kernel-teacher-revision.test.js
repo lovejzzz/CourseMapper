@@ -11,6 +11,7 @@ import {
   validateScionLessonKernelTeacherRevisionPacket,
   validateScionLessonKernelTeacherRevisionResult,
 } from '../scripts/lib/scionLessonKernelTeacherRevision.mjs';
+import { chunkScionTeacherRevisionResults } from '../scripts/scionLessonKernelTeacherRevisionBatches.mjs';
 import { scionLessonKernelSha256 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
 import {
   SCION_LESSON_KERNEL_PILOT_PROMPT,
@@ -104,6 +105,17 @@ function resultFor(packet, artifact) {
 }
 
 describe('Scion lesson-kernel teacher revision', () => {
+  it('splits large cleanroom packets without reordering or duplicating cases', () => {
+    const results = Array.from({ length: 7 }, (_, index) => ({ caseId: `case-${index + 1}` }));
+    expect(chunkScionTeacherRevisionResults(results, 3)).toEqual([
+      results.slice(0, 3),
+      results.slice(3, 6),
+      results.slice(6, 7),
+    ]);
+    expect(chunkScionTeacherRevisionResults(results, 0)).toEqual([results]);
+    expect(chunkScionTeacherRevisionResults([], 3)).toEqual([]);
+  });
+
   it('pins the reviser to the production admission constraints exposed by the pilot', () => {
     const here = path.dirname(fileURLToPath(import.meta.url));
     const prompt = fs.readFileSync(
