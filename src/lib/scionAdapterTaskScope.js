@@ -35,6 +35,7 @@ export function scionAdapterTaskFamilyForPairKind(value) {
     case 'mc-item':
       return SCION_ADAPTER_TASK_FAMILIES.SOURCE_MC_ITEM_ATOM;
     case 'lesson':
+    case 'lesson-kernel':
       return SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL;
     default:
       return SCION_ADAPTER_TASK_FAMILIES.UNCLASSIFIED;

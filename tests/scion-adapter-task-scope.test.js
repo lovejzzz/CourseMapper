@@ -31,6 +31,7 @@ describe('Scion adapter task scope', () => {
   it('maps training atoms and runtime calls to explicit, non-interchangeable families', () => {
     expect(scionAdapterTaskFamilyForPairKind('key-term')).toBe('source-key-term-atom');
     expect(scionAdapterTaskFamilyForPairKind('mc-item')).toBe('source-mc-item-atom');
+    expect(scionAdapterTaskFamilyForPairKind('lesson-kernel')).toBe('lesson-kernel');
     expect(scionAdapterTaskFamilyForProviderTask('blueprintEnrichment')).toBe('lesson-kernel');
     expect(scionAdapterTaskFamilyForProviderTask('course-map')).toBe('course-map');
     expect(scionAdapterTaskFamilyForProviderTask('chat')).toBe('agent-advisory');

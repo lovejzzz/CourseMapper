@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { repairScionMcItem } from '../src/lib/scionAnswerKeyAlignment.js';
-import { assessScionKeyTerm, assessScionMcItem, assessScionPreferencePair } from '../src/lib/scionPreferenceGate.js';
+import {
+  assessScionKeyTerm,
+  assessScionLessonKernel,
+  assessScionMcItem,
+  assessScionPreferencePair,
+} from '../src/lib/scionPreferenceGate.js';
+import { SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE } from './fixtures/scionLessonKernelAdmissionV01654.js';
 
 const LIST_CLAIMS = [
   'A list is an ordered collection of values written in square brackets; each element has an index, beginning at 0.',
@@ -442,6 +448,22 @@ describe('Scion strict-v5 definition precision', () => {
     );
     expect(multiple.issues).toContain('definition-multiple-sentences');
     expect(truncated.issues).toContain('truncated-definition');
+  });
+});
+
+describe('Scion task-matched lesson-kernel admission', () => {
+  it('admits the compact production contract without requiring historical full-package fields', () => {
+    const sourceClaims = [
+      'Plate boundaries are classified as divergent, convergent, or transform according to whether plates separate, approach, or slide alongside one another.',
+      'Divergent boundaries move apart and form new crust, whereas convergent boundaries move together and can subduct crust.',
+      'Transform boundaries accommodate plates moving side by side rather than creating or subducting crust.',
+    ];
+    expect(
+      assessScionLessonKernel(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0], {
+        sourceClaims,
+        sourceTerm: 'Plate-boundary processes',
+      }),
+    ).toEqual({ eligible: true, issues: [], score: 100 });
   });
 });
 

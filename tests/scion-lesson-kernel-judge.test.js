@@ -12,6 +12,10 @@ import {
   validateScionLessonKernelJudgeReview,
 } from '../scripts/lib/scionLessonKernelJudge.mjs';
 import { scionLessonKernelSha256 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
+import { toScionOrpoTrainingRow } from '../scripts/scionAdapterDataset.mjs';
+import { assessCorpusRow } from '../scripts/scionPreferenceCorpusAudit.mjs';
+import { validateScionTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
+import { SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE } from './fixtures/scionLessonKernelAdmissionV01654.js';
 
 function fixture() {
   const localArtifact = {
@@ -21,33 +25,50 @@ function fixture() {
     scenario: {},
     mc: [],
   };
-  const referenceArtifact = {
-    lessonId: 'lesson-1',
-    facts: ['A reference artifact fact that is long enough for comparison.'],
-    keyTerms: [],
-    scenario: {},
-    mc: [
-      {
-        q: 'Which boundary description is supported by the supplied plate-motion claim?',
-        op: ['A distractor shown first', 'The supported answer', 'A second distractor', 'A third distractor'],
-        ai: 1,
-        fi: [0],
-        ex: 'The supported answer follows directly from the supplied plate-motion claim.',
-      },
-    ],
-  };
+  const referenceArtifact = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0]);
+  referenceArtifact.mc[0].op = [
+    referenceArtifact.mc[0].op[1],
+    referenceArtifact.mc[0].op[0],
+    ...referenceArtifact.mc[0].op.slice(2),
+  ];
+  referenceArtifact.mc[0].ai = 1;
+  const secondSupported = referenceArtifact.mc[1].op.splice(referenceArtifact.mc[1].ai, 1)[0];
+  referenceArtifact.mc[1].op.unshift(secondSupported);
+  referenceArtifact.mc[1].ai = 0;
   const campaign = {
     identity: { algorithm: 'sha256-canonical-json', sha256: 'a'.repeat(64) },
     cases: [
       {
         caseId: 'scion-kernel-test',
+        caseSha256: 'c'.repeat(64),
         domain: 'geology',
+        courseGroupId: 'geology-course',
+        courseGroupSha256: 'd'.repeat(64),
         failureFamilies: ['source-fidelity'],
-        lessonInput: { lessonId: 'lesson-1', title: 'Plate motion' },
+        lessonInput: { lessonId: 'lesson-3', title: 'Plate-boundary processes' },
         sourceContext: {
-          claims: ['Plate motion distinguishes divergent, convergent, and transform boundaries.'],
+          kernelId: 'geology/plate-motion',
+          term: 'Plate-boundary processes',
+          claims: [
+            'Plate boundaries are classified as divergent, convergent, or transform according to whether plates separate, approach, or slide alongside one another.',
+            'Divergent boundaries move apart and form new crust, whereas convergent boundaries move together and can subduct crust.',
+            'Transform boundaries accommodate plates moving side by side rather than creating or subducting crust.',
+          ],
+          attribution: ['Physical Geology 2e'],
           license: 'CC-BY-4.0',
         },
+        messages: [
+          { role: 'system', content: 'Return one source-grounded lesson kernel.' },
+          {
+            role: 'user',
+            content: [
+              'Write the Plate motion lesson kernel as JSON.',
+              'Plate boundaries are classified as divergent, convergent, or transform according to whether plates separate, approach, or slide alongside one another.',
+              'Divergent boundaries move apart and form new crust, whereas convergent boundaries move together and can subduct crust.',
+              'Transform boundaries accommodate plates moving side by side rather than creating or subducting crust.',
+            ].join('\n'),
+          },
+        ],
       },
     ],
   };
@@ -58,6 +79,7 @@ function fixture() {
         caseId: 'scion-kernel-test',
         artifact,
         artifactSha256: scionLessonKernelSha256(artifact),
+        admission: { needsRetry: false, issues: [] },
         compilerRepairs,
       },
     ],
@@ -82,8 +104,8 @@ function fixture() {
 function buildPackets(inputs) {
   const common = {
     ...inputs,
-    promptPath: 'evaluation/judge.md',
-    promptSha256: 'b'.repeat(64),
+    promptPath: 'evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md',
+    promptSha256: '37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96',
     generatedAt: '2026-07-18T16:30:00.000Z',
   };
   return {
@@ -99,7 +121,7 @@ function completeReview(packet, sessionId, decision) {
     order: packet.order,
     packetSha256: packet.identity.sha256,
     sessionId,
-    judge: { model: 'codex', revision: 'test', runtime: 'isolated-test' },
+    judge: { model: 'gpt-5.6-sol', revision: 'test-revision', runtime: 'isolated-test' },
     completedAt: '2026-07-18T17:00:00.000Z',
     attestations: {
       anonymousArtifactsOnly: true,
@@ -119,7 +141,9 @@ function completeReview(packet, sessionId, decision) {
           ),
         ]),
       ),
-      criticalDefects: { A: [], B: ['One bounded comparison defect.'] },
+      criticalDefects: Object.fromEntries(
+        ['A', 'B'].map((label) => [label, label === decision ? [] : ['One bounded comparison defect.']]),
+      ),
       decision,
       rationale: 'The selected artifact is more accurate, coherent, and instructionally complete.',
     })),
@@ -226,10 +250,41 @@ describe('Scion lesson-kernel paired-order judge', () => {
       referenceReport: inputs.referenceReport,
     });
     expect(preferences).toHaveLength(1);
-    expect(preferences[0]).toMatchObject({ kind: 'lesson-kernel', winnerRole: 'reference', trainingEligible: true });
+    expect(preferences[0]).toMatchObject({
+      kind: 'lesson-kernel',
+      taskFamily: 'lesson-kernel',
+      winnerRole: 'reference',
+      trainingEligible: true,
+    });
+    expect(validateScionTrainingPreferenceEvidence(preferences[0].preferenceEvidence)).toEqual({
+      valid: true,
+      issues: [],
+    });
     const chosen = JSON.parse(preferences[0].chosen).lessons[0].mc[0];
-    expect(chosen.op[0]).toBe('The supported answer');
+    expect(chosen.op[0]).toBe('Divergent, convergent, transform');
     expect(chosen.ai).toBe(0);
+    expect(assessCorpusRow(preferences[0], 'lesson-kernel-fixture')).toMatchObject({ eligible: true, issues: [] });
+    const trainingRow = toScionOrpoTrainingRow(preferences[0]);
+    expect(trainingRow.chosen[0].content).toBe(
+      `${preferences[0].systemPrompt}\n\n${preferences[0].prompt}`,
+    );
+    expect(trainingRow.rejected[0].content).toBe(trainingRow.chosen[0].content);
+    expect(trainingRow.provenance).toMatchObject({
+      pairKind: 'lesson-kernel',
+      taskFamily: 'lesson-kernel',
+      promptProtocol: 'production-lesson-kernel-prompt-v1',
+      sourceContextSha256: preferences[0].preferenceEvidence.sourceContextSha256,
+    });
+
+    const promptTamper = structuredClone(preferences[0]);
+    promptTamper.systemPrompt += ' Changed after judgment.';
+    expect(assessCorpusRow(promptTamper, 'lesson-kernel-fixture').issues).toEqual(
+      expect.arrayContaining([
+        'model-judge-training-pair-binding',
+        'lesson-kernel-system-prompt-binding',
+        'lesson-kernel-serving-prompt-binding',
+      ]),
+    );
   });
 
   it('rejects route leakage, changed identity, and reuse of one judge session across orders', () => {
@@ -254,5 +309,32 @@ describe('Scion lesson-kernel paired-order judge', () => {
     });
     expect(result.status).toBe('invalid');
     expect(result.issues).toContain('judge-session-reused');
+  });
+
+  it('does not train on an order-stable preference without a positive score margin', () => {
+    const inputs = fixture();
+    const { ab, ba } = buildPackets(inputs);
+    const abReview = completeReview(ab, 'score-a-b-session', 'B');
+    const baReview = completeReview(ba, 'score-b-a-session', 'A');
+    for (const review of [abReview, baReview]) {
+      for (const decision of review.decisions) {
+        for (const label of ['A', 'B']) {
+          for (const dimension of SCION_LESSON_KERNEL_JUDGE_DIMENSIONS) {
+            decision.scores[label][dimension].score = 3;
+          }
+        }
+      }
+    }
+    const result = aggregateScionLessonKernelPairedOrders({
+      abPacket: ab,
+      baPacket: ba,
+      abReview,
+      baReview,
+      localReport: inputs.localReport,
+      referenceReport: inputs.referenceReport,
+      generatedAt: '2026-07-18T18:00:00.000Z',
+    });
+    expect(result.summary).toMatchObject({ stablePreferences: 0, scoreRejected: 1 });
+    expect(result.results[0]).toMatchObject({ stable: true, trainingEligible: false });
   });
 });

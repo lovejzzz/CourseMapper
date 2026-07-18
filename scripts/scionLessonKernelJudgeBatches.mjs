@@ -60,6 +60,15 @@ async function readJson(file) {
   return JSON.parse(await fs.readFile(file, 'utf8'));
 }
 
+async function readJsonIfExists(file) {
+  try {
+    return await readJson(file);
+  } catch (error) {
+    if (error?.code === 'ENOENT') return null;
+    throw error;
+  }
+}
+
 async function atomicWriteJson(file, value) {
   const absolute = path.resolve(file);
   await fs.mkdir(path.dirname(absolute), { recursive: true });
@@ -186,12 +195,18 @@ async function ingest(args) {
   let judgeIdentity = null;
   const preferences = [];
   const batchResults = [];
-  for (const batch of workbook.batches) {
+  const sealedBatches = workbook.batches.filter((entry) => entry.sealed);
+  let pendingBatches = 0;
+  for (const batch of sealedBatches) {
     const directory = batchDir(args.output, batch.batchId);
     const [abReview, baReview] = await Promise.all([
-      readJson(path.join(directory, 'a-b.review.json')),
-      readJson(path.join(directory, 'b-a.review.json')),
+      readJsonIfExists(path.join(directory, 'a-b.review.json')),
+      readJsonIfExists(path.join(directory, 'b-a.review.json')),
     ]);
+    if (!abReview || !baReview) {
+      pendingBatches += 1;
+      continue;
+    }
     for (const [order, review] of [
       ['A/B', abReview],
       ['B/A', baReview],
@@ -239,17 +254,34 @@ async function ingest(args) {
       for (const key of Object.keys(total)) total[key] += Number(entry.summary[key] || 0);
       return total;
     },
-    { pairs: 0, stablePreferences: 0, localWins: 0, referenceWins: 0, unstable: 0 },
+    {
+      pairs: 0,
+      stablePreferences: 0,
+      localWins: 0,
+      referenceWins: 0,
+      unstable: 0,
+      scoreRejected: 0,
+      compilerRejected: 0,
+    },
   );
   const result = {
     schemaVersion: 1,
     protocol: RESULT_PROTOCOL,
     generatedAt: args.generatedAt,
-    status: 'paired-orders-complete',
+    status:
+      workbook.manifest.captureComplete && pendingBatches === 0
+        ? 'paired-orders-complete'
+        : 'paired-orders-progressive',
     workbookSha256: workbook.manifest.identity.sha256,
     campaignIdentity: inputs.campaign.identity,
-    judge: JSON.parse(judgeIdentity),
+    judge: judgeIdentity ? JSON.parse(judgeIdentity) : null,
     batchResults,
+    reviewedBatches: batchResults.length,
+    pendingBatches,
+    sealedBatches: sealedBatches.length,
+    evaluatedCases: summary.pairs,
+    availableCases: workbook.manifest.caseCount,
+    campaignCases: workbook.manifest.campaignCaseCount,
     summary,
     claimBoundary:
       'These are same-identity model-judge preferences from isolated bounded A/B and B/A sessions. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.',

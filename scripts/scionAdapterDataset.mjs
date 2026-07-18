@@ -9,7 +9,7 @@ import { assessCorpusRow } from './scionPreferenceCorpusAudit.mjs';
 import { sha256File } from './scionAdapterPackage.mjs';
 import { validateScionHeldoutBenchmark } from './scionAdapterPairedEvidence.mjs';
 import { deriveDeterministicContractEvidence } from '../src/lib/scionPreferenceGate.js';
-import { validateScionCodexTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
+import { validateScionTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
 import {
   SCION_ADAPTER_TASK_FAMILIES,
   SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM,
@@ -45,8 +45,9 @@ export const SCION_ORPO_TRAINING_FORMAT_V1 = Object.freeze({
 });
 export const SCION_ORPO_TRAINING_FORMAT = Object.freeze({
   ...SCION_ORPO_TRAINING_FORMAT_V1,
-  protocol: 'scion-orpo-conversations-v2',
-  sourceGrounding: 'semantic-source-context-in-user-turn',
+  protocol: 'scion-orpo-conversations-v3',
+  sourceGrounding: 'semantic-source-context-in-production-or-row-user-turn',
+  lessonKernelServingPrompt: 'exact-system-plus-compact-user-prompt',
   legacyFallback: 'row-prompt-only-for-non-source-grounded-evidence',
 });
 
@@ -251,7 +252,7 @@ async function inspectDatasetSource(source) {
 }
 
 function pairKind(row) {
-  if (['lesson', 'mc-item', 'key-term'].includes(row?.kind)) return row.kind;
+  if (['lesson', 'lesson-kernel', 'mc-item', 'key-term'].includes(row?.kind)) return row.kind;
   if (row?.pass && row?.chosen && row?.rejected) return 'mc-item';
   return '';
 }
@@ -274,6 +275,11 @@ function sourceContextBindingIssues(row) {
   if (!expected || expected !== stableHash(JSON.stringify(sourceContext))) {
     return ['source-context-binding'];
   }
+  if (pairKind(row) === 'lesson-kernel') {
+    const prompt = trainingText(row?.prompt);
+    const missingClaims = sourceContext.claims.filter((claim) => !prompt.includes(String(claim || '').trim()));
+    if (missingClaims.length > 0) return ['lesson-kernel-prompt-missing-source-claims'];
+  }
   return [];
 }
 
@@ -291,6 +297,15 @@ function sourceBoundTrainingPrompt(row) {
   const sourceContext = row?.sourceContext;
   const claims = Array.isArray(sourceContext?.claims) ? sourceContext.claims.filter((claim) => normalize(claim)) : [];
   if (claims.length === 0) return null;
+  if (pairKind(row) === 'lesson-kernel') {
+    const systemPrompt = trainingText(row?.systemPrompt);
+    const userPrompt = trainingText(row?.prompt);
+    if (!systemPrompt || !userPrompt || claims.some((claim) => !userPrompt.includes(String(claim).trim()))) return null;
+    return {
+      text: `${systemPrompt}\n\n${userPrompt}`,
+      protocol: 'production-lesson-kernel-prompt-v1',
+    };
+  }
   const semanticSourceContext = {
     kernelId: sourceContext.kernelId,
     term: sourceContext.term,
@@ -298,17 +313,20 @@ function sourceBoundTrainingPrompt(row) {
     attribution: sourceContext.attribution,
     license: sourceContext.license,
   };
-  return [
-    'Use only the supplied source context for factual content. Return only the requested JSON atom.',
-    trainingText(row?.prompt),
-    `Source context: ${JSON.stringify(semanticSourceContext)}`,
-  ].join('\n\n');
+  return {
+    text: [
+      'Use only the supplied source context for factual content. Return only the requested JSON atom.',
+      trainingText(row?.prompt),
+      `Source context: ${JSON.stringify(semanticSourceContext)}`,
+    ].join('\n\n'),
+    protocol: 'source-bound-row-prompt-v1',
+  };
 }
 
 export function toScionOrpoTrainingRow(entry, { sourceBoundPrompt = true } = {}) {
   const row = entry?.row || entry;
   const boundPrompt = sourceBoundPrompt ? sourceBoundTrainingPrompt(row) : null;
-  const prompt = boundPrompt || trainingText(row?.prompt);
+  const prompt = boundPrompt?.text || trainingText(row?.prompt);
   const sequence = (response) => [
     { role: 'user', content: prompt },
     { role: 'assistant', content: trainingText(response) },
@@ -330,7 +348,7 @@ export function toScionOrpoTrainingRow(entry, { sourceBoundPrompt = true } = {})
       preferenceEvidenceScope: normalize(row?.preferenceEvidence?.scope),
       ...(boundPrompt
         ? {
-            promptProtocol: 'source-bound-row-prompt-v1',
+            promptProtocol: boundPrompt.protocol,
             sourceContextSha256: stableHash(JSON.stringify(row.sourceContext)),
           }
         : {}),
@@ -344,14 +362,14 @@ function withDerivedContractEvidence(
 ) {
   if (
     row?.preferenceEvidence?.kind === 'single-model-judge-preference' &&
-    validateScionCodexTrainingPreferenceEvidence(row.preferenceEvidence).valid
+    validateScionTrainingPreferenceEvidence(row.preferenceEvidence).valid
   ) {
     return row;
   }
   const kind = pairKind(row);
   if (!kind) return row;
-  const chosen = kind === 'lesson' ? lessonValue(row.chosen) : parsed(row.chosen);
-  const rejected = kind === 'lesson' ? lessonValue(row.rejected) : parsed(row.rejected);
+  const chosen = ['lesson', 'lesson-kernel'].includes(kind) ? lessonValue(row.chosen) : parsed(row.chosen);
+  const rejected = ['lesson', 'lesson-kernel'].includes(kind) ? lessonValue(row.rejected) : parsed(row.rejected);
   const evidence = deriveDeterministicContractEvidence(
     { kind, chosen, rejected },
     { semanticAdmission, allowFirstSentenceLexicalCue },

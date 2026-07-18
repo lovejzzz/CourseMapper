@@ -39,10 +39,17 @@ function modelJudgeBindingIssues(row, chosenRaw, rejectedRaw) {
   if (evidence.rejectedArtifactSha256 !== sha256(JSON.stringify(rejectedRaw))) {
     issues.push('model-judge-rejected-artifact-binding');
   }
+  const lessonKernelEvidence = evidence.protocol === 'scion-lesson-kernel-training-preference-v1';
   const trainingPairSha256 = sha256(
     JSON.stringify({
       kind: row.kind,
-      prompt: row.prompt,
+      ...(lessonKernelEvidence
+        ? {
+            systemPrompt: row.systemPrompt,
+            prompt: row.prompt,
+            admissionPrompt: row.admissionPrompt,
+          }
+        : { prompt: row.prompt }),
       chosen: row.chosen,
       rejected: row.rejected,
       domain: row.domain || row?.context?.domain,
@@ -52,11 +59,21 @@ function modelJudgeBindingIssues(row, chosenRaw, rejectedRaw) {
   if (evidence.trainingPairSha256 !== trainingPairSha256) {
     issues.push('model-judge-training-pair-binding');
   }
+  if (lessonKernelEvidence) {
+    const systemPrompt = String(row.systemPrompt || '').trim();
+    const servingPrompt = [systemPrompt, String(row.prompt || '').trim()].join('\n\n');
+    if (!systemPrompt || evidence.systemPromptSha256 !== sha256(systemPrompt)) {
+      issues.push('lesson-kernel-system-prompt-binding');
+    }
+    if (evidence.servingPromptSha256 !== sha256(servingPrompt)) {
+      issues.push('lesson-kernel-serving-prompt-binding');
+    }
+  }
   return issues;
 }
 
 function pairKind(row) {
-  if (['lesson', 'mc-item', 'key-term'].includes(row?.kind)) return row.kind;
+  if (['lesson', 'lesson-kernel', 'mc-item', 'key-term'].includes(row?.kind)) return row.kind;
   if (row?.pass && row?.chosen && row?.rejected) return 'mc-item';
   return '';
 }
@@ -77,8 +94,10 @@ export function assessCorpusRow(
   if (chosenRaw && rejectedRaw) issues.push(...modelJudgeBindingIssues(row, chosenRaw, rejectedRaw));
   if (issues.length > 0) return { eligible: false, kind: kind || 'unknown', issues, source };
 
-  const chosen = kind === 'lesson' ? (chosenRaw?.lessons?.[0] ?? chosenRaw) : chosenRaw;
-  const rejected = kind === 'lesson' ? (rejectedRaw?.lessons?.[0] ?? rejectedRaw) : rejectedRaw;
+  const chosen = ['lesson', 'lesson-kernel'].includes(kind) ? (chosenRaw?.lessons?.[0] ?? chosenRaw) : chosenRaw;
+  const rejected = ['lesson', 'lesson-kernel'].includes(kind)
+    ? (rejectedRaw?.lessons?.[0] ?? rejectedRaw)
+    : rejectedRaw;
   const result = assessScionPreferencePair(
     {
       kind,
@@ -91,6 +110,8 @@ export function assessCorpusRow(
       semanticProfile,
       sourceClaims: row?.sourceContext?.claims || [],
       knownFacts: row?.sourceContext?.claims || [],
+      sourceTerm: row?.sourceContext?.term || '',
+      userPrompt: row?.admissionPrompt || row?.prompt || '',
       allowFirstSentenceLexicalCue,
     },
   );

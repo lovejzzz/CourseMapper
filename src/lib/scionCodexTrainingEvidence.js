@@ -14,6 +14,10 @@ export const SCION_CODEX_TRAINING_SCORE_DIMENSIONS = Object.freeze([
 ]);
 export const SCION_CODEX_TRAINING_REQUIRED_ORDERS = Object.freeze(['A/B', 'B/A']);
 export const SCION_CODEX_TRAINING_MINIMUM_WINNER_SCORE = 4;
+export const SCION_LESSON_KERNEL_TRAINING_REVIEW_PROTOCOL = 'scion-lesson-kernel-training-preference-v1';
+export const SCION_LESSON_KERNEL_JUDGE_PROMPT_PATH = 'evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md';
+export const SCION_LESSON_KERNEL_JUDGE_PROMPT_SHA256 =
+  '37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96';
 
 const SHA256_RE = /^[a-f0-9]{64}$/;
 const PLACEHOLDER_RE = /^(?:unknown|unset|placeholder|tbd|todo|replace|n\/a)$/i;
@@ -113,4 +117,101 @@ export function validateScionCodexTrainingPreferenceEvidence(evidence) {
   }
   if (!clean(evidence?.claimBoundary).includes('single-model')) issues.push('model-judge-claim-boundary');
   return { valid: issues.length === 0, issues: [...new Set(issues)] };
+}
+
+export function validateScionLessonKernelTrainingPreferenceEvidence(evidence) {
+  const issues = [];
+  if (evidence?.kind !== 'single-model-judge-preference') issues.push('invalid-model-judge-evidence-kind');
+  if (evidence?.protocol !== SCION_LESSON_KERNEL_TRAINING_REVIEW_PROTOCOL) {
+    issues.push('invalid-lesson-kernel-judge-protocol');
+  }
+  if (evidence?.benchmarkProtocol !== 'scion-lesson-kernel-blind-packet-v1') {
+    issues.push('invalid-lesson-kernel-benchmark-protocol');
+  }
+  if (evidence?.policyId !== 'scion-lesson-kernel-judge-policy-v1') {
+    issues.push('invalid-lesson-kernel-judge-policy');
+  }
+  if (evidence?.verified !== true) issues.push('unverified-model-judge-preference');
+  if (evidence?.preferred !== 'chosen') issues.push('model-judge-preferred-side');
+  if (evidence?.primaryPreferenceEvidence !== 'single-model-judge') {
+    issues.push('model-judge-primary-evidence-class');
+  }
+  if (evidence?.stable !== true) issues.push('model-judge-position-disagreement');
+  if (evidence?.scoredBeforePreference !== true) issues.push('model-judge-scoring-order');
+  if (evidence?.humanEvidence !== false) issues.push('model-judge-human-claim');
+  if (evidence?.independentEvidence !== false) issues.push('model-judge-independent-claim');
+  if (evidence?.judge?.model !== 'gpt-5.6-sol') issues.push('lesson-kernel-judge-model');
+  if (!validIdentity(evidence?.judge?.revision)) issues.push('model-judge-revision');
+  if (!validIdentity(evidence?.judge?.runtime)) issues.push('model-judge-runtime');
+  if (!Array.isArray(evidence?.judge?.sessionIds) || new Set(evidence.judge.sessionIds).size !== 2) {
+    issues.push('model-judge-fresh-session-count');
+  } else if (!evidence.judge.sessionIds.every(validIdentity)) {
+    issues.push('model-judge-session-id');
+  }
+  if (evidence?.judge?.promptPath !== SCION_LESSON_KERNEL_JUDGE_PROMPT_PATH) {
+    issues.push('lesson-kernel-judge-prompt-path');
+  }
+  if (evidence?.judge?.promptSha256 !== SCION_LESSON_KERNEL_JUDGE_PROMPT_SHA256) {
+    issues.push('lesson-kernel-judge-prompt-sha256');
+  }
+  if (!exactSet(evidence?.orders, SCION_CODEX_TRAINING_REQUIRED_ORDERS)) {
+    issues.push('model-judge-required-orders');
+  }
+  for (const [field, count] of [
+    ['packetSha256', 2],
+    ['reviewSha256', 2],
+  ]) {
+    const values = evidence?.[field];
+    if (
+      !Array.isArray(values) ||
+      values.length !== count ||
+      new Set(values).size !== count ||
+      !values.every((value) => SHA256_RE.test(clean(value)))
+    ) {
+      issues.push(`lesson-kernel-judge-${field}`);
+    }
+  }
+  for (const field of [
+    'aggregateSha256',
+    'caseDigest',
+    'courseGroupSha256',
+    'reviewPacketDigest',
+    'sourceRowSha256',
+    'sourceContextSha256',
+    'systemPromptSha256',
+    'servingPromptSha256',
+    'trainingPairSha256',
+    'chosenArtifactSha256',
+    'rejectedArtifactSha256',
+  ]) {
+    if (!SHA256_RE.test(clean(evidence?.[field]))) issues.push(`model-judge-${field}`);
+  }
+  const qualification = evidence?.scoreQualification;
+  if (
+    qualification?.qualified !== true ||
+    !Number.isFinite(qualification?.winnerMinimumScore) ||
+    qualification.winnerMinimumScore < 3 ||
+    !Number.isFinite(qualification?.minimumTotalScoreMargin) ||
+    qualification.minimumTotalScoreMargin < 2 ||
+    !Array.isArray(qualification?.orders) ||
+    qualification.orders.length !== 2 ||
+    qualification.orders.some(
+      (order) =>
+        order?.winnerMinimumScore < 3 ||
+        order?.totalScoreMargin < 2 ||
+        !Array.isArray(order?.winnerCriticalDefects) ||
+        order.winnerCriticalDefects.length > 0 ||
+        !SHA256_RE.test(clean(order?.decisionSha256)),
+    )
+  ) {
+    issues.push('lesson-kernel-judge-score-qualification');
+  }
+  if (!clean(evidence?.claimBoundary).includes('single-model')) issues.push('model-judge-claim-boundary');
+  return { valid: issues.length === 0, issues: [...new Set(issues)] };
+}
+
+export function validateScionTrainingPreferenceEvidence(evidence) {
+  return evidence?.protocol === SCION_LESSON_KERNEL_TRAINING_REVIEW_PROTOCOL
+    ? validateScionLessonKernelTrainingPreferenceEvidence(evidence)
+    : validateScionCodexTrainingPreferenceEvidence(evidence);
 }

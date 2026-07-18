@@ -254,6 +254,8 @@ describe('Scion adapter training receipts', () => {
           batchSize: 1,
           learningRate: 0.00002,
           gradientCheckpointing: true,
+          trainOnCompletions: true,
+          completionBoundary: 'gemma4-last-model-turn-header-v1',
           gradientAccumulationSteps: 2,
           loraRank: 16,
           beta: 0.1,
@@ -266,6 +268,7 @@ describe('Scion adapter training receipts', () => {
           '--batch-size',
           '1',
           '--grad-checkpoint',
+          '--train-on-completions',
           '--gradient-accumulation-steps',
           '2',
           '--lora-rank',
@@ -356,6 +359,8 @@ describe('Scion adapter training receipts', () => {
       '--self-test',
     ]);
     expect(JSON.parse(stdout)).toEqual({
+      assistantHeaderIds: [105, 4368, 107],
+      completionPredictionStarts: [3],
       forwarded: ['--train-mode', 'orpo'],
       seed: 16031,
       status: 'pass',

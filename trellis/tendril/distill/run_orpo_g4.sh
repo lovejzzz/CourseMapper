@@ -126,8 +126,9 @@ set +e
   --steps-per-eval 200 \
   --steps-per-save 100 \
   --val-batches 4 \
-  --max-seq-length 2048 \
+  --max-seq-length 4096 \
   --grad-checkpoint \
+  --train-on-completions \
   --gradient-accumulation-steps 2 \
   --lora-rank 16 \
   --lora-alpha 16 \

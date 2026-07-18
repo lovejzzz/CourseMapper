@@ -4,6 +4,7 @@ export const SCION_LESSON_KERNEL_JUDGE_PACKET_PROTOCOL = 'scion-lesson-kernel-bl
 export const SCION_LESSON_KERNEL_JUDGE_WORKBOOK_PROTOCOL = 'scion-lesson-kernel-blind-workbook-v1';
 export const SCION_LESSON_KERNEL_JUDGE_REVIEW_PROTOCOL = 'scion-lesson-kernel-blind-review-v1';
 export const SCION_LESSON_KERNEL_JUDGE_AGGREGATE_PROTOCOL = 'scion-lesson-kernel-paired-order-result-v1';
+export const SCION_LESSON_KERNEL_TRAINING_EVIDENCE_PROTOCOL = 'scion-lesson-kernel-training-preference-v1';
 export const SCION_LESSON_KERNEL_JUDGE_DIMENSIONS = Object.freeze([
   'sourceFidelity',
   'knowledgePrecision',
@@ -352,6 +353,66 @@ function chosenArtifact(decision, packetCaseEntry) {
     : decision?.decision;
 }
 
+function scoreQualificationForOrder(decision, packetCaseEntry, winnerSha256) {
+  const winnerLabel = ['A', 'B'].find((label) => packetCaseEntry?.artifacts?.[label]?.artifactSha256 === winnerSha256);
+  if (!winnerLabel) return null;
+  const loserLabel = winnerLabel === 'A' ? 'B' : 'A';
+  const winnerScores = Object.fromEntries(
+    SCION_LESSON_KERNEL_JUDGE_DIMENSIONS.map((dimension) => [
+      dimension,
+      Number(decision?.scores?.[winnerLabel]?.[dimension]?.score),
+    ]),
+  );
+  const loserScores = Object.fromEntries(
+    SCION_LESSON_KERNEL_JUDGE_DIMENSIONS.map((dimension) => [
+      dimension,
+      Number(decision?.scores?.[loserLabel]?.[dimension]?.score),
+    ]),
+  );
+  const winnerValues = Object.values(winnerScores);
+  const loserValues = Object.values(loserScores);
+  return {
+    winnerLabel,
+    winnerScores,
+    loserScores,
+    winnerMinimumScore: Math.min(...winnerValues),
+    totalScoreMargin:
+      winnerValues.reduce((sum, score) => sum + score, 0) - loserValues.reduce((sum, score) => sum + score, 0),
+    winnerCriticalDefects: Array.isArray(decision?.criticalDefects?.[winnerLabel])
+      ? decision.criticalDefects[winnerLabel]
+      : [],
+    loserCriticalDefects: Array.isArray(decision?.criticalDefects?.[loserLabel])
+      ? decision.criticalDefects[loserLabel]
+      : [],
+    rationale: String(decision?.rationale || ''),
+    decisionSha256: scionLessonKernelSha256(decision),
+  };
+}
+
+function scoreQualification(orders = []) {
+  const requiredScores = ['sourceFidelity', 'assessmentCorrectness', 'internalCoherence'];
+  const qualified =
+    orders.length === 2 &&
+    orders.every(
+      (order) =>
+        order &&
+        order.winnerMinimumScore >= 3 &&
+        order.totalScoreMargin >= 2 &&
+        order.winnerCriticalDefects.length === 0 &&
+        requiredScores.every((dimension) => order.winnerScores[dimension] >= 3),
+    );
+  return {
+    qualified,
+    winnerMinimumScore: orders.length > 0 ? Math.min(...orders.map((order) => order?.winnerMinimumScore ?? -1)) : -1,
+    minimumTotalScoreMargin:
+      orders.length > 0
+        ? Math.min(...orders.map((order) => order?.totalScoreMargin ?? Number.NEGATIVE_INFINITY))
+        : null,
+    winnerCriticalDefects: orders.flatMap((order) => order?.winnerCriticalDefects || []),
+    orders,
+  };
+}
+
 export function aggregateScionLessonKernelPairedOrders({
   abPacket,
   baPacket,
@@ -391,19 +452,31 @@ export function aggregateScionLessonKernelPairedOrders({
     const stable = /^[a-f0-9]{64}$/.test(String(abWinner)) && abWinner === baWinner;
     const localSha = local.get(abCase.caseId)?.artifactSha256;
     const referenceSha = reference.get(abCase.caseId)?.artifactSha256;
+    const stableScoreQualification = stable
+      ? scoreQualification([
+          scoreQualificationForOrder(abDecision, abCase, abWinner),
+          scoreQualificationForOrder(baDecision, baCase, baWinner),
+        ])
+      : scoreQualification([]);
+    const stableWinnerRole = stable
+      ? abWinner === localSha
+        ? 'local'
+        : abWinner === referenceSha
+          ? 'reference'
+          : 'unknown'
+      : null;
+    const winnerCall = stableWinnerRole === 'local' ? local.get(abCase.caseId) : reference.get(abCase.caseId);
+    const compilerAdmitted = Boolean(winnerCall?.artifact && winnerCall?.admission?.needsRetry === false);
     results.push({
       caseId: abCase.caseId,
       pairId: abCase.pairId,
       winners: { 'A/B': abWinner, 'B/A': baWinner },
       stable,
-      stableWinner: stable
-        ? abWinner === localSha
-          ? 'local'
-          : abWinner === referenceSha
-            ? 'reference'
-            : 'unknown'
-        : null,
-      trainingEligible: stable && [localSha, referenceSha].includes(abWinner),
+      stableWinner: stableWinnerRole,
+      compilerAdmitted,
+      scoreQualification: stableScoreQualification,
+      trainingEligible:
+        stable && [localSha, referenceSha].includes(abWinner) && stableScoreQualification.qualified && compilerAdmitted,
     });
   }
   const aggregate = {
@@ -415,6 +488,7 @@ export function aggregateScionLessonKernelPairedOrders({
     sessions: { 'A/B': abReview?.sessionId, 'B/A': baReview?.sessionId },
     judge: judgeIdentity(abReview),
     evidence: {
+      prompt: abPacket?.prompt,
       packets: { 'A/B': abPacket?.identity?.sha256, 'B/A': baPacket?.identity?.sha256 },
       reviews: {
         'A/B': scionLessonKernelSha256(abReview),
@@ -429,6 +503,10 @@ export function aggregateScionLessonKernelPairedOrders({
       localWins: results.filter((result) => result.stableWinner === 'local').length,
       referenceWins: results.filter((result) => result.stableWinner === 'reference').length,
       unstable: results.filter((result) => !result.stable).length,
+      scoreRejected: results.filter((result) => result.stable && !result.scoreQualification.qualified).length,
+      compilerRejected: results.filter(
+        (result) => result.stable && result.scoreQualification.qualified && !result.compilerAdmitted,
+      ).length,
     },
     claimBoundary:
       'These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.',
@@ -476,15 +554,19 @@ export function buildScionLessonKernelTrainingPreferences({ aggregate, campaign,
       if (!entry || !winner?.artifact || !loser?.artifact) return null;
       const chosenArtifact = unshuffleLessonKernel(winner);
       const rejectedArtifact = unshuffleLessonKernel(loser);
-      return {
+      const chosen = JSON.stringify({ lessons: [chosenArtifact] });
+      const rejected = JSON.stringify({ lessons: [rejectedArtifact] });
+      const row = {
         schemaVersion: 1,
         kind: 'lesson-kernel',
+        taskFamily: 'lesson-kernel',
         caseId: entry.caseId,
         pairId: result.pairId,
         prompt: entry.messages?.at(-1)?.content || entry.userPrompt || '',
+        admissionPrompt: entry.userPrompt || '',
         systemPrompt: entry.messages?.[0]?.content || '',
-        chosen: JSON.stringify({ lessons: [chosenArtifact] }),
-        rejected: JSON.stringify({ lessons: [rejectedArtifact] }),
+        chosen,
+        rejected,
         chosenSha256: scionLessonKernelSha256(chosenArtifact),
         rejectedSha256: scionLessonKernelSha256(rejectedArtifact),
         winnerRole: result.stableWinner,
@@ -496,20 +578,58 @@ export function buildScionLessonKernelTrainingPreferences({ aggregate, campaign,
         sourceContext: entry.sourceContext,
         failureFamilies: entry.failureFamilies,
         trainingEligible: true,
-        preferenceEvidence: {
-          protocol: SCION_LESSON_KERNEL_JUDGE_AGGREGATE_PROTOCOL,
-          aggregateSha256: aggregate.identity.sha256,
-          judge: aggregate.judge,
-          requiredOrders: ['A/B', 'B/A'],
-          sessions: aggregate.sessions,
-          packetSha256: aggregate.evidence.packets,
-          reviewSha256: aggregate.evidence.reviews,
-          winners: result.winners,
-          stable: true,
-          humanEvidence: false,
-          independentEvidence: false,
-        },
       };
+      const servingPrompt = [row.systemPrompt, row.prompt].map((value) => String(value || '').trim()).join('\n\n');
+      const trainingPairSha256 = scionLessonKernelSha256(
+        JSON.stringify({
+          kind: row.kind,
+          systemPrompt: row.systemPrompt,
+          prompt: row.prompt,
+          admissionPrompt: row.admissionPrompt,
+          chosen: row.chosen,
+          rejected: row.rejected,
+          domain: row.domain,
+          courseGroupSha256: row.courseGroupSha256,
+        }),
+      );
+      row.preferenceEvidence = {
+        kind: 'single-model-judge-preference',
+        protocol: SCION_LESSON_KERNEL_TRAINING_EVIDENCE_PROTOCOL,
+        benchmarkProtocol: SCION_LESSON_KERNEL_JUDGE_PACKET_PROTOCOL,
+        policyId: 'scion-lesson-kernel-judge-policy-v1',
+        verified: true,
+        preferred: 'chosen',
+        primaryPreferenceEvidence: 'single-model-judge',
+        scoredBeforePreference: true,
+        aggregateSha256: aggregate.identity.sha256,
+        judge: {
+          ...aggregate.judge,
+          sessionIds: Object.values(aggregate.sessions),
+          promptPath: aggregate.evidence.prompt?.path,
+          promptSha256: aggregate.evidence.prompt?.sha256,
+        },
+        orders: ['A/B', 'B/A'],
+        packetSha256: Object.values(aggregate.evidence.packets),
+        reviewSha256: Object.values(aggregate.evidence.reviews),
+        winners: result.winners,
+        stable: true,
+        scoreQualification: result.scoreQualification,
+        caseDigest: entry.caseSha256,
+        courseGroupSha256: entry.courseGroupSha256,
+        reviewPacketDigest: scionLessonKernelSha256(aggregate.evidence.packets),
+        sourceRowSha256: entry.caseSha256,
+        sourceContextSha256: scionLessonKernelSha256(JSON.stringify(entry.sourceContext)),
+        systemPromptSha256: scionLessonKernelSha256(row.systemPrompt),
+        servingPromptSha256: scionLessonKernelSha256(servingPrompt),
+        trainingPairSha256,
+        chosenArtifactSha256: scionLessonKernelSha256(chosen),
+        rejectedArtifactSha256: scionLessonKernelSha256(rejected),
+        humanEvidence: false,
+        independentEvidence: false,
+        claimBoundary:
+          'This is a stable score-qualified single-model judgment across isolated A/B and B/A orders; it is not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.',
+      };
+      return row;
     })
     .filter(Boolean);
 }

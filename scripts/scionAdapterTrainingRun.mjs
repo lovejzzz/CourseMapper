@@ -49,7 +49,9 @@ export const SCION_ORPO_DEFAULTS = Object.freeze({
   stepsPerEval: 200,
   stepsPerSave: 100,
   validationBatches: 4,
-  maxSequenceLength: 2048,
+  maxSequenceLength: 4096,
+  trainOnCompletions: true,
+  completionBoundary: 'gemma4-last-model-turn-header-v1',
   gradientCheckpointing: true,
   gradientAccumulationSteps: 2,
   loraRank: 16,
@@ -385,6 +387,10 @@ function validateHyperparameters(hyperparameters, lane, seed) {
   if (hyperparameters?.split !== 'train') issues.push('hyperparameter:split');
   if (hyperparameters?.validationSplit !== 'validation') issues.push('hyperparameter:validationSplit');
   if (hyperparameters?.gradientCheckpointing !== true) issues.push('hyperparameter:gradientCheckpointing');
+  if (hyperparameters?.trainOnCompletions !== true) issues.push('hyperparameter:trainOnCompletions');
+  if (hyperparameters?.completionBoundary !== 'gemma4-last-model-turn-header-v1') {
+    issues.push('hyperparameter:completionBoundary');
+  }
   if (lane === 'smoke' && hyperparameters?.iterations !== 10) issues.push('smoke-iterations');
   if (lane !== 'smoke' && hyperparameters?.iterations < 100) issues.push(`${lane}-iterations`);
   if (!Number.isSafeInteger(seed) || seed < 0 || seed > 0xffffffff) issues.push('seed');
@@ -419,6 +425,7 @@ function trainerArgs(hyperparameters) {
     String(hyperparameters.maxSequenceLength),
   ];
   if (hyperparameters.gradientCheckpointing) args.push('--grad-checkpoint');
+  if (hyperparameters.trainOnCompletions) args.push('--train-on-completions');
   args.push(
     '--gradient-accumulation-steps',
     String(hyperparameters.gradientAccumulationSteps),

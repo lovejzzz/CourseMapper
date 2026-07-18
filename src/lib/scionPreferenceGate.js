@@ -12,7 +12,8 @@ import {
   normalizeScionOptionIdentity,
 } from './scionAnswerKeyAlignment.js';
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
-import { validateScionCodexTrainingPreferenceEvidence } from './scionCodexTrainingEvidence.js';
+import { validateScionTrainingPreferenceEvidence } from './scionCodexTrainingEvidence.js';
+import { assessPublicScionKernelResponse } from './publicScionProvider.js';
 import { assessScionKeyTermContract } from './scionKeyTermContract.js';
 
 export { findScionExplanationKeyConflict } from './scionAnswerKeyAlignment.js';
@@ -290,6 +291,61 @@ export function assessScionKernelLesson(lesson = {}) {
   return { eligible: deduped.length === 0, issues: deduped, score: Math.max(0, 100 - deduped.length * 5) };
 }
 
+/** Validate the compact production lesson-kernel contract served by Scion. */
+export function assessScionLessonKernel(
+  lesson = {},
+  { sourceClaims = [], sourceTerm = '', semanticProfile = 'source-strict-v5', userPrompt = '' } = {},
+) {
+  if (clean(userPrompt)) {
+    const result = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [lesson] }),
+      userPrompt,
+      'blueprintEnrichment',
+    );
+    const prefix = `${clean(lesson?.lessonId)}:`;
+    const issues = (result.issues || []).map((issue) =>
+      prefix && String(issue).startsWith(prefix) ? String(issue).slice(prefix.length) : String(issue),
+    );
+    return { eligible: !result.needsRetry, issues, score: Math.max(0, 100 - issues.length * 5) };
+  }
+  const issues = [];
+  const facts = Array.isArray(lesson?.facts) ? lesson.facts : [];
+  if (facts.length !== 5) issues.push('facts-count');
+  facts.forEach((fact, index) => {
+    const value = clean(fact);
+    const words = value.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu)?.length || 0;
+    if (value.length < 20 || words < 8 || words > 20) issues.push(`fact-${index}:fact-length`);
+    if (!/[.!?][\])}"']?$/.test(value)) issues.push(`fact-${index}:truncated-fact`);
+  });
+
+  const keyTerms = Array.isArray(lesson?.keyTerms) ? lesson.keyTerms : [];
+  if (keyTerms.length !== 3) issues.push('key-terms-count');
+  keyTerms.forEach((term, index) => {
+    for (const issue of assessScionKeyTerm(term, {
+      lessonTitle: lesson?.lessonId || '',
+      knownFacts: sourceClaims,
+      sourceTerm,
+      semanticProfile,
+    }).issues) {
+      issues.push(`key-term-${index}:${issue}`);
+    }
+  });
+
+  const scenarioResult = analyzeDecisionScenario(lesson?.scenario || {});
+  if (!scenarioResult.ready) issues.push(...scenarioResult.issues.map((issue) => `scenario:${issue}`));
+
+  const mc = Array.isArray(lesson?.mc) ? lesson.mc : [];
+  if (mc.length !== 2) issues.push('mc-count');
+  mc.forEach((item, index) => {
+    for (const issue of assessScionMcItem(item, { semanticProfile, sourceClaims }).issues) {
+      issues.push(`mc-${index}:${issue}`);
+    }
+  });
+
+  const deduped = [...new Set(issues)];
+  return { eligible: deduped.length === 0, issues: deduped, score: Math.max(0, 100 - deduped.length * 5) };
+}
+
 function sortedIssues(issues = []) {
   return [...new Set(issues.map((issue) => clean(issue)).filter(Boolean))].sort();
 }
@@ -350,6 +406,7 @@ export function assessScionPreferencePair(
     sourceClaims = [],
     sourceTerm = '',
     knownFacts = sourceClaims,
+    userPrompt = '',
     allowFirstSentenceLexicalCue = semanticAdmission,
   } = {},
 ) {
@@ -374,6 +431,9 @@ export function assessScionPreferencePair(
   } else if (kind === 'lesson') {
     chosenResult = assessScionKernelLesson(chosen);
     rejectedResult = assessScionKernelLesson(rejected);
+  } else if (kind === 'lesson-kernel') {
+    chosenResult = assessScionLessonKernel(chosen, { sourceClaims, sourceTerm, userPrompt });
+    rejectedResult = assessScionLessonKernel(rejected, { sourceClaims, sourceTerm, userPrompt });
   } else {
     return { eligible: false, issues: ['unsupported-pair-kind'] };
   }
@@ -424,9 +484,9 @@ export function assessScionPreferencePair(
   }
   const singleModelJudgeMargin =
     preferenceEvidence?.kind === 'single-model-judge-preference' &&
-    validateScionCodexTrainingPreferenceEvidence(preferenceEvidence).valid;
+    validateScionTrainingPreferenceEvidence(preferenceEvidence).valid;
   if (preferenceEvidence?.kind === 'single-model-judge-preference' && !singleModelJudgeMargin) {
-    issues.push(...validateScionCodexTrainingPreferenceEvidence(preferenceEvidence).issues);
+    issues.push(...validateScionTrainingPreferenceEvidence(preferenceEvidence).issues);
   }
   if (
     preferenceEvidence?.kind === 'admission-and-key-repair' &&
