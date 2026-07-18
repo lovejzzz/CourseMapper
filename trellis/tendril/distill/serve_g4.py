@@ -122,8 +122,13 @@ def constrained_processor(req):
     if schema:
         try:
             return [_processor_cls(_grammar_for(schema), _llg_tokenizer)], "schema"
-        except Exception:  # noqa: BLE001 — schema too rich for llguidance
-            pass
+        except Exception as error:  # noqa: BLE001 — schema too rich for llguidance
+            if os.environ.get("TENDRIL_SERVER_DEBUG") == "1":
+                print(
+                    json.dumps({"schemaCompileError": str(error)[:500]}),
+                    file=sys.stderr,
+                    flush=True,
+                )
     if schema or req.get("jsonMode"):
         try:
             return [_processor_cls(_grammar_for(PERMISSIVE_OBJECT), _llg_tokenizer)], "object"
