@@ -741,7 +741,7 @@ export default function Landing({
                     <span className="font-semibold text-status-success">Connected</span>
                     {provider === PUBLIC_SCION_PROVIDER_ID && (
                       <span className="rounded-full border border-line-strong bg-surface px-2 py-1 text-label font-semibold text-ink-muted">
-                        AI draft
+                        On-device
                       </span>
                     )}
                     <button
