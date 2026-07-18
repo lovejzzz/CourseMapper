@@ -281,12 +281,21 @@ export function assessScionAdapterPromotion({
       Number(candidateCourse?.p1) === 0 &&
       Number.isFinite(candidateP2);
     const baseComparable =
-      baseCourse?.packageValid === true &&
+      (baseCourse?.evaluationValid === true || baseCourse?.packageValid === true) &&
       Number.isFinite(baseGrade) &&
-      Number(baseCourse?.p0) === 0 &&
-      Number(baseCourse?.p1) === 0 &&
-      Number.isFinite(baseP2);
-    const qualityNonRegression = qualityPass && baseComparable && candidateGrade >= baseGrade && candidateP2 <= baseP2;
+      Number.isSafeInteger(Number(baseCourse?.p0)) &&
+      Number(baseCourse?.p0) >= 0 &&
+      Number.isSafeInteger(Number(baseCourse?.p1)) &&
+      Number(baseCourse?.p1) >= 0 &&
+      Number.isSafeInteger(baseP2) &&
+      baseP2 >= 0;
+    const qualityNonRegression =
+      qualityPass &&
+      baseComparable &&
+      candidateGrade >= baseGrade &&
+      Number(candidateCourse?.p0) <= Number(baseCourse?.p0) &&
+      Number(candidateCourse?.p1) <= Number(baseCourse?.p1) &&
+      candidateP2 <= baseP2;
     const callCeilingPass =
       Number.isFinite(candidateCalls) && Number.isFinite(baseCalls) && candidateCalls <= Math.max(1, baseCalls * 1.05);
     return {
@@ -332,9 +341,7 @@ export function assessScionAdapterPromotion({
   const gates = {
     manifest: manifestValidation.valid,
     dataset:
-      manifest?.training?.datasetStatus === 'ready' &&
-      Number(manifest?.training?.pairCount) >= 3000 &&
-      Number(manifest?.training?.domainCount) >= 5,
+      manifestValidation.valid && manifest?.training?.datasetStatus === 'ready',
     matchedDomains: domains.length >= minimumDomains,
     pairedEvidence:
       courseChecks.length >= minimumDomains &&

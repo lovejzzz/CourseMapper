@@ -18,6 +18,7 @@ import { sha256File, verifyScionAdapterPackage } from '../scionAdapterPackage.mj
 import { computeScionAdapterPackageIdentity } from '../lib/scionBrowserDeviceMatrix.mjs';
 import { normalizeScionAdapterTaskFamily, resolveScionAdapterTaskRoute } from '../../src/lib/scionAdapterTaskScope.js';
 import { closeJsonContainersAtEof } from './jsonClosureRepair.mjs';
+import { valueConformsToSchema } from './jsonSchemaValidation.mjs';
 
 const PORT = Number(process.argv[2] ?? 8799);
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
@@ -266,10 +267,10 @@ function kernelLessonSchema({ mcCount, keyTermCount, requiresTargetLanguagePair 
     type: 'object',
     properties: {
       lessonId: { type: 'string' },
-      goal: str(8, 120),
-      outcomes: arr(str(12, 160), 3, 5),
-      async: arr(str(8, 160), 2, 3),
-      sync: arr(str(8, 160), 2, 3),
+      // Put the semantic kernel first. Gemma can elect EOS at a legal object
+      // boundary even under a required-property grammar; validation below
+      // rejects that partial, and this order keeps the most valuable atoms
+      // ahead of the session-authoring skin on successful generations.
       facts: arr(str(25, 140), 5, 8),
       keyTerms: arr(
         {
@@ -324,6 +325,10 @@ function kernelLessonSchema({ mcCount, keyTermCount, requiresTargetLanguagePair 
             },
           }
         : {}),
+      goal: str(8, 120),
+      outcomes: arr(str(12, 160), 3, 5),
+      async: arr(str(8, 160), 2, 3),
+      sync: arr(str(8, 160), 2, 3),
     },
     required: [
       'lessonId',
@@ -563,7 +568,19 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
         ...(temp > 0 ? { temperature: temp } : {}),
       });
       try {
-        return JSON.parse(text);
+        const parsed = JSON.parse(text);
+        if (!valueConformsToSchema(parsed, schema)) {
+          console.error(
+            JSON.stringify({
+              kernelChunk: label,
+              attempt: attempt + 1,
+              chars: text.length,
+              schemaInvalid: true,
+            }),
+          );
+          continue;
+        }
+        return parsed;
       } catch (error) {
         console.error(
           JSON.stringify({
@@ -1332,7 +1349,7 @@ const server = http.createServer(async (req, res) => {
                 : {}),
           });
       if (hasJsonContract && generated) {
-        const closure = closeJsonContainersAtEof(generated);
+        const closure = closeJsonContainersAtEof(generated, { schema: contract.schema || null });
         generated = closure.text;
         jsonClosureRepair = closure.addedClosers;
         if (jsonClosureRepair) {

@@ -46,6 +46,7 @@ import {
   matchEntityIds,
   parseNativePassBResponse,
   parseNativeSkeletonResponse,
+  recoverExplicitNamedReadings,
   pickNativeKernel,
   readAuthoringMode,
   recoverTruncatedSkeletonObject,
@@ -352,6 +353,44 @@ describe('Pass A skeleton contract (B1)', () => {
       reason: 'ordered-topic-misalignment',
       misalignedOrders: [8, 9, 10, 11, 12],
     });
+  });
+
+  it('restores an explicit instructor reading list when Pass A omits the registry', () => {
+    const sourceText =
+      'World Literature, a 14-lesson seminar. Required readings as named on the syllabus: Week 2 reads Gilgamesh; Week 3 reads The Odyssey; Week 4 reads Antigone; Week 5 reads selected poems of Li Bai and Du Fu; Week 6 reads The Thousand and One Nights; Week 7 reads Inferno; Week 9 reads Things Fall Apart; Week 10 reads One Hundred Years of Solitude; Week 11 reads The Waste Land; Week 12 reads The Library of Babel.';
+    const parsed = parseNativeSkeletonResponse(
+      JSON.stringify({
+        course: { name: 'World Literature' },
+        sessions: Array.from({ length: 14 }, (_, index) => ({
+          order: index + 1,
+          title: `Literature topic ${index + 1}`,
+        })),
+      }),
+      { expectedLessons: 14, sourceText },
+    );
+
+    expect(parsed.readings).toHaveLength(10);
+    expect(parsed.readings).toEqual(
+      expect.arrayContaining([
+        { id: 'r1', title: 'Gilgamesh', dueSession: 2 },
+        { id: 'r4', title: 'selected poems of Li Bai and Du Fu', dueSession: 5 },
+        { id: 'r10', title: 'The Library of Babel', dueSession: 12 },
+      ]),
+    );
+    expect(parsed.readingRecovery).toEqual({
+      kind: 'explicit-source-reading-list',
+      recoveredCount: 10,
+    });
+  });
+
+  it('refuses to infer reading titles from unlabeled prose or a malformed explicit list', () => {
+    expect(recoverExplicitNamedReadings('Weekly reading passages support discussion.', 14)).toEqual([]);
+    expect(
+      recoverExplicitNamedReadings(
+        'Required readings: Week 2 reads Gilgamesh; a later text may be selected by the instructor.',
+        14,
+      ),
+    ).toEqual([]);
   });
 
   it('synthesizes one weighted assessment per session when Pass A omits assessments', () => {

@@ -861,6 +861,76 @@ describe('Scion adapter tooling', () => {
       ]),
     );
 
+    const blockedBaseCourse = benchmark.courses[0];
+    const blockedBaseDir = path.join(baseRoundDir, `${blockedBaseCourse.courseId}--quiet--local`);
+    const blockedFixture = getCourseById(blockedBaseCourse.courseId);
+    await Promise.all([
+      fs.rm(path.join(blockedBaseDir, 'extracted'), { recursive: true, force: true }),
+      fs.rm(path.join(blockedBaseDir, 'package.zip'), { force: true }),
+      fs.rm(path.join(blockedBaseDir, 'project.json'), { force: true }),
+      fs.rm(path.join(blockedBaseDir, 'digest.json'), { force: true }),
+      fs.rm(path.join(blockedBaseDir, 'console.log'), { force: true }),
+    ]);
+    await Promise.all([
+      fs.writeFile(
+        path.join(blockedBaseDir, 'project-at-failure-finalizing-package.json'),
+        `${JSON.stringify({ hasGenerated: true, provider: 'local', promptText: blockedFixture.prompt })}\n`,
+      ),
+      fs.writeFile(
+        path.join(blockedBaseDir, 'digest-attempt1.json'),
+        `${JSON.stringify({
+          run: { lessonCount: blockedBaseCourse.lessonCount },
+          cost: { byTask: [{ task: 'scionPass', calls: 100 }] },
+          gates: {
+            finalStatus: 'blocked',
+            qualityStatus: 'graded',
+            qualityScore: 74,
+            qualityGrade: 'C',
+            qualityP0: 1,
+            qualityP1: 3,
+            qualityP2: 3,
+          },
+        })}\n`,
+      ),
+      fs.writeFile(path.join(blockedBaseDir, 'console-attempt1.log'), ''),
+      fs.writeFile(
+        path.join(blockedBaseDir, 'report.json'),
+        `${JSON.stringify({
+          run: {
+            status: 'failed',
+            durationMs: 1000,
+            phase: 'finalizing-package',
+            error: 'Package was not ready to download after finalization.',
+          },
+          normalized: { graded: false, status: 'no-artifacts' },
+        })}\n`,
+      ),
+    ]);
+    const blockedBaseResult = await produceScionPairedEvidence({
+      benchmarkPath,
+      datasetPath: datasetManifestPath,
+      adapterManifestPath: built.outputPath,
+      candidateRoundDir,
+      baseRoundDir,
+      outputDir: path.join(root, 'blocked-base-evidence'),
+    });
+    expect(blockedBaseResult.receipt).toMatchObject({ status: 'captured', promotionEligible: true });
+    expect(blockedBaseResult.baseEvidence.fullCourses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          courseId: blockedBaseCourse.courseId,
+          packageValid: false,
+          evaluationValid: true,
+          evaluationStatus: 'quality-blocked-evaluation',
+          packageGrade: 74,
+          p0: 1,
+          p1: 3,
+          p2: 3,
+          scionPassCalls: 100,
+        }),
+      ]),
+    );
+
     const tamperedCourse = path.join(
       candidateRoundDir,
       `${benchmark.courses[0].courseId}--quiet--local`,
@@ -1058,6 +1128,34 @@ describe('Scion adapter tooling', () => {
       },
     };
     bindSyntheticTrainingRun(manifest);
+    const taskScopedManifest = structuredClone(manifest);
+    const taskScopedDomains = [
+      'anatomy',
+      'computer-science',
+      'economics',
+      'geology',
+      'music-theory',
+      'physics',
+      'user-experience-design',
+    ];
+    Object.assign(taskScopedManifest.training, {
+      pairCount: 129,
+      domainCount: 7,
+      groupCount: 25,
+      modelJudgePairCount: 129,
+      modelJudgeDomainCount: 7,
+      domainGroupCounts: Object.fromEntries(taskScopedDomains.map((domain) => [domain, 2])),
+      modelJudgeDomainCounts: Object.fromEntries(taskScopedDomains.map((domain) => [domain, 8])),
+      splitCounts: { train: 106, valid: 12, test: 11 },
+      splitDomainCounts: { train: 7, valid: 7, test: 7 },
+      taskScope: {
+        ...taskScopedManifest.training.taskScope,
+        families: [{ id: 'lesson-kernel', rows: 129 }],
+      },
+    });
+    const taskScopedGate = assessScionAdapterPromotion({ manifest: taskScopedManifest });
+    expect(taskScopedGate.gates).toMatchObject({ manifest: true, dataset: true });
+
     const adapterPackageIdentitySha256 = computeScionAdapterPackageIdentity(manifest).sha256;
     const domains = ['ethics', 'music', 'ux', 'geology', 'literature'];
     const pairedComparison = (domain, index, variant) => ({
@@ -1151,6 +1249,43 @@ describe('Scion adapter tooling', () => {
       ),
     });
     expect(report).toMatchObject({ status: 'pass', promotable: true, efficiency: { medianReduction: 0.25 } });
+
+    Object.assign(baseEvidence[0].fullCourses[0], {
+      packageValid: false,
+      evaluationValid: true,
+      evaluationStatus: 'quality-blocked-evaluation',
+      packageGrade: 74,
+      p0: 1,
+      p1: 3,
+      p2: 3,
+    });
+    const improvedOverBlockedBase = assessScionAdapterPromotion({
+      manifest,
+      adapterPackageIdentitySha256,
+      candidateEvidence,
+      baseEvidence,
+      verifiedExternalEvidence: Object.fromEntries(
+        ['factual-canaries', 'single-model-judge', 'browser-device-matrix', 'production-canaries'].map((type) => [
+          type,
+          true,
+        ]),
+      ),
+    });
+    expect(improvedOverBlockedBase).toMatchObject({ status: 'pass', promotable: true });
+    expect(improvedOverBlockedBase.courseChecks[0]).toMatchObject({
+      baseComparable: true,
+      qualityNonRegression: true,
+      baseGrade: 74,
+    });
+    Object.assign(baseEvidence[0].fullCourses[0], {
+      packageValid: true,
+      evaluationValid: true,
+      evaluationStatus: 'publishable-package',
+      packageGrade: 99,
+      p0: 0,
+      p1: 0,
+      p2: 0,
+    });
 
     candidateEvidence[0].graderBinding.transitiveBound = false;
     const unboundGrader = assessScionAdapterPromotion({

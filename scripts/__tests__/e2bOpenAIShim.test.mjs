@@ -6,6 +6,7 @@ import path from 'node:path';
 import { afterEach, expect, it } from 'vitest';
 
 import { closeJsonContainersAtEof } from '../crucible/jsonClosureRepair.mjs';
+import { valueConformsToSchema } from '../crucible/jsonSchemaValidation.mjs';
 
 let serverProcess = null;
 let fixtureDir = null;
@@ -48,6 +49,36 @@ it('refuses to invent truncated JSON content or repair mismatched structure', ()
   for (const text of ['{"text":"unfinished', '{"value":', '{"items":[1,', '{"items":[1}', '{"ok":true}}']) {
     expect(closeJsonContainersAtEof(text)).toEqual({ text, addedClosers: '' });
   }
+});
+
+it('does not confuse syntactic closure with schema-complete lesson content', () => {
+  const schema = {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      lessons: {
+        type: 'array',
+        minItems: 1,
+        maxItems: 1,
+        items: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            lessonId: { type: 'string', enum: ['lesson-2'] },
+            facts: { type: 'array', minItems: 1, items: { type: 'string' } },
+          },
+          required: ['lessonId', 'facts'],
+        },
+      },
+    },
+    required: ['lessons'],
+  };
+  const partial = '{"lessons":[{"lessonId":"lesson-2"}';
+  expect(closeJsonContainersAtEof(partial, { schema })).toEqual({ text: partial, addedClosers: '' });
+  expect(valueConformsToSchema({ lessons: [{ lessonId: 'lesson-2' }] }, schema)).toBe(false);
+  expect(valueConformsToSchema({ lessons: [{ lessonId: 'lesson-2', facts: ['Grounded fact.'] }] }, schema)).toBe(
+    true,
+  );
 });
 
 it('reports queued/completed model work and attributes inner calls to the HTTP envelope', async () => {
@@ -151,14 +182,23 @@ function value(schema = {}) {
   if (schema.type === 'integer') return Number(schema.minimum) || 0;
   if (schema.type === 'number') return Number(schema.minimum) || 0;
   if (schema.type === 'boolean') return false;
-  if (schema.type === 'string') return 'x'.repeat(Math.max(1, Number(schema.minLength) || 1));
+  if (schema.type === 'string') {
+    const repetitions = Number(String(schema.pattern || '').match(/\\)\\{(\\d+),/)?.[1] || 0);
+    if (schema.pattern) return Array.from({ length: repetitions + 1 }, () => 'valid').join(' ');
+    return 'x'.repeat(Math.max(1, Number(schema.minLength) || 1));
+  }
   return null;
 }
+let partialKernelSent = false;
 const input = readline.createInterface({ input: process.stdin });
 input.on('line', (line) => {
   const request = JSON.parse(line);
   fs.appendFileSync(process.env.SCHEMA_LOG, JSON.stringify(request.schema || null) + '\\n');
   let text = JSON.stringify(value(request.schema || { type: 'object', properties: {}, required: [] }));
+  if (!partialKernelSent && request.user.includes('Testing Basics') && request.user.includes('Return ONLY valid JSON')) {
+    partialKernelSent = true;
+    text = '{"lessons":[{"lessonId":"lesson-1"}]}';
+  }
   if (request.user.includes('CONTENT-SOURCED lessons')) text = text.slice(0, -2);
   process.stdout.write(JSON.stringify({ id: request.id, text, constrained: 'object', adapterMode: request.adapterMode, nativeAdapterActive: request.adapterMode === 'adapter', adapterScale: request.adapterMode === 'adapter' ? 1 : 0 }) + '\\n');
 });
@@ -251,7 +291,7 @@ input.on('line', (line) => {
                   additionalProperties: false,
                   properties: {
                     lessonId: { type: 'string', enum: ['lesson-2'] },
-                    goal: { type: 'string', pattern: '^\\\\S{1,24}( \\\\S{1,24}){0,23}$' },
+                    goal: { type: 'string', pattern: '^\\S{1,24}( \\S{1,24}){0,23}$' },
                   },
                   required: ['lessonId', 'goal'],
                 },

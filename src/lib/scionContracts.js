@@ -159,8 +159,8 @@ export function kernelBatchSchemaProfile({
       type: 'object',
       properties: {
         lessonId: { type: 'string', enum: kernelIds },
-        ...sessionFieldSchemas(),
         ...kernelFieldSchemas({ mcCount, keyTermCount, requiresTargetLanguagePair }),
+        ...sessionFieldSchemas(),
       },
       required: [
         'lessonId',

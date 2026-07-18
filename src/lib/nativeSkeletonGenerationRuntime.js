@@ -104,6 +104,18 @@ export async function runNativeSkeletonGenerationFlow(input = [], output = []) {
         'warning',
       );
     }
+    if (skeleton.readingRecovery) {
+      recordApiCallEvent?.({
+        type: 'nativeSkeletonRecovered',
+        label: 'Recovered instructor-named readings',
+        detail: `${skeleton.readingRecovery.recoveredCount} explicitly listed reading titles restored with their due sessions`,
+      });
+      addLog?.(
+        currentModelName,
+        `Restored ${skeleton.readingRecovery.recoveredCount} instructor-named readings from the explicit source list`,
+        'warning',
+      );
+    }
     const nativeMap = nativeAuthoring.buildNativeWireMap(skeleton);
     nativeAuthoring.stashNativeSkeleton(skeleton);
     return completeCourseMapGeneration(

@@ -352,6 +352,49 @@ function recoverExplicitLessonSequence(sourceText, expectedCount) {
   return topics.length === expectedCount ? topics : [];
 }
 
+const EXPLICIT_READING_LIST_HEADER_RE =
+  /\b(?:required|assigned)\s+(?:readings?|texts?)(?:\s+as\s+named\s+on\s+the\s+syllabus)?\s*:\s*/i;
+const EXPLICIT_READING_ENTRY_RE =
+  /^(?:week|lesson|session)\s+(\d{1,2})\s+(?:reads?|assigns?|uses?)\s+(.+?)\s*[.!?]?$/i;
+
+/**
+ * Recover only instructor-explicit named readings from a compact source list.
+ * The compiler requires both a labelled readings header and a due-session
+ * marker on every semicolon-delimited entry, so ordinary topic prose can
+ * never become a title by inference.
+ */
+export function recoverExplicitNamedReadings(sourceText, sessionCount) {
+  if (!Number.isSafeInteger(sessionCount) || sessionCount < 1) return [];
+  const source = String(sourceText || '');
+  const header = EXPLICIT_READING_LIST_HEADER_RE.exec(source);
+  if (!header) return [];
+  const listBlock = source
+    .slice(header.index + header[0].length)
+    .split(/\n\s*\n/)[0]
+    .trim();
+  if (!listBlock) return [];
+  const recovered = [];
+  const dueSessions = new Set();
+  for (const segment of listBlock.split(/\s*;\s*/)) {
+    const match = EXPLICIT_READING_ENTRY_RE.exec(segment.trim());
+    if (!match) return [];
+    const dueSession = Number(match[1]);
+    const title = cleanText(match[2], 240).replace(/[.!?]+$/, '').trim();
+    if (
+      !Number.isSafeInteger(dueSession) ||
+      dueSession < 1 ||
+      dueSession > sessionCount ||
+      !title ||
+      dueSessions.has(dueSession)
+    ) {
+      return [];
+    }
+    dueSessions.add(dueSession);
+    recovered.push({ id: `r${recovered.length + 1}`, title, dueSession });
+  }
+  return recovered;
+}
+
 const LESSON_SEQUENCE_GENERIC_WORDS = new Set([
   'and',
   'course',
@@ -756,13 +799,16 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
       ? parsedAssessments
       : synthesizeSessionAssessments(sessions);
 
-  const readings = asArray(parsed.readings)
+  const parsedReadings = asArray(parsed.readings)
     .map((entry, index) => {
       const title = cleanText(entry?.title, 240);
       if (!title) return null;
       return { id: cleanText(entry?.id, 24) || `r${index + 1}`, title, dueSession: clampDue(entry?.dueSession) };
     })
     .filter(Boolean);
+  const recoveredReadings =
+    parsedReadings.length === 0 ? recoverExplicitNamedReadings(sourceText, sessions.length) : [];
+  const readings = parsedReadings.length > 0 ? parsedReadings : recoveredReadings;
 
   // v0.14.7 WS-B1: per-session supporting resources/materials — same shape
   // and discipline as readings (verbatim titles, clamped dueSession, ids
@@ -797,6 +843,14 @@ export function parseNativeSkeletonResponse(text, { expectedLessons = null, sour
         }
       : {}),
     ...(sessionSequenceRecovery ? { sessionSequenceRecovery } : {}),
+    ...(recoveredReadings.length > 0
+      ? {
+          readingRecovery: {
+            kind: 'explicit-source-reading-list',
+            recoveredCount: recoveredReadings.length,
+          },
+        }
+      : {}),
     ...(assessmentListRecovery.fusedEntryCount > 0 ? { assessmentListRecovery } : {}),
     // Only stamped when the caller supplied the brief text — absent means
     // "signal unknown" and the missing-resources lint stays un-armed (old

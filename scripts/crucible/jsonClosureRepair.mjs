@@ -8,7 +8,9 @@
  * make the original prefix valid JSON, the prefix is returned unchanged and
  * the application's parser/admission layer rejects it normally.
  */
-export function closeJsonContainersAtEof(value) {
+import { valueConformsToSchema } from './jsonSchemaValidation.mjs';
+
+export function closeJsonContainersAtEof(value, { schema = null } = {}) {
   const text = String(value || '').trim();
   if (!text) return { text, addedClosers: '' };
   try {
@@ -43,7 +45,8 @@ export function closeJsonContainersAtEof(value) {
   const addedClosers = stack.reverse().join('');
   const closed = `${text}${addedClosers}`;
   try {
-    JSON.parse(closed);
+    const parsed = JSON.parse(closed);
+    if (schema && !valueConformsToSchema(parsed, schema)) return { text, addedClosers: '' };
     return { text: closed, addedClosers };
   } catch {
     return { text, addedClosers: '' };

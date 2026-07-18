@@ -517,6 +517,75 @@ async function regularFileReceipt(filePath) {
   return { path: filePath, bytes: stats.size, sha256: await sha256File(filePath) };
 }
 
+function exactlyOneMatchingFile(fileNames, pattern, label, courseId) {
+  const matches = fileNames.filter((file) => pattern.test(file)).sort();
+  if (matches.length !== 1) {
+    throw new Error(`Expected exactly one ${label} for ${courseId}; found ${matches.length}.`);
+  }
+  return matches[0];
+}
+
+function selectCourseArtifactSet({ courseId, fileNames, report }) {
+  const zipNames = fileNames.filter((file) => file.endsWith('.zip')).sort();
+  const hasPublishableShape =
+    report?.run?.status === 'passed' &&
+    fileNames.includes('project.json') &&
+    fileNames.includes('digest.json') &&
+    fileNames.includes('console.log') &&
+    fileNames.includes('extracted') &&
+    zipNames.length === 1;
+  if (hasPublishableShape) {
+    return {
+      kind: 'publishable-package',
+      projectName: 'project.json',
+      digestName: 'digest.json',
+      consoleName: 'console.log',
+      zipName: zipNames[0],
+      receiptFiles: [
+        'course.json',
+        'project.json',
+        'report.json',
+        'digest.json',
+        'console.log',
+        path.join('extracted', 'PACKAGE_MANIFEST.json'),
+        zipNames[0],
+      ],
+    };
+  }
+
+  const failurePhase = clean(report?.run?.phase);
+  const deterministicQualityBlock =
+    report?.run?.status === 'failed' &&
+    failurePhase === 'finalizing-package' &&
+    /Package was not ready to download after finalization/i.test(clean(report?.run?.error)) &&
+    zipNames.length === 0 &&
+    !fileNames.includes('extracted');
+  if (!deterministicQualityBlock) {
+    throw new Error(`Course ${courseId} has neither a publishable package nor a deterministic quality-block artifact set.`);
+  }
+  const projectName = exactlyOneMatchingFile(
+    fileNames,
+    /^project-at-failure-finalizing-package\.json$/,
+    'quality-block project dump',
+    courseId,
+  );
+  const digestName = exactlyOneMatchingFile(fileNames, /^digest(?:-attempt\d+)?\.json$/, 'quality-block digest', courseId);
+  const consoleName = exactlyOneMatchingFile(
+    fileNames,
+    /^console(?:-attempt\d+)?\.log$/,
+    'quality-block console log',
+    courseId,
+  );
+  return {
+    kind: 'quality-blocked-evaluation',
+    projectName,
+    digestName,
+    consoleName,
+    zipName: null,
+    receiptFiles: ['course.json', projectName, 'report.json', digestName, consoleName],
+  };
+}
+
 async function buildCourseEvidence({
   courseDir,
   course,
@@ -527,30 +596,27 @@ async function buildCourseEvidence({
   graderImplementationSha256,
   runtimeTaskPolicy,
 }) {
-  const [report, digest, packageManifest, packageManifestText, project, consoleText, fileNames] = await Promise.all([
+  const [report, fileNames] = await Promise.all([
     readJson(path.join(courseDir, 'report.json')),
-    readJson(path.join(courseDir, 'digest.json')),
-    readJson(path.join(courseDir, 'extracted', 'PACKAGE_MANIFEST.json')),
-    fs.readFile(path.join(courseDir, 'extracted', 'PACKAGE_MANIFEST.json'), 'utf8'),
-    readJson(path.join(courseDir, 'project.json')),
-    fs.readFile(path.join(courseDir, 'console.log'), 'utf8'),
     fs.readdir(courseDir),
   ]);
-  const zipNames = fileNames.filter((file) => file.endsWith('.zip')).sort();
-  if (zipNames.length !== 1) {
-    throw new Error(`Expected exactly one ZIP for ${benchmarkCourse.courseId}; found ${zipNames.length}.`);
-  }
-  const [zipName] = zipNames;
-  const receiptFiles = [
-    'course.json',
-    'project.json',
-    'report.json',
-    'digest.json',
-    'console.log',
-    path.join('extracted', 'PACKAGE_MANIFEST.json'),
-    zipName,
-  ];
-  const receipts = await Promise.all(receiptFiles.map((file) => regularFileReceipt(path.join(courseDir, file))));
+  const artifactSet = selectCourseArtifactSet({
+    courseId: benchmarkCourse.courseId,
+    fileNames,
+    report,
+  });
+  const [digest, project, consoleText, packageManifestText] = await Promise.all([
+    readJson(path.join(courseDir, artifactSet.digestName)),
+    readJson(path.join(courseDir, artifactSet.projectName)),
+    fs.readFile(path.join(courseDir, artifactSet.consoleName), 'utf8'),
+    artifactSet.kind === 'publishable-package'
+      ? fs.readFile(path.join(courseDir, 'extracted', 'PACKAGE_MANIFEST.json'), 'utf8')
+      : Promise.resolve(''),
+  ]);
+  const packageManifest = packageManifestText ? JSON.parse(packageManifestText) : null;
+  const receipts = await Promise.all(
+    artifactSet.receiptFiles.map((file) => regularFileReceipt(path.join(courseDir, file))),
+  );
   const artifactReceiptSha256 = sha256Value(
     receipts.map((entry) => ({
       path: path.relative(courseDir, entry.path).replaceAll('\\', '/'),
@@ -572,10 +638,12 @@ async function buildCourseEvidence({
   ) {
     throw new Error(`Course ${benchmarkCourse.courseId} does not match the frozen generated input.`);
   }
-  const zip = await JSZip.loadAsync(await fs.readFile(path.join(courseDir, zipName)));
-  const embeddedManifest = zip.file('PACKAGE_MANIFEST.json');
-  if (!embeddedManifest || (await embeddedManifest.async('string')) !== packageManifestText) {
-    throw new Error(`Course ${benchmarkCourse.courseId} ZIP manifest does not match its extracted manifest.`);
+  if (artifactSet.kind === 'publishable-package') {
+    const zip = await JSZip.loadAsync(await fs.readFile(path.join(courseDir, artifactSet.zipName)));
+    const embeddedManifest = zip.file('PACKAGE_MANIFEST.json');
+    if (!embeddedManifest || (await embeddedManifest.async('string')) !== packageManifestText) {
+      throw new Error(`Course ${benchmarkCourse.courseId} ZIP manifest does not match its extracted manifest.`);
+    }
   }
   if (
     comparison.protocolVersion !== SCION_PAIRED_COMPARISON_PROTOCOL ||
@@ -639,21 +707,62 @@ async function buildCourseEvidence({
     compilerBurden.scion.unattributedCalls = compilerBurden.scion.calls;
   }
   const quality = packageManifest?.quality || {};
-  const zipReceipt = receipts.find((entry) => entry.path.endsWith(zipName));
+  const qualityGates = digest?.gates || {};
+  const packageGrade =
+    artifactSet.kind === 'publishable-package'
+      ? Number(report?.normalized?.overall)
+      : Number(qualityGates?.qualityScore);
+  const p0 =
+    artifactSet.kind === 'publishable-package'
+      ? Number(report?.normalized?.p0Count) || 0
+      : Number(qualityGates?.qualityP0);
+  const p1 =
+    artifactSet.kind === 'publishable-package'
+      ? Number(report?.normalized?.p1Count) || 0
+      : Number(qualityGates?.qualityP1);
+  const p2 =
+    artifactSet.kind === 'publishable-package'
+      ? Number(quality?.findingCounts?.p2) || 0
+      : Number(qualityGates?.qualityP2);
+  const zipReceipt = artifactSet.zipName
+    ? receipts.find((entry) => entry.path.endsWith(artifactSet.zipName))
+    : null;
+  const publishableEvaluationValid =
+    artifactSet.kind === 'publishable-package' &&
+    report?.run?.status === 'passed' &&
+    Number(report?.normalized?.overall) === Number(quality?.score) &&
+    Number(zipReceipt?.bytes) > 10_000 &&
+    ['ready', 'warnings'].includes(packageManifest?.readiness?.status) &&
+    Number(packageManifest?.readiness?.blockers || 0) === 0 &&
+    packageManifest?.readiness?.isBlocked !== true;
+  const packageValid = publishableEvaluationValid && packageManifest?.readiness?.status === 'ready';
+  const deterministicQualityBlockValid =
+    artifactSet.kind === 'quality-blocked-evaluation' &&
+    qualityGates?.finalStatus === 'blocked' &&
+    qualityGates?.qualityStatus === 'graded' &&
+    Number.isFinite(packageGrade) &&
+    Number.isSafeInteger(p0) &&
+    p0 >= 0 &&
+    Number.isSafeInteger(p1) &&
+    p1 >= 0 &&
+    Number.isSafeInteger(p2) &&
+    p2 >= 0 &&
+    Number(digest?.run?.lessonCount) === Number(course.lessonCount);
   return {
     domain: benchmarkCourse.domain,
     courseId: benchmarkCourse.courseId,
     lessonCount: Number(course.lessonCount) || 0,
-    packageGrade: Number(report?.normalized?.overall),
-    packageLetterGrade: report?.normalized?.overallGrade || '',
-    p0: Number(report?.normalized?.p0Count) || 0,
-    p1: Number(report?.normalized?.p1Count) || 0,
-    p2: Number(quality?.findingCounts?.p2) || 0,
-    packageValid:
-      report?.run?.status === 'passed' &&
-      Number(report?.normalized?.overall) === Number(quality?.score) &&
-      Number(zipReceipt?.bytes) > 10_000 &&
-      packageManifest?.readiness?.status === 'ready',
+    packageGrade,
+    packageLetterGrade:
+      artifactSet.kind === 'publishable-package'
+        ? report?.normalized?.overallGrade || ''
+        : clean(qualityGates?.qualityGrade),
+    p0,
+    p1,
+    p2,
+    packageValid,
+    evaluationValid: publishableEvaluationValid || deterministicQualityBlockValid,
+    evaluationStatus: artifactSet.kind,
     durationMs: Number(report?.run?.durationMs) || null,
     scionPassCalls: Number(task('scionPass').calls) || compilerBurden.scion.calls,
     compilerBurden,
@@ -777,7 +886,11 @@ export async function produceScionPairedEvidence({
   const receipt = {
     ...shared,
     status: 'captured',
-    promotionEligible: !allowSmoke && verified.graderBinding.transitiveBound,
+    promotionEligible:
+      !allowSmoke &&
+      verified.graderBinding.transitiveBound &&
+      candidateCourses.every((course) => course.packageValid === true) &&
+      baseCourses.every((course) => course.evaluationValid === true),
     domains: verified.benchmark.courses.map((course) => course.domain),
     pairIds: candidateCourses.map((course) => course.comparison.pairId),
     candidateEvidenceCanonicalSha256: sha256Value(candidateEvidence),

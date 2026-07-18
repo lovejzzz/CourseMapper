@@ -94,6 +94,8 @@ export async function runScionPasses({
       promptLessons: prompt.lessons,
       generateJson,
       contentSourcedLessonIds,
+      expectedMcCount: (prompt.itemPlan || []).filter((slot) => slot.type === 'multiple_choice').length || 4,
+      minimumKeyTermCount: 4,
       courseName,
     });
     if (passOutcome.events.length > 0) {
