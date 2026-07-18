@@ -38,7 +38,9 @@ export default function LessonScopeSelector({
 
       <div className="flex gap-2">
         <button
+          type="button"
           onClick={() => setLessonScope({ type: 'all' })}
+          aria-pressed={lessonScope.type === 'all'}
           className={`tactile min-h-11 flex-1 rounded-lg text-xs font-semibold transition-all duration-200 ${
             lessonScope.type === 'all'
               ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
@@ -48,7 +50,9 @@ export default function LessonScopeSelector({
           All {total > 0 ? `(${total} lessons)` : 'lessons'}
         </button>
         <button
+          type="button"
           onClick={() => setLessonScope({ type: 'specific', indices: lessonScope.indices || [] })}
+          aria-pressed={lessonScope.type === 'specific'}
           className={`tactile min-h-11 flex-1 rounded-lg text-xs font-semibold transition-all duration-200 ${
             lessonScope.type === 'specific'
               ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
@@ -83,6 +87,7 @@ export default function LessonScopeSelector({
                 </span>
                 <div className="flex gap-2">
                   <button
+                    type="button"
                     onClick={() => setLessonScope({ type: 'specific', indices: rows.map((r) => r.index) })}
                     className="min-h-11 px-2 text-[10px] font-semibold text-blue-600 transition-colors hover:text-blue-800 dark:text-blue-200"
                   >
@@ -90,6 +95,7 @@ export default function LessonScopeSelector({
                   </button>
                   <span className="text-slate-300 text-[10px]">·</span>
                   <button
+                    type="button"
                     onClick={() => setLessonScope({ type: 'specific', indices: [] })}
                     className="min-h-11 px-2 text-[10px] font-semibold text-slate-400 transition-colors hover:text-slate-600"
                   >
@@ -103,6 +109,8 @@ export default function LessonScopeSelector({
                   return (
                     <button
                       key={index}
+                      type="button"
+                      aria-pressed={isSelected}
                       onClick={() => {
                         const current = lessonScope.indices || [];
                         const next = isSelected

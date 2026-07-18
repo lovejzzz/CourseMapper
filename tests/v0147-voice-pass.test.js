@@ -441,6 +441,28 @@ describe('applyVoiceResults — voiced surfaces apply, failures keep compiled te
 
 // ── Orchestration: budget, errors, openers, the texture self-check ─────────
 describe('runVoicePass — honest budgets and the v2 variety/texture gates', () => {
+  it('skips the provider call when selected prose is already at the texture ceiling', async () => {
+    const { courseMap, deliverables } = compiledFixture(1);
+    const selected = selectVoiceSurfaces({ deliverables, courseMap });
+    expect(selected.length).toBeGreaterThan(0);
+    let calls = 0;
+
+    const result = await runVoicePass({
+      deliverables,
+      courseMap,
+      callModel: async () => {
+        calls += 1;
+        return { fullText: '{"rewrites":[]}' };
+      },
+    });
+
+    expect(calls).toBe(0);
+    expect(result.spentUsd).toBe(0);
+    expect(result.selfCheck).toEqual({ pre: 100, post: 100, verdict: 'skipped' });
+    expect(result.skipped).toHaveLength(selected.length);
+    expect(result.deliverables).toEqual(deliverables);
+  });
+
   it('stops at the budget, voices the paid batch, and reports the rest as fallbacks', async () => {
     const { courseMap, deliverables } = compiledFixture(8);
     const allSurfaces = selectVoiceSurfaces({ deliverables, courseMap, maxSurfaces: VOICE_MAX_SURFACES + 4 });

@@ -443,6 +443,31 @@ export async function runVoicePass({
   const slotValues = textureSlotValues(courseMap);
   const preTexture = computeTexture(textureDocsFor(deliverables, touchedFeatures), { slotValues });
 
+  // A bounded 100-point ruler has no headroom above 100. Calling the model in
+  // that state can only tie or regress, after which the self-check must revert
+  // the work. Skip the impossible rewrite up front instead of spending time,
+  // tokens, and battery to prove the same ceiling again.
+  if (surfaces.length > 0 && preTexture.score >= 100) {
+    const skipped = surfaces.map((surface) => ({
+      surfaceId: surface.surfaceId,
+      reason: 'voice-surface texture already at the 100-point ceiling',
+    }));
+    const selfCheck = { pre: preTexture.score, post: preTexture.score, verdict: 'skipped' };
+    emit({
+      type: 'voicePassDone',
+      detail: `voiced 0 surface(s), 0 fallback(s) (~$0.000) — voice-surface texture ${preTexture.score} already at ceiling; skipped ${skipped.length} rewrite(s)`,
+    });
+    return {
+      deliverables,
+      voiced: [],
+      fallbacks: [],
+      skipped,
+      spentUsd: 0,
+      exhausted: false,
+      selfCheck,
+    };
+  }
+
   let current = deliverables;
   const voiced = [];
   const fallbacks = [];

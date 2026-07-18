@@ -6,6 +6,7 @@ import { useAIConfig } from './contexts/AIConfigContext';
 import { useCourse } from './contexts/CourseContext';
 import { useUI } from './contexts/UIContext';
 import { PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
+import { clearSetupRecovery, readSetupRecovery, stageSetupRecovery } from './lib/setupRecovery';
 import useScionRuntimeStatus from './hooks/useScionRuntimeStatus';
 
 const Landing = lazy(() => import('./screens/Landing'));
@@ -31,8 +32,12 @@ export default function App() {
   const scionEnabled = provider === PUBLIC_SCION_PROVIDER_ID;
   const scionRuntimeStatus = useScionRuntimeStatus(scionEnabled);
   const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
-  const [flowActive, setFlowActive] = useState(() => screen !== 'landing');
-  const [startupAction, setStartupAction] = useState(null);
+  const [setupRecovery] = useState(readSetupRecovery);
+  const canResumeRecoveredSetup = Boolean(setupRecovery && !setupRecovery.hadAttachments);
+  const [flowActive, setFlowActive] = useState(() => screen !== 'landing' || canResumeRecoveredSetup);
+  const [startupAction, setStartupAction] = useState(() =>
+    canResumeRecoveredSetup ? { ...setupRecovery.action, recoveredAt: Date.now() } : null,
+  );
   const [hasSavedSession, setHasSavedSession] = useState(false);
   const [developerMode, setDeveloperModeState] = useState(readDeveloperMode);
 
@@ -83,25 +88,27 @@ export default function App() {
   );
 
   const handleContinue = useCallback(() => {
+    stageSetupRecovery({ promptText, files, action: { type: 'continue' } });
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
     setHasSavedSession(false);
     resetGeneratedProjectState();
     startFlow({ type: 'continue' }, 'features');
-  }, [resetGeneratedProjectState, startFlow]);
+  }, [files, promptText, resetGeneratedProjectState, startFlow]);
 
   // v0.14.7 WS-F2: quick start from the primary landing — one decision to
   // first value. promptText/files live in shared context, so the flow reads
   // them after mount; the action just names the intent.
   const handleQuickStart = useCallback(() => {
+    stageSetupRecovery({ promptText, files, action: { type: 'quickStart' } });
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
     setHasSavedSession(false);
     resetGeneratedProjectState();
     startFlow({ type: 'quickStart' });
-  }, [resetGeneratedProjectState, startFlow]);
+  }, [files, promptText, resetGeneratedProjectState, startFlow]);
 
   const handleRestoreSession = useCallback(() => {
     startFlow({ type: 'restore' });
@@ -130,6 +137,7 @@ export default function App() {
   );
 
   const handleReturnToLanding = useCallback(() => {
+    clearSetupRecovery();
     setStartupAction(null);
     setFlowActive(false);
     setShowProjectPicker(false);
@@ -143,6 +151,7 @@ export default function App() {
   }, [setScreen, setShowProjectPicker]);
 
   const handleDismissSavedSession = useCallback(() => {
+    clearSetupRecovery();
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
@@ -172,6 +181,7 @@ export default function App() {
         <Landing
           onGenerate={handleContinue}
           onQuickStart={handleQuickStart}
+          setupRecoveryNotice={setupRecovery?.hadAttachments ? setupRecovery : null}
           canGenerate={
             (files.length > 0 || promptText.trim().length > 0) &&
             (providerIsKeyless || apiKey.trim()) &&

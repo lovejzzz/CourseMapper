@@ -2,9 +2,27 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 and v0.16.49 turned its observed losses plus browser audits into stricter admission and a more trustworthy Living Course Compiler; v0.16.50 closes the full frozen semantic-loss set and verifies terminal evidence, custom compilation, Agent chat, responsive handoff, grading, and the exact exported file in one real browser-local Scion run. A quality adapter, held-out adapter win, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 and v0.16.49 turned its observed losses plus browser audits into stricter admission and a more trustworthy Living Course Compiler; v0.16.50 closed the full frozen semantic-loss set and verified terminal evidence, custom compilation, Agent chat, responsive handoff, grading, and the exact exported file in one real browser-local Scion run; v0.16.51 preserves the brief across deployments, routes Agent audits to real tools, clarifies progress, removes impossible-at-ceiling voice calls, and hardens desktop and phone setup semantics. A quality adapter, held-out adapter win, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
 
 **Release boundary:** no current public Scion request claims to use trained weights
+
+## v0.16.51 — Make Every Handoff Feel Trustworthy
+
+**Goal:** inspect the complete setup and handoff experience frame by frame, then repair every observed place where a valid state looked broken, an action claimed work it did not perform, an app update discarded user intent, or model work could be avoided without lowering quality.
+
+**Workflow trust:** a short-lived setup receipt is staged before lazy routes load. A stale deployed chunk can refresh the app without erasing the course brief or intended safe step. Attached source bytes are never persisted by this recovery path; their names are retained only so the restored landing page can ask for reattachment.
+
+**Agent and progress truth:** course-map Review and Check starters now call the deterministic package audit instead of sending audit-shaped prose to the advisory model. Living Course Compiler labels the aggregate number Overall so it is distinct from model-download progress. The voice pass refuses to spend a provider call when the candidate surface already scores texture 100 and records the skipped work in its receipt.
+
+**Interaction semantics:** valid local Scion setup and deployment recovery use informational language, while amber remains reserved for attention. Recommended materials, scope mode, and individual lesson controls expose their actual pressed state. The quality report is a labeled modal with initial close focus and Escape behavior.
+
+**Frame proof:** the release candidate was replayed at desktop size and 390×844 from populated brief through materials and generation setup. The forced-reload path restored the brief; the phone layout retained one-line primary action copy, clean attachment guidance, an operable lesson grid, and zero horizontal document overflow. Five captured frames are hash-bound in `docs/evidence/SCION_V01651_EXPERIENCE_AUDIT.json`.
+
+**Lane:** v0.16.51 is compiler, orchestration, accessibility, efficiency, and workflow-trust improvement. Shared setup, progress, audit, and compiler behavior can benefit user-selected providers; the public-Gemma download, browser-local runtime, and compact-kernel path remain Scion-specific.
+
+**Release Boundary:** no adapter is active, no Gemma weight changed, and no paid-reference parity, universal course quality, human preference, instructor approval, classroom validation, or independent multi-judge result is claimed.
+
+**Next gates:** activate adapters only for task families they were trained and evaluated to improve; expand production-compatible source-bound preference evidence beyond key terms and multiple-choice items; compare exact task-scoped adapter calls against exact base-only Scion on the frozen implementation-bound holdout before any production activation.
 
 ## v0.16.50 — Make the Evidence Survive the Workflow
 

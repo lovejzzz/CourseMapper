@@ -331,6 +331,7 @@ export default function Landing({
   // v0.14.7 WS-F2: quick start — generate the full package with defaults,
   // straight from the prompt box (skips FeatureSelect/Config).
   onQuickStart,
+  setupRecoveryNotice = null,
   // Session restore
   hasSavedSession,
   onRestoreSession,
@@ -352,6 +353,9 @@ export default function Landing({
   const [isDragging, setIsDragging] = useState(false);
   const [projectDragging, setProjectDragging] = useState(false);
   const [visibleCourseExamples, setVisibleCourseExamples] = useState(() => pickCourseExamples(COURSE_EXAMPLES, 3));
+  const missingRecoveryAttachments = (setupRecoveryNotice?.attachmentNames || []).filter(
+    (name) => !files.some((file) => file?.name === name),
+  );
 
   // ── Auto-collapse AI config when already connected ──
   const isReady = apiStatus === 'connected';
@@ -506,6 +510,26 @@ export default function Landing({
                 <p className="mt-1 text-body text-ink-muted">Describe the course or attach what you already have.</p>
               </div>
 
+              {missingRecoveryAttachments.length > 0 && (
+                <div
+                  data-testid="setup-recovery-notice"
+                  role="status"
+                  className="mt-5 flex items-start gap-3 rounded-xl border border-blue-200/80 bg-blue-50/75 px-4 py-3 text-left dark:border-blue-400/25 dark:bg-blue-400/10"
+                >
+                  <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-blue-600 dark:bg-slate-950 dark:text-blue-200">
+                    i
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-blue-900 dark:text-blue-100">
+                      App updated — your course brief is restored
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-blue-700 dark:text-blue-200">
+                      Reattach {missingRecoveryAttachments.join(', ')} to continue with the same source material.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {!promptText && files.length === 0 && (
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
                   <button
@@ -635,11 +659,11 @@ export default function Landing({
                   </div>
                 )}
 
-                <div className="flex items-center justify-between gap-3 px-3 pb-3 pt-1">
+                <div className="flex flex-col items-stretch gap-1.5 px-3 pb-3 pt-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <button
                     type="button"
                     onClick={() => document.getElementById('landing-file-input').click()}
-                    className="tactile flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
+                    className="tactile flex w-fit items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -651,7 +675,7 @@ export default function Landing({
                     </svg>
                     {files.length > 0 ? 'Add files' : 'Attach files'}
                   </button>
-                  <span className="text-right text-xs leading-4 text-slate-500 dark:text-slate-400">
+                  <span className="px-3 text-left text-xs leading-4 text-slate-500 dark:text-slate-400 sm:px-0 sm:text-right">
                     {isDragging ? (
                       'Drop to attach'
                     ) : (
@@ -716,8 +740,8 @@ export default function Landing({
                     </span>
                     <span className="font-semibold text-status-success">Connected</span>
                     {provider === PUBLIC_SCION_PROVIDER_ID && (
-                      <span className="rounded-full bg-status-warning-soft px-2 py-1 text-label font-semibold text-status-warning">
-                        Review before publishing
+                      <span className="rounded-full border border-line-strong bg-surface px-2 py-1 text-label font-semibold text-ink-muted">
+                        AI draft
                       </span>
                     )}
                     <button

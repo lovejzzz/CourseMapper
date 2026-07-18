@@ -2722,6 +2722,7 @@ export default function useDeliverables({
                 enabled: true,
                 voicedCount: voiceResult.voiced.length,
                 fallbackCount: voiceResult.fallbacks.length,
+                skippedCount: voiceResult.skipped?.length || 0,
                 spentUsd: voiceResult.spentUsd,
                 exhausted: voiceResult.exhausted,
                 // Voice v2: the texture self-check verdict ships in the
@@ -2735,7 +2736,9 @@ export default function useDeliverables({
                   : {}),
               });
               appendLog(
-                `✓ Voice pass: ${voiceResult.voiced.length} surfaces voiced, ${voiceResult.fallbacks.length} fallbacks ($${voiceResult.spentUsd.toFixed(3)})${
+                `✓ Voice pass: ${voiceResult.voiced.length} surfaces voiced, ${voiceResult.fallbacks.length} fallbacks${
+                  voiceResult.skipped?.length ? `, ${voiceResult.skipped.length} already optimal` : ''
+                } ($${voiceResult.spentUsd.toFixed(3)})${
                   voiceResult.selfCheck
                     ? ` — voice-surface texture ${voiceResult.selfCheck.pre}→${voiceResult.selfCheck.post} (${voiceResult.selfCheck.verdict})`
                     : ''
@@ -2748,6 +2751,7 @@ export default function useDeliverables({
               traceGeneration(generationRunId, 'voice_pass_done', {
                 voicedCount: voiceResult.voiced.length,
                 fallbackCount: voiceResult.fallbacks.length,
+                skippedCount: voiceResult.skipped?.length || 0,
                 // v0.16.1: WHY surfaces fell back — the Linear Algebra run
                 // said "2 fallback(s)" with no reason anywhere in telemetry.
                 fallbacks: (voiceResult.fallbacks || [])

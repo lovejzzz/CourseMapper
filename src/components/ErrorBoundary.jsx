@@ -77,8 +77,17 @@ export default class ErrorBoundary extends React.Component {
       return (
         <div className="glass rounded-squircle shadow-glass p-7 my-4">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-squircle-xs bg-red-100 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div
+              className={`w-10 h-10 rounded-squircle-xs flex items-center justify-center flex-shrink-0 ${
+                isChunkError ? 'bg-blue-100' : 'bg-red-100'
+              }`}
+            >
+              <svg
+                className={`w-5 h-5 ${isChunkError ? 'text-blue-600' : 'text-red-500'}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -88,19 +97,21 @@ export default class ErrorBoundary extends React.Component {
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-red-700 mb-1">
-                {isChunkError ? 'Refreshing app version' : 'Something went wrong'}
+              <h3 className={`text-sm font-semibold mb-1 ${isChunkError ? 'text-blue-800' : 'text-red-700'}`}>
+                {isChunkError ? 'Updating EduTool' : 'Something went wrong'}
               </h3>
-              <p className="text-xs text-red-500/80 mb-3">
+              <p className={`text-xs mb-3 ${isChunkError ? 'text-blue-700/80' : 'text-red-500/80'}`}>
                 {isChunkError
                   ? this.state.recoveringFromChunkError
-                    ? 'A newer app bundle is available. Reloading once to recover your workspace.'
+                    ? 'A newer version is ready. Your course brief is saved; reloading once.'
                     : 'The app could not load a newer bundle. Refresh the page to continue.'
                   : this.state.error?.message || 'An unexpected error occurred while rendering this section.'}
               </p>
               <button
                 onClick={this.handleRetry}
-                className="tactile px-4 py-2 rounded-squircle-xs text-xs font-semibold text-white bg-gradient-to-r from-red-500 to-rose-600 shadow-sm hover:brightness-110 transition-all duration-200"
+                className={`tactile px-4 py-2 rounded-squircle-xs text-xs font-semibold text-white shadow-sm hover:brightness-110 transition-all duration-200 ${
+                  isChunkError ? 'bg-blue-600' : 'bg-gradient-to-r from-red-500 to-rose-600'
+                }`}
               >
                 {isChunkError ? 'Refresh' : 'Try Again'}
               </button>

@@ -1,0 +1,161 @@
+{
+  "version": "0.16.51",
+  "date": "July 17, 2026",
+  "title": "Make Every Handoff Feel Trustworthy",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npx vitest run src/lib/__tests__/setupRecovery.test.js src/lib/__tests__/chatConstants.test.js tests/v0147-voice-pass.test.js src/components/__tests__/ErrorBoundary.test.jsx",
+      "npm test",
+      "npm run lint",
+      "npm run build",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rerun the release ledger, complete suite, lint, and production build after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter-versus-base held-out win, new local-model quality claim, or production adapter promotion is part of this experience release."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of merge and remote verification."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The real pinned local model was exercised on deployed v0.16.50 to reproduce the failures; v0.16.51 repairs were replayed locally without a second model download."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human, instructor, classroom, public-course-author, or independent multi-judge validation is claimed."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "note": "The local release candidate passed desktop and 390 by 844 phone replays covering recovery, materials, setup, semantics, and overflow."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-and-workflow-improvement-only",
+      "note": "V0.16.51 hardens UX and orchestration around the prior semantic compiler result. It does not claim a model-weight or universal course-quality improvement."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01651-setup-update-recovery",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "A short-lived setup receipt restores the course brief and intended safe action across stale lazy-route refreshes without persisting private attachment bytes.",
+      "anchors": [
+        "src/lib/setupRecovery.js",
+        "src/lib/__tests__/setupRecovery.test.js",
+        "src/App.jsx",
+        "src/contexts/CourseContext.jsx",
+        "src/components/ErrorBoundary.jsx"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/setupRecovery.test.js src/components/__tests__/ErrorBoundary.test.jsx"
+      ],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01651-agent-audit-routing",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Course-map Review and Check starters route to the deterministic local package audit instead of advisory model acknowledgment.",
+      "anchors": [
+        "src/components/chat/constants.js",
+        "src/lib/__tests__/chatConstants.test.js",
+        "src/components/chat/ChatPanel.jsx"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/chatConstants.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01651-progress-and-voice-efficiency",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "The ribbon labels aggregate progress as Overall and the voice pass skips impossible-at-ceiling provider work with a recorded receipt.",
+      "anchors": [
+        "src/components/BuildRibbon.jsx",
+        "src/lib/voicePass.js",
+        "src/hooks/useDeliverables.js",
+        "src/lib/packageZipExporter.js",
+        "tests/v0147-voice-pass.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/v0147-voice-pass.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01651-information-color-language",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Valid Scion setup, update recovery, and AI-draft disclosure use informational or neutral language while amber remains reserved for attention.",
+      "anchors": [
+        "src/screens/Config.jsx",
+        "src/screens/Landing.jsx",
+        "src/components/ErrorBoundary.jsx",
+        "docs/evidence/SCION_V01651_EXPERIENCE_AUDIT.json"
+      ],
+      "proofCommands": ["npm run build"],
+      "proofScopes": ["browser-smoke", "build"]
+    },
+    {
+      "id": "v01651-selection-and-dialog-semantics",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Preset and lesson selectors expose pressed truth, and the quality report exposes labeled modal semantics plus Escape close behavior.",
+      "anchors": [
+        "src/screens/FeatureSelect.jsx",
+        "src/components/config/LessonScopeSelector.jsx",
+        "src/components/ExportSidePanel.jsx",
+        "docs/evidence/SCION_V01651_EXPERIENCE_AUDIT.json"
+      ],
+      "proofCommands": ["npm run lint", "npm run build"],
+      "proofScopes": ["browser-smoke", "lint", "build"]
+    },
+    {
+      "id": "v01651-phone-layout",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The 390 by 844 setup flow keeps its CTA and attachment guidance legible with no horizontal document overflow.",
+      "anchors": [
+        "src/screens/FeatureSelect.jsx",
+        "src/screens/Landing.jsx",
+        "docs/evidence/ui-audit-v0.16.51/phone-materials.png",
+        "docs/evidence/ui-audit-v0.16.51/phone-generate.png"
+      ],
+      "proofCommands": ["npm run build"],
+      "proofScopes": ["browser-smoke", "build"]
+    },
+    {
+      "id": "v01651-verification-surface",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "The repaired release candidate passes focused regression coverage, the complete suite, lint, build, and a hash-bound desktop-and-phone replay.",
+      "anchors": [
+        "docs/evidence/SCION_V01651_EXPERIENCE_AUDIT.json",
+        "docs/evidence/ui-audit-v0.16.51/desktop-onboarding.png",
+        "docs/evidence/ui-audit-v0.16.51/desktop-materials.png",
+        "docs/evidence/ui-audit-v0.16.51/desktop-generate.png"
+      ],
+      "proofCommands": ["npm test", "npm run lint", "npm run build"],
+      "proofScopes": ["unit", "browser-smoke", "lint", "build"]
+    },
+    {
+      "id": "v01651-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 7,
+      "summary": "No adapter or Gemma weight changes; V0.16.51 is a compiler, orchestration, accessibility, efficiency, and workflow-trust release.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "docs/evidence/SCION_V01651_EXPERIENCE_AUDIT.json",
+        "src/lib/publicScionProvider.js"
+      ],
+      "proofCommands": ["npx vitest run tests/public-scion-provider.test.js", "npm run audit:release-history"],
+      "proofScopes": ["unit", "doc", "static-audit"]
+    }
+  ]
+}
