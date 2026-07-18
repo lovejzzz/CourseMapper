@@ -11,6 +11,7 @@ import {
   unloadScionBrowserWllama,
 } from '../src/lib/scionBrowserWllama.js';
 import { SCION_GEMMA4_E2B_BASE } from '../src/lib/scionAdapterManifest.js';
+import { SCION_ADAPTER_TASK_FAMILIES } from '../src/lib/scionAdapterTaskScope.js';
 
 class FakeWllama {
   static last = null;
@@ -172,9 +173,94 @@ describe('Scion WebGPU GGUF runtime', () => {
     expect(getScionBrowserWllamaStatus().adapter).toMatchObject({ mode: 'base-only', active: false });
   });
 
+  it('uses a proven adapter only for declared task families and proves base fallback for all others', async () => {
+    await loadScionBrowserWllama(browser);
+    const adapterBytes = new TextEncoder().encode('fake scoped gguf lora');
+    const manifest = {
+      adapter: { id: 'scion-scoped', format: 'gguf-lora' },
+      training: {
+        pairCount: 10,
+        taskScope: {
+          protocol: 'scion-adapter-task-scope-v1',
+          mode: 'allowlist',
+          families: [{ id: SCION_ADAPTER_TASK_FAMILIES.SOURCE_MC_ITEM_ATOM, rows: 10 }],
+          unclassifiedPolicy: 'base-only',
+          compositePolicy: 'exact-family-only',
+          identity: {
+            algorithm: 'sha256-canonical-scion-adapter-task-scope-v1',
+            sha256: 'c'.repeat(64),
+          },
+        },
+      },
+      files: [{ path: 'scion-scoped.gguf', bytes: adapterBytes.byteLength, sha256: 'a'.repeat(64) }],
+    };
+    await applyScionBrowserWllamaAdapter({
+      adapterId: 'scion-scoped',
+      manifest,
+      manifestSha256: 'b'.repeat(64),
+      files: new Map([['scion-scoped.gguf', adapterBytes.buffer]]),
+    });
+    await probeScionBrowserWllamaAdapter({
+      adapterId: 'scion-scoped',
+      manifestSha256: 'b'.repeat(64),
+      baseRevision: SCION_GEMMA4_E2B_BASE.revision,
+    });
+
+    const routes = [];
+    await expect(
+      completeScionBrowserWllama('Write one item.', {
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.SOURCE_MC_ITEM_ATOM,
+        onAdapterRoute: (route) => routes.push(route),
+      }),
+    ).resolves.toBe('Adapter decision-focused answer.');
+    await expect(
+      completeScionBrowserWllama('Write a full lesson.', {
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL,
+        onAdapterRoute: (route) => routes.push(route),
+      }),
+    ).resolves.toBe('Base general answer.');
+    await expect(
+      completeScionBrowserWllama('Write one more item.', {
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.SOURCE_MC_ITEM_ATOM,
+        onAdapterRoute: (route) => routes.push(route),
+      }),
+    ).resolves.toBe('Adapter decision-focused answer.');
+
+    expect(routes).toEqual([
+      expect.objectContaining({
+        protocol: 'scion-adapter-runtime-route-v1',
+        mode: 'adapter',
+        taskFamily: 'source-mc-item-atom',
+        nativeAdapterActive: true,
+      }),
+      expect.objectContaining({
+        mode: 'base-only',
+        taskFamily: 'lesson-kernel',
+        reason: 'task-family-out-of-scope',
+        nativeAdapterActive: false,
+      }),
+      expect.objectContaining({ mode: 'adapter', nativeAdapterActive: true }),
+    ]);
+  });
+
   it('fails before loading when WebGPU is absent', async () => {
     await expect(loadScionBrowserWllama({ ...browser, navigatorLike: {} })).rejects.toMatchObject({
       code: 'SCION_WLLAMA_WEBGPU',
+    });
+  });
+
+  it('quarantines a native adapter that has no verified installed identity', async () => {
+    await loadScionBrowserWllama(browser);
+    await FakeWllama.last.loadLoraAdapter(new Blob(['unbound']), 1);
+
+    await expect(
+      completeScionBrowserWllama('Do not trust this adapter.', {
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL,
+      }),
+    ).rejects.toMatchObject({ code: 'SCION_WLLAMA_UNBOUND_ADAPTER' });
+    expect(getScionBrowserWllamaStatus()).toMatchObject({
+      phase: 'recovery-required',
+      adapter: { mode: 'recovery-required', active: null },
     });
   });
 

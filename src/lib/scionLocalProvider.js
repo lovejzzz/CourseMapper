@@ -9,6 +9,7 @@ import {
   publicScionRetryDelay,
   repairPublicScionJson,
 } from './publicScionProvider';
+import { scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
 
 export const SCION_LOCAL_MAX_GENERATION_RETRIES = PUBLIC_SCION_MIN_RETRIES;
 
@@ -115,6 +116,7 @@ export async function runScionLocalCompletion({
   onToken,
   onAttemptStart,
   onRetry,
+  onAdapterRoute,
   runtimeLoader = defaultRuntimeLoader,
   sleep = defaultSleep,
 } = {}) {
@@ -136,6 +138,7 @@ export async function runScionLocalCompletion({
     ),
   );
   const retryLimit = Math.max(0, Math.min(SCION_LOCAL_MAX_GENERATION_RETRIES, Math.floor(Number(maxRetries) || 0)));
+  const taskFamily = scionAdapterTaskFamilyForProviderTask(task);
 
   await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
 
@@ -168,6 +171,8 @@ export async function runScionLocalCompletion({
       topP: attemptTemperature > 0 ? 0.9 : 1,
       seed: 7 + attempt,
       signal,
+      taskFamily,
+      onAdapterRoute,
       onToken: (currentText) => {
         tokenCount += 1;
         if (typeof onToken === 'function') onToken(currentText, tokenCount, attempt + 1);

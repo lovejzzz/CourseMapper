@@ -2256,10 +2256,11 @@ function inferRubricAnchorIndex(rubric, anchors, rubricIndex, rubricCount) {
   }
 
   const explicit = getLessonNumberFromText(getRubricHaystack(rubric));
-  const candidates =
-    explicit && anchors.some((anchor) => anchor.lessonNumber === explicit)
-      ? anchors.filter((anchor) => anchor.lessonNumber === explicit)
-      : anchors;
+  const candidates = explicit ? anchors.filter((anchor) => anchor.lessonNumber === explicit) : anchors;
+  // An explicit lesson label is an identity boundary. If that lesson has no
+  // eligible assessment anchor, leave the rubric alone instead of using weak
+  // global token overlap to stamp it with a different lesson's identity.
+  if (explicit && candidates.length === 0) return null;
 
   let best = { index: null, score: 0 };
   candidates.forEach((anchor) => {
@@ -2584,6 +2585,8 @@ export function normalizeRubricAssessmentAlignment(data, courseMap, assignmentsD
   const rowLessonNumber = (row) => {
     const structured = getRubricStructuredLessonNumber(row.rubric);
     if (structured) return structured;
+    const explicit = getLessonNumberFromText(getRubricHaystack(row.rubric));
+    if (explicit) return explicit;
     if (row.anchorIndex === null) return 9999;
     const anchor = anchors.find((item) => (item.anchorIndex ?? item.lessonIndex) === row.anchorIndex);
     return anchor?.lessonNumber ?? 9999;

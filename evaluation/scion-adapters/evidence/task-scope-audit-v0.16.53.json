@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-adapter-task-scope-audit-v1",
+  "generatedAt": "2026-07-18T05:45:00.000Z",
+  "status": "pass",
+  "issues": [],
+  "dataset": {
+    "identitySha256": "d3ae04c27b1ce7c36fd34a93b0137eb509222ffd55a23ed4779fedef40331a1b",
+    "admittedRows": 143,
+    "taskScope": {
+      "protocol": "scion-adapter-task-scope-v1",
+      "mode": "allowlist",
+      "families": [
+        {
+          "id": "source-key-term-atom",
+          "rows": 93
+        },
+        {
+          "id": "source-mc-item-atom",
+          "rows": 50
+        }
+      ],
+      "unclassifiedPolicy": "base-only",
+      "compositePolicy": "exact-family-only",
+      "identity": {
+        "algorithm": "sha256-canonical-scion-adapter-task-scope-v1",
+        "sha256": "25bd97050228db9dca35576f0655f5778a8479b0695a3467f3f9f41491f68a09"
+      }
+    },
+    "sourceReceipts": [
+      {
+        "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-readiness-gap.jsonl",
+        "status": "verified",
+        "bytes": 712534,
+        "sha256": "5c956fea931c8c3f83ec4f60b6c6c28c7848f9fc6c9b7279909e0df27fdc3c94"
+      }
+    ],
+    "admissionPolicy": {
+      "protocol": "scion-adapter-semantic-admission-v1",
+      "semanticAdmission": true,
+      "semanticProfile": "strict-v3",
+      "allowFirstSentenceLexicalCue": true
+    },
+    "trainingFormat": {
+      "protocol": "scion-orpo-conversations-v2",
+      "columns": ["chosen", "rejected", "provenance"],
+      "sequence": ["user", "assistant"],
+      "promptIncludedInBothSequences": true,
+      "sourceGrounding": "semantic-source-context-in-user-turn",
+      "legacyFallback": "row-prompt-only-for-non-source-grounded-evidence"
+    },
+    "holdoutBoundary": {
+      "protocol": "scion-training-holdout-firewall-v1",
+      "status": "pass",
+      "manifestPath": "evaluation/scion-adapters/held-out-course-benchmark-v5.json",
+      "manifestSha256": "5e9e274e95e222ed5850afcc0f50fbd6f53c3c881379466a452f229883f62ded",
+      "benchmarkId": "scion-held-out-course-benchmark-v5",
+      "frozenAt": "2026-07-18T05:45:00Z",
+      "domainDisjointRequired": true,
+      "courseGroupDisjointRequired": true,
+      "domains": ["astronomy", "nutrition", "psychology", "world-languages", "world-literature"],
+      "domainCount": 5,
+      "courseGroupCount": 5,
+      "admittedDomainOverlapCount": 0,
+      "admittedCourseGroupOverlapCount": 0,
+      "excludedPairCount": 0,
+      "excludedDomainPairCount": 0,
+      "excludedCourseGroupPairCount": 0
+    }
+  },
+  "benchmark": {
+    "id": "scion-held-out-course-benchmark-v5",
+    "runtimeTaskPolicy": {
+      "protocol": "scion-adapter-runtime-task-policy-v1",
+      "adapterRequiredFamilies": ["lesson-kernel"],
+      "baseOnlyRequiredFamilies": ["course-map"],
+      "unclassifiedPolicy": "forbid",
+      "routeEvidenceRequired": true
+    }
+  },
+  "courseBenchmark": {
+    "eligible": false,
+    "missingAdapterFamilies": ["lesson-kernel"],
+    "trainedBaseOnlyFamilies": [],
+    "trainedFamilies": ["source-key-term-atom", "source-mc-item-atom"],
+    "claim": "This corpus may train only its declared atom families; it cannot support a whole-course adapter claim."
+  },
+  "inputs": {
+    "datasetPath": "generated-from:codex-approved-preferences-v0.16.47-readiness-gap",
+    "datasetManifestSha256": "db87841238a867e5a2b7c0a9a561775bb0771b5df40d82bc9280424b4818fbd9",
+    "benchmarkPath": "evaluation/scion-adapters/held-out-course-benchmark-v5.json",
+    "benchmarkManifestSha256": "5e9e274e95e222ed5850afcc0f50fbd6f53c3c881379466a452f229883f62ded"
+  }
+}

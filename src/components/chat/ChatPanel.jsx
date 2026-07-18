@@ -2414,26 +2414,24 @@ export default function ChatPanel({
         if (handled) return;
       }
       if (item.id === 'improve-active' && activeTab && activeTab !== 'courseMap') {
-        const handled = chat.agentDryRun
-          ? await runDirectPackageAudit({
-              displayText: item.displayText,
-              selectedFeatureIds: ['courseMap', activeTab],
-              introText: `Checking ${activeTabLabel(activeTab)} before any changes.`,
-              agentPromptOverride: item.prompt,
-            })
-          : await handleWorkspacePlanAction(
-              {
-                title: `Regenerate ${activeTabLabel(activeTab)}`,
-                target: activeTabLabel(activeTab),
-                safeMode: 'requires-generation',
-                intent: { type: 'regenerate_failed_feature', featureIds: [activeTab] },
-              },
-              {
-                displayText: item.displayText,
-                sendOptions: { agentPromptOverride: item.prompt },
-              },
-            );
-        if (handled) return;
+        if (chat.agentDryRun) {
+          const handled = await runDirectPackageAudit({
+            displayText: item.displayText,
+            selectedFeatureIds: ['courseMap', activeTab],
+            introText: `Checking ${activeTabLabel(activeTab)} before any changes.`,
+            agentPromptOverride: item.prompt,
+          });
+          if (handled) return;
+        } else {
+          // Improvement is a contextual Agent task, not a blind regeneration.
+          // Route it through chat so attachments, the active artifact, and the
+          // model-backed tool loop all reach Scion before any edit is proposed.
+          await chat.send(item.displayText, {
+            displayText: item.displayText,
+            agentPromptOverride: item.prompt,
+          });
+          return;
+        }
       }
       if (item.id === 'plan-next') {
         const handled = await runDirectWorkspacePlan({

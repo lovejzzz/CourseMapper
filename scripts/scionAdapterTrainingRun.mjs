@@ -10,6 +10,7 @@ import { pathToFileURL } from 'node:url';
 import { computeScionAdapterDatasetIdentity, SCION_ORPO_TRAINING_FORMAT } from './scionAdapterDataset.mjs';
 import { assessHeldoutDatasetBoundary, validateScionHeldoutBenchmark } from './scionAdapterPairedEvidence.mjs';
 import { SCION_GEMMA4_E2B_BASE } from '../src/lib/scionAdapterManifest.js';
+import { scionAdapterTaskScopePayload, validateScionAdapterTaskScope } from '../src/lib/scionAdapterTaskScope.js';
 
 const execFile = promisify(execFileCallback);
 
@@ -25,6 +26,7 @@ const TRAINING_CODE_PATHS = [
   'scripts/scionAdapterPackage.mjs',
   'scripts/scionAdapterPairedEvidence.mjs',
   'scripts/scionAdapterTrainingRun.mjs',
+  'src/lib/scionAdapterTaskScope.js',
   'trellis/tendril/distill/prepare_adapter_base.py',
   'trellis/tendril/distill/run_orpo_g4.sh',
   'trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py',
@@ -257,11 +259,20 @@ export async function verifyScionAdapterDatasetForTraining({ manifestPath, lane,
     issues.push('source-license-production');
   }
   if (manifest?.leakage?.groupOverlapCount !== 0) issues.push('dataset-group-leakage');
+  const taskScopeValidation = validateScionAdapterTaskScope(manifest?.taskScope, {
+    expectedRows: manifest?.counts?.total,
+  });
+  issues.push(...taskScopeValidation.issues.map((issue) => `dataset-${issue}`));
+  const expectedTaskScopeIdentity = sha256Value(stableJson(scionAdapterTaskScopePayload(manifest?.taskScope)));
+  if (manifest?.taskScope?.identity?.sha256 !== expectedTaskScopeIdentity) {
+    issues.push('dataset-task-scope-identity-mismatch');
+  }
   const expectedIdentity = computeScionAdapterDatasetIdentity(manifest);
   if (manifest?.identity?.protocol !== 'scion-adapter-dataset-identity-v2') issues.push('dataset-identity-protocol');
   if (manifest?.identity?.sha256 !== expectedIdentity) issues.push('dataset-identity-sha256');
   const splitFiles = {};
   let splitRows = 0;
+  const observedTaskFamilyCounts = {};
   for (const split of ['train', 'valid', 'test']) {
     const expected = manifest?.files?.[split];
     const relativePath = normalizeRelative(expected?.path);
@@ -282,7 +293,12 @@ export async function verifyScionAdapterDatasetForTraining({ manifestPath, lane,
         .split('\n')
         .map((line) => line.trim())
         .filter(Boolean);
-      for (const line of lines) JSON.parse(line);
+      for (const line of lines) {
+        const row = JSON.parse(line);
+        const taskFamily = String(row?.provenance?.taskFamily || '');
+        if (!taskFamily) issues.push(`${split}-task-family-missing`);
+        observedTaskFamilyCounts[taskFamily] = Number(observedTaskFamilyCounts[taskFamily] || 0) + 1;
+      }
       if (actual.bytes !== expected?.bytes) issues.push(`${split}-bytes`);
       if (actual.sha256 !== expected?.sha256) issues.push(`${split}-sha256`);
       if (lines.length !== expected?.rows) issues.push(`${split}-rows`);
@@ -294,6 +310,12 @@ export async function verifyScionAdapterDatasetForTraining({ manifestPath, lane,
     }
   }
   if (splitRows !== manifest?.counts?.total) issues.push('dataset-total-count');
+  const expectedTaskFamilyCounts = Object.fromEntries(
+    (manifest?.taskScope?.families || []).map((entry) => [entry.id, entry.rows]),
+  );
+  if (stableJson(observedTaskFamilyCounts) !== stableJson(expectedTaskFamilyCounts)) {
+    issues.push('dataset-task-family-counts');
+  }
   const profile = lane === 'production' ? 'production' : lane === 'research' ? 'research' : null;
   if (profile && (manifest?.gate?.profiles?.[profile]?.issues || []).length > 0) issues.push(`${profile}-gate-issues`);
   issues.push(...(await verifyHoldoutBoundary(manifest, sourceRoot)));
@@ -554,6 +576,7 @@ export async function createScionAdapterTrainingPlan({
         valid: dataset.manifest.counts.valid,
         test: dataset.manifest.counts.test,
       },
+      taskScope: structuredClone(dataset.manifest.taskScope),
       files: dataset.files,
     },
     toolchain: {
@@ -735,6 +758,9 @@ export async function verifyScionAdapterTrainingRun({ planPath, resultPath, data
     issues.push(...dataset.issues.map((issue) => `dataset:${issue}`));
     if (dataset.manifestSha256 !== plan.plan.dataset?.manifestSha256) issues.push('dataset:manifest-sha256');
     if (dataset.identitySha256 !== plan.plan.dataset?.identitySha256) issues.push('dataset:identity-sha256');
+    if (stableJson(dataset.manifest?.taskScope) !== stableJson(plan.plan.dataset?.taskScope)) {
+      issues.push('dataset:task-scope');
+    }
   }
   return {
     valid: issues.length === 0,

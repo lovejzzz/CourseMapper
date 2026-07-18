@@ -37,6 +37,14 @@ function manifest(overrides = {}) {
     modelJudgeDomainCounts: domainCounts(PRODUCTION_DOMAINS, 20),
     splitCounts: { train: 1000, valid: 1000, test: 1000 },
     splitDomainCounts: { train: 5, valid: 5, test: 5 },
+    taskScope: {
+      protocol: 'scion-adapter-task-scope-v1',
+      mode: 'allowlist',
+      families: [{ id: 'lesson-kernel', rows: 3000 }],
+      unclassifiedPolicy: 'base-only',
+      compositePolicy: 'exact-family-only',
+      identity: { algorithm: 'sha256-canonical-scion-adapter-task-scope-v1', sha256: HASH },
+    },
   };
   const base = {
     schemaVersion: SCION_ADAPTER_MANIFEST_SCHEMA_VERSION,
@@ -246,7 +254,7 @@ describe('Scion adapter manifest', () => {
     );
   });
 
-  it('refuses a schema-v3 learned adapter without its bound training receipts', () => {
+  it('refuses a schema-v4 learned adapter without its bound training receipts', () => {
     const candidate = manifest();
     delete candidate.training.run;
     candidate.files = candidate.files.filter(
@@ -309,6 +317,14 @@ describe('Scion adapter manifest', () => {
         modelJudgeDomainCounts: domainCounts(PRODUCTION_DOMAINS.slice(0, 4), 25),
         splitCounts: { train: 36, valid: 32, test: 32 },
         splitDomainCounts: { train: 4, valid: 4, test: 4 },
+        taskScope: {
+          protocol: 'scion-adapter-task-scope-v1',
+          mode: 'allowlist',
+          families: [{ id: 'lesson-kernel', rows: 100 }],
+          unclassifiedPolicy: 'base-only',
+          compositePolicy: 'exact-family-only',
+          identity: { algorithm: 'sha256-canonical-scion-adapter-task-scope-v1', sha256: HASH },
+        },
       },
       promotion: { status: 'research', promotable: false },
     });

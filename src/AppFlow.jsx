@@ -1776,8 +1776,8 @@ export default function AppFlow({
           finalStatus === 'ready'
             ? PACKAGE_READY_MESSAGE
             : String(
-                result.message ||
-                  result.readiness?.blockers?.[0]?.message ||
+                result.readiness?.blockers?.[0]?.message ||
+                  result.message ||
                   result.readiness?.warnings?.[0]?.message ||
                   '',
               ).replace(/^Auto-fixed \d+ safe issues?\. /, '');
@@ -3976,13 +3976,13 @@ export default function AppFlow({
         </main>
 
         <footer className="w-full px-6 py-4 text-center space-y-1">
-          <p className="text-[10px] text-slate-300/70">
+          <p className="text-xs text-slate-500">
             Built by{' '}
             <a href="#/contact" className="font-medium hover:text-indigo-500 transition-colors duration-200">
               Tian Xing
             </a>
           </p>
-          <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300/70">
+          <div className="flex items-center justify-center gap-3 text-xs text-slate-500">
             <a href="#/changelog" className="font-medium hover:text-indigo-500 transition-colors duration-200">
               v{APP_VERSION}
             </a>

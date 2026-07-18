@@ -2,7 +2,25 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 and v0.16.49 turned its observed losses plus browser audits into stricter admission and a more trustworthy Living Course Compiler; v0.16.50 closed the full frozen semantic-loss set; v0.16.51 hardened setup and Agent handoffs; and v0.16.52 replays the complete real Scion workflow, removes redundant finish work, makes export preparation explicit, and puts downstream semantic-evidence freshness inside the normal test gate. A quality adapter, held-out adapter win, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.53 adds a hash-bound task-scope contract across the dataset, training plan, adapter manifest, runtime, telemetry, and held-out ruler. It proves that the current 143-row research corpus covers only source key-term and multiple-choice atoms, not whole lesson kernels, and therefore refuses to treat the rejected global adapter run as task-matched evidence. A quality adapter, held-out adapter win, lesson-kernel preference corpus, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
+
+## v0.16.53 — Train What You Serve
+
+**Goal:** stop treating “adapter loaded” as evidence that the adapter learned or improved every model request. Bind learning and serving to the same explicit task family.
+
+**Task-scoped lineage:** every curated row now carries a normalized task family. The sorted allowlist and row counts are hash-bound into the dataset identity, copied into the training plan and adapter manifest, inherited unchanged through GGUF conversion, and included in the code receipt. Learned research, candidate, and promoted manifests require the current schema and a row-complete scope; legacy schemas remain mechanical history only.
+
+**Fail-closed browser routing:** the local runtime maps provider work to course-map, lesson-kernel, agent-advisory, repair, voice, genome, or unclassified families. A proven adapter is restored only for an exact allowlist match. Out-of-scope work clears LoRA and verifies the deterministic base canary; any native-state or output drift quarantines inference until the runtime is reloaded. Each request emits a route receipt with family, mode, reason, adapter and manifest identities, scope identity, and native activation state.
+
+**A better ruler:** frozen held-out benchmark V5 preserves the same five domains, course fixtures, base, and transitive grader as V4, then adds request-level requirements. Lesson-kernel calls must prove exact adapter use, course-map calls must prove base-only avoidance, and unclassified calls invalidate the run. A globally loaded adapter can no longer pass by association.
+
+**Measured discovery:** rebuilding the exact v0.16.47 readiness source under strict V3 admission still admits 143/145 rows across seven domains with 114/15/14 splits. Its task scope is 93 source-key-term atoms and 50 source-MC atoms, identity `25bd97050228db9dca35576f0655f5778a8479b0695a3467f3f9f41491f68a09`. It has zero lesson-kernel rows, so the audit passes the corpus contract while marking it ineligible for a whole-course adapter claim. This explains a large part of the earlier train/serve mismatch without retroactively claiming that scope alone caused every loss.
+
+**Lane:** V0.16.53 improves architecture, runtime safety, telemetry, and evaluation validity. It does not improve model weights or claim a new output-quality score.
+
+**Next gates:** build at least 100 stable, source-grounded lesson-kernel preferences with course, domain, defect-family, and license diversity; freeze them before training; train a validation-selected task-matched adapter; capture request-route evidence on all five held-out courses; require no quality regression, lower or equal compiler burden, acceptable runtime cost, and a clear win over exact base-only Scion before activation.
+
+**Release boundary:** no adapter is active on the hosted site, no Gemma weight changed, and no paid-reference parity, human validation, instructor approval, classroom outcome, or universal course-quality claim is added.
 
 ## v0.16.52 — Make Ready Mean Ready
 

@@ -88,6 +88,9 @@ export async function buildScionAdapterManifest({
     if (source.training.datasetManifestSha256 !== (await sha256File(datasetPath))) {
       throw new Error('Inherited training source dataset does not match the converted package dataset');
     }
+    if (JSON.stringify(source.training.taskScope) !== JSON.stringify(dataset.taskScope)) {
+      throw new Error('Inherited training source task scope does not match the converted package dataset');
+    }
     if (conversion?.sourceAdapterId !== source.adapter?.id) {
       throw new Error('Conversion source adapter ID does not match inherited training source');
     }
@@ -219,6 +222,7 @@ export async function buildScionAdapterManifest({
         dataset.modelJudgeDomainCounts && typeof dataset.modelJudgeDomainCounts === 'object'
           ? structuredClone(dataset.modelJudgeDomainCounts)
           : {},
+      taskScope: structuredClone(dataset.taskScope),
       splitCounts: {
         train: Number(dataset.counts?.train || 0),
         valid: Number(dataset.counts?.valid || 0),

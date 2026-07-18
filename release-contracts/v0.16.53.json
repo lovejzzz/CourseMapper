@@ -1,0 +1,134 @@
+{
+  "version": "0.16.53",
+  "date": "July 18, 2026",
+  "title": "Train What You Serve",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm run audit:scion:adapter:task-scope:v0.16.53",
+      "npm test",
+      "npm run lint",
+      "npm run build",
+      "npm run audit:release-history"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rerun the release ledger, complete suite, lint, and production build after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "The current corpus is deliberately ineligible for the V5 whole-course adapter arm; no adapter-versus-base quality win is claimed."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of merge and remote verification."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "Hosted Scion remains the pinned public Gemma 4 base plus the model-neutral compiler; no task-scoped quality adapter is active."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human, instructor, classroom, or independent multi-judge validation is claimed."
+    },
+    "manualBrowser": {
+      "status": "mechanical-runtime-tests",
+      "note": "Deterministic runtime tests prove exact adapter use, base avoidance, adapter restoration, base canary restoration, and recovery-required failure."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "adapter-task-scope-and-evaluation-integrity-only",
+      "note": "The release changes adapter lineage, request routing, telemetry, and benchmark validity; it does not claim a model-output quality increase."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01653-task-scoped-lineage",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Every training row carries an explicit task family, and its row-complete allowlist is bound through dataset, training plan, adapter manifest, conversion, and runtime code lineage.",
+      "anchors": [
+        "src/lib/scionAdapterTaskScope.js",
+        "scripts/scionAdapterDataset.mjs",
+        "scripts/scionAdapterTrainingRun.mjs",
+        "scripts/scionAdapterPackage.mjs"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-adapter-task-scope.test.js tests/scion-adapter-training-run.test.js tests/scion-adapter-manifest.test.js"
+      ],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01653-fail-closed-runtime-routing",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Browser inference activates the adapter only for an exact trained family and proves exact base restoration for every other task before generation.",
+      "anchors": ["src/lib/scionBrowserWllama.js", "tests/scion-browser-wllama.test.js"],
+      "proofCommands": ["npx vitest run tests/scion-browser-wllama.test.js"],
+      "proofScopes": ["unit", "browser-smoke"]
+    },
+    {
+      "id": "v01653-request-route-evidence",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Every browser-local request can emit family, route, reason, adapter, manifest, scope, and native-state evidence into the generation trace.",
+      "anchors": [
+        "src/lib/scionLocalProvider.js",
+        "src/hooks/useStreamReader.js",
+        "scripts/scionAdapterPairedEvidence.mjs"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/scion-local-provider.test.js tests/scion-stream-reader-local.test.jsx tests/scion-adapter-tooling.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output"]
+    },
+    {
+      "id": "v01653-heldout-v5",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Held-out V5 preserves the exact five-course and transitive-grader ruler while requiring task-level adapter use, base avoidance, and zero unclassified calls.",
+      "anchors": [
+        "evaluation/scion-adapters/held-out-course-benchmark-v5.json",
+        "scripts/scionAdapterPairedEvidence.mjs",
+        "tests/scion-adapter-tooling.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-adapter-tooling.test.js"],
+      "proofScopes": ["static-audit", "unit"]
+    },
+    {
+      "id": "v01653-atom-corpus-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "The exact 143-row research rebuild contains 93 source-key-term and 50 source-MC atoms, zero lesson kernels, and is honestly ineligible for a whole-course adapter claim.",
+      "anchors": [
+        "evaluation/scion-adapters/evidence/task-scope-audit-v0.16.53.json",
+        "scripts/scionAdapterTaskScopeAudit.mjs",
+        "scripts/scionAdapterTaskScopeEvidenceAudit.mjs"
+      ],
+      "proofCommands": ["npm run audit:scion:adapter:task-scope:v0.16.53"],
+      "proofScopes": ["static-audit", "compiled-output"]
+    },
+    {
+      "id": "v01653-next-quality-gate",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "The next adapter experiment is constrained to stable source-grounded lesson-kernel preferences and must beat exact base-only Scion without increasing compiler burden.",
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    },
+    {
+      "id": "v01653-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "No hosted adapter or Gemma weight changed; this release strengthens architecture and evaluation validity without claiming a new output-quality score.",
+      "anchors": [
+        "README.md",
+        "docs/SCION_ADAPTER_ROADMAP.md",
+        "evaluation/scion-adapters/evidence/task-scope-audit-v0.16.53.json"
+      ],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

@@ -113,6 +113,23 @@ test.describe('Generated workspace mobile layout', () => {
         .evaluate((heading) => window.getComputedStyle(heading).whiteSpace);
       expect(courseTitleWhiteSpace).toBe('normal');
 
+      const workspaceFooterStyle = await page.locator('footer').evaluate((footer) => {
+        const text = footer.querySelector('p');
+        const style = window.getComputedStyle(text || footer);
+        const rgb = (style.color.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+        const luminance = rgb.reduce((sum, channel, index) => {
+          const normalized = channel / 255;
+          const linear = normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+          return sum + linear * [0.2126, 0.7152, 0.0722][index];
+        }, 0);
+        return {
+          fontSize: Number.parseFloat(style.fontSize),
+          contrastOnWhite: 1.05 / (luminance + 0.05),
+        };
+      });
+      expect(workspaceFooterStyle.fontSize).toBeGreaterThanOrEqual(12);
+      expect(workspaceFooterStyle.contrastOnWhite).toBeGreaterThanOrEqual(4.5);
+
       await page
         .getByTestId('workspace-deliverable-tabs')
         .getByRole('button', { name: 'Course Map', exact: true })

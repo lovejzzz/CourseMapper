@@ -14,12 +14,14 @@ import { summarizeScionCompilerBurden, parseScionConsoleEvents } from './lib/sci
 import { captureModuleImplementationReceipt } from './lib/moduleImplementationReceipt.mjs';
 import { sha256File } from './scionAdapterPackage.mjs';
 import { SCION_GEMMA4_E2B_BASE, validateScionAdapterManifest } from '../src/lib/scionAdapterManifest.js';
+import { SCION_ADAPTER_TASK_FAMILIES } from '../src/lib/scionAdapterTaskScope.js';
 
 const execFile = promisify(execFileCallback);
 const SHA256 = /^[a-f0-9]{64}$/;
 const COMMIT = /^[a-f0-9]{40}$/;
 const RUN_ID = /^[a-z0-9][a-z0-9._:-]{2,95}$/;
 const ARMS = new Set(['adapter', 'base-only']);
+const TASK_FAMILIES = new Set(Object.values(SCION_ADAPTER_TASK_FAMILIES));
 
 export const SCION_PAIRED_EVIDENCE_PRODUCER = 'scion-paired-evidence-v1';
 export const SCION_PAIRED_COMPARISON_PROTOCOL = 1;
@@ -62,7 +64,7 @@ function clean(value) {
 
 export function validateScionHeldoutBenchmark(manifest, { courseResolver = getCourseById } = {}) {
   const issues = [];
-  if (![1, 2].includes(manifest?.schemaVersion)) issues.push('schema-version');
+  if (![1, 2, 3].includes(manifest?.schemaVersion)) issues.push('schema-version');
   if (manifest?.protocolVersion !== 'scion-adapter-course-pair-v1') issues.push('protocol-version');
   if (!clean(manifest?.id)) issues.push('benchmark-id');
   if (manifest?.selectionPolicy?.domainDisjointFromTraining !== true) issues.push('domain-disjoint-policy');
@@ -87,6 +89,30 @@ export function validateScionHeldoutBenchmark(manifest, { courseResolver = getCo
       manifest.grader.implementationFileCount < 2
     ) {
       issues.push('grader-implementation-file-count');
+    }
+  }
+  if (manifest?.schemaVersion >= 3) {
+    const policy = manifest?.runtimeTaskPolicy;
+    if (policy?.protocol !== 'scion-adapter-runtime-task-policy-v1') issues.push('runtime-task-policy-protocol');
+    if (policy?.routeEvidenceRequired !== true) issues.push('runtime-task-policy-route-evidence');
+    if (policy?.unclassifiedPolicy !== 'forbid') issues.push('runtime-task-policy-unclassified');
+    const adapterFamilies = Array.isArray(policy?.adapterRequiredFamilies) ? policy.adapterRequiredFamilies : [];
+    const baseFamilies = Array.isArray(policy?.baseOnlyRequiredFamilies) ? policy.baseOnlyRequiredFamilies : [];
+    if (adapterFamilies.length === 0) issues.push('runtime-task-policy-adapter-families');
+    for (const [label, families] of [
+      ['adapter', adapterFamilies],
+      ['base-only', baseFamilies],
+    ]) {
+      if (new Set(families).size !== families.length) issues.push(`runtime-task-policy-${label}-duplicate`);
+      if (families.some((family) => !TASK_FAMILIES.has(clean(family)) || family === 'unclassified')) {
+        issues.push(`runtime-task-policy-${label}-family`);
+      }
+      if (stableJson(families) !== stableJson([...families].sort())) {
+        issues.push(`runtime-task-policy-${label}-order`);
+      }
+    }
+    if (adapterFamilies.some((family) => baseFamilies.includes(family))) {
+      issues.push('runtime-task-policy-overlap');
     }
   }
 
@@ -162,6 +188,20 @@ export function assessHeldoutDatasetBoundary(benchmark, dataset) {
     courseIdProofAvailable,
     domainOverlap,
     groupOverlap,
+  };
+}
+
+export function assessScionAdapterTaskScopeAgainstBenchmark(benchmark, adapterManifest) {
+  const policy = benchmark?.runtimeTaskPolicy;
+  if (!policy) return { eligible: true, missingAdapterFamilies: [], trainedBaseOnlyFamilies: [] };
+  const trainedFamilies = new Set((adapterManifest?.training?.taskScope?.families || []).map((entry) => entry.id));
+  const missingAdapterFamilies = policy.adapterRequiredFamilies.filter((family) => !trainedFamilies.has(family));
+  const trainedBaseOnlyFamilies = policy.baseOnlyRequiredFamilies.filter((family) => trainedFamilies.has(family));
+  return {
+    eligible: missingAdapterFamilies.length === 0 && trainedBaseOnlyFamilies.length === 0,
+    missingAdapterFamilies,
+    trainedBaseOnlyFamilies,
+    trainedFamilies: [...trainedFamilies].sort(),
   };
 }
 
@@ -251,6 +291,17 @@ async function verifyBenchmarkFiles({ benchmarkPath, datasetPath, adapterManifes
   if (datasetSha256 !== adapterManifest.training.datasetManifestSha256) {
     throw new Error('Adapter and dataset manifest SHA-256 do not match.');
   }
+  if (stableJson(dataset.taskScope) !== stableJson(adapterManifest.training.taskScope)) {
+    throw new Error('Adapter task scope does not match its exact dataset task scope.');
+  }
+  if (benchmark.runtimeTaskPolicy) {
+    const scopeAssessment = assessScionAdapterTaskScopeAgainstBenchmark(benchmark, adapterManifest);
+    if (!scopeAssessment.eligible) {
+      throw new Error(
+        `Adapter task scope is ineligible for this course benchmark (missing adapter families: ${scopeAssessment.missingAdapterFamilies.join(', ') || 'none'}; base-only families trained: ${scopeAssessment.trainedBaseOnlyFamilies.join(', ') || 'none'}).`,
+      );
+    }
+  }
   const heldoutBoundary = assessHeldoutDatasetBoundary(benchmark, dataset);
   if (!heldoutBoundary.pass) {
     throw new Error(
@@ -273,6 +324,68 @@ async function verifyBenchmarkFiles({ benchmarkPath, datasetPath, adapterManifes
     adapterPackageIdentitySha256: computeScionAdapterPackageIdentity(adapterManifest).sha256,
     heldoutBoundary,
     graderBinding,
+  };
+}
+
+export function assessScionAdapterRouteEvidence({
+  events,
+  policy,
+  arm,
+  adapterId,
+  adapterManifestSha256,
+  adapterScopeIdentitySha256,
+} = {}) {
+  const issues = [];
+  const routes = (Array.isArray(events) ? events : []).filter((event) => event?.type === 'scionAdapterRoute');
+  const adapterFamilies = Array.isArray(policy?.adapterRequiredFamilies) ? policy.adapterRequiredFamilies : [];
+  const baseOnlyFamilies = Array.isArray(policy?.baseOnlyRequiredFamilies) ? policy.baseOnlyRequiredFamilies : [];
+  const adapterAllowed = new Set(arm === 'adapter' ? adapterFamilies : []);
+  const allRequired = [...new Set([...adapterFamilies, ...baseOnlyFamilies])];
+  for (const family of allRequired) {
+    const familyRoutes = routes.filter((route) => clean(route.taskFamily) === family);
+    if (familyRoutes.length === 0) {
+      issues.push(`route-missing:${family}`);
+      continue;
+    }
+    const shouldUseAdapter = arm === 'adapter' && adapterAllowed.has(family);
+    if (
+      !familyRoutes.every(
+        (route) =>
+          clean(route.routeProtocol) === 'scion-adapter-runtime-route-v1' &&
+          clean(route.routeMode) === (shouldUseAdapter ? 'adapter' : 'base-only') &&
+          route.nativeAdapterActive === shouldUseAdapter &&
+          (!shouldUseAdapter ||
+            (clean(route.adapterId) === clean(adapterId) &&
+              clean(route.adapterManifestSha256) === clean(adapterManifestSha256) &&
+              clean(route.adapterScopeIdentitySha256) === clean(adapterScopeIdentitySha256))),
+      )
+    ) {
+      issues.push(`route-state:${family}`);
+    }
+  }
+  for (const route of routes) {
+    const family = clean(route.taskFamily) || 'unclassified';
+    if (clean(route.routeMode) === 'adapter' && !adapterAllowed.has(family)) {
+      issues.push(`unexpected-adapter-route:${family}`);
+    }
+    if (policy?.unclassifiedPolicy === 'forbid' && family === 'unclassified') {
+      issues.push('unclassified-route');
+    }
+  }
+  return {
+    valid: issues.length === 0,
+    issues: [...new Set(issues)],
+    routeCount: routes.length,
+    byFamily: Object.fromEntries(
+      [...new Set(routes.map((route) => clean(route.taskFamily) || 'unclassified'))].sort().map((family) => [
+        family,
+        {
+          adapter: routes.filter((route) => clean(route.taskFamily) === family && route.routeMode === 'adapter').length,
+          baseOnly: routes.filter((route) => clean(route.taskFamily) === family && route.routeMode === 'base-only')
+            .length,
+        },
+      ]),
+    ),
   };
 }
 
@@ -412,6 +525,7 @@ async function buildCourseEvidence({
   adapterManifest,
   adapterPackageIdentitySha256,
   graderImplementationSha256,
+  runtimeTaskPolicy,
 }) {
   const [report, digest, packageManifest, packageManifestText, project, consoleText, fileNames] = await Promise.all([
     readJson(path.join(courseDir, 'report.json')),
@@ -496,9 +610,25 @@ async function buildCourseEvidence({
   ) {
     throw new Error(`Course ${benchmarkCourse.courseId} used the wrong adapter state.`);
   }
+  const consoleEvents = parseScionConsoleEvents(consoleText);
+  const routeEvidence = runtimeTaskPolicy?.routeEvidenceRequired
+    ? assessScionAdapterRouteEvidence({
+        events: consoleEvents,
+        policy: runtimeTaskPolicy,
+        arm: expectedArm,
+        adapterId: adapterManifest.adapter.id,
+        adapterManifestSha256: localModel.adapterManifestSha256,
+        adapterScopeIdentitySha256: adapterManifest.training.taskScope?.identity?.sha256,
+      })
+    : null;
+  if (routeEvidence && !routeEvidence.valid) {
+    throw new Error(
+      `Course ${benchmarkCourse.courseId} failed task-scoped adapter route evidence: ${routeEvidence.issues.join(', ')}.`,
+    );
+  }
   const taskRows = Array.isArray(digest?.cost?.byTask) ? digest.cost.byTask : [];
   const task = (id) => taskRows.find((entry) => entry.task === id) || {};
-  const compilerBurden = summarizeScionCompilerBurden(parseScionConsoleEvents(consoleText), {
+  const compilerBurden = summarizeScionCompilerBurden(consoleEvents, {
     lessonCount: Number(course.lessonCount) || 0,
   });
   if (!compilerBurden.scion.calls) {
@@ -533,6 +663,7 @@ async function buildCourseEvidence({
     adapterManifestSha256: localModel.adapterManifestSha256 || null,
     adapterPackageIdentitySha256: localModel.adapterPackageIdentitySha256 || null,
     adapterScale: isAdapter ? Number(localModel.adapterScale ?? adapterManifest.adapter?.scale ?? 1) : 0,
+    ...(routeEvidence ? { adapterRouteEvidence: routeEvidence } : {}),
     evidenceProducer: SCION_PAIRED_EVIDENCE_PRODUCER,
     artifactReceiptSha256,
     artifactFiles: receipts.map((entry) => ({
@@ -597,6 +728,7 @@ export async function produceScionPairedEvidence({
           graderImplementationSha256: verified.graderBinding.transitiveBound
             ? verified.graderBinding.implementationSha256
             : null,
+          runtimeTaskPolicy: verified.benchmark.runtimeTaskPolicy,
         }),
       ),
     ),
@@ -610,6 +742,7 @@ export async function produceScionPairedEvidence({
           graderImplementationSha256: verified.graderBinding.transitiveBound
             ? verified.graderBinding.implementationSha256
             : null,
+          runtimeTaskPolicy: verified.benchmark.runtimeTaskPolicy,
         }),
       ),
     ),
