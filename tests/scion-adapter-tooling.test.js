@@ -964,6 +964,7 @@ describe('Scion adapter tooling', () => {
     expect(launcher).toContain('--semantic-profile strict');
     expect(launcher).toContain('--mlx-self-test');
     expect(launcher).toContain('$LESSON_KERNEL_V01654 && MAX_SEQUENCE_LENGTH=2580');
+    expect(launcher).toContain('$LESSON_KERNEL_V01654 && DEFAULT_ITERS=200');
     expect(launcher).toContain('--max-sequence-length "$MAX_SEQUENCE_LENGTH"');
     expect(launcher).toContain('--max-seq-length "$MAX_SEQUENCE_LENGTH"');
     expect(launcher).not.toContain('BASE_MODEL=google/gemma-4-E2B-it\n');

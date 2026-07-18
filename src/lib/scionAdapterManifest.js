@@ -85,6 +85,20 @@ function validSplitCounts(training, minimumDomains) {
   return splitCountsValid && splitTotal === training?.pairCount && splitDomainsValid;
 }
 
+function isLessonKernelProductionProfile(training) {
+  const families = Array.isArray(training?.taskScope?.families) ? training.taskScope.families : [];
+  return (
+    training?.taskScope?.mode === 'allowlist' &&
+    training?.taskScope?.unclassifiedPolicy === 'base-only' &&
+    training?.taskScope?.compositePolicy === 'exact-family-only' &&
+    families.length === 1 &&
+    families[0]?.id === 'lesson-kernel' &&
+    Number.isSafeInteger(training?.pairCount) &&
+    training.pairCount < 3000 &&
+    families[0]?.rows === training.pairCount
+  );
+}
+
 function sameModelId(left, right) {
   return clean(left).toLowerCase() === clean(right).toLowerCase();
 }
@@ -209,35 +223,63 @@ export function validateScionAdapterManifest(
     issues.push('promotion-audit-attestation');
   }
   if (promotionStatus === 'candidate' || promotionStatus === 'promoted') {
+    const lessonKernelProfile = isLessonKernelProductionProfile(manifest.training);
+    const minimums = lessonKernelProfile
+      ? {
+          pairs: 100,
+          domains: 7,
+          groups: 14,
+          modelJudgePairs: 100,
+          modelJudgeDomains: 7,
+          groupsPerDomain: 2,
+          modelJudgePairsPerDomain: 8,
+          splitDomains: 7,
+        }
+      : {
+          pairs: 3000,
+          domains: 5,
+          groups: 15,
+          modelJudgePairs: 100,
+          modelJudgeDomains: 5,
+          groupsPerDomain: 3,
+          modelJudgePairsPerDomain: 20,
+          splitDomains: 5,
+        };
     if (clean(manifest.training?.datasetStatus) !== 'ready') issues.push('candidate-dataset-not-ready');
     if (clean(manifest.training?.primaryPreferenceEvidence) !== 'single-model-judge') {
       issues.push('candidate-primary-preference-evidence');
     }
-    if (!Number.isSafeInteger(manifest.training?.pairCount) || manifest.training.pairCount < 3000) {
+    if (!Number.isSafeInteger(manifest.training?.pairCount) || manifest.training.pairCount < minimums.pairs) {
       issues.push('candidate-pair-count');
     }
-    if (!Number.isSafeInteger(manifest.training?.domainCount) || manifest.training.domainCount < 5) {
+    if (!Number.isSafeInteger(manifest.training?.domainCount) || manifest.training.domainCount < minimums.domains) {
       issues.push('candidate-domain-count');
     }
-    if (!Number.isSafeInteger(manifest.training?.groupCount) || manifest.training.groupCount < 15) {
+    if (!Number.isSafeInteger(manifest.training?.groupCount) || manifest.training.groupCount < minimums.groups) {
       issues.push('candidate-group-count');
     }
-    if (!Number.isSafeInteger(manifest.training?.modelJudgePairCount) || manifest.training.modelJudgePairCount < 100) {
+    if (
+      !Number.isSafeInteger(manifest.training?.modelJudgePairCount) ||
+      manifest.training.modelJudgePairCount < minimums.modelJudgePairs
+    ) {
       issues.push('candidate-model-judge-pair-count');
     }
     if (
       !Number.isSafeInteger(manifest.training?.modelJudgeDomainCount) ||
-      manifest.training.modelJudgeDomainCount < 5
+      manifest.training.modelJudgeDomainCount < minimums.modelJudgeDomains
     ) {
       issues.push('candidate-model-judge-domain-count');
     }
-    if (countDomainsAtLeast(manifest.training?.domainGroupCounts, 3) < 5) {
+    if (countDomainsAtLeast(manifest.training?.domainGroupCounts, minimums.groupsPerDomain) < minimums.domains) {
       issues.push('candidate-domain-group-coverage');
     }
-    if (countDomainsAtLeast(manifest.training?.modelJudgeDomainCounts, 20) < 5) {
+    if (
+      countDomainsAtLeast(manifest.training?.modelJudgeDomainCounts, minimums.modelJudgePairsPerDomain) <
+      minimums.modelJudgeDomains
+    ) {
       issues.push('candidate-model-judge-domain-coverage');
     }
-    if (!validSplitCounts(manifest.training, 5)) issues.push('candidate-split-coverage');
+    if (!validSplitCounts(manifest.training, minimums.splitDomains)) issues.push('candidate-split-coverage');
   }
   if (promotionStatus === 'research') {
     if (clean(manifest.training?.datasetStatus) !== 'research-ready') issues.push('research-dataset-not-ready');

@@ -92,7 +92,9 @@ if ! $SMOKE && ! $RESEARCH && [ "$STATUS" != "ready" ]; then
   exit 1
 fi
 
-ITERS=${ITERS:-600}
+DEFAULT_ITERS=600
+$LESSON_KERNEL_V01654 && DEFAULT_ITERS=200
+ITERS=${ITERS:-$DEFAULT_ITERS}
 $SMOKE && ITERS=10
 MAX_SEQUENCE_LENGTH=4096
 # The sealed v0.16.54 corpus has a measured maximum of 2,575 tokens. Keep a
