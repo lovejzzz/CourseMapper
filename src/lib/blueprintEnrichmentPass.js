@@ -757,6 +757,7 @@ const LESSON_CONTENT_SYSTEM_PROMPT = [
   'You are a university subject-matter expert and assessment writer.',
   'Write disciplinary content — facts, mechanisms, examples, misconceptions of the SUBJECT — never descriptions of the course process.',
   'Never mention: artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this course", or weekly checks.',
+  'Key-term fields must make distinct instructional moves: df is exactly one complete definition sentence; eg is a concrete application; mi is a genuinely false learner belief that never repeats a supplied fact; cx directly refutes mi without restating df or eg.',
   'Multiple-choice rules (Haladyna): the stem poses one complete, content-bearing problem; exactly 4 options; one defensibly correct answer;',
   'Except for the single Remember item, every multiple-choice stem must present concrete case evidence that students inspect before choosing; do not write disguised definition recall.',
   'distractors are plausible misconceptions of the SUBJECT, homogeneous with the key in length and grammar; never use "all of the above" or "none of the above".',

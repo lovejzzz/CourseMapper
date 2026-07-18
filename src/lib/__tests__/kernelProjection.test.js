@@ -672,6 +672,10 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(kernelPrompt.systemPrompt).toContain(
       'exactly one complete, precise definition sentence in subject language',
     );
+    expect(kernelPrompt.systemPrompt).toContain(
+      'mi is a genuinely false learner belief that never repeats a supplied fact',
+    );
+    expect(kernelPrompt.systemPrompt).toContain('cx directly refutes mi without restating df or eg');
     expect(kernelPrompt.systemPrompt).not.toContain('correct 1-2 sentence definition');
   });
 
