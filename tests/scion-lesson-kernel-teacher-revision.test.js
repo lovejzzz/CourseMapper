@@ -125,6 +125,13 @@ describe('Scion lesson-kernel teacher revision', () => {
     expect(promptV2).toContain('Do not use absolute option language');
     expect(promptV2).toContain('Every named phrase must appear verbatim in a supplied claim');
     expect(promptV2).toContain('directly correct only the false predicate');
+    const promptV3 = fs.readFileSync(
+      path.resolve(here, '../evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v3-v0.16.54.md'),
+      'utf8',
+    );
+    expect(promptV3).toContain('must repeat its exact `tr` phrase verbatim as the subject');
+    expect(promptV3).toContain('not the definition with one negation or reversed adjective');
+    expect(promptV3).toContain('without restating the full definition');
   });
 
   it('builds a source-only packet without exposing the local artifact or provider route', () => {
