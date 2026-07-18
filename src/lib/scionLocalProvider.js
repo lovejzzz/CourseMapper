@@ -102,6 +102,7 @@ function hasHighRiskKernelIssues(assessment = {}) {
     [
       'unexpected-script',
       'truncated-fact',
+      'truncated-definition',
       'unanchored-named',
       'duplicate-options',
       'absolute-option',

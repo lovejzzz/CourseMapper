@@ -117,7 +117,9 @@ export function assessScionMcItem(
     semanticProfile === 'strict-v3' ||
     semanticProfile === 'source-strict-v3' ||
     semanticProfile === 'strict-v4' ||
-    semanticProfile === 'source-strict-v4';
+    semanticProfile === 'source-strict-v4' ||
+    semanticProfile === 'strict-v5' ||
+    semanticProfile === 'source-strict-v5';
   const strictSemanticAdmission =
     semanticAdmission &&
     (semanticProfile === 'strict' || semanticProfile === 'source-strict' || judgeInformedSemanticAdmission);

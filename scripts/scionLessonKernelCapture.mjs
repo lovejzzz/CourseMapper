@@ -31,6 +31,14 @@ const DEFAULT_REPORT = `${DEFAULT_CHECKPOINT_DIR}/latest.json`;
 const BASE_CONTRACT = 'evaluation/scion-adapters/base-contracts/gemma-4-e2b.json';
 const LOCAL_TIMEOUT_MS = 2_400_000;
 const MAX_ATTEMPTS = 3;
+const CAPTURE_COMPILER_FILES = Object.freeze([
+  'scripts/scionLessonKernelCapture.mjs',
+  'scripts/lib/scionLessonKernelCampaign.mjs',
+  'src/lib/publicScionProvider.js',
+  'src/lib/scionAnswerKeyAlignment.js',
+  'src/lib/scionKeyTermContract.js',
+  'src/lib/scenarioContract.js',
+]);
 
 function parseArgs(argv) {
   const args = {
@@ -317,12 +325,32 @@ async function captureCase(entry, arm, model) {
   };
 }
 
-function checkpointIdentity(campaign, arm, model) {
+async function captureCompilerIdentity() {
+  const files = Object.fromEntries(
+    await Promise.all(
+      CAPTURE_COMPILER_FILES.map(async (file) => [file, scionLessonKernelSha256(await fs.readFile(file, 'utf8'))]),
+    ),
+  );
+  const policy = {
+    keyTermSemanticProfile: 'source-strict-v5',
+    maxAttempts: MAX_ATTEMPTS,
+    answerPosition: 'compiler-deterministic-shuffle-after-admission',
+    crossAttemptRetention: 'atomic-groups-only',
+  };
+  return {
+    policy,
+    files,
+    identitySha256: scionLessonKernelSha256({ policy, files }),
+  };
+}
+
+function checkpointIdentity(campaign, arm, model, compiler) {
   return scionLessonKernelSha256({
     protocol: SCION_LESSON_KERNEL_CAPTURE_PROTOCOL,
     campaignIdentity: campaign.identity,
     arm,
     model,
+    compiler,
     maxAttempts: MAX_ATTEMPTS,
   });
 }
@@ -345,10 +373,11 @@ function verifyCapturedCall(call, entry, arm, model) {
 
 async function captureArm(args, campaign) {
   const model = await modelIdentity(args.arm, args.referenceModel);
+  const compiler = await captureCompilerIdentity();
   await preflight(args.arm, model);
   const checkpointPath = path.resolve(args.checkpointDir, `${args.arm}.json`);
   if (args.fresh) await fs.rm(checkpointPath, { force: true });
-  const identitySha256 = checkpointIdentity(campaign, args.arm, model);
+  const identitySha256 = checkpointIdentity(campaign, args.arm, model, compiler);
   const checkpoint = (await readJson(checkpointPath)) || {
     schemaVersion: 1,
     protocol: SCION_LESSON_KERNEL_CAPTURE_PROTOCOL,
@@ -356,6 +385,7 @@ async function captureArm(args, campaign) {
     identitySha256,
     arm: args.arm,
     model,
+    compiler,
     calls: [],
   };
   if (checkpoint.identitySha256 !== identitySha256) {
@@ -387,6 +417,7 @@ async function verifyCheckpoints(args, campaign) {
   const results = {};
   for (const arm of arms) {
     const model = await modelIdentity(arm, args.referenceModel);
+    const compiler = await captureCompilerIdentity();
     const checkpointPath = path.resolve(args.checkpointDir, `${arm}.json`);
     const checkpoint = await readJson(checkpointPath);
     if (!checkpoint) {
@@ -394,7 +425,10 @@ async function verifyCheckpoints(args, campaign) {
       continue;
     }
     const issues = [];
-    if (checkpoint.identitySha256 !== checkpointIdentity(campaign, arm, model)) issues.push('identity');
+    if (checkpoint.identitySha256 !== checkpointIdentity(campaign, arm, model, compiler)) issues.push('identity');
+    if (stableScionLessonKernelJson(checkpoint.compiler) !== stableScionLessonKernelJson(compiler)) {
+      issues.push('compiler');
+    }
     const byCase = new Map(campaign.cases.map((entry) => [entry.caseId, entry]));
     let validCalls = 0;
     for (const call of checkpoint.calls || []) {

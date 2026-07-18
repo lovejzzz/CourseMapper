@@ -383,6 +383,68 @@ describe('Scion strict semantic admission', () => {
   });
 });
 
+describe('Scion strict-v5 definition precision', () => {
+  const fields = {
+    eg: 'A learner uses the concept in a concrete problem with observable evidence.',
+    mi: 'The concept merely repeats its label without adding any usable distinction.',
+    cx: 'A useful account states a broader category and the properties that distinguish it.',
+  };
+
+  it.each([
+    [
+      'key-value pairs',
+      'A dictionary stores key-value pairs and looks up each value by its key rather than by numeric position.',
+    ],
+    [
+      'magnetic force',
+      'Magnetic force is the physical influence exerted by a magnetic field on a moving charge or current.',
+    ],
+    [
+      'epidermis',
+      'The epidermis is made of keratinized stratified squamous epithelium that protects underlying tissue.',
+    ],
+  ])('accepts a legitimate term-led genus/difference definition for %s', (tr, df) => {
+    const assessment = assessScionKeyTerm(
+      { tr, df, ...fields },
+      { lessonTitle: 'A different lesson title', semanticProfile: 'strict-v5' },
+    );
+    expect(assessment.issues).not.toContain('circular-definition');
+  });
+
+  it('still rejects a true tautology made only from the term and generic definition words', () => {
+    const assessment = assessScionKeyTerm(
+      {
+        tr: 'recursion',
+        df: 'Recursion is the recursion concept, term, definition, method, process, and idea.',
+        ...fields,
+      },
+      { lessonTitle: 'Recursive problem solving', semanticProfile: 'strict-v5' },
+    );
+    expect(assessment.issues).toContain('circular-definition');
+  });
+
+  it('rejects a multi-sentence or visibly truncated definition at the V5 boundary', () => {
+    const multiple = assessScionKeyTerm(
+      {
+        tr: 'base case',
+        df: 'A base case stops recursive calls. It supplies a direct result for the smallest input.',
+        ...fields,
+      },
+      { lessonTitle: 'Recursive problem solving', semanticProfile: 'strict-v5' },
+    );
+    const truncated = assessScionKeyTerm(
+      {
+        tr: 'base case',
+        df: 'A base case supplies a direct result and stops further recursive calls without',
+        ...fields,
+      },
+      { lessonTitle: 'Recursive problem solving', semanticProfile: 'strict-v5' },
+    );
+    expect(multiple.issues).toContain('definition-multiple-sentences');
+    expect(truncated.issues).toContain('truncated-definition');
+  });
+});
+
 describe('Scion source-strict-v4 key-term coherence', () => {
   it('rejects a true boolean rule mislabeled as a misconception', () => {
     const facts = [

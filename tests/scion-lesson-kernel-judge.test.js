@@ -5,8 +5,10 @@ import {
   SCION_LESSON_KERNEL_JUDGE_REVIEW_PROTOCOL,
   aggregateScionLessonKernelPairedOrders,
   buildScionLessonKernelBlindPacket,
+  buildScionLessonKernelBlindWorkbook,
   buildScionLessonKernelTrainingPreferences,
   validateScionLessonKernelBlindPacket,
+  validateScionLessonKernelBlindWorkbook,
   validateScionLessonKernelJudgeReview,
 } from '../scripts/lib/scionLessonKernelJudge.mjs';
 import { scionLessonKernelSha256 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
@@ -125,6 +127,64 @@ function completeReview(packet, sessionId, decision) {
 }
 
 describe('Scion lesson-kernel paired-order judge', () => {
+  it('splits a large campaign into hash-bound exact-reversal workbooks', () => {
+    const inputs = fixture();
+    const secondCase = {
+      ...structuredClone(inputs.campaign.cases[0]),
+      caseId: 'scion-kernel-test-2',
+      lessonInput: { lessonId: 'lesson-2', title: 'Rock cycles' },
+    };
+    inputs.campaign.cases.push(secondCase);
+    for (const report of [inputs.localReport, inputs.referenceReport]) {
+      const artifact = { ...structuredClone(report.calls[0].artifact), lessonId: 'lesson-2' };
+      report.calls.push({
+        ...structuredClone(report.calls[0]),
+        caseId: secondCase.caseId,
+        artifact,
+        artifactSha256: scionLessonKernelSha256(artifact),
+      });
+    }
+    const workbook = buildScionLessonKernelBlindWorkbook({
+      ...inputs,
+      promptPath: 'evaluation/judge.md',
+      promptSha256: 'b'.repeat(64),
+      generatedAt: '2026-07-18T16:30:00.000Z',
+      chunkSize: 1,
+    });
+
+    expect(validateScionLessonKernelBlindWorkbook(workbook)).toEqual({ valid: true, issues: [] });
+    expect(workbook.manifest).toMatchObject({
+      chunkSize: 1,
+      campaignCaseCount: 2,
+      caseCount: 2,
+      captureComplete: true,
+    });
+    expect(workbook.batches).toHaveLength(2);
+    expect(workbook.batches.every((batch) => batch.caseIds.length === 1)).toBe(true);
+
+    inputs.campaign.cases.push({
+      ...structuredClone(secondCase),
+      caseId: 'scion-kernel-test-3-not-captured',
+      lessonInput: { lessonId: 'lesson-3', title: 'Relative dating' },
+    });
+    const progressive = buildScionLessonKernelBlindWorkbook({
+      ...inputs,
+      promptPath: 'evaluation/judge.md',
+      promptSha256: 'b'.repeat(64),
+      generatedAt: '2026-07-18T16:30:00.000Z',
+      chunkSize: 6,
+    });
+    expect(validateScionLessonKernelBlindWorkbook(progressive)).toEqual({ valid: true, issues: [] });
+    expect(progressive.manifest).toMatchObject({ campaignCaseCount: 3, caseCount: 2, captureComplete: false });
+    expect(progressive.batches[0].sealed).toBe(false);
+
+    const tampered = structuredClone(workbook);
+    tampered.batches[0].packets['B/A'].cases[0].artifacts.A = tampered.batches[0].packets['A/B'].cases[0].artifacts.A;
+    expect(validateScionLessonKernelBlindWorkbook(tampered).issues).toEqual(
+      expect.arrayContaining([expect.stringContaining('identity'), expect.stringContaining('reverse-order')]),
+    );
+  });
+
   it('builds anonymous exact-reversal packets without outcome or route leakage', () => {
     const inputs = fixture();
     const { ab, ba } = buildPackets(inputs);

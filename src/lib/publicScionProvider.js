@@ -167,6 +167,34 @@ function repairPublicScionFactSentences(parsed) {
   return { parsed, repairs };
 }
 
+function repairPublicScionDefinitionSentences(parsed) {
+  const repairs = [];
+  if (!parsed || !Array.isArray(parsed.lessons)) return { parsed, repairs };
+  for (const lesson of parsed.lessons) {
+    if (!Array.isArray(lesson?.keyTerms)) continue;
+    lesson.keyTerms.forEach((term, item) => {
+      const field = Object.prototype.hasOwnProperty.call(term || {}, 'df') ? 'df' : 'definition';
+      const value = String(term?.[field] || '').trim();
+      const sentences = (value.match(/[^.!?]+[.!?]+/g) || []).map((sentence) => sentence.trim());
+      const alreadyOneCompleteSentence = sentences.length === 1 && sentences[0] === value;
+      if (alreadyOneCompleteSentence) return;
+      const replacement = sentences.find((sentence) => sentence.length >= 40 && sentence.length <= 380);
+      if (!replacement || replacement === value) return;
+      term[field] = replacement;
+      repairs.push({
+        pass: 'completeDefinitionSentence',
+        lessonId: lesson.lessonId || null,
+        item,
+        field,
+        before: value,
+        after: replacement,
+        trainingEligible: false,
+      });
+    });
+  }
+  return { parsed, repairs };
+}
+
 /**
  * Repair syntax and conservative, content-preserving contract defects before
  * the normal kernel parser decides what may compile. The detailed form
@@ -213,8 +241,12 @@ export function repairPublicScionJson(text = '') {
   if (!parsed) return { text: raw, repairs: [] };
   const lifted = liftNestedPublicScionLessonFields(parsed);
   const factRepair = repairPublicScionFactSentences(lifted);
-  const mcRepair = repairPublicScionMcItems(factRepair.parsed);
-  return { text: JSON.stringify(mcRepair.parsed), repairs: [...factRepair.repairs, ...mcRepair.repairs] };
+  const definitionRepair = repairPublicScionDefinitionSentences(factRepair.parsed);
+  const mcRepair = repairPublicScionMcItems(definitionRepair.parsed);
+  return {
+    text: JSON.stringify(mcRepair.parsed),
+    repairs: [...factRepair.repairs, ...definitionRepair.repairs, ...mcRepair.repairs],
+  };
 }
 
 export function repairPublicScionJsonText(text = '') {
@@ -355,7 +387,7 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           definitionMin: 40,
           knownFacts: sourceFacts,
           sourceTerm: hasRichSourceEvidence ? expected.title || '' : '',
-          semanticProfile: hasRichSourceEvidence ? 'source-strict-v4' : 'strict-v4',
+          semanticProfile: hasRichSourceEvidence ? 'source-strict-v5' : 'strict-v5',
         });
         for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
         const namedPhrases = publicScionUnanchoredNamedPhrases(term?.eg ?? term?.example, sourceText);
@@ -522,6 +554,11 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
       ? [
           'A definition must not repeat its tr term within the first six words. Begin df with a broader category phrase such as "A process in which".',
         ]
+      : []),
+    ...(allIssues.some(
+      (issue) => issue.includes('truncated-definition') || issue.includes('definition-multiple-sentences'),
+    )
+      ? ['Every df must be exactly one complete sentence with no continuation or truncated tail.']
       : []),
     ...(allIssues.some((issue) => issue.includes('source-fact-index'))
       ? ['sourceFactIndexes is required and may cite only supplied zero-based claim indexes.']
@@ -840,7 +877,7 @@ ${
     ? `- RECOVERY ${recoveryAttempt}: a previous response was incomplete. Re-author the full requested lesson now; do not summarize, apologize, or repeat an empty response.\n`
     : ''
 }- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
-- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is at least 40 characters and begins with a broader category or distinguishing property, not the tr term; eg is concrete and uses only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
+- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is exactly one complete sentence of at least 40 characters and states a broader category or distinguishing property; a term-led definition is acceptable only when it adds a real distinction. eg is concrete and uses only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
 - Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences; ma names the evidence packet rather than saying "scenario evidence" or "course materials".
 - Write exactly 2 mc items: one concept distinction and one concrete case application.
 - Every mc item includes fi=sourceFactIndexes as exactly [n]: one zero-based integer from 0 through 4 pointing to the single fact that directly supports the first option. Never write a string, more than one index, or an out-of-range index.

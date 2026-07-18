@@ -617,6 +617,39 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     ]);
   });
 
+  it('keeps one complete definition when a local decode continues into redundant or truncated prose', () => {
+    const firstSentence =
+      'Recursion is a problem-solving technique that reduces a complex problem into a simpler version of itself.';
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-recursion',
+          keyTerms: [
+            {
+              tr: 'recursion',
+              df: `${firstSentence} This continuation repeats the idea before the constrained decode trunc`,
+              eg: 'A factorial function calls itself with a smaller input.',
+              mi: 'Recursion can continue safely without any stopping condition.',
+              cx: 'A base case must stop the chain of self-calls.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const repaired = repairPublicScionJson(JSON.stringify(response));
+    expect(JSON.parse(repaired.text).lessons[0].keyTerms[0].df).toBe(firstSentence);
+    expect(repaired.repairs).toEqual([
+      expect.objectContaining({
+        pass: 'completeDefinitionSentence',
+        lessonId: 'lesson-recursion',
+        item: 0,
+        field: 'df',
+        trainingEligible: false,
+      }),
+    ]);
+  });
+
   it('deterministically shuffles admitted answer positions without changing the supported option', () => {
     const response = {
       lessons: [

@@ -1,6 +1,7 @@
 import { scionLessonKernelSha256, stableScionLessonKernelJson } from './scionLessonKernelCampaign.mjs';
 
 export const SCION_LESSON_KERNEL_JUDGE_PACKET_PROTOCOL = 'scion-lesson-kernel-blind-packet-v1';
+export const SCION_LESSON_KERNEL_JUDGE_WORKBOOK_PROTOCOL = 'scion-lesson-kernel-blind-workbook-v1';
 export const SCION_LESSON_KERNEL_JUDGE_REVIEW_PROTOCOL = 'scion-lesson-kernel-blind-review-v1';
 export const SCION_LESSON_KERNEL_JUDGE_AGGREGATE_PROTOCOL = 'scion-lesson-kernel-paired-order-result-v1';
 export const SCION_LESSON_KERNEL_JUDGE_DIMENSIONS = Object.freeze([
@@ -98,11 +99,14 @@ export function buildScionLessonKernelBlindPacket({
   promptPath,
   promptSha256,
   generatedAt,
+  caseIds = null,
 } = {}) {
   if (!['A/B', 'B/A'].includes(order)) throw new Error('Lesson-kernel judge order must be A/B or B/A');
   const local = reportCalls(localReport);
   const reference = reportCalls(referenceReport);
+  const selectedCaseIds = Array.isArray(caseIds) ? new Set(caseIds) : null;
   const cases = (campaign?.cases || [])
+    .filter((entry) => !selectedCaseIds || selectedCaseIds.has(entry.caseId))
     .filter((entry) => local.get(entry.caseId)?.artifact && reference.get(entry.caseId)?.artifact)
     .map((entry) =>
       packetCase({
@@ -129,6 +133,143 @@ export function buildScionLessonKernelBlindPacket({
     sha256: scionLessonKernelSha256(withoutIdentity(packet)),
   };
   return packet;
+}
+
+export function buildScionLessonKernelBlindWorkbook({
+  campaign,
+  localReport,
+  referenceReport,
+  promptPath,
+  promptSha256,
+  generatedAt,
+  chunkSize = 6,
+} = {}) {
+  if (!Number.isInteger(chunkSize) || chunkSize < 1 || chunkSize > 12) {
+    throw new Error('Lesson-kernel judge chunkSize must be an integer from 1 through 12');
+  }
+  const local = reportCalls(localReport);
+  const reference = reportCalls(referenceReport);
+  const campaignCaseCount = (campaign?.cases || []).length;
+  const caseIds = (campaign?.cases || [])
+    .filter((entry) => local.get(entry.caseId)?.artifact && reference.get(entry.caseId)?.artifact)
+    .map((entry) => entry.caseId);
+  const batches = [];
+  for (let offset = 0; offset < caseIds.length; offset += chunkSize) {
+    const batchCaseIds = caseIds.slice(offset, offset + chunkSize);
+    const index = batches.length + 1;
+    const batchId = `batch-${String(index).padStart(3, '0')}-${scionLessonKernelSha256(batchCaseIds).slice(0, 10)}`;
+    const common = {
+      campaign,
+      localReport,
+      referenceReport,
+      promptPath,
+      promptSha256,
+      generatedAt,
+      caseIds: batchCaseIds,
+    };
+    const packets = {
+      'A/B': buildScionLessonKernelBlindPacket({ ...common, order: 'A/B' }),
+      'B/A': buildScionLessonKernelBlindPacket({ ...common, order: 'B/A' }),
+    };
+    batches.push({
+      batchId,
+      index,
+      caseIds: batchCaseIds,
+      sealed: batchCaseIds.length === chunkSize || caseIds.length === campaignCaseCount,
+      packets,
+    });
+  }
+  const manifest = {
+    schemaVersion: 1,
+    protocol: SCION_LESSON_KERNEL_JUDGE_WORKBOOK_PROTOCOL,
+    generatedAt,
+    campaignIdentity: campaign?.identity,
+    prompt: { path: promptPath, sha256: promptSha256 },
+    chunkSize,
+    campaignCaseCount,
+    caseCount: caseIds.length,
+    captureComplete: caseIds.length === campaignCaseCount,
+    batches: batches.map((batch) => ({
+      batchId: batch.batchId,
+      index: batch.index,
+      caseIds: batch.caseIds,
+      sealed: batch.sealed,
+      packetSha256: {
+        'A/B': batch.packets['A/B'].identity.sha256,
+        'B/A': batch.packets['B/A'].identity.sha256,
+      },
+    })),
+    claimBoundary:
+      'Each batch is judged in two isolated sessions with exact reversed artifact order. The workbook contains no organizer mapping, provider identity, model route, preference, or training authorization.',
+  };
+  manifest.identity = {
+    algorithm: 'sha256-canonical-json',
+    sha256: scionLessonKernelSha256(withoutIdentity(manifest)),
+  };
+  return { manifest, batches };
+}
+
+export function validateScionLessonKernelBlindWorkbook(workbook = {}) {
+  const manifest = workbook?.manifest || {};
+  const batches = Array.isArray(workbook?.batches) ? workbook.batches : [];
+  const issues = [];
+  if (manifest.protocol !== SCION_LESSON_KERNEL_JUDGE_WORKBOOK_PROTOCOL) issues.push('protocol');
+  if (!Number.isInteger(manifest.chunkSize) || manifest.chunkSize < 1 || manifest.chunkSize > 12) {
+    issues.push('chunk-size');
+  }
+  if (!Array.isArray(manifest.batches) || manifest.batches.length !== batches.length || batches.length === 0) {
+    issues.push('batches');
+  }
+  const manifestById = new Map((manifest.batches || []).map((entry) => [entry.batchId, entry]));
+  const seenCases = new Set();
+  for (const batch of batches) {
+    const declared = manifestById.get(batch.batchId);
+    if (!declared || declared.index !== batch.index) issues.push(`batch:${batch.batchId || 'missing'}`);
+    if (declared?.sealed !== batch.sealed) issues.push(`batch-seal:${batch.batchId || 'missing'}`);
+    if (!Array.isArray(batch.caseIds) || batch.caseIds.length < 1 || batch.caseIds.length > manifest.chunkSize) {
+      issues.push(`batch-size:${batch.batchId || 'missing'}`);
+    }
+    for (const caseId of batch.caseIds || []) {
+      if (seenCases.has(caseId)) issues.push(`duplicate-case:${caseId}`);
+      seenCases.add(caseId);
+    }
+    for (const order of ['A/B', 'B/A']) {
+      const packet = batch.packets?.[order];
+      const validation = validateScionLessonKernelBlindPacket(packet);
+      issues.push(...validation.issues.map((issue) => `${batch.batchId}:${order}:${issue}`));
+      if (declared?.packetSha256?.[order] !== packet?.identity?.sha256) {
+        issues.push(`packet-sha256:${batch.batchId}:${order}`);
+      }
+      if (
+        stableScionLessonKernelJson(packet?.cases?.map((entry) => entry.caseId)) !==
+        stableScionLessonKernelJson(batch.caseIds)
+      ) {
+        issues.push(`packet-cases:${batch.batchId}:${order}`);
+      }
+    }
+    const abCases = new Map((batch.packets?.['A/B']?.cases || []).map((entry) => [entry.caseId, entry]));
+    for (const entry of batch.packets?.['B/A']?.cases || []) {
+      const reversed = abCases.get(entry.caseId);
+      if (
+        !reversed ||
+        reversed.artifacts?.A?.artifactSha256 !== entry.artifacts?.B?.artifactSha256 ||
+        reversed.artifacts?.B?.artifactSha256 !== entry.artifacts?.A?.artifactSha256
+      ) {
+        issues.push(`reverse-order:${batch.batchId}:${entry.caseId}`);
+      }
+    }
+  }
+  if (manifest.caseCount !== seenCases.size) issues.push('case-count');
+  if (!Number.isInteger(manifest.campaignCaseCount) || manifest.campaignCaseCount < manifest.caseCount) {
+    issues.push('campaign-case-count');
+  }
+  if (manifest.captureComplete !== (manifest.caseCount === manifest.campaignCaseCount)) issues.push('capture-complete');
+  for (const batch of batches) {
+    const shouldBeSealed = batch.caseIds.length === manifest.chunkSize || manifest.captureComplete;
+    if (batch.sealed !== shouldBeSealed) issues.push(`seal-policy:${batch.batchId}`);
+  }
+  if (manifest.identity?.sha256 !== scionLessonKernelSha256(withoutIdentity(manifest))) issues.push('identity');
+  return { valid: issues.length === 0, issues: [...new Set(issues)] };
 }
 
 export function validateScionLessonKernelBlindPacket(packet = {}) {

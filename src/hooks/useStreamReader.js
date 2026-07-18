@@ -297,6 +297,7 @@ export default function useStreamReader() {
             explanationKeyAlignment: 'Scion aligned an answer key',
             sourceAnswerAlignment: 'Scion aligned an answer to its source',
             completeFactSentence: 'Scion retained a complete source fact',
+            completeDefinitionSentence: 'Scion retained a complete definition',
             deterministicOptionShuffle: 'Scion varied answer positions',
             crossAttemptAtomicRetention: 'Scion retained the stronger complete section',
           };

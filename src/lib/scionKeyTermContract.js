@@ -66,6 +66,9 @@ const SOURCE_IMPLICIT_CUE_RE = /\b(?:implicit(?:ly)?|automat(?:ic|ically))\b/i;
 const EXPLICIT_CUE_RE = /\bexplicit(?:ly)?\b/i;
 const DIRECT_CONTRAST_RE = /\b(?:instead|not|rather|unlike)\b/i;
 const DEFINING_IDENTITY_RE = /\b(?:labels?|names?|terms?)\b/i;
+const CIRCULAR_DEFINITION_GENERIC_TOKENS = new Set(
+  'concept definition idea kind form means method process property state term thing type used way'.split(' '),
+);
 
 function comparableScionKeyTermText(value) {
   return (
@@ -170,6 +173,15 @@ function sourceTermTokens(value) {
       .map(sourceTermToken)
       .filter((token) => token.length > 1) ?? []
   );
+}
+
+function definitionRestatesTermWithoutDifferentia(term, definition) {
+  const termTokens = new Set(sourceTermTokens(term));
+  const definitionTokens = sourceTermTokens(definition);
+  const independentTokens = new Set(
+    definitionTokens.filter((token) => !termTokens.has(token) && !CIRCULAR_DEFINITION_GENERIC_TOKENS.has(token)),
+  );
+  return independentTokens.size < 2;
 }
 
 function sourceSemanticToken(value) {
@@ -438,16 +450,25 @@ export function assessScionKeyTermContract(
     semanticProfile === 'strict-v3' ||
     semanticProfile === 'source-strict-v3' ||
     semanticProfile === 'strict-v4' ||
-    semanticProfile === 'source-strict-v4';
-  const judgeInformedSemanticAdmissionV4 = semanticProfile === 'strict-v4' || semanticProfile === 'source-strict-v4';
+    semanticProfile === 'source-strict-v4' ||
+    semanticProfile === 'strict-v5' ||
+    semanticProfile === 'source-strict-v5';
+  const judgeInformedSemanticAdmissionV4 =
+    semanticProfile === 'strict-v4' ||
+    semanticProfile === 'source-strict-v4' ||
+    semanticProfile === 'strict-v5' ||
+    semanticProfile === 'source-strict-v5';
+  const preciseCircularDefinitionAdmission = semanticProfile === 'strict-v5' || semanticProfile === 'source-strict-v5';
   const sourceGroundedSemanticAdmission =
     semanticProfile === 'source-strict' ||
     semanticProfile === 'source-strict-v3' ||
-    semanticProfile === 'source-strict-v4';
+    semanticProfile === 'source-strict-v4' ||
+    semanticProfile === 'source-strict-v5';
   const strictSemanticAdmission =
     semanticProfile === 'strict' ||
     semanticProfile === 'strict-v3' ||
     semanticProfile === 'strict-v4' ||
+    semanticProfile === 'strict-v5' ||
     sourceGroundedSemanticAdmission;
   const issues = [];
   const minTermLength = NON_LATIN_SCRIPT_RE.test(normalized.term) ? 1 : 3;
@@ -468,8 +489,18 @@ export function assessScionKeyTermContract(
     issues.push('term-is-lesson-title');
   }
   const definitionLead = normalized.definition.split(/\s+/).slice(0, 6).join(' ').toLowerCase();
-  if (normalized.term.length > 6 && definitionLead.includes(normalized.term.toLowerCase())) {
+  if (
+    normalized.term.length > 6 &&
+    definitionLead.includes(normalized.term.toLowerCase()) &&
+    (!preciseCircularDefinitionAdmission ||
+      definitionRestatesTermWithoutDifferentia(normalized.term, normalized.definition))
+  ) {
     issues.push('circular-definition');
+  }
+  if (preciseCircularDefinitionAdmission) {
+    const completeDefinitionSentences = normalized.definition.match(/[^.!?]+[.!?]+/g) || [];
+    if (!/[.!?][\])}"']?$/.test(normalized.definition)) issues.push('truncated-definition');
+    if (completeDefinitionSentences.length > 1) issues.push('definition-multiple-sentences');
   }
   if (META_SURFACE_RE.test(`${normalized.definition} ${normalized.example}`)) issues.push('meta-definition');
   const instructionalFields = [

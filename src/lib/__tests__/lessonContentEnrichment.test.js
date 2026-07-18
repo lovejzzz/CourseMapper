@@ -105,7 +105,7 @@ describe('lesson content enrichment contracts', () => {
     expect(lintEnrichedQuizItem(answerOnly, { groundingText: '' })).toContain('explanation-repeats-answer');
   });
 
-  it('lint rejects circular and meta key terms', () => {
+  it('lint distinguishes a meta definition from a true circular definition', () => {
     expect(lintEnrichedKeyTerm(GOOD_TERM, { lessonTitle: COURSE_MAP.lessons[0].title })).toHaveLength(0);
     const circular = {
       term: 'Climate Science Foundations',
@@ -113,7 +113,16 @@ describe('lesson content enrichment contracts', () => {
     };
     const problems = lintEnrichedKeyTerm(circular, { lessonTitle: COURSE_MAP.lessons[0].title });
     expect(problems).toContain('meta-definition');
-    expect(problems).toContain('circular-definition');
+    expect(problems).not.toContain('circular-definition');
+    const tautology = lintEnrichedKeyTerm(
+      {
+        ...GOOD_TERM,
+        term: 'Climate model',
+        definition: 'Climate model is the climate model concept, term, definition, method, process, and idea.',
+      },
+      { lessonTitle: COURSE_MAP.lessons[0].title },
+    );
+    expect(tautology).toContain('circular-definition');
     const titleAsTerm = lintEnrichedKeyTerm(
       {
         term: 'Climate Science Foundations and the Justice Lens',
