@@ -8,6 +8,7 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 import { validateScionLessonKernelJudgeReview } from './lib/scionLessonKernelJudge.mjs';
+import { runSettledPool } from './lib/scionBatchRunnerPool.mjs';
 
 const OUTPUT_DIR = 'verification-output/scion-lesson-kernel-judge-batches-v0.16.54';
 const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
@@ -167,20 +168,6 @@ async function runTask(task, args, codex, runtimeVersion) {
   }
 }
 
-async function runPool(tasks, concurrency, handler) {
-  const results = [];
-  let next = 0;
-  async function worker() {
-    while (next < tasks.length) {
-      const index = next;
-      next += 1;
-      results[index] = await handler(tasks[index]);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, () => worker()));
-  return results;
-}
-
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
@@ -195,12 +182,18 @@ async function main() {
   const eligibleBatches = (manifest.batches || []).filter((batch) => batch.sealed || args.includePartial);
   let tasks = eligibleBatches.flatMap((batch) => ['A/B', 'B/A'].map((order) => ({ batchId: batch.batchId, order })));
   if (args.limit > 0) tasks = tasks.slice(0, args.limit);
-  const results = await runPool(tasks, args.concurrency, (task) => runTask(task, args, codex, runtimeVersion));
+  const results = await runSettledPool(tasks, args.concurrency, (task) => runTask(task, args, codex, runtimeVersion), {
+    onFailure: ({ task, error }) => {
+      console.error(`[scion-judge] ${task.batchId} ${task.order}: failed — ${error.message}`);
+    },
+  });
   const completed = results.filter((result) => result.status === 'completed').length;
   const resumed = results.filter((result) => result.status === 'resumed').length;
+  const failed = results.filter((result) => result.status === 'failed').length;
   console.log(
-    `Scion lesson-kernel judge runner: ${completed} completed / ${resumed} resumed / ${tasks.length} eligible order sessions`,
+    `Scion lesson-kernel judge runner: ${completed} completed / ${resumed} resumed / ${failed} failed / ${tasks.length} eligible order sessions`,
   );
+  if (failed > 0) process.exitCode = 1;
 }
 
 if (import.meta.url === pathToFileURL(path.resolve(process.argv[1] || '')).href) {

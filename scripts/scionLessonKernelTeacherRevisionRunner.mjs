@@ -8,6 +8,7 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 import { validateScionLessonKernelTeacherRevisionResult } from './lib/scionLessonKernelTeacherRevision.mjs';
+import { runSettledPool } from './lib/scionBatchRunnerPool.mjs';
 
 const OUTPUT_DIR = 'verification-output/scion-lesson-kernel-teacher-revision-v0.16.54';
 const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
@@ -164,20 +165,6 @@ async function runTask(task, args, codex, runtimeVersion) {
   }
 }
 
-async function runPool(tasks, concurrency, handler) {
-  let next = 0;
-  const results = [];
-  async function worker() {
-    while (next < tasks.length) {
-      const index = next;
-      next += 1;
-      results[index] = await handler(tasks[index]);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, () => worker()));
-  return results;
-}
-
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
@@ -198,10 +185,18 @@ async function main() {
     if (missing.length > 0) throw new Error(`Unknown teacher revision batch: ${missing.join(', ')}`);
   }
   if (args.limit > 0) tasks = tasks.slice(0, args.limit);
-  const results = await runPool(tasks, args.concurrency, (task) => runTask(task, args, codex, runtimeVersion));
+  const results = await runSettledPool(tasks, args.concurrency, (task) => runTask(task, args, codex, runtimeVersion), {
+    onFailure: ({ task, error }) => {
+      console.error(`[scion-teacher] ${task.batchId}: failed — ${error.message}`);
+    },
+  });
+  const completed = results.filter((entry) => entry.status === 'completed').length;
+  const resumed = results.filter((entry) => entry.status === 'resumed').length;
+  const failed = results.filter((entry) => entry.status === 'failed').length;
   console.log(
-    `Scion teacher revision runner: ${results.filter((entry) => entry.status === 'completed').length} completed / ${results.filter((entry) => entry.status === 'resumed').length} resumed / ${tasks.length} sessions`,
+    `Scion teacher revision runner: ${completed} completed / ${resumed} resumed / ${failed} failed / ${tasks.length} sessions`,
   );
+  if (failed > 0) process.exitCode = 1;
 }
 
 if (import.meta.url === pathToFileURL(path.resolve(process.argv[1] || '')).href) {
