@@ -206,6 +206,18 @@ describe('A1 — header', () => {
     expect(ths[1].className).toContain('text-slate-600');
   });
 
+  it('keeps the table body neutral and readable in dark mode', () => {
+    renderPreview(fixtureCourseMap());
+
+    const tableShell = container.querySelector('table').parentElement;
+    const contentRow = container.querySelector('tbody tr.group\\/row');
+
+    expect(tableShell.className).toContain('dark:bg-slate-900/65');
+    expect(tableShell.className).toContain('dark:border-slate-700/80');
+    expect(contentRow.className).toContain('dark:hover:bg-slate-800/55');
+    expect(contentRow.className).not.toContain('dark:hover:bg-indigo');
+  });
+
   it('gives objectives the widest track, goals/topic narrow, fixed slim section column', () => {
     renderPreview(fixtureCourseMap());
 
