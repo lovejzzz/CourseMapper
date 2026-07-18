@@ -358,6 +358,31 @@ describe('Scion lesson-kernel paired-order judge', () => {
         preference.preferenceEvidence.teacherRevisionLineage.lineageSha256,
     });
 
+    const mergedReferenceReport = structuredClone(inputs.referenceReport);
+    mergedReferenceReport.identity.sha256 = '6'.repeat(64);
+    mergedReferenceReport.batchReports[0].sourceReportSha256 = '3'.repeat(64);
+    mergedReferenceReport.batchReports[0].sourceWorkbookSha256 = '2'.repeat(64);
+    const [mergedPreference] = buildScionLessonKernelTrainingPreferences({
+      aggregate,
+      campaign: inputs.campaign,
+      localReport: inputs.localReport,
+      referenceReport: mergedReferenceReport,
+    });
+    expect(mergedPreference.preferenceEvidence.teacherRevisionLineage).toMatchObject({
+      teacherReportSha256: '3'.repeat(64),
+      workbookSha256: '2'.repeat(64),
+      teacherMergeReportSha256: '6'.repeat(64),
+    });
+    expect(validateScionTrainingPreferenceEvidence(mergedPreference.preferenceEvidence)).toEqual({
+      valid: true,
+      issues: [],
+    });
+    const malformedMergeLineage = structuredClone(mergedPreference);
+    malformedMergeLineage.preferenceEvidence.teacherRevisionLineage.teacherMergeReportSha256 = 'not-a-digest';
+    expect(validateScionTrainingPreferenceEvidence(malformedMergeLineage.preferenceEvidence).issues).toContain(
+      'lesson-kernel-teacher-lineage-teacherMergeReportSha256',
+    );
+
     const tampered = structuredClone(preference);
     tampered.preferenceEvidence.teacherRevisionLineage.revisionResultSha256 = 'f'.repeat(64);
     expect(assessCorpusRow(tampered, 'teacher-lineage-fixture').issues).toContain(

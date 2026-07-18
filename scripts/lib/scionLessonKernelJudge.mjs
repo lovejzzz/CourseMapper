@@ -547,12 +547,19 @@ function buildTeacherRevisionLineage({ report, call, authoredArtifact } = {}) {
   const batch = (report?.batchReports || []).find(
     (entry) => entry.packetSha256 === call?.revisionEvidence?.packetSha256,
   );
+  const sourceTeacherReportSha256 = batch?.sourceReportSha256 || report?.identity?.sha256;
+  const sourceWorkbookSha256 = batch?.sourceWorkbookSha256 || report?.workbookSha256;
+  const mergeReportSha256 =
+    batch?.sourceReportSha256 && report?.identity?.sha256 !== batch.sourceReportSha256
+      ? report.identity.sha256
+      : null;
   const lineage = {
     protocol: SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL,
     packetSha256: call?.revisionEvidence?.packetSha256,
     sessionId: call?.revisionEvidence?.sessionId,
-    workbookSha256: report?.workbookSha256,
-    teacherReportSha256: report?.identity?.sha256,
+    workbookSha256: sourceWorkbookSha256,
+    teacherReportSha256: sourceTeacherReportSha256,
+    ...(mergeReportSha256 ? { teacherMergeReportSha256: mergeReportSha256 } : {}),
     revisionResultSha256: batch?.resultSha256,
     compiledReportSha256: batch?.reportSha256,
     originalArtifactSha256: call?.originalArtifactSha256,

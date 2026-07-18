@@ -226,6 +226,12 @@ export function validateScionLessonKernelTrainingPreferenceEvidence(evidence) {
     ]) {
       if (!SHA256_RE.test(clean(lineage?.[field]))) issues.push(`lesson-kernel-teacher-lineage-${field}`);
     }
+    if (
+      lineage?.teacherMergeReportSha256 != null &&
+      !SHA256_RE.test(clean(lineage.teacherMergeReportSha256))
+    ) {
+      issues.push('lesson-kernel-teacher-lineage-teacherMergeReportSha256');
+    }
     if (!validIdentity(lineage?.sessionId)) issues.push('lesson-kernel-teacher-lineage-session');
   }
   return { valid: issues.length === 0, issues: [...new Set(issues)] };
