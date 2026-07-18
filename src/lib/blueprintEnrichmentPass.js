@@ -146,6 +146,13 @@ const DIALOGUE_PROMPT_LINE =
   '"rm":"its tone- or vowel-marked romanization"}]. Alternate speakers A and B and keep each line under 12 words. ' +
   'Omit dialogue when the lesson teaches no target-script vocabulary.';
 
+// Admission requires the same visible evidence the learner-facing package
+// needs. Keep this instruction next to the generic romanization contract so a
+// compact model is never asked for Latin-only Pinyin and then rejected later
+// for failing a requirement that appeared only in the parser.
+const MANDARIN_TARGET_LANGUAGE_PROMPT_LINE =
+  'Single-language Mandarin requirement: EVERY lesson must contain at least one visible Hanzi example paired with its tone-marked Pinyin (for example, 你好 with nǐ hǎo). Include the pair even in lessons focused on the Pinyin system or tones; a Pinyin-only lesson will be rejected.';
+
 const DIALOGUE_TURN_CAP = 6;
 const DIALOGUE_LINE_MAX_CHARS = 160;
 
@@ -1294,6 +1301,10 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
   const includeCourseLevel = options.includeCourseLevel === true;
   const recoveryAttempt = Math.max(0, Number(options.recoveryAttempt) || 0);
   const lessons = summarizeLessonsForContent(courseMap, lessonIndices);
+  const requiresMandarinPair = assessTargetLanguagePresence({
+    courseIdentity: courseMap?.courseName,
+    text: '',
+  }).required;
 
   const systemPrompt = [
     LESSON_CONTENT_SYSTEM_PROMPT,
@@ -1311,7 +1322,13 @@ export function buildLessonKernelPrompt(courseMap, lessonIndices, options = {}) 
     // v0.14.5 (F2): the same gate adds the optional dialogue field — 4-6
     // short turns using the lesson's vocabulary, rendered into lesson plans
     // and study guides. Both lines ride the SAME kernel call (no extra cost).
-    ...(courseUsesNonLatinScript(courseMap) ? [ROMANIZATION_PROMPT_LINE, DIALOGUE_PROMPT_LINE] : []),
+    ...(courseUsesNonLatinScript(courseMap)
+      ? [
+          ROMANIZATION_PROMPT_LINE,
+          DIALOGUE_PROMPT_LINE,
+          ...(requiresMandarinPair ? [MANDARIN_TARGET_LANGUAGE_PROMPT_LINE] : []),
+        ]
+      : []),
     'Return JSON matching this shape:',
     // v0.15.186: the courseLevel schema moved to the USER prompt. Embedding
     // it here gave chunk #1 a different system prompt than chunks 2..N,

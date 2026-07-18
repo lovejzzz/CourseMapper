@@ -1758,11 +1758,13 @@ async function runLiveRounds(options) {
         `spend cap $${maxSpendUsd.toFixed(2)}, courses: ${courses.map((c) => c.id).join(', ')}`,
     );
 
-    // Start the preview server once per round, reused across courses; ONE
-    // chromium instance shared by all lanes (each course gets its own context).
+    // Start the preview server once per round. Each attempt launches its own
+    // Chromium process: a model-heavy local run can exhaust or crash one
+    // browser, and that must fail only the current attempt rather than erase
+    // every remaining course in the round. The small startup cost also makes
+    // "retrying with a fresh page" an honest fresh-browser retry.
     const server = await startAppServer({ logPath: path.join(roundDir, 'server.log') });
     log(`server up at ${server.baseUrl} (dist ${server.didBuild ? 'rebuilt' : 'reused'})`);
-    const browser = await chromium.launch({ headless: !headed });
     // Shared spend state: completed-course spend only (in-flight runs are
     // never killed — the guard gates new STARTS at pull time).
     const spendState = { spentUsd: 0, abortReason: null };
@@ -1859,7 +1861,6 @@ async function runLiveRounds(options) {
             modelName,
             outDir: courseDir,
             headed,
-            browser,
             // WS-B3: seed 'coursemapper-authoring-mode' alongside the other
             // localStorage keys ('prose'/undefined seeds nothing — default).
             authoringMode: course.authoring,
@@ -1979,7 +1980,6 @@ async function runLiveRounds(options) {
       // (tables, history, stranger findings) sees each arm as its own course.
       entries = entries.flatMap((entry) => (entry.abTwin ? [entry, { ...entry.abTwin }] : [entry]));
     } finally {
-      await browser.close().catch(() => {});
       await server.stop().catch(() => {});
     }
 

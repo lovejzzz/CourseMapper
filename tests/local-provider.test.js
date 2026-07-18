@@ -108,6 +108,8 @@ describe('local provider — the house model surface', () => {
     const crucibleDriver = fs.readFileSync('scripts/crucible.mjs', 'utf8');
     expect(crucibleDriver).toContain("flywheelCapture: 'disabled-for-heldout-benchmark'");
     expect(crucibleDriver).toContain('disableScionFlywheel: Boolean(scionBenchmarkRun)');
+    expect(crucibleDriver).toContain('Each attempt launches its own');
+    expect(crucibleDriver).not.toContain('            browser,\n            // WS-B3');
 
     const landing = fs.readFileSync('src/screens/Landing.jsx', 'utf8');
     expect(landing).toContain("if (provider === 'local') return `Scion Local ·");

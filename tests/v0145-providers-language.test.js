@@ -303,6 +303,25 @@ describe('language identity firewall', () => {
     ).toMatchObject({ required: false, complete: true });
   });
 
+  it('states the Mandarin admission contract in the model prompt, including Pinyin-focused lessons', () => {
+    const prompt = buildLessonKernelPrompt(
+      {
+        courseName: 'Elementary Mandarin Chinese I',
+        lessons: [
+          {
+            title: 'Lesson 1: Pinyin and Tones',
+            sections: [{ topicSection: 'Pinyin System; Four Tones' }],
+          },
+        ],
+      },
+      [0],
+      { questionsPerLesson: 4 },
+    );
+
+    expect(prompt.systemPrompt).toContain('EVERY lesson must contain at least one visible Hanzi example');
+    expect(prompt.systemPrompt).toContain('Pinyin-only lesson will be rejected');
+  });
+
   it('rejects a Korean lesson kernel inside Mandarin but permits an explicitly comparative course', () => {
     const contaminatedResponse = JSON.stringify({
       lessons: [
