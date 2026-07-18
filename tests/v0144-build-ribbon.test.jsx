@@ -399,6 +399,58 @@ describe('B1 — buildRibbonModel selector', () => {
         generation: { lessonCount: 15 },
       }),
     ).toBe(48);
+    const lessonFourQueuedProgress = deriveRibbonProgress({
+      pipeline: {
+        state: 'enriching',
+        activity: {
+          type: 'blueprintEnrichmentCall',
+          detail: 'Lessons 4 — source-bound kernel',
+          at: 30,
+        },
+      },
+      budget: {
+        recentEvents: [
+          {
+            type: 'blueprintEnrichmentCall',
+            detail: 'Lessons 4 — source-bound kernel',
+            at: 30,
+          },
+        ],
+      },
+      generation: { lessonCount: 15 },
+    });
+    expect(lessonFourQueuedProgress).toBe(33);
+    expect(
+      deriveRibbonProgress({
+        pipeline: {
+          state: 'enriching',
+          activity: {
+            type: 'pipelineDecision',
+            label: 'Scion pass call',
+            detail: 'blind_solve',
+            chunkLabel: 'lesson-2',
+            at: 40,
+          },
+        },
+        budget: {
+          recentEvents: [
+            {
+              type: 'pipelineDecision',
+              label: 'Scion pass call',
+              detail: 'blind_solve',
+              chunkLabel: 'lesson-2',
+              at: 40,
+            },
+            {
+              type: 'blueprintEnrichmentCall',
+              detail: 'Lessons 4 — source-bound kernel',
+              at: 30,
+            },
+          ],
+        },
+        generation: { lessonCount: 15 },
+      }),
+    ).toBeGreaterThanOrEqual(lessonFourQueuedProgress);
     expect(
       deriveRibbonProgress({
         pipeline: {

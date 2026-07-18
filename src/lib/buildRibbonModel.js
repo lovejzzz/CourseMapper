@@ -257,6 +257,22 @@ function semanticPassCheckpoint(event) {
   return SCION_PASS_CHECKPOINT[String(event.detail)] || 0.1;
 }
 
+function enrichmentProgressForEvent(event, lessonCount) {
+  if (!(lessonCount > 0) || !isKnowledgeProgressEvent(event)) return null;
+  const currentLesson = Math.min(lessonCount, latestLessonNumber(event));
+  if (currentLesson < 1) return null;
+  const semanticCheckpoint = semanticPassCheckpoint(event);
+  if (semanticCheckpoint !== null) {
+    const fraction = Math.min(
+      1,
+      (Math.max(0, currentLesson - 1) + Math.max(0.25, semanticCheckpoint)) / lessonCount,
+    );
+    return Math.max(30, Math.floor(30 + fraction * 20));
+  }
+  const fraction = Math.min(1, (Math.max(0, currentLesson - 1) + 0.25) / lessonCount);
+  return Math.round(30 + fraction * 15);
+}
+
 export function latestKnowledgeActivity(events = []) {
   const recent = Array.isArray(events) ? events : [];
   const activeRecovery = recent.find(
@@ -450,6 +466,17 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
     // recovery band instead of visibly falling from the last lesson to 31%.
     const recoveryProgress = enrichmentRecoveryProgress(budget?.recentEvents, pipeline.activity);
     if (recoveryProgress !== null) return recoveryProgress;
+    // Local authoring prepares up to three lessons at once. A later lesson can
+    // therefore start before an earlier lesson enters its semantic checks.
+    // Keep the overall meter at the highest OBSERVED work checkpoint while
+    // still letting the stage label name the lesson actually using the model.
+    // This is a high-water mark over evidence, not an elapsed-time estimate.
+    const observedProgress = Math.max(
+      0,
+      ...[pipeline.activity, ...(Array.isArray(budget?.recentEvents) ? budget.recentEvents : [])]
+        .map((event) => enrichmentProgressForEvent(event, lessonCount))
+        .filter(Number.isFinite),
+    );
     const activityLessons = lessonNumbersFromEvent(pipeline.activity);
     const semanticCheckpoint = semanticPassCheckpoint(pipeline.activity);
     if (lessonCount > 0 && activityLessons.length > 0 && semanticCheckpoint !== null) {
@@ -459,7 +486,7 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
         (Math.max(0, currentLesson - 1) + Math.max(0.25, semanticCheckpoint)) / lessonCount,
       );
       if (semanticCheckpoint >= 1 && currentLesson >= lessonCount) return 50;
-      return Math.max(30, Math.floor(30 + enrichmentFraction * 20));
+      return Math.max(observedProgress, 30, Math.floor(30 + enrichmentFraction * 20));
     }
     const knowledgeEvents = Array.isArray(budget?.recentEvents)
       ? budget.recentEvents.filter(isKnowledgeProgressEvent)
@@ -481,7 +508,7 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
         : 0.25;
     const fraction =
       lessonCount > 0 ? Math.min(1, (Math.max(0, currentLesson - 1) + activeInnerRetry) / lessonCount) : 0.25;
-    return Math.round(30 + fraction * 15);
+    return Math.max(observedProgress, Math.round(30 + fraction * 15));
   }
   if (state === 'compiling') {
     const done = Math.max(0, Number(deliverables.doneCount) || 0);
