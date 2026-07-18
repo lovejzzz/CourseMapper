@@ -224,8 +224,8 @@ describe('E2b/E2d — one radius scale, no ALL-CAPS section labels', () => {
   it('the workspace header and tab dropdown labels dropped uppercase tracking', () => {
     const appFlow = read('src/AppFlow.jsx');
     expect(appFlow).toContain('className="text-xs font-semibold text-slate-400">Workspace</p>');
-    expect(appFlow).toContain('>Add deliverable</p>');
-    expect(appFlow).toContain('>Your custom</p>');
+    expect(appFlow).toMatch(/>\s*Add deliverable\s*<\/p>/);
+    expect(appFlow).toMatch(/>\s*Your custom\s*<\/p>/);
     expect(appFlow).toContain('workspace-header-row rounded-lg');
   });
 });
