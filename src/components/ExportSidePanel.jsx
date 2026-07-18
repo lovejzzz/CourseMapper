@@ -1623,11 +1623,11 @@ export default function ExportSidePanel({
             <div className="space-y-2">
               <p className="text-xs font-semibold text-slate-500">Download</p>
               <div className="grid grid-cols-2 gap-1.5">
-                {DOWNLOAD_FORMATS.map((fmt) => (
+                {DOWNLOAD_FORMATS.filter((fmt) => !isDisabled(fmt.id)).map((fmt) => (
                   <FmtBtn
                     key={fmt.id}
                     fmt={fmt}
-                    disabled={isPackageQualityRunning || isDisabled(fmt.id)}
+                    disabled={isPackageQualityRunning}
                     busy={busy === fmt.id}
                     onClick={() => doExport(fmt.id)}
                   />

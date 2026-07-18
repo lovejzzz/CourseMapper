@@ -473,6 +473,15 @@ export default function CourseMapPreview({
     }, 2000);
   };
 
+  const handleTableKeyDown = (event) => {
+    if (event.target !== event.currentTarget || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    autoScrollPausedRef.current = true;
+    const direction = event.key === 'ArrowRight' ? 1 : -1;
+    const step = Math.max(96, Math.round(event.currentTarget.clientWidth * 0.35));
+    event.currentTarget.scrollBy({ left: direction * step, behavior: 'smooth' });
+  };
+
   // Cleanup timer on unmount
   useEffect(() => {
     return () => clearTimeout(mouseLeaveTimerRef.current);
@@ -695,6 +704,7 @@ export default function CourseMapPreview({
         ref={tableRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onKeyDown={handleTableKeyDown}
         role="region"
         aria-label="Scrollable course map"
         aria-describedby="course-map-scroll-help"

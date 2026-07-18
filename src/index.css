@@ -388,6 +388,21 @@ body {
   -webkit-backdrop-filter: none !important;
 }
 
+/* The workspace can switch between hundreds of nested light and dark glass
+   surfaces at once. Re-enabling their live blur during a theme change makes
+   Chromium briefly paint black compositor tiles, even though the settled
+   colors are correct. Static translucency preserves the depth while keeping
+   every theme-transition frame coherent. Landing and policy pages retain
+   their smaller glass blur treatment. */
+.workspace-shell .glass,
+.workspace-shell .glass-light,
+.workspace-shell .glass-heavy,
+.workspace-shell .glass-dark,
+.workspace-shell [class*='backdrop-blur'] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 /* The fixed SVG turbulence layer is another GPU-composited full-viewport
    surface. Chromium can briefly present one of its tiles as opaque black
    while the workspace replaces large React subtrees during generation.

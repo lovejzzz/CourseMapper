@@ -323,7 +323,7 @@ export default function DeliverableView({
           {!isSlides && (
             <button
               onClick={() => setIsFullscreen((f) => !f)}
-              className="tactile p-1.5 rounded-lg text-slate-400 hover:text-indigo-500 hover:bg-white/60 transition-all"
+              className="tactile hidden rounded-lg p-1.5 text-slate-400 transition-all hover:bg-white/60 hover:text-indigo-500 sm:flex"
               title={isFullscreen ? 'Exit full screen' : 'Full screen'}
               aria-label={isFullscreen ? 'Exit full screen' : 'Full screen'}
             >

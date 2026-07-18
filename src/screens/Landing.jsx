@@ -556,7 +556,10 @@ export default function Landing({
               )}
 
               {hasSavedSession && (
-                <div className="mt-5 flex items-center gap-3 rounded-lg border border-blue-200/70 bg-blue-50/70 px-4 py-3 animate-spring-in dark:border-blue-400/20 dark:bg-blue-400/10">
+                <div
+                  data-testid="saved-session-banner"
+                  className="mt-5 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 rounded-lg border border-blue-200/70 bg-blue-50/70 px-4 py-3 animate-spring-in sm:flex sm:gap-3 dark:border-blue-400/20 dark:bg-blue-400/10"
+                >
                   <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 dark:bg-slate-950 dark:text-blue-200">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -567,13 +570,13 @@ export default function Landing({
                       />
                     </svg>
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div data-testid="saved-session-copy" className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">Previous session found</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">Resume it or start fresh.</p>
                   </div>
                   <button
                     onClick={onRestoreSession}
-                    className="tactile flex items-center gap-1.5 rounded-lg bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:brightness-110 dark:bg-white dark:text-slate-950"
+                    className="tactile col-start-2 col-end-4 row-start-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:brightness-110 sm:w-auto dark:bg-white dark:text-slate-950"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
@@ -587,7 +590,7 @@ export default function Landing({
                   </button>
                   <button
                     onClick={onDismissSavedSession}
-                    className="flex-shrink-0 p-1 text-slate-400 transition-colors hover:text-red-500"
+                    className="flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/70 hover:text-red-500 dark:hover:bg-slate-950/60"
                     title="Dismiss and start fresh"
                     aria-label="Dismiss saved session"
                   >

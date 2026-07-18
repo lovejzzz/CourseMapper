@@ -76,6 +76,14 @@ async function restoreGeneratedWorkspace(page) {
   });
   await page.reload();
   await expect(page.locator('button:has-text("Resume")')).toBeVisible({ timeout: 10000 });
+  const savedSessionDismissButton = page.getByRole('button', { name: 'Dismiss saved session' });
+  await expect
+    .poll(async () => (await savedSessionDismissButton.boundingBox())?.width || 0, { timeout: 2000 })
+    .toBeGreaterThanOrEqual(43.9);
+  const savedSessionCopy = await page.getByTestId('saved-session-copy').boundingBox();
+  const savedSessionDismiss = await savedSessionDismissButton.boundingBox();
+  expect(savedSessionCopy.width).toBeGreaterThan(140);
+  expect(savedSessionDismiss.height).toBeGreaterThanOrEqual(43.9);
   await page.locator('button:has-text("Resume")').click();
   await expect(page.getByTestId('workspace-shell')).toBeVisible({ timeout: 10000 });
 }
@@ -101,6 +109,10 @@ test.describe('Generated workspace mobile layout', () => {
       await expect(page.getByTestId('workspace-content-panel')).toBeVisible();
       await expect(page.getByTestId('workspace-agent-panel')).toBeHidden();
       await expectNoHorizontalOverflow(page);
+
+      const fullscreen = page.getByRole('button', { name: 'Full screen' });
+      if (viewport.width < 640) await expect(fullscreen).toBeHidden();
+      else await expect(fullscreen).toBeVisible();
 
       const switcherTargetHeights = await page
         .getByTestId('mobile-workspace-switcher')
@@ -141,6 +153,13 @@ test.describe('Generated workspace mobile layout', () => {
           scrollWidth: table.parentElement?.scrollWidth || 0,
         }));
         expect(tableOverflow.scrollWidth).toBeGreaterThan(tableOverflow.clientWidth);
+
+        const scrollRegion = page.getByRole('region', { name: 'Scrollable course map' });
+        await scrollRegion.focus();
+        await scrollRegion.press('ArrowRight');
+        await expect
+          .poll(() => scrollRegion.evaluate((region) => region.scrollLeft), { timeout: 2000 })
+          .toBeGreaterThan(0);
       } else {
         await expect(page.getByText('Swipe the table to review every course-map field.')).toBeHidden();
       }

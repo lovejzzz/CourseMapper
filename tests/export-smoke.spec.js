@@ -478,6 +478,7 @@ test.describe('Export smoke', () => {
     });
 
     await switchWorkspaceTab(page, 'Lesson Plans');
+    await expect(page.getByTestId('export-format-xlsx')).toHaveCount(0);
     await expectDownload(page, () => page.getByTestId('export-format-csv').click(), {
       extension: 'csv',
       nameIncludes: 'Export Smoke Course',
