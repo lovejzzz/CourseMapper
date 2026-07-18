@@ -693,7 +693,7 @@ export default function CourseMapPreview({
         ref={tableRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="overflow-auto rounded-squircle-sm max-h-[70vh] shadow-glass border border-white/30"
+        className="overflow-auto rounded-squircle-sm max-h-[70vh] border border-white/30 bg-white/60 shadow-glass dark:border-slate-700/80 dark:bg-slate-900/65"
       >
         <table className="min-w-[1100px] table-fixed sm:min-w-full" role="grid" aria-label="Course Map">
           {/* A1: width hierarchy lives in the colgroup (table-fixed reads the
@@ -821,7 +821,9 @@ export default function CourseMapPreview({
                 <tr
                   key={`${li}-${si}`}
                   className={`group/row border-t border-slate-100/60 dark:border-slate-800 ${
-                    isLocked ? 'bg-slate-100/60' : 'hover:bg-indigo-50/20'
+                    isLocked
+                      ? 'bg-slate-100/60 dark:bg-slate-800/70'
+                      : 'hover:bg-indigo-50/20 dark:hover:bg-slate-800/55'
                   } animate-fadeIn transition-colors duration-200`}
                 >
                   {/* A2: slim section address column — lesson identity lives in the band above */}
