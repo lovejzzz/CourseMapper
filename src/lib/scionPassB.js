@@ -10,6 +10,7 @@
 import { kernelBatchSchemaProfile, scionPassesEnabled } from './scionContracts';
 import { applyScionKernelPasses } from './scionPasses';
 import { postFlywheelEvents } from './scionFlywheel';
+import { assessTargetLanguagePresence } from './languageIdentityGuard';
 
 /**
  * The D1/D2 request options for the main Pass B call: the declared
@@ -24,7 +25,16 @@ export function scionCallOpts({
 }) {
   const mcCount = (prompt.itemPlan || []).filter((slot) => slot.type === 'multiple_choice').length || 4;
   return {
-    schema: kernelBatchSchemaProfile({ expectedLessonIds, contentSourcedLessonIds, includeCourseLevel, mcCount }),
+    schema: kernelBatchSchemaProfile({
+      expectedLessonIds,
+      contentSourcedLessonIds,
+      includeCourseLevel,
+      mcCount,
+      requiresTargetLanguagePair: assessTargetLanguagePresence({
+        courseIdentity: prompt?.courseName,
+        text: '',
+      }).required,
+    }),
     temperature: recoveryAttempt > 0 ? 0.7 : 0,
   };
 }

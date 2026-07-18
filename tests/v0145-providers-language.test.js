@@ -322,6 +322,32 @@ describe('language identity firewall', () => {
     expect(prompt.systemPrompt).toContain('Pinyin-only lesson will be rejected');
   });
 
+  it('projects a grammar-required Mandarin pair into learner-facing facts', () => {
+    const prompt = buildLessonKernelPrompt(mandarinCourseMap(), [0]);
+    const response = JSON.stringify({
+      lessons: [
+        {
+          lessonId: 'lesson-1',
+          targetLanguagePair: { hanzi: '你好', pinyin: 'nǐ hǎo', english: 'hello' },
+          facts: ['Tone contours distinguish otherwise identical spoken syllables in Mandarin.'],
+          keyTerms: [
+            {
+              tr: 'tone contour',
+              df: 'A pitch movement over one syllable that can distinguish lexical meaning in Mandarin.',
+              eg: 'A learner compares mā, má, mǎ, and mà while listening to the same initial and final.',
+              mi: 'Changing the pitch only adds emotion and never changes the word being spoken.',
+              cx: 'The contour can distinguish lexical meaning even when the initial and final remain identical.',
+            },
+          ],
+        },
+      ],
+    });
+
+    const parsed = parseLessonKernelResponse(response, { prompt });
+    expect(parsed).toBeTruthy();
+    expect(parsed.lessons['lesson-1'].kernel.facts).toContain('你好 (nǐ hǎo) means hello.');
+  });
+
   it('rejects a Korean lesson kernel inside Mandarin but permits an explicitly comparative course', () => {
     const contaminatedResponse = JSON.stringify({
       lessons: [

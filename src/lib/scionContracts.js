@@ -46,7 +46,17 @@ function sessionFieldSchemas() {
 }
 
 // Kernel atom fields (buildLessonKernelPrompt contract, short keys).
-function kernelFieldSchemas({ mcCount = 4, keyTermCount = 4 } = {}) {
+const TARGET_LANGUAGE_PAIR_SCHEMA = {
+  type: 'object',
+  properties: {
+    hanzi: str(1, 24),
+    pinyin: str(2, 48),
+    english: str(2, 80),
+  },
+  required: ['hanzi', 'pinyin', 'english'],
+};
+
+function kernelFieldSchemas({ mcCount = 4, keyTermCount = 4, requiresTargetLanguagePair = false } = {}) {
   return {
     facts: arr(str(25, 140), 5, 8),
     keyTerms: arr(
@@ -76,14 +86,16 @@ function kernelFieldSchemas({ mcCount = 4, keyTermCount = 4 } = {}) {
           q: str(25, 300),
           op: arr(str(5, 95), 4, 4),
           ai: { type: 'integer', minimum: 0, maximum: 3 },
+          fi: arr({ type: 'integer', minimum: 0, maximum: 7 }, 1, 2),
           ex: str(20, 300),
         },
-        required: ['q', 'op', 'ai', 'ex'],
+        required: ['q', 'op', 'ai', 'fi', 'ex'],
       },
       mcCount,
       mcCount,
     ),
     studyGuide: { type: 'object', properties: { sm: str(70, 550), rs: str(35, 380) }, required: ['sm', 'rs'] },
+    ...(requiresTargetLanguagePair ? { targetLanguagePair: TARGET_LANGUAGE_PAIR_SCHEMA } : {}),
   };
 }
 
@@ -128,6 +140,7 @@ export function kernelBatchSchemaProfile({
   includeCourseLevel = false,
   mcCount = 4,
   keyTermCount = 4,
+  requiresTargetLanguagePair = false,
 } = {}) {
   const contentSourced = new Set(contentSourcedLessonIds);
   const kernelIds = expectedLessonIds.filter((id) => !contentSourced.has(id));
@@ -139,7 +152,7 @@ export function kernelBatchSchemaProfile({
       properties: {
         lessonId: { type: 'string', enum: kernelIds },
         ...sessionFieldSchemas(),
-        ...kernelFieldSchemas({ mcCount, keyTermCount }),
+        ...kernelFieldSchemas({ mcCount, keyTermCount, requiresTargetLanguagePair }),
       },
       required: [
         'lessonId',
@@ -154,6 +167,7 @@ export function kernelBatchSchemaProfile({
         'assignmentCore',
         'mc',
         'studyGuide',
+        ...(requiresTargetLanguagePair ? ['targetLanguagePair'] : []),
       ],
     });
   }

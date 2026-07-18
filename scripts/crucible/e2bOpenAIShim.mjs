@@ -216,7 +216,7 @@ function lockObjects(node) {
   for (const value of Object.values(node)) lockObjects(value);
 }
 
-function kernelLessonSchema({ mcCount, keyTermCount }) {
+function kernelLessonSchema({ mcCount, keyTermCount, requiresTargetLanguagePair = false }) {
   return {
     type: 'object',
     properties: {
@@ -257,9 +257,10 @@ function kernelLessonSchema({ mcCount, keyTermCount }) {
             q: str(25, 300),
             op: arr(str(5, 95), 4, 4),
             ai: { type: 'integer', minimum: 0, maximum: 3 },
+            fi: arr({ type: 'integer', minimum: 0, maximum: 7 }, 1, 2),
             ex: str(20, 300),
           },
-          required: ['q', 'op', 'ai', 'ex'],
+          required: ['q', 'op', 'ai', 'fi', 'ex'],
         },
         mcCount,
         mcCount,
@@ -269,6 +270,15 @@ function kernelLessonSchema({ mcCount, keyTermCount }) {
         properties: { sm: str(70, 550), rs: str(35, 380) },
         required: ['sm', 'rs'],
       },
+      ...(requiresTargetLanguagePair
+        ? {
+            targetLanguagePair: {
+              type: 'object',
+              properties: { hanzi: str(1, 24), pinyin: str(2, 48), english: str(2, 80) },
+              required: ['hanzi', 'pinyin', 'english'],
+            },
+          }
+        : {}),
     },
     required: [
       'lessonId',
@@ -283,6 +293,7 @@ function kernelLessonSchema({ mcCount, keyTermCount }) {
       'assignmentCore',
       'mc',
       'studyGuide',
+      ...(requiresTargetLanguagePair ? ['targetLanguagePair'] : []),
     ],
   };
 }
@@ -326,7 +337,9 @@ const KERNEL_COURSE_LEVEL = {
 const KERNEL_DIRECTIVE =
   '\n\nHARD CONTENT RULES (violations are rejected by an automated gate): ' +
   'facts are one-sentence subject claims under 20 words. ' +
-  'Definitions (df) NEVER begin with the term itself. ' +
+  'Definitions (df) are exactly one complete sentence and NEVER begin with the term itself. ' +
+  'A misconception (mi) must be a plausible FALSE belief, never another true fact; its correction (cx) must directly refute that belief. ' +
+  'Every multiple-choice item must cite one or two supplied lesson facts by zero-based index in fi. ' +
   'mc options: exactly 4, similar length and grammar, no "all of the above" or "none of the above", no duplicates, and the correct option must not be the longest. ' +
   'Vary ai (the correct index) across items. ' +
   'NEVER repeat the lesson title inside content fields — name the specific concept you are teaching instead, and vary sentence openings. ' +
@@ -485,6 +498,7 @@ const KERNEL_CALL_BUDGET_MS = 100_000;
 
 async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
   const courseLine = (user.match(/^Course:[^\n]*/m) || ['Course: (untitled)'])[0];
+  const requiresTargetLanguagePair = /\bElementary Mandarin Chinese\b/i.test(courseLine);
   const deadline = Date.now() + KERNEL_CALL_BUDGET_MS;
   // Round-10 config restored: with SHORT skeleton titles the verbatim-topics
   // line no longer floods prose, and this exact config judged quiz 6-6.33.
@@ -561,7 +575,11 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
     const summary = Array.isArray(kernel.lessonSummaries)
       ? kernel.lessonSummaries.find((lesson) => lesson?.lessonId === lessonId)
       : null;
-    const lessonSchema = kernelLessonSchema({ mcCount: kernel.mcCount, keyTermCount: kernel.keyTermCount });
+    const lessonSchema = kernelLessonSchema({
+      mcCount: kernel.mcCount,
+      keyTermCount: kernel.keyTermCount,
+      requiresTargetLanguagePair,
+    });
     lessonSchema.properties.lessonId = { type: 'string', enum: [lessonId] };
     const schema = { type: 'object', properties: { lessons: arr(lessonSchema, 1, 1) }, required: ['lessons'] };
     lockObjects(schema);
@@ -577,7 +595,11 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
     // fit; the halves merge into one entry.
     if (!parsed?.lessons?.[0]) {
       const half = (keys) => {
-        const lessonHalf = kernelLessonSchema({ mcCount: kernel.mcCount, keyTermCount: kernel.keyTermCount });
+        const lessonHalf = kernelLessonSchema({
+          mcCount: kernel.mcCount,
+          keyTermCount: kernel.keyTermCount,
+          requiresTargetLanguagePair,
+        });
         lessonHalf.properties.lessonId = { type: 'string', enum: [lessonId] };
         lessonHalf.properties = Object.fromEntries(
           Object.entries(lessonHalf.properties).filter(([key]) => key === 'lessonId' || keys.includes(key)),
@@ -588,7 +610,19 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
         return halfSchema;
       };
       const [a, b] = [
-        await subCall(half(['goal', 'outcomes', 'async', 'sync', 'facts', 'keyTerms']), subUser, `${lessonId}-a`),
+        await subCall(
+          half([
+            'goal',
+            'outcomes',
+            'async',
+            'sync',
+            'facts',
+            'keyTerms',
+            ...(requiresTargetLanguagePair ? ['targetLanguagePair'] : []),
+          ]),
+          subUser,
+          `${lessonId}-a`,
+        ),
         await subCall(
           half(['scenario', 'discussionPrompt', 'assignmentCore', 'mc', 'studyGuide']),
           subUser,
@@ -744,7 +778,9 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
     const summary = Array.isArray(kernel.lessonSummaries)
       ? kernel.lessonSummaries.find((lesson) => lesson?.lessonId === lessonId)
       : null;
-    const text = `${summary?.title ?? ''} ${summary?.topics ?? ''}`.toLowerCase();
+    const text = `${summary?.title ?? ''} ${summary?.topics ?? ''} ${
+      Array.isArray(summary?.reviewAnchors) ? summary.reviewAnchors.join(' ') : ''
+    }`.toLowerCase();
     return [...new Set(text.match(/[a-z]{4,}/g) ?? [])].filter((w) => !STOP.has(w));
   }
   function onTopic(item, words) {
@@ -791,9 +827,10 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
                   q: str(25, 300),
                   op: arr(str(5, 95), 4, 4),
                   ai: { type: 'integer', minimum: 0, maximum: 3 },
+                  fi: arr({ type: 'integer', minimum: 0, maximum: 7 }, 1, 2),
                   ex: str(20, 300),
                 },
-                required: ['q', 'op', 'ai', 'ex'],
+                required: ['q', 'op', 'ai', 'fi', 'ex'],
               },
               items.length,
               items.length,
@@ -807,7 +844,7 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
           : null;
         const reply = await generate({
           system: fullSystem,
-          user: `${courseLine}. Lesson: ${JSON.stringify(summary ?? { lessonId })}\nWrite ${items.length} flawless multiple-choice items testing ONLY this lesson's topics. Each key (ai) must be verifiably correct. Return ONLY {"mc":[...]}.`,
+          user: `${courseLine}. Lesson: ${JSON.stringify(summary ?? { lessonId })}\nLesson facts: ${JSON.stringify(entry.facts ?? [])}\nWrite ${items.length} flawless multiple-choice items testing ONLY this lesson's topics. Each key (ai) must be verifiably correct, and fi must cite one or two lesson-fact indexes. Return ONLY {"mc":[...]}.`,
           maxTokens: 6000,
           schema: mcSchema,
           temperature: 0.7,
@@ -838,15 +875,16 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
               q: str(25, 300),
               op: arr(str(5, 95), 4, 4),
               ai: { type: 'integer', minimum: 0, maximum: 3 },
+              fi: arr({ type: 'integer', minimum: 0, maximum: 7 }, 1, 2),
               ex: str(20, 300),
             },
-            required: ['q', 'op', 'ai', 'ex'],
+            required: ['q', 'op', 'ai', 'fi', 'ex'],
           };
           const reply = await generate({
             system:
               fullSystem +
               '\n\nWrite ONE flawless multiple-choice item. It must test ONLY the topics of the requested lesson - never another discipline or an unrelated topic. The answer key (ai) MUST be verifiably correct. Return ONLY the item JSON object.',
-            user: `Lesson topics: ${words.join(', ')}\nReplace this OFF-TOPIC item with one about the lesson topics, same difficulty: ${JSON.stringify(item)}`,
+            user: `Lesson topics: ${words.join(', ')}\nLesson facts: ${JSON.stringify(entry.facts ?? [])}\nReplace this OFF-TOPIC item with one about the lesson topics at the same difficulty. Set fi to one or two indexes of the facts it tests: ${JSON.stringify(item)}`,
             maxTokens: 2000,
             schema: itemSchema,
           });
@@ -910,15 +948,16 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
             q: str(25, 300),
             op: arr(str(5, 95), 4, 4),
             ai: { type: 'integer', minimum: 0, maximum: 3 },
+            fi: arr({ type: 'integer', minimum: 0, maximum: 7 }, 1, 2),
             ex: str(20, 300),
           },
-          required: ['q', 'op', 'ai', 'ex'],
+          required: ['q', 'op', 'ai', 'fi', 'ex'],
         };
         const reply = await generate({
           system:
             fullSystem +
             '\n\nWrite ONE flawless multiple-choice item replacing a faulty one. It must test ONLY the topics of the requested lesson - never another discipline or an unrelated topic. The answer key (ai) MUST be verifiably correct — double-check the subject matter before answering. Return ONLY the item JSON object.',
-          user: `Faulty item (its key disagreed with a blind solve): ${JSON.stringify(item)}\nSame concept, same difficulty, corrected.`,
+          user: `Lesson facts: ${JSON.stringify(entry.facts ?? [])}\nFaulty item (its key disagreed with a blind solve): ${JSON.stringify(item)}\nSame concept and difficulty, corrected; set fi to one or two indexes of the facts it tests.`,
           maxTokens: 2000,
           schema: itemSchema,
         });

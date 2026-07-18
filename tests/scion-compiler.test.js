@@ -13,6 +13,7 @@ import {
   scionFlywheelEnabled,
 } from '../src/lib/scionContracts';
 import { applyScionKernelPasses, SCION_PASS_CALL_BUDGET_PER_LESSON } from '../src/lib/scionPasses';
+import { scionCallOpts } from '../src/lib/scionPassB';
 import { getAdaptiveNativePassBBatchSize } from '../src/lib/adaptiveProviderBatching';
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
 import { isAppliedQuizStem } from '../src/lib/quality/quizItemDepth';
@@ -44,6 +45,31 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(lessons.items.required).toContain('studyGuide');
     expect(lessons.items.additionalProperties).toBe(false);
     expect(lessons.items.properties.mc.minItems).toBe(4);
+    expect(lessons.items.properties.mc.items.required).toContain('fi');
+    expect(lessons.items.properties.mc.items.properties.fi).toMatchObject({ minItems: 1, maxItems: 2 });
+  });
+
+  it('D1: Mandarin kernels grammar-require a visible target-language pair', () => {
+    const profile = kernelBatchSchemaProfile({
+      expectedLessonIds: ['lesson-1'],
+      requiresTargetLanguagePair: true,
+    });
+    const lesson = profile.schema.properties.lessons.items;
+    expect(lesson.required).toContain('targetLanguagePair');
+    expect(lesson.properties.targetLanguagePair.required).toEqual(['hanzi', 'pinyin', 'english']);
+  });
+
+  it('D1: Scion call options activate the Mandarin grammar from course identity', () => {
+    const options = scionCallOpts({
+      prompt: { courseName: 'Elementary Mandarin Chinese I', itemPlan: [{ type: 'multiple_choice' }] },
+      expectedLessonIds: ['lesson-1'],
+      contentSourcedLessonIds: [],
+      includeCourseLevel: false,
+      recoveryAttempt: 0,
+    });
+    const lesson = options.schema.schema.properties.lessons.items;
+    expect(lesson.required).toContain('targetLanguagePair');
+    expect(lesson.properties.mc.items.required).toContain('fi');
   });
 
   it('D1: content-sourced lessons get the session-only variant', () => {
@@ -268,13 +294,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
       generateJson,
     });
 
-    expect(calls).toEqual([
-      'blind_solve',
-      'blind_solve',
-      'mc_verify_repair_batch',
-      'blind_solve',
-      'blind_solve',
-    ]);
+    expect(calls).toEqual(['blind_solve', 'blind_solve', 'mc_verify_repair_batch', 'blind_solve', 'blind_solve']);
     expect(result.events).toContainEqual(
       expect.objectContaining({ pass: 'passBudget', action: 'bounded', reason: '5/5-calls-used-before-admissionGate' }),
     );
@@ -428,7 +448,8 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     );
 
     const lesson = JSON.parse(result.text).lessons[0];
-    expect(lesson.facts[0]).toContain('你好 (nǐ hǎo)');
+    expect(lesson.facts[0]).toBe('The greeting nǐ hǎo uses tone marks to show pitch movement.');
+    expect(lesson.facts.at(-1)).toContain('你好 (nǐ hǎo)');
     expect(calls[0]).toBe('target_language_pair_repair');
     expect(result.events).toContainEqual({
       pass: 'languageIdentity',

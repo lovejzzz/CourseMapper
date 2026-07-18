@@ -1549,6 +1549,29 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
     }
     const issueCountAtEntryStart = issues.length;
     const promptLesson = (prompt?.lessons || []).find((lesson) => lesson.lessonId === lessonId);
+    // Scion's language-specific grammar can guarantee one compact pair even
+    // when the weak draft forgets to repeat it inside facts/key terms. Move
+    // that admitted pair into the learner-facing fact bank before any gate;
+    // the structured helper field never becomes invisible evidence.
+    if (entry?.targetLanguagePair && typeof entry.targetLanguagePair === 'object') {
+      const hanzi = cleanText(entry.targetLanguagePair.hanzi);
+      const pinyin = cleanText(entry.targetLanguagePair.pinyin);
+      const english = cleanText(entry.targetLanguagePair.english);
+      const pairEvidence = `${hanzi} (${pinyin}) means ${english}.`;
+      const pairPresence = assessTargetLanguagePresence({
+        courseIdentity: prompt?.courseName,
+        text: pairEvidence,
+      });
+      if (pairPresence.complete) {
+        const currentFacts = asArray(entry.facts);
+        if (!currentFacts.some((fact) => String(fact).includes(hanzi) && String(fact).includes(pinyin))) {
+          // Append rather than prepend: model-authored fi indexes point into
+          // the original facts array, so preserving those positions keeps
+          // every quiz citation attached to the claim it was written from.
+          entry.facts = [...currentFacts, pairEvidence];
+        }
+      }
+    }
     const languageContamination = detectForeignLanguageTeachingContent({
       courseIdentity: prompt?.courseName,
       text: JSON.stringify(entry),

@@ -93,9 +93,15 @@ const MC_ITEM_SCHEMA = {
     q: { type: 'string', minLength: 25, maxLength: 300 },
     op: { type: 'array', items: { type: 'string', minLength: 5, maxLength: 95 }, minItems: 4, maxItems: 4 },
     ai: { type: 'integer', minimum: 0, maximum: 3 },
+    fi: {
+      type: 'array',
+      items: { type: 'integer', minimum: 0, maximum: 7 },
+      minItems: 1,
+      maxItems: 2,
+    },
     ex: { type: 'string', minLength: 20, maxLength: 300 },
   },
-  required: ['q', 'op', 'ai', 'ex'],
+  required: ['q', 'op', 'ai', 'fi', 'ex'],
 };
 
 function topicWords(promptLesson) {
@@ -260,10 +266,11 @@ async function generateVerifiedReplacementBatch({
       required: ['repairs'],
     };
     const system =
-      'You write flawless quiz items. Replace every faulty multiple-choice item that two blind validators found invalid, ambiguous, or incorrectly keyed. Preserve each listed concept and difficulty; test ONLY the listed lesson topics. Supply every fact needed by the stem, make exactly one option defensible, and ensure every answer key (ai) is verifiably correct. Return only JSON.';
+      'You write flawless quiz items. Replace every faulty multiple-choice item that two blind validators found invalid, ambiguous, or incorrectly keyed. Preserve each listed concept and difficulty; test ONLY the listed lesson topics. Supply every fact needed by the stem, make exactly one option defensible, ensure every answer key (ai) is verifiably correct, and set fi to one or two indexes of the supplied sourceClaims that the item tests. Return only JSON.';
     const user = JSON.stringify({
       lesson: promptLesson || null,
       attempt,
+      sourceClaims,
       faultyItems: pending.map(({ item, index }) => ({ index, item })),
     });
     try {
@@ -285,6 +292,7 @@ async function generateVerifiedReplacementBatch({
             q: normalizeRepairedStem(repair.q),
             op: normalizeOptionLabels(repair.op),
             ai: repair.ai,
+            fi: repair.fi,
             ex: completeSentencePrefix(repair.ex),
           };
           const admission = assessLessonMcItem(fresh, { topicTokens, sourceClaims });
@@ -416,10 +424,11 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
     required: ['repairs'],
   };
   const system =
-    'You repair multiple-choice items that remain off-topic after the main admission pass. Test ONLY the listed lesson topics at the same difficulty. Write a complete stem, exactly four parallel options without A/B/C/D labels, one uniquely correct answer, and a complete contrastive explanation. Avoid meta-language, unsupported inference, trailing fragments, and answer cues. Return only JSON.';
+    'You repair multiple-choice items that remain off-topic after the main admission pass. Test ONLY the listed lesson topics at the same difficulty. Write a complete stem, exactly four parallel options without A/B/C/D labels, one uniquely correct answer, and a complete contrastive explanation. Set fi to one or two indexes of the supplied facts that the item tests. Avoid meta-language, unsupported inference, trailing fragments, and answer cues. Return only JSON.';
   const user = JSON.stringify({
     lesson: promptLesson || null,
     topics: words,
+    facts: lesson.facts || [],
     items: targets.map(({ item, index }) => ({ index, item })),
   });
   try {
@@ -450,6 +459,7 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
           q: normalizeRepairedStem(repair.q),
           op: normalizeOptionLabels(repair.op),
           ai: repair.ai,
+          fi: repair.fi,
           ex: completeSentencePrefix(repair.ex),
         };
         const admission = assessLessonMcItem(fresh, { lesson, topicTokens: words });
@@ -557,9 +567,10 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
     required: ['repairs'],
   };
   const system =
-    'You repair or backfill multiple-choice seats that would otherwise be missing after a strict admission gate. Author each complete item from the listed lesson topics; when an original exists, test the same concept at the same cognitive level. Use exactly four parallel, plausible options of 5-80 characters; make one answer uniquely correct; write a complete stem of 50-180 characters and a complete one- or two-sentence explanation of 60-180 characters. Avoid answer cues, meta-language, unsupported inference, ellipses, and trailing fragments. Return only JSON.';
+    'You repair or backfill multiple-choice seats that would otherwise be missing after a strict admission gate. Author each complete item from the listed lesson topics; when an original exists, test the same concept at the same cognitive level. Use exactly four parallel, plausible options of 5-80 characters; make one answer uniquely correct; write a complete stem of 50-180 characters and a complete one- or two-sentence explanation of 60-180 characters. Set fi to one or two indexes of the supplied facts that the item tests. Avoid answer cues, meta-language, unsupported inference, ellipses, and trailing fragments. Return only JSON.';
   const user = JSON.stringify({
     lesson: promptLesson || null,
+    facts: lesson.facts || [],
     repairs: targets.map(({ item, index, admission }) => ({ index, issues: admission.issues, item })),
   });
   try {
@@ -590,6 +601,7 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
           q: normalizeRepairedStem(repair.q),
           op: normalizeOptionLabels(repair.op),
           ai: repair.ai,
+          fi: repair.fi,
           ex: completeSentencePrefix(repair.ex),
         };
         const admission = assessLessonMcItem(fresh, { lesson, topicTokens });
@@ -1056,8 +1068,9 @@ async function targetLanguageIdentityGate(lesson, promptLesson, courseName, gene
     if (!after.complete) throw new Error('repair did not contain a valid Hanzi/Pinyin pair');
     if (!Array.isArray(lesson.facts)) lesson.facts = [];
     if (!lesson.facts.some((fact) => String(fact).includes(hanzi) && String(fact).includes(pinyin))) {
-      lesson.facts.unshift(evidence);
-      lesson.facts = lesson.facts.slice(0, 8);
+      // Keep existing indexes stable: fi citations were authored against the
+      // original facts array and must continue to name the same claims.
+      lesson.facts.push(evidence);
     }
     events.push({
       pass: 'languageIdentity',
