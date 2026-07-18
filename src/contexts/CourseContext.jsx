@@ -1,6 +1,7 @@
 // src/contexts/CourseContext.jsx — Course-data state (map, columns, features, config)
 import React, { createContext, useCallback, useContext, useState } from 'react';
 import { DEFAULT_COLUMNS } from '../components/ColumnEditor';
+import { readSetupRecovery } from '../lib/setupRecovery';
 
 const CourseContext = createContext(null);
 
@@ -13,7 +14,7 @@ export function CourseProvider({ children }) {
   const [lessonScope, setLessonScope] = useState({ type: 'all' });
 
   // ── Prompt & files ──
-  const [promptText, setPromptText] = useState('');
+  const [promptText, setPromptText] = useState(() => readSetupRecovery()?.promptText || '');
   const [files, setFiles] = useState([]);
 
   // ── Column layout ──

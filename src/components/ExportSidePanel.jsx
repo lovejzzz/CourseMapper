@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import FocusTrap from 'focus-trap-react';
 import { useCourse } from '../contexts/CourseContext';
 import { safeImport } from '../lib/safeImport';
 import { summarizeReadiness } from '../lib/deliverableReadiness';
@@ -591,125 +592,141 @@ const QUALITY_SEVERITY_TONES = {
 };
 
 function QualityReportModal({ quality, onClose }) {
+  useEffect(() => {
+    if (!quality || quality.status !== 'graded') return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose?.();
+    };
+    globalThis.addEventListener?.('keydown', handleKeyDown);
+    return () => globalThis.removeEventListener?.('keydown', handleKeyDown);
+  }, [onClose, quality]);
+
   if (!quality || quality.status !== 'graded') return null;
   const dimensions = Object.entries(quality.dimensions || {});
   const findings = Array.isArray(quality.findings) ? quality.findings : [];
   const counts = quality.findingCounts || {};
   return (
-    <div
-      data-testid="quality-report-modal"
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={onClose}
-    >
+    <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true, escapeDeactivates: false }}>
       <div
-        className="bg-white/95 backdrop-blur-lg rounded-lg shadow-2xl border border-slate-200/60 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300"
-        onClick={(e) => e.stopPropagation()}
+        data-testid="quality-report-modal"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={onClose}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-slate-800">
-              Package quality — {quality.score}/100 ({quality.grade})
-            </p>
-            <p className="text-xs text-slate-400">
-              {counts.p0 || 0} P0 · {counts.p1 || 0} P1 · {counts.p2 || 0} P2 · grader v{quality.graderVersion}
-              {quality.gradedAt ? ` · ${new Date(quality.gradedAt).toLocaleString()}` : ''}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close quality report"
-            className="ml-3 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div className="overflow-y-auto px-5 py-4 space-y-4">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1.5">Dimension scores</p>
-            <div className="grid grid-cols-2 gap-1">
-              {dimensions.map(([dimension, score]) => (
-                <div
-                  key={dimension}
-                  className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-xs"
-                >
-                  <span className="text-slate-500 capitalize">{dimension}</span>
-                  <span className="font-bold text-slate-700">
-                    {score}
-                    {quality.grades?.[dimension] ? ` · ${quality.grades[dimension]}` : ''}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          {Number.isFinite(quality.texture?.score) && (
-            <div data-testid="quality-texture-row">
-              <p className="text-xs font-semibold text-slate-500 mb-1.5">
-                Texture {quality.texture.score}/100
-                <span className="ml-1.5 font-medium text-slate-400">style and repetition, counted lightly</span>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="quality-report-title"
+          aria-describedby="quality-report-summary"
+          className="bg-white/95 backdrop-blur-lg rounded-lg shadow-2xl border border-slate-200/60 w-full max-w-lg mx-4 max-h-[80vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div className="min-w-0">
+              <p id="quality-report-title" className="text-sm font-bold text-slate-800">
+                Package quality — {quality.score}/100 ({quality.grade})
               </p>
-              <div className="grid grid-cols-3 gap-1">
-                {['sameness', 'openers', 'tails'].map((subKey) => (
+              <p id="quality-report-summary" className="text-xs text-slate-400">
+                {counts.p0 || 0} P0 · {counts.p1 || 0} P1 · {counts.p2 || 0} P2 · grader v{quality.graderVersion}
+                {quality.gradedAt ? ` · ${new Date(quality.gradedAt).toLocaleString()}` : ''}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close quality report"
+              autoFocus
+              className="ml-3 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="overflow-y-auto px-5 py-4 space-y-4">
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1.5">Dimension scores</p>
+              <div className="grid grid-cols-2 gap-1">
+                {dimensions.map(([dimension, score]) => (
                   <div
-                    key={subKey}
+                    key={dimension}
                     className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-xs"
                   >
-                    <span className="text-slate-500 capitalize">{subKey}</span>
+                    <span className="text-slate-500 capitalize">{dimension}</span>
                     <span className="font-bold text-slate-700">
-                      {Number.isFinite(quality.texture.subScores?.[subKey]) ? quality.texture.subScores[subKey] : '—'}
+                      {score}
+                      {quality.grades?.[dimension] ? ` · ${quality.grades[dimension]}` : ''}
                     </span>
                   </div>
                 ))}
               </div>
-              {Array.isArray(quality.texture.evidence) && quality.texture.evidence.length > 0 && (
-                <p className="mt-1 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
-                  Most repeated: “{quality.texture.evidence[0].shingle}” — {quality.texture.evidence[0].docCount} of{' '}
-                  {quality.texture.evidence[0].docTotal} {quality.texture.evidence[0].feature} documents
+            </div>
+            {Number.isFinite(quality.texture?.score) && (
+              <div data-testid="quality-texture-row">
+                <p className="text-xs font-semibold text-slate-500 mb-1.5">
+                  Texture {quality.texture.score}/100
+                  <span className="ml-1.5 font-medium text-slate-400">style and repetition, counted lightly</span>
                 </p>
+                <div className="grid grid-cols-3 gap-1">
+                  {['sameness', 'openers', 'tails'].map((subKey) => (
+                    <div
+                      key={subKey}
+                      className="flex items-center justify-between rounded-lg bg-slate-50 px-2 py-1 text-xs"
+                    >
+                      <span className="text-slate-500 capitalize">{subKey}</span>
+                      <span className="font-bold text-slate-700">
+                        {Number.isFinite(quality.texture.subScores?.[subKey]) ? quality.texture.subScores[subKey] : '—'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {Array.isArray(quality.texture.evidence) && quality.texture.evidence.length > 0 && (
+                  <p className="mt-1 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
+                    Most repeated: “{quality.texture.evidence[0].shingle}” — {quality.texture.evidence[0].docCount} of{' '}
+                    {quality.texture.evidence[0].docTotal} {quality.texture.evidence[0].feature} documents
+                  </p>
+                )}
+              </div>
+            )}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 mb-1.5">Findings ({findings.length})</p>
+              {findings.length === 0 ? (
+                <p className="rounded-lg bg-emerald-50 px-2 py-1.5 text-xs font-semibold text-emerald-700">
+                  No detectable defects — every deterministic check passed.
+                </p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {findings.map((finding) => (
+                    <li key={finding.id} className="rounded-lg border border-slate-100 bg-white px-2 py-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`rounded px-1 py-0.5 text-[10px] font-bold ${
+                            QUALITY_SEVERITY_TONES[finding.severity] || QUALITY_SEVERITY_TONES.P2
+                          }`}
+                        >
+                          {finding.severity}
+                        </span>
+                        <span className="text-xs font-semibold capitalize text-slate-400">{finding.dimension}</span>
+                      </div>
+                      <p className="mt-0.5 text-xs leading-snug text-slate-700">{finding.detail}</p>
+                      {finding.file ? <p className="text-xs text-slate-400 break-all">{finding.file}</p> : null}
+                      {finding.evidence ? (
+                        <p className="mt-0.5 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
+                          {finding.evidence}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
-          )}
-          <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1.5">Findings ({findings.length})</p>
-            {findings.length === 0 ? (
-              <p className="rounded-lg bg-emerald-50 px-2 py-1.5 text-xs font-semibold text-emerald-700">
-                No detectable defects — every deterministic check passed.
-              </p>
-            ) : (
-              <ul className="space-y-1.5">
-                {findings.map((finding) => (
-                  <li key={finding.id} className="rounded-lg border border-slate-100 bg-white px-2 py-1.5">
-                    <div className="flex items-center gap-1.5">
-                      <span
-                        className={`rounded px-1 py-0.5 text-[10px] font-bold ${
-                          QUALITY_SEVERITY_TONES[finding.severity] || QUALITY_SEVERITY_TONES.P2
-                        }`}
-                      >
-                        {finding.severity}
-                      </span>
-                      <span className="text-xs font-semibold capitalize text-slate-400">{finding.dimension}</span>
-                    </div>
-                    <p className="mt-0.5 text-xs leading-snug text-slate-700">{finding.detail}</p>
-                    {finding.file ? <p className="text-xs text-slate-400 break-all">{finding.file}</p> : null}
-                    {finding.evidence ? (
-                      <p className="mt-0.5 rounded bg-slate-50 px-1.5 py-1 font-mono text-xs leading-snug text-slate-500 break-words">
-                        {finding.evidence}
-                      </p>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <p className="text-xs text-slate-400 leading-snug">
+              The full markdown report ships inside the package ZIP as QUALITY_REPORT.md, and the manifest carries this
+              grade under <span className="font-mono">quality</span>.
+            </p>
           </div>
-          <p className="text-xs text-slate-400 leading-snug">
-            The full markdown report ships inside the package ZIP as QUALITY_REPORT.md, and the manifest carries this
-            grade under <span className="font-mono">quality</span>.
-          </p>
         </div>
       </div>
-    </div>
+    </FocusTrap>
   );
 }
 

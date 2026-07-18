@@ -90,7 +90,12 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
         { idx: 0, count: Infinity },
       );
       const title = lessons[weakLesson.idx]?.title || `Lesson ${weakLesson.idx + 1}`;
-      starters.push({ text: `Review ${title} for gaps`, icon: 'search' });
+      starters.push({
+        text: `Review ${title} for gaps`,
+        icon: 'search',
+        action: 'local-audit',
+        featureId: 'courseMap',
+      });
     }
   }
 
@@ -111,7 +116,12 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
   if (starters.length < 2) {
     if (lessons.length > 0) {
       const topic = lessons[Math.floor(lessons.length / 2)]?.title || courseMap?.courseName || 'your course';
-      starters.push({ text: `Check ${topic} for gaps`, icon: 'search' });
+      starters.push({
+        text: `Check ${topic} for gaps`,
+        icon: 'search',
+        action: 'local-audit',
+        featureId: 'courseMap',
+      });
     } else {
       starters.push({ text: 'What should I work on next?', icon: 'chat' });
     }
@@ -140,7 +150,12 @@ function buildCourseMapStarters(courseMap) {
       }
     }
     const title = targetLesson?.title || `Lesson ${targetIdx + 1}`;
-    starters.push({ text: `Review ${title} for gaps`, icon: 'search' });
+    starters.push({
+      text: `Review ${title} for gaps`,
+      icon: 'search',
+      action: 'local-audit',
+      featureId: 'courseMap',
+    });
   }
 
   // 2. Actionable course-level suggestion

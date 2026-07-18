@@ -172,8 +172,11 @@ describe('getChatOpener — Tier 2 (course map, no deliverables)', () => {
     const cm = makeCourseMap(3);
     // Lesson 1 has empty objectives (weakest)
     const result = getChatOpener(cm, false, null);
-    const texts = result.starters.map((s) => s.text);
-    expect(texts.some((t) => t.includes('Review') && t.includes('gaps'))).toBe(true);
+    const reviewStarter = result.starters.find((starter) => starter.text.includes('Review'));
+    expect(reviewStarter).toMatchObject({
+      action: 'local-audit',
+      featureId: 'courseMap',
+    });
   });
 });
 
@@ -237,8 +240,13 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
   it('provides course map tab starters for "courseMap" activeTab', () => {
     const cm = makeCourseMap();
     const result = getChatOpener(cm, true, 'courseMap', makeDoneDeliverables());
-    const texts = result.starters.map((s) => s.text);
-    expect(texts.some((t) => t.includes('Review') || t.includes('gaps'))).toBe(true);
+    const reviewStarter = result.starters.find(
+      (starter) => starter.text.includes('Review') || starter.text.includes('gaps'),
+    );
+    expect(reviewStarter).toMatchObject({
+      action: 'local-audit',
+      featureId: 'courseMap',
+    });
   });
 
   it('uses custom deliverable names in agent starters', () => {

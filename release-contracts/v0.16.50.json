@@ -2,7 +2,7 @@
   "version": "0.16.50",
   "date": "July 17, 2026",
   "title": "Make the Evidence Survive the Workflow",
-  "status": "verified-current",
+  "status": "historical",
   "proofSummary": {
     "local": [
       "npm run audit:scion:semantic-admission:v0.16.50",

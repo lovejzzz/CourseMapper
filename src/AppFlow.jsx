@@ -86,6 +86,7 @@ import {
   formatEnrichmentOutcomeLabel,
 } from './lib/apiCallBudget';
 import { buildBuildRibbonModel } from './lib/buildRibbonModel';
+import { clearSetupRecovery } from './lib/setupRecovery';
 import useReviewQueueOwner from './hooks/useReviewQueueOwner';
 import useTabDrag from './hooks/useTabDrag';
 import useProjectPersistence, { STORAGE_KEY } from './hooks/useProjectPersistence';
@@ -2466,6 +2467,7 @@ export default function AppFlow({
 
   async function onGenerate() {
     if (packageGenerationInFlightRef.current) return;
+    clearSetupRecovery();
     packageGenerationInFlightRef.current = true;
     setPackageGenerationBusy(true);
     try {

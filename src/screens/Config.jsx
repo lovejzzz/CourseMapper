@@ -1964,19 +1964,20 @@ export default function Config({
       {provider === PUBLIC_SCION_PROVIDER_ID && (
         <div
           data-testid="scion-generation-boundary"
-          className="mb-3 flex items-start gap-2 rounded-xl bg-status-warning-soft px-3 py-2 text-left text-body text-status-warning"
+          role="note"
+          className="mb-3 flex items-start gap-2 rounded-xl border border-blue-200/70 bg-blue-50/75 px-3 py-2 text-left text-body text-blue-700 dark:border-blue-400/25 dark:bg-blue-400/10 dark:text-blue-200"
         >
           <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
           <span>
-            Scion runs locally in this browser and needs no API key. The first generation may download the model; review
-            materials before publishing.
+            Scion runs locally in this browser and needs no API key. The first generation may download the model. Like
+            every AI draft, review the course before publishing.
           </span>
         </div>
       )}

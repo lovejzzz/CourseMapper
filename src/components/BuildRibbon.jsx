@@ -136,7 +136,7 @@ export default function BuildRibbon({ model }) {
           data-testid="ribbon-progress-label"
           className="ml-auto shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
         >
-          {model.progressPct}%
+          Overall {model.progressPct}%
           {activeElapsed && (
             <span data-testid="ribbon-active-elapsed" className="font-medium text-slate-400 dark:text-slate-500">
               {' · '}

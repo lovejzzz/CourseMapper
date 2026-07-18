@@ -487,6 +487,11 @@ export default function FeatureSelect({
   const optionalFeatures = visibleFeatures.filter((feature) => feature.id !== 'courseMap');
 
   const allSelected = selectedCount === visibleFeatures.length;
+  const visibleRecommendedIds = RECOMMENDED_FEATURE_IDS.filter((id) =>
+    visibleFeatures.some((feature) => feature.id === id),
+  );
+  const recommendedSelected =
+    selectedCount === visibleRecommendedIds.length && visibleRecommendedIds.every((id) => selected.includes(id));
 
   function toggle(id) {
     if (id === 'courseMap') return; // always required
@@ -543,15 +548,15 @@ export default function FeatureSelect({
         data-testid="feature-select-continue"
         onClick={onNext}
         disabled={selectedCount === 0}
-        className={`tactile btn-glow w-full rounded-squircle-xs px-10 py-4 text-sm font-semibold tracking-wide transition-all duration-300 ${
+        className={`tactile btn-glow w-full rounded-squircle-xs px-4 py-4 text-sm font-semibold tracking-wide transition-all duration-300 sm:px-10 ${
           selectedCount > 0
             ? 'text-white bg-slate-950 shadow-lg shadow-slate-950/12 hover:bg-slate-800'
             : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
         }`}
       >
-        <span className="flex items-center justify-center gap-2.5">
-          Review generation
-          <span className="text-white/70">
+        <span className="flex items-center justify-center gap-2 sm:gap-2.5">
+          <span className="whitespace-nowrap">Review generation</span>
+          <span className="whitespace-nowrap text-white/70">
             · {selectedMaterialCount === 0 ? 'Course Map only' : `${selectedMaterialCount} materials`}
           </span>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -660,12 +665,19 @@ export default function FeatureSelect({
                   type="button"
                   data-testid="feature-select-recommended"
                   onClick={selectRecommended}
-                  className="min-h-11 rounded-lg border border-accent/30 bg-accent-soft px-3 text-xs font-bold text-accent-text transition-colors hover:border-accent/50"
+                  aria-pressed={recommendedSelected}
+                  className={`min-h-11 rounded-lg border px-3 text-xs font-bold transition-colors ${
+                    recommendedSelected
+                      ? 'border-accent/40 bg-accent-soft text-accent-text'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200'
+                  }`}
                 >
                   Recommended set
                 </button>
                 <button
+                  type="button"
                   onClick={allSelected ? deselectAll : selectAll}
+                  aria-pressed={allSelected}
                   className="min-h-11 w-fit rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-slate-600 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
                 >
                   {allSelected ? 'Clear selection' : 'Select all'}
