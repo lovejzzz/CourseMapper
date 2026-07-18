@@ -308,14 +308,79 @@ input.on('line', (line) => {
   });
   expect(contentSourced.scion_adapter_route).toMatchObject({ taskFamily: 'lesson-kernel', modelCalls: 1 });
 
+  const recovery = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Scion-Task-Family': 'lesson-kernel' },
+    body: JSON.stringify({
+      model: 'fake-scion',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'For every lesson in the request, return one knowledge kernel: 5-8 facts, 4 keyTerms, and exactly 1 mc items.',
+        },
+        {
+          role: 'user',
+          content:
+            'Course: Testing Basics\nLessons:\n[{"lessonId":"lesson-1","title":"Lesson 1: Testing"}]\nRECOVERY RETRY 1: the previous response failed admission. Re-author it in full.',
+        },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'kernel_lesson_batch',
+          strict: true,
+          schema: { type: 'object', properties: { lessons: { type: 'array' } }, required: ['lessons'] },
+        },
+      },
+    }),
+  }).then((result) => result.json());
+  expect(JSON.parse(recovery.choices[0].message.content).lessons[0]).toMatchObject({ lessonId: 'lesson-1' });
+  expect(recovery.scion_adapter_route).toMatchObject({
+    taskFamily: 'lesson-kernel',
+    modelCalls: expect.any(Number),
+  });
+  expect(recovery.scion_adapter_route.modelCalls).toBeGreaterThan(0);
+
+  const revisedLesson = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Scion-Task-Family': 'lesson-kernel' },
+    body: JSON.stringify({
+      model: 'fake-scion',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'For every lesson in the request, return one knowledge kernel: 5-8 facts, 4 keyTerms, and exactly 1 mc items.',
+        },
+        {
+          role: 'user',
+          content:
+            'Course: Testing Basics\nLessons:\n[{"lessonId":"lesson-1","title":"Lesson 1: Revised Testing Methods"}]',
+        },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'kernel_lesson_batch',
+          strict: true,
+          schema: { type: 'object', properties: { lessons: { type: 'array' } }, required: ['lessons'] },
+        },
+      },
+    }),
+  }).then((result) => result.json());
+  expect(revisedLesson.scion_adapter_route.modelCalls).toBeGreaterThan(0);
+
   const rows = (await fs.readFile(bodyLogPath, 'utf8'))
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line));
-  expect(rows).toHaveLength(2);
+  expect(rows).toHaveLength(4);
   expect(rows[0].modelMetrics.modelCalls).toBeGreaterThan(1);
   expect(rows[1].modelMetrics.modelCalls).toBe(1);
   expect(rows[1].jsonClosureRepair).toBe(']}');
+  expect(rows[2].modelMetrics.modelCalls).toBeGreaterThan(0);
+  expect(rows[3].modelMetrics.modelCalls).toBeGreaterThan(0);
 
   const schemas = (await fs.readFile(schemaLogPath, 'utf8'))
     .trim()

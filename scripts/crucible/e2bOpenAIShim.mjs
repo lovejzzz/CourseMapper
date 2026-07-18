@@ -527,7 +527,17 @@ function kernelContract(system, user) {
   const mcCount = Number((system.match(/exactly (\d+) mc items/i) || [])[1]) || 4;
   const keyTermCount = Number((system.match(/(\d+) keyTerms/i) || [])[1]) || 4;
   const includeCourseLevel = /courseLevel object once/i.test(user);
-  return { lessonIds, lessonSummaries, mcCount, keyTermCount, includeCourseLevel, directive: KERNEL_DIRECTIVE };
+  const recoveryAttempt =
+    Number((user.match(/(?:RECOVERY RETRY|Recovery attempt)\s+(\d+)/i) || [])[1]) || 0;
+  return {
+    lessonIds,
+    lessonSummaries,
+    mcCount,
+    keyTermCount,
+    includeCourseLevel,
+    recoveryAttempt,
+    directive: KERNEL_DIRECTIVE,
+  };
 }
 
 // Per-lesson chunked kernel generation (roadmap A3, done AT THE SHIM): one
@@ -543,11 +553,25 @@ function kernelContract(system, user) {
 // ladder re-asks, cached lessons return instantly, and by attempt 2-3 the
 // full merge lands inside the window. No app change — its partial-acceptance
 // + recovery machinery is built for exactly this.
-const kernelChunkCache = new Map(); // `${courseLine}|${lessonId}` -> entry
+// A normal retry after the browser's time window reuses already completed
+// lessons. A semantic recovery retry is different: the compiler rejected the
+// previous draft, so returning that same cached entry would spend zero model
+// calls and make recovery fictitious. Keep each explicit recovery attempt on
+// its own cache lineage while preserving within-attempt timeout reuse.
+const kernelChunkCache = new Map(); // exact course + lesson summary + recovery lineage -> entry
 const KERNEL_CALL_BUDGET_MS = 100_000;
 
 async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
   const courseLine = (user.match(/^Course:[^\n]*/m) || ['Course: (untitled)'])[0];
+  const lessonCacheKey = (lessonId) => {
+    const summary = Array.isArray(kernel.lessonSummaries)
+      ? kernel.lessonSummaries.find((lesson) => lesson?.lessonId === lessonId)
+      : null;
+    const summaryIdentity = JSON.stringify(summary || { lessonId });
+    return `${courseLine}|${summaryIdentity}${
+      kernel.recoveryAttempt > 0 ? `|recovery-${kernel.recoveryAttempt}` : ''
+    }`;
+  };
   const requiresTargetLanguagePair = /\bElementary Mandarin Chinese\b/i.test(courseLine);
   const deadline = Date.now() + KERNEL_CALL_BUDGET_MS;
   // Round-10 config restored: with SHORT skeleton titles the verbatim-topics
@@ -628,7 +652,7 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
   const lessons = [];
   let skipped = 0;
   for (const lessonId of kernel.lessonIds) {
-    const cacheKey = `${courseLine}|${lessonId}`;
+    const cacheKey = lessonCacheKey(lessonId);
     if (kernelChunkCache.has(cacheKey)) continue;
     if (Date.now() > deadline) {
       skipped += 1;
@@ -703,7 +727,7 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
   // Leftover-time verification pass (numeric keys are the measured risk).
   for (const lessonId of kernel.lessonIds) {
     if (Date.now() > enhanceDeadline) break;
-    const cached = kernelChunkCache.get(`${courseLine}|${lessonId}`);
+    const cached = kernelChunkCache.get(lessonCacheKey(lessonId));
     if (!cached || cached.verified) continue;
     try {
       await verifyMcAnswers(cached.entry, lessonId);
@@ -719,7 +743,7 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
   // and monotonic, like verification.
   for (const lessonId of kernel.lessonIds) {
     if (Date.now() > enhanceDeadline) break;
-    const cached = kernelChunkCache.get(`${courseLine}|${lessonId}`);
+    const cached = kernelChunkCache.get(lessonCacheKey(lessonId));
     if (!cached || cached.polished) continue;
     try {
       await polishLessonProse(cached, lessonId);
@@ -806,7 +830,7 @@ async function kernelChunkedGenerate({ system, user, kernel, temperature }) {
     }
   }
   for (const lessonId of kernel.lessonIds) {
-    const cached = kernelChunkCache.get(`${courseLine}|${lessonId}`);
+    const cached = kernelChunkCache.get(lessonCacheKey(lessonId));
     if (cached) lessons.push(cached.entry);
   }
 
