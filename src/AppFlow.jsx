@@ -3632,7 +3632,7 @@ export default function AppFlow({
                 type="button"
                 onClick={() => setMobileWorkspaceView(view.id)}
                 aria-pressed={mobileWorkspaceView === view.id}
-                className={`min-h-11 flex-1 rounded-xl px-3 text-label font-bold transition-all ${
+                className={`min-h-11 flex-1 rounded-xl px-3 text-label font-bold transition-[transform,box-shadow] duration-150 active:scale-[0.98] ${
                   mobileWorkspaceView === view.id
                     ? 'bg-slate-900 text-white shadow-sm'
                     : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'

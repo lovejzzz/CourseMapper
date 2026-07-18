@@ -110,6 +110,15 @@ test.describe('Generated workspace mobile layout', () => {
       await expect(page.getByTestId('workspace-agent-panel')).toBeHidden();
       await expectNoHorizontalOverflow(page);
 
+      const switcherTransitionProperties = await page
+        .getByTestId('mobile-workspace-switcher')
+        .getByRole('button')
+        .first()
+        .evaluate((button) => getComputedStyle(button).transitionProperty);
+      expect(switcherTransitionProperties).not.toContain('all');
+      expect(switcherTransitionProperties).not.toContain('background');
+      expect(switcherTransitionProperties).not.toContain('color');
+
       const fullscreen = page.getByRole('button', { name: 'Full screen' });
       if (viewport.width < 640) await expect(fullscreen).toBeHidden();
       else await expect(fullscreen).toBeVisible();
@@ -171,11 +180,17 @@ test.describe('Generated workspace mobile layout', () => {
       expect(collapseLessonTarget.height).toBeGreaterThanOrEqual(43.9);
 
       await page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Agent' }).click();
+      await expect(
+        page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Agent' }),
+      ).toHaveAttribute('aria-pressed', 'true');
       await expect(page.getByTestId('workspace-agent-panel')).toBeVisible();
       await expect(page.getByTestId('workspace-content-panel')).toBeHidden();
       await expectNoHorizontalOverflow(page);
 
       await page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Export' }).click();
+      await expect(
+        page.getByTestId('mobile-workspace-switcher').getByRole('button', { name: 'Export' }),
+      ).toHaveAttribute('aria-pressed', 'true');
       await expect(page.getByTestId('workspace-export-panel')).toBeVisible();
       await expect(page.getByTestId('workspace-agent-panel')).toBeHidden();
       await expectNoHorizontalOverflow(page);

@@ -125,11 +125,22 @@ test.describe('Landing Page', () => {
 
   test('dark mode toggle exists and works', async ({ page }) => {
     const toggle = page.locator('button[aria-label*="mode"]');
+    const composer = page.getByTestId('landing-course-composer');
     await expect(toggle).toBeVisible();
+
+    // Theme-bearing surfaces must change together. Animating the composer's
+    // background used to leave its attachment footer light while the nested
+    // textarea had already turned dark during the first 300 ms.
+    const transitionProperties = await composer.evaluate((node) => getComputedStyle(node).transitionProperty);
+    expect(transitionProperties).not.toContain('all');
+    expect(transitionProperties).not.toContain('background');
 
     await toggle.click();
     expect(await page.locator('html').getAttribute('class')).toContain('dark');
     await expect(page.locator('img[alt="EduTool.dev"]')).toHaveAttribute('src', /CMlogo-dark\.png$/);
+    await expect
+      .poll(() => composer.evaluate((node) => getComputedStyle(node).backgroundColor))
+      .not.toMatch(/rgba?\(255,\s*255,\s*255/);
 
     await toggle.click();
     expect((await page.locator('html').getAttribute('class')) || '').not.toContain('dark');

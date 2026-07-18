@@ -605,7 +605,8 @@ export default function Landing({
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
-                className={`relative mt-5 rounded-[22px] transition-all duration-300 ${
+                data-testid="landing-course-composer"
+                className={`relative mt-5 rounded-[22px] transition-[border-color,box-shadow,transform] duration-300 ${
                   isDragging
                     ? 'scale-[1.01] border-2 border-blue-400 bg-blue-50/60 shadow-glow-indigo dark:bg-blue-400/10'
                     : 'border-2 border-slate-200 bg-white/80 focus-within:border-blue-400/70 dark:border-slate-700 dark:bg-slate-900/80 dark:focus-within:border-blue-400/70'
