@@ -15,6 +15,8 @@ export const SCION_CODEX_TRAINING_SCORE_DIMENSIONS = Object.freeze([
 export const SCION_CODEX_TRAINING_REQUIRED_ORDERS = Object.freeze(['A/B', 'B/A']);
 export const SCION_CODEX_TRAINING_MINIMUM_WINNER_SCORE = 4;
 export const SCION_LESSON_KERNEL_TRAINING_REVIEW_PROTOCOL = 'scion-lesson-kernel-training-preference-v1';
+export const SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL =
+  'scion-lesson-kernel-teacher-revision-lineage-v1';
 export const SCION_LESSON_KERNEL_JUDGE_PROMPT_PATH = 'evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md';
 export const SCION_LESSON_KERNEL_JUDGE_PROMPT_SHA256 =
   '37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96';
@@ -207,6 +209,25 @@ export function validateScionLessonKernelTrainingPreferenceEvidence(evidence) {
     issues.push('lesson-kernel-judge-score-qualification');
   }
   if (!clean(evidence?.claimBoundary).includes('single-model')) issues.push('model-judge-claim-boundary');
+  if (evidence?.winnerRole === 'teacher-revision') {
+    const lineage = evidence?.teacherRevisionLineage;
+    if (lineage?.protocol !== SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL) {
+      issues.push('lesson-kernel-teacher-lineage-protocol');
+    }
+    for (const field of [
+      'packetSha256',
+      'workbookSha256',
+      'teacherReportSha256',
+      'revisionResultSha256',
+      'compiledReportSha256',
+      'originalArtifactSha256',
+      'authoredArtifactSha256',
+      'lineageSha256',
+    ]) {
+      if (!SHA256_RE.test(clean(lineage?.[field]))) issues.push(`lesson-kernel-teacher-lineage-${field}`);
+    }
+    if (!validIdentity(lineage?.sessionId)) issues.push('lesson-kernel-teacher-lineage-session');
+  }
   return { valid: issues.length === 0, issues: [...new Set(issues)] };
 }
 

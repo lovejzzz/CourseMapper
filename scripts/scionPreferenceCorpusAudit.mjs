@@ -39,6 +39,21 @@ function modelJudgeBindingIssues(row, chosenRaw, rejectedRaw) {
   if (evidence.rejectedArtifactSha256 !== sha256(JSON.stringify(rejectedRaw))) {
     issues.push('model-judge-rejected-artifact-binding');
   }
+  if (evidence.winnerRole && evidence.winnerRole !== row.winnerRole) {
+    issues.push('model-judge-winner-role-binding');
+  }
+  if (evidence.rejectedRole && evidence.rejectedRole !== row.rejectedRole) {
+    issues.push('model-judge-rejected-role-binding');
+  }
+  if (evidence.winnerRole === 'teacher-revision') {
+    const lineage = evidence.teacherRevisionLineage;
+    if (!lineage || lineage.lineageSha256 !== sha256(JSON.stringify({ ...lineage, lineageSha256: undefined }))) {
+      issues.push('lesson-kernel-teacher-lineage-binding');
+    }
+    if (lineage?.authoredArtifactSha256 !== sha256(JSON.stringify(chosenRaw?.lessons?.[0] ?? chosenRaw))) {
+      issues.push('lesson-kernel-teacher-authored-artifact-binding');
+    }
+  }
   const lessonKernelEvidence = evidence.protocol === 'scion-lesson-kernel-training-preference-v1';
   const trainingPairSha256 = sha256(
     JSON.stringify({

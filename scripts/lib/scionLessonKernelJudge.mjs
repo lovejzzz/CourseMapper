@@ -5,6 +5,8 @@ export const SCION_LESSON_KERNEL_JUDGE_WORKBOOK_PROTOCOL = 'scion-lesson-kernel-
 export const SCION_LESSON_KERNEL_JUDGE_REVIEW_PROTOCOL = 'scion-lesson-kernel-blind-review-v1';
 export const SCION_LESSON_KERNEL_JUDGE_AGGREGATE_PROTOCOL = 'scion-lesson-kernel-paired-order-result-v1';
 export const SCION_LESSON_KERNEL_TRAINING_EVIDENCE_PROTOCOL = 'scion-lesson-kernel-training-preference-v1';
+export const SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL =
+  'scion-lesson-kernel-teacher-revision-lineage-v1';
 export const SCION_LESSON_KERNEL_JUDGE_DIMENSIONS = Object.freeze([
   'sourceFidelity',
   'knowledgePrecision',
@@ -540,6 +542,28 @@ function unshuffleLessonKernel(call = {}) {
   return artifact;
 }
 
+function buildTeacherRevisionLineage({ report, call, authoredArtifact } = {}) {
+  if (call?.arm !== 'teacher-revision') return null;
+  const batch = (report?.batchReports || []).find(
+    (entry) => entry.packetSha256 === call?.revisionEvidence?.packetSha256,
+  );
+  const lineage = {
+    protocol: SCION_LESSON_KERNEL_TEACHER_LINEAGE_PROTOCOL,
+    packetSha256: call?.revisionEvidence?.packetSha256,
+    sessionId: call?.revisionEvidence?.sessionId,
+    workbookSha256: report?.workbookSha256,
+    teacherReportSha256: report?.identity?.sha256,
+    revisionResultSha256: batch?.resultSha256,
+    compiledReportSha256: batch?.reportSha256,
+    originalArtifactSha256: call?.originalArtifactSha256,
+    authoredArtifactSha256: scionLessonKernelSha256(JSON.stringify(authoredArtifact)),
+  };
+  return {
+    ...lineage,
+    lineageSha256: scionLessonKernelSha256(JSON.stringify(lineage)),
+  };
+}
+
 export function buildScionLessonKernelTrainingPreferences({ aggregate, campaign, localReport, referenceReport } = {}) {
   if (aggregate?.status !== 'paired-orders-complete') return [];
   const campaignCases = new Map((campaign?.cases || []).map((entry) => [entry.caseId, entry]));
@@ -554,6 +578,13 @@ export function buildScionLessonKernelTrainingPreferences({ aggregate, campaign,
       if (!entry || !winner?.artifact || !loser?.artifact) return null;
       const chosenArtifact = unshuffleLessonKernel(winner);
       const rejectedArtifact = unshuffleLessonKernel(loser);
+      const winnerRole = winner.arm || result.stableWinner;
+      const rejectedRole = loser.arm || (result.stableWinner === 'local' ? 'reference' : 'local');
+      const teacherRevisionLineage = buildTeacherRevisionLineage({
+        report: result.stableWinner === 'local' ? localReport : referenceReport,
+        call: winner,
+        authoredArtifact: chosenArtifact,
+      });
       const chosen = JSON.stringify({ lessons: [chosenArtifact] });
       const rejected = JSON.stringify({ lessons: [rejectedArtifact] });
       const row = {
@@ -569,7 +600,8 @@ export function buildScionLessonKernelTrainingPreferences({ aggregate, campaign,
         rejected,
         chosenSha256: scionLessonKernelSha256(chosenArtifact),
         rejectedSha256: scionLessonKernelSha256(rejectedArtifact),
-        winnerRole: result.stableWinner,
+        winnerRole,
+        rejectedRole,
         domain: entry.domain,
         courseId: entry.courseGroupId,
         courseGroupId: entry.courseGroupId,
@@ -612,6 +644,9 @@ export function buildScionLessonKernelTrainingPreferences({ aggregate, campaign,
         packetSha256: Object.values(aggregate.evidence.packets),
         reviewSha256: Object.values(aggregate.evidence.reviews),
         winners: result.winners,
+        winnerRole,
+        rejectedRole,
+        ...(teacherRevisionLineage ? { teacherRevisionLineage } : {}),
         stable: true,
         scoreQualification: result.scoreQualification,
         caseDigest: entry.caseSha256,

@@ -287,6 +287,75 @@ describe('Scion lesson-kernel paired-order judge', () => {
     );
   });
 
+  it('binds a teacher-revised winner to its source-only revision and compiler lineage', () => {
+    const inputs = fixture();
+    const teacherCall = inputs.referenceReport.calls[0];
+    teacherCall.arm = 'teacher-revision';
+    teacherCall.originalArtifactSha256 = 'e'.repeat(64);
+    teacherCall.revisionEvidence = {
+      packetSha256: '1'.repeat(64),
+      sessionId: 'teacher-revision-session',
+    };
+    inputs.referenceReport.workbookSha256 = '2'.repeat(64);
+    inputs.referenceReport.identity = { algorithm: 'sha256-canonical-json', sha256: '3'.repeat(64) };
+    inputs.referenceReport.batchReports = [
+      {
+        packetSha256: '1'.repeat(64),
+        resultSha256: '4'.repeat(64),
+        reportSha256: '5'.repeat(64),
+      },
+    ];
+    const { ab, ba } = buildPackets(inputs);
+    const aggregate = aggregateScionLessonKernelPairedOrders({
+      abPacket: ab,
+      baPacket: ba,
+      abReview: completeReview(ab, 'teacher-a-b-session', 'B'),
+      baReview: completeReview(ba, 'teacher-b-a-session', 'A'),
+      localReport: inputs.localReport,
+      referenceReport: inputs.referenceReport,
+      generatedAt: '2026-07-18T18:00:00.000Z',
+    });
+    const [preference] = buildScionLessonKernelTrainingPreferences({
+      aggregate,
+      campaign: inputs.campaign,
+      localReport: inputs.localReport,
+      referenceReport: inputs.referenceReport,
+    });
+
+    expect(preference).toMatchObject({
+      winnerRole: 'teacher-revision',
+      rejectedRole: 'local',
+      preferenceEvidence: {
+        winnerRole: 'teacher-revision',
+        rejectedRole: 'local',
+        teacherRevisionLineage: {
+          packetSha256: '1'.repeat(64),
+          sessionId: 'teacher-revision-session',
+          workbookSha256: '2'.repeat(64),
+          teacherReportSha256: '3'.repeat(64),
+          revisionResultSha256: '4'.repeat(64),
+          compiledReportSha256: '5'.repeat(64),
+          originalArtifactSha256: 'e'.repeat(64),
+          authoredArtifactSha256: scionLessonKernelSha256(
+            JSON.stringify(JSON.parse(preference.chosen).lessons[0]),
+          ),
+          lineageSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
+        },
+      },
+    });
+    expect(validateScionTrainingPreferenceEvidence(preference.preferenceEvidence)).toEqual({
+      valid: true,
+      issues: [],
+    });
+    expect(assessCorpusRow(preference, 'teacher-lineage-fixture')).toMatchObject({ eligible: true, issues: [] });
+
+    const tampered = structuredClone(preference);
+    tampered.preferenceEvidence.teacherRevisionLineage.revisionResultSha256 = 'f'.repeat(64);
+    expect(assessCorpusRow(tampered, 'teacher-lineage-fixture').issues).toContain(
+      'lesson-kernel-teacher-lineage-binding',
+    );
+  });
+
   it('rejects route leakage, changed identity, and reuse of one judge session across orders', () => {
     const inputs = fixture();
     const { ab, ba } = buildPackets(inputs);
