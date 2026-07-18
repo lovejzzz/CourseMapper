@@ -175,6 +175,15 @@ describe('Scion lesson-kernel teacher revision', () => {
     expect(promptV4).toContain('do not place `When`, `Using`, `In`');
     expect(promptV4).toContain('do not rely on `order`, `rank`, `compare`, or `evaluate` alone');
     expect(promptV4).toContain('Do not use `always`, `never`, `only`, `all`, `none`, `must`, `cannot`');
+    const promptV5 = fs.readFileSync(
+      path.resolve(here, '../evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v5-v0.16.54.md'),
+      'utf8',
+    );
+    expect(promptV5).toContain('smallest possible repair');
+    expect(promptV5).toContain('Copy every field not named by `compilerAdmission.issues` unchanged');
+    expect(promptV5).toContain('change only key term N\'s `cx`');
+    expect(promptV5).toContain('keep `q`, `op`, `ai`, and `fi` unchanged');
+    expect(promptV5).toContain('recognized evidence types');
   });
 
   it('builds a source-only packet without exposing the local artifact or provider route', () => {
