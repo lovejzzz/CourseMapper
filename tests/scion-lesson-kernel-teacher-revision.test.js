@@ -172,6 +172,8 @@ describe('Scion lesson-kernel teacher revision', () => {
     expect(promptV4).toContain('Begin every `cx` with its exact `tr` phrase');
     expect(promptV4).toContain('Do not copy four consecutive content words from `df`');
     expect(promptV4).toContain('Delete any named phrase');
+    expect(promptV4).toContain('do not place `When`, `Using`, `In`');
+    expect(promptV4).toContain('do not rely on `order`, `rank`, `compare`, or `evaluate` alone');
     expect(promptV4).toContain('Do not use `always`, `never`, `only`, `all`, `none`, `must`, `cannot`');
   });
 
