@@ -11,7 +11,10 @@ import {
   validateScionLessonKernelTeacherRevisionPacket,
   validateScionLessonKernelTeacherRevisionResult,
 } from '../scripts/lib/scionLessonKernelTeacherRevision.mjs';
-import { chunkScionTeacherRevisionResults } from '../scripts/scionLessonKernelTeacherRevisionBatches.mjs';
+import {
+  chunkScionTeacherRevisionResults,
+  composeScionTeacherRevisionSource,
+} from '../scripts/scionLessonKernelTeacherRevisionBatches.mjs';
 import { scionLessonKernelSha256 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
 import {
   SCION_LESSON_KERNEL_PILOT_PROMPT,
@@ -114,6 +117,21 @@ describe('Scion lesson-kernel teacher revision', () => {
     ]);
     expect(chunkScionTeacherRevisionResults(results, 0)).toEqual([results]);
     expect(chunkScionTeacherRevisionResults([], 3)).toEqual([]);
+  });
+
+  it('prefers the latest revision while retaining fallback cases that never completed', () => {
+    const latest = { identity: { sha256: '1'.repeat(64) }, calls: [{ caseId: 'case-a', artifact: 'latest' }] };
+    const fallback = {
+      identity: { sha256: '2'.repeat(64) },
+      calls: [
+        { caseId: 'case-a', artifact: 'original' },
+        { caseId: 'case-b', artifact: 'fallback-only' },
+      ],
+    };
+    expect(composeScionTeacherRevisionSource(latest, fallback).calls).toEqual([
+      { caseId: 'case-b', artifact: 'fallback-only' },
+      { caseId: 'case-a', artifact: 'latest' },
+    ]);
   });
 
   it('pins the reviser to the production admission constraints exposed by the pilot', () => {

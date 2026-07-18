@@ -26,6 +26,7 @@ function parseArgs(argv) {
   const args = {
     campaign: CAMPAIGN,
     referenceReport: REFERENCE_REPORT,
+    fallbackReferenceReport: '',
     judgeDir: JUDGE_DIR,
     output: OUTPUT_DIR,
     prompt: PROMPT,
@@ -39,6 +40,7 @@ function parseArgs(argv) {
     if (token === '--build') args.build = true;
     else if (token === '--ingest') args.ingest = true;
     else if (token === '--reference-report') args.referenceReport = argv[++index] || '';
+    else if (token === '--fallback-reference-report') args.fallbackReferenceReport = argv[++index] || '';
     else if (token === '--output') args.output = argv[++index] || args.output;
     else if (token === '--prompt') args.prompt = argv[++index] || args.prompt;
     else if (token === '--exclude-admitted-report') {
@@ -80,6 +82,19 @@ async function readJsonIfExists(file) {
   }
 }
 
+export function composeScionTeacherRevisionSource(primary = {}, fallback = null) {
+  if (!fallback) return primary;
+  const primaryCaseIds = new Set((primary.calls || []).map((call) => call.caseId));
+  return {
+    ...primary,
+    calls: [...(fallback.calls || []).filter((call) => !primaryCaseIds.has(call.caseId)), ...(primary.calls || [])],
+  };
+}
+
+function reportIdentitySha256(report = {}) {
+  return report.identity?.sha256 || report.identitySha256 || null;
+}
+
 async function atomicWriteJson(file, value) {
   const absolute = path.resolve(file);
   await fs.mkdir(path.dirname(absolute), { recursive: true });
@@ -89,18 +104,28 @@ async function atomicWriteJson(file, value) {
 }
 
 async function loadInputs(args) {
-  const [campaign, referenceReport, judgeWorkbook, promptRaw, excludeAdmittedReport, excludeQualifiedResult] =
-    await Promise.all([
-      readJson(args.campaign),
-      readJson(args.referenceReport),
-      readJson(path.join(args.judgeDir, 'workbook.json')),
-      fs.readFile(args.prompt, 'utf8'),
-      args.excludeAdmittedReport ? readJson(args.excludeAdmittedReport) : null,
-      args.excludeQualifiedResult ? readJson(args.excludeQualifiedResult) : null,
-    ]);
+  const [
+    campaign,
+    primaryReferenceReport,
+    fallbackReferenceReport,
+    judgeWorkbook,
+    promptRaw,
+    excludeAdmittedReport,
+    excludeQualifiedResult,
+  ] = await Promise.all([
+    readJson(args.campaign),
+    readJson(args.referenceReport),
+    args.fallbackReferenceReport ? readJson(args.fallbackReferenceReport) : null,
+    readJson(path.join(args.judgeDir, 'workbook.json')),
+    fs.readFile(args.prompt, 'utf8'),
+    args.excludeAdmittedReport ? readJson(args.excludeAdmittedReport) : null,
+    args.excludeQualifiedResult ? readJson(args.excludeQualifiedResult) : null,
+  ]);
   return {
     campaign,
-    referenceReport,
+    referenceReport: composeScionTeacherRevisionSource(primaryReferenceReport, fallbackReferenceReport),
+    primaryReferenceReport,
+    fallbackReferenceReport,
     judgeWorkbook,
     promptRaw,
     prompt: { path: args.prompt, sha256: crypto.createHash('sha256').update(promptRaw).digest('hex') },
@@ -177,9 +202,11 @@ async function build(args) {
     prompt: inputs.prompt,
     revisionSource: {
       path: args.referenceReport,
-      reportSha256: inputs.referenceReport.identity?.sha256 || null,
-      protocol: inputs.referenceReport.protocol || null,
-      arm: inputs.referenceReport.arm || inputs.referenceReport.calls?.[0]?.arm || null,
+      reportSha256: reportIdentitySha256(inputs.primaryReferenceReport),
+      protocol: inputs.primaryReferenceReport.protocol || null,
+      arm: inputs.primaryReferenceReport.arm || inputs.primaryReferenceReport.calls?.[0]?.arm || null,
+      fallbackPath: args.fallbackReferenceReport || null,
+      fallbackReportSha256: reportIdentitySha256(inputs.fallbackReferenceReport),
     },
     maxCasesPerBatch: args.maxCases || null,
     ...(args.excludeAdmittedReport || args.excludeQualifiedResult
@@ -276,7 +303,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(
-      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--reference-report file] [--prompt file] [--exclude-admitted-report file] [--exclude-qualified-result file] [--max-cases N]',
+      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--reference-report file] [--fallback-reference-report file] [--prompt file] [--exclude-admitted-report file] [--exclude-qualified-result file] [--max-cases N]',
     );
     return;
   }
