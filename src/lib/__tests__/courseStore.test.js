@@ -172,6 +172,44 @@ describe('courseStore reducer', () => {
       });
       expect(result.deliverables.quizBank).toMatchObject({ status: 'idle', data: null, regeneratingIndex: null });
     });
+
+    it('expands compact compiler keys at the shared restore boundary', () => {
+      const compact = {
+        lessonPlans: {
+          status: 'done',
+          data: { plans: [{ lt: 'Lesson 1: Evidence', dur: '60 min', ob: ['Evaluate a source'] }] },
+        },
+        slideDecks: {
+          status: 'done',
+          data: { decks: [{ lt: 'Lesson 1: Evidence', sl: [{ t: 'Claims need evidence', bu: ['Trace it'] }] }] },
+        },
+        quizBank: {
+          status: 'done',
+          data: {
+            quizzes: [
+              { lt: 'Lesson 1: Evidence', qs: [{ ty: 'short_answer', q: 'What supports it?', an: 'A cited source.' }] },
+            ],
+          },
+        },
+      };
+
+      const result = reducer(initialState(), { type: 'RESTORE_DELIVERABLES', deliverables: compact });
+
+      expect(result.deliverables.lessonPlans.data.plans[0]).toMatchObject({
+        lessonTitle: 'Lesson 1: Evidence',
+        duration: '60 min',
+        objectives: ['Evaluate a source'],
+      });
+      expect(result.deliverables.slideDecks.data.decks[0].slides[0]).toMatchObject({
+        title: 'Claims need evidence',
+        bullets: ['Trace it'],
+      });
+      expect(result.deliverables.quizBank.data.quizzes[0].questions[0]).toMatchObject({
+        type: 'short_answer',
+        question: 'What supports it?',
+        answer: 'A cited source.',
+      });
+    });
   });
 
   describe('SET_DELIVERABLE_DONE', () => {
@@ -207,7 +245,7 @@ describe('courseStore reducer', () => {
 
   describe('RESTORE_DELIVERABLES', () => {
     it('replaces deliverables with provided data', () => {
-      const saved = { quizBank: { status: 'done', data: { q: 1 } } };
+      const saved = { quizBank: { status: 'done', data: { question: 1 } } };
       const state = reducer(initialState(), { type: 'RESTORE_DELIVERABLES', deliverables: saved });
       expect(state.deliverables).toEqual(saved);
     });

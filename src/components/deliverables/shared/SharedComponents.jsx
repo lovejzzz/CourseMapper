@@ -89,10 +89,36 @@ export function updatePath(obj, path, value) {
 }
 
 // ─── Editable text field (click-to-edit) ───
+export function editableTextValue(value) {
+  if (value == null) return '';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+
+  // Legacy and provider-authored list entries occasionally arrive as small
+  // labeled objects (for example { step: "..." } or { name: "..." }). They
+  // are still useful course content, so display the human field instead of
+  // letting React throw while rendering the object as a child.
+  if (typeof value === 'object') {
+    for (const key of ['text', 'step', 'name', 'title', 'label', 'description', 'value']) {
+      const candidate = value?.[key];
+      if (typeof candidate === 'string' || typeof candidate === 'number' || typeof candidate === 'boolean') {
+        return String(candidate);
+      }
+    }
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '';
+    }
+  }
+
+  return String(value);
+}
+
 export function E({ value, path, onEdit, className = '', multiline = false, onAIContextMenu }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef(null);
+  const textValue = editableTextValue(value);
 
   // Auto-size textarea on mount and on content change
   useEffect(() => {
@@ -103,7 +129,7 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
     }
   }, [editing, draft]);
 
-  if (!onEdit) return <span className={className}>{value || ''}</span>;
+  if (!onEdit) return <span className={className}>{textValue}</span>;
 
   if (editing) {
     // Determine a reasonable minimum height based on content length
@@ -132,17 +158,17 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
           e.target.style.height = Math.max(e.target.scrollHeight, 32) + 'px';
         }}
         onBlur={() => {
-          if (draft !== (value || '')) onEdit(path, draft);
+          if (draft !== textValue) onEdit(path, draft);
           setEditing(false);
         }}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
-            setDraft(value || '');
+            setDraft(textValue);
             setEditing(false);
           }
           if (e.key === 'Enter' && !multiline && !e.shiftKey) {
             e.preventDefault();
-            if (draft !== (value || '')) onEdit(path, draft);
+            if (draft !== textValue) onEdit(path, draft);
             setEditing(false);
           }
         }}
@@ -154,21 +180,21 @@ export function E({ value, path, onEdit, className = '', multiline = false, onAI
   }
 
   const handleCtxMenu = (e) => {
-    if (!onAIContextMenu || !(value || '').trim()) return;
-    onAIContextMenu(e, { type: 'deliverableField', path, currentValue: value || '' });
+    if (!onAIContextMenu || !textValue.trim()) return;
+    onAIContextMenu(e, { type: 'deliverableField', path, currentValue: textValue });
   };
 
   return (
     <span
       onClick={() => {
-        setDraft(value || '');
+        setDraft(textValue);
         setEditing(true);
       }}
       onContextMenu={handleCtxMenu}
       className={`${className} cursor-text hover:bg-white/20 rounded px-0.5 -mx-0.5 transition-colors inline-block min-w-[2em]`}
       title="Click to edit · Right-click for AI"
     >
-      {value || ''}
+      {textValue}
     </span>
   );
 }

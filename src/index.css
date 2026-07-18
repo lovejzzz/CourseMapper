@@ -1270,6 +1270,15 @@ body {
   }
 }
 
+/* A theme change is one palette decision, not a cascade of unrelated color
+   tweens. Freeze transitions for the two paints that apply the root .dark
+   class so text and surfaces never cross through a low-contrast gray frame. */
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition-property: none !important;
+}
+
 /* Respect the platform motion preference across the whole workspace. The
    normal spring/fade language remains intact, while reduced-motion users get
    a stable first frame and no looping cursor or progress decoration. */

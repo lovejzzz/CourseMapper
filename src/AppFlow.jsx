@@ -504,6 +504,14 @@ export default function AppFlow({
     setAddLessonsModal,
   } = useUI();
 
+  // Setup screens share one document instead of navigating to new pages.
+  // Reset the document scroll when that screen state changes so a CTA that
+  // was brought into view on a short phone does not strand the next step
+  // below its heading and progress indicator.
+  useEffect(() => {
+    if (typeof window.scrollTo === 'function') window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [screen]);
+
   // v0.14.7 WS-F2: quick start — the landing prompt box can generate with
   // defaults directly. The flag defers the generate call one render so the
   // select-all feature selection COMMITS before generation reads it

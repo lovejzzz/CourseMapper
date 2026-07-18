@@ -47,6 +47,7 @@ export default function LessonPlansView({
             ? { ...basePlan, ...basePlan.tiers[currentTier] }
             : basePlan;
         const bloomsTags = plan.bloomsLevels || [];
+        const outlineHasType = plan.outline?.some((row) => row.type || row.bloomsLevel);
         const subtitle = [plan.duration, plan.weekNumber].filter(Boolean).join(' · ');
         return (
           <React.Fragment key={i}>
@@ -146,7 +147,56 @@ export default function LessonPlansView({
                 {plan.outline?.length > 0 && (
                   <div>
                     <SectionHeading>Session Outline</SectionHeading>
-                    <div className="border border-slate-100 rounded-lg overflow-hidden">
+                    <div data-testid="lesson-outline-mobile" className="space-y-2 sm:hidden">
+                      {plan.outline.map((row, j) => (
+                        <div key={j} className="rounded-lg border border-slate-100 bg-white/50 p-3">
+                          <div className="flex min-w-0 items-start gap-3">
+                            <span className="shrink-0 text-xs font-semibold text-violet-600">
+                              <E value={row.time} path={[key, i, 'outline', j, 'time']} onEdit={onEdit} />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="text-xs font-semibold text-slate-700">
+                                  <E value={row.activity} path={[key, i, 'outline', j, 'activity']} onEdit={onEdit} />
+                                </span>
+                                {row.type && (
+                                  <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-500">
+                                    {row.type}
+                                  </span>
+                                )}
+                                {row.bloomsLevel && <BloomsTag level={row.bloomsLevel} />}
+                              </div>
+                              {row.grouping && (
+                                <span className="mt-0.5 block text-xs text-slate-400">{row.grouping}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="mt-2 text-xs leading-relaxed text-slate-600">
+                            <E
+                              value={row.description}
+                              path={[key, i, 'outline', j, 'description']}
+                              onEdit={onEdit}
+                              multiline
+                            />
+                          </div>
+                          {(row.instructorNotes || row.notes) && (
+                            <span className="mt-1.5 block text-xs italic text-slate-400">
+                              💡{' '}
+                              <E
+                                value={row.instructorNotes || row.notes}
+                                path={[key, i, 'outline', j, row.instructorNotes ? 'instructorNotes' : 'notes']}
+                                onEdit={onEdit}
+                                className="text-xs italic text-slate-400"
+                              />
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <div
+                      data-testid="lesson-outline-table"
+                      className="hidden overflow-hidden rounded-lg border border-slate-100 sm:block"
+                    >
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="bg-slate-50/80">
@@ -154,7 +204,7 @@ export default function LessonPlansView({
                             <th className="text-left px-3 py-2 font-semibold text-slate-500 w-28">Activity</th>
                             {/* A column of nothing reads as missing data —
                                 render Type only when some row has one. */}
-                            {plan.outline.some((row) => row.type || row.bloomsLevel) && (
+                            {outlineHasType && (
                               <th className="text-left px-3 py-2 font-semibold text-slate-500 w-16">Type</th>
                             )}
                             <th className="text-left px-3 py-2 font-semibold text-slate-500">
@@ -174,7 +224,7 @@ export default function LessonPlansView({
                                   <span className="block text-xs text-slate-400 mt-0.5">{row.grouping}</span>
                                 )}
                               </td>
-                              {plan.outline.some((entry) => entry.type || entry.bloomsLevel) && (
+                              {outlineHasType && (
                                 <td className="px-3 py-2 align-top">
                                   {row.type && (
                                     <span className="text-xs text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded font-medium">

@@ -6,6 +6,17 @@ import { describe, expect, it } from 'vitest';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 describe('workspace reduced-motion contract', () => {
+  it('applies light and dark palettes atomically instead of exposing a mixed frame', () => {
+    const css = fs.readFileSync(path.join(repoRoot, 'src/index.css'), 'utf8');
+    const toggle = fs.readFileSync(path.join(repoRoot, 'src/components/DarkModeToggle.jsx'), 'utf8');
+
+    expect(css).toContain('html.theme-switching *');
+    expect(css).toContain('transition-property: none !important');
+    expect(toggle).toContain("root.classList.add('theme-switching')");
+    expect(toggle).toContain("root.classList.remove('theme-switching')");
+    expect(toggle).toContain('requestAnimationFrame(() =>');
+  });
+
   it('turns transitions and repeating animation into an effectively stable first frame', () => {
     const css = fs.readFileSync(path.join(repoRoot, 'src/index.css'), 'utf8');
     const start = css.indexOf('@media (prefers-reduced-motion: reduce)');

@@ -9,6 +9,7 @@
  *   }
  */
 import React, { createContext, useReducer } from 'react';
+import { expandKeys } from '../lib/keyMaps';
 
 // ── Action creators ────────────────────────────────────────────────────────────
 
@@ -99,13 +100,19 @@ export function normalizeRestoredDeliverables(deliverables) {
   return Object.fromEntries(
     Object.entries(deliverables).map(([featureId, entry]) => {
       const restored = entry && typeof entry === 'object' ? entry : {};
+      // Generation expands compact model keys before committing state, but
+      // older backups, compiler fixtures, and interrupted snapshots can still
+      // contain the compact contract. Normalize at the one reducer boundary
+      // shared by local, cloud, file, and developer restores so every view gets
+      // the same expanded data shape. expandKeys is idempotent for modern data.
+      const normalized = restored.data ? { ...restored, data: expandKeys(featureId, restored.data) } : restored;
       const interrupted = restored.status === 'streaming' || restored.regeneratingIndex != null;
-      if (!interrupted) return [featureId, restored];
+      if (!interrupted) return [featureId, normalized];
       return [
         featureId,
         {
-          ...restored,
-          status: restored.data ? 'done' : 'idle',
+          ...normalized,
+          status: normalized.data ? 'done' : 'idle',
           error: null,
           regeneratingIndex: null,
         },

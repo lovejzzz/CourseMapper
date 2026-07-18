@@ -33,7 +33,7 @@ async function restoreGeneratedWorkspace(page) {
         chatHistory: [],
         fileNames: [],
         versionHistory: [],
-        selectedFeatures: ['courseMap', 'lessonPlans', 'slideDecks'],
+        selectedFeatures: ['courseMap', 'lessonPlans', 'slideDecks', 'quizBank'],
         deliverableConfig: { lessonPlans: {}, slideDecks: { slideCount: 3 } },
         lessonScope: { type: 'all' },
         promptText: 'Mobile layout course',
@@ -47,6 +47,17 @@ async function restoreGeneratedWorkspace(page) {
                   lessonTitle: 'Lesson 1',
                   overview: 'A practical lesson plan for mobile layout testing.',
                   activities: ['Discuss responsive workspace patterns.'],
+                  outline: [
+                    {
+                      time: '10 min',
+                      activity: 'Review lab',
+                      description: 'Inspect the exported course and record one concrete handoff risk.',
+                      grouping: 'Pairs',
+                      type: 'Practice',
+                      bloomsLevel: 'Evaluate',
+                      instructorNotes: 'Ask for evidence from a real file.',
+                    },
+                  ],
                 },
               ],
             },
@@ -62,6 +73,33 @@ async function restoreGeneratedWorkspace(page) {
                   slides: [
                     { title: 'Intro', bullets: ['A'] },
                     { title: 'Practice', bullets: ['B'] },
+                  ],
+                },
+              ],
+            },
+            error: null,
+            stale: false,
+          },
+          quizBank: {
+            status: 'done',
+            data: {
+              quizzes: [
+                {
+                  lt: 'Lesson 1: Evidence Checks',
+                  bc: ['Apply'],
+                  qs: [
+                    {
+                      ty: 'multiple_choice',
+                      bl: 'Apply',
+                      df: 'Medium',
+                      pt: 2,
+                      em: 3,
+                      oa: 'Choose evidence that supports the claim.',
+                      q: 'Which observation most directly supports the proposed revision?',
+                      op: ['A. Repeated task failure', 'B. Preferred color', 'C. Team size', 'D. Meeting time'],
+                      an: 'A',
+                      ex: 'Repeated task failure is direct evidence about whether the interaction succeeds.',
+                    },
                   ],
                 },
               ],
@@ -150,6 +188,32 @@ test.describe('Generated workspace mobile layout', () => {
       });
       expect(workspaceFooterStyle.fontSize).toBeGreaterThanOrEqual(12);
       expect(workspaceFooterStyle.contrastOnWhite).toBeGreaterThanOrEqual(4.5);
+
+      const mobileOutline = page.getByTestId('lesson-outline-mobile');
+      const tableOutline = page.getByTestId('lesson-outline-table');
+      if (viewport.width < 640) {
+        await expect(mobileOutline).toBeVisible();
+        await expect(tableOutline).toBeHidden();
+        await expect(
+          mobileOutline.getByText('Inspect the exported course and record one concrete handoff risk.'),
+        ).toBeVisible();
+      } else {
+        await expect(mobileOutline).toBeHidden();
+        await expect(tableOutline).toBeVisible();
+        await expect(
+          tableOutline
+            .locator('td')
+            .filter({ hasText: 'Inspect the exported course and record one concrete handoff risk.' }),
+        ).toBeVisible();
+      }
+
+      await page
+        .getByTestId('workspace-deliverable-tabs')
+        .getByRole('button', { name: 'Quiz & Exam Bank', exact: true })
+        .click();
+      await expect(page.getByText('Which observation most directly supports the proposed revision?')).toBeVisible();
+      await expect(page.getByText('Repeated task failure')).toBeVisible();
+      await expectNoHorizontalOverflow(page);
 
       await page
         .getByTestId('workspace-deliverable-tabs')

@@ -23,8 +23,16 @@ import { quizPresentationOrder } from './shared/lessonGrouping';
 // entries carry lessonNumber; weekly entries name their lesson in the title.
 function quizLessonNumber(quiz, index) {
   if (Number.isInteger(quiz?.lessonNumber) && quiz.lessonNumber > 0) return quiz.lessonNumber;
-  const match = String(quiz?.lessonTitle || '').match(/(?:Lesson|Week)\s*(\d+)/i);
+  const match = String(quiz?.lessonTitle || quiz?.lt || '').match(/(?:Lesson|Week)\s*(\d+)/i);
   return match ? Number(match[1]) : index + 1;
+}
+
+function ownField(object, expanded, compact) {
+  return Object.prototype.hasOwnProperty.call(object || {}, expanded) ? expanded : compact;
+}
+
+function fieldValue(object, expanded, compact, fallback = '') {
+  return object?.[expanded] ?? object?.[compact] ?? fallback;
 }
 
 // v0.14.4 (D2): registry identity for exam entries — id · kind · points.
@@ -70,9 +78,12 @@ export default function QuizBankView({
           currentTier !== 'standard' && baseQuiz.tiers?.[currentTier]
             ? { ...baseQuiz, ...baseQuiz.tiers[currentTier] }
             : baseQuiz;
+        const questionKey = Array.isArray(quiz.questions) ? 'questions' : Array.isArray(quiz.qs) ? 'qs' : 'questions';
+        const questions = quiz[questionKey] || [];
+        const bloomsCoverage = quiz.bloomsCoverage || quiz.bc || [];
         const subtitle = [
-          quiz.questions?.length ? `${quiz.questions.length} questions` : null,
-          quiz.bloomsCoverage?.length ? quiz.bloomsCoverage.join(', ') : null,
+          questions.length ? `${questions.length} question${questions.length === 1 ? '' : 's'}` : null,
+          bloomsCoverage.length ? bloomsCoverage.join(', ') : null,
         ]
           .filter(Boolean)
           .join(' · ');
@@ -80,7 +91,7 @@ export default function QuizBankView({
         const card = (
           <CollapsibleCard
             viewportIndex={i}
-            title={quiz.lessonTitle || `Quiz ${i + 1}`}
+            title={quiz.lessonTitle || quiz.lt || `Quiz ${i + 1}`}
             subtitle={subtitle}
             metaLine={isExam ? examIdentityLine(baseQuiz) : null}
             defaultOpen={i < 3}
@@ -89,22 +100,24 @@ export default function QuizBankView({
             regenerating={regeneratingIndex === i}
             fresh={!!freshLessonIndices?.has(i)}
             onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined}
-            onTitleEdit={onEdit ? (newTitle) => onEdit([key, i, 'lessonTitle'], newTitle) : undefined}
+            onTitleEdit={
+              onEdit ? (newTitle) => onEdit([key, i, ownField(quiz, 'lessonTitle', 'lt')], newTitle) : undefined
+            }
           >
             <div className="pt-3 space-y-3">
-              {quiz.bloomsCoverage?.length > 0 && (
+              {bloomsCoverage.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {quiz.bloomsCoverage.map((b, k) => (
+                  {bloomsCoverage.map((b, k) => (
                     <BloomsTag key={k} level={b} />
                   ))}
                 </div>
               )}
-              {(quiz.questions || []).map((q, j) => (
+              {questions.map((q, j) => (
                 <QuestionCard
                   key={j}
                   question={q}
                   number={j + 1}
-                  qPath={[key, i, 'questions', j]}
+                  qPath={[key, i, questionKey, j]}
                   onEdit={onEdit}
                   onSaveToBank={onSaveToBank}
                 />
@@ -159,7 +172,7 @@ export default function QuizBankView({
             <div
               data-assessment-anchor="true"
               data-assessment-id={baseQuiz.assessmentId || ''}
-              data-assessment-title={baseQuiz.lessonTitle || ''}
+              data-assessment-title={baseQuiz.lessonTitle || baseQuiz.lt || ''}
               data-lesson-number={quizLessonNumber(baseQuiz, i)}
               className="rounded-squircle-xs transition-shadow duration-300"
             >
@@ -196,7 +209,7 @@ export default function QuizBankView({
                             // The map cell carries the colon form ("Midterm
                             // Exam: …"); the compiled entry display-titles
                             // itself with an em dash.
-                            title: String(baseQuiz.lessonTitle || '').replace(/\s+—\s+/, ': '),
+                            title: String(baseQuiz.lessonTitle || baseQuiz.lt || '').replace(/\s+—\s+/, ': '),
                           })
                         }
                         className="tactile ml-auto inline-flex items-center gap-1 text-[12px] font-semibold px-2 py-0.5 rounded-full text-indigo-600 dark:text-indigo-300 bg-white/70 dark:bg-slate-900/50 border border-indigo-200/70 dark:border-indigo-800/70 hover:bg-indigo-100/70 dark:hover:bg-indigo-900/40 transition-all duration-150"
@@ -238,10 +251,24 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank }) {
     Medium: 'text-amber-600 bg-amber-50',
     Hard: 'text-red-600 bg-red-50',
   };
-  const color = typeColors[q.type] || 'slate';
+  const type = fieldValue(q, 'type', 'ty', 'question');
+  const bloomsLevel = fieldValue(q, 'bloomsLevel', 'bl');
+  const difficulty = fieldValue(q, 'difficulty', 'df');
+  const points = fieldValue(q, 'points', 'pt', null);
+  const estimatedMinutes = fieldValue(q, 'estimatedMinutes', 'em', null);
+  const objectiveAligned = fieldValue(q, 'objectiveAligned', 'oa');
+  const prompt = fieldValue(q, 'question', 'q');
+  const options = fieldValue(q, 'options', 'op', null);
+  const answer = fieldValue(q, 'answer', 'an');
+  const explanation = fieldValue(q, 'explanation', 'ex');
+  const distractorRationale = fieldValue(q, 'distractorRationale', 'dr');
+  const sampleAnswer = fieldValue(q, 'sampleAnswer', 'sa');
+  const rubricHints = fieldValue(q, 'rubricHints', 'rh');
+  const scoringGuidance = fieldValue(q, 'scoringGuidance', 'sg');
+  const color = typeColors[type] || 'slate';
   const handleSave = () => {
     if (!onSaveToBank) return;
-    onSaveToBank({ type: 'quiz', text: q.question || '', bloomsLevel: q.bloomsLevel || '' });
+    onSaveToBank({ type: 'quiz', text: prompt, bloomsLevel });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -253,17 +280,17 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank }) {
         </span>
         <div className="flex-1">
           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-            <Badge color={color}>{(q.type || 'question').replace('_', ' ')}</Badge>
-            {q.bloomsLevel && <BloomsTag level={q.bloomsLevel} />}
-            {q.difficulty && (
+            <Badge color={color}>{type.replace('_', ' ')}</Badge>
+            {bloomsLevel && <BloomsTag level={bloomsLevel} />}
+            {difficulty && (
               <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${diffColors[q.difficulty] || 'text-slate-500 bg-slate-50'}`}
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${diffColors[difficulty] || 'text-slate-500 bg-slate-50'}`}
               >
-                {q.difficulty}
+                {difficulty}
               </span>
             )}
-            {q.points && <span className="text-xs text-slate-400 ml-auto">{q.points} pts</span>}
-            {q.estimatedMinutes && <span className="text-xs text-slate-400">~{q.estimatedMinutes} min</span>}
+            {points && <span className="text-xs text-slate-400 ml-auto">{points} pts</span>}
+            {estimatedMinutes && <span className="text-xs text-slate-400">~{estimatedMinutes} min</span>}
             {onSaveToBank && (
               <button
                 onClick={handleSave}
@@ -275,32 +302,32 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank }) {
               </button>
             )}
           </div>
-          {q.objectiveAligned && (
+          {objectiveAligned && (
             <p className="text-xs text-indigo-400 mb-1.5">
               ↳{' '}
               <E
-                value={q.objectiveAligned}
-                path={[...qPath, 'objectiveAligned']}
+                value={objectiveAligned}
+                path={[...qPath, ownField(q, 'objectiveAligned', 'oa')]}
                 onEdit={onEdit}
                 className="text-xs text-indigo-400"
               />
             </p>
           )}
           <p className="text-xs text-slate-800 font-medium leading-relaxed">
-            <E value={q.question} path={[...qPath, 'question']} onEdit={onEdit} multiline />
+            <E value={prompt} path={[...qPath, ownField(q, 'question', 'q')]} onEdit={onEdit} multiline />
           </p>
         </div>
       </div>
-      {q.options && (
+      {options && (
         <div className="ml-8 space-y-1">
-          {q.options.map((opt, k) => {
-            const isCorrect = showAnswer && opt.startsWith(q.answer);
+          {options.map((opt, k) => {
+            const isCorrect = showAnswer && opt.startsWith(answer);
             return (
               <div
                 key={k}
                 className={`text-xs px-2.5 py-1.5 rounded transition-colors ${isCorrect ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-slate-600 bg-slate-50/40'}`}
               >
-                <E value={opt} path={[...qPath, 'options', k]} onEdit={onEdit} />
+                <E value={opt} path={[...qPath, ownField(q, 'options', 'op'), k]} onEdit={onEdit} />
               </div>
             );
           })}
@@ -314,56 +341,63 @@ function QuestionCard({ question, number, qPath, onEdit, onSaveToBank }) {
       </button>
       {showAnswer && (
         <div className="ml-8 text-xs bg-emerald-50/60 rounded-lg p-3 border border-emerald-100/50 space-y-2">
-          {q.answer && (
+          {answer && (
             <p>
               <span className="font-semibold text-emerald-700">Answer:</span>{' '}
-              <E value={q.answer} path={[...qPath, 'answer']} onEdit={onEdit} className="text-slate-700" />
+              <E
+                value={answer}
+                path={[...qPath, ownField(q, 'answer', 'an')]}
+                onEdit={onEdit}
+                className="text-slate-700"
+              />
             </p>
           )}
-          {q.explanation && (
+          {explanation && (
             <div>
               <span className="font-semibold text-emerald-700 block mb-0.5">Explanation:</span>
               <E
-                value={q.explanation}
-                path={[...qPath, 'explanation']}
+                value={explanation}
+                path={[...qPath, ownField(q, 'explanation', 'ex')]}
                 onEdit={onEdit}
                 className="text-slate-700 leading-relaxed"
                 multiline
               />
             </div>
           )}
-          {q.distractorRationale && (
+          {distractorRationale && (
             <div className="bg-amber-50/60 rounded p-2 border border-amber-100/50">
               <span className="font-semibold text-amber-700 block mb-0.5 text-xs">
                 Distractor Rationale (misconceptions tested):
               </span>
               <E
-                value={q.distractorRationale}
-                path={[...qPath, 'distractorRationale']}
+                value={distractorRationale}
+                path={[...qPath, ownField(q, 'distractorRationale', 'dr')]}
                 onEdit={onEdit}
                 className="text-slate-600 text-xs leading-relaxed"
                 multiline
               />
             </div>
           )}
-          {q.sampleAnswer && (
+          {sampleAnswer && (
             <div>
               <span className="font-semibold text-emerald-700 block mb-0.5">Model Answer:</span>
               <E
-                value={q.sampleAnswer}
-                path={[...qPath, 'sampleAnswer']}
+                value={sampleAnswer}
+                path={[...qPath, ownField(q, 'sampleAnswer', 'sa')]}
                 onEdit={onEdit}
                 className="text-slate-700 leading-relaxed"
                 multiline
               />
             </div>
           )}
-          {q.rubricHints && (
+          {(rubricHints || scoringGuidance) && (
             <div className="bg-violet-50/40 rounded p-2 border border-violet-100/50">
-              <span className="font-semibold text-violet-700 block mb-0.5 text-xs">Essay Scoring Criteria:</span>
+              <span className="font-semibold text-violet-700 block mb-0.5 text-xs">
+                {rubricHints ? 'Essay scoring criteria:' : 'Scoring guidance:'}
+              </span>
               <E
-                value={q.rubricHints}
-                path={[...qPath, 'rubricHints']}
+                value={rubricHints || scoringGuidance}
+                path={[...qPath, rubricHints ? ownField(q, 'rubricHints', 'rh') : ownField(q, 'scoringGuidance', 'sg')]}
                 onEdit={onEdit}
                 className="text-slate-600 text-xs leading-relaxed"
                 multiline

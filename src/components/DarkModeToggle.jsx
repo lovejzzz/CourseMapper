@@ -24,9 +24,18 @@ export default function DarkModeToggle() {
     }
   }, [dark]);
 
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    root.classList.add('theme-switching');
+    setDark((current) => !current);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => root.classList.remove('theme-switching'));
+    });
+  };
+
   return (
     <button
-      onClick={() => setDark((d) => !d)}
+      onClick={toggleTheme}
       className="tactile rounded-xl border border-slate-200/70 bg-white/75 p-2 text-slate-500 shadow-sm transition-all duration-200 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:bg-blue-400/10 dark:hover:text-blue-200"
       title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
