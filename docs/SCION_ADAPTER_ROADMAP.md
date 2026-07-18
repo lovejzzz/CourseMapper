@@ -2,7 +2,17 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 and v0.16.49 turned its observed losses plus browser audits into stricter admission and a more trustworthy Living Course Compiler; v0.16.50 closed the full frozen semantic-loss set and verified terminal evidence, custom compilation, Agent chat, responsive handoff, grading, and the exact exported file in one real browser-local Scion run; v0.16.51 preserves the brief across deployments, routes Agent audits to real tools, clarifies progress, removes impossible-at-ceiling voice calls, and hardens desktop and phone setup semantics. A quality adapter, held-out adapter win, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 and v0.16.49 turned its observed losses plus browser audits into stricter admission and a more trustworthy Living Course Compiler; v0.16.50 closed the full frozen semantic-loss set; v0.16.51 hardened setup and Agent handoffs; and v0.16.52 replays the complete real Scion workflow, removes redundant finish work, makes export preparation explicit, and puts downstream semantic-evidence freshness inside the normal test gate. A quality adapter, held-out adapter win, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
+
+## v0.16.52 — Make Ready Mean Ready
+
+- Replay a real cached-base build through Model, Map, Enrich, Compile, Verify, Grade, Agent audit, free-form Scion chat, phone layout, and physical ZIP export.
+- When the package already has a completed ready receipt, replace the redundant **Finish package** starter with review/improvement actions and ready-state language.
+- Keep export feedback truthful during archive assembly with **Preparing ZIP…**, and keep the dark “Always included” badge legible under the global dark-surface remap.
+- Bind the semantic-admission burden receipt to the upstream source-compiler receipt and all 12 retained project hashes; verify that chain during the default test suite.
+- Preserve the measured boundary: no Gemma weight change, no adapter activation, no paid-reference parity claim, and no new classroom/human evidence.
+
+**Lane:** v0.16.52 is browser-verified UX, orchestration, export, and evaluation-integrity work around the existing semantic compiler. The next quality lane remains a task-scoped adapter trained and evaluated only on task families its admitted corpus actually covers.
 
 **Release boundary:** no current public Scion request claims to use trained weights
 

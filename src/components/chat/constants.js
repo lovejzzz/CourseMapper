@@ -1,5 +1,6 @@
 import { getCustomDeliverable } from '../../lib/customDeliverableLibrary';
 import { generateCourseHealthReport } from '../../lib/pedagogicalValidator';
+import { isPackageReady } from '../../lib/pipelineMachine';
 import { getArrayKey } from '../../lib/syncDependencies';
 
 // ── Feature labels ──────────────────────────────────────────────────────────
@@ -64,7 +65,7 @@ function buildActiveTabSecondaryStarter(activeTab, tabLabel) {
   };
 }
 
-function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
+function buildAdaptiveStarters(courseMap, activeTab, deliverables, packageQualityPass = null) {
   const starters = [];
   const lessons = courseMap?.lessons || [];
   const tabLabel = resolveLabel(activeTab);
@@ -72,7 +73,10 @@ function buildAdaptiveStarters(courseMap, activeTab, deliverables) {
     (entry) => entry?.status === 'done' && entry?.data,
   ).length;
 
-  if (doneFeatureCount > 0) {
+  // A completed finish pass already verified, repaired, graded, and prepared
+  // the package. Offering "Finish package" again in that state reruns an
+  // expensive operation and makes a ready workspace feel unfinished.
+  if (doneFeatureCount > 0 && !isPackageReady(packageQualityPass)) {
     starters.push({ text: 'Finish package', icon: 'search', action: 'finish-package' });
   }
 
@@ -201,6 +205,7 @@ export function getChatOpener(
   isDelivGenerating = false,
   isAgentProviderReady = true,
   landingContext = null,
+  packageQualityPass = null,
 ) {
   // Generation in progress — don't show premature lesson count or onboarding message
   if (isGenerating) {
@@ -251,11 +256,16 @@ export function getChatOpener(
         ],
       };
     }
-    const starters = buildAdaptiveStarters(courseMap, activeTab, deliverables);
+    const packageReady = isPackageReady(packageQualityPass);
+    const starters = buildAdaptiveStarters(courseMap, activeTab, deliverables, packageQualityPass);
     return {
-      greeting: landingContext?.hasContext
-        ? 'I am still using your starting brief. I can finish, fix, and verify your course materials.'
-        : 'I can finish, fix, and verify your course materials.',
+      greeting: packageReady
+        ? landingContext?.hasContext
+          ? 'Your package is ready, and I am still using your starting brief. I can review, explain, and improve the course materials.'
+          : 'Your package is ready. I can review, explain, and improve the course materials.'
+        : landingContext?.hasContext
+          ? 'I am still using your starting brief. I can finish, fix, and verify your course materials.'
+          : 'I can finish, fix, and verify your course materials.',
       starters,
     };
   }

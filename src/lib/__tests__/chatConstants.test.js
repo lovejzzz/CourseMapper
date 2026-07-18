@@ -207,6 +207,28 @@ describe('getChatOpener — Tier 3 (agent mode)', () => {
     });
   });
 
+  it('does not offer to finish an already finished package again', () => {
+    const cm = makeCourseMap();
+    const result = getChatOpener(
+      cm,
+      true,
+      'courseMap',
+      makeDoneDeliverables(),
+      false,
+      false,
+      true,
+      { hasContext: true },
+      { status: 'ready', quality: { status: 'graded', score: 99, grade: 'A' } },
+    );
+
+    expect(result.greeting).toContain('Your package is ready');
+    expect(result.greeting).toContain('starting brief');
+    expect(result.starters).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ action: 'finish-package' })]),
+    );
+    expect(result.starters).toEqual(expect.arrayContaining([expect.objectContaining({ action: 'local-audit' })]));
+  });
+
   it('provides tab-specific starters for quizBank', () => {
     const cm = makeCourseMap();
     const deliverables = makeDoneDeliverables();

@@ -700,7 +700,7 @@ export default function FeatureSelect({
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-sm font-semibold">Course structure</h3>
-                      <span className="rounded bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-950">
+                      <span className="rounded bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-950 dark:bg-slate-700 dark:text-white">
                         Always included
                       </span>
                     </div>

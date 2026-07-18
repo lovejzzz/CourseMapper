@@ -208,6 +208,35 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(container.querySelector('[data-testid="export-download-zip"]')?.disabled).toBe(false);
   });
 
+  it('names the ZIP preparation work while the package is being assembled', async () => {
+    downloadCourseMaterialsZip.mockImplementationOnce(() => new Promise(() => {}));
+    await renderPanel({
+      courseMapInput: cleanCourseMap,
+      preferPackageScope: true,
+      packageQualityPass: {
+        status: 'ready',
+        blockers: 0,
+        warnings: 0,
+        receipt: { exportWarningCount: 0 },
+        quality: {
+          status: 'graded',
+          score: 100,
+          grade: 'A',
+          findingCounts: { p0: 0, p1: 0, p2: 0 },
+        },
+      },
+    });
+
+    const zipButton = container.querySelector('[data-testid="export-download-zip"]');
+    await act(async () => {
+      zipButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    expect(zipButton?.textContent).toContain('Preparing ZIP…');
+    expect(zipButton?.disabled).toBe(true);
+  });
+
   it('blocks ZIP download when the finish receipt records an export verification failure', async () => {
     await renderPanel({
       courseMapInput: cleanCourseMap,
