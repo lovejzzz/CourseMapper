@@ -30,6 +30,7 @@ function parseArgs(argv) {
     output: OUTPUT_DIR,
     prompt: PROMPT,
     excludeAdmittedReport: '',
+    excludeQualifiedResult: '',
     generatedAt: new Date().toISOString(),
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -40,6 +41,8 @@ function parseArgs(argv) {
     else if (token === '--prompt') args.prompt = argv[++index] || args.prompt;
     else if (token === '--exclude-admitted-report') {
       args.excludeAdmittedReport = argv[++index] || '';
+    } else if (token === '--exclude-qualified-result') {
+      args.excludeQualifiedResult = argv[++index] || '';
     }
     else if (token === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
     else if (token === '--help' || token === '-h') args.help = true;
@@ -71,13 +74,15 @@ async function atomicWriteJson(file, value) {
 }
 
 async function loadInputs(args) {
-  const [campaign, referenceReport, judgeWorkbook, promptRaw, excludeAdmittedReport] = await Promise.all([
-    readJson(args.campaign),
-    readJson(args.referenceReport),
-    readJson(path.join(args.judgeDir, 'workbook.json')),
-    fs.readFile(args.prompt, 'utf8'),
-    args.excludeAdmittedReport ? readJson(args.excludeAdmittedReport) : null,
-  ]);
+  const [campaign, referenceReport, judgeWorkbook, promptRaw, excludeAdmittedReport, excludeQualifiedResult] =
+    await Promise.all([
+      readJson(args.campaign),
+      readJson(args.referenceReport),
+      readJson(path.join(args.judgeDir, 'workbook.json')),
+      fs.readFile(args.prompt, 'utf8'),
+      args.excludeAdmittedReport ? readJson(args.excludeAdmittedReport) : null,
+      args.excludeQualifiedResult ? readJson(args.excludeQualifiedResult) : null,
+    ]);
   return {
     campaign,
     referenceReport,
@@ -85,7 +90,20 @@ async function loadInputs(args) {
     promptRaw,
     prompt: { path: args.prompt, sha256: crypto.createHash('sha256').update(promptRaw).digest('hex') },
     excludeAdmittedReport,
+    excludeQualifiedResult,
   };
+}
+
+async function qualifiedResults(args, workbookResult) {
+  if (!workbookResult) return [];
+  if (!workbookResult.batchResults?.length) return workbookResult.results || [];
+  const root = path.dirname(args.excludeQualifiedResult);
+  const aggregates = await Promise.all(
+    workbookResult.batchResults.map((entry) =>
+      readJson(path.join(root, 'batches', entry.batchId, 'paired-order-result.json')),
+    ),
+  );
+  return aggregates.flatMap((aggregate) => aggregate.results || []);
 }
 
 async function build(args) {
@@ -95,6 +113,9 @@ async function build(args) {
       .filter((call) => call.admission?.needsRetry === false)
       .map((call) => call.caseId),
   );
+  for (const result of await qualifiedResults(args, inputs.excludeQualifiedResult)) {
+    if (result.trainingEligible) excludedCaseIds.add(result.caseId);
+  }
   const batches = [];
   for (const entry of inputs.judgeWorkbook.batches || []) {
     const aggregatePath = path.join(args.judgeDir, 'batches', entry.batchId, 'paired-order-result.json');
@@ -135,12 +156,14 @@ async function build(args) {
     campaignIdentity: inputs.campaign.identity,
     judgeWorkbookSha256: inputs.judgeWorkbook.identity?.sha256,
     prompt: inputs.prompt,
-    ...(args.excludeAdmittedReport
+    ...(args.excludeAdmittedReport || args.excludeQualifiedResult
       ? {
           exclusion: {
-            path: args.excludeAdmittedReport,
-            reportSha256: inputs.excludeAdmittedReport?.identity?.sha256,
-            admittedCases: excludedCaseIds.size,
+            admittedReportPath: args.excludeAdmittedReport || null,
+            admittedReportSha256: inputs.excludeAdmittedReport?.identity?.sha256 || null,
+            qualifiedResultPath: args.excludeQualifiedResult || null,
+            qualifiedResultSha256: inputs.excludeQualifiedResult?.identity?.sha256 || null,
+            excludedCases: excludedCaseIds.size,
           },
         }
       : {}),
@@ -227,7 +250,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(
-      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--prompt file] [--exclude-admitted-report file]',
+      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--prompt file] [--exclude-admitted-report file] [--exclude-qualified-result file]',
     );
     return;
   }
