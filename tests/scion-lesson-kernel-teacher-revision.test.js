@@ -146,6 +146,15 @@ describe('Scion lesson-kernel teacher revision', () => {
     expect(promptV3).toContain('do not repeat the misconception and then negate it');
     expect(promptV3).toContain('do not restate the full definition');
     expect(promptV3).not.toContain('\\n-');
+    const promptV4 = fs.readFileSync(
+      path.resolve(here, '../evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v4-v0.16.54.md'),
+      'utf8',
+    );
+    expect(promptV4).toContain('latest compiler-rejected revision');
+    expect(promptV4).toContain('Begin every `cx` with its exact `tr` phrase');
+    expect(promptV4).toContain('Do not copy four consecutive content words from `df`');
+    expect(promptV4).toContain('Delete any named phrase');
+    expect(promptV4).toContain('Do not use `always`, `never`, `only`, `all`, `none`, `must`, `cannot`');
   });
 
   it('builds a source-only packet without exposing the local artifact or provider route', () => {

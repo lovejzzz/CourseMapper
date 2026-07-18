@@ -38,6 +38,7 @@ function parseArgs(argv) {
     const token = argv[index];
     if (token === '--build') args.build = true;
     else if (token === '--ingest') args.ingest = true;
+    else if (token === '--reference-report') args.referenceReport = argv[++index] || '';
     else if (token === '--output') args.output = argv[++index] || args.output;
     else if (token === '--prompt') args.prompt = argv[++index] || args.prompt;
     else if (token === '--exclude-admitted-report') {
@@ -174,6 +175,12 @@ async function build(args) {
     campaignIdentity: inputs.campaign.identity,
     judgeWorkbookSha256: inputs.judgeWorkbook.identity?.sha256,
     prompt: inputs.prompt,
+    revisionSource: {
+      path: args.referenceReport,
+      reportSha256: inputs.referenceReport.identity?.sha256 || null,
+      protocol: inputs.referenceReport.protocol || null,
+      arm: inputs.referenceReport.arm || inputs.referenceReport.calls?.[0]?.arm || null,
+    },
     maxCasesPerBatch: args.maxCases || null,
     ...(args.excludeAdmittedReport || args.excludeQualifiedResult
       ? {
@@ -269,7 +276,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(
-      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--prompt file] [--exclude-admitted-report file] [--exclude-qualified-result file] [--max-cases N]',
+      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--reference-report file] [--prompt file] [--exclude-admitted-report file] [--exclude-qualified-result file] [--max-cases N]',
     );
     return;
   }
