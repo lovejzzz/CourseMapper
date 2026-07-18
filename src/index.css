@@ -1255,6 +1255,24 @@ body {
   }
 }
 
+/* Respect the platform motion preference across the whole workspace. The
+   normal spring/fade language remains intact, while reduced-motion users get
+   a stable first frame and no looping cursor or progress decoration. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 textarea.developer-code-editor {
   background: #020617 !important;
   color: #e2e8f0 !important;
