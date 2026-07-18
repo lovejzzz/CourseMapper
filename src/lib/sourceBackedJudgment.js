@@ -1,4 +1,4 @@
-import { buildSourceBackedJudgmentStageEvent } from './apiCallBudget';
+import { buildJudgmentStageEvent, buildSourceBackedJudgmentStageEvent } from './apiCallBudget';
 import { isTrustedConceptLinkedSourceLedgerRow } from './knowledge/sourceLedger';
 
 function sourceProofLessonCount({ courseGraph = null, courseMap = null, totalLessons = 0 } = {}) {
@@ -81,7 +81,15 @@ export function normalizePipelineStateWithSourceBackedJudgment(
     lessonsWithResources,
     genomeLinkedLessons,
   });
-  if (!sourceBacked) return pipelineState;
+  if (!sourceBacked) {
+    // Absence is not a judgment. When neither genome reasoning nor complete
+    // sourceRef proof exists, preserve the limitation as an explicit stage
+    // receipt so the manifest/digest never silently skip course judgment.
+    return {
+      ...current,
+      judgment: buildJudgmentStageEvent({ genomeLinkedLessons: Number(genomeLinkedLessons) || 0 }).detail,
+    };
+  }
   return {
     ...current,
     judgment: sourceBacked.detail,

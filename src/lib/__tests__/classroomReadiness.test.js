@@ -127,6 +127,70 @@ describe('classroomReadiness', () => {
     expect(result.checkedFeatureCount).toBe(4);
   });
 
+  it('judges registry projections, answer-key handoffs, and source-strict study terms by their real role', () => {
+    const result = evaluateClassroomReadiness({
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['assignments', 'rubrics', 'studyGuides'],
+      deliverables: {
+        assignments: {
+          status: 'done',
+          data: {
+            assignments: [
+              {
+                title: 'Methods memo',
+                assessmentId: 'A1',
+                percentOfGrade: '50%',
+                milestones: ['Draft', 'Submit'],
+                performanceBands: ['Exemplary', 'Proficient', 'Developing'],
+              },
+            ],
+          },
+        },
+        rubrics: {
+          status: 'done',
+          data: {
+            rubrics: [
+              {
+                title: 'Methods memo rubric',
+                criteria: [
+                  { criterion: 'Evidence', weight: 34 },
+                  { criterion: 'Reasoning', weight: 33 },
+                  { criterion: 'Communication', weight: 33 },
+                ],
+              },
+              {
+                title: 'Quiz — Answer Key Handoff',
+                assessmentType: 'Quiz (scored by answer key)',
+                tags: ['rubric-handoff', 'quiz'],
+              },
+            ],
+          },
+        },
+        studyGuides: {
+          status: 'done',
+          data: {
+            studyGuides: [
+              {
+                lessonTitle: 'Lesson 1',
+                studyStrategy: 'Use retrieval practice, then check the evidence.',
+                keyTerms: [{ term: 'Sampling' }, { term: 'Bias' }],
+                reviewQuestions: [{ question: 'Q1' }, { question: 'Q2' }, { question: 'Q3' }],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result.warnings.map((issue) => issue.message)).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/Assignment grade weights sum/),
+        expect.stringMatching(/rubrics have fewer than 3 criteria/),
+        expect.stringMatching(/study guides need stronger key terms/),
+      ]),
+    );
+  });
+
   it('blocks missing selected deliverables instead of claiming completion', () => {
     const result = evaluateClassroomReadiness({
       courseMap: makeCourseMap(1),

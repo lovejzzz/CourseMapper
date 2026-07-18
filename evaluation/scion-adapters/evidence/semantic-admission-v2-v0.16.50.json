@@ -1,0 +1,292 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-semantic-admission-v4-replay-v1",
+  "release": "v0.16.50",
+  "generatedAt": "2026-07-18T00:30:00.000Z",
+  "status": "judge-informed-key-term-coherence-complete-on-frozen-losses",
+  "evidence": {
+    "approvedCorpus": {
+      "path": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47.jsonl",
+      "bytes": 392679,
+      "sha256": "ce042d3631638229a1f63c4ba0d54d5439249d9f703e1d01e5af2acbbef32402",
+      "rows": 78
+    },
+    "judgeCampaign": {
+      "path": "evaluation/scion-adapters/evidence/judge-campaign-v0.16.47.json",
+      "bytes": 7686,
+      "sha256": "2cb01d46f19d5cf502683ff8ff5694020b77b23e58845955f8a17b0569b13705"
+    },
+    "currentPacketId": "scion-review-1c6adccdcb9edfab7231",
+    "previousRelease": {
+      "path": "evaluation/scion-adapters/evidence/semantic-admission-v2-v0.16.49.json",
+      "bytes": 8799,
+      "sha256": "fb0d691f9942d23c85800a6504deb72eda179b1286ad907e6f246c9ea9ad202c",
+      "release": "v0.16.49",
+      "rejectedDetected": 68
+    },
+    "implementation": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 40688,
+        "sha256": "2c97a9b371b1c34e5946b5068ee5a5b46596d15039b359fb8f02e8e072833298"
+      },
+      {
+        "path": "src/lib/scionPreferenceGate.js",
+        "bytes": 20417,
+        "sha256": "e4d490b5aeed6568d6c6e72369a421ee2d7c6589fc322597c1b9adf14117ba89"
+      },
+      {
+        "path": "src/lib/scionKeyTermContract.js",
+        "bytes": 30084,
+        "sha256": "b327cbc4eb8e69fea0817a0f041fad7dbaa58a13024894d5a5e6d36fc1f5ab0e"
+      },
+      {
+        "path": "src/lib/scionPasses.js",
+        "bytes": 40243,
+        "sha256": "348222da821bf04ebf707c35030de01c96ed6ccdd5529835d85e9f6fbf6835d0"
+      },
+      {
+        "path": "src/lib/publicScionProvider.js",
+        "bytes": 34070,
+        "sha256": "93f7ed69fc1648bc2867e10da17ef1f323bf811e5874ffff31fbef03ac67b22f"
+      },
+      {
+        "path": "src/lib/blueprintEnrichmentPass.js",
+        "bytes": 76720,
+        "sha256": "2c3f290ad9f2fdddb51b2aa8b72480b4c5fba74acc7bf72f86bc6acdfb4e01ad"
+      },
+      {
+        "path": "scripts/lib/scionSourceCapture.mjs",
+        "bytes": 51129,
+        "sha256": "0aacf1a60c6694988b553e766a86dc79162bd22e764a63f240fdcd21d68d4929"
+      }
+    ]
+  },
+  "allStablePreferences": {
+    "rows": 78,
+    "legacy": {
+      "preferredEligible": 78,
+      "rejectedDetected": 21
+    },
+    "strict": {
+      "preferredEligible": 78,
+      "preferredRegressions": 0,
+      "rejectedDetected": 78,
+      "preferredOnlyMargins": 78,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 15,
+        "correction-borrows-unrelated-source-predicate": 1,
+        "correction-circular-term": 1,
+        "correction-drops-defining-identity": 2,
+        "correction-omits-implicit-contrast": 1,
+        "correction-omits-technical-reference": 1,
+        "correction-source-claim-drift": 1,
+        "cx-repeats-itself": 1,
+        "definition-omits-interactive-function": 1,
+        "duplicate-options": 2,
+        "example-confuses-research-learning-role": 1,
+        "example-correction-timing-conflict": 1,
+        "example-placeholder": 1,
+        "example-underdeveloped": 3,
+        "explanation-key-conflict": 10,
+        "explanation-negates-key": 1,
+        "explanation-omits-key-support": 1,
+        "explanation-repeats-answer": 4,
+        "misconception-repeats-known-fact": 5,
+        "multiple-source-supported-options": 12,
+        "option-label-prefixes": 16,
+        "option-label-suffixes": 1,
+        "source-answer-conflict": 4,
+        "source-precision-overstatement": 1,
+        "term-not-source-anchored": 16,
+        "truncated-option": 1
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 20,
+          "rejectedDetected": 20,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 10,
+          "rejectedDetected": 10,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 29,
+          "rejectedDetected": 29,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 19,
+          "rejectedDetected": 19,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 34,
+          "rejectedDetected": 34,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 44,
+          "rejectedDetected": 44,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "currentCampaign": {
+    "rows": 32,
+    "legacy": {
+      "preferredEligible": 32,
+      "rejectedDetected": 1
+    },
+    "strict": {
+      "preferredEligible": 32,
+      "preferredRegressions": 0,
+      "rejectedDetected": 32,
+      "preferredOnlyMargins": 32,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 5,
+        "correction-borrows-unrelated-source-predicate": 1,
+        "correction-drops-defining-identity": 1,
+        "correction-source-claim-drift": 1,
+        "cx-repeats-itself": 1,
+        "definition-omits-interactive-function": 1,
+        "example-confuses-research-learning-role": 1,
+        "example-underdeveloped": 2,
+        "explanation-key-conflict": 3,
+        "explanation-negates-key": 1,
+        "explanation-omits-key-support": 1,
+        "misconception-repeats-known-fact": 2,
+        "multiple-source-supported-options": 5,
+        "option-label-prefixes": 7,
+        "source-answer-conflict": 2,
+        "term-not-source-anchored": 4,
+        "truncated-option": 1
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 10,
+          "rejectedDetected": 10,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 4,
+          "rejectedDetected": 4,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 10,
+          "rejectedDetected": 10,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 8,
+          "rejectedDetected": 8,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 13,
+          "rejectedDetected": 13,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 19,
+          "rejectedDetected": 19,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "historicalCore": {
+    "rows": 46,
+    "legacy": {
+      "preferredEligible": 46,
+      "rejectedDetected": 20
+    },
+    "strict": {
+      "preferredEligible": 46,
+      "preferredRegressions": 0,
+      "rejectedDetected": 46,
+      "preferredOnlyMargins": 46,
+      "rejectedIssueHistogram": {
+        "claim-marker-residue": 10,
+        "correction-circular-term": 1,
+        "correction-drops-defining-identity": 1,
+        "correction-omits-implicit-contrast": 1,
+        "correction-omits-technical-reference": 1,
+        "duplicate-options": 2,
+        "example-correction-timing-conflict": 1,
+        "example-placeholder": 1,
+        "example-underdeveloped": 1,
+        "explanation-key-conflict": 7,
+        "explanation-repeats-answer": 4,
+        "misconception-repeats-known-fact": 3,
+        "multiple-source-supported-options": 7,
+        "option-label-prefixes": 9,
+        "option-label-suffixes": 1,
+        "source-answer-conflict": 2,
+        "source-precision-overstatement": 1,
+        "term-not-source-anchored": 12
+      },
+      "byDomain": {
+        "computer-science": {
+          "rows": 10,
+          "rejectedDetected": 10,
+          "preferredRegressions": 0
+        },
+        "geology": {
+          "rows": 6,
+          "rejectedDetected": 6,
+          "preferredRegressions": 0
+        },
+        "music-theory": {
+          "rows": 19,
+          "rejectedDetected": 19,
+          "preferredRegressions": 0
+        },
+        "user-experience-design": {
+          "rows": 11,
+          "rejectedDetected": 11,
+          "preferredRegressions": 0
+        }
+      },
+      "byKind": {
+        "key-term": {
+          "rows": 21,
+          "rejectedDetected": 21,
+          "preferredRegressions": 0
+        },
+        "mc-item": {
+          "rows": 25,
+          "rejectedDetected": 25,
+          "preferredRegressions": 0
+        }
+      }
+    }
+  },
+  "deltas": {
+    "stableLossesDetected": 10,
+    "keyTermLossesDetected": 10,
+    "mcItemLossesDetected": 0,
+    "stableLossesRemaining": 0,
+    "historicalCoreLossesRemaining": 0,
+    "preferredRegressions": 0
+  },
+  "assertions": {
+    "corpusBound": true,
+    "exactStableLossCorpus": true,
+    "exactCurrentCampaignRows": true,
+    "noPreferredArtifactRegression": true,
+    "stableLossDetectionLift": true,
+    "currentCampaignDetection": true,
+    "historicalCoreDetection": true
+  },
+  "interpretation": "The source-strict-v4 compiler profile closes the ten remaining key-term gaps by checking whether each misconception, correction, example, and definition stays aligned with the cited source and with the other fields. On the frozen 78-loss replay this adds ten key-term detections, reaches 78/78 total detections, and keeps all 78 preferred counterparts eligible.",
+  "claimBoundary": "This retrospective replay proves deterministic detection lift on 78 already judged stable losses with zero rejection of their preferred counterparts. The corpus informed these rules, so 78/78 is not unseen precision or held-out effect evidence. The gate does not rewrite response text or prove retry success. Evidence comes from one anonymous, hash-bound Codex judge campaign and is not independent human, classroom, adapter-quality, or paid-reference-parity evidence; burden and fresh-package behavior remain separate gates."
+}

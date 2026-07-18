@@ -15,6 +15,13 @@ const TONES = {
     badge: 'border-amber-200 bg-amber-100/80 text-amber-800',
     body: 'text-amber-800',
   },
+  notes: {
+    wrapper: 'border-sky-200/70 bg-sky-50/70 dark:border-sky-800/60 dark:bg-sky-950/30',
+    icon: 'bg-sky-100 text-sky-600 dark:bg-sky-900/70 dark:text-sky-200',
+    title: 'text-sky-900 dark:text-sky-100',
+    badge: 'border-sky-200 bg-sky-100/80 text-sky-800 dark:border-sky-700 dark:bg-sky-900/70 dark:text-sky-100',
+    body: 'text-sky-800 dark:text-sky-200',
+  },
   blocked: {
     wrapper: 'border-red-200/70 bg-red-50/70',
     icon: 'bg-red-100 text-red-600',
@@ -24,11 +31,23 @@ const TONES = {
   },
 };
 
-function PackageIcon({ ready }) {
+function PackageIcon({ ready, notes = false }) {
   if (ready) {
     return (
       <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="m5 13 4 4L19 7" />
+      </svg>
+    );
+  }
+  if (notes) {
+    return (
+      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2.2}
+          d="M8 6h8M8 10h8m-8 4h5m-7 6h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2Z"
+        />
       </svg>
     );
   }
@@ -48,7 +67,8 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
   const [expanded, setExpanded] = React.useState(false);
   if (!summary) return null;
 
-  const tone = TONES[summary.tone] || TONES.assumptions;
+  const hasNonBlockingNotes = summary.downloadable && !summary.ready;
+  const tone = hasNonBlockingNotes ? TONES.notes : TONES[summary.tone] || TONES.assumptions;
   const outcomeTitle = summary.ready
     ? 'Ready to download'
     : summary.downloadable
@@ -128,7 +148,7 @@ export default function PackageSummaryCard({ summary, embedded = false }) {
       <div className="px-3 py-2.5">
         <div className="flex items-start gap-2.5">
           <div className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full ${tone.icon}`}>
-            <PackageIcon ready={summary.ready} />
+            <PackageIcon ready={summary.ready} notes={hasNonBlockingNotes} />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">

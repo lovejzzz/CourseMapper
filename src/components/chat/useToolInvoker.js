@@ -662,6 +662,18 @@ function parseNestedResponsePayload(value = '') {
     const parsed = JSON.parse(text);
     // Browser-local models occasionally serialize one sentence as a JSON
     // array of fragments. Treat that as transport noise, not UI content.
+    if (Array.isArray(parsed)) {
+      const responsePart = parsed.findLast(
+        (part) =>
+          part &&
+          typeof part === 'object' &&
+          (part.chatReply || part.proposal || part.chart || part.diagram || part.imageSearch || part.text),
+      );
+      // Small local models can emit a punctuation fragment before the actual
+      // response object, e.g. [")", {"chatReply":"…"}]. The object is the
+      // semantic payload; the other array entries are decoding debris.
+      if (responsePart) return responsePart;
+    }
     if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((part) => typeof part === 'string')) {
       return {
         chatReply: parsed

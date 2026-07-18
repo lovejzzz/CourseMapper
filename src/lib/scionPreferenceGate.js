@@ -113,7 +113,11 @@ export function assessScionMcItem(
   // source-strict extends the complete strict profile; it only adds
   // source-grounded key-term rules and must never silently downgrade MC
   // admission to legacy behavior.
-  const judgeInformedSemanticAdmission = semanticProfile === 'strict-v3' || semanticProfile === 'source-strict-v3';
+  const judgeInformedSemanticAdmission =
+    semanticProfile === 'strict-v3' ||
+    semanticProfile === 'source-strict-v3' ||
+    semanticProfile === 'strict-v4' ||
+    semanticProfile === 'source-strict-v4';
   const strictSemanticAdmission =
     semanticAdmission &&
     (semanticProfile === 'strict' || semanticProfile === 'source-strict' || judgeInformedSemanticAdmission);

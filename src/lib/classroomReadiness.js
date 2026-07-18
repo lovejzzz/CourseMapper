@@ -662,7 +662,10 @@ function checkStudyGuides(items, issues) {
   const weakRetrieval = items.filter((guide) => {
     const reviewQuestions = asArray(guide?.reviewQuestions || guide?.rq || guide?.questions || guide?.qs);
     const keyTerms = asArray(guide?.keyTerms || guide?.kt || guide?.terms);
-    return reviewQuestions.length < 3 || keyTerms.length < 3 || !REVIEW_CUE_RE.test(itemText(guide));
+    // Two source-backed terms plus three retrieval questions is stronger than
+    // inventing a third definition merely to satisfy a count. The compiler's
+    // source-strict admission pass may deliberately reject a weak term.
+    return reviewQuestions.length < 3 || keyTerms.length < 2 || !REVIEW_CUE_RE.test(itemText(guide));
   }).length;
   addRatioWarning({
     issues,
@@ -708,7 +711,12 @@ function checkAssignments(data, issues) {
     (sum, assignment) => sum + getPercent(assignment?.percentOfGrade || assignment?.pg),
     0,
   );
-  if (gradeTotal > 0 && (gradeTotal < 95 || gradeTotal > 105)) {
+  // Registry-linked briefs are a projection: quizzes/exams own their weight
+  // in Quiz & Exam Bank, so the assignment-only subtotal need not be 100%.
+  const hasRegistryLinkedAssignments = assignments.some(
+    (assignment) => assignment?.assessmentId || assignment?.courseMapRef || assignment?.cmr,
+  );
+  if (!hasRegistryLinkedAssignments && gradeTotal > 0 && (gradeTotal < 95 || gradeTotal > 105)) {
     issues.push(
       makeIssue(
         READINESS_WARNING,
@@ -765,20 +773,27 @@ function checkRubrics(data, issues) {
     return;
   }
 
-  addBoilerplateWarning('rubrics', rubrics, issues);
+  const scoredRubrics = rubrics.filter(
+    (rubric) =>
+      !asArray(rubric?.tags).includes('rubric-handoff') &&
+      !/scored by answer key/i.test(String(rubric?.assessmentType || '')),
+  );
+  if (scoredRubrics.length === 0) return;
 
-  const thinCriteria = rubrics.filter((rubric) => getCriteriaArray(rubric).length < 3).length;
+  addBoilerplateWarning('rubrics', scoredRubrics, issues);
+
+  const thinCriteria = scoredRubrics.filter((rubric) => getCriteriaArray(rubric).length < 3).length;
   addRatioWarning({
     issues,
     featureId: 'rubrics',
     missing: thinCriteria,
-    total: rubrics.length,
+    total: scoredRubrics.length,
     criterion: 'grading usability',
     message: (missing, total) => `${missing}/${total} rubrics have fewer than 3 criteria.`,
     threshold: 0.25,
   });
 
-  const badWeights = rubrics.filter((rubric) => {
+  const badWeights = scoredRubrics.filter((rubric) => {
     const criteria = getCriteriaArray(rubric);
     const total = getWeightTotal(criteria);
     return total > 0 && (total < 95 || total > 105);
@@ -788,7 +803,7 @@ function checkRubrics(data, issues) {
       makeIssue(
         READINESS_WARNING,
         'rubrics',
-        `${badWeights}/${rubrics.length} rubrics have criterion weights that do not total about 100%.`,
+        `${badWeights}/${scoredRubrics.length} rubrics have criterion weights that do not total about 100%.`,
         'scoring consistency',
       ),
     );

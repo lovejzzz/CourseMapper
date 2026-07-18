@@ -143,6 +143,8 @@ describe('PackageSummaryCard', () => {
 
     expect(html).toContain('Package notes');
     expect(html).toContain('Notes saved');
+    expect(html).toContain('border-sky-200');
+    expect(html).not.toContain('border-amber-200');
     expect(html).toContain('3 review notes');
     expect(html).toContain('1 export note');
     expect(html).toContain('Review notes are saved here and in the package report');

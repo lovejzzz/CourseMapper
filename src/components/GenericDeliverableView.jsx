@@ -1,5 +1,6 @@
 import React from 'react';
 import { CollapsibleCard, SectionHeading, StreamingBanner } from './deliverables/shared/SharedComponents';
+import { isInternalDeliverableMetadataKey } from '../lib/internalDeliverableMetadata';
 
 // ── Helpers ──
 
@@ -135,7 +136,11 @@ function renderValue(value, label = null, depth = 0) {
   // 4. Objects
   if (typeof value === 'object' && value !== null) {
     const entries = Object.entries(value).filter(
-      ([k, v]) => (!label && depth === 0 ? !HEADER_KEYS.has(k) : true) && v != null && v !== '',
+      ([k, v]) =>
+        !isInternalDeliverableMetadataKey(k) &&
+        (!label && depth === 0 ? !HEADER_KEYS.has(k) : true) &&
+        v != null &&
+        v !== '',
     );
     if (entries.length === 0) return null;
 

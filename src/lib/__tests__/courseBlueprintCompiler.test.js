@@ -7176,6 +7176,15 @@ describe('courseBlueprintCompiler', () => {
         systemPrompt: 'Return one peer feedback form for each lesson/week.',
         userPromptTemplate: 'Generate one feedback form for each lesson/week. {{courseMap}}',
       },
+      custom_studyTrip: {
+        id: 'custom_studyTrip',
+        name: 'Trip plan for study',
+        description: 'A per-lesson study trip plan with field evidence and logistics.',
+        systemPrompt:
+          'Return one trip plan for each lesson/week and include a peer feedback step after students return.',
+        userPromptTemplate:
+          'Generate one study trip plan for each lesson/week, then use feedback to revise the lesson artifact. {{courseMap}}',
+      },
       custom_projectMilestone: {
         id: 'custom_projectMilestone',
         name: 'Project Milestone Checklist',
@@ -7248,6 +7257,7 @@ describe('courseBlueprintCompiler', () => {
       },
     };
     const featureIds = [
+      'custom_studyTrip',
       'custom_feedbackForm',
       'custom_projectMilestone',
       'custom_labReport',
@@ -7268,6 +7278,13 @@ describe('courseBlueprintCompiler', () => {
     const compiled = compileBlueprintDeliverables(blueprint, compiledFeatureIds);
 
     expect(compiledFeatureIds).toEqual(featureIds);
+    expect(compiled.custom_studyTrip.trip_plan_for_study).toHaveLength(3);
+    expect(compiled.custom_studyTrip.deliverableType).toBe('compiled-study-trip-plan');
+    expect(compiled.custom_studyTrip.trip_plan_for_study[0].fieldEvidenceTasks.join(' ')).toContain(
+      'directly observed',
+    );
+    expect(compiled.custom_studyTrip.trip_plan_for_study[0].logisticsToConfirm.join(' ')).toContain('accessibility');
+    expect(JSON.stringify(compiled.custom_studyTrip)).not.toMatch(/local-review item|before publishing Review/i);
     expect(compiled.custom_feedbackForm.feedback_form).toHaveLength(3);
     expect(compiled.custom_feedbackForm.feedback_form[0].feedbackPrompts.join(' ')).toContain('revision');
     expect(compiled.custom_projectMilestone.project_milestone_checklist[0].milestoneChecklist.join(' ')).toContain(

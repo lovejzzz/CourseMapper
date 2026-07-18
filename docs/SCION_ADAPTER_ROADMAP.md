@@ -2,9 +2,29 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 turned its observed losses and a browser fallback into stricter admission and a more trustworthy Living Course Compiler; v0.16.49 uses a frame-by-frame music-course audit to strengthen source trust, disciplinary compilation, interruption recovery, workspace actions, grading, and exact-package verification. A quality adapter, held-out adapter win, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The v0.16.47 corpus authorized one non-promotable research run; v0.16.48 and v0.16.49 turned its observed losses plus browser audits into stricter admission and a more trustworthy Living Course Compiler; v0.16.50 closes the full frozen semantic-loss set and verifies terminal evidence, custom compilation, Agent chat, responsive handoff, grading, and the exact exported file in one real browser-local Scion run. A quality adapter, held-out adapter win, production-compatible corpus, the remaining three device profiles, and any production promotion still do not exist.
 
 **Release boundary:** no current public Scion request claims to use trained weights
+
+## v0.16.50 — Make the Evidence Survive the Workflow
+
+**Goal:** turn the remaining frozen semantic losses and every defect found in a real cross-device Scion workflow into bounded compiler, persistence, grading, and handoff behavior without changing Gemma weights or hiding unresolved evidence.
+
+**Source-strict V4:** nine narrow source-semantic checks catch known Boolean truths mislabeled as misconceptions, scope corrections that answer with unrelated facts, omitted technical references, source/correction timing conflicts, lost implicit contrast, research-versus-learner role confusion, visual-only interactive definitions, and dropped defining identity. The frozen replay detects 78/78 losing artifacts with 0/78 preferred regressions. Both arms of the ninety-one-pair surface keep identical eligibility; only two of 192 retained local source atoms newly enter retry, and both are reviewed semantic failures.
+
+**Compilation and privacy:** custom deliverables are classified from their user-facing identity before incidental prompt wording. The new study-trip-plan family compiles compact purpose, preparation, field evidence, capture, return, and logistics fields. One recursive boundary removes internal source, trust, quality, and review receipts from both workspace rendering and exported DOCX files.
+
+**Terminal and Agent truth:** complete local and portable project snapshots retain quality evidence only when it is digest-bound and terminal. Reload restores the exact 99/A, texture 95, one-finding state instead of regressing to a false 66% waiting phase. The built-in Agent uses the real local Scion runtime for advisory chat, and mixed array/object response envelopes resolve to the semantic reply rather than visible punctuation and JSON.
+
+**Role-aware ruler:** registry-linked assignment weights, answer-key rubric handoffs, source-bound study-guide term counts, custom manifest families, and zero-link genome judgment now retain their actual roles. On the same package, correcting those false measurements moves 89/B with eight findings to 99/A with one citation-trust finding without rewriting learner-facing content. The remaining reading stays review-required because bibliography trust and license were not verified. Changing that grader correctly invalidated the v3 transitive receipt, so v4 preserves the same five held-out course identities while freezing grader v1.10.16 and its complete eleven-file implementation hash before any new adapter evaluation.
+
+**Exact browser proof:** a real browser-local Scion build followed the 3.35 GB download and every Model, Map, Enrich, Compile, Verify, and Grade stage to a terminal 624-second result. Phone, tablet, and desktop audits covered resume, content, Agent, finish, grade, and export. The final 349,627-byte, twenty-two-file ZIP passes integrity, embeds the 99/A report, and is bound to SHA-256 `f0e18c0c7c14d8613c8d9f87a090200538eca68c48b2289060c61034de4d3290`.
+
+**Lane:** v0.16.50 is compiler-and-workflow improvement. Source-semantic admission, compilation, persistence, grading, and export are shared with user-selected providers; the browser-local runtime, compact-kernel retry, and Scion product contract remain specific to Scion. Different models still produce different gains.
+
+**Release Boundary:** no adapter is active, no Gemma weight changed, and no paid-reference parity, universal course quality, human preference, instructor approval, classroom validation, or independent multi-judge result is claimed.
+
+**Next gates:** expand stable source-bound preferences beyond the current sub-100 evidence set, replace or clear production-incompatible training licenses, train only a hash-bound candidate, and activate nothing until the exact adapter beats exact base-only Scion on the implementation-bound frozen holdout and passes the remaining device profiles.
 
 ## v0.16.49 — Make the Course Earn Ready, Frame by Frame
 

@@ -197,7 +197,7 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           lessonTitle: expected.title || '',
           definitionMin: 40,
           knownFacts: Array.isArray(lesson.facts) ? lesson.facts : [],
-          semanticProfile: 'source-strict-v3',
+          semanticProfile: 'source-strict-v4',
         });
         for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
       });

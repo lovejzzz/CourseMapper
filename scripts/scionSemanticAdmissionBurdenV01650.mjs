@@ -12,10 +12,10 @@ import {
   summarizeSourceCaptureBurden,
 } from './lib/scionSourceCapture.mjs';
 
-const RELEASE = 'v0.16.49';
-const GENERATED_AT = '2026-07-17T11:25:00.000Z';
+const RELEASE = 'v0.16.50';
+const GENERATED_AT = '2026-07-18T00:35:00.000Z';
 const CANDIDATES = 'evaluation/scion-review-candidates-course-group-breadth-v0.16.47.jsonl';
-const RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-burden-v0.16.49.json';
+const RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-burden-v0.16.50.json';
 const RETAINED_REPLAY_DIR = 'evaluation/scion-source-compiler-replay-v0.16.47';
 const CAMPAIGNS = [
   'evaluation/scion-source-capture-campaign.json',
@@ -56,8 +56,8 @@ function assessCandidate(row, side, semanticProfile) {
 function summarizeCandidateSurface(rows, side) {
   const assessed = rows.map((row) => ({
     row,
-    previous: assessCandidate(row, side, 'source-strict'),
-    current: assessCandidate(row, side, 'source-strict-v3'),
+    previous: assessCandidate(row, side, 'source-strict-v3'),
+    current: assessCandidate(row, side, 'source-strict-v4'),
   }));
   const newlyRejected = assessed.filter((entry) => entry.previous.eligible && !entry.current.eligible);
   const newlyAdmitted = assessed.filter((entry) => !entry.previous.eligible && entry.current.eligible);
@@ -85,6 +85,7 @@ async function retainedReplay(root) {
   const previousCalls = [];
   const currentCalls = [];
   const projects = [];
+  const admissionChangedAtoms = [];
   let expectedCalls = 0;
   let expectedAtoms = 0;
 
@@ -115,12 +116,37 @@ async function retainedReplay(root) {
         };
         const previous = compileSourceAtomResponse(call.response, {
           ...options,
-          semanticProfile: 'source-strict',
+          semanticProfile: 'source-strict-v3',
         });
         const current = compileSourceAtomResponse(call.response, {
           ...options,
-          semanticProfile: 'source-strict-v3',
+          semanticProfile: 'source-strict-v4',
         });
+        for (const [collection, issuePrefix, kind] of [
+          ['mcItems', 'mc', 'mc-item'],
+          ['keyTerms', 'key-term', 'key-term'],
+        ]) {
+          const previousAdmitted = new Set(
+            (previous.admittedResponse?.[collection] || []).map((atom) => sha256(JSON.stringify(atom))),
+          );
+          const currentAdmitted = new Set(
+            (current.admittedResponse?.[collection] || []).map((atom) => sha256(JSON.stringify(atom))),
+          );
+          for (const [atomIndex, atom] of (previous.compiledResponse?.[collection] || []).entries()) {
+            const artifactSha256 = sha256(JSON.stringify(atom));
+            if (!previousAdmitted.has(artifactSha256) || currentAdmitted.has(artifactSha256)) continue;
+            admissionChangedAtoms.push({
+              projectPath,
+              promptId: call.promptId,
+              domain: group.domain,
+              kind,
+              atomIndex,
+              artifactSha256,
+              artifactLabel: kind === 'key-term' ? atom.tr : atom.q,
+              newIssues: current.issues.filter((issue) => issue.startsWith(`${issuePrefix}-${atomIndex}-`)),
+            });
+          }
+        }
         previousCalls.push({ assessment: previous });
         currentCalls.push({ assessment: current });
       }
@@ -131,6 +157,7 @@ async function retainedReplay(root) {
   const current = summarizeSourceCaptureBurden({ calls: currentCalls, expectedCalls, expectedAtoms });
   return {
     projects,
+    admissionChangedAtoms,
     previous,
     current,
     deltas: {
@@ -142,7 +169,7 @@ async function retainedReplay(root) {
   };
 }
 
-export async function buildScionSemanticAdmissionBurdenV01649({ cwd = process.cwd() } = {}) {
+export async function buildScionSemanticAdmissionBurdenV01650({ cwd = process.cwd() } = {}) {
   const root = path.resolve(cwd);
   const candidateRaw = await fs.readFile(path.join(root, CANDIDATES), 'utf8');
   const candidateRows = candidateRaw
@@ -178,15 +205,28 @@ export async function buildScionSemanticAdmissionBurdenV01649({ cwd = process.cw
       retained.previous.expectedCalls === 48 &&
       retained.previous.capturedCalls === 48 &&
       retained.previous.expectedAtoms === 192,
-    retainedAdmissionBurdenUnchanged:
+    boundedRetainedSemanticBurden:
       retained.previous.admittedAtoms === 49 &&
-      retained.current.admittedAtoms === 49 &&
+      retained.current.admittedAtoms === 47 &&
       retained.previous.burdenAtoms === 143 &&
-      retained.current.burdenAtoms === 143 &&
-      retained.deltas.additionalBurdenAtoms === 0,
-    citedSourceRulesObserved:
-      retained.deltas.newIssueIncidence['key-term-1-misconception-repeats-known-fact'] === 1 &&
-      retained.deltas.newIssueIncidence['mc-1-multiple-source-supported-options'] === 1,
+      retained.current.burdenAtoms === 145 &&
+      retained.deltas.additionalBurdenAtoms === 2 &&
+      retained.deltas.eligibleCalls === -1,
+    changedAtomsAreExactReviewedFailures:
+      retained.admissionChangedAtoms.length === 2 &&
+      retained.admissionChangedAtoms.some(
+        (entry) =>
+          entry.artifactLabel === 'readlines()' &&
+          entry.newIssues.includes('key-term-1-correction-omits-technical-reference'),
+      ) &&
+      retained.admissionChangedAtoms.some(
+        (entry) =>
+          entry.artifactLabel === 'Scale degree' &&
+          entry.newIssues.includes('key-term-0-correction-drops-defining-identity'),
+      ),
+    judgeInformedRulesObserved:
+      retained.deltas.newIssueIncidence['key-term-1-correction-omits-technical-reference'] === 2 &&
+      retained.deltas.newIssueIncidence['key-term-0-correction-drops-defining-identity'] === 1,
   };
   const failures = Object.entries(assertions)
     .filter(([, passed]) => !passed)
@@ -199,10 +239,10 @@ export async function buildScionSemanticAdmissionBurdenV01649({ cwd = process.cw
 
   return {
     schemaVersion: 1,
-    protocol: 'scion-semantic-admission-v3-burden-replay-v1',
+    protocol: 'scion-semantic-admission-v4-burden-replay-v1',
     release: RELEASE,
     generatedAt: GENERATED_AT,
-    status: 'no-additional-retry-burden-observed',
+    status: 'bounded-reviewed-semantic-retry-burden',
     evidence: {
       candidateSurface: {
         path: CANDIDATES,
@@ -220,22 +260,23 @@ export async function buildScionSemanticAdmissionBurdenV01649({ cwd = process.cw
     candidate,
     reference,
     retainedLocalReplay: {
-      previousProfile: 'source-strict',
-      currentProfile: 'source-strict-v3',
+      previousProfile: 'source-strict-v3',
+      currentProfile: 'source-strict-v4',
       previous: retained.previous,
       current: retained.current,
       deltas: retained.deltas,
+      admissionChangedAtoms: retained.admissionChangedAtoms,
     },
     assertions,
     interpretation:
-      'Across 91 frozen cross-arm candidate pairs, the judge-informed profile changes no eligibility decision. Across 192 retained local response seats, it records two additional semantic issue incidences but both overlap artifacts already rejected by older rules, so observed admitted atoms, rejected calls, and retry burden remain unchanged.',
+      'Across both arms of 91 frozen cross-arm candidate pairs, source-strict-v4 changes no eligibility decision. Across 192 retained local response seats, it retries two additional atoms (1.041667%): a readlines() correction that leaves its false claim about read() unresolved and a scale-degree correction that replaces the defining numerical-label identity with a different scale concept. One of 48 retained calls consequently moves from partial admission to rejection.',
     claimBoundary:
       'This is deterministic replay of retained response bytes. It measures admission overlap, not fresh model retry success, browser latency, unseen-output precision, blind preference, classroom outcomes, paid-reference quality, or adapter quality. No response text is mutated and no model call is made.',
   };
 }
 
-export async function runScionSemanticAdmissionBurdenV01649({ cwd = process.cwd(), write = false } = {}) {
-  const report = await buildScionSemanticAdmissionBurdenV01649({ cwd });
+export async function runScionSemanticAdmissionBurdenV01650({ cwd = process.cwd(), write = false } = {}) {
+  const report = await buildScionSemanticAdmissionBurdenV01650({ cwd });
   const output = path.resolve(cwd, RECEIPT);
   if (write) await fs.writeFile(output, canonical(report));
   else if ((await fs.readFile(output, 'utf8')) !== canonical(report)) {
@@ -247,7 +288,7 @@ export async function runScionSemanticAdmissionBurdenV01649({ cwd = process.cwd(
 async function main() {
   const args = new Set(process.argv.slice(2));
   if ([...args].some((arg) => arg !== '--write')) throw new Error('Unknown semantic-admission burden option');
-  const result = await runScionSemanticAdmissionBurdenV01649({ write: args.has('--write') });
+  const result = await runScionSemanticAdmissionBurdenV01650({ write: args.has('--write') });
   console.log(
     `Scion semantic-admission burden: +${result.report.retainedLocalReplay.deltas.additionalBurdenAtoms} burden atoms across 192 retained local seats; +${result.report.candidate.additionalRetrySeats}/+${result.report.reference.additionalRetrySeats} retry seats across 91 frozen pairs.`,
   );

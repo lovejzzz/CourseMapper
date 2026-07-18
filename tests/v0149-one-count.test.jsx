@@ -150,6 +150,9 @@ describe('B1 — both surfaces render from the one queue object', () => {
     const items = drawer.container.querySelectorAll('[data-testid="review-queue-item"]');
     expect(items.length).toBe(queue.total); // 7 — the drawer hides nothing
     expect(drawer.container.querySelector('[data-testid="review-queue-class-spotChecks"]')).toBeTruthy();
+    expect(drawer.container.querySelector('[data-testid="review-queue-progress"]').textContent).toBe(
+      '4 decisions · 3 routine spot-checks',
+    );
   });
 
   it('a downloadable package leaves ZIP ownership to the export panel', () => {
