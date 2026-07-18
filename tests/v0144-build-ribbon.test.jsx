@@ -366,7 +366,7 @@ describe('B1 — buildRibbonModel selector', () => {
         },
         generation: { lessonCount: 14 },
       }),
-    ).toBe(49);
+    ).toBe(44);
     expect(
       deriveRibbonProgress({
         pipeline: {
@@ -451,6 +451,56 @@ describe('B1 — buildRibbonModel selector', () => {
         generation: { lessonCount: 15 },
       }),
     ).toBeGreaterThanOrEqual(lessonFourQueuedProgress);
+    const longCourseLastPass = {
+      type: 'pipelineDecision',
+      label: 'Scion quality passes',
+      detail: 'polish:lesson-15 done',
+      chunkLabel: 'lesson-15',
+      at: 100,
+    };
+    const longCourseRecovery = {
+      type: 'repairRetryCall',
+      label: 'Author lesson batch (native recovery 1/2)',
+      detail: 'Lessons 1 — 1699 input tokens estimated',
+      at: 110,
+    };
+    const lastPassProgress = deriveRibbonProgress({
+      pipeline: { state: 'enriching', activity: longCourseLastPass },
+      budget: {
+        // Match the real reducer's bounded event window: the recovery frame
+        // cannot depend on the initial course events still being retained.
+        recentEvents: Array.from({ length: 24 }, (_, index) =>
+          index === 0
+            ? longCourseLastPass
+            : {
+                type: 'pipelineDecision',
+                label: 'Scion pass call',
+                detail: 'blind_solve',
+                chunkLabel: `lesson-${Math.max(1, 15 - index)}`,
+                at: 99 - index,
+              },
+        ),
+      },
+      generation: { lessonCount: 15 },
+    });
+    const recoveryProgress = deriveRibbonProgress({
+      pipeline: { state: 'enriching', activity: longCourseRecovery },
+      budget: {
+        recentEvents: [
+          longCourseRecovery,
+          ...Array.from({ length: 23 }, (_, index) => ({
+            type: 'pipelineDecision',
+            label: 'Scion pass call',
+            detail: 'blind_solve',
+            chunkLabel: `lesson-${Math.max(1, 14 - index)}`,
+            at: 99 - index,
+          })),
+        ],
+      },
+      generation: { lessonCount: 15 },
+    });
+    expect(lastPassProgress).toBe(45);
+    expect(recoveryProgress).toBeGreaterThanOrEqual(lastPassProgress);
     expect(
       deriveRibbonProgress({
         pipeline: {
@@ -464,7 +514,7 @@ describe('B1 — buildRibbonModel selector', () => {
         },
         generation: { lessonCount: 14 },
       }),
-    ).toBe(50);
+    ).toBe(45);
     expect(
       deriveRibbonProgress({
         pipeline: { state: 'compiling' },

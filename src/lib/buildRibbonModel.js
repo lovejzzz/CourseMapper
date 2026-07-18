@@ -267,7 +267,10 @@ function enrichmentProgressForEvent(event, lessonCount) {
       1,
       (Math.max(0, currentLesson - 1) + Math.max(0.25, semanticCheckpoint)) / lessonCount,
     );
-    return Math.max(30, Math.floor(30 + fraction * 20));
+    // The first authoring pass owns 30–45%. Do not let semantic sub-passes
+    // borrow the 45–49% band reserved for outer recovery: a long course can
+    // finish checking lesson N and still discover dropped early lessons.
+    return Math.max(30, Math.floor(30 + fraction * 15));
   }
   const fraction = Math.min(1, (Math.max(0, currentLesson - 1) + 0.25) / lessonCount);
   return Math.round(30 + fraction * 15);
@@ -485,8 +488,7 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
         1,
         (Math.max(0, currentLesson - 1) + Math.max(0.25, semanticCheckpoint)) / lessonCount,
       );
-      if (semanticCheckpoint >= 1 && currentLesson >= lessonCount) return 50;
-      return Math.max(observedProgress, 30, Math.floor(30 + enrichmentFraction * 20));
+      return Math.max(observedProgress, 30, Math.floor(30 + enrichmentFraction * 15));
     }
     const knowledgeEvents = Array.isArray(budget?.recentEvents)
       ? budget.recentEvents.filter(isKnowledgeProgressEvent)
