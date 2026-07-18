@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import FocusTrap from 'focus-trap-react';
 import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import ColumnEditor from '../components/ColumnEditor';
@@ -601,6 +602,20 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
   const [fullscreen, setFullscreen] = useState(false);
   const label = FEATURE_LABELS[featureId] || featureId;
 
+  useEffect(() => {
+    if (!fullscreen || typeof document === 'undefined') return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setFullscreen(false);
+    };
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [fullscreen]);
+
   // Extract real content from deliverable data, fall back to sample layout content.
   const { content: realContent, isExample } = React.useMemo(() => {
     // Try real data first
@@ -687,7 +702,11 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         const showLessons = expanded ? courseMap?.lessons || lessons : lessons;
         return (
           <div className="overflow-x-auto">
-            <div className="overflow-hidden rounded border border-slate-200/40 min-w-0">
+            <div
+              className={`overflow-hidden rounded border border-slate-200/40 ${
+                expanded ? 'min-w-[44rem]' : 'min-w-[30rem]'
+              }`}
+            >
               <div className="flex bg-slate-50/80">
                 <div className={`${pad} font-semibold text-slate-600 border-r border-slate-200/30 flex-shrink-0 w-28`}>
                   Week/Module
@@ -726,6 +745,9 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                 </div>
               ))}
             </div>
+            <p className="mt-2 text-[10px] font-medium text-slate-400 sm:hidden">
+              Swipe horizontally to review every field.
+            </p>
             {!expanded && realContent.total > 3 && (
               <p className="text-2xs text-slate-400 mt-1 text-right">+ {realContent.total - 3} more lessons</p>
             )}
@@ -1338,7 +1360,7 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
             {label} — {realContent.total || realContent.items?.length || 0}{' '}
             {featureId === 'courseMap' ? 'lessons' : 'items'}
             {isExample && (
-              <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 text-[10px] font-semibold">
+              <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-200">
                 Sample layout
               </span>
             )}
@@ -1359,11 +1381,11 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
           </button>
         </div>
         {isExample && (
-          <p className="px-3 pb-2 -mt-1 text-[10px] text-amber-600/80">
+          <p className="-mt-1 px-3 pb-2 text-[10px] text-blue-600/80 dark:text-blue-200/80">
             Illustrative content only. Your generated version will use the course prompt and files from the previous
             step.
             {realContent.courseTitle && (
-              <span data-testid="preview-course-context" className="block text-amber-700/90">
+              <span data-testid="preview-course-context" className="block text-blue-700/90 dark:text-blue-100/90">
                 Previewing structure for: {realContent.courseTitle}
               </span>
             )}
@@ -1375,53 +1397,67 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
       </div>
 
       {/* Fullscreen modal */}
-      {fullscreen && (
-        <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md"
-            onClick={() => setFullscreen(false)}
+      {fullscreen &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <FocusTrap
+            focusTrapOptions={{
+              clickOutsideDeactivates: false,
+              escapeDeactivates: false,
+            }}
           >
             <div
-              className="bg-white/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-slate-200/60 max-w-3xl w-full mx-4 animate-spring-scale max-h-[85vh] flex flex-col"
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-[80] flex items-stretch justify-center bg-slate-950/55 backdrop-blur-md sm:items-center sm:p-4"
+              onClick={() => setFullscreen(false)}
             >
-              <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-lg px-6 py-4 border-b border-slate-200/40 flex items-center justify-between rounded-t-2xl flex-shrink-0">
-                <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  {label} — {realContent.total || realContent.items?.length || 0} items
-                  {isExample && (
-                    <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-500 text-[10px] font-semibold">
-                      Sample layout
-                    </span>
-                  )}
-                </h3>
-                <button
-                  onClick={() => setFullscreen(false)}
-                  aria-label="Close fullscreen preview"
-                  className="text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="p-6 text-xs text-slate-500 leading-relaxed overflow-y-auto">
-                {isExample && (
-                  <p className="mb-4 text-[11px] font-medium text-amber-600">
-                    Illustrative content only. Your generated version will use the course prompt and files from the
-                    previous step.
-                    {realContent.courseTitle && (
-                      <span className="block text-amber-700/90">
-                        Previewing structure for: {realContent.courseTitle}
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={`deliverable-preview-title-${featureId}`}
+                className="flex h-dvh w-full max-w-3xl animate-spring-scale flex-col border border-slate-200/60 bg-white/95 shadow-2xl backdrop-blur-lg dark:border-slate-700 dark:bg-slate-950/95 sm:h-auto sm:max-h-[85vh] sm:rounded-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b border-slate-200/40 bg-white/95 px-4 py-3 backdrop-blur-lg dark:border-slate-700 dark:bg-slate-950/95 sm:rounded-t-2xl sm:px-6 sm:py-4">
+                  <h3
+                    id={`deliverable-preview-title-${featureId}`}
+                    className="flex min-w-0 items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100"
+                  >
+                    {label} — {realContent.total || realContent.items?.length || 0} items
+                    {isExample && (
+                      <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-200">
+                        Sample layout
                       </span>
                     )}
-                  </p>
-                )}
-                {renderContent(true)}
+                  </h3>
+                  <button
+                    onClick={() => setFullscreen(false)}
+                    aria-label="Close fullscreen preview"
+                    className="tactile -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="overflow-y-auto p-4 text-xs leading-relaxed text-slate-500 dark:text-slate-300 sm:p-6">
+                  {isExample && (
+                    <p className="mb-4 text-[11px] font-medium text-blue-600 dark:text-blue-200">
+                      Illustrative content only. Your generated version will use the course prompt and files from the
+                      previous step.
+                      {realContent.courseTitle && (
+                        <span className="block text-blue-700/90 dark:text-blue-100/90">
+                          Previewing structure for: {realContent.courseTitle}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                  {renderContent(true)}
+                </div>
               </div>
             </div>
-          </div>
-        </FocusTrap>
-      )}
+          </FocusTrap>,
+          document.body,
+        )}
     </>
   );
 }

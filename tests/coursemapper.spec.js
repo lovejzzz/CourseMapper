@@ -678,6 +678,26 @@ test.describe('Configure Generation', () => {
     await expect(page.getByTestId('deliverable-preview-courseMap')).toContainText('Course Map — 8 lessons');
     await expect(page.getByTestId('preview-course-context')).toContainText('Spanish for Healthcare Professionals');
     await expect(page.getByTestId('deliverable-preview-courseMap')).not.toContainText('Machine Learning');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId('deliverable-preview-courseMap').getByRole('button', { name: 'Full screen' }).click();
+    const previewDialog = page.getByRole('dialog', { name: /Course Map — 8 items/ });
+    await expect(previewDialog).toBeVisible();
+    await expect
+      .poll(async () => Math.abs((await previewDialog.boundingBox())?.x || 0), { timeout: 2000 })
+      .toBeLessThanOrEqual(1);
+    const previewDialogBox = await previewDialog.boundingBox();
+    expect(previewDialogBox.x).toBeLessThanOrEqual(1);
+    expect(previewDialogBox.y).toBeLessThanOrEqual(1);
+    expect(previewDialogBox.width).toBeGreaterThanOrEqual(389);
+    expect(previewDialogBox.height).toBeGreaterThanOrEqual(843);
+    const dialogOwnsViewportTop = await page.evaluate(() =>
+      Boolean(document.elementFromPoint(window.innerWidth / 2, 24)?.closest('[role="dialog"]')),
+    );
+    expect(dialogOwnsViewportTop).toBe(true);
+    await page.keyboard.press('Escape');
+    await expect(previewDialog).toBeHidden();
+
     await expect(page.getByTestId('config-top-advanced-toggle')).toBeVisible();
     await expect(page.locator('text=Model-tuned defaults')).toHaveCount(0);
     await page.getByTestId('config-top-advanced-toggle').click();
