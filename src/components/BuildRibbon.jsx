@@ -116,6 +116,13 @@ export default function BuildRibbon({ model }) {
   if (!model) return null;
 
   const compilerState = model.compilerState || 'live';
+  const stageNarrative =
+    model.stageLabel ||
+    (compilerState === 'complete'
+      ? 'Course package is ready.'
+      : compilerState === 'review'
+        ? 'Review the highlighted notes before export.'
+        : 'Preparing the next course material…');
 
   return (
     <div
@@ -146,7 +153,7 @@ export default function BuildRibbon({ model }) {
           aria-live="polite"
           className="order-3 w-full min-w-0 text-[13px] leading-4 text-slate-600 sm:order-none sm:w-auto sm:flex-1 sm:truncate dark:text-slate-300"
         >
-          {model.stageLabel}
+          {stageNarrative}
         </p>
 
         <span
@@ -198,7 +205,7 @@ export default function BuildRibbon({ model }) {
                 )}
               </span>
               <span
-                className={`min-w-0 text-[12px] font-semibold ${
+                className={`min-w-0 text-[10px] font-semibold tracking-tight min-[360px]:text-[12px] ${
                   step.status === 'active'
                     ? 'text-indigo-600 dark:text-indigo-300'
                     : step.status === 'warn'
