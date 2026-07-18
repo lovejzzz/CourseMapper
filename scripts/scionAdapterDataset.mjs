@@ -10,6 +10,13 @@ import { sha256File } from './scionAdapterPackage.mjs';
 import { validateScionHeldoutBenchmark } from './scionAdapterPairedEvidence.mjs';
 import { deriveDeterministicContractEvidence } from '../src/lib/scionPreferenceGate.js';
 import { validateScionCodexTrainingPreferenceEvidence } from '../src/lib/scionCodexTrainingEvidence.js';
+import {
+  SCION_ADAPTER_TASK_FAMILIES,
+  SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM,
+  SCION_ADAPTER_TASK_SCOPE_PROTOCOL,
+  scionAdapterTaskFamilyForPairKind,
+  scionAdapterTaskScopePayload,
+} from '../src/lib/scionAdapterTaskScope.js';
 import { scionSourceKernelSha256, scionSourceTaskSha256 } from './lib/scionSourceTaskIdentity.mjs';
 
 const SCION_ADAPTER_NON_JUDGE_SOURCES = [
@@ -27,7 +34,7 @@ export const SCION_ADAPTER_DEFAULT_SOURCES = [
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
-export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v4.json';
+export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v5.json';
 const DEFAULT_SOURCES = SCION_ADAPTER_DEFAULT_SOURCES;
 const DEFAULT_HELDOUT_BENCHMARK = SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK;
 export const SCION_ORPO_TRAINING_FORMAT_V1 = Object.freeze({
@@ -99,6 +106,7 @@ export function computeScionAdapterDatasetIdentity(manifest) {
       groupIdentity: manifest?.groupIdentity,
       trainingTaskIdentity: manifest?.trainingTaskIdentity,
       trainingSourceKernelIdentity: manifest?.trainingSourceKernelIdentity,
+      taskScope: manifest?.taskScope,
       splitIdentity: manifest?.splitIdentity,
       trainingFormat: manifest?.trainingFormat,
       admissionPolicy: manifest?.admissionPolicy,
@@ -317,6 +325,7 @@ export function toScionOrpoTrainingRow(entry, { sourceBoundPrompt = true } = {})
       courseGroupSha256: entry?.group ? stableHash(entry.group) : '',
       domainSource: normalize(row?.context?.domainSource),
       pairKind: pairKind(row),
+      taskFamily: scionAdapterTaskFamilyForPairKind(pairKind(row)),
       preferenceEvidenceKind: normalize(row?.preferenceEvidence?.kind),
       preferenceEvidenceScope: normalize(row?.preferenceEvidence?.scope),
       ...(boundPrompt
@@ -562,6 +571,32 @@ export async function buildScionAdapterDataset({
     productionCompatible: missingLicenseRows === 0 && nonCommercialRows === 0 && shareAlikeRows === 0,
     productionRule: 'noncommercial and share-alike source rows require replacement or explicit legal clearance',
   };
+  const taskFamilyCounts = Object.fromEntries(
+    [...new Set(eligible.map((entry) => scionAdapterTaskFamilyForPairKind(pairKind(entry.row))))]
+      .filter((family) => family !== SCION_ADAPTER_TASK_FAMILIES.UNCLASSIFIED)
+      .sort()
+      .map((family) => [
+        family,
+        eligible.filter((entry) => scionAdapterTaskFamilyForPairKind(pairKind(entry.row)) === family).length,
+      ]),
+  );
+  const unclassifiedTaskRows = eligible.filter(
+    (entry) => scionAdapterTaskFamilyForPairKind(pairKind(entry.row)) === SCION_ADAPTER_TASK_FAMILIES.UNCLASSIFIED,
+  ).length;
+  if (unclassifiedTaskRows > 0) {
+    throw new Error(`Admitted adapter rows require an exact task family: ${unclassifiedTaskRows} unclassified row(s)`);
+  }
+  const taskScope = {
+    protocol: SCION_ADAPTER_TASK_SCOPE_PROTOCOL,
+    mode: 'allowlist',
+    families: Object.entries(taskFamilyCounts).map(([id, rows]) => ({ id, rows })),
+    unclassifiedPolicy: 'base-only',
+    compositePolicy: 'exact-family-only',
+  };
+  taskScope.identity = {
+    algorithm: SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM,
+    sha256: stableHash(stableJson(scionAdapterTaskScopePayload(taskScope))),
+  };
   const instructorDomainCounts = Object.fromEntries(
     domains.map((domain) => [
       domain,
@@ -778,6 +813,7 @@ export async function buildScionAdapterDataset({
     domainGroupCounts,
     ...(!legacyTrainingContract ? { domainTaskGroupCounts } : {}),
     ...(!legacyTrainingContract ? { domainSourceKernelCounts } : {}),
+    ...(!legacyTrainingContract ? { taskScope } : {}),
     groupIdentity: {
       algorithm: 'sha256-domain-colon-course-id',
       hashes: groupHashes,

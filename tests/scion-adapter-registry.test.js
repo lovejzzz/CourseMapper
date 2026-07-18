@@ -86,6 +86,14 @@ async function fixture(adapterId = 'scion-g4e2b-v1') {
       modelJudgeDomainCounts: Object.fromEntries(TRAINING_DOMAINS.map((domain) => [domain, 20])),
       splitCounts: { train: 1200, valid: 1000, test: 1000 },
       splitDomainCounts: { train: 5, valid: 5, test: 5 },
+      taskScope: {
+        protocol: 'scion-adapter-task-scope-v1',
+        mode: 'allowlist',
+        families: [{ id: 'lesson-kernel', rows: 3200 }],
+        unclassifiedPolicy: 'base-only',
+        compositePolicy: 'exact-family-only',
+        identity: { algorithm: 'sha256-canonical-scion-adapter-task-scope-v1', sha256: '6'.repeat(64) },
+      },
       run: {
         protocol: 'scion-adapter-training-run-v1',
         lane: 'production',

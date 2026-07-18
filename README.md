@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.52
+**Current release:** v0.16.53
 
 ---
 
@@ -31,9 +31,15 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.52**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.53**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 ### Living Course Compiler
+
+V0.16.53 makes the future adapter architecture task-scoped instead of globally optimistic. Every admitted training row now names one exact task family; that allowlist is hash-bound into the dataset, training plan, adapter package, and browser runtime. A proven adapter is loaded only for an exact trained family. Out-of-scope and unknown work clears the adapter, verifies restoration of the exact base response, and fails into recovery-required state if that proof drifts. The generation trace records the family, route, adapter identity, scope identity, and native state for every request.
+
+That stronger ruler found the real mismatch in the first research run. The current 143-row corpus contains 93 source-grounded key-term atoms and 50 source-grounded multiple-choice atoms; it contains zero full lesson-kernel examples. Applying those weights to whole lesson kernels and course maps therefore tested the adapter outside what it learned. Frozen benchmark V5 now requires the opposite: lesson-kernel requests must prove exact adapter use, course-map requests must prove base-only avoidance, and an unclassified call invalidates the run. The existing atom corpus passes its own scope audit but is deliberately ineligible for a whole-course adapter claim. The next data milestone is stable, source-grounded lesson-kernel preferences—not more undifferentiated atom volume.
+
+This release improves safety and the validity of future quality measurements; it does not claim a quality increase from new weights. No adapter is active on the hosted site, Gemma weights remain unchanged, and the measured public Scion package quality remains the V0.16.52 browser result until a task-matched candidate beats exact base-only Scion. The shared task identity and evaluation contracts can also protect other model routes, while dynamic adapter loading remains specific to Scion's browser-local path.
 
 The workspace makes that pipeline visible as it runs. **Living Course Compiler** is one continuous, evidence-backed progress surface from the local model through the final package: Model → Map → Enrich → Compile → Verify → Grade. It does not advance on a decorative timer. Model download uses the runtime's real byte progress; Map names the lesson field currently streaming; Enrich names the lesson kernel, recovery, or semantic check actually running; Compile reads the real material ledger; Verify and Grade appear only when those deterministic passes own the pipeline; and 100% is reserved for a terminal ready or review state.
 
@@ -81,7 +87,7 @@ That run is now fail-closed around the exact evidence. The research launcher con
 
 The benchmark changed the compiler as well as the future data. V0.16.48 source-strict admission detects sixty-four of seventy-eight measured weak artifacts without rejecting a preferred artifact in the regression set. Targeted one-kernel source campaigns can materialize honestly, and historical source snapshots remain immutable outside the production Curriculum Genome selector. Two attempted prompt upgrades remain rejected: V3 and V4 both reduced admission sharply, and V4 collapsed admitted key terms from thirty-four to one. V2 therefore remains active.
 
-No v0.16.52 adapter is active on the hosted website. The reproducible research run produced one validation-selected adapter, but the diagnostic held-out comparison rejected promotion and exposed additional compiler work. Scion therefore remains the pinned public Gemma base plus the model-neutral compiler. The v0.16.50 semantic release froze a v4 ruler that preserves the same five held-out course identities while binding grader v1.10.16 and its complete transitive implementation before any new candidate is evaluated. A future candidate must beat base-only Scion on that implementation-bound holdout before it can be activated, and a loss remains evidence for compiler or data improvement—not a hidden promotion.
+No v0.16.53 adapter is active on the hosted website. The reproducible research run produced one validation-selected adapter, but the diagnostic held-out comparison rejected promotion and exposed additional compiler work. Scion therefore remains the pinned public Gemma base plus the model-neutral compiler. Benchmark V5 preserves the same five held-out course identities and grader v1.10.16 transitive implementation while adding exact request-family routing evidence. A future lesson-kernel candidate must beat base-only Scion on that task-matched, implementation-bound holdout before it can be activated, and a loss remains evidence for compiler or data improvement—not a hidden promotion.
 
 v0.16.46 gives exact cited source evidence final authority over a model explanation when Scion selects a multiple-choice key. Live browser-local kernels now require every MC item to cite one or two lesson facts by index, and both the early local parser and canonical compiler pass only those cited claims into the repair. A repair is allowed only when the question identifies at most two top source claims, one different option has at least three supported content tokens and 60% containment, the declared option has at most one supported token, and no competing option clears the same support floor. Negative claims, tied or overlapping alternatives, broad questions, missing or invalid source indexes, and weak lexical matches all refuse repair.
 
@@ -804,6 +810,7 @@ npm run audit:agent:openai        # private live OpenAI agent probe suite (needs
 npm run audit:agent               # live multi-agent suite (provider keys required)
 npm run audit:scion:matrix        # route-separated five-domain Scion/reference diagnostics
 npm run audit:scion:corpus        # fail-closed preference corpus curation
+npm run audit:scion:adapter:task-scope:v0.16.53 # rebuild and verify the exact atom scope and whole-course ineligibility finding
 npm run audit:scion:factual-canaries # frozen source-anchored factual packet
 npm run audit:scion:review-packet # balanced anonymous atom packet
 npm run build:scion:codex-training-reviews # source-backed A/B and B/A Codex templates

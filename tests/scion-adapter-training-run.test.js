@@ -223,6 +223,7 @@ describe('Scion adapter training receipts', () => {
           courseGroupSha256: expect.stringMatching(/^[a-f0-9]{64}$/),
           domainSource: 'row',
           pairKind: 'mc-item',
+          taskFamily: 'source-mc-item-atom',
           preferenceEvidenceKind: 'deterministic-contract-margin',
           preferenceEvidenceScope: 'non-semantic-contract-only',
         });

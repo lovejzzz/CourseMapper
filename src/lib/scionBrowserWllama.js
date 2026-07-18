@@ -8,6 +8,7 @@ import {
 } from './scionBrowserConstants';
 import { formatScionGemma4Messages } from './scionGemma4Prompt';
 import { sha256Hex } from './scionAdapterRegistry';
+import { normalizeScionAdapterTaskFamily, resolveScionAdapterTaskRoute } from './scionAdapterTaskScope';
 
 const ACTIVATION_CANARY =
   'Return strict JSON only. Write one music-theory multiple-choice item about 4/4 meter with q, op containing exactly four options, ai, and ex. Add no other fields.';
@@ -236,6 +237,31 @@ function requireReady() {
 
 export async function completeScionBrowserWllama(
   messages,
+  {
+    maxNewTokens = 1024,
+    temperature = 0,
+    topK = 1,
+    topP = 1,
+    seed = 7,
+    signal,
+    onToken,
+    taskFamily,
+    onAdapterRoute,
+  } = {},
+) {
+  const route = await prepareAdapterRoute(taskFamily);
+  if (typeof onAdapterRoute === 'function') {
+    try {
+      onAdapterRoute(route);
+    } catch {
+      // Route telemetry cannot alter inference state.
+    }
+  }
+  return completeRaw(messages, { maxNewTokens, temperature, topK, topP, seed, signal, onToken });
+}
+
+async function completeRaw(
+  messages,
   { maxNewTokens = 1024, temperature = 0, topK = 1, topP = 1, seed = 7, signal, onToken } = {},
 ) {
   const candidate = requireReady();
@@ -264,7 +290,130 @@ function ggufAdapterFile(manifest, files) {
 }
 
 async function deterministicCanary() {
-  return completeScionBrowserWllama(ACTIVATION_CANARY, { maxNewTokens: 64, temperature: 0, topK: 1, topP: 1 });
+  return completeRaw(ACTIVATION_CANARY, { maxNewTokens: 64, temperature: 0, topK: 1, topP: 1 });
+}
+
+function validNativeAdapter(native) {
+  return (
+    native?.active === true &&
+    native?.metadata?.['general.type'] === 'adapter' &&
+    native?.metadata?.['adapter.type'] === 'lora' &&
+    native?.metadata?.['general.architecture'] === 'gemma4'
+  );
+}
+
+function routeReceipt(route, nativeAdapterActive) {
+  return {
+    protocol: 'scion-adapter-runtime-route-v1',
+    mode: route.mode,
+    taskFamily: route.taskFamily,
+    reason: route.reason,
+    adapterId: activeAdapter?.adapterId || null,
+    manifestSha256: activeAdapter?.manifestSha256 || null,
+    scopeIdentitySha256: route.scopeIdentitySha256 || null,
+    nativeAdapterActive,
+  };
+}
+
+async function quarantineAdapterRuntime(error, failedIdentity = activeAdapter || pendingProbe) {
+  activeAdapter = null;
+  pendingProbe = null;
+  publish({
+    phase: 'recovery-required',
+    progress: 0,
+    message: 'Scion blocked inference until the local runtime is unloaded and reloaded.',
+    error: error?.message || 'Exact base-only routing was not proven.',
+    adapter: {
+      mode: 'recovery-required',
+      active: null,
+      id: failedIdentity?.adapterId || null,
+      manifestSha256: failedIdentity?.manifestSha256 || null,
+      nativeState: 'unknown',
+    },
+  });
+  throw error;
+}
+
+async function prepareAdapterRoute(taskFamily) {
+  const candidate = requireReady();
+  if (!activeAdapter) {
+    const native = await candidate.getLoraAdapterStatus();
+    if (native?.active) {
+      return quarantineAdapterRuntime(
+        runtimeError(
+          'SCION_WLLAMA_UNBOUND_ADAPTER',
+          'Scion found a native adapter without a verified installed identity.',
+        ),
+      );
+    }
+    return routeReceipt(
+      {
+        mode: 'base-only',
+        taskFamily: normalizeScionAdapterTaskFamily(taskFamily),
+        reason: 'no-adapter-installed',
+      },
+      false,
+    );
+  }
+  if (status.adapter?.mode === 'adapter-pending-proof') {
+    throw runtimeError(
+      'SCION_WLLAMA_ADAPTER_NOT_PROVEN',
+      'Scion blocked the adapter until its activation proof passes.',
+    );
+  }
+  const route = resolveScionAdapterTaskRoute({ manifest: activeAdapter.manifest, taskFamily });
+  try {
+    const native = await candidate.getLoraAdapterStatus();
+    if (route.mode === 'adapter') {
+      if (!native?.active) {
+        const activation = await candidate.loadLoraAdapter(
+          new Blob([activeAdapter.bytes]),
+          Number(activeAdapter.manifest?.adapter?.scale || 1),
+        );
+        if (!validNativeAdapter(activation)) {
+          throw runtimeError(
+            'SCION_WLLAMA_ADAPTER_ROUTE_PROOF',
+            'Native runtime did not restore the verified Scion adapter for this task.',
+          );
+        }
+      } else if (!validNativeAdapter(native)) {
+        throw runtimeError('SCION_WLLAMA_ADAPTER_ROUTE_PROOF', 'Native runtime reported an invalid adapter state.');
+      }
+      publish({
+        adapter: {
+          ...status.adapter,
+          mode: 'adapter-scoped',
+          active: true,
+          nativeActive: true,
+          lastRoute: { taskFamily: route.taskFamily, mode: route.mode, reason: route.reason },
+        },
+      });
+      return routeReceipt(route, true);
+    }
+    if (native?.active) {
+      await candidate.clearLoraAdapter();
+      const cleared = await candidate.getLoraAdapterStatus();
+      const baseOutput = await deterministicCanary();
+      if (cleared?.active !== false || baseOutput !== activeAdapter.baseOutput) {
+        throw runtimeError(
+          'SCION_WLLAMA_BASE_ROUTE_PROOF',
+          'Scion could not prove exact base-only inference for an out-of-scope task.',
+        );
+      }
+    }
+    publish({
+      adapter: {
+        ...status.adapter,
+        mode: 'adapter-scoped',
+        active: true,
+        nativeActive: false,
+        lastRoute: { taskFamily: route.taskFamily, mode: route.mode, reason: route.reason },
+      },
+    });
+    return routeReceipt(route, false);
+  } catch (error) {
+    return quarantineAdapterRuntime(error);
+  }
 }
 
 export async function applyScionBrowserWllamaAdapter({ adapterId, manifest, manifestSha256, files } = {}) {
@@ -273,16 +422,11 @@ export async function applyScionBrowserWllamaAdapter({ adapterId, manifest, mani
   if ((await candidate.getLoraAdapterStatus())?.active) await candidate.clearLoraAdapter();
   const baseOutput = await deterministicCanary();
   const activation = await candidate.loadLoraAdapter(new Blob([bytes]), Number(manifest?.adapter?.scale || 1));
-  if (
-    activation?.active !== true ||
-    activation?.metadata?.['general.type'] !== 'adapter' ||
-    activation?.metadata?.['adapter.type'] !== 'lora' ||
-    activation?.metadata?.['general.architecture'] !== 'gemma4'
-  ) {
+  if (!validNativeAdapter(activation)) {
     await candidate.clearLoraAdapter();
     throw runtimeError('SCION_WLLAMA_ADAPTER_NATIVE_PROOF', 'Native runtime did not confirm a Gemma 4 LoRA adapter.');
   }
-  activeAdapter = { adapterId, manifestSha256, descriptor, activation };
+  activeAdapter = { adapterId, manifestSha256, descriptor, activation, manifest, bytes, baseOutput };
   pendingProbe = { adapterId, manifestSha256, baseOutput };
   publish({
     adapter: { mode: 'adapter-pending-proof', active: false, id: adapterId, manifestSha256 },
@@ -332,22 +476,7 @@ export async function rollbackScionBrowserWllamaAdapter() {
     publish({ adapter: { mode: 'base-only', active: false, id: null, manifestSha256: null } });
     return { restored: true, native, baseOutput };
   } catch (error) {
-    activeAdapter = null;
-    pendingProbe = null;
-    publish({
-      phase: 'recovery-required',
-      progress: 0,
-      message: 'Scion blocked inference until the local runtime is unloaded and reloaded.',
-      error: error?.message || 'Exact base-only rollback was not proven.',
-      adapter: {
-        mode: 'recovery-required',
-        active: null,
-        id: failedIdentity?.adapterId || null,
-        manifestSha256: failedIdentity?.manifestSha256 || null,
-        nativeState: 'unknown',
-      },
-    });
-    throw error;
+    return quarantineAdapterRuntime(error, failedIdentity);
   }
 }
 
@@ -372,5 +501,7 @@ export async function unloadScionBrowserWllama() {
 }
 
 export function getActiveScionBrowserWllamaAdapter() {
-  return activeAdapter ? structuredClone(activeAdapter) : null;
+  if (!activeAdapter) return null;
+  const { bytes: _bytes, manifest: _manifest, baseOutput: _baseOutput, ...publicState } = activeAdapter;
+  return structuredClone(publicState);
 }

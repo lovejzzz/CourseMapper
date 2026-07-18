@@ -1,5 +1,10 @@
-export const SCION_ADAPTER_MANIFEST_SCHEMA_VERSION = 3;
-const SUPPORTED_SCION_ADAPTER_MANIFEST_SCHEMA_VERSIONS = new Set([2, SCION_ADAPTER_MANIFEST_SCHEMA_VERSION]);
+import {
+  resolveScionAdapterTaskRoute as resolveTaskRoute,
+  validateScionAdapterTaskScope,
+} from './scionAdapterTaskScope.js';
+
+export const SCION_ADAPTER_MANIFEST_SCHEMA_VERSION = 4;
+const SUPPORTED_SCION_ADAPTER_MANIFEST_SCHEMA_VERSIONS = new Set([2, 3, SCION_ADAPTER_MANIFEST_SCHEMA_VERSION]);
 
 export const SCION_LLAMA_CPP_REVISION = '5ec717d1256e34558a44dc09adf1e6e16f2e2682';
 export const SCION_LLAMA_CPP_LORA_CONVERTER_SHA256 = '7e82b74442df2faab81c30e7d83614d10905294cec92092ec2a1749700d1a378';
@@ -134,10 +139,19 @@ export function validateScionAdapterManifest(
     issues.push(`${promotionStatus || 'unknown'}-must-not-promote`);
   }
   if (promotionStatus === 'promoted' && manifest.promotion?.promotable !== true) issues.push('promoted-flag');
-  if (manifest.schemaVersion === 2 && !['smoke', 'rejected'].includes(promotionStatus)) {
+  if (
+    manifest.schemaVersion < SCION_ADAPTER_MANIFEST_SCHEMA_VERSION &&
+    !['smoke', 'rejected'].includes(promotionStatus)
+  ) {
     issues.push('legacy-schema-mechanical-only');
   }
   const requiresTrainingRun = ['research', 'candidate', 'promoted'].includes(promotionStatus);
+  if (requiresTrainingRun || manifest.training?.taskScope != null) {
+    const scopeValidation = validateScionAdapterTaskScope(manifest.training?.taskScope, {
+      expectedRows: manifest.training?.pairCount,
+    });
+    issues.push(...scopeValidation.issues);
+  }
   const trainingRun = manifest.training?.run;
   if (requiresTrainingRun && manifest.schemaVersion !== SCION_ADAPTER_MANIFEST_SCHEMA_VERSION) {
     issues.push('training-run-schema-version');
@@ -381,4 +395,8 @@ export function resolveScionAdapterRuntime({
     reason: null,
     issues: [],
   };
+}
+
+export function resolveScionAdapterTaskRoute(options = {}) {
+  return resolveTaskRoute(options);
 }

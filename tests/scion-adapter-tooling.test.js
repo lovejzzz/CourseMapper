@@ -12,7 +12,9 @@ import { getCourseById } from '../scripts/crucible/courses.mjs';
 import { computeScionAdapterPackageIdentity } from '../scripts/lib/scionBrowserDeviceMatrix.mjs';
 import { buildScionAdapterManifest, sha256File, verifyScionAdapterPackage } from '../scripts/scionAdapterPackage.mjs';
 import { assessScionAdapterPromotion } from '../scripts/scionAdapterPromotionAudit.mjs';
+import { auditScionAdapterTaskScope } from '../scripts/scionAdapterTaskScopeAudit.mjs';
 import {
+  assessScionAdapterRouteEvidence,
   assessHeldoutDatasetBoundary,
   prepareScionBenchmarkRun,
   produceScionPairedEvidence,
@@ -472,12 +474,16 @@ describe('Scion adapter tooling', () => {
     const transitivelyBoundBenchmark = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v4.json', 'utf8'),
     );
+    const taskScopedBenchmark = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v5.json', 'utf8'),
+    );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
       issues: [],
       domains: expect.arrayContaining(['world-languages', 'world-literature', 'psychology', 'nutrition', 'astronomy']),
     });
     expect(validateScionHeldoutBenchmark(transitivelyBoundBenchmark)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(taskScopedBenchmark)).toMatchObject({ valid: true, issues: [] });
 
     const cleanDataset = {
       domains: ['computer-science', 'geology', 'business-ethics'],
@@ -514,6 +520,95 @@ describe('Scion adapter tooling', () => {
       pass: false,
       domainOverlap: [],
       groupOverlap: ['world-lit-readings'],
+    });
+  });
+
+  it('requires hash-bound adapter use and base avoidance for each benchmark task family', () => {
+    const policy = {
+      adapterRequiredFamilies: ['lesson-kernel'],
+      baseOnlyRequiredFamilies: ['course-map'],
+      unclassifiedPolicy: 'forbid',
+    };
+    const shared = {
+      adapterId: 'scion-task-scoped',
+      adapterManifestSha256: 'a'.repeat(64),
+      adapterScopeIdentitySha256: 'b'.repeat(64),
+    };
+    const event = (taskFamily, routeMode, nativeAdapterActive) => ({
+      type: 'scionAdapterRoute',
+      routeProtocol: 'scion-adapter-runtime-route-v1',
+      taskFamily,
+      routeMode,
+      nativeAdapterActive,
+      ...shared,
+    });
+    expect(
+      assessScionAdapterRouteEvidence({
+        events: [event('lesson-kernel', 'adapter', true), event('course-map', 'base-only', false)],
+        policy,
+        arm: 'adapter',
+        ...shared,
+      }),
+    ).toMatchObject({ valid: true, issues: [], routeCount: 2 });
+
+    const globalAdapter = assessScionAdapterRouteEvidence({
+      events: [event('lesson-kernel', 'adapter', true), event('course-map', 'adapter', true)],
+      policy,
+      arm: 'adapter',
+      ...shared,
+    });
+    expect(globalAdapter.valid).toBe(false);
+    expect(globalAdapter.issues).toEqual(
+      expect.arrayContaining(['route-state:course-map', 'unexpected-adapter-route:course-map']),
+    );
+
+    expect(
+      assessScionAdapterRouteEvidence({
+        events: [
+          event('lesson-kernel', 'adapter', true),
+          event('lesson-kernel', 'base-only', false),
+          event('course-map', 'base-only', false),
+        ],
+        policy,
+        arm: 'adapter',
+        ...shared,
+      }),
+    ).toMatchObject({ valid: false, issues: expect.arrayContaining(['route-state:lesson-kernel']) });
+
+    expect(
+      assessScionAdapterRouteEvidence({
+        events: [event('lesson-kernel', 'base-only', false), event('course-map', 'base-only', false)],
+        policy,
+        arm: 'base-only',
+        ...shared,
+      }),
+    ).toMatchObject({ valid: true, issues: [] });
+  });
+
+  it('reports the existing atom corpus as valid research but ineligible for a lesson-kernel adapter claim', async () => {
+    const [evidence, benchmark] = await Promise.all([
+      fs.readFile('evaluation/scion-adapters/evidence/task-scope-audit-v0.16.53.json', 'utf8').then(JSON.parse),
+      fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v5.json', 'utf8').then(JSON.parse),
+    ]);
+    const dataset = {
+      counts: { total: evidence.dataset.admittedRows },
+      taskScope: evidence.dataset.taskScope,
+      identity: { sha256: evidence.dataset.identitySha256 },
+    };
+    const report = auditScionAdapterTaskScope({ dataset, benchmark, generatedAt: '2026-07-18T05:45:00.000Z' });
+    expect(report).toMatchObject({
+      status: 'pass',
+      issues: [],
+      dataset: {
+        admittedRows: 143,
+        taskScope: {
+          families: [
+            { id: 'source-key-term-atom', rows: 93 },
+            { id: 'source-mc-item-atom', rows: 50 },
+          ],
+        },
+      },
+      courseBenchmark: { eligible: false, missingAdapterFamilies: ['lesson-kernel'] },
     });
   });
 
@@ -560,6 +655,17 @@ describe('Scion adapter tooling', () => {
           hashes: [sha256Value('geology:geo-training-101')],
           courseIdAlgorithm: 'sha256-course-id',
           courseIdHashes: [sha256Value('geo-training-101')],
+        },
+        taskScope: {
+          protocol: 'scion-adapter-task-scope-v1',
+          mode: 'allowlist',
+          families: [{ id: 'lesson-kernel', rows: 3200 }],
+          unclassifiedPolicy: 'base-only',
+          compositePolicy: 'exact-family-only',
+          identity: {
+            algorithm: 'sha256-canonical-scion-adapter-task-scope-v1',
+            sha256: 'a'.repeat(64),
+          },
         },
       })}\n`,
     );
@@ -873,6 +979,17 @@ describe('Scion adapter tooling', () => {
         pairCount: 3200,
         domainCount: 5,
         groupCount: 15,
+        taskScope: {
+          protocol: 'scion-adapter-task-scope-v1',
+          mode: 'allowlist',
+          families: [{ id: 'lesson-kernel', rows: 3200 }],
+          unclassifiedPolicy: 'base-only',
+          compositePolicy: 'exact-family-only',
+          identity: {
+            algorithm: 'sha256-canonical-scion-adapter-task-scope-v1',
+            sha256: '1'.repeat(64),
+          },
+        },
         ...balancedTrainingEvidence(),
       },
       files: [{ path: 'adapters.safetensors', bytes: 1024, sha256: 'e'.repeat(64) }],

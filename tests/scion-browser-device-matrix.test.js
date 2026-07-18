@@ -49,6 +49,14 @@ function browserManifest() {
       modelJudgeDomainCounts: domainCounts(20),
       splitCounts: { train: 1000, valid: 1000, test: 1000 },
       splitDomainCounts: { train: 5, valid: 5, test: 5 },
+      taskScope: {
+        protocol: 'scion-adapter-task-scope-v1',
+        mode: 'allowlist',
+        families: [{ id: 'lesson-kernel', rows: 3000 }],
+        unclassifiedPolicy: 'base-only',
+        compositePolicy: 'exact-family-only',
+        identity: { algorithm: 'sha256-canonical-scion-adapter-task-scope-v1', sha256: HASH },
+      },
       run: {
         protocol: 'scion-adapter-training-run-v1',
         lane: 'production',

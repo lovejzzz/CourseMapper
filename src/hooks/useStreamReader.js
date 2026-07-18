@@ -238,6 +238,24 @@ export default function useStreamReader() {
               runtimePhase: runtimeStatus?.phase || '',
             });
           },
+          onAdapterRoute: (route) => {
+            recordApiCallEvent({
+              type: 'scionAdapterRoute',
+              label: route?.mode === 'adapter' ? 'Scion adapter used' : 'Scion base used',
+              detail: `${route?.taskFamily || 'unclassified'} · ${route?.reason || 'unknown route'}`,
+              stage: 'local-model-route',
+              ...buildProviderTraceBase(),
+              routeProtocol: route?.protocol || '',
+              routeMode: route?.mode || 'base-only',
+              taskFamily: route?.taskFamily || 'unclassified',
+              routeReason: route?.reason || '',
+              adapterId: route?.adapterId || null,
+              adapterManifestSha256: route?.manifestSha256 || null,
+              adapterScopeIdentitySha256: route?.scopeIdentitySha256 || null,
+              nativeAdapterActive: route?.nativeAdapterActive === true,
+              execution: 'browser-local',
+            });
+          },
           onAttemptStart: ({ attempt, maxAttempts, temperature }) => {
             recordApiCallEvent({
               type: 'providerRequestStart',
