@@ -160,7 +160,23 @@ test.describe('Generated workspace mobile layout', () => {
     expect(projectMenuBox).not.toBeNull();
     expect(projectMenuBox.x).toBeGreaterThanOrEqual(8);
     expect(projectMenuBox.x + projectMenuBox.width).toBeLessThanOrEqual(page.viewportSize().width - 8);
-    await page.getByTestId('workspace-more-menu-trigger').click();
+    await projectMenu.getByRole('button', { name: 'New Project' }).click();
+
+    const newProjectConfirmation = page.getByTestId('new-project-confirmation');
+    await expect(newProjectConfirmation).toBeVisible();
+    const backupButton = newProjectConfirmation.getByRole('button', { name: 'Download backup' });
+    const cancelButton = newProjectConfirmation.getByRole('button', { name: 'Cancel' });
+    const startButton = newProjectConfirmation.getByRole('button', { name: 'Start New Project' });
+    const [backupBox, cancelBox, startBox] = await Promise.all([
+      backupButton.boundingBox(),
+      cancelButton.boundingBox(),
+      startButton.boundingBox(),
+    ]);
+    expect(backupBox.width).toBeGreaterThan(cancelBox.width + startBox.width);
+    expect(cancelBox.y).toBeGreaterThan(backupBox.y);
+    expect(startBox.y).toBeGreaterThan(backupBox.y);
+    await cancelButton.click();
+    await expect(newProjectConfirmation).toBeHidden();
 
     await expectNoHorizontalOverflow(page);
   });

@@ -3518,7 +3518,10 @@ export default function AppFlow({
           {newProjectConfirm && (
             <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
-                <div className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale">
+                <div
+                  data-testid="new-project-confirmation"
+                  className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl p-6 max-w-sm w-full mx-4 animate-spring-scale"
+                >
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                       <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3554,12 +3557,12 @@ export default function AppFlow({
                       {newProjectError}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 justify-end">
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end">
                     {courseMap && (
                       <button
                         onClick={handleSaveProject}
                         disabled={isStartingNewProject}
-                        className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100/80 hover:bg-indigo-100 transition-all disabled:opacity-50"
+                        className="tactile col-span-2 w-full px-4 py-2 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100/80 hover:bg-indigo-100 transition-all disabled:opacity-50 sm:col-span-1 sm:w-auto"
                       >
                         Download backup
                       </button>
@@ -3567,7 +3570,7 @@ export default function AppFlow({
                     <button
                       onClick={() => setNewProjectConfirm(false)}
                       disabled={isStartingNewProject}
-                      className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all"
+                      className="tactile w-full px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200/60 hover:bg-slate-50 transition-all sm:w-auto"
                     >
                       Cancel
                     </button>
@@ -3578,7 +3581,7 @@ export default function AppFlow({
                           : handleConfirmNewProject
                       }
                       disabled={isStartingNewProject}
-                      className="tactile px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-60 disabled:cursor-wait"
+                      className="tactile w-full px-4 py-2 rounded-lg text-xs font-semibold text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-60 disabled:cursor-wait sm:w-auto"
                     >
                       {isStartingNewProject ? (
                         <span className="inline-flex items-center gap-1.5">
