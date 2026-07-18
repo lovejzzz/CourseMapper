@@ -120,7 +120,9 @@ export function assessScionMcItem(
     semanticProfile === 'strict-v4' ||
     semanticProfile === 'source-strict-v4' ||
     semanticProfile === 'strict-v5' ||
-    semanticProfile === 'source-strict-v5';
+    semanticProfile === 'source-strict-v5' ||
+    semanticProfile === 'strict-v6' ||
+    semanticProfile === 'source-strict-v6';
   const strictSemanticAdmission =
     semanticAdmission &&
     (semanticProfile === 'strict' || semanticProfile === 'source-strict' || judgeInformedSemanticAdmission);
@@ -294,7 +296,7 @@ export function assessScionKernelLesson(lesson = {}) {
 /** Validate the compact production lesson-kernel contract served by Scion. */
 export function assessScionLessonKernel(
   lesson = {},
-  { sourceClaims = [], sourceTerm = '', semanticProfile = 'source-strict-v5', userPrompt = '' } = {},
+  { sourceClaims = [], sourceTerm = '', semanticProfile = 'source-strict-v6', userPrompt = '' } = {},
 ) {
   if (clean(userPrompt)) {
     const result = assessPublicScionKernelResponse(

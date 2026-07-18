@@ -358,7 +358,9 @@ export function assessSourceAtomResponse(
   const sourceBoundSemanticProfile =
     semanticProfile === 'source-strict' ||
     semanticProfile === 'source-strict-v3' ||
-    semanticProfile === 'source-strict-v4';
+    semanticProfile === 'source-strict-v4' ||
+    semanticProfile === 'source-strict-v5' ||
+    semanticProfile === 'source-strict-v6';
   const mcItems = Array.isArray(response?.mcItems) ? response.mcItems : [];
   const keyTerms = Array.isArray(response?.keyTerms) ? response.keyTerms : [];
   const expectedMcItems = expectedCounts ? boundedAtomCount(expectedCounts.mcItems) : 2;

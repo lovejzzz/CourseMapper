@@ -112,7 +112,7 @@ function assessLessonMcItem(item, { lesson, topicTokens = [], sourceClaims = les
   return assessScionMcItem(item, {
     topicWords: topicTokens,
     sourceClaims,
-    semanticProfile: 'source-strict-v5',
+    semanticProfile: 'source-strict-v6',
   });
 }
 
@@ -649,7 +649,7 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
     result: assessScionKeyTerm(term, {
       lessonTitle: promptLesson?.title,
       knownFacts,
-      semanticProfile: 'source-strict-v5',
+      semanticProfile: 'source-strict-v6',
     }),
   }));
   const targets = assessed.filter(({ result }) => !result.eligible);
@@ -730,7 +730,7 @@ async function keyTermAdmissionGate(lesson, promptLesson, generateJson, events, 
       const admission = assessScionKeyTerm(fresh, {
         lessonTitle: promptLesson?.title,
         knownFacts,
-        semanticProfile: 'source-strict-v5',
+        semanticProfile: 'source-strict-v6',
       });
       const duplicate = terms.some(
         (other, otherIndex) =>

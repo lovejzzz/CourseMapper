@@ -452,23 +452,35 @@ export function assessScionKeyTermContract(
     semanticProfile === 'strict-v4' ||
     semanticProfile === 'source-strict-v4' ||
     semanticProfile === 'strict-v5' ||
-    semanticProfile === 'source-strict-v5';
+    semanticProfile === 'source-strict-v5' ||
+    semanticProfile === 'strict-v6' ||
+    semanticProfile === 'source-strict-v6';
   const judgeInformedSemanticAdmissionV4 =
     semanticProfile === 'strict-v4' ||
     semanticProfile === 'source-strict-v4' ||
     semanticProfile === 'strict-v5' ||
-    semanticProfile === 'source-strict-v5';
-  const preciseCircularDefinitionAdmission = semanticProfile === 'strict-v5' || semanticProfile === 'source-strict-v5';
+    semanticProfile === 'source-strict-v5' ||
+    semanticProfile === 'strict-v6' ||
+    semanticProfile === 'source-strict-v6';
+  const preciseCircularDefinitionAdmission =
+    semanticProfile === 'strict-v5' ||
+    semanticProfile === 'source-strict-v5' ||
+    semanticProfile === 'strict-v6' ||
+    semanticProfile === 'source-strict-v6';
+  const canonicalLessonTitleAdmission =
+    semanticProfile === 'strict-v6' || semanticProfile === 'source-strict-v6';
   const sourceGroundedSemanticAdmission =
     semanticProfile === 'source-strict' ||
     semanticProfile === 'source-strict-v3' ||
     semanticProfile === 'source-strict-v4' ||
-    semanticProfile === 'source-strict-v5';
+    semanticProfile === 'source-strict-v5' ||
+    semanticProfile === 'source-strict-v6';
   const strictSemanticAdmission =
     semanticProfile === 'strict' ||
     semanticProfile === 'strict-v3' ||
     semanticProfile === 'strict-v4' ||
     semanticProfile === 'strict-v5' ||
+    semanticProfile === 'strict-v6' ||
     sourceGroundedSemanticAdmission;
   const issues = [];
   const minTermLength = NON_LATIN_SCRIPT_RE.test(normalized.term) ? 1 : 3;
@@ -485,7 +497,13 @@ export function assessScionKeyTermContract(
   const normalizedLessonTitle = cleanScionKeyTermText(lessonTitle)
     .replace(/^lesson\s*\d+\s*[:.\-–—]\s*/i, '')
     .toLowerCase();
-  if (normalized.term && normalizedLessonTitle && normalized.term.toLowerCase() === normalizedLessonTitle) {
+  if (
+    normalized.term &&
+    normalizedLessonTitle &&
+    normalized.term.toLowerCase() === normalizedLessonTitle &&
+    (!canonicalLessonTitleAdmission ||
+      definitionRestatesTermWithoutDifferentia(normalized.term, normalized.definition))
+  ) {
     issues.push('term-is-lesson-title');
   }
   const definitionLead = normalized.definition.split(/\s+/).slice(0, 6).join(' ').toLowerCase();

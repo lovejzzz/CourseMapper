@@ -451,6 +451,45 @@ describe('Scion strict-v5 definition precision', () => {
   });
 });
 
+describe('Scion strict-v6 canonical lesson-title admission', () => {
+  const fields = {
+    eg: 'A learner compares stored charge with potential difference for one capacitor.',
+    mi: 'Capacitance is simply another label for stored charge by itself.',
+    cx: 'The quantity is a ratio, so stored charge alone does not determine it.',
+  };
+
+  it('accepts the canonical title when its definition supplies real differentia', () => {
+    const assessment = assessScionKeyTerm(
+      {
+        tr: 'Capacitance',
+        df: 'Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.',
+        ...fields,
+      },
+      { lessonTitle: 'Capacitance', semanticProfile: 'strict-v6' },
+    );
+    expect(assessment.issues).not.toContain('term-is-lesson-title');
+    expect(assessment.issues).not.toContain('circular-definition');
+  });
+
+  it('keeps V5 behavior frozen and still rejects a title tautology in V6', () => {
+    const legitimate = {
+      tr: 'Capacitance',
+      df: 'Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.',
+      ...fields,
+    };
+    const tautology = {
+      ...legitimate,
+      df: 'Capacitance is the capacitance concept, term, definition, method, process, and idea.',
+    };
+    expect(
+      assessScionKeyTerm(legitimate, { lessonTitle: 'Capacitance', semanticProfile: 'strict-v5' }).issues,
+    ).toContain('term-is-lesson-title');
+    expect(
+      assessScionKeyTerm(tautology, { lessonTitle: 'Capacitance', semanticProfile: 'strict-v6' }).issues,
+    ).toEqual(expect.arrayContaining(['term-is-lesson-title', 'circular-definition']));
+  });
+});
+
 describe('Scion task-matched lesson-kernel admission', () => {
   it('admits the compact production contract without requiring historical full-package fields', () => {
     const sourceClaims = [

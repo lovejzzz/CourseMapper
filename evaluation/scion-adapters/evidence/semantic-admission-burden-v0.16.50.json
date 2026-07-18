@@ -119,18 +119,18 @@
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 23073,
-        "sha256": "15b61e854f7838123591c313ab6b4f8031bc94a7a933442aabd9ec8da14492bc"
+        "bytes": 23158,
+        "sha256": "917ddfb145c49b6dd7dcc9d9c779c56a083e288220fa66cd588e1efda0980dda"
       },
       {
         "path": "src/lib/scionKeyTermContract.js",
-        "bytes": 31485,
-        "sha256": "5ba2bcc2554dee421e0af5a543969136055272e57095793f4db3fbc4a50d667a"
+        "bytes": 32098,
+        "sha256": "ac7f635bd3708c05f4f8c17b8218256860dd0bb714bb3b4baa1efb619e324cf0"
       },
       {
         "path": "scripts/lib/scionSourceCapture.mjs",
-        "bytes": 51129,
-        "sha256": "0aacf1a60c6694988b553e766a86dc79162bd22e764a63f240fdcd21d68d4929"
+        "bytes": 51221,
+        "sha256": "b73bf283bc8a335614a2ad9b8b7b3e6096ba37a2666107ff953e78d0dbb18961"
       }
     ]
   },

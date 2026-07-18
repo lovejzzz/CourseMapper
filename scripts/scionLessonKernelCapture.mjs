@@ -332,6 +332,8 @@ async function captureCompilerIdentity() {
     ),
   );
   const policy = {
+    // The v0.16.54 campaign is a frozen V5 evidence artifact. Runtime V6
+    // replays it separately instead of mutating its case/message identities.
     keyTermSemanticProfile: 'source-strict-v5',
     maxAttempts: MAX_ATTEMPTS,
     answerPosition: 'compiler-deterministic-shuffle-after-admission',

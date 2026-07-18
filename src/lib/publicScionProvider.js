@@ -387,7 +387,7 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
           definitionMin: 40,
           knownFacts: sourceFacts,
           sourceTerm: hasRichSourceEvidence ? expected.title || '' : '',
-          semanticProfile: hasRichSourceEvidence ? 'source-strict-v5' : 'strict-v5',
+          semanticProfile: hasRichSourceEvidence ? 'source-strict-v6' : 'strict-v6',
         });
         for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
         const namedPhrases = publicScionUnanchoredNamedPhrases(term?.eg ?? term?.example, sourceText);

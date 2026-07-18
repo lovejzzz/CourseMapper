@@ -130,7 +130,8 @@ describe('lesson content enrichment contracts', () => {
       },
       { lessonTitle: COURSE_MAP.lessons[0].title },
     );
-    expect(titleAsTerm).toContain('term-is-lesson-title');
+    expect(titleAsTerm).toContain('meta-definition');
+    expect(titleAsTerm).not.toContain('term-is-lesson-title');
   });
 
   it('requests the short-key contract and parses it identically to full keys (v0.9.11 P2)', () => {
