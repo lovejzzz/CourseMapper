@@ -127,6 +127,7 @@ export async function buildScionAdapterCorpusReadinessV01647({ generatedAt } = {
         holdoutBoundary: manifest.holdoutBoundary,
         splitIdentity: manifest.splitIdentity,
         trainingFormat: manifest.trainingFormat,
+        taskScope: manifest.taskScope,
         strictQuarantine: manifest.quarantine,
         gateProfiles: manifest.gate.profiles,
       },
