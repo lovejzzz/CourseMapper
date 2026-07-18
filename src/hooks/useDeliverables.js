@@ -2353,6 +2353,12 @@ export default function useDeliverables({
         try {
           const knowledge = await import('../lib/knowledge');
           genomeResourceCount = knowledge.attachGenomeResources(courseGraph);
+          recordGenerationApiCallEvent({
+            type: 'knowledgeBackboneLookup',
+            stage: 'knowledge-backbone',
+            label: 'Finding open readings',
+            detail: `Checking public sources for up to ${Math.min(8, courseGraph.sessions?.length || 0)} lessons`,
+          });
           openReadingCount = await knowledge.attachOpenReadings(courseGraph, { maxSessions: 8 });
           let coverage = knowledge.knowledgeCoverage(courseGraph);
           if (knowledge.shouldRunSourceFinder?.(coverage)) {

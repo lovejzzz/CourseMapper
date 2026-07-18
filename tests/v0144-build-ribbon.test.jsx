@@ -848,6 +848,33 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.steps.map((step) => step.status)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
   });
 
+  it('names bounded public-source lookup instead of leaving a long quiet compiler plateau', () => {
+    const budget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-reading-lookup' },
+      ...MAP_EVENTS,
+      {
+        type: 'knowledgeBackboneLookup',
+        stage: 'knowledge-backbone',
+        label: 'Finding open readings',
+        detail: 'Checking public sources for up to 4 lessons',
+      },
+    ]);
+    const model = buildBuildRibbonModel({
+      budget,
+      generation: { ...DONE_GENERATION, lessonCount: 4, mappedLessonCount: 4 },
+      deliverables: { isGenerating: true, doneCount: 0, totalCount: 2 },
+      packageQualityPass: { status: 'idle' },
+    });
+
+    expect(model.stage).toBe('enrich');
+    expect(model.stageLabel).toBe('Finding open readings · up to 4 lessons');
+    expect(model.progressPct).toBe(48);
+    expect(model.compilerArtifacts.find((artifact) => artifact.id === 'knowledge')).toMatchObject({
+      status: 'active',
+      value: 'Finding open readings · up to 4 lessons',
+    });
+  });
+
   it('recovery sub-label: "Recovery 1/2 — lessons 1–3"', () => {
     const budget = applyEvents(createApiCallBudget(), [
       { type: 'reset', runId: 'run-ribbon-1' },
@@ -900,6 +927,32 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(model.stageLabel).toBe('Compiling deliverables · 3/9 ready');
     expect(model.done.enrich).toBe(true); // enrichmentOutcome landed
     expect(model.steps.map((step) => step.status)).toEqual(['settled', 'settled', 'active', 'pending', 'pending']);
+  });
+
+  it('names the material and lesson range while a model chunk or repair is active', () => {
+    const generationBudget = applyEvents(createApiCallBudget(), [
+      { type: 'reset', runId: 'run-material-label' },
+      ...MAP_EVENTS,
+      { type: 'deliverableChunkCall', label: 'Generate Course FAQ [1-4]', featureId: 'courseFaq' },
+    ]);
+    const generating = buildBuildRibbonModel({
+      budget: generationBudget,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: true, doneCount: 1, totalCount: 2 },
+      packageQualityPass: { status: 'idle' },
+    });
+    expect(generating.stageLabel).toBe('Generating Course FAQ · lessons 1–4');
+
+    const repairBudget = applyEvents(generationBudget, [
+      { type: 'repairRetryCall', label: 'Course FAQ retry [1-2]', featureId: 'courseFaq' },
+    ]);
+    const repairing = buildBuildRibbonModel({
+      budget: repairBudget,
+      generation: DONE_GENERATION,
+      deliverables: { isGenerating: true, doneCount: 1, totalCount: 2 },
+      packageQualityPass: { status: 'idle' },
+    });
+    expect(repairing.stageLabel).toBe('Repairing Course FAQ · lessons 1–2');
   });
 
   it('compile stage: partial enrichment names the repair before finish blocks export', () => {

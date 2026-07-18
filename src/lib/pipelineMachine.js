@@ -45,9 +45,13 @@ function latestActivityEvent(budget) {
   const events = Array.isArray(budget?.recentEvents) ? budget.recentEvents : [];
   return events.find(
     (event) =>
-      ['blueprintEnrichmentCall', 'deliverableChunkCall', 'compiledDeliverable', 'repairRetryCall'].includes(
-        event?.type,
-      ) ||
+      [
+        'blueprintEnrichmentCall',
+        'knowledgeBackboneLookup',
+        'deliverableChunkCall',
+        'compiledDeliverable',
+        'repairRetryCall',
+      ].includes(event?.type) ||
       event?.type === 'scionCompilerRepair' ||
       (event?.type === 'pipelineDecision' && ['Scion pass call', 'Scion quality passes'].includes(event?.label)),
   );
@@ -55,6 +59,7 @@ function latestActivityEvent(budget) {
 
 function isEnrichmentActivity(event) {
   if (event?.type === 'blueprintEnrichmentCall') return true;
+  if (event?.type === 'knowledgeBackboneLookup') return true;
   if (event?.type === 'scionCompilerRepair') return event?.stage === 'local-compiler';
   if (event?.type === 'pipelineDecision' && ['Scion pass call', 'Scion quality passes'].includes(event?.label)) {
     return event?.featureId === 'blueprintEnrichment' || event?.task === 'scionPass';

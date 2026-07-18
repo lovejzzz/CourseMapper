@@ -207,7 +207,12 @@ function enrichmentRecoveryProgress(events = [], activity = null) {
 }
 
 function isKnowledgeProgressEvent(event) {
-  if (['blueprintEnrichmentCall', 'repairRetryCall', 'scionCompilerRepair'].includes(event?.type)) return true;
+  if (
+    ['blueprintEnrichmentCall', 'knowledgeBackboneLookup', 'repairRetryCall', 'scionCompilerRepair'].includes(
+      event?.type,
+    )
+  )
+    return true;
   if (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) return true;
   return (
     event?.type === 'pipelineDecision' &&
@@ -263,10 +268,7 @@ function enrichmentProgressForEvent(event, lessonCount) {
   if (currentLesson < 1) return null;
   const semanticCheckpoint = semanticPassCheckpoint(event);
   if (semanticCheckpoint !== null) {
-    const fraction = Math.min(
-      1,
-      (Math.max(0, currentLesson - 1) + Math.max(0.25, semanticCheckpoint)) / lessonCount,
-    );
+    const fraction = Math.min(1, (Math.max(0, currentLesson - 1) + Math.max(0.25, semanticCheckpoint)) / lessonCount);
     // The first authoring pass owns 30–45%. Do not let semantic sub-passes
     // borrow the 45–49% band reserved for outer recovery: a long course can
     // finish checking lesson N and still discover dropped early lessons.
@@ -278,19 +280,22 @@ function enrichmentProgressForEvent(event, lessonCount) {
 
 export function latestKnowledgeActivity(events = []) {
   const recent = Array.isArray(events) ? events : [];
-  const activeRecovery = recent.find(
-    (event) => event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event),
-  );
+  const activeRecovery = recent.find((event) => event?.type === 'repairRetryCall' && recoveryAttemptFromEvent(event));
   const recovery = recoveryAttemptFromEvent(activeRecovery);
   const activity = recent.find(
     (event) =>
-      ['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type) ||
+      ['blueprintEnrichmentCall', 'knowledgeBackboneLookup', 'repairRetryCall'].includes(event?.type) ||
       event?.type === 'scionCompilerRepair' ||
       (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) ||
       (event?.type === 'pipelineDecision' &&
         ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
         event?.detail),
   );
+  if (activity?.type === 'knowledgeBackboneLookup') {
+    const detail = String(activity.detail || '').trim();
+    const scope = detail.replace(/^Checking public sources for\s+/i, '');
+    return scope ? `Finding open readings · ${scope}` : 'Finding open readings';
+  }
   if (activity?.label === 'Language identity firewall') {
     const range = formatLessonRange(lessonNumbersFromEvent(activity).join(','));
     return `Protecting course identity${
@@ -463,6 +468,11 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
     return Math.max(16, Math.round(15 + streamed * 0.15));
   }
   if (state === 'enriching') {
+    // Reading retrieval runs only after local/model lesson knowledge work has
+    // settled and immediately before compilation. Give that observable phase
+    // the final honest checkpoint in Enrich instead of leaving the UI at the
+    // first-lesson mark during a bounded public-source network wait.
+    if (pipeline.activity?.type === 'knowledgeBackboneLookup') return 48;
     const lessonCount = Math.max(0, Number(generation.lessonCount) || 0);
     // Once an outer recovery begins, later semantic subcalls may revisit an
     // early lesson number. Keep the whole-build meter in the reserved 45–49%
@@ -527,6 +537,19 @@ export function deriveRibbonProgress({ pipeline, budget = {}, generation = {}, d
   return 0;
 }
 
+function compilationActivityLabel(activity, doneCount, totalCount) {
+  const label = String(activity?.label || '').trim();
+  if (activity?.type === 'deliverableChunkCall' && label) {
+    return label.replace(/^Generate\s+/i, 'Generating ').replace(/\s*\[(\d+)-(\d+)\]\s*$/, ' · lessons $1–$2');
+  }
+  if (activity?.type === 'repairRetryCall' && label) {
+    const retry = label.match(/^(.*?)\s+retry\s+\[(\d+)-(\d+)\]\s*$/i);
+    if (retry) return `Repairing ${retry[1]} · lessons ${retry[2]}–${retry[3]}`;
+    return `Repairing ${label}`;
+  }
+  return totalCount > 0 ? `Compiling deliverables · ${doneCount}/${totalCount} ready` : 'Compiling deliverables';
+}
+
 export function buildBuildRibbonModel({
   budget = {},
   generation = {},
@@ -565,8 +588,7 @@ export function buildBuildRibbonModel({
       break;
     case 'compiling':
       stage = 'compile';
-      stageLabel =
-        totalCount > 0 ? `Compiling deliverables · ${doneCount}/${totalCount} ready` : 'Compiling deliverables';
+      stageLabel = compilationActivityLabel(pipeline.activity, doneCount, totalCount);
       break;
     case 'verifying':
       stage = 'verify';
