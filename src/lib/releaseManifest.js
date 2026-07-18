@@ -93,6 +93,7 @@ export const CURRENT_RELEASE_CHANGELOG = {
         'A critical finding discovered during final grading now owns the handoff sentence. The workspace cannot show a blocked package beside an earlier “ready to download” message.',
         'Scion model-label tests derive the current Vx label from the release manifest, while historical changelog contracts retain their exact measured claims instead of failing whenever the current version advances.',
         'Workspace footer text moved from ten-pixel translucent slate to a readable twelve-pixel slate treatment. The built desktop and phone frames retain the calm hierarchy without making navigation effectively invisible.',
+        'The fresh-clone release gate now stores the exact task-scope payload behind the V0.16.47 readiness dataset identity. Its 143 admitted rows and split bytes remain unchanged; the regenerated receipt updates only the stronger dataset identity, its inspectable scope, and the enclosing receipt identity.',
         'Timed Chromium frames at 0, 250, 750, and 2,000 milliseconds confirmed that the restore fade resolves by the 250-millisecond frame on desktop and phone. The complete browser suite passed 141/141 journeys; the production unit gate passed 4,763 tests.',
       ],
     },

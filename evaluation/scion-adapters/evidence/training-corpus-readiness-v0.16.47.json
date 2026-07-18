@@ -19,7 +19,7 @@
   "dataset": {
     "identity": {
       "protocol": "scion-adapter-dataset-identity-v2",
-      "sha256": "3ecfc935c148548d30ba93edc671cb5569dfcbf8fe483804b522c53ab2ee60e0"
+      "sha256": "f1542e1d3d1d95c25c43820839fd12bfc30488d5d4499133175cd1cda2b7f014"
     },
     "status": "research-ready",
     "promotable": false,
@@ -272,6 +272,26 @@
       "sourceGrounding": "semantic-source-context-in-user-turn",
       "legacyFallback": "row-prompt-only-for-non-source-grounded-evidence"
     },
+    "taskScope": {
+      "protocol": "scion-adapter-task-scope-v1",
+      "mode": "allowlist",
+      "families": [
+        {
+          "id": "source-key-term-atom",
+          "rows": 93
+        },
+        {
+          "id": "source-mc-item-atom",
+          "rows": 50
+        }
+      ],
+      "unclassifiedPolicy": "base-only",
+      "compositePolicy": "exact-family-only",
+      "identity": {
+        "algorithm": "sha256-canonical-scion-adapter-task-scope-v1",
+        "sha256": "25bd97050228db9dca35576f0655f5778a8479b0695a3467f3f9f41491f68a09"
+      }
+    },
     "strictQuarantine": [
       {
         "source": "evaluation/scion-adapters/evidence/codex-approved-preferences-v0.16.47-readiness-gap.jsonl",
@@ -351,6 +371,6 @@
   "claimBoundary": "Passing the 100-row count is necessary but not sufficient. This receipt enforces strict semantic admission, source binding, task and kernel diversity, license disclosure, and a frozen holdout firewall. It is single-model-judge evidence and proves no adapter win or production readiness.",
   "identity": {
     "algorithm": "sha256-canonical-scion-adapter-corpus-readiness-v2",
-    "sha256": "ca8b888a05a7bafded1a77b6a8a603925559a83ff1daebf6e1c673c269d41eab"
+    "sha256": "40c386895433e1f515a6fed6cfae8573bf53f5c3ed5c7a4ef7b7b00f746ad460"
   }
 }
