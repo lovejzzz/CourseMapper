@@ -3102,7 +3102,10 @@ export default function AppFlow({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m19 9-7 7-7-7" />
                     </svg>
                   </summary>
-                  <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10">
+                  <div
+                    data-testid="workspace-more-menu"
+                    className="absolute left-0 z-30 mt-2 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-950/10 sm:left-auto sm:right-0"
+                  >
                     {/* Project-level actions only. Package export, material
                         creation, and edit history stay with their owning
                         surfaces so this menu does not become a junk drawer. */}

@@ -151,6 +151,17 @@ test.describe('Generated workspace mobile layout', () => {
         return activeBox.x >= stripBox.x && activeBox.x + activeBox.width <= stripBox.x + stripBox.width;
       })
       .toBe(true);
+
+    await page.getByTestId('workspace-more-menu-trigger').click();
+    const projectMenu = page.getByTestId('workspace-more-menu');
+    await expect(projectMenu).toBeVisible();
+    await expect(projectMenu.getByRole('button', { name: 'Save .coursemapper' })).toBeVisible();
+    const projectMenuBox = await projectMenu.boundingBox();
+    expect(projectMenuBox).not.toBeNull();
+    expect(projectMenuBox.x).toBeGreaterThanOrEqual(8);
+    expect(projectMenuBox.x + projectMenuBox.width).toBeLessThanOrEqual(page.viewportSize().width - 8);
+    await page.getByTestId('workspace-more-menu-trigger').click();
+
     await expectNoHorizontalOverflow(page);
   });
 
