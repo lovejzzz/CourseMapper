@@ -724,6 +724,38 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(parsed.issues.some((issue) => issue.surface === 'mc')).toBe(true);
   });
 
+  it('keeps a rich lesson when the verifier quarantines one MC seat as null', () => {
+    const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    const withQuarantinedSeat = JSON.parse(shortKeyResponse);
+    withQuarantinedSeat.lessons[0].mc = Array.from({ length: 4 }, () => ({
+      ...withQuarantinedSeat.lessons[0].mc[0],
+      op: [...withQuarantinedSeat.lessons[0].mc[0].op],
+    }));
+    withQuarantinedSeat.lessons[0].mc[2] = null;
+    withQuarantinedSeat.lessons[0].discussionPrompt.po.push(
+      'Sequence immediate adaptation with measurable emissions reductions.',
+    );
+    withQuarantinedSeat.lessons[0].assignmentCore.pa.push('Submit the recommendation within one week.');
+    withQuarantinedSeat.lessons[0].studyGuide = {
+      sm: 'Greenhouse gases alter outgoing radiation, while urban land use can independently intensify local heat exposure.',
+      rs: 'Compare greenhouse forcing, albedo, and urban heat-island mechanisms against the supplied records.',
+    };
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(withQuarantinedSeat), { prompt });
+    const lesson = parsed.lessons['lesson-1'];
+
+    expect(lesson).toBeTruthy();
+    expect(lesson.quizItems.filter((item) => item.type === 'multiple_choice')).toHaveLength(3);
+    expect(parsed.issues).toContainEqual(
+      expect.objectContaining({ lessonId: 'lesson-1', surface: 'mc', index: 2, problems: ['missing-item'] }),
+    );
+    expect(assessProjectedKernelCoverage(lesson, { requiredMcCount: 4 })).toMatchObject({
+      complete: false,
+      usable: true,
+      mcCount: 3,
+    });
+  });
+
   it('drops a key-term misconception that affirmatively restates one of the same kernel facts', () => {
     const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
     const response = JSON.parse(shortKeyResponse);

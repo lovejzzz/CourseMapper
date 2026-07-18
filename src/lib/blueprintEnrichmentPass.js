@@ -1688,6 +1688,14 @@ export function parseLessonKernelResponse(text, { prompt, expectedLessonIds } = 
 
     const mc = [];
     asArray(entry?.mc).forEach((item, index) => {
+      // Scion's double-blind verifier deliberately quarantines an item by
+      // replacing its seat with null when no independently verified repair is
+      // earned. Treat that as one rejected atom. Dereferencing the null here
+      // used to throw and discard the entire otherwise-rich lesson kernel.
+      if (!item || typeof item !== 'object') {
+        issues.push({ lessonId, surface: 'mc', index, problems: ['missing-item'] });
+        return;
+      }
       // Repair only evidence already present in the model output: retain a
       // complete sentence prefix before an unfinished tail, then realign only
       // a decisive, unique explanation/key contradiction. Both operations are
