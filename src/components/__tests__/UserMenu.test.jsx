@@ -71,6 +71,9 @@ describe('UserMenu signed-out developer controls', () => {
 
     click(advancedButton);
 
+    const advancedPopover = container.querySelector('[data-testid="signed-out-advanced-popover"]');
+    expect(advancedPopover).not.toBeNull();
+    expect(advancedPopover.style.width).toBe('288px');
     const switchButton = container.querySelector('[data-testid="signed-out-developer-mode-switch"]');
     expect(switchButton).not.toBeNull();
     expect(switchButton.getAttribute('aria-checked')).toBe('false');

@@ -225,6 +225,16 @@ test.describe('Generated workspace mobile layout', () => {
       expect(addMenuBox.x + addMenuBox.width).toBeLessThanOrEqual(viewport.width - 8);
       await page.getByTestId('add-deliverable-backdrop').click({ position: { x: 4, y: 4 } });
 
+      await page.getByRole('button', { name: 'Advanced options' }).click();
+      const advancedPopover = page.getByTestId('signed-out-advanced-popover');
+      await expect(advancedPopover).toBeVisible();
+      await expect(advancedPopover.getByText('Developer Mode', { exact: true })).toBeVisible();
+      const advancedPopoverBox = await advancedPopover.boundingBox();
+      expect(advancedPopoverBox).not.toBeNull();
+      expect(advancedPopoverBox.x).toBeGreaterThanOrEqual(8);
+      expect(advancedPopoverBox.x + advancedPopoverBox.width).toBeLessThanOrEqual(viewport.width - 8);
+      await page.getByRole('button', { name: 'Advanced options' }).click();
+
       await page
         .getByTestId('workspace-deliverable-tabs')
         .getByRole('button', { name: 'Course Map', exact: true })

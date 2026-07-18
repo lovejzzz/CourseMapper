@@ -14,6 +14,8 @@ export default function UserMenu({
   const [open, setOpen] = useState(false);
   const [signingIn, setSigningIn] = useState(false);
   const menuRef = useRef(null);
+  const advancedButtonRef = useRef(null);
+  const [advancedMenuPosition, setAdvancedMenuPosition] = useState({ top: 0, left: 0, width: 288 });
 
   /* close dropdown on outside click */
   useEffect(() => {
@@ -39,6 +41,24 @@ export default function UserMenu({
     } finally {
       setSigningIn(false);
     }
+  }
+
+  function toggleAdvancedMenu() {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    const rect = advancedButtonRef.current?.getBoundingClientRect();
+    if (rect) {
+      const viewportGutter = 12;
+      const width = Math.min(288, Math.max(0, window.innerWidth - viewportGutter * 2));
+      const left = Math.min(
+        Math.max(viewportGutter, rect.right - width),
+        Math.max(viewportGutter, window.innerWidth - width - viewportGutter),
+      );
+      setAdvancedMenuPosition({ top: rect.bottom + 8, left, width });
+    }
+    setOpen(true);
   }
 
   /* ---- Signed-out: show sign-in button + BYOK developer affordance ---- */
@@ -88,8 +108,9 @@ export default function UserMenu({
         {onDeveloperModeChange && (
           <>
             <button
+              ref={advancedButtonRef}
               type="button"
-              onClick={() => setOpen((v) => !v)}
+              onClick={toggleAdvancedMenu}
               className="tactile flex items-center justify-center w-9 h-9 rounded-full text-slate-500 bg-white/50 border border-slate-200/40 hover:bg-indigo-50/70 hover:text-indigo-600 hover:border-indigo-200/50 shadow-glass transition-all duration-300"
               aria-label="Advanced options"
               aria-expanded={open}
@@ -112,12 +133,16 @@ export default function UserMenu({
             </button>
 
             {open && (
-              <div className="absolute right-0 top-full mt-2 w-72 bg-white/95 backdrop-blur-lg rounded-xl shadow-xl border border-slate-200/60 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div
+                data-testid="signed-out-advanced-popover"
+                className="fixed z-50 rounded-xl border border-slate-200/60 bg-white/95 py-2 shadow-xl backdrop-blur-lg animate-in fade-in slide-in-from-top-2 duration-200 dark:border-slate-700/70 dark:bg-slate-900/95"
+                style={advancedMenuPosition}
+              >
                 <div className="px-4 py-2">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-[11px] font-semibold text-slate-700">Developer Mode</p>
-                      <p className="text-[10px] text-slate-400">Show workspace code tools</p>
+                      <p className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">Developer Mode</p>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-400">Show workspace code tools</p>
                     </div>
                     <button
                       type="button"
