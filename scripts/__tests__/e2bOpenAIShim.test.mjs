@@ -199,12 +199,60 @@ input.on('line', (line) => {
     nativeAdapterActive: false,
   });
 
+  const contentSourced = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Scion-Task-Family': 'lesson-kernel' },
+    body: JSON.stringify({
+      model: 'fake-scion',
+      messages: [
+        { role: 'system', content: 'Return one knowledge kernel.' },
+        {
+          role: 'user',
+          content:
+            'Course: World Literature\\nLessons:\\n[{"lessonId":"lesson-2","title":"Oral Epic Tradition"}]\\nCONTENT-SOURCED lessons (goal/outcomes/async/sync ONLY): lesson-2',
+        },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'kernel_lesson_batch',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              lessons: {
+                type: 'array',
+                minItems: 1,
+                maxItems: 1,
+                items: {
+                  type: 'object',
+                  additionalProperties: false,
+                  properties: {
+                    lessonId: { type: 'string', enum: ['lesson-2'] },
+                    goal: { type: 'string', pattern: '^\\\\S{1,24}( \\\\S{1,24}){0,23}$' },
+                  },
+                  required: ['lessonId', 'goal'],
+                },
+              },
+            },
+            required: ['lessons'],
+          },
+        },
+      },
+    }),
+  }).then((result) => result.json());
+  expect(JSON.parse(contentSourced.choices[0].message.content).lessons[0]).toMatchObject({
+    lessonId: 'lesson-2',
+  });
+  expect(contentSourced.scion_adapter_route).toMatchObject({ taskFamily: 'lesson-kernel', modelCalls: 1 });
+
   const rows = (await fs.readFile(bodyLogPath, 'utf8'))
     .trim()
     .split('\n')
     .map((line) => JSON.parse(line));
-  expect(rows).toHaveLength(1);
+  expect(rows).toHaveLength(2);
   expect(rows[0].modelMetrics.modelCalls).toBeGreaterThan(1);
+  expect(rows[1].modelMetrics.modelCalls).toBe(1);
 
   const schemas = (await fs.readFile(schemaLogPath, 'utf8'))
     .trim()

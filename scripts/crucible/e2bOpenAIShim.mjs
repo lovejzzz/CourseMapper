@@ -198,7 +198,13 @@ function boundSchema(node) {
   if (!node || typeof node !== 'object') return node;
   const out = {};
   for (const [key, value] of Object.entries(node)) out[key] = boundSchema(value);
-  if (out.type === 'string' && out.maxLength === undefined && out.enum === undefined && out.const === undefined) {
+  if (
+    out.type === 'string' &&
+    out.maxLength === undefined &&
+    out.pattern === undefined &&
+    out.enum === undefined &&
+    out.const === undefined
+  ) {
     out.maxLength = 2000;
   }
   if (out.type === 'array' && out.maxItems === undefined) out.maxItems = 12;

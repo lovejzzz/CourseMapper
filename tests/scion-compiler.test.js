@@ -81,6 +81,29 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(profile.schema.properties.lessons.items.properties.mc).toBeUndefined();
   });
 
+  it('D1: app-declared Scion schemas stay on llguidance constrained decoding', () => {
+    const profiles = [
+      kernelBatchSchemaProfile({
+        expectedLessonIds: ['lesson-1'],
+        contentSourcedLessonIds: ['lesson-1'],
+      }),
+      kernelBatchSchemaProfile({ expectedLessonIds: ['lesson-2'], includeCourseLevel: true }),
+      skeletonSchemaProfile({ sessionCount: 3 }),
+    ];
+    const strings = [];
+    const visit = (node) => {
+      if (Array.isArray(node)) return node.forEach(visit);
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'string') strings.push(node);
+      Object.values(node).forEach(visit);
+    };
+    profiles.forEach((profile) => visit(profile.schema));
+    expect(strings.some((schema) => schema.pattern)).toBe(true);
+    expect(strings.every((schema) => !(schema.pattern && ('minLength' in schema || 'maxLength' in schema)))).toBe(
+      true,
+    );
+  });
+
   it('D1: the skeleton contract pins the session count and requires assessments', () => {
     const profile = skeletonSchemaProfile({ sessionCount: 7 });
     expect(profile.schema.properties.sessions.minItems).toBe(7);

@@ -9,9 +9,10 @@
 // Contract provenance: the per-lesson kernel shape mirrors the app's own
 // prompt contract (buildLessonKernelPrompt + NATIVE_PASS_B_AUTHORING_ADDITION)
 // and lint floor (lintKernelFact ≥25ch, lintEnrichedKeyTerm df ≥45ch,
-// lintEnrichedQuizItem exactly-4 options). The NO_SPACE_RUNS pattern bans the
-// measured greedy degeneration (V2 round 17: space-runs inside string values
-// consumed whole token budgets byte-identically).
+// lintEnrichedQuizItem exactly-4 options). llguidance cannot compile an
+// intersection between min/maxLength and the old no-space-run pattern. Keep
+// both intentions in one bounded-token regex; the parser still owns exact
+// character admission after decoding.
 
 import { LOCAL_PROVIDER_ID } from './localProvider';
 
@@ -20,7 +21,14 @@ export function isScionProvider(provider) {
 }
 
 export const NO_SPACE_RUNS = '^\\S+( \\S+)*$';
-const str = (minLength, maxLength) => ({ type: 'string', minLength, maxLength, pattern: NO_SPACE_RUNS });
+const str = (minLength, maxLength) => {
+  const minWords = Math.max(1, Math.ceil(minLength / 10));
+  const maxWords = Math.max(minWords, Math.ceil(maxLength / 5));
+  return {
+    type: 'string',
+    pattern: `^\\S{1,24}( \\S{1,24}){${minWords - 1},${maxWords - 1}}$`,
+  };
+};
 const arr = (items, minItems, maxItems) => ({ type: 'array', items, minItems, maxItems });
 
 function lockObjects(node) {
