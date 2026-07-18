@@ -204,7 +204,10 @@ describe('ExportSidePanel readiness repair timing', () => {
     expect(panel?.textContent).not.toContain('1 export warning');
     expect(panel?.textContent).not.toContain('3 P1 · 1 P2');
     expect(panel?.textContent).not.toContain('PPTX export generated');
-    expect(container.querySelector('[data-testid="quality-stamp"]')?.textContent).toContain('96 · A');
+    const qualityStamp = container.querySelector('[data-testid="quality-stamp"]');
+    expect(qualityStamp?.textContent).toContain('96 · A');
+    expect(qualityStamp?.className).toContain('sky');
+    expect(qualityStamp?.className).not.toContain('amber');
     expect(container.querySelector('[data-testid="export-download-zip"]')?.disabled).toBe(false);
   });
 

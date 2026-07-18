@@ -403,7 +403,14 @@ function ReadinessPanel({
             <span className="text-xs font-semibold opacity-70">{tone.meta}</span>
             {/* v0.14.4 WS-B2: the download card carries the compact grade
                 stamp; the full chip lives in the workspace header. */}
-            {!isBlocked && <QualityStamp quality={quality} onOpen={onOpenQuality} trustStatus={trustStatus} />}
+            {!isBlocked && (
+              <QualityStamp
+                quality={quality}
+                onOpen={onOpenQuality}
+                trustStatus={trustStatus}
+                informational={hasPackageOnlyReview}
+              />
+            )}
           </div>
           {/* v0.14.6 calm pass: when everything is green the ✓ + meta already
               say it — restating "All selected materials passed…" was noise. */}
@@ -565,12 +572,14 @@ function ReadinessConfirm({
 // chunk (MessageBubble) and pulling it into the export panel chunk would be
 // heavier than the data it formats; the full markdown report ships in the
 // ZIP as QUALITY_REPORT.md.
-export function QualityStamp({ quality, onOpen, trustStatus = null }) {
+export function QualityStamp({ quality, onOpen, trustStatus = null, informational = false }) {
   if (quality?.status !== 'graded') return null;
   const status = trustStatus || getPackageTrustStatus({ packageQualityPass: { status: 'ready', quality } });
-  const tone = status.clean
-    ? 'border-emerald-200 bg-white/70 text-emerald-700'
-    : 'border-amber-200 bg-white/70 text-amber-700';
+  const tone = informational
+    ? 'border-sky-200 bg-white/70 text-sky-700'
+    : status.clean
+      ? 'border-emerald-200 bg-white/70 text-emerald-700'
+      : 'border-amber-200 bg-white/70 text-amber-700';
   return (
     <button
       type="button"
