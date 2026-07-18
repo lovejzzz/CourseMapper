@@ -29,6 +29,7 @@ function parseArgs(argv) {
     judgeDir: JUDGE_DIR,
     output: OUTPUT_DIR,
     prompt: PROMPT,
+    excludeAdmittedReport: '',
     generatedAt: new Date().toISOString(),
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -36,6 +37,10 @@ function parseArgs(argv) {
     if (token === '--build') args.build = true;
     else if (token === '--ingest') args.ingest = true;
     else if (token === '--output') args.output = argv[++index] || args.output;
+    else if (token === '--prompt') args.prompt = argv[++index] || args.prompt;
+    else if (token === '--exclude-admitted-report') {
+      args.excludeAdmittedReport = argv[++index] || '';
+    }
     else if (token === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
     else if (token === '--help' || token === '-h') args.help = true;
     else throw new Error(`Unknown teacher revision option: ${token}`);
@@ -66,11 +71,12 @@ async function atomicWriteJson(file, value) {
 }
 
 async function loadInputs(args) {
-  const [campaign, referenceReport, judgeWorkbook, promptRaw] = await Promise.all([
+  const [campaign, referenceReport, judgeWorkbook, promptRaw, excludeAdmittedReport] = await Promise.all([
     readJson(args.campaign),
     readJson(args.referenceReport),
     readJson(path.join(args.judgeDir, 'workbook.json')),
     fs.readFile(args.prompt, 'utf8'),
+    args.excludeAdmittedReport ? readJson(args.excludeAdmittedReport) : null,
   ]);
   return {
     campaign,
@@ -78,20 +84,30 @@ async function loadInputs(args) {
     judgeWorkbook,
     promptRaw,
     prompt: { path: args.prompt, sha256: crypto.createHash('sha256').update(promptRaw).digest('hex') },
+    excludeAdmittedReport,
   };
 }
 
 async function build(args) {
   const inputs = await loadInputs(args);
+  const excludedCaseIds = new Set(
+    (inputs.excludeAdmittedReport?.calls || [])
+      .filter((call) => call.admission?.needsRetry === false)
+      .map((call) => call.caseId),
+  );
   const batches = [];
   for (const entry of inputs.judgeWorkbook.batches || []) {
     const aggregatePath = path.join(args.judgeDir, 'batches', entry.batchId, 'paired-order-result.json');
     const aggregate = await readJsonIfExists(aggregatePath);
     if (!aggregate) continue;
+    const filteredAggregate = {
+      ...aggregate,
+      results: (aggregate.results || []).filter((result) => !excludedCaseIds.has(result.caseId)),
+    };
     const packet = buildScionLessonKernelTeacherRevisionPacket({
       batchId: entry.batchId,
       campaign: inputs.campaign,
-      aggregate,
+      aggregate: filteredAggregate,
       referenceReport: inputs.referenceReport,
       prompt: inputs.prompt,
       generatedAt: args.generatedAt,
@@ -119,6 +135,15 @@ async function build(args) {
     campaignIdentity: inputs.campaign.identity,
     judgeWorkbookSha256: inputs.judgeWorkbook.identity?.sha256,
     prompt: inputs.prompt,
+    ...(args.excludeAdmittedReport
+      ? {
+          exclusion: {
+            path: args.excludeAdmittedReport,
+            reportSha256: inputs.excludeAdmittedReport?.identity?.sha256,
+            admittedCases: excludedCaseIds.size,
+          },
+        }
+      : {}),
     batches,
     cases: batches.reduce((sum, entry) => sum + entry.cases, 0),
     claimBoundary:
@@ -201,7 +226,9 @@ async function ingest(args) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
-    console.log('Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest]');
+    console.log(
+      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--prompt file] [--exclude-admitted-report file]',
+    );
     return;
   }
   if (args.build) {

@@ -118,6 +118,13 @@ describe('Scion lesson-kernel teacher revision', () => {
     expect(prompt).toContain('avoid copying three or more content words');
     expect(prompt).toContain('do not restate the definition as the example');
     expect(prompt).toContain('substantially different wording from `df`');
+    const promptV2 = fs.readFileSync(
+      path.resolve(here, '../evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v2-v0.16.54.md'),
+      'utf8',
+    );
+    expect(promptV2).toContain('Do not use absolute option language');
+    expect(promptV2).toContain('Every named phrase must appear verbatim in a supplied claim');
+    expect(promptV2).toContain('directly correct only the false predicate');
   });
 
   it('builds a source-only packet without exposing the local artifact or provider route', () => {
