@@ -325,7 +325,13 @@ function publicScionWordCount(value) {
 }
 
 function publicScionSourceText(expected = {}) {
-  return [expected.title, expected.objectives, expected.topics, expected.readings]
+  return [
+    expected.title,
+    expected.objectives,
+    expected.topics,
+    expected.readings,
+    ...(Array.isArray(expected.reviewAnchors) ? expected.reviewAnchors : []),
+  ]
     .map((value) => String(value || '').trim())
     .filter(Boolean)
     .join(' ');

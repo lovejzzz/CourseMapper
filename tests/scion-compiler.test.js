@@ -676,6 +676,40 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(repairs.every((event) => event.preferenceEvidence?.chosenAnswers.join(',') === '0,0')).toBe(true);
   });
 
+  it('D3: admits a cumulative-review item when it matches a prior canonical topic anchor', async () => {
+    const lesson = {
+      lessonId: 'lesson-15',
+      facts: ['Pinyin tone marks distinguish lexical meaning in otherwise identical spoken syllables.'],
+      mc: [
+        {
+          q: 'A student writes mā, má, mǎ, and mà for one syllable. Which Pinyin feature distinguishes the four intended meanings?',
+          op: ['Tone marks', 'Word order', 'Measure words', 'Character radicals'],
+          ai: 0,
+          ex: 'Tone marks encode the four pitch contours shown on the same syllable; the other options do not represent those contours.',
+        },
+      ],
+    };
+    const calls = [];
+    await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
+      promptLessons: [
+        {
+          lessonId: 'lesson-15',
+          title: 'Course Review and Final Oral Performance',
+          topics: 'Course Review; Final Oral Performance',
+          reviewAnchors: ['Pinyin and the Four Tones', 'Greetings and Self-Introductions'],
+        },
+      ],
+      generateJson: async ({ schemaProfile }) => {
+        calls.push(schemaProfile.name);
+        if (schemaProfile.name === 'blind_solve') return JSON.stringify({ answers: ['Tone marks'] });
+        return JSON.stringify({});
+      },
+      maxCallsPerLesson: 2,
+    });
+
+    expect(calls).not.toContain('topic_repair_batch');
+  });
+
   it('D3: repairs malformed key-term atoms without treating open-ended prose as verified preference data', async () => {
     const lesson = {
       lessonId: 'lesson-1',

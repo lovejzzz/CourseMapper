@@ -768,12 +768,41 @@ const LESSON_CONTENT_SYSTEM_PROMPT = [
 const META_SURFACE_RE =
   /\b(?:evidence move|success criteri\w*|course evidence|lesson evidence|rubric|the (?:Week\s*\d+|weekly) \w+|this (?:course|lesson)|the lesson|artifact|submission|checkpoint)\b/i;
 
+const CUMULATIVE_REVIEW_RE =
+  /\b(?:course|cumulative|comprehensive|midterm|final)\s+(?:review|synthesis|exam(?:ination)?|assessment|performance)\b|\b(?:review|synthesis)\s+(?:for\s+)?(?:the\s+)?(?:midterm|final|course)\b/i;
+
+function cumulativeReviewAnchors(courseMap, lessonIndex) {
+  const lesson = courseMap?.lessons?.[lessonIndex];
+  const identity = [lesson?.title, ...(lesson?.sections || []).map((section) => section?.topicSection)]
+    .filter(Boolean)
+    .join(' ');
+  if (!CUMULATIVE_REVIEW_RE.test(identity)) return [];
+
+  const anchors = [];
+  const seen = new Set();
+  for (const prior of asArray(courseMap?.lessons).slice(0, lessonIndex)) {
+    for (const raw of [prior?.title, ...asArray(prior?.sections).map((section) => section?.topicSection)]) {
+      const anchor = cleanText(raw)
+        .replace(/^lesson\s+\d+\s*[:.\-–—]\s*/i, '')
+        .replace(/^\d+(?:\.\d+)*\s*[:.\-–—]\s*/, '')
+        .trim();
+      const key = anchor.toLowerCase();
+      if (!anchor || anchor.length < 4 || seen.has(key) || CUMULATIVE_REVIEW_RE.test(anchor)) continue;
+      seen.add(key);
+      anchors.push(truncateText(anchor, 100));
+      if (anchors.length >= 12) return anchors;
+    }
+  }
+  return anchors;
+}
+
 function summarizeLessonsForContent(courseMap, lessonIndices) {
   return asArray(lessonIndices)
     .map((lessonIndex) => {
       const lesson = courseMap?.lessons?.[lessonIndex];
       if (!lesson) return null;
       const section = lesson.sections?.[0] || {};
+      const reviewAnchors = cumulativeReviewAnchors(courseMap, lessonIndex);
       return {
         lessonId: `lesson-${lessonIndex + 1}`,
         title: truncateText(lesson.title || `Lesson ${lessonIndex + 1}`, 140),
@@ -786,6 +815,7 @@ function summarizeLessonsForContent(courseMap, lessonIndices) {
           400,
         ),
         readings: truncateText(String(section.supportingResources || ''), 600),
+        ...(reviewAnchors.length > 0 ? { reviewAnchors } : {}),
       };
     })
     .filter(Boolean);

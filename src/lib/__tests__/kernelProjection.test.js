@@ -679,6 +679,40 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(kernelPrompt.systemPrompt).not.toContain('correct 1-2 sentence definition');
   });
 
+  it('grounds cumulative review lessons in prior canonical lesson topics', () => {
+    const reviewCourse = {
+      courseName: 'Elementary Mandarin Chinese I',
+      lessons: [
+        {
+          title: 'Lesson 1: Pinyin and the Four Tones',
+          sections: [{ topicSection: '1.1: Tone contours and initials' }],
+        },
+        {
+          title: 'Lesson 2: Greetings and Self-Introductions',
+          sections: [{ topicSection: '2.1: 你好 and name exchange' }],
+        },
+        {
+          title: 'Lesson 3: Course Review and Final Oral Performance',
+          sections: [{ topicSection: '3.1: Course Review' }],
+        },
+      ],
+    };
+
+    const reviewPrompt = buildLessonKernelPrompt(reviewCourse, [2]);
+    expect(reviewPrompt.lessons[0].reviewAnchors).toEqual(
+      expect.arrayContaining([
+        'Pinyin and the Four Tones',
+        'Tone contours and initials',
+        'Greetings and Self-Introductions',
+        '你好 and name exchange',
+      ]),
+    );
+    expect(reviewPrompt.userPrompt).toContain('"reviewAnchors"');
+
+    const ordinaryPrompt = buildLessonKernelPrompt(reviewCourse, [1]);
+    expect(ordinaryPrompt.lessons[0].reviewAnchors).toBeUndefined();
+  });
+
   it('drops invalid kernel atoms individually and keeps the lesson', () => {
     const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
     const withBadAtoms = JSON.parse(shortKeyResponse);

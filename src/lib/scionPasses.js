@@ -99,7 +99,9 @@ const MC_ITEM_SCHEMA = {
 };
 
 function topicWords(promptLesson) {
-  const text = `${promptLesson?.title ?? ''} ${promptLesson?.topics ?? ''}`.toLowerCase();
+  const text = `${promptLesson?.title ?? ''} ${promptLesson?.topics ?? ''} ${
+    Array.isArray(promptLesson?.reviewAnchors) ? promptLesson.reviewAnchors.join(' ') : ''
+  }`.toLowerCase();
   return [...new Set(text.match(/[a-z]{4,}/g) ?? [])].filter((word) => !TOPIC_STOPWORDS.has(word));
 }
 
