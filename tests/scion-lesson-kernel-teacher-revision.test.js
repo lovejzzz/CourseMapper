@@ -131,7 +131,9 @@ describe('Scion lesson-kernel teacher revision', () => {
     );
     expect(promptV3).toContain('must repeat its exact `tr` phrase verbatim as the subject');
     expect(promptV3).toContain('not the definition with one negation or reversed adjective');
-    expect(promptV3).toContain('without restating the full definition');
+    expect(promptV3).toContain('do not repeat the misconception and then negate it');
+    expect(promptV3).toContain('do not restate the full definition');
+    expect(promptV3).not.toContain('\\n-');
   });
 
   it('builds a source-only packet without exposing the local artifact or provider route', () => {
