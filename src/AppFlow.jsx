@@ -368,12 +368,18 @@ function selectRetryActionsWithinCallBudget(
 // ── Add Deliverable dropdown — uses a portal so it escapes the overflow-x-auto tab bar ──
 function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDeliverable, onAdd, onCreateCustom }) {
   const btnRef = useRef(null);
-  const [dropPos, setDropPos] = useState({ top: 0, left: 0 });
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 220 });
 
   function openDropdown() {
     if (btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect();
-      setDropPos({ top: rect.bottom + 6, left: rect.left });
+      const viewportGutter = 12;
+      const width = Math.min(220, Math.max(0, window.innerWidth - viewportGutter * 2));
+      const left = Math.min(
+        Math.max(viewportGutter, rect.left),
+        Math.max(viewportGutter, window.innerWidth - width - viewportGutter),
+      );
+      setDropPos({ top: rect.bottom + 6, left, width });
     }
     setShowAddDeliverable(true);
   }
@@ -397,19 +403,26 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
       {showAddDeliverable &&
         createPortal(
           <>
-            <div className="fixed inset-0 z-[9998]" onClick={() => setShowAddDeliverable(false)} />
             <div
-              className="fixed z-[9999] bg-white/95 backdrop-blur-xl rounded-lg border border-slate-200/60 shadow-xl p-2 min-w-[220px] max-h-[70vh] overflow-y-auto animate-spring-in"
-              style={{ top: dropPos.top, left: dropPos.left }}
+              data-testid="add-deliverable-backdrop"
+              className="fixed inset-0 z-[9998]"
+              onClick={() => setShowAddDeliverable(false)}
+            />
+            <div
+              data-testid="add-deliverable-menu"
+              className="fixed z-[9999] max-h-[70vh] overflow-y-auto rounded-lg border border-slate-200/60 bg-white/95 p-2 shadow-xl backdrop-blur-xl animate-spring-in dark:border-slate-700/70 dark:bg-slate-900/95"
+              style={{ top: dropPos.top, left: dropPos.left, width: dropPos.width }}
             >
               {builtIn.length > 0 && (
                 <>
-                  <p className="text-xs font-semibold text-slate-500 px-2 pt-1 pb-1.5">Add deliverable</p>
+                  <p className="px-2 pb-1.5 pt-1 text-xs font-semibold text-slate-500 dark:text-slate-300">
+                    Add deliverable
+                  </p>
                   {builtIn.map((feature) => (
                     <button
                       key={feature.id}
                       onClick={() => onAdd(feature)}
-                      className="w-full text-left px-2 py-2 rounded-md text-xs font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                      className="w-full rounded-md px-2 py-2 text-left text-xs font-medium text-slate-600 transition-colors hover:bg-indigo-50 hover:text-indigo-700 dark:text-slate-200 dark:hover:bg-indigo-400/10 dark:hover:text-indigo-200"
                     >
                       {feature.label}
                     </button>
@@ -418,13 +431,15 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
               )}
               {custom.length > 0 && (
                 <>
-                  <div className="border-t border-slate-100/80 my-1.5" />
-                  <p className="text-xs font-semibold text-slate-500 px-2 pt-1 pb-1.5">Your custom</p>
+                  <div className="my-1.5 border-t border-slate-100/80 dark:border-slate-700/70" />
+                  <p className="px-2 pb-1.5 pt-1 text-xs font-semibold text-slate-500 dark:text-slate-300">
+                    Your custom
+                  </p>
                   {custom.map((feature) => (
                     <button
                       key={feature.id}
                       onClick={() => onAdd(feature)}
-                      className="w-full text-left px-2 py-2 rounded-md text-xs font-medium text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                      className="w-full rounded-md px-2 py-2 text-left text-xs font-medium text-indigo-600 transition-colors hover:bg-indigo-50 hover:text-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-400/10 dark:hover:text-indigo-200"
                     >
                       {feature.label}
                     </button>
@@ -432,13 +447,15 @@ function AddDeliverableButton({ unselected, showAddDeliverable, setShowAddDelive
                 </>
               )}
               {/* Create Custom option */}
-              {(builtIn.length > 0 || custom.length > 0) && <div className="border-t border-slate-100/80 my-1.5" />}
+              {(builtIn.length > 0 || custom.length > 0) && (
+                <div className="my-1.5 border-t border-slate-100/80 dark:border-slate-700/70" />
+              )}
               <button
                 onClick={() => {
                   setShowAddDeliverable(false);
                   onCreateCustom();
                 }}
-                className="w-full text-left px-2 py-2 rounded-md text-xs font-medium text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex items-center gap-1.5"
+                className="flex w-full items-center gap-1.5 rounded-md px-2 py-2 text-left text-xs font-medium text-indigo-500 transition-colors hover:bg-indigo-50 hover:text-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-400/10 dark:hover:text-indigo-200"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

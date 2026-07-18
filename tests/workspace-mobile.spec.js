@@ -215,6 +215,16 @@ test.describe('Generated workspace mobile layout', () => {
       await expect(page.getByText('Repeated task failure')).toBeVisible();
       await expectNoHorizontalOverflow(page);
 
+      await page.getByRole('button', { name: 'Add', exact: true }).click();
+      const addMenu = page.getByTestId('add-deliverable-menu');
+      await expect(addMenu).toBeVisible();
+      await expect(addMenu.getByRole('button', { name: 'Create Custom...' })).toBeVisible();
+      const addMenuBox = await addMenu.boundingBox();
+      expect(addMenuBox).not.toBeNull();
+      expect(addMenuBox.x).toBeGreaterThanOrEqual(8);
+      expect(addMenuBox.x + addMenuBox.width).toBeLessThanOrEqual(viewport.width - 8);
+      await page.getByTestId('add-deliverable-backdrop').click({ position: { x: 4, y: 4 } });
+
       await page
         .getByTestId('workspace-deliverable-tabs')
         .getByRole('button', { name: 'Course Map', exact: true })
