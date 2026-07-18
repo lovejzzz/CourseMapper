@@ -205,6 +205,27 @@ export default function useStreamReader() {
       approxInputTokens: estimateCharsAsTokens(systemPrompt, userPrompt),
       hasSchema: Boolean(schema),
     });
+    const recordLocalAdapterRoute = (payload) => {
+      if (provider !== 'local' || !payload || typeof payload !== 'object') return;
+      recordApiCallEvent({
+        type: 'scionAdapterRoute',
+        label: payload.mode === 'adapter' ? 'Scion adapter used' : 'Scion base used',
+        detail: `${payload.taskFamily || 'unclassified'} · ${payload.reason || 'unknown route'}`,
+        stage: 'local-model-route',
+        ...buildProviderTraceBase(),
+        routeProtocol: payload.protocol || '',
+        routeMode: payload.mode || 'base-only',
+        taskFamily: payload.taskFamily || 'unclassified',
+        routeReason: payload.reason || '',
+        adapterId: payload.adapterId || null,
+        adapterManifestSha256: payload.manifestSha256 || null,
+        adapterScopeIdentitySha256: payload.scopeIdentitySha256 || null,
+        nativeAdapterActive: payload.nativeAdapterActive === true,
+        adapterScale: Number.isFinite(Number(payload.adapterScale)) ? Number(payload.adapterScale) : null,
+        routeModelCalls: Number(payload.modelCalls) || 0,
+        execution: 'local-server',
+      });
+    };
 
     // Scion: pinned Gemma 4 GGUF inference in this browser. This branch must
     // remain before buildProviderTextRequest so a saved `public` provider can
@@ -621,6 +642,7 @@ export default function useStreamReader() {
 
         if (typeof parseJsonResponse === 'function') {
           const data = await response.json().catch(() => ({}));
+          recordLocalAdapterRoute(data?.scion_adapter_route);
           const text = parseJsonResponse(data, response);
           fullText += text;
           if (onChunk) onChunk(fullText, 1);
@@ -679,6 +701,7 @@ export default function useStreamReader() {
 
             try {
               const parsed = JSON.parse(data);
+              recordLocalAdapterRoute(parsed?.scion_adapter_route);
               const chunkUsage = extractUsageFromProviderChunk(provider, parsed);
               if (chunkUsage) reportedUsage = mergeReportedUsage(reportedUsage, chunkUsage);
               const text = parseChunk(parsed);

@@ -38,6 +38,43 @@ ADAPTERS = os.environ.get("SCION_ADAPTERS", os.environ.get("G4_ADAPTERS", ""))
 model, processor = load(MODEL, **({"adapter_path": ADAPTERS} if ADAPTERS else {}))
 config = model.config
 
+# Keep one copy of the public base in memory and route the verified LoRA per
+# request. MLX LoRA modules retain their original linear layer, so scale=0 is
+# the exact base path while the captured training scale restores the adapter.
+# This mirrors Wllama's load/clear routing without loading two multi-GB models.
+_adapter_slots = []
+if ADAPTERS:
+    from mlx_lm.tuner.lora import LoRAEmbedding, LoRALinear, LoRASwitchLinear
+
+    _lora_types = (LoRALinear, LoRASwitchLinear, LoRAEmbedding)
+    _adapter_slots = [
+        (module, float(module.scale))
+        for _, module in model.named_modules()
+        if isinstance(module, _lora_types)
+    ]
+    if not _adapter_slots:
+        raise RuntimeError("Scion adapter loaded without native LoRA modules")
+
+
+def set_adapter_mode(mode):
+    """Select an exact request route and return its native proof payload."""
+    if mode not in ("base-only", "adapter"):
+        raise ValueError(f"Unsupported Scion adapter mode: {mode}")
+    if mode == "adapter" and not _adapter_slots:
+        raise RuntimeError("Adapter route requested while the runtime is base-only")
+    active = mode == "adapter"
+    for module, trained_scale in _adapter_slots:
+        module.scale = trained_scale if active else 0.0
+    scales = {float(module.scale) for module, _ in _adapter_slots}
+    expected = {trained_scale for _, trained_scale in _adapter_slots} if active else ({0.0} if _adapter_slots else set())
+    if scales != expected:
+        raise RuntimeError("Native LoRA scale state did not match the requested route")
+    return {
+        "adapterMode": mode,
+        "nativeAdapterActive": active,
+        "adapterScale": max(scales) if active and scales else 0.0,
+    }
+
 # llguidance needs a FAST tokenizer; mlx-vlm's processor is the slow
 # backend, so a fast twin of the same vocab loads once for grammar use.
 # Grammar is built here (NOT via mlx_vlm.structured's builder). Whitespace is
@@ -114,6 +151,7 @@ for line in sys.stdin:
         continue
     try:
         req = json.loads(line)
+        route = set_adapter_mode(req.get("adapterMode", "adapter" if ADAPTERS else "base-only"))
         prompt = apply_chat_template(processor, config, f"{req['system']}\n\n{req['user']}", num_images=0)
         processors, tier = constrained_processor(req)
         # temperature>0 enables the best-of-N sampling harness (E2B-MAX);
@@ -128,6 +166,6 @@ for line in sys.stdin:
             **({"logits_processors": processors} if processors else {}),
         )
         text = (out.text if hasattr(out, "text") else str(out)).strip()
-        print(json.dumps({"id": req.get("id"), "text": text, "constrained": tier}), flush=True)
+        print(json.dumps({"id": req.get("id"), "text": text, "constrained": tier, **route}), flush=True)
     except Exception as error:  # noqa: BLE001
         print(json.dumps({"id": req.get("id") if isinstance(req, dict) else None, "error": str(error)[:200]}), flush=True)

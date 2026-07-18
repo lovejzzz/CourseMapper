@@ -44,7 +44,7 @@ export function scionAdapterTaskFamilyForPairKind(value) {
 
 export function scionAdapterTaskFamilyForProviderTask(value) {
   const task = clean(value).toLowerCase();
-  if (['blueprintenrichment', 'lesson-kernel', 'lessonkernel'].includes(task)) {
+  if (['blueprintenrichment', 'lesson-kernel', 'lessonkernel', 'scionpass'].includes(task)) {
     return SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL;
   }
   if (['course-map', 'coursemap', 'native-skeleton', 'nativeskeleton', 'course-ir', 'courseir'].includes(task)) {

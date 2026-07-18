@@ -195,4 +195,56 @@ describe('useStreamReader Scion boundary', () => {
       }),
     );
   });
+
+  it('records the local server native adapter route carried by the model response', async () => {
+    mocks.buildProviderTextRequest.mockReturnValue({
+      url: 'http://127.0.0.1:8799/v1/chat/completions',
+      headers: { 'Content-Type': 'application/json', 'X-Scion-Task-Family': 'lesson-kernel' },
+      body: { stream: true },
+      parseChunk: (parsed) => parsed.choices?.[0]?.delta?.content || null,
+    });
+    const route = {
+      protocol: 'scion-adapter-runtime-route-v1',
+      mode: 'adapter',
+      taskFamily: 'lesson-kernel',
+      reason: 'exact-task-family-match',
+      adapterId: 'scion-test',
+      manifestSha256: 'a'.repeat(64),
+      scopeIdentitySha256: 'b'.repeat(64),
+      nativeAdapterActive: true,
+      adapterScale: 1,
+      modelCalls: 2,
+    };
+    const body = [
+      `data: ${JSON.stringify({ choices: [{ delta: { content: '{"ok":true}' } }], scion_adapter_route: route })}`,
+      'data: [DONE]',
+      '',
+    ].join('\n\n');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(body, { status: 200 }));
+    const onApiCallEvent = vi.fn();
+
+    let result;
+    await act(async () => {
+      result = await reader.streamProvider('local', '', 'scion-1', 'System', 'Course', {
+        task: 'blueprintEnrichment',
+        onApiCallEvent,
+      });
+    });
+
+    expect(result.fullText).toBe('{"ok":true}');
+    expect(onApiCallEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'scionAdapterRoute',
+        routeProtocol: 'scion-adapter-runtime-route-v1',
+        routeMode: 'adapter',
+        taskFamily: 'lesson-kernel',
+        adapterId: 'scion-test',
+        adapterManifestSha256: 'a'.repeat(64),
+        adapterScopeIdentitySha256: 'b'.repeat(64),
+        nativeAdapterActive: true,
+        routeModelCalls: 2,
+        execution: 'local-server',
+      }),
+    );
+  });
 });

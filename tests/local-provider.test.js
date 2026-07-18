@@ -58,9 +58,11 @@ describe('local provider — the house model surface', () => {
       systemPrompt: 'sys',
       userPrompt: 'user',
       maxOutputTokens: 2048,
+      task: 'course-map',
     });
     expect(request.url).toBe(`${DEFAULT_LOCAL_ENDPOINT}/v1/chat/completions`);
     expect(request.headers.Authorization).toBeUndefined();
+    expect(request.headers['X-Scion-Task-Family']).toBe('course-map');
     expect(request.body.stream).toBe(true);
     expect(request.body.messages).toHaveLength(2);
     expect(request.parseChunk({ choices: [{ delta: { content: 'x' } }] })).toBe('x');

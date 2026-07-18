@@ -2,6 +2,7 @@ import { getGoogleModelBaseUrl } from './googleProvider';
 import { getLocalEndpoint } from './localProvider';
 import { buildOpenAIResponsesBody, parseOpenAIResponsesStreamChunk, prefersOpenAIResponsesApi } from './openaiProvider';
 import { PUBLIC_SCION_PROVIDER_ID } from './publicScionProvider';
+import { scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
 
 function modelIsDefaultTemperatureOnly(provider, modelId) {
   const id = String(modelId || '').toLowerCase();
@@ -334,7 +335,12 @@ export function buildProviderTextRequest({
     const localTemperature = temperatureOverride ?? 0;
     return {
       url: `${getLocalEndpoint()}/v1/chat/completions`,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // The benchmark/local server uses the same explicit family boundary as
+        // the browser runtime. Never infer adapter eligibility from prompt text.
+        'X-Scion-Task-Family': scionAdapterTaskFamilyForProviderTask(task),
+      },
       body: {
         model: modelId,
         messages: [

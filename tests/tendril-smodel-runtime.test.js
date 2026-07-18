@@ -54,7 +54,7 @@ describe('Tendril local-model startup', () => {
         'console.log(JSON.stringify({ ready: true }));',
         "readline.createInterface({ input: process.stdin }).on('line', (line) => {",
         '  const request = JSON.parse(line);',
-        "  console.log(JSON.stringify({ id: request.id, text: '{}', constrained: 'schema' }));",
+        "  console.log(JSON.stringify({ id: request.id, text: '{}', constrained: 'schema', adapterMode: request.adapterMode, nativeAdapterActive: request.adapterMode === 'adapter', adapterScale: request.adapterMode === 'adapter' ? 1 : 0 }));",
         '});',
       ].join('\n'),
     );
@@ -62,7 +62,7 @@ describe('Tendril local-model startup', () => {
     const script = [
       `const model = await import(${JSON.stringify(moduleUrl)});`,
       "const plain = await model.sGenerate({ system: 's', user: 'u', task: 'items' });",
-      "const detailed = await model.sGenerate({ system: 's', user: 'u', task: 'items' }, { includeMetadata: true });",
+      "const detailed = await model.sGenerate({ system: 's', user: 'u', task: 'items', adapterMode: 'base-only' }, { includeMetadata: true });",
       'console.log(JSON.stringify({ plain, detailed }));',
       'model.stopS();',
     ].join('\n');
@@ -75,7 +75,16 @@ describe('Tendril local-model startup', () => {
       },
       timeout: 5_000,
     });
-    expect(JSON.parse(stdout.trim())).toEqual({ plain: '{}', detailed: { text: '{}', constrained: 'schema' } });
+    expect(JSON.parse(stdout.trim())).toEqual({
+      plain: '{}',
+      detailed: {
+        text: '{}',
+        constrained: 'schema',
+        adapterMode: 'base-only',
+        nativeAdapterActive: false,
+        adapterScale: 0,
+      },
+    });
     await fs.rm(root, { recursive: true, force: true });
   });
 });

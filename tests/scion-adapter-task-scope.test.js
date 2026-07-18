@@ -33,6 +33,7 @@ describe('Scion adapter task scope', () => {
     expect(scionAdapterTaskFamilyForPairKind('mc-item')).toBe('source-mc-item-atom');
     expect(scionAdapterTaskFamilyForPairKind('lesson-kernel')).toBe('lesson-kernel');
     expect(scionAdapterTaskFamilyForProviderTask('blueprintEnrichment')).toBe('lesson-kernel');
+    expect(scionAdapterTaskFamilyForProviderTask('scionPass')).toBe('lesson-kernel');
     expect(scionAdapterTaskFamilyForProviderTask('course-map')).toBe('course-map');
     expect(scionAdapterTaskFamilyForProviderTask('chat')).toBe('agent-advisory');
     expect(scionAdapterTaskFamilyForProviderTask('something-new')).toBe('unclassified');

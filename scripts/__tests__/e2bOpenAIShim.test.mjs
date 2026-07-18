@@ -41,7 +41,7 @@ process.stdout.write(JSON.stringify({ ready: true, constrained: true }) + '\\n')
 const input = readline.createInterface({ input: process.stdin });
 input.on('line', (line) => {
   const request = JSON.parse(line);
-  setTimeout(() => process.stdout.write(JSON.stringify({ id: request.id, text: '{"ok":true}', constrained: 'object' }) + '\\n'), 120);
+  setTimeout(() => process.stdout.write(JSON.stringify({ id: request.id, text: '{"ok":true}', constrained: 'object', adapterMode: request.adapterMode, nativeAdapterActive: request.adapterMode === 'adapter', adapterScale: request.adapterMode === 'adapter' ? 1 : 0 }) + '\\n'), 120);
 });
 `,
   );
@@ -80,7 +80,7 @@ input.on('line', (line) => {
   });
   const generation = fetch(`${baseUrl}/v1/chat/completions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Scion-Task-Family': 'lesson-kernel' },
     body: JSON.stringify({
       model: 'fake-scion',
       messages: [
@@ -93,7 +93,16 @@ input.on('line', (line) => {
   const active = await waitForHealth(baseUrl, (health) => health.inFlightCalls === 1);
   expect(active).toMatchObject({ calls: 1, completedCalls: 0, failedModelCalls: 0, inFlightCalls: 1 });
   const response = await generation;
-  await expect(response.json()).resolves.toMatchObject({ choices: [{ message: { content: '{"ok":true}' } }] });
+  await expect(response.json()).resolves.toMatchObject({
+    choices: [{ message: { content: '{"ok":true}' } }],
+    scion_adapter_route: {
+      protocol: 'scion-adapter-runtime-route-v1',
+      mode: 'base-only',
+      taskFamily: 'lesson-kernel',
+      nativeAdapterActive: false,
+      modelCalls: 1,
+    },
+  });
   const complete = await waitForHealth(baseUrl, (health) => health.completedCalls === 1);
   expect(complete).toMatchObject({ calls: 1, completedCalls: 1, failedModelCalls: 0, inFlightCalls: 0 });
 
@@ -126,7 +135,7 @@ function value(schema = {}) {
 const input = readline.createInterface({ input: process.stdin });
 input.on('line', (line) => {
   const request = JSON.parse(line);
-  process.stdout.write(JSON.stringify({ id: request.id, text: JSON.stringify(value(request.schema || { type: 'object', properties: {}, required: [] })), constrained: 'object' }) + '\\n');
+  process.stdout.write(JSON.stringify({ id: request.id, text: JSON.stringify(value(request.schema || { type: 'object', properties: {}, required: [] })), constrained: 'object', adapterMode: request.adapterMode, nativeAdapterActive: request.adapterMode === 'adapter', adapterScale: request.adapterMode === 'adapter' ? 1 : 0 }) + '\\n');
 });
 `,
   );
@@ -150,7 +159,7 @@ input.on('line', (line) => {
 
   const response = await fetch(`${baseUrl}/v1/chat/completions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-Scion-Task-Family': 'lesson-kernel' },
     body: JSON.stringify({
       model: 'fake-scion',
       messages: [
@@ -180,6 +189,11 @@ input.on('line', (line) => {
   expect(generated.lessons[0]).toHaveProperty('facts');
   expect(generated.lessons[0]).toHaveProperty('scenario');
   expect(generated.lessons[0]).toHaveProperty('mc');
+  expect(payload.scion_adapter_route).toMatchObject({
+    mode: 'base-only',
+    taskFamily: 'lesson-kernel',
+    nativeAdapterActive: false,
+  });
 
   const rows = (await fs.readFile(bodyLogPath, 'utf8'))
     .trim()

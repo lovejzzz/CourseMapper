@@ -129,7 +129,18 @@ async function startRoute(route, { timeoutMs = 120_000 } = {}) {
             process.stderr.write(`[tendril-s:${route}] response ${msg.id} constrained=${msg.constrained}\n`);
           }
           if (msg.error) p.reject(new Error(msg.error));
-          else p.resolve(p.includeMetadata ? { text: msg.text, constrained: msg.constrained ?? null } : msg.text);
+          else
+            p.resolve(
+              p.includeMetadata
+                ? {
+                    text: msg.text,
+                    constrained: msg.constrained ?? null,
+                    adapterMode: msg.adapterMode ?? null,
+                    nativeAdapterActive: msg.nativeAdapterActive === true,
+                    adapterScale: Number.isFinite(Number(msg.adapterScale)) ? Number(msg.adapterScale) : null,
+                  }
+                : msg.text,
+            );
         }
       } catch {
         /* non-JSON stdout chatter ignored */
@@ -173,7 +184,7 @@ export async function sGenerate(
   // V2: schema (JSON Schema dict) / jsonMode (bool) engage llguidance
   // grammar-constrained decoding on the g4 route (serve_g4.py) — parse
   // validity by construction. Ignored by serve_s routes.
-  { system, user, source = '', task = 'skin', maxTokens, temperature, schema, jsonMode },
+  { system, user, source = '', task = 'skin', maxTokens, temperature, schema, jsonMode, adapterMode },
   { timeoutMs = 180_000, includeMetadata = false } = {},
 ) {
   const route = resolveRoute(task);
@@ -203,6 +214,7 @@ export async function sGenerate(
       ...(temperature ? { temperature } : {}),
       ...(schema ? { schema } : {}),
       ...(jsonMode ? { jsonMode: true } : {}),
+      ...(adapterMode ? { adapterMode } : {}),
     })}\n`,
   );
   return promise;

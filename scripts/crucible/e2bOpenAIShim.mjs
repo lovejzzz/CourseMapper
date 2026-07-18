@@ -15,10 +15,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { sGenerate, startItems, stopS } from '../../trellis/tendril/sModel.mjs';
 import { sha256File, verifyScionAdapterPackage } from '../scionAdapterPackage.mjs';
 import { computeScionAdapterPackageIdentity } from '../lib/scionBrowserDeviceMatrix.mjs';
-import {
-  normalizeScionAdapterTaskFamily,
-  resolveScionAdapterTaskRoute,
-} from '../../src/lib/scionAdapterTaskScope.js';
+import { normalizeScionAdapterTaskFamily, resolveScionAdapterTaskRoute } from '../../src/lib/scionAdapterTaskScope.js';
 
 const PORT = Number(process.argv[2] ?? 8799);
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
@@ -1073,7 +1070,32 @@ function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'authorization, content-type, openai-beta',
+    'Access-Control-Allow-Headers': 'authorization, content-type, openai-beta, x-scion-task-family',
+  };
+}
+
+function adapterRouteForTaskFamily(value) {
+  const taskFamily = normalizeScionAdapterTaskFamily(value);
+  if (!verifiedAdapterManifest) {
+    return {
+      protocol: 'scion-adapter-runtime-route-v1',
+      mode: 'base-only',
+      taskFamily,
+      reason: 'no-adapter-installed',
+      adapterId: null,
+      manifestSha256: null,
+      scopeIdentitySha256: null,
+    };
+  }
+  const resolved = resolveScionAdapterTaskRoute({ manifest: verifiedAdapterManifest, taskFamily });
+  return {
+    protocol: 'scion-adapter-runtime-route-v1',
+    mode: resolved.mode,
+    taskFamily: resolved.taskFamily,
+    reason: resolved.reason,
+    adapterId,
+    manifestSha256: adapterManifestSha256,
+    scopeIdentitySha256: resolved.scopeIdentitySha256 || null,
   };
 }
 
@@ -1230,6 +1252,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   const isResponsesShape = req.url.includes('/responses');
+  const adapterRoute = adapterRouteForTaskFamily(req.headers['x-scion-task-family']);
+  const routeProofs = [];
   // stream:true (the app's Local provider path): open SSE immediately and
   // heartbeat while the model generates — the payload arrives as one delta.
   const wantsStream = body.stream === true;
@@ -1273,7 +1297,7 @@ const server = http.createServer(async (req, res) => {
   let generationError = '';
   const modelMetrics = { modelCalls: 0, completedModelCalls: 0, failedModelCalls: 0 };
   try {
-    text = await requestMetrics.run(modelMetrics, async () => {
+    text = await requestMetrics.run({ metrics: modelMetrics, adapterRoute, routeProofs }, async () => {
       let generated = kernel
         ? await kernelChunkedGenerate({ system, user, kernel, temperature: declaredTemperature })
         : await generate({
@@ -1298,12 +1322,21 @@ const server = http.createServer(async (req, res) => {
     console.error(JSON.stringify({ localModelError: generationError, call: calls, modelId: LOCAL_MODEL_ID }));
     text = '';
   }
+  const routeEvidence = {
+    ...adapterRoute,
+    nativeAdapterActive: routeProofs.length > 0 && routeProofs.every((proof) => proof.nativeAdapterActive === true),
+    adapterScale:
+      routeProofs.length > 0 && routeProofs.every((proof) => proof.adapterScale === routeProofs[0].adapterScale)
+        ? routeProofs[0].adapterScale
+        : null,
+    modelCalls: routeProofs.length,
+  };
   if (!text) failures += 1;
   if (BODY_LOG) {
     try {
       fs.appendFileSync(
         BODY_LOG,
-        `${JSON.stringify({ url: req.url, system, user, response: text, modelMetrics, ...(generationError ? { error: generationError } : {}) })}\n`,
+        `${JSON.stringify({ url: req.url, system, user, response: text, modelMetrics, adapterRoute: routeEvidence, ...(generationError ? { error: generationError } : {}) })}\n`,
       );
     } catch (error) {
       bodyLogError = String(error?.message || error).slice(0, 500);
@@ -1333,6 +1366,7 @@ const server = http.createServer(async (req, res) => {
               id: 'e2b-shim',
               object: 'chat.completion.chunk',
               choices: [{ index: 0, delta: { role: 'assistant', content: text }, finish_reason: null }],
+              scion_adapter_route: routeEvidence,
             },
             {
               id: 'e2b-shim',
@@ -1362,6 +1396,7 @@ const server = http.createServer(async (req, res) => {
         object: 'chat.completion',
         choices: [{ index: 0, message: { role: 'assistant', content: text }, finish_reason: 'stop' }],
         usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+        scion_adapter_route: routeEvidence,
       };
   res.writeHead(200, { 'Content-Type': 'application/json', ...corsHeaders() });
   res.end(JSON.stringify(payload));
