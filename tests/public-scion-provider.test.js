@@ -28,7 +28,13 @@ import {
   publicScionRetryDelay,
   repairPublicScionJson,
   repairPublicScionJsonText,
+  shufflePublicScionKernelOptions,
 } from '../src/lib/publicScionProvider';
+import {
+  SCION_LESSON_KERNEL_LOCAL_PILOT_RESPONSE,
+  SCION_LESSON_KERNEL_PILOT_PROMPT,
+  SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE,
+} from './fixtures/scionLessonKernelAdmissionV01654.js';
 
 describe('Scion Public provider', () => {
   const completeTerms = [0, 1, 2].map((index) => ({
@@ -38,6 +44,51 @@ describe('Scion Public provider', () => {
     mi: `A plausible misunderstanding number ${index + 1}.`,
     cx: `The correction refutes misunderstanding number ${index + 1} with a distinct mechanism.`,
   }));
+
+  function completeLesson(overrides = {}) {
+    return {
+      lessonId: 'lesson-9',
+      facts: [
+        'Repeated task failures provide direct evidence for revising a tested interface flow.',
+        'Interview comments can explain user expectations but do not replace observed behavior.',
+        'A prototype represents selected interactions before every production detail is complete.',
+        'Parallel alternatives help a learner distinguish competing interpretations of the same evidence.',
+        'Specific feedback supports the answer and corrects the strongest plausible misconception.',
+      ],
+      keyTerms: completeTerms,
+      scenario: {
+        su: 'A design team must decide whether to revise a checkout flow after repeated task failures while the release deadline remains fixed.',
+        ma: 'Interview transcript, task-failure log, and annotated prototype screen.',
+      },
+      mc: [
+        {
+          q: 'Which evidence most directly supports revising the tested checkout flow when the team must choose one change before the fixed release deadline?',
+          op: [
+            'Repeated failures on the same checkout task',
+            'One favorable comment about the visual colors',
+            'A stakeholder preference for the existing layout',
+            'A designer request for a larger brand mark',
+          ],
+          ai: 0,
+          fi: [0],
+          ex: 'Repeated task failure directly supports revising the flow. A favorable color comment does not demonstrate a checkout breakdown.',
+        },
+        {
+          q: 'Which conclusion is best supported when interviews describe expectations but the observed task log records the same checkout failure across several sessions?',
+          op: [
+            'Behavioral evidence warrants testing a flow revision',
+            'Interview comments prove every user prefers change',
+            'The release deadline invalidates the task evidence',
+            'Visual styling alone caused the recorded failures',
+          ],
+          ai: 0,
+          fi: [1],
+          ex: 'The repeated behavior warrants testing a revision. Interview comments alone cannot prove a universal preference or cause.',
+        },
+      ],
+      ...overrides,
+    };
+  }
 
   it('reserves bounded compiler recovery calls for browser-local Scion', () => {
     expect(PUBLIC_SCION_ENRICHMENT_RECOVERY_CALLS).toBe(4);
@@ -74,7 +125,7 @@ describe('Scion Public provider', () => {
     expect(
       publicScionKernelResponseNeedsRetry('{"lessons":[{"lessonId":"lesson-8"}]}', prompt, 'blueprintEnrichment'),
     ).toBe(true);
-    const complete = JSON.stringify({ lessons: [{ lessonId: 'lesson-9', keyTerms: completeTerms }] });
+    const complete = JSON.stringify({ lessons: [completeLesson()] });
     expect(publicScionKernelResponseNeedsRetry(complete, prompt, 'blueprintEnrichment')).toBe(false);
     const repeated = JSON.stringify({
       lessons: [
@@ -104,6 +155,65 @@ describe('Scion Public provider', () => {
     expect(publicScionKernelResponseNeedsRetry('{"lessons":[]}', prompt, 'course-map')).toBe(false);
   });
 
+  it('rejects the live v0.16.54 base pilot defects while admitting the matched reference artifact', () => {
+    const repairedLocal = repairPublicScionJson(JSON.stringify(SCION_LESSON_KERNEL_LOCAL_PILOT_RESPONSE));
+    const local = assessPublicScionKernelResponse(
+      repairedLocal.text,
+      SCION_LESSON_KERNEL_PILOT_PROMPT,
+      'blueprintEnrichment',
+    );
+    const reference = assessPublicScionKernelResponse(
+      JSON.stringify(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE),
+      SCION_LESSON_KERNEL_PILOT_PROMPT,
+      'blueprintEnrichment',
+    );
+
+    expect(local.needsRetry).toBe(true);
+    expect(repairedLocal.repairs).toEqual(
+      expect.arrayContaining([expect.objectContaining({ pass: 'completeFactSentence', trainingEligible: false })]),
+    );
+    expect(local.issues).toEqual(
+      expect.arrayContaining([
+        'lesson-3:key-term-0:unanchored-named-example',
+        'lesson-3:scenario:scenario-missing-evidence-packet',
+        'lesson-3:mc-0:stem-length',
+        'lesson-3:mc-0:absolute-option',
+        'lesson-3:mc-0:answer-position-residue',
+      ]),
+    );
+    expect(buildPublicScionRetryFeedback(local)).toContain('Never mention the key');
+    expect(reference).toEqual({ needsRetry: false, issues: [] });
+  });
+
+  it('rejects duplicate alternatives and an explanation that supports a different answer index', () => {
+    const response = structuredClone(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    response.lessons[0].mc[1] = {
+      q: 'Which boundary type is supported when measurements show plates separating and new lithosphere forming along the observed margin during the survey?',
+      op: [
+        'Transform boundaries accommodate plates moving side by side',
+        'Divergent boundaries move apart and form new crust',
+        'Convergent boundaries move together and subduct crust',
+        'Transform boundaries accommodate plates moving side by side',
+      ],
+      ai: 0,
+      fi: [1],
+      ex: 'The first option is supported because divergent boundaries match separation and new crust formation, while transform boundaries only accommodate lateral motion.',
+    };
+
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify(response),
+      SCION_LESSON_KERNEL_PILOT_PROMPT,
+      'blueprintEnrichment',
+    );
+    expect(assessment.issues).toEqual(
+      expect.arrayContaining([
+        'lesson-3:mc-1:duplicate-options',
+        'lesson-3:mc-1:answer-position-residue',
+        'lesson-3:mc-1:explanation-key-conflict',
+      ]),
+    );
+  });
+
   it('retries judged key-term leakage and cross-field paraphrase instead of compiling it', () => {
     const prompt = `Course: Interface Design\nLessons:\n[{"lessonId":"lesson-9","title":"Wireframes"}]\nReturn ONLY valid JSON.`;
     const contaminatedTerms = completeTerms.map((term, index) => {
@@ -128,7 +238,7 @@ describe('Scion Public provider', () => {
     const feedback = buildPublicScionRetryFeedback(assessment);
     expect(feedback).toContain('Every df, eg, mi, and cx field must make a different instructional move');
     expect(feedback).toContain('Never embed labels');
-    expect(feedback).toContain('Remove internal claim numbers');
+    expect(feedback).toContain('claim numbers');
   });
 
   it('retries a misconception that merely relabels the lesson own fact as false', () => {
@@ -186,7 +296,7 @@ describe('Scion Public provider', () => {
     expect(assessment.issues).not.toContain('lesson-9:key-term-0:misconception-repeats-known-fact');
   });
 
-  it('merges only earlier fields that strictly reduce cross-attempt contract defects', () => {
+  it('keeps retry artifacts atomic instead of splicing unverified fields across attempts', () => {
     const previousTerms = completeTerms.map((term, index) => (index === 0 ? { ...term, cx: term.df } : term));
     const currentTerms = completeTerms.map((term, index) =>
       index === 0
@@ -204,10 +314,41 @@ describe('Scion Public provider', () => {
       prompt,
     );
     const first = JSON.parse(merged.text).lessons[0].keyTerms[0];
-    expect(first.tr).toBe(previousTerms[0].tr);
+    expect(first.tr).toBe(currentTerms[0].tr);
     expect(first.cx).toBe(currentTerms[0].cx);
+    expect(merged.repairs).toEqual([]);
+    const completeMerged = JSON.stringify({
+      lessons: [completeLesson({ keyTerms: JSON.parse(merged.text).lessons[0].keyTerms })],
+    });
+    expect(publicScionKernelResponseNeedsRetry(completeMerged, prompt, 'blueprintEnrichment')).toBe(true);
+  });
+
+  it('retains a whole coherent retry group only when it removes issues without introducing any', () => {
+    const prompt = `Course: Interface Design
+Lessons:
+[{"lessonId":"lesson-9","title":"Wireframes"}]
+Return ONLY valid JSON.`;
+    const previous = completeLesson();
+    const current = completeLesson({
+      mc: completeLesson().mc.map((item) => ({
+        ...item,
+        op: [item.op[0], item.op[1], item.op[1], item.op[3]],
+      })),
+    });
+    const merged = mergePublicScionKernelAttempts(
+      JSON.stringify({ lessons: [previous] }),
+      JSON.stringify({ lessons: [current] }),
+      prompt,
+    );
+
+    expect(JSON.parse(merged.text).lessons[0].mc).toEqual(previous.mc);
     expect(merged.repairs).toEqual([
-      expect.objectContaining({ pass: 'crossAttemptContractMerge', field: 'term', trainingEligible: false }),
+      expect.objectContaining({
+        pass: 'crossAttemptAtomicRetention',
+        field: 'knowledgeCore',
+        issueCountAfter: 0,
+        trainingEligible: false,
+      }),
     ]);
     expect(publicScionKernelResponseNeedsRetry(merged.text, prompt, 'blueprintEnrichment')).toBe(false);
   });
@@ -286,6 +427,8 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(messages[1].content).toContain('Lesson 4: Affinity Mapping');
     expect(messages[1].content).toContain('Write exactly 2 mc items');
     expect(messages[1].content).toContain('Every mc item includes fi=sourceFactIndexes as exactly [n]');
+    expect(messages[1].content).toContain('set ai=0; the compiler shuffles answer positions after admission');
+    expect(messages[1].content).toContain('without referring to any position');
     expect(messages[1].content).toContain('mi is a genuinely false learner belief');
     expect(messages[1].content).toContain('Never embed field labels or internal claim numbers');
     expect(messages[1].content).toContain('Never infer motive or cause from one ambiguous observation');
@@ -301,12 +444,15 @@ Return ONLY valid JSON matching the kernel shape from the instructions.`;
     expect(lessonTemplate.facts).toHaveLength(5);
     expect(lessonTemplate.keyTerms).toHaveLength(3);
     expect(lessonTemplate.mc).toHaveLength(2);
+    expect(lessonTemplate.mc.every((item) => item.ai === 0)).toBe(true);
     expect(messages[1].content).toContain('distinct 1-4 word subject term');
     expect(messages[1].content).toContain('never copy the full lesson title');
     expect(templateJson).not.toContain('discussionPrompt');
     expect(templateJson).not.toContain('assignmentCore');
     expect(templateJson).not.toContain('studyGuide');
     expect(messages[1].content).not.toContain('compact CourseMapper lessons');
+    expect(messages[1].content).not.toMatch(/key wins|Option B correctly/i);
+    expect(messages[1].content).not.toContain('supporting the first option');
 
     const recoveryMessages = buildPublicScionMessages(
       'kernel system',
@@ -445,6 +591,76 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     expect(repaired.lessons[0].mc[0]).toMatchObject({ ai: 1, ex: 'B uses the evidence.' });
     expect(repaired.lessons[0].mc[1].op).toEqual(['A', 'B', 'C', 'D']);
     expect(repaired.lessons[0].studyGuide.rs).toContain('supplied evidence');
+  });
+
+  it('keeps the first complete valid fact sentence when a local decode runs into a truncated tail', () => {
+    const firstSentence =
+      'Transform boundaries let plates slide alongside each other without creating or destroying crust.';
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-tectonics',
+          facts: [`${firstSentence} A repeated continuation begins another claim but the constrained decode trunc`],
+        },
+      ],
+    };
+
+    const repaired = repairPublicScionJson(JSON.stringify(response));
+    expect(JSON.parse(repaired.text).lessons[0].facts[0]).toBe(firstSentence);
+    expect(repaired.repairs).toEqual([
+      expect.objectContaining({
+        pass: 'completeFactSentence',
+        lessonId: 'lesson-tectonics',
+        item: 0,
+        trainingEligible: false,
+      }),
+    ]);
+  });
+
+  it('deterministically shuffles admitted answer positions without changing the supported option', () => {
+    const response = {
+      lessons: [
+        {
+          lessonId: 'lesson-compact',
+          mc: [
+            {
+              q: 'Which observation best supports revising the interface after repeated failures under a fixed deadline?',
+              op: ['Supported compact answer', 'Compact distractor B', 'Compact distractor C', 'Compact distractor D'],
+              ai: 0,
+              ex: 'Repeated failures support revision, while a visual preference does not establish a task breakdown.',
+            },
+          ],
+        },
+        {
+          lessonId: 'lesson-full',
+          mc: [
+            {
+              question: 'Which record provides the strongest evidence for the decision when the two accounts conflict?',
+              options: ['Full distractor A', 'Supported full answer', 'Full distractor C', 'Full distractor D'],
+              answerIndex: 1,
+              explanation:
+                'The observed record supports the decision, while the isolated account cannot establish the repeated pattern.',
+            },
+          ],
+        },
+      ],
+    };
+
+    const first = shufflePublicScionKernelOptions(JSON.stringify(response));
+    const second = shufflePublicScionKernelOptions(JSON.stringify(response));
+    expect(first).toEqual(second);
+    expect(first.repairs).toHaveLength(2);
+    expect(first.repairs.every((repair) => repair.pass === 'deterministicOptionShuffle')).toBe(true);
+    expect(first.repairs.every((repair) => repair.trainingEligible === false)).toBe(true);
+    expect(first.repairs.every((repair) => repair.permutation.some((value, index) => value !== index))).toBe(true);
+
+    const shuffled = JSON.parse(first.text);
+    const compact = shuffled.lessons[0].mc[0];
+    const full = shuffled.lessons[1].mc[0];
+    expect(compact.op[compact.ai]).toBe('Supported compact answer');
+    expect(full.options[full.answerIndex]).toBe('Supported full answer');
+    expect(new Set(compact.op)).toEqual(new Set(response.lessons[0].mc[0].op));
+    expect(new Set(full.options)).toEqual(new Set(response.lessons[1].mc[0].options));
   });
 
   it('does not move a public mc key from explanation-only lexical support', () => {

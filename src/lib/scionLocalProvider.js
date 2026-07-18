@@ -8,6 +8,7 @@ import {
   mergePublicScionKernelAttempts,
   publicScionRetryDelay,
   repairPublicScionJson,
+  shufflePublicScionKernelOptions,
 } from './publicScionProvider';
 import { scionAdapterTaskFamilyForProviderTask } from './scionAdapterTaskScope';
 
@@ -94,6 +95,24 @@ function canDeferKernelAdmission(text, userPrompt, task, assessment = {}) {
   } catch {
     return false;
   }
+}
+
+function hasHighRiskKernelIssues(assessment = {}) {
+  return (assessment.issues || []).some((issue) =>
+    [
+      'unexpected-script',
+      'truncated-fact',
+      'unanchored-named',
+      'duplicate-options',
+      'absolute-option',
+      'answer-position-residue',
+      'claim-marker-residue',
+      'explanation-key-conflict',
+      'explanation-omits-key-support',
+      'multiple-source-supported-options',
+      'source-fact-index',
+    ].some((marker) => String(issue).includes(marker)),
+  );
 }
 
 /**
@@ -189,10 +208,11 @@ export async function runScionLocalCompletion({
       : assessPublicScionKernelResponse(fullText, userPrompt, task);
     const incomplete = !empty && assessment.needsRetry;
     if (!empty && !incomplete) {
+      const shuffled = shufflePublicScionKernelOptions(fullText);
       return {
-        fullText,
+        fullText: shuffled.text,
         rawText,
-        repairs: [...repaired.repairs, ...merged.repairs],
+        repairs: [...repaired.repairs, ...merged.repairs, ...shuffled.repairs],
         messages: attemptMessages,
         attempt: attempt + 1,
         retryCount: attempt,
@@ -213,7 +233,8 @@ export async function runScionLocalCompletion({
     // retry, forward a structurally usable kernel with its unresolved issue
     // receipt instead of regenerating the whole lesson repeatedly; the parser
     // can then keep safe facts/items and reject only the defective atoms.
-    if (attempt >= Math.min(1, retryLimit) && canDeferKernelAdmission(fullText, userPrompt, task, assessment)) {
+    const deferAfterAttempt = hasHighRiskKernelIssues(assessment) ? retryLimit : Math.min(1, retryLimit);
+    if (attempt >= deferAfterAttempt && canDeferKernelAdmission(fullText, userPrompt, task, assessment)) {
       return {
         fullText,
         rawText,

@@ -21,6 +21,13 @@ function completeKernelResponse(lessonId = 'lesson-4') {
     lessons: [
       {
         lessonId,
+        facts: [
+          'Repeated task failures provide direct evidence for revising a tested interface flow.',
+          'Interview comments can explain user expectations but do not replace observed behavior.',
+          'A prototype represents selected interactions before every production detail is complete.',
+          'Parallel alternatives help learners distinguish competing interpretations of the same evidence.',
+          'Specific feedback supports the answer and corrects the strongest plausible misconception.',
+        ],
         keyTerms: [0, 1, 2].map((index) => ({
           tr: `Term ${index + 1}`,
           df: `A precise disciplinary definition number ${index + 1} that is long enough for local admission.`,
@@ -28,6 +35,36 @@ function completeKernelResponse(lessonId = 'lesson-4') {
           mi: `A plausible misunderstanding number ${index + 1}.`,
           cx: `The correction refutes misunderstanding number ${index + 1} with a distinct mechanism.`,
         })),
+        scenario: {
+          su: 'A design team must revise a checkout flow after repeated task failures. The fixed release date limits the team to one evidence-backed change.',
+          ma: 'Task-failure log, interview notes, and annotated prototype screen.',
+        },
+        mc: [
+          {
+            q: 'Which evidence most directly supports revising the tested checkout flow when the team can make only one change before the fixed release date?',
+            op: [
+              'Repeated failures on the same checkout task',
+              'One favorable comment about the visual colors',
+              'A stakeholder preference for the existing layout',
+              'A designer request for a larger brand mark',
+            ],
+            ai: 0,
+            fi: [0],
+            ex: 'Repeated task failure directly supports revising the flow. A favorable color comment does not demonstrate a checkout breakdown.',
+          },
+          {
+            q: 'Which conclusion is best supported when interviews describe expectations but the observed task log records the same checkout failure across several sessions?',
+            op: [
+              'Behavioral evidence warrants testing a flow revision',
+              'Interview comments prove every user prefers change',
+              'The release deadline invalidates the task evidence',
+              'Visual styling alone caused the recorded failures',
+            ],
+            ai: 0,
+            fi: [1],
+            ex: 'Observed repeated behavior supports testing a revision. Interview comments explain expectations but cannot replace the task evidence.',
+          },
+        ],
       },
     ],
   });
@@ -122,11 +159,11 @@ describe('Scion browser-local provider', () => {
     );
   });
 
-  it('retains earlier defects in retry feedback when later attempts expose a different defect', async () => {
+  it('carries an earlier defect into corrective feedback before a low-risk atomic deferral', async () => {
     const valid = JSON.parse(completeKernelResponse());
     const repeated = structuredClone(valid);
     repeated.lessons[0].keyTerms[0].cx = repeated.lessons[0].keyTerms[0].df;
-    const runtime = runtimeWith(['{"lessons":[]}', JSON.stringify(repeated), JSON.stringify(valid)]);
+    const runtime = runtimeWith(['{"lessons":[]}', JSON.stringify(repeated)]);
     const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
 
     const result = await runScionLocalCompletion({
@@ -136,13 +173,13 @@ describe('Scion browser-local provider', () => {
       sleep: async () => {},
     });
 
-    expect(result.attempt).toBe(3);
-    const finalFeedback = runtime.completeScionBrowserWllama.mock.calls[2][0].at(-1).content;
-    expect(finalFeedback).toContain('lesson-4:missing-lesson');
-    expect(finalFeedback).toContain('correction-repeats-definition');
+    expect(result).toMatchObject({ attempt: 2, contractIncomplete: true });
+    const correctiveFeedback = runtime.completeScionBrowserWllama.mock.calls[1][0].at(-1).content;
+    expect(correctiveFeedback).toContain('lesson-4:missing-lesson');
+    expect(result.admissionIssues).toContain('lesson-4:key-term-0:correction-repeats-definition');
   });
 
-  it('retains an earlier valid term name when a retry fixes cx but expands tr into a sentence', async () => {
+  it('keeps retry responses atomic instead of splicing an earlier term into a later artifact', async () => {
     const repeated = JSON.parse(completeKernelResponse());
     repeated.lessons[0].keyTerms[0].cx = repeated.lessons[0].keyTerms[0].df;
     const retry = JSON.parse(completeKernelResponse());
@@ -160,11 +197,46 @@ describe('Scion browser-local provider', () => {
       sleep: async () => {},
     });
 
-    expect(result.attempt).toBe(2);
-    expect(JSON.parse(result.fullText).lessons[0].keyTerms[0].tr).toBe('Term 1');
-    expect(result.repairs).toEqual([
-      expect.objectContaining({ pass: 'crossAttemptContractMerge', field: 'term', trainingEligible: false }),
-    ]);
+    expect(result).toMatchObject({ attempt: 2, contractIncomplete: true });
+    expect(JSON.parse(result.fullText).lessons[0].keyTerms[0].tr).toBe(
+      'A term name accidentally expanded into a complete sentence that exceeds the compact field limit',
+    );
+    expect(result.repairs).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ pass: 'crossAttemptContractMerge' })]),
+    );
+  });
+
+  it('uses the full retry budget before deferring answer-key conflicts to per-atom admission', async () => {
+    const conflicted = JSON.parse(completeKernelResponse());
+    conflicted.lessons[0].mc[0] = {
+      q: 'When the observation shows plates sliding side by side without creating crust, which boundary classification is supported by the evidence in this field record?',
+      op: [
+        'Divergent boundaries form new crust as plates separate',
+        'Convergent boundaries can subduct crust as plates approach',
+        'Transform boundaries accommodate plates sliding side by side',
+        'Divergent boundaries can subduct crust as plates approach',
+      ],
+      ai: 0,
+      fi: [2],
+      ex: 'Transform boundaries accommodate plates sliding side by side. Divergent boundaries require separation and new crust rather than lateral motion.',
+    };
+    const response = JSON.stringify(conflicted);
+    const runtime = runtimeWith([response, response, response]);
+    const prompt = `Course: Design
+Lessons:
+[{"lessonId":"lesson-4","title":"Affinity Mapping"}]
+Return ONLY valid JSON.`;
+
+    const result = await runScionLocalCompletion({
+      userPrompt: prompt,
+      task: 'blueprintEnrichment',
+      runtimeLoader: async () => runtime,
+      sleep: async () => {},
+    });
+
+    expect(result).toMatchObject({ attempt: 3, retryCount: 2, contractIncomplete: true });
+    expect(result.admissionIssues).toContain('lesson-4:mc-0:explanation-key-conflict');
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(3);
   });
 
   it('defers structurally usable residual defects to canonical per-atom admission after one corrective retry', async () => {
@@ -190,7 +262,7 @@ describe('Scion browser-local provider', () => {
           mc: [
             {
               q: 'Which action best preserves conflicting observations during affinity mapping?',
-              op: ['Keep an outlier visible', 'Delete the note', 'Rename every cluster', 'Average all comments'],
+              op: ['Keep an outlier visible', 'Delete the note', 'Rename the current cluster', 'Average the comments'],
               ai: 0,
               fi: [2],
               ex: 'Keeping the outlier visible preserves conflicting evidence; deleting it erases that evidence.',
@@ -201,7 +273,7 @@ describe('Scion browser-local provider', () => {
                 'When new observations change the pattern',
                 'After deleting outliers',
                 'Before reading notes',
-                'Never',
+                'After the map is finalized',
               ],
               ai: 0,
               fi: [3],
@@ -298,14 +370,17 @@ describe('Scion browser-local provider', () => {
     expect(JSON.parse(result.fullText).lessons[0].mc[0].ex).toBe(
       'A sampling frame provides a complete list of potential participants.',
     );
-    expect(result.repairs).toEqual([
-      expect.objectContaining({
-        pass: 'incompleteExplanationTail',
-        lessonId: 'lesson-2',
-        item: 0,
-        trainingEligible: false,
-      }),
-    ]);
+    expect(result.repairs).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          pass: 'incompleteExplanationTail',
+          lessonId: 'lesson-2',
+          item: 0,
+          trainingEligible: false,
+        }),
+        expect.objectContaining({ pass: 'deterministicOptionShuffle', lessonId: 'lesson-2', item: 0 }),
+      ]),
+    );
   });
 
   it('does not hide device or runtime failures behind generation retries', async () => {

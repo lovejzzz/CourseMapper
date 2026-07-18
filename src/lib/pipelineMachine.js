@@ -48,12 +48,14 @@ function latestActivityEvent(budget) {
       ['blueprintEnrichmentCall', 'deliverableChunkCall', 'compiledDeliverable', 'repairRetryCall'].includes(
         event?.type,
       ) ||
+      event?.type === 'scionCompilerRepair' ||
       (event?.type === 'pipelineDecision' && ['Scion pass call', 'Scion quality passes'].includes(event?.label)),
   );
 }
 
 function isEnrichmentActivity(event) {
   if (event?.type === 'blueprintEnrichmentCall') return true;
+  if (event?.type === 'scionCompilerRepair') return event?.stage === 'local-compiler';
   if (event?.type === 'pipelineDecision' && ['Scion pass call', 'Scion quality passes'].includes(event?.label)) {
     return event?.featureId === 'blueprintEnrichment' || event?.task === 'scionPass';
   }

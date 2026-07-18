@@ -521,6 +521,17 @@ describe('B1 — buildRibbonModel selector', () => {
     expect(
       latestKnowledgeActivity([
         {
+          type: 'scionCompilerRepair',
+          label: 'Scion varied answer positions',
+          detail: 'lesson-7 · item 2',
+          stage: 'local-compiler',
+        },
+        ENRICH_CHUNK_EVENT,
+      ]),
+    ).toBe('Scion varied answer positions · lesson-7 · item 2');
+    expect(
+      latestKnowledgeActivity([
+        {
           type: 'pipelineDecision',
           label: 'Scion pass call',
           detail: 'blind_solve',

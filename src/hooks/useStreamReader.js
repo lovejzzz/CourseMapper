@@ -292,13 +292,21 @@ export default function useStreamReader() {
         const fullText = existingText + result.fullText;
         if (onChunk) onChunk(fullText, result.tokenCount + 1);
         for (const repair of result.repairs || []) {
+          const repairLabels = {
+            incompleteExplanationTail: 'Scion retained a complete explanation',
+            explanationKeyAlignment: 'Scion aligned an answer key',
+            sourceAnswerAlignment: 'Scion aligned an answer to its source',
+            completeFactSentence: 'Scion retained a complete source fact',
+            deterministicOptionShuffle: 'Scion varied answer positions',
+            crossAttemptAtomicRetention: 'Scion retained the stronger complete section',
+          };
           recordApiCallEvent({
             type: 'scionCompilerRepair',
-            label:
-              repair.pass === 'incompleteExplanationTail'
-                ? 'Scion retained a complete explanation'
-                : 'Scion aligned an answer key',
-            detail: `${repair.lessonId || 'lesson'} · item ${Number(repair.item) + 1}`,
+            label: repairLabels[repair.pass] || 'Scion applied a conservative compiler repair',
+            detail:
+              repair.field || Number.isInteger(repair.item)
+                ? `${repair.lessonId || 'lesson'} · ${repair.field || `item ${Number(repair.item) + 1}`}`
+                : repair.lessonId || 'Lesson kernel',
             stage: 'local-compiler',
             ...buildProviderTraceBase(),
             repairPass: repair.pass,

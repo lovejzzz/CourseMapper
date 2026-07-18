@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-grounded-atom-capture-v1",
+  "release": "v0.16.54",
+  "promptPolicy": "source-atom-authoring-v4",
+  "coveragePolicy": {
+    "protocol": "scion-source-capture-targeted-domain-gap-v1",
+    "domains": ["geology", "music-theory"],
+    "reason": "The production lesson-kernel campaign excludes ShareAlike and noncommercial source packets. This additive campaign restores genuine CC-BY-4.0 geology and music-theory breadth without changing the frozen holdout or weakening the license policy."
+  },
+  "groups": [
+    {
+      "id": "music-theory-notation-function-diagnosis-v01654",
+      "domain": "music-theory",
+      "title": "Music Theory Notation and Function Diagnosis",
+      "courseBrief": "Music Theory Notation and Function Diagnosis, a six-session source-grounded course in which learners interpret key signatures, scale patterns, minor variants, interval spellings, harmonic functions, and seventh-chord motion from constrained musical evidence.",
+      "qualityFocus": "Stress answer-key correctness, answer-feedback consistency, and choice discriminability among near-neighbor notation and harmonic claims. Make misconceptions genuinely false, keep alternatives parallel, and require each explanation to identify the musical evidence that defeats the strongest distractor.",
+      "sourceFile": "public/genome/music-theory-ccby.json",
+      "kernels": [
+        { "id": "music-ccby/key-signatures" },
+        { "id": "music-ccby/major-natural-minor-scales" },
+        { "id": "music-ccby/minor-scale-variants" },
+        { "id": "music-ccby/interval-number-quality" },
+        { "id": "music-ccby/chord-functions" },
+        { "id": "music-ccby/seventh-chord-functions" }
+      ]
+    },
+    {
+      "id": "music-theory-evidence-boundary-studio-v01654",
+      "domain": "music-theory",
+      "title": "Music Theory Evidence Boundary Studio",
+      "courseBrief": "Music Theory Evidence Boundary Studio, a six-session source-grounded course in which learners distinguish what notation, scale-degree, interval, and progression evidence can and cannot support before defending an analysis.",
+      "qualityFocus": "Stress source fidelity, source coverage, key-term precision, feedback instructionality, and scenario evidence sufficiency. Require scenarios with inspectable notation or progression evidence, reject unsupported claims about intention or expression, and teach the exact boundary between spelling, sonority, and harmonic function.",
+      "sourceFile": "public/genome/music-theory-ccby.json",
+      "kernels": [
+        { "id": "music-ccby/key-signatures" },
+        { "id": "music-ccby/major-natural-minor-scales" },
+        { "id": "music-ccby/minor-scale-variants" },
+        { "id": "music-ccby/interval-number-quality" },
+        { "id": "music-ccby/chord-functions" },
+        { "id": "music-ccby/seventh-chord-functions" }
+      ]
+    },
+    {
+      "id": "geology-process-evidence-diagnosis-v01654",
+      "domain": "geology",
+      "title": "Geology Process Evidence Diagnosis",
+      "courseBrief": "Geology Process Evidence Diagnosis, a six-session source-grounded course in which learners connect Earth-system models, mantle and plate motion, boundary processes, volcanic settings, rock-cycle drivers, and relative dating to observable evidence.",
+      "qualityFocus": "Stress source fidelity, answer-key correctness, choice discriminability, and scenario evidence sufficiency. Distinguish process from location and mechanism from observation; every scenario must contain enough inspectable evidence to warrant one answer without inventing a rate, age, or causal history.",
+      "sourceFile": "public/genome/geology-ccby.json",
+      "kernels": [
+        { "id": "geology-ccby/plate-tectonics-model" },
+        { "id": "geology-ccby/lithosphere-and-convection" },
+        { "id": "geology-ccby/plate-boundary-processes" },
+        { "id": "geology-ccby/tectonic-volcanism-settings" },
+        { "id": "geology-ccby/rock-cycle-drivers" },
+        { "id": "geology-ccby/relative-dating-rules" }
+      ]
+    },
+    {
+      "id": "geology-inference-and-feedback-audit-v01654",
+      "domain": "geology",
+      "title": "Geology Inference and Feedback Audit",
+      "courseBrief": "Geology Inference and Feedback Audit, a six-session source-grounded course in which learners audit competing explanations for tectonic, volcanic, rock-cycle, and relative-age evidence and revise claims that exceed the source packet.",
+      "qualityFocus": "Stress source coverage, answer-feedback consistency, misconception validity, key-term precision, and feedback instructionality. Explanations must correct the nearest sequence or boundary misconception, and choices must not collapse distinct observations into overlapping causal claims.",
+      "sourceFile": "public/genome/geology-ccby.json",
+      "kernels": [
+        { "id": "geology-ccby/plate-tectonics-model" },
+        { "id": "geology-ccby/lithosphere-and-convection" },
+        { "id": "geology-ccby/plate-boundary-processes" },
+        { "id": "geology-ccby/tectonic-volcanism-settings" },
+        { "id": "geology-ccby/rock-cycle-drivers" },
+        { "id": "geology-ccby/relative-dating-rules" }
+      ]
+    }
+  ],
+  "claimBoundary": "This manifest contributes CC-BY-4.0 source lineage and neutral capture inputs for two training-only domains. It supplies no preference label, model output, adapter win, held-out result, human evidence, or activation claim."
+}

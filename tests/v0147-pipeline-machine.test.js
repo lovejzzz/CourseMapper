@@ -34,6 +34,12 @@ const SCION_PASS_EVENT = {
   featureId: 'blueprintEnrichment',
   task: 'scionPass',
 };
+const SCION_COMPILER_REPAIR_EVENT = {
+  type: 'scionCompilerRepair',
+  label: 'Scion retained a complete source fact',
+  detail: 'lesson-2 · facts',
+  stage: 'local-compiler',
+};
 const COMPILE_EVENT = { type: 'compiledDeliverable', label: 'Enriched blueprint compiler' };
 
 const statuses = (pipeline) => deriveStepStatuses(pipeline).map((step) => step.status);
@@ -77,6 +83,18 @@ describe('WS-C — the state matrix: every machine state and its step render', (
     });
     expect(p.state).toBe('enriching');
     expect(p.activity).toBeNull();
+    expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
+  });
+
+  it('keeps a visible Scion compiler decision in Enrich instead of flashing Compile', () => {
+    const p = derivePipelineState({
+      budget: { recentEvents: [SCION_COMPILER_REPAIR_EVENT, ENRICH_EVENT] },
+      generation: GEN_DONE,
+      deliverables: DELIV_RUNNING,
+      packageQualityPass: { status: 'running', phase: 'generation' },
+    });
+    expect(p.state).toBe('enriching');
+    expect(p.activity).toBe(SCION_COMPILER_REPAIR_EVENT);
     expect(statuses(p)).toEqual(['settled', 'active', 'pending', 'pending', 'pending']);
   });
 

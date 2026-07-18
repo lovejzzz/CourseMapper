@@ -2,7 +2,7 @@ const GENERIC_MATERIALS_RE =
   /^(?:the\s+)?(?:scenario|case|lesson|course|source)?\s*(?:evidence|materials?|example|data|text|artifact)s?\.?$/i;
 
 const DECISION_RE =
-  /\b(?:decid(?:e|es|ed|ing)|choos(?:e|es|ing)|select(?:s|ed|ing)?|recommend(?:s|ed|ing|ation)?|prioriti[sz](?:e|es|ed|ing)|determin(?:e|es|ed|ing)|revise|revision|next step|respond|resolve|which\b[^?.]{0,60}\b(?:best|next|remains?|requires?|should|warrants?)|whether)\b/i;
+  /\b(?:decid(?:e|es|ed|ing)|choos(?:e|es|ing)|select(?:s|ed|ing)?|recommend(?:s|ed|ing|ation)?|prioriti[sz](?:e|es|ed|ing)|determin(?:e|es|ed|ing)|classif(?:y|ies|ied|ying|ication)|label(?:s|ed|ing)?|identif(?:y|ies|ied|ying)|infer(?:s|red|ring|ence)?|revise|revision|next step|respond|resolve|which\b[^?.]{0,60}\b(?:best|next|remains?|requires?|should|warrants?)|whether)\b/i;
 const ACTIONABLE_PROBLEM_RE =
   /\b(?:bottleneck|complaint|conflict|constraint|delay(?:s|ed)?|difficult(?:y|ies)?|error|fail(?:s|ed|ure)?|missing|unclear|confus(?:e|ed|ing|ion)|cannot|unable|low[- ]contrast|misread(?:ing)?|skip(?:s|ped|ping)?|slow(?:er|down)?|wait(?:s|ed|ing)?|risk|problem|trade-?off|uncertain|unsure)\b/i;
 const TENSION_RE =

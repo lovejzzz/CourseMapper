@@ -207,7 +207,7 @@ function enrichmentRecoveryProgress(events = [], activity = null) {
 }
 
 function isKnowledgeProgressEvent(event) {
-  if (['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type)) return true;
+  if (['blueprintEnrichmentCall', 'repairRetryCall', 'scionCompilerRepair'].includes(event?.type)) return true;
   if (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) return true;
   return (
     event?.type === 'pipelineDecision' &&
@@ -262,6 +262,7 @@ export function latestKnowledgeActivity(events = []) {
   const activity = recent.find(
     (event) =>
       ['blueprintEnrichmentCall', 'repairRetryCall'].includes(event?.type) ||
+      event?.type === 'scionCompilerRepair' ||
       (event?.type === 'streamRetryCall' && isBlueprintEnrichmentRetry(event)) ||
       (event?.type === 'pipelineDecision' &&
         ['Scion pass call', 'Scion quality passes', 'Language identity firewall'].includes(event?.label) &&
@@ -272,6 +273,11 @@ export function latestKnowledgeActivity(events = []) {
     return `Protecting course identity${
       range ? ` · lesson${range.includes('–') || range.includes(',') ? 's' : ''} ${range}` : ''
     }`;
+  }
+  if (activity?.type === 'scionCompilerRepair') {
+    const label = String(activity.label || 'Scion applied a conservative compiler repair').trim();
+    const detail = String(activity.detail || '').trim();
+    return detail ? `${label} · ${detail}` : label;
   }
   if (activity?.label === 'Scion pass call') {
     const label = SCION_PASS_ACTIVITY[String(activity.detail)] || 'Running a semantic quality check';

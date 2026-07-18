@@ -7,15 +7,28 @@
 import { jsonrepair } from 'jsonrepair';
 import { APP_VERSION } from './appVersion.js';
 import {
+  findScionExplanationKeyConflict,
   findScionMissingKeyExplanationSupport,
   findScionMultipleSourceSupportedOptions,
+  findScionNearDuplicateOptionPair,
+  normalizeScionOptionIdentity,
   repairScionMcItem,
 } from './scionAnswerKeyAlignment.js';
 import { SCION_BROWSER_GEMMA4_GGUF } from './scionBrowserConstants.js';
-import { assessScionKeyTermContract, mergeScionKeyTermContractAttempts } from './scionKeyTermContract.js';
+import { assessScionKeyTermContract } from './scionKeyTermContract.js';
+import { analyzeDecisionScenario } from './scenarioContract.js';
 
 const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
+const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
+  /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|at|by|each|every|for|from|in|of|on|or|the|to|with|without))$/i;
+const PUBLIC_SCION_ANSWER_POSITION_RE =
+  /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:first|second|third|fourth)\s+(?:option|choice|answer)\b|\b(?:option|choice|answer)\s*(?:[A-D1-4]|one|two|three|four|first|second|third|fourth)\b/i;
+const PUBLIC_SCION_INTERNAL_INDEX_RE = /\b(?:fact|claim|source(?:Fact)?Index)\s*#?\s*\d+\b/i;
+const PUBLIC_SCION_ABSOLUTE_OPTION_RE = /\b(?:always|never|all|none)\b/i;
+const PUBLIC_SCION_NAMED_PHRASE_RE =
+  /\b(?:[A-Z][a-z]+(?:-[A-Z][a-z]+)?)(?:\s+[A-Z][A-Za-z]+(?:-[A-Z][A-Za-z]+)?){1,4}\b/g;
+const PUBLIC_SCION_SCRIPT_RE = /[\p{Script=Han}\p{Script=Cyrillic}\p{Script=Arabic}\p{Script=Devanagari}]/u;
 
 export const PUBLIC_SCION_PROVIDER_ID = 'public';
 export const PUBLIC_SCION_MODEL_ID = 'scion-public';
@@ -120,11 +133,45 @@ function liftNestedPublicScionLessonFields(parsed) {
   return parsed;
 }
 
+function repairPublicScionFactSentences(parsed) {
+  const repairs = [];
+  if (!parsed || !Array.isArray(parsed.lessons)) return { parsed, repairs };
+  for (const lesson of parsed.lessons) {
+    if (!Array.isArray(lesson?.facts)) continue;
+    lesson.facts = lesson.facts.map((fact, factIndex) => {
+      const value = String(fact || '').trim();
+      const alreadyValid =
+        publicScionWordCount(value) >= 8 &&
+        publicScionWordCount(value) <= 20 &&
+        /[.!?][\])}"']?$/.test(value) &&
+        !PUBLIC_SCION_TRUNCATED_CLAIM_RE.test(value);
+      if (alreadyValid) return fact;
+      const replacement = (value.match(/[^.!?]+[.!?]+/g) || [])
+        .map((sentence) => sentence.trim())
+        .find((sentence) => {
+          const words = publicScionWordCount(sentence);
+          return sentence.length >= 20 && words >= 8 && words <= 20;
+        });
+      if (!replacement || replacement === value) return fact;
+      repairs.push({
+        pass: 'completeFactSentence',
+        lessonId: lesson.lessonId || null,
+        item: factIndex,
+        before: value,
+        after: replacement,
+        trainingEligible: false,
+      });
+      return replacement;
+    });
+  }
+  return { parsed, repairs };
+}
+
 /**
- * Repair syntax and the two conservative MC contract defects before the
- * normal kernel parser decides what may compile. The detailed form exposes
- * repair provenance to the local runtime ledger; the text-only wrapper keeps
- * the historical provider interface stable.
+ * Repair syntax and conservative, content-preserving contract defects before
+ * the normal kernel parser decides what may compile. The detailed form
+ * exposes repair provenance to the local runtime ledger; the text-only
+ * wrapper keeps the historical provider interface stable.
  */
 export function repairPublicScionJson(text = '') {
   const raw = String(text || '')
@@ -164,12 +211,105 @@ export function repairPublicScionJson(text = '') {
     }
   }
   if (!parsed) return { text: raw, repairs: [] };
-  const repaired = repairPublicScionMcItems(liftNestedPublicScionLessonFields(parsed));
-  return { text: JSON.stringify(repaired.parsed), repairs: repaired.repairs };
+  const lifted = liftNestedPublicScionLessonFields(parsed);
+  const factRepair = repairPublicScionFactSentences(lifted);
+  const mcRepair = repairPublicScionMcItems(factRepair.parsed);
+  return { text: JSON.stringify(mcRepair.parsed), repairs: [...factRepair.repairs, ...mcRepair.repairs] };
 }
 
 export function repairPublicScionJsonText(text = '') {
   return repairPublicScionJson(text).text;
+}
+
+function publicScionShuffleSeed(value = '') {
+  let hash = 2166136261;
+  for (const character of String(value)) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0 || 0x9e3779b9;
+}
+
+function publicScionOptionPermutation(seedValue) {
+  const permutation = [0, 1, 2, 3];
+  let state = publicScionShuffleSeed(seedValue);
+  for (let index = permutation.length - 1; index > 0; index -= 1) {
+    state ^= state << 13;
+    state ^= state >>> 17;
+    state ^= state << 5;
+    const swapIndex = (state >>> 0) % (index + 1);
+    [permutation[index], permutation[swapIndex]] = [permutation[swapIndex], permutation[index]];
+  }
+  if (permutation.every((originalIndex, index) => originalIndex === index)) return [1, 2, 3, 0];
+  return permutation;
+}
+
+/**
+ * Move answer-position entropy out of the small model. Admission first proves
+ * the authored answer; this deterministic compiler pass then varies display
+ * positions while preserving the exact keyed option.
+ */
+export function shufflePublicScionKernelOptions(responseText = '') {
+  const repairedText = repairPublicScionJsonText(responseText);
+  if (!repairedText) return { text: String(responseText || ''), repairs: [] };
+  let parsed;
+  try {
+    parsed = JSON.parse(repairedText);
+  } catch {
+    return { text: String(responseText || ''), repairs: [] };
+  }
+
+  const repairs = [];
+  for (const lesson of Array.isArray(parsed?.lessons) ? parsed.lessons : []) {
+    if (!Array.isArray(lesson?.mc)) continue;
+    lesson.mc.forEach((item, itemIndex) => {
+      const optionsKey = Array.isArray(item?.op) ? 'op' : Array.isArray(item?.options) ? 'options' : null;
+      const answerKey = Number.isInteger(item?.ai) ? 'ai' : Number.isInteger(item?.answerIndex) ? 'answerIndex' : null;
+      if (!optionsKey || !answerKey || item[optionsKey].length !== 4) return;
+      const answerIndexBefore = item[answerKey];
+      if (answerIndexBefore < 0 || answerIndexBefore >= 4) return;
+      const optionsBefore = [...item[optionsKey]];
+      const permutation = publicScionOptionPermutation(
+        JSON.stringify([lesson.lessonId || '', itemIndex, item.q || item.question || '', optionsBefore]),
+      );
+      item[optionsKey] = permutation.map((originalIndex) => optionsBefore[originalIndex]);
+      item[answerKey] = permutation.indexOf(answerIndexBefore);
+      repairs.push({
+        pass: 'deterministicOptionShuffle',
+        lessonId: lesson.lessonId || null,
+        item: itemIndex,
+        permutation,
+        answerIndexBefore,
+        answerIndexAfter: item[answerKey],
+        trainingEligible: false,
+      });
+    });
+  }
+  return { text: JSON.stringify(parsed), repairs };
+}
+
+function publicScionWordCount(value) {
+  return String(value || '').match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu)?.length || 0;
+}
+
+function publicScionSourceText(expected = {}) {
+  return [expected.title, expected.objectives, expected.topics, expected.readings]
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+    .join(' ');
+}
+
+function publicScionHasRichSourceEvidence(expected = {}) {
+  return [expected.objectives, expected.topics, expected.readings].some(
+    (value) => String(value || '').trim().length >= 20,
+  );
+}
+
+function publicScionUnanchoredNamedPhrases(value, sourceText) {
+  const source = String(sourceText || '').toLowerCase();
+  return [...String(value || '').matchAll(PUBLIC_SCION_NAMED_PHRASE_RE)]
+    .map((match) => match[0].replace(/^The\s+/, '').trim())
+    .filter((phrase) => phrase.split(/\s+/).length >= 2 && !source.includes(phrase.toLowerCase()));
 }
 
 export function assessPublicScionKernelResponse(responseText, userPrompt, task) {
@@ -190,27 +330,84 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
         issues.push(`${expected.lessonId}:missing-lesson`);
         continue;
       }
+      const facts = Array.isArray(lesson.facts) ? lesson.facts : [];
+      const sourceText = publicScionSourceText(expected);
+      const hasRichSourceEvidence = publicScionHasRichSourceEvidence(expected);
+      const sourceFacts = hasRichSourceEvidence ? [sourceText] : facts;
+      if (!PUBLIC_SCION_SCRIPT_RE.test(sourceText) && PUBLIC_SCION_SCRIPT_RE.test(JSON.stringify(lesson))) {
+        issues.push(`${expected.lessonId}:unexpected-script`);
+      }
+      if (facts.length !== 5) issues.push(`${expected.lessonId}:facts-count:${facts.length}/5`);
+      facts.forEach((fact, index) => {
+        const wordCount = publicScionWordCount(fact);
+        if (String(fact || '').trim().length < 20 || wordCount < 8 || wordCount > 20) {
+          issues.push(`${expected.lessonId}:fact-${index}:fact-length`);
+        }
+        if (!/[.!?][\])}"']?$/.test(String(fact || '').trim()) || PUBLIC_SCION_TRUNCATED_CLAIM_RE.test(fact)) {
+          issues.push(`${expected.lessonId}:fact-${index}:truncated-fact`);
+        }
+      });
       const keyTerms = Array.isArray(lesson.keyTerms) ? lesson.keyTerms : [];
       if (keyTerms.length < 3) issues.push(`${expected.lessonId}:key-terms-count:${keyTerms.length}/3`);
       keyTerms.forEach((term, index) => {
         const result = assessScionKeyTermContract(term, {
           lessonTitle: expected.title || '',
           definitionMin: 40,
-          knownFacts: Array.isArray(lesson.facts) ? lesson.facts : [],
-          semanticProfile: 'source-strict-v4',
+          knownFacts: sourceFacts,
+          sourceTerm: hasRichSourceEvidence ? expected.title || '' : '',
+          semanticProfile: hasRichSourceEvidence ? 'source-strict-v4' : 'strict-v4',
         });
         for (const issue of result.issues) issues.push(`${expected.lessonId}:key-term-${index}:${issue}`);
+        const namedPhrases = publicScionUnanchoredNamedPhrases(term?.eg ?? term?.example, sourceText);
+        if (namedPhrases.length > 0) {
+          issues.push(`${expected.lessonId}:key-term-${index}:unanchored-named-example`);
+        }
       });
-      const facts = Array.isArray(lesson.facts) ? lesson.facts : [];
+      const scenario = analyzeDecisionScenario(lesson.scenario || {});
+      for (const issue of scenario.issues) issues.push(`${expected.lessonId}:scenario:${issue}`);
+      if (publicScionUnanchoredNamedPhrases(`${scenario.setup} ${scenario.materials}`, sourceText).length > 0) {
+        issues.push(`${expected.lessonId}:scenario:unanchored-named-detail`);
+      }
       const mcItems = Array.isArray(lesson.mc) ? lesson.mc : [];
+      if (mcItems.length !== 2) issues.push(`${expected.lessonId}:mc-count:${mcItems.length}/2`);
       mcItems.forEach((item, index) => {
+        const question = item?.q ?? item?.question;
+        const options = item?.op ?? item?.options ?? [];
+        const explanation = item?.ex ?? item?.explanation;
+        const questionWords = publicScionWordCount(question);
+        if (questionWords < 20 || questionWords > 45) {
+          issues.push(`${expected.lessonId}:mc-${index}:stem-length`);
+        }
+        if (!Array.isArray(options) || options.length !== 4) {
+          issues.push(`${expected.lessonId}:mc-${index}:option-count`);
+        }
         if (
-          PUBLIC_SCION_TEMPLATE_RESIDUE_RE.test(
-            [item?.q ?? item?.question, ...(item?.op ?? item?.options ?? []), item?.ex ?? item?.explanation]
-              .filter(Boolean)
-              .join(' '),
-          )
+          Array.isArray(options) &&
+          (new Set(options.map(normalizeScionOptionIdentity)).size !== options.length ||
+            findScionNearDuplicateOptionPair(options))
         ) {
+          issues.push(`${expected.lessonId}:mc-${index}:duplicate-options`);
+        }
+        if ((Array.isArray(options) ? options : []).some((option) => PUBLIC_SCION_ABSOLUTE_OPTION_RE.test(option))) {
+          issues.push(`${expected.lessonId}:mc-${index}:absolute-option`);
+        }
+        if (PUBLIC_SCION_ANSWER_POSITION_RE.test(explanation)) {
+          issues.push(`${expected.lessonId}:mc-${index}:answer-position-residue`);
+        }
+        if (PUBLIC_SCION_INTERNAL_INDEX_RE.test([question, ...options, explanation].join(' '))) {
+          issues.push(`${expected.lessonId}:mc-${index}:claim-marker-residue`);
+        }
+        if (
+          findScionExplanationKeyConflict(item, {
+            allowAffirmativeLead: true,
+            stripTerminalPunctuation: true,
+            allowFirstSentenceLexicalCue: true,
+            rejectNegativeEvidence: true,
+          })
+        ) {
+          issues.push(`${expected.lessonId}:mc-${index}:explanation-key-conflict`);
+        }
+        if (PUBLIC_SCION_TEMPLATE_RESIDUE_RE.test([question, ...options, explanation].filter(Boolean).join(' '))) {
           issues.push(`${expected.lessonId}:mc-${index}:template-residue`);
         }
         const sourceFactIndexes = item?.sourceFactIndexes ?? item?.fi;
@@ -236,6 +433,9 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
         ) {
           issues.push(`${expected.lessonId}:mc-${index}:multiple-source-supported-options`);
         }
+        if (publicScionUnanchoredNamedPhrases([question, ...options, explanation].join(' '), sourceText).length > 0) {
+          issues.push(`${expected.lessonId}:mc-${index}:unanchored-named-detail`);
+        }
       });
     }
     return { needsRetry: issues.length > 0, issues };
@@ -251,39 +451,43 @@ export function publicScionKernelResponseNeedsRetry(responseText, userPrompt, ta
 export function mergePublicScionKernelAttempts(previousText, currentText, userPrompt = '') {
   try {
     const previous = JSON.parse(previousText);
-    const current = JSON.parse(currentText);
+    let current = JSON.parse(currentText);
     const previousById = new Map(
       (Array.isArray(previous?.lessons) ? previous.lessons : [])
         .filter((lesson) => lesson?.lessonId)
         .map((lesson) => [lesson.lessonId, lesson]),
     );
-    const expectedById = new Map(
-      extractPublicScionKernelLessons(userPrompt)
-        .filter((lesson) => lesson?.lessonId)
-        .map((lesson) => [lesson.lessonId, lesson]),
-    );
     const repairs = [];
+    const groups = [
+      { field: 'scenario', keys: ['scenario'] },
+      { field: 'knowledgeCore', keys: ['facts', 'keyTerms', 'mc'] },
+    ];
+
     for (const lesson of Array.isArray(current?.lessons) ? current.lessons : []) {
       const priorLesson = previousById.get(lesson?.lessonId);
-      if (!priorLesson || !Array.isArray(lesson?.keyTerms) || !Array.isArray(priorLesson?.keyTerms)) continue;
-      lesson.keyTerms = lesson.keyTerms.map((term, index) => {
-        const merged = mergeScionKeyTermContractAttempts(priorLesson.keyTerms[index], term, {
-          lessonTitle: expectedById.get(lesson.lessonId)?.title || '',
-          definitionMin: 40,
+      if (!priorLesson) continue;
+      for (const group of groups) {
+        if (group.keys.some((key) => priorLesson[key] === undefined)) continue;
+        const before = assessPublicScionKernelResponse(JSON.stringify(current), userPrompt, 'blueprintEnrichment');
+        const candidate = structuredClone(current);
+        const candidateLesson = candidate.lessons.find((entry) => entry?.lessonId === lesson.lessonId);
+        for (const key of group.keys) candidateLesson[key] = structuredClone(priorLesson[key]);
+        const after = assessPublicScionKernelResponse(JSON.stringify(candidate), userPrompt, 'blueprintEnrichment');
+        const beforeIssues = new Set(before.issues || []);
+        const introduced = (after.issues || []).filter((issue) => !beforeIssues.has(issue));
+        if ((after.issues || []).length >= (before.issues || []).length || introduced.length > 0) continue;
+        repairs.push({
+          pass: 'crossAttemptAtomicRetention',
+          lessonId: lesson.lessonId,
+          field: group.field,
+          issueCountBefore: before.issues.length,
+          issueCountAfter: after.issues.length,
+          resolvedIssues: before.issues.filter((issue) => !(after.issues || []).includes(issue)),
+          trainingEligible: false,
+          preferenceEvidence: { evidenceScope: 'deterministic-contract-only', verified: false },
         });
-        repairs.push(
-          ...merged.repairs.map((repair) => ({
-            kind: 'key-term',
-            pass: 'crossAttemptContractMerge',
-            lessonId: lesson.lessonId,
-            item: index,
-            ...repair,
-            trainingEligible: false,
-            preferenceEvidence: { evidenceScope: 'deterministic-contract-only', verified: false },
-          })),
-        );
-        return merged.term;
-      });
+        current = candidate;
+      }
     }
     return { text: JSON.stringify(current), repairs };
   } catch {
@@ -292,42 +496,81 @@ export function mergePublicScionKernelAttempts(previousText, currentText, userPr
 }
 
 export function buildPublicScionRetryFeedback(assessment = {}) {
-  const issues = Array.isArray(assessment?.issues) ? assessment.issues.slice(0, 12) : [];
+  const allIssues = Array.isArray(assessment?.issues) ? assessment.issues : [];
+  const issues = allIssues.slice(0, 12);
   const focusedRules = [
-    ...(issues.some((issue) => issue.includes('-repeats-'))
+    ...(allIssues.some((issue) => issue.includes('-repeats-'))
       ? [
           'Every df, eg, mi, and cx field must make a different instructional move; replace repeated or paraphrased fields.',
           'cx must directly refute mi while using different wording from df and eg.',
         ]
       : []),
-    ...(issues.some((issue) => issue.includes('embedded-field-label'))
+    ...(allIssues.some((issue) => issue.includes('embedded-field-label'))
       ? [
           'Return only each field value. Never embed labels such as Definition:, Example:, Misconception:, or Correction:.',
         ]
       : []),
-    ...(issues.some((issue) => issue.includes('claim-marker-residue'))
-      ? ['Remove internal claim numbers and bracketed claim markers from learner-facing key-term fields.']
+    ...(allIssues.some((issue) => issue.includes('claim-marker-residue'))
+      ? [
+          'Remove internal fact numbers, claim numbers, source indexes, and bracketed markers from every learner-facing field.',
+        ]
       : []),
-    ...(issues.some((issue) => issue.includes('misconception-repeats-known-fact'))
+    ...(allIssues.some((issue) => issue.includes('misconception-repeats-known-fact'))
       ? ['mi must be a genuinely false learner belief. Never label one of the lesson facts as a misconception.']
       : []),
-    ...(issues.some((issue) => issue.includes('circular-definition'))
+    ...(allIssues.some((issue) => issue.includes('circular-definition'))
       ? [
           'A definition must not repeat its tr term within the first six words. Begin df with a broader category phrase such as "A process in which".',
         ]
       : []),
-    ...(issues.some((issue) => issue.includes('source-fact-index'))
+    ...(allIssues.some((issue) => issue.includes('source-fact-index'))
       ? ['sourceFactIndexes is required and may cite only supplied zero-based claim indexes.']
       : []),
-    ...(issues.some((issue) => issue.includes('explanation-omits-key-support'))
+    ...(allIssues.some((issue) => issue.includes('explanation-omits-key-support'))
       ? ['Every ex must state why the keyed option is correct; eliminating distractors alone is incomplete feedback.']
       : []),
-    ...(issues.some((issue) => issue.includes('multiple-source-supported-options'))
+    ...(allIssues.some((issue) => issue.includes('multiple-source-supported-options'))
       ? ['Rewrite the stem or options so exactly one option is supported by the lesson facts.']
       : []),
-    ...(issues.some((issue) => issue.includes('template-residue'))
+    ...(allIssues.some((issue) => issue.includes('template-residue'))
       ? [
           'Replace every generic or copied template stem and option. Each q must name exact lesson concepts or concrete case evidence.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('truncated-fact') || issue.includes('fact-length'))
+      ? [
+          'Write each fact as one complete 8-20 word sentence. Never continue a second sentence or end on a function word.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('answer-position-residue'))
+      ? [
+          'Explain the subject reasoning directly. Never mention the key, answer position, option letter, or option number.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('absolute-option'))
+      ? ['Remove always, never, all, and none from options; use plausible bounded alternatives.']
+      : []),
+    ...(allIssues.some((issue) => issue.includes('unanchored-named'))
+      ? [
+          'Remove named places, studies, people, products, and examples that do not appear in the supplied lesson input.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('scenario-'))
+      ? [
+          'Give the scenario an actionable decision and a concrete evidence packet with at least two inspectable details.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('duplicate-options'))
+      ? ['Every MC item needs four meaningfully distinct options; never repeat or pad the same alternative.']
+      : []),
+    ...(allIssues.some((issue) => issue.includes('explanation-key-conflict'))
+      ? [
+          'Make ai point to the one option supported by ex and the cited fact. The explanation must never support another option.',
+        ]
+      : []),
+    ...(allIssues.some((issue) => issue.includes('unexpected-script'))
+      ? [
+          'Use only the writing system present in the supplied lesson input; remove stray characters from another script.',
         ]
       : []),
   ];
@@ -527,7 +770,7 @@ function buildPublicScionKernelPrompt(userPrompt) {
     ],
     mc: [
       {
-        q: 'REPLACE with one complete distinction question naming two exact lesson terms.',
+        q: 'REPLACE with a 20-45 word distinction question using a concrete observation and two exact lesson terms.',
         op: [
           'REPLACE with a plausible subject-specific option A.',
           'REPLACE with a plausible subject-specific option B.',
@@ -536,19 +779,19 @@ function buildPublicScionKernelPrompt(userPrompt) {
         ],
         ai: 0,
         fi: [0],
-        ex: 'Why the key wins and the closest distractor fails in subject terms.',
+        ex: 'State the subject evidence supporting the answer, then correct the closest distractor.',
       },
       {
-        q: 'REPLACE with one concrete case question naming exact evidence and a decision.',
+        q: 'REPLACE with a 20-45 word case question naming exact evidence, a real constraint, and one decision.',
         op: [
           'REPLACE with a plausible case-specific option A.',
           'REPLACE with a plausible case-specific option B.',
           'REPLACE with a plausible case-specific option C.',
           'REPLACE with a plausible case-specific option D.',
         ],
-        ai: 1,
+        ai: 0,
         fi: [1],
-        ex: 'Why the key fits the case and the closest distractor does not.',
+        ex: 'Apply the case evidence to support the answer, then correct the closest distractor.',
       },
     ],
     keyTerms: [
@@ -597,11 +840,12 @@ ${
     ? `- RECOVERY ${recoveryAttempt}: a previous response was incomplete. Re-author the full requested lesson now; do not summarize, apologize, or repeat an empty response.\n`
     : ''
 }- Write 5 facts per lesson. Each fact is 8-20 words, at least 20 characters, and states subject knowledge rather than course process.
-- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is at least 40 characters and begins with a broader category or distinguishing property, not the tr term; eg is concrete; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never embed field labels or internal claim numbers.
+- Write 3 keyTerms per lesson. Each tr is a distinct 1-4 word subject term that reuses specific words from that lesson's title, topics, or objectives AND appears verbatim in at least one of that lesson's facts; never copy the full lesson title. Every df is at least 40 characters and begins with a broader category or distinguishing property, not the tr term; eg is concrete and uses only names already present in the lesson input; mi is a genuinely false learner belief and never restates a lesson fact; cx directly refutes mi in different wording and never repeats df or eg. Every field makes a different instructional move. Never invent a named place, person, study, product, organization, or event. Never embed field labels or internal claim numbers.
 - Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences; ma names the evidence packet rather than saying "scenario evidence" or "course materials".
 - Write exactly 2 mc items: one concept distinction and one concrete case application.
-- Every mc item includes fi=sourceFactIndexes as exactly [n]: one zero-based integer from 0 through 4 pointing to the single fact that directly proves why the keyed option wins. Never write a string, more than one index, or an out-of-range index.
-- Options are parallel and plausible; distractors reflect real misconceptions. Every q is 20-45 words; op has exactly 4 options; ai is 0-3; ex explains why the key wins and the closest distractor fails.
+- Every mc item includes fi=sourceFactIndexes as exactly [n]: one zero-based integer from 0 through 4 pointing to the single fact that directly supports the first option. Never write a string, more than one index, or an out-of-range index.
+- Options are parallel and plausible; distractors reflect real misconceptions. Every q is 20-45 words and includes a concrete observation or comparison, not a short definition prompt; op has exactly 4 meaningfully distinct options. Put the single supported option first in op and set ai=0; the compiler shuffles answer positions after admission. ex states the subject evidence supporting the answer and then corrects the closest distractor without referring to any position.
+- Never mention "the key", answer positions, option letters or numbers, fact numbers, claim numbers, or source indexes in q, op, or ex.
 - Never infer motive or cause from one ambiguous observation. Include enough context that exactly one option is supported.
 - Never write pure vocabulary recall, tool trivia, NOT/EXCEPT questions, always/never options, or all/none of the above.
 - Never mention artifacts, evidence moves, success criteria, rubrics, submissions, "the lesson", "this lesson", or "this course".
