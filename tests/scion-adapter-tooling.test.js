@@ -7,7 +7,11 @@ import { promisify } from 'node:util';
 import { afterEach, describe, expect, it } from 'vitest';
 import JSZip from 'jszip';
 
-import { buildScionAdapterDataset, registerScionLessonKernelCase } from '../scripts/scionAdapterDataset.mjs';
+import {
+  SCION_ADAPTER_SEMANTIC_PROFILES,
+  buildScionAdapterDataset,
+  registerScionLessonKernelCase,
+} from '../scripts/scionAdapterDataset.mjs';
 import { getCourseById } from '../scripts/crucible/courses.mjs';
 import { computeScionAdapterPackageIdentity } from '../scripts/lib/scionBrowserDeviceMatrix.mjs';
 import { buildScionAdapterManifest, sha256File, verifyScionAdapterPackage } from '../scripts/scionAdapterPackage.mjs';
@@ -167,6 +171,10 @@ function bindSyntheticTrainingRun(manifest, lane = 'production') {
 }
 
 describe('Scion adapter tooling', () => {
+  it('allows the exact source-strict V6 production admission profile for task-matched datasets', () => {
+    expect(SCION_ADAPTER_SEMANTIC_PROFILES).toContain('source-strict-v6');
+  });
+
   it('refuses to inflate the lesson-kernel target with two preferences for one campaign case', () => {
     const seenCases = new Set();
     expect(

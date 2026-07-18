@@ -36,6 +36,18 @@ const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
 export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v5.json';
 const DEFAULT_SOURCES = SCION_ADAPTER_DEFAULT_SOURCES;
 const DEFAULT_HELDOUT_BENCHMARK = SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK;
+export const SCION_ADAPTER_SEMANTIC_PROFILES = Object.freeze([
+  'legacy',
+  'strict',
+  'strict-v3',
+  'strict-v4',
+  'strict-v5',
+  'strict-v6',
+  'source-strict-v3',
+  'source-strict-v4',
+  'source-strict-v5',
+  'source-strict-v6',
+]);
 export const SCION_ORPO_TRAINING_FORMAT_V1 = Object.freeze({
   protocol: 'scion-orpo-conversations-v1',
   columns: Object.freeze(['chosen', 'rejected', 'provenance']),
@@ -1023,7 +1035,7 @@ function parseArgs(argv) {
     else if (arg === '--generated-at') args.generatedAt = argv[++index];
     else if (arg === '--semantic-profile') {
       args.semanticProfile = argv[++index];
-      if (!['legacy', 'strict', 'strict-v3'].includes(args.semanticProfile)) {
+      if (!SCION_ADAPTER_SEMANTIC_PROFILES.includes(args.semanticProfile)) {
         throw new Error(`Unknown semantic admission profile: ${args.semanticProfile}`);
       }
     } else if (arg === '--allow-smoke') args.allowSmoke = true;

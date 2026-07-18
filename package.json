@@ -263,6 +263,7 @@
     "capture:scion:key-term-recovery": "node scripts/scionKeyTermRecoveryAudit.mjs --capture",
     "audit:scion:key-term-recovery": "node scripts/scionKeyTermRecoveryAudit.mjs",
     "build:scion:adapter-dataset": "node scripts/scionAdapterDataset.mjs",
+    "build:scion:adapter-dataset:lesson-kernel:v0.16.54": "node scripts/scionAdapterDataset.mjs --source verification-output/scion-lesson-kernel-judge-batches-v6-v0.16.54/training-preferences.jsonl --source verification-output/scion-lesson-kernel-teacher-judge-v0.16.54/training-preferences.jsonl --output trellis/tendril/distill/data-g4-orpo/lesson-kernel-v0.16.54 --minimum-pairs 100 --minimum-domains 7 --minimum-groups-per-domain 2 --minimum-task-groups-per-domain 6 --minimum-source-kernels-per-domain 6 --minimum-model-judge-pairs 100 --minimum-model-judge-domains 7 --minimum-model-judge-pairs-per-domain 8 --research-minimum-pairs 100 --research-minimum-domains 7 --research-minimum-groups-per-domain 2 --research-minimum-task-groups-per-domain 6 --research-minimum-source-kernels-per-domain 6 --research-minimum-model-judge-pairs 100 --research-minimum-model-judge-domains 7 --research-minimum-model-judge-pairs-per-domain 8 --semantic-profile source-strict-v6 --generated-at 2026-07-19T02:00:00.000Z",
     "build:scion:adapter-dataset:research": "node scripts/scionAdapterDataset.mjs --research",
     "audit:scion:adapter:task-scope:v0.16.53": "node scripts/scionAdapterTaskScopeEvidenceAudit.mjs",
     "build:scion:adapter:corpus-readiness": "npm run build:scion:adapter:corpus-readiness:v0.16.47",
