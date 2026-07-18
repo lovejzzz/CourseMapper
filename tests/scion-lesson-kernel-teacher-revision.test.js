@@ -184,6 +184,14 @@ describe('Scion lesson-kernel teacher revision', () => {
     expect(promptV5).toContain('change only key term N\'s `cx`');
     expect(promptV5).toContain('keep `q`, `op`, `ai`, and `fi` unchanged');
     expect(promptV5).toContain('recognized evidence types');
+    const promptV6 = fs.readFileSync(
+      path.resolve(here, '../evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v6-v0.16.54.md'),
+      'utf8',
+    );
+    expect(promptV6).toContain('must be visibly different from `originalArtifact`');
+    expect(promptV6).toContain('Do not mention, quote, negate, or correct any distractor');
+    expect(promptV6).toContain('End `q`, every option, and `ex` with terminal punctuation');
+    expect(promptV6).toContain('share no three consecutive content words with `df`');
   });
 
   it('builds a source-only packet without exposing the local artifact or provider route', () => {
