@@ -32,6 +32,7 @@ function parseArgs(argv) {
     output: OUTPUT_DIR,
     prompt: PROMPT,
     chunkSize: 6,
+    sparseComplete: false,
     generatedAt: '2026-07-18T20:00:00.000Z',
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -45,6 +46,7 @@ function parseArgs(argv) {
     else if (token === '--output') args.output = argv[++index] || args.output;
     else if (token === '--prompt') args.prompt = argv[++index] || args.prompt;
     else if (token === '--chunk-size') args.chunkSize = Number(argv[++index] || 0);
+    else if (token === '--sparse-complete') args.sparseComplete = true;
     else if (token === '--generated-at') args.generatedAt = argv[++index] || args.generatedAt;
     else if (token === '--help' || token === '-h') args.help = true;
     else throw new Error(`Unknown lesson-kernel batch judge option: ${token}`);
@@ -144,6 +146,7 @@ async function build(args) {
     promptSha256: promptSha256(inputs.promptRaw),
     generatedAt: args.generatedAt,
     chunkSize: args.chunkSize,
+    sparseComplete: args.sparseComplete,
   });
   const validation = validateScionLessonKernelBlindWorkbook(workbook);
   if (!validation.valid) throw new Error(`Invalid lesson-kernel judge workbook: ${validation.issues.join(', ')}`);

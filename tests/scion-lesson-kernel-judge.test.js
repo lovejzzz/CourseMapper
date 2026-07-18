@@ -205,6 +205,23 @@ describe('Scion lesson-kernel paired-order judge', () => {
     expect(progressive.manifest).toMatchObject({ campaignCaseCount: 3, caseCount: 2, captureComplete: false });
     expect(progressive.batches[0].sealed).toBe(false);
 
+    const sparseComplete = buildScionLessonKernelBlindWorkbook({
+      ...inputs,
+      promptPath: 'evaluation/judge.md',
+      promptSha256: 'b'.repeat(64),
+      generatedAt: '2026-07-18T16:30:00.000Z',
+      chunkSize: 6,
+      sparseComplete: true,
+    });
+    expect(validateScionLessonKernelBlindWorkbook(sparseComplete)).toEqual({ valid: true, issues: [] });
+    expect(sparseComplete.manifest).toMatchObject({
+      campaignCaseCount: 3,
+      caseCount: 2,
+      captureComplete: false,
+      sparseComplete: true,
+    });
+    expect(sparseComplete.batches[0].sealed).toBe(true);
+
     const tampered = structuredClone(workbook);
     tampered.batches[0].packets['B/A'].cases[0].artifacts.A = tampered.batches[0].packets['A/B'].cases[0].artifacts.A;
     expect(validateScionLessonKernelBlindWorkbook(tampered).issues).toEqual(

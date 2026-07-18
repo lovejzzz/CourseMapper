@@ -146,6 +146,7 @@ export function buildScionLessonKernelBlindWorkbook({
   promptSha256,
   generatedAt,
   chunkSize = 6,
+  sparseComplete = false,
 } = {}) {
   if (!Number.isInteger(chunkSize) || chunkSize < 1 || chunkSize > 12) {
     throw new Error('Lesson-kernel judge chunkSize must be an integer from 1 through 12');
@@ -178,7 +179,7 @@ export function buildScionLessonKernelBlindWorkbook({
       batchId,
       index,
       caseIds: batchCaseIds,
-      sealed: batchCaseIds.length === chunkSize || caseIds.length === campaignCaseCount,
+      sealed: batchCaseIds.length === chunkSize || caseIds.length === campaignCaseCount || sparseComplete,
       packets,
     });
   }
@@ -192,6 +193,7 @@ export function buildScionLessonKernelBlindWorkbook({
     campaignCaseCount,
     caseCount: caseIds.length,
     captureComplete: caseIds.length === campaignCaseCount,
+    ...(sparseComplete ? { sparseComplete: true } : {}),
     batches: batches.map((batch) => ({
       batchId: batch.batchId,
       index: batch.index,
@@ -267,8 +269,10 @@ export function validateScionLessonKernelBlindWorkbook(workbook = {}) {
     issues.push('campaign-case-count');
   }
   if (manifest.captureComplete !== (manifest.caseCount === manifest.campaignCaseCount)) issues.push('capture-complete');
+  if (manifest.sparseComplete != null && manifest.sparseComplete !== true) issues.push('sparse-complete');
   for (const batch of batches) {
-    const shouldBeSealed = batch.caseIds.length === manifest.chunkSize || manifest.captureComplete;
+    const shouldBeSealed =
+      batch.caseIds.length === manifest.chunkSize || manifest.captureComplete || manifest.sparseComplete === true;
     if (batch.sealed !== shouldBeSealed) issues.push(`seal-policy:${batch.batchId}`);
   }
   if (manifest.identity?.sha256 !== scionLessonKernelSha256(withoutIdentity(manifest))) issues.push('identity');
