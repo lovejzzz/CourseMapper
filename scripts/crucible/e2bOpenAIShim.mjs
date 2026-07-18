@@ -5,8 +5,9 @@
 //
 // The app asks for response_format json_object / json_schema. E2B has no
 // native structured-output mode, so the shim folds the schema hint into the
-// prompt and returns the model's best-effort text; malformed JSON is the
-// EXPECTED failure mode this experiment measures — the shim never repairs it.
+// prompt and returns the model's best-effort text. The only repair allowed is
+// exact closure of containers the model already opened; malformed content is
+// still an expected measured failure and is never synthesized into validity.
 //   node scripts/crucible/e2bOpenAIShim.mjs [port]
 import http from 'node:http';
 import fs from 'node:fs';
@@ -16,6 +17,7 @@ import { sGenerate, startItems, stopS } from '../../trellis/tendril/sModel.mjs';
 import { sha256File, verifyScionAdapterPackage } from '../scionAdapterPackage.mjs';
 import { computeScionAdapterPackageIdentity } from '../lib/scionBrowserDeviceMatrix.mjs';
 import { normalizeScionAdapterTaskFamily, resolveScionAdapterTaskRoute } from '../../src/lib/scionAdapterTaskScope.js';
+import { closeJsonContainersAtEof } from './jsonClosureRepair.mjs';
 
 const PORT = Number(process.argv[2] ?? 8799);
 // Optional autopsy log: SHIM_BODY_LOG=<path> appends one JSON line per call
@@ -218,52 +220,6 @@ function extractJsonContract(body, isResponses) {
   if (fmt.type !== 'json_schema') return {};
   const schema = fmt.schema ?? fmt.json_schema?.schema;
   return schema ? { schema: boundSchema(schema) } : { jsonMode: true };
-}
-
-// mlx-vlm may honor the schema grammar for ordinary tokens but still accept
-// an EOS token immediately after a complete inner object. That leaves a
-// structurally sound JSON prefix missing only its enclosing ]/} delimiters
-// (measured on content-sourced Pass B lessons). Close ONLY containers already
-// opened by the model; never invent strings, values, commas, or fields. The
-// app's parser and semantic admission gates still own contract acceptance.
-function closeJsonContainersAtEof(value) {
-  const text = String(value || '').trim();
-  if (!text) return { text, addedClosers: '' };
-  try {
-    JSON.parse(text);
-    return { text, addedClosers: '' };
-  } catch {
-    // Continue only when the prefix itself has balanced strings/delimiters.
-  }
-  const stack = [];
-  let inString = false;
-  let escaped = false;
-  for (const char of text) {
-    if (inString) {
-      if (escaped) escaped = false;
-      else if (char === '\\') escaped = true;
-      else if (char === '"') inString = false;
-      continue;
-    }
-    if (char === '"') {
-      inString = true;
-      continue;
-    }
-    if (char === '{') stack.push('}');
-    else if (char === '[') stack.push(']');
-    else if (char === '}' || char === ']') {
-      if (stack.pop() !== char) return { text, addedClosers: '' };
-    }
-  }
-  if (inString || escaped || stack.length === 0) return { text, addedClosers: '' };
-  const addedClosers = stack.reverse().join('');
-  const closed = `${text}${addedClosers}`;
-  try {
-    JSON.parse(closed);
-    return { text: closed, addedClosers };
-  } catch {
-    return { text, addedClosers: '' };
-  }
 }
 
 // ── The kernel contract, grammar-enforced (E2B-MAX V2, round-5 lesson) ──────

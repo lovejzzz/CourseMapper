@@ -5,6 +5,8 @@ import path from 'node:path';
 
 import { afterEach, expect, it } from 'vitest';
 
+import { closeJsonContainersAtEof } from '../crucible/jsonClosureRepair.mjs';
+
 let serverProcess = null;
 let fixtureDir = null;
 
@@ -28,6 +30,24 @@ afterEach(async () => {
   serverProcess = null;
   if (fixtureDir) await fs.rm(fixtureDir, { recursive: true, force: true });
   fixtureDir = null;
+});
+
+it('repairs only missing JSON container delimiters at end of output', () => {
+  expect(closeJsonContainersAtEof('{"lessons":[{"lessonId":"lesson-2"}')).toEqual({
+    text: '{"lessons":[{"lessonId":"lesson-2"}]}',
+    addedClosers: ']}',
+  });
+  expect(closeJsonContainersAtEof('{"nested":{"text":"braces } and ] inside strings"}')).toEqual({
+    text: '{"nested":{"text":"braces } and ] inside strings"}}',
+    addedClosers: '}',
+  });
+  expect(closeJsonContainersAtEof('{"ok":true}')).toEqual({ text: '{"ok":true}', addedClosers: '' });
+});
+
+it('refuses to invent truncated JSON content or repair mismatched structure', () => {
+  for (const text of ['{"text":"unfinished', '{"value":', '{"items":[1,', '{"items":[1}', '{"ok":true}}']) {
+    expect(closeJsonContainersAtEof(text)).toEqual({ text, addedClosers: '' });
+  }
 });
 
 it('reports queued/completed model work and attributes inner calls to the HTTP envelope', async () => {
