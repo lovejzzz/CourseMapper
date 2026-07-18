@@ -19,6 +19,7 @@ const GENERATED_AT = '2026-07-18T00:35:00.000Z';
 const CANDIDATES = 'evaluation/scion-review-candidates-course-group-breadth-v0.16.47.jsonl';
 const RECEIPT = 'evaluation/scion-adapters/evidence/semantic-admission-burden-v0.16.50.json';
 const RETAINED_REPLAY_DIR = 'evaluation/scion-source-compiler-replay-v0.16.47';
+const SOURCE_REPLAY_RECEIPT = 'evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.47.json';
 const CAMPAIGNS = [
   'evaluation/scion-source-capture-campaign.json',
   'evaluation/scion-source-capture-expansion-v0.16.17.json',
@@ -85,6 +86,15 @@ function positiveIssueDelta(previous = {}, current = {}) {
 }
 
 async function retainedReplay(root) {
+  const sourceReplayReceiptRaw = await fs.readFile(path.join(root, SOURCE_REPLAY_RECEIPT));
+  const sourceReplayReceipt = JSON.parse(sourceReplayReceiptRaw.toString('utf8'));
+  if (
+    sourceReplayReceipt.protocol !== 'scion-source-compiler-replay-v1' ||
+    sourceReplayReceipt.release !== 'v0.16.47'
+  ) {
+    throw new Error('Retained replay is not bound to the expected v0.16.47 source compiler receipt');
+  }
+  const boundProjects = new Map((sourceReplayReceipt.projects || []).map((project) => [project.path, project]));
   const previousCalls = [];
   const currentCalls = [];
   const projects = [];
@@ -100,11 +110,18 @@ async function retainedReplay(root) {
       const projectPath = path.join(RETAINED_REPLAY_DIR, `${group.id}-local.json`);
       const raw = await fs.readFile(path.join(root, projectPath));
       const project = JSON.parse(raw.toString('utf8'));
+      const actualSha256 = sha256(raw);
+      const boundProject = boundProjects.get(projectPath);
+      if (!boundProject || boundProject.bytes !== raw.length || boundProject.sha256 !== actualSha256) {
+        throw new Error(
+          `Retained replay project drifted from ${SOURCE_REPLAY_RECEIPT}: ${projectPath}. Rebuild and verify the source compiler replay before rebuilding this burden receipt.`,
+        );
+      }
       const promptById = new Map(group.prompts.map((prompt) => [prompt.id, prompt]));
       projects.push({
         path: projectPath,
         bytes: raw.length,
-        sha256: sha256(raw),
+        sha256: actualSha256,
         courseGroupId: group.id,
         domain: group.domain,
       });
@@ -158,7 +175,19 @@ async function retainedReplay(root) {
 
   const previous = summarizeSourceCaptureBurden({ calls: previousCalls, expectedCalls, expectedAtoms });
   const current = summarizeSourceCaptureBurden({ calls: currentCalls, expectedCalls, expectedAtoms });
+  if (projects.length !== boundProjects.size || projects.some((project) => !boundProjects.has(project.path))) {
+    throw new Error(
+      `Retained replay inventory drifted from ${SOURCE_REPLAY_RECEIPT}: expected ${boundProjects.size} bound projects, observed ${projects.length}`,
+    );
+  }
   return {
+    sourceCompilerReceipt: {
+      path: SOURCE_REPLAY_RECEIPT,
+      bytes: sourceReplayReceiptRaw.length,
+      sha256: sha256(sourceReplayReceiptRaw),
+      release: sourceReplayReceipt.release,
+      projectCount: boundProjects.size,
+    },
     projects,
     admissionChangedAtoms,
     previous,
@@ -241,8 +270,8 @@ export async function buildScionSemanticAdmissionBurdenV01650({ cwd = process.cw
   }
 
   return {
-    schemaVersion: 1,
-    protocol: 'scion-semantic-admission-v4-burden-replay-v1',
+    schemaVersion: 2,
+    protocol: 'scion-semantic-admission-v4-burden-replay-v2',
     release: RELEASE,
     generatedAt: GENERATED_AT,
     status: 'bounded-reviewed-semantic-retry-burden',
@@ -256,6 +285,7 @@ export async function buildScionSemanticAdmissionBurdenV01650({ cwd = process.cw
       retainedLocalReplay: {
         directory: RETAINED_REPLAY_DIR,
         campaigns: CAMPAIGNS,
+        sourceCompilerReceipt: retained.sourceCompilerReceipt,
         projects: retained.projects,
       },
       implementation,

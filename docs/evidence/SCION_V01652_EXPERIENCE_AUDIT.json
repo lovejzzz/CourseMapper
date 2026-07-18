@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "release": "v0.16.52",
+  "auditedAt": "2026-07-18T04:25:35.696Z",
+  "status": "browser-workflow-and-export-verified",
+  "environment": {
+    "url": "http://127.0.0.1:4174/",
+    "browser": "Chrome",
+    "model": "Scion V0.16.51 release candidate, cached pinned public Gemma base",
+    "adapterActive": false,
+    "viewports": [
+      { "width": 1440, "height": 1000 },
+      { "width": 390, "height": 844 }
+    ]
+  },
+  "workflow": {
+    "course": "Public Health Program Planning",
+    "lessonScope": 1,
+    "selectedMaterials": ["Syllabus", "Lesson Plans", "Assignment Briefs", "Rubrics", "Quiz & Exam Bank"],
+    "observedStages": ["Model", "Map", "Enrich", "Compile", "Verify", "Grade"],
+    "notableFrames": [
+      { "overallPercent": 15, "label": "Public Gemma 4 base ready · loading Scion…" },
+      { "overallPercent": 34, "label": "Retrying local lesson kernel · attempt 2/3" },
+      { "overallPercent": 85, "label": "Verifying and grading the package" },
+      { "overallPercent": 100, "label": "Ready to export" }
+    ],
+    "readyInSeconds": 37,
+    "materialsReady": "5/5",
+    "knowledgeReady": "1/1",
+    "quality": { "score": 99, "grade": "A", "texture": 94, "p0": 0, "p1": 0, "p2": 0 }
+  },
+  "agent": {
+    "deterministicAudit": {
+      "steps": 3,
+      "durationSeconds": 1,
+      "contentEdits": 0,
+      "exportVerification": "passed",
+      "reviewItems": 1
+    },
+    "freeFormScionChat": {
+      "prompt": "How can I make this lesson more practical for a community health planning class?",
+      "completedInSecondsApprox": 6,
+      "result": "grounded advisory response with case-study, data-interpretation, and policy-linkage options"
+    }
+  },
+  "responsive": {
+    "desktop": { "documentClientWidth": 1435, "documentScrollWidth": 1435, "horizontalOverflow": false },
+    "phone": { "documentClientWidth": 385, "documentScrollWidth": 385, "horizontalOverflow": false },
+    "phoneViewsVerified": ["Content", "Agent", "Export"]
+  },
+  "export": {
+    "fileName": "Public Health Program Planning - Course Materials.zip",
+    "bytes": 88136,
+    "sha256": "8149385a425738120d467e442bd814373481389b9839baf8d8c48210030eeb81",
+    "archiveEntryCount": 11,
+    "regularManifestFileCount": 7,
+    "compressionIntegrity": "passed",
+    "embeddedQuality": { "score": 99, "grade": "A", "texture": 94, "graderVersion": "1.10.16" }
+  },
+  "console": {
+    "errors": 0,
+    "warnings": 2,
+    "warningBoundary": "Expected WebGPU single-thread fallback notices; no application warning or error was observed."
+  },
+  "verification": {
+    "testFilesPassed": 379,
+    "testsPassed": 4753,
+    "testFilesSkipped": 16,
+    "testsSkipped": 162,
+    "lint": "passed",
+    "productionBuild": "passed",
+    "releaseHistoryAudit": "passed",
+    "sourceCompilerReplay": "passed: 121 admitted atoms, 71 retry seats, 10 source-grounded key repairs, 0 response mutations",
+    "semanticAdmission": "passed: 78/78 stable losses detected, 0 preferred regressions",
+    "semanticBurden": "passed: +2 burden atoms across 192 retained seats, +0/+0 retry seats across 91 frozen pairs"
+  },
+  "claimBoundary": "This is one real cached-base browser-local Scion workflow and physical export. It proves the recorded UX, runtime, layout, Agent, and archive behavior for this course. It is not human review, classroom evidence, an adapter win, a Gemma weight change, paid-reference parity, or universal course-quality proof."
+}

@@ -1286,15 +1286,18 @@ export default function ExportSidePanel({
     !zipPendingNeedsAttention &&
     !zipHasExportFailure &&
     !zipHasTerminalTrustBlocker;
-  const zipButtonLabel = finishPackageBusy
-    ? 'Finishing package'
-    : zipCanFinishPackage
-      ? 'Finish package'
-      : zipPendingNeedsAttention || zipHasExportFailure || zipHasTerminalTrustBlocker
-        ? 'Needs attention'
-        : zipPendingReadiness
+  const zipButtonLabel =
+    busy === 'zip'
+      ? 'Preparing ZIP…'
+      : finishPackageBusy
+        ? 'Finishing package'
+        : zipCanFinishPackage
           ? 'Finish package'
-          : 'Download ZIP';
+          : zipPendingNeedsAttention || zipHasExportFailure || zipHasTerminalTrustBlocker
+            ? 'Needs attention'
+            : zipPendingReadiness
+              ? 'Finish package'
+              : 'Download ZIP';
   // The export panel is the single ZIP owner.
   const zipDownloadDisabled =
     !!busy ||

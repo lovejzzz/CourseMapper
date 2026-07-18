@@ -100,6 +100,7 @@ export default function MessageList({
     isDelivGenerating,
     isAgentProviderReady,
     landingContext,
+    packageQualityPass,
   );
   const { greeting, starters = [] } = opener || {};
   const latestDigestIndex = React.useMemo(() => {
