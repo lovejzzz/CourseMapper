@@ -285,7 +285,7 @@ async function verifyDeliverableExport({ featureId, entry, courseMap, lessonFilt
   }
 
   const courseName = courseMap?.courseName || 'Course';
-  const scopedData = scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter);
+  const scopedData = scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter, courseMap);
   const checks = [];
 
   const { auditDeliverableContentQuality } = await import('./contentQualityChecks');

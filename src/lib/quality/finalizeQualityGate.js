@@ -37,6 +37,7 @@ export async function gradePackageAtFinalize({
   digest = null,
   courseId = '',
   coursePrompt = '',
+  expectedSessionMinutes = null,
   timeoutMs = PACKAGE_FINALIZE_QUALITY_TIMEOUT_MS,
 } = {}) {
   try {
@@ -54,7 +55,7 @@ export async function gradePackageAtFinalize({
       pipelineState,
       courseGraph,
       assembleOnly: true,
-      quality: { budget, digest, courseId, coursePrompt, timeoutMs },
+      quality: { budget, digest, courseId, coursePrompt, expectedSessionMinutes, timeoutMs },
     });
     const raced = await new Promise((resolve) => {
       const timer = setTimeout(() => resolve({ timedOut: true }), Math.max(0, timeoutMs));

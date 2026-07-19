@@ -725,8 +725,8 @@ describe('ChatPanel agent command strip', () => {
       expect.objectContaining({
         role: 'agentReceipt',
         receipt: expect.objectContaining({
-          title: 'Finish needs review',
-          status: 'review',
+          title: 'Package finished with notes',
+          status: 'done',
           target: 'Package',
           stateDiffs: [
             expect.objectContaining({
@@ -740,7 +740,7 @@ describe('ChatPanel agent command strip', () => {
       }),
       {
         role: 'assistant',
-        text: 'Package notes saved. Review them in the Agent panel or package report before publishing.',
+        text: 'Package is ready to download. 1 review note is saved in the Agent panel and package report for publishing.',
       },
       expect.objectContaining({
         role: 'packageSummary',
@@ -771,7 +771,7 @@ describe('ChatPanel agent command strip', () => {
             }),
           ],
         }),
-        expect.objectContaining({ tool: 'finalize_package', status: 'partial' }),
+        expect.objectContaining({ tool: 'finalize_package', status: 'done' }),
       ],
     });
     expect(chatRouterMock.send).not.toHaveBeenCalled();
@@ -812,11 +812,11 @@ describe('ChatPanel agent command strip', () => {
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Finish needs review', status: 'review', target: 'Package' }),
+        receipt: expect.objectContaining({ title: 'Package finished with notes', status: 'done', target: 'Package' }),
       }),
       {
         role: 'assistant',
-        text: 'Package notes saved. Review them in the Agent panel or package report before publishing.',
+        text: 'Package is ready to download. 1 review note is saved in the Agent panel and package report for publishing.',
       },
       expect.objectContaining({
         role: 'packageSummary',
@@ -869,6 +869,43 @@ describe('ChatPanel agent command strip', () => {
       text: 'Improve slides',
       assistantText: 'Regenerating Slide Decks from the workspace plan.',
       progressTool: 'edit_deliverables',
+    });
+    expect(chatRouterMock.send).not.toHaveBeenCalled();
+  });
+
+  it('scopes Check lesson timing to Course Map and Lesson Plans', async () => {
+    const onAuditPackage = vi.fn(() =>
+      Promise.resolve({
+        confidence: 'Excellent',
+        readiness: { blockerCount: 0, warningCount: 0, blockers: [], warnings: [] },
+        classroomReadiness: { blockerCount: 0, warningCount: 0, blockers: [], warnings: [] },
+        validation: { errorCount: 0, warningCount: 0, findings: [] },
+        exportVerification: { status: 'passed', checked: 2, failed: 0, warningCount: 0, checks: [] },
+      }),
+    );
+    root = renderChatPanel(container, {
+      activeTab: 'lessonPlans',
+      selectedFeatures: ['courseMap', 'lessonPlans', 'quizBank', 'rubrics'],
+      onAuditPackage,
+    });
+
+    await act(async () => {
+      messageListMock.props.onStarterAction({
+        text: 'Check lesson timing',
+        action: 'local-audit',
+        featureId: 'lessonPlans',
+      });
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(onAuditPackage).toHaveBeenCalledWith({
+      selectedFeatureIds: ['courseMap', 'lessonPlans'],
+      lessonFilter: null,
+    });
+    expectInitialLocalTurn({
+      text: 'Check lesson timing',
+      assistantText: 'Checking Lesson Plans.',
+      progressTool: 'review_package_readiness',
     });
     expect(chatRouterMock.send).not.toHaveBeenCalled();
   });
@@ -1360,11 +1397,11 @@ describe('ChatPanel agent command strip', () => {
     expect(chatRouterMock.addLocalMessages).toHaveBeenCalledWith([
       expect.objectContaining({
         role: 'agentReceipt',
-        receipt: expect.objectContaining({ title: 'Finish needs review', status: 'review', target: 'Package' }),
+        receipt: expect.objectContaining({ title: 'Package finished with notes', status: 'done', target: 'Package' }),
       }),
       {
         role: 'assistant',
-        text: 'Package notes saved. Review them in the Agent panel or package report before publishing.',
+        text: 'Package is ready to download. 1 review note is saved in the Agent panel and package report for publishing.',
       },
       expect.objectContaining({
         role: 'packageSummary',

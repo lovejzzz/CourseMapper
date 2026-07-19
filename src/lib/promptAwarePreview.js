@@ -51,6 +51,27 @@ export function derivePromptPreviewTitle(promptText) {
   return cleaned.length > 72 ? `${cleaned.slice(0, 69).trim()}...` : cleaned;
 }
 
+export function resolvePreviewLessonCount({ lessonScope, courseMap, lessonCount } = {}) {
+  if (lessonScope?.type === 'specific') return Array.isArray(lessonScope.indices) ? lessonScope.indices.length : 0;
+  return courseMap?.lessons?.length || Number(lessonCount) || 0;
+}
+
+export function scopePromptAwarePreviewItems(preview, lessonCount, lessonTitles = []) {
+  if (!preview || !Array.isArray(preview.items)) return preview;
+  const total = Math.max(1, Number(lessonCount) || Number(preview.total) || 1);
+  const scopedItems = preview.items.slice(0, Math.min(total, preview.items.length));
+  return {
+    ...preview,
+    total,
+    items: scopedItems.map((item, index) => {
+      const scopedTitle = clean(lessonTitles[index]);
+      if (!scopedTitle || !item?.lessonTitle) return item;
+      const suffix = String(item.lessonTitle).match(/\s+—\s+(?:Evidence Check|Discussion|Study Guide)$/)?.[0] || '';
+      return { ...item, lessonTitle: `${scopedTitle}${suffix}` };
+    }),
+  };
+}
+
 function buildPreviewCellValue(column, courseTitle, lessonTheme, lessonNumber) {
   const key = `${column?.key || ''} ${column?.label || ''}`.toLowerCase();
   const lowerTitle = courseTitle === 'Your course' ? 'the course' : courseTitle;

@@ -775,7 +775,7 @@ export default function ExportSidePanel({
   isPackageGenerationRunning = false,
   preferPackageScope = false,
   getPipelineState = null, // v0.12.1: () => manifest pipeline block, read at export time
-  getQualityContext = null, // v0.14.3: () => { budget, digest } — the ZIP grade's honesty source
+  getQualityContext = null, // v0.14.3+: () => { budget, digest, expectedSessionMinutes } — ZIP audit context
   // v0.14.9 B1: THE review queue is built and owned by AppFlow (one queue
   // object feeds the header CTA's headline count, this drawer, and the agent
   // digest entry) — the panel stopped building a rival queue, which is how

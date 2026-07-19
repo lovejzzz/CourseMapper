@@ -25,6 +25,7 @@ import {
   validateDifficultyProgression,
   validateSemanticContentQuality,
   validateReadability,
+  validateLessonPlanTiming,
   generateCourseHealthReport,
 } from '../pedagogicalValidator';
 
@@ -693,6 +694,24 @@ describe('validateSemanticContentQuality', () => {
     );
   });
 
+  it('accepts an out-of-range title when a focused workspace preserves its source lesson number', () => {
+    const findings = validateSemanticContentQuality(
+      {
+        courseName: 'Principles of Marketing',
+        lessons: [
+          {
+            title: 'Lesson 5: Marketing Concept',
+            sourceLessonNumber: 5,
+            sections: [{ learningObjectives: 'Apply the marketing concept to a named case.' }],
+          },
+        ],
+      },
+      {},
+    );
+
+    expect(findings.map((finding) => finding.id)).not.toContain('semantic-lesson-number-L0');
+  });
+
   it('flags notebook and model-card bleed in non-data-science packages', () => {
     const courseMap = {
       courseName: 'Film Form and Cultural Analysis',
@@ -864,6 +883,44 @@ describe('validateSemanticContentQuality', () => {
 // ── generateCourseHealthReport ──────────────────────────────────────────────
 
 describe('generateCourseHealthReport', () => {
+  it('treats a configured classroom-clock mismatch as an error', () => {
+    const deliverables = {
+      lessonPlans: doneDeliv({
+        plans: [
+          {
+            duration: '110 minutes',
+            outline: [{ time: '30 minutes' }, { time: '40 minutes' }, { time: '40 minutes' }],
+          },
+        ],
+      }),
+    };
+
+    expect(validateLessonPlanTiming(deliverables, 50)).toEqual([
+      expect.objectContaining({ severity: 'error', category: 'timing', featureId: 'lessonPlans' }),
+    ]);
+    expect(
+      generateCourseHealthReport(
+        { lessons: [{ title: 'Lesson 1', sections: [{ learningObjectives: 'Apply Big O notation.' }] }] },
+        deliverables,
+        { expectedSessionMinutes: 50 },
+      ).findings,
+    ).toEqual(expect.arrayContaining([expect.objectContaining({ category: 'timing' })]));
+  });
+
+  it('accepts a lesson whose declared and outlined time match the configured clock', () => {
+    const deliverables = {
+      lessonPlans: doneDeliv({
+        plans: [
+          {
+            duration: '50 minutes',
+            outline: [{ time: '10 minutes' }, { time: '15 minutes' }, { time: '25 minutes' }],
+          },
+        ],
+      }),
+    };
+    expect(validateLessonPlanTiming(deliverables, 50)).toEqual([]);
+  });
+
   it('returns empty report for course with no lessons', () => {
     const report = generateCourseHealthReport({ lessons: [] }, {});
     expect(report.findings).toEqual([]);

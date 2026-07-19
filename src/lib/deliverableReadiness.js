@@ -284,12 +284,16 @@ function filterLessonArray(items, lessonIndices) {
  * to filterLessonArray, and mixed arrays (weekly quizzes + appended exams)
  * route each item correctly.
  */
-function filterLessonAwareArray(items, lessonIndices) {
+function filterLessonAwareArray(items, lessonIndices, courseMap = null) {
   if (!Array.isArray(items)) return items;
+  const lessonNumbers = new Set(
+    lessonIndices.flatMap((index) => {
+      const sourceNumber = Number(courseMap?.lessons?.[index]?.sourceLessonNumber);
+      return Number.isInteger(sourceNumber) && sourceNumber > 0 ? [index + 1, sourceNumber] : [index + 1];
+    }),
+  );
   return items.filter((item, index) =>
-    Number.isInteger(item?.lessonNumber)
-      ? lessonIndices.includes(item.lessonNumber - 1)
-      : lessonIndices.includes(index),
+    Number.isInteger(item?.lessonNumber) ? lessonNumbers.has(item.lessonNumber) : lessonIndices.includes(index),
   );
 }
 
@@ -304,7 +308,7 @@ export function scopeCourseMapToLessons(courseMap, lessonFilter) {
   };
 }
 
-export function scopeDeliverableDataToLessons(featureId, data, lessonFilter) {
+export function scopeDeliverableDataToLessons(featureId, data, lessonFilter, courseMap = null) {
   if (!Array.isArray(lessonFilter) || !data || typeof data !== 'object') return data;
 
   const scopedArrayKeys = {
@@ -325,7 +329,9 @@ export function scopeDeliverableDataToLessons(featureId, data, lessonFilter) {
   let changed = false;
   for (const key of keys) {
     if (!Array.isArray(scopedData[key])) continue;
-    const filter = LESSON_AWARE_SCOPE_KEYS.has(key) ? filterLessonAwareArray : filterLessonArray;
+    const filter = LESSON_AWARE_SCOPE_KEYS.has(key)
+      ? (items, indices) => filterLessonAwareArray(items, indices, courseMap)
+      : filterLessonArray;
     scopedData = {
       ...scopedData,
       [key]: filter(scopedData[key], lessonFilter),
@@ -1446,14 +1452,17 @@ function normalizeCourseMapCellValue(key, value, lessonCount) {
   return next;
 }
 
-function normalizeCourseMapLessonTitle(title, lessonIndex, lessonCount) {
+function normalizeCourseMapLessonTitle(title, lessonIndex, lessonCount, sourceLessonNumber = null) {
   const raw = text(title);
   const match = raw.match(/^(lesson|week|module)\s*(\d{1,2})\s*[:.-]?\s*(.*)$/i);
   if (!match) return title;
   const currentNumber = Number(match[2]);
-  if (currentNumber <= lessonCount && currentNumber === lessonIndex + 1) return title;
-  const topic = match[3]?.trim() || `Topic ${lessonIndex + 1}`;
-  return `Lesson ${lessonIndex + 1}: ${topic}`;
+  const preservedNumber = Number(sourceLessonNumber);
+  const hasSourceNumber = Number.isInteger(preservedNumber) && preservedNumber > 0;
+  const expectedNumber = hasSourceNumber ? preservedNumber : lessonIndex + 1;
+  if (currentNumber === expectedNumber && (hasSourceNumber || currentNumber <= lessonCount)) return title;
+  const topic = match[3]?.trim() || `Topic ${expectedNumber}`;
+  return `Lesson ${expectedNumber}: ${topic}`;
 }
 
 function needsCourseMapFieldRepair(value) {
@@ -1510,7 +1519,12 @@ export function repairCourseMapReadiness({ courseMap, columns = [], lessonFilter
       changed = true;
     }
 
-    const normalizedTitle = normalizeCourseMapLessonTitle(nextLesson.title, lessonIndex, lessons.length);
+    const normalizedTitle = normalizeCourseMapLessonTitle(
+      nextLesson.title,
+      lessonIndex,
+      lessons.length,
+      nextLesson.sourceLessonNumber,
+    );
     if (stableJson(normalizedTitle) !== stableJson(nextLesson.title)) {
       nextLesson = {
         ...nextLesson,
@@ -2364,7 +2378,7 @@ export function evaluateWorkspaceReadiness({
       issues.push(makeIssue(READINESS_WARNING, featureId, `${labelFor(featureId)} is out of sync after edits.`));
     }
 
-    const scopedData = scopeDeliverableDataToLessons(featureId, entry.data, lessonIndices);
+    const scopedData = scopeDeliverableDataToLessons(featureId, entry.data, lessonIndices, courseMap);
 
     checkPublishabilityPlaceholders(featureId, scopedData, issues);
 

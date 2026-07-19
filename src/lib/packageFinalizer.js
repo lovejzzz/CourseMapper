@@ -61,7 +61,7 @@ function compactValidationIssues(healthReport, { blockOnValidationWarnings = fal
         (!selectedSet || !finding?.featureId || selectedSet.has(finding.featureId)),
     )
     .map((finding) => {
-      const semanticBlocker = finding.category === 'semanticQuality' && finding.severity === 'error';
+      const semanticBlocker = ['semanticQuality', 'timing'].includes(finding.category) && finding.severity === 'error';
       return normalizeReadinessIssue({
         severity: semanticBlocker ? 'blocker' : 'warning',
         featureId: finding.featureId || 'courseMap',
@@ -809,6 +809,7 @@ export function runDeterministicPackageFinalizer({
   enrichmentOutcome = null,
   courseGraph = null,
   blueprint = null,
+  expectedSessionMinutes = null,
 } = {}) {
   const repairResult = applyDeterministicRepairs({
     courseMap,
@@ -845,7 +846,7 @@ export function runDeterministicPackageFinalizer({
   }
   const validationDeliverables = scopeDeliverablesForValidation(finalDeliverables, selectedFeatures);
   const healthReport = includePedagogicalValidation
-    ? generateCourseHealthReport(finalCourseMap, validationDeliverables)
+    ? generateCourseHealthReport(finalCourseMap, validationDeliverables, { expectedSessionMinutes })
     : { findings: [], errorCount: 0, warningCount: 0, infoCount: 0, summary: '' };
   const baseReadiness = evaluateStrictPackageReadiness(
     {

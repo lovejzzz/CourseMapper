@@ -159,6 +159,20 @@ describe('apiCallBudget', () => {
     });
   });
 
+  it('does not extend the completed build clock with finalizer retry activity', () => {
+    let budget = createApiCallBudget({ startedAt: 1_000, updatedAt: 9_000, buildUpdatedAt: 9_000 });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'pipelineDecision',
+      stage: 'knowledgeBackbone',
+      detail: 'Rechecked during package finish',
+      postBuildActivity: true,
+    });
+
+    expect(budget.updatedAt).toBeGreaterThan(9_000);
+    expect(budget.buildUpdatedAt).toBe(9_000);
+    expect(buildApiCallBudgetReceipt(budget).buildElapsedMs).toBe(8_000);
+  });
+
   it('preserves bounded semantic-admission diagnostics for browser-run inspection', () => {
     const budget = applyApiCallBudgetEvent(createApiCallBudget(), {
       type: 'streamRetryCall',

@@ -24,6 +24,7 @@ import {
   isLeanCourseMapEnabled,
 } from '../lib/leanCourseMap';
 import { validateCourseMap } from '../lib/validateCourseMap';
+import { preserveMaterializedLessonNumbers } from '../lib/materializedLessonScope';
 
 function cellText(value) {
   if (value == null) return '';
@@ -1085,6 +1086,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
               'warning',
             );
           }
+          finalResult = preserveMaterializedLessonNumbers(finalResult, scopeIndices);
 
           // Post-generation structural validation — auto-fix missing titles, sections, column keys
           const { warnings: validationWarnings } = validateCourseMap(finalResult, columns);
@@ -1144,6 +1146,7 @@ Generate lessons ${actual + 1} through ${expectedCount} now as JSON:`;
             // Continuation chunks may also carry lean atoms — expand again (idempotent).
             finalResult = expandLeanCourseMap(finalResult);
             if (leanCourseMap) finalResult = deriveCompilerOwnedColumns(finalResult);
+            finalResult = preserveMaterializedLessonNumbers(finalResult, scopeIndices);
             if (finalResult.lessons.length < expected) {
               setCompletenessInfo({
                 expected,

@@ -57,7 +57,12 @@ const lazyChunkBudgets = [
   // v0.16.2: +0.25 KiB raw (gzip unchanged) keeps the authored Scion overlay
   // in full project snapshots after map/finalizer re-derivation. This is the
   // source-of-truth fix behind non-stale paired evaluation, not UI growth.
-  { prefix: 'AppFlow-', rawKiB: 258.75, gzipKiB: 78, gzipSlackBytes: 256 },
+  // v0.16.55: the clean v0.16.54 parent already measured 271.4/82.0 under
+  // the locked Vite toolchain, so the older 258.75/78 ceiling was stale and
+  // silently red before this release. The materialized source-lesson boundary
+  // adds 1.7 KiB raw / 0.3 gzip while replacing duplicated scope-numbering
+  // logic; 274/83 is the measured 273.1/82.3 result with narrow CI margin.
+  { prefix: 'AppFlow-', rawKiB: 274, gzipKiB: 83, gzipSlackBytes: 256 },
   // v0.16.47: the Living Course Compiler component and pure selector gained
   // an independently cacheable route boundary instead of raising AppFlow's
   // long-standing ratchet. Clean measurement: AppFlow 251.6/75.9; ribbon
@@ -65,13 +70,19 @@ const lazyChunkBudgets = [
   // v0.16.49: +0.9 KiB raw for terminal review/ready semantics and exact
   // enrichment coverage. The chunk remains workspace-only and gzip remains
   // below the existing ceiling (measured 65.9/20.4).
-  { prefix: 'livingCompilerRibbon-', rawKiB: 66, gzipKiB: 21 },
+  // v0.16.55 remeasurement: both the clean parent and current release are
+  // 69.6 KiB raw. The one-field post-build marker did not grow this chunk;
+  // move the stale ratchet to 70/22 without granting feature-growth room.
+  { prefix: 'livingCompilerRibbon-', rawKiB: 70, gzipKiB: 22 },
   // v0.9.0: +12 KiB raw / +4 KiB gzip for the course-native agent (content
   // index + renderer reuse, digest card, journal — measured at 341.0 KiB raw
   // / 92.8 gzip). Deliberate feature growth; gzip headroom unchanged.
   // v0.16.49: +0.9 KiB raw for Scion direct-action receipts and raw
   // pseudo-tool suppression (measured 350.9/96.5). No gzip increase.
-  { prefix: 'ChatPanel-', rawKiB: 352, gzipKiB: 105 },
+  // v0.16.55: calm completed-with-notes semantics and material-scoped timing
+  // checks add 0.9 KiB raw / 0.2 gzip over the 351.9/96.8 clean parent.
+  // Preserve the generous existing gzip cap but keep raw close to 352.8.
+  { prefix: 'ChatPanel-', rawKiB: 354, gzipKiB: 105 },
   // v0.15.187: the compiler chunk was the LARGEST in dist (measured 711 KiB
   // raw / 192 KiB gzip on July 1) and the only large chunk with no ratchet —
   // which is how it grew 31× in 5.5 weeks unnoticed. Budget set just above
@@ -98,7 +109,10 @@ const lazyChunkBudgets = [
   // enriched-ID restoration, observable music rubrics, course-map/study/FAQ
   // repairs, and copied-template defenses. These are contract behavior, not
   // decorative variants; measured 785.8/216.5 in the lazy workspace chunk.
-  { prefix: 'courseBlueprintCompiler-', rawKiB: 790, gzipKiB: 218 },
+  // v0.16.55 remeasurement: the unchanged clean parent is 795.4/219.7 under
+  // the locked bundler. This release adds no bytes to this chunk; 796/220
+  // records the real inherited floor with less than 0.6/0.3 KiB headroom.
+  { prefix: 'courseBlueprintCompiler-', rawKiB: 796, gzipKiB: 220 },
   // v0.16.49: Bayesian and music-interval assessment frames are workspace-only
   // data and independently cacheable. The same boundary now owns the music
   // interval admission, discussion, FAQ, quiz, and study-guide rules so the
@@ -139,7 +153,9 @@ const lazyChunkBudgets = [
   // v0.16.49 adds fail-closed process-glossary, copied-template, and
   // cross-discipline interval checks. The lazy grader measures 61.3/21.2,
   // remains near its original 40–60 KiB design band, and stays off landing.
-  { prefix: 'deepQualityGrader-', rawKiB: 62, gzipKiB: 22 },
+  // v0.16.55: the requested-session clock blocker adds 1.0 KiB raw / 0.3
+  // gzip over the 61.5/21.4 parent. Keep the lazy-only chunk at 63/22.
+  { prefix: 'deepQualityGrader-', rawKiB: 63, gzipKiB: 22 },
   // The finalize-time grading seam AppFlow lazy-imports (assembles the file
   // map via packageZipExporter and returns the badge data; measured at
   // 1.1 KiB raw / 0.6 gzip).

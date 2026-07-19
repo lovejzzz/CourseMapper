@@ -133,6 +133,7 @@ export function buildAgentRunOutcome(steps = [], { status = 'complete', mode = '
   const runningWorkspaceStep = workspaceSteps.some((step) => step.status === 'running');
   const completedMemorySteps = memorySteps.filter((step) => step.status === 'done' || step.status === 'partial');
   const failedWorkspaceOnly = workspaceSteps.length > 0 && completedWorkspaceSteps.length === 0 && issueCount > 0;
+  const packageReady = safeSteps.some((step) => step.tool === 'finalize_package' && step.status === 'done');
 
   if (status === 'running') {
     if (runningWorkspaceStep) return { label: 'Editing now', tone: 'indigo' };
@@ -142,6 +143,7 @@ export function buildAgentRunOutcome(steps = [], { status = 'complete', mode = '
 
   if (failedWorkspaceOnly) return { label: 'Action failed', tone: 'red' };
   if (issueCount > 0 && completedWorkspaceSteps.length > 0) return { label: 'Changes need review', tone: 'amber' };
+  if (packageReady) return { label: 'Package ready', tone: 'emerald' };
   if (completedWorkspaceSteps.length > 0) return { label: 'Workspace updated', tone: 'emerald' };
   if (completedMemorySteps.length > 0) return { label: 'Agent memory updated', tone: 'indigo' };
   if (

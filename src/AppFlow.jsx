@@ -66,6 +66,8 @@ import { applyQualityToFinalizerResult, runDeterministicPackageFinalizer } from 
 import { PUBLIC_SCION_MODEL_NAME, PUBLIC_SCION_PROVIDER_ID } from './lib/publicScionProvider';
 import { verifyPackageExports } from './lib/packageExportVerifier';
 import { generateCourseHealthReport } from './lib/pedagogicalValidator';
+import { resolveRequestedClassSessionMinutes } from './lib/sourceBriefConstraints';
+import { prepareMaterializedPackageScope, remapLessonFilterToMaterializedScope } from './lib/materializedLessonScope';
 // HelpDrawer removed — merged into ChatPanel
 import { requestNotificationPermission } from './lib/notifyDone';
 import { parseFiles } from './lib/fileParser';
@@ -1106,6 +1108,15 @@ export default function AppFlow({
     onCourseMapRepair: handleGeneratedCourseMapRepair,
     onCourseGraph: handleCourseGraph,
   });
+  const expectedSessionMinutes = useMemo(
+    () =>
+      resolveRequestedClassSessionMinutes({
+        sourceBrief: promptText,
+        explicitSessionLength: deliverableConfig?.lessonPlans?.sessionLength,
+        defaultSessionLength: deliv.getGenerationConfig('lessonPlans')?.sessionLength,
+      }),
+    [deliv.getGenerationConfig, deliverableConfig?.lessonPlans?.sessionLength, promptText],
+  );
   // Keep deliverables ref fresh for use in stable callbacks
   deliverablesRef.current = deliv.deliverables;
   const regenerateLessonRef = useRef(deliv.regenerateLesson);
@@ -1269,9 +1280,20 @@ export default function AppFlow({
           Array.isArray(selectedFeatureIds) && selectedFeatureIds.length > 0 ? selectedFeatureIds : selectedFeatures;
         let finalizerCourseMap = courseMapOverride || courseMapRef.current;
         let finalizerDeliverables = deliverablesOverride || deliverablesRef.current || {};
+        const preparedScope = prepareMaterializedPackageScope({
+          courseMap: finalizerCourseMap,
+          deliverables: finalizerDeliverables,
+          lessonFilter,
+          explicitSourceFilter: lessonScope.type === 'specific' ? lessonScope.indices : null,
+        });
+        finalizerCourseMap = preparedScope.courseMap;
+        finalizerDeliverables = preparedScope.deliverables;
+        const sourceLessonFilter = preparedScope.sourceLessonFilter;
+        const effectiveLessonFilter = preparedScope.effectiveLessonFilter;
         tracePackageFinish(finishRunId, 'finish_start', {
           selectedFeatureIds: featureIds,
-          lessonFilter,
+          lessonFilter: effectiveLessonFilter,
+          requestedLessonFilter: sourceLessonFilter,
           retry,
           maxRetryActions,
           maxRetryCallBudget,
@@ -1291,7 +1313,7 @@ export default function AppFlow({
             deliverables: finalizerDeliverables,
             selectedFeatures: featureIds,
             columns,
-            lessonFilter,
+            lessonFilter: effectiveLessonFilter,
             deliverableConfig,
             includeClassroomReadiness: true,
             blockOnClassroomWarnings: false,
@@ -1308,6 +1330,7 @@ export default function AppFlow({
             // against downstream artifacts — a phantom midterm/oral warns
             // here instead of shipping silently.
             courseGraph: courseGraphRef.current || null,
+            expectedSessionMinutes,
           });
 
         setPackageQualityPass({
@@ -1328,7 +1351,7 @@ export default function AppFlow({
           source: `finalizer:${source}`,
           featureIds,
           lessonCount: Array.isArray(finalizerCourseMap?.lessons) ? finalizerCourseMap.lessons.length : 0,
-          lessonFilter,
+          lessonFilter: effectiveLessonFilter,
           generationPlan,
           includeCourseMap: false,
           includeDeliverableChunks: false,
@@ -1337,6 +1360,7 @@ export default function AppFlow({
         });
         recordApiCallEvent({
           type: 'costPlan',
+          postBuildActivity: true,
           label: 'Package finalizer call plan',
           detail:
             finalizerCostPlan.finalizerRetryReserve > 0
@@ -1485,7 +1509,7 @@ export default function AppFlow({
 
           const retryBudget = selectRetryActionsWithinCallBudget(retryActionsNotYetAttempted, {
             courseMap: result.courseMap || finalizerCourseMap,
-            lessonFilter,
+            lessonFilter: effectiveLessonFilter,
             generationPlan,
             maxCalls: remainingRetryCallBudget,
           });
@@ -1561,7 +1585,7 @@ export default function AppFlow({
               const retryResult = await regenerateFeatureRef.current?.(
                 result.courseMap || courseMapRef.current,
                 [action.featureId],
-                lessonFilter,
+                effectiveLessonFilter,
                 { mode: 'finalizerRetry', maxProviderCalls: action.estimatedCalls || 1 },
               );
               tracePackageFinish(finishRunId, 'retry_action_done', {
@@ -1617,7 +1641,11 @@ export default function AppFlow({
             retryCount += 1;
             retryCallCount += action.estimatedCalls || 1;
             await new Promise((resolve) => window.setTimeout(resolve, 0));
-            finalizerCourseMap = courseMapRef.current || finalizerCourseMap;
+            // The finalizer result is the authoritative package view. A React
+            // render triggered by feature regeneration can briefly expose the
+            // pre-normalized Course Map through the ref; never let that stale
+            // render erase a compact workspace's source lesson identity.
+            finalizerCourseMap = result.courseMap || finalizerCourseMap;
             finalizerDeliverables = deliverablesRef.current || finalizerDeliverables;
           };
           // v0.15.186: retry actions used to run strictly one at a time.
@@ -1643,6 +1671,14 @@ export default function AppFlow({
           );
 
           remainingRetryCallBudget = Math.max(0, remainingRetryCallBudget - retryBudget.usedCalls);
+          const preparedRetryScope = prepareMaterializedPackageScope({
+            courseMap: finalizerCourseMap,
+            deliverables: finalizerDeliverables,
+            lessonFilter: effectiveLessonFilter,
+            explicitSourceFilter: sourceLessonFilter,
+          });
+          finalizerCourseMap = preparedRetryScope.courseMap;
+          finalizerDeliverables = preparedRetryScope.deliverables;
           result = runFinalizer(canRetryWeakSpots ? maxRetryActions : 0);
           commitFinalizerResult(result);
           finalizerCourseMap = result.courseMap || finalizerCourseMap;
@@ -1671,7 +1707,7 @@ export default function AppFlow({
         try {
           tracePackageFinish(finishRunId, 'export_verify_start', {
             selectedFeatureIds: featureIds,
-            lessonFilter,
+            lessonFilter: effectiveLessonFilter,
             status: result.status,
           });
           const { verifyPackageExports } = await import('./lib/packageExportVerifier');
@@ -1680,7 +1716,7 @@ export default function AppFlow({
             deliverables: result.deliverables || deliverablesRef.current || {},
             selectedFeatures: featureIds,
             columns,
-            lessonFilter,
+            lessonFilter: effectiveLessonFilter,
             slideTheme,
           });
           tracePackageFinish(finishRunId, 'export_verify_done', {
@@ -1859,13 +1895,14 @@ export default function AppFlow({
               deliverables: result.deliverables || deliverablesRef.current || {},
               featureIds,
               columns,
-              lessonFilter,
+              lessonFilter: effectiveLessonFilter,
               slideTheme,
               courseGraph: courseGraphRef.current || null,
               pipelineState: getManifestPipelineState(),
               budget: apiCallBudgetRef.current || {},
               digest: runDigest,
               coursePrompt: promptText,
+              expectedSessionMinutes,
             });
           } catch (err) {
             packageQuality = { status: 'not-graded', reason: err?.message || 'grading unavailable' };
@@ -1998,6 +2035,7 @@ export default function AppFlow({
       columns,
       commitFinalizerResult,
       deliverableConfig,
+      expectedSessionMinutes,
       getManifestPipelineState,
       lessonScope.indices,
       lessonScope.type,
@@ -2448,7 +2486,7 @@ export default function AppFlow({
     async ({ selectedFeatureIds = selectedFeatures, lessonFilter = null } = {}) => {
       const featureIds =
         Array.isArray(selectedFeatureIds) && selectedFeatureIds.length > 0 ? selectedFeatureIds : selectedFeatures;
-      const scopeIndices =
+      const requestedScopeIndices =
         Array.isArray(lessonFilter) || lessonFilter === null
           ? lessonFilter
           : lessonScope.type === 'specific'
@@ -2456,6 +2494,7 @@ export default function AppFlow({
             : null;
       const finalizerCourseMap = courseMapRef.current;
       const finalizerDeliverables = deliverablesRef.current || {};
+      const scopeIndices = remapLessonFilterToMaterializedScope(finalizerCourseMap, requestedScopeIndices);
       const readiness = evaluateWorkspaceReadiness({
         courseMap: finalizerCourseMap,
         deliverables: finalizerDeliverables,
@@ -2469,7 +2508,12 @@ export default function AppFlow({
         selectedFeatures: featureIds,
         lessonFilter: scopeIndices,
       });
-      const healthReport = generateCourseHealthReport(finalizerCourseMap, finalizerDeliverables);
+      const auditDeliverables = Object.fromEntries(
+        Object.entries(finalizerDeliverables).filter(([featureId]) => featureIds.includes(featureId)),
+      );
+      const healthReport = generateCourseHealthReport(finalizerCourseMap, auditDeliverables, {
+        expectedSessionMinutes,
+      });
       const exportVerification = await verifyPackageExports({
         courseMap: finalizerCourseMap,
         deliverables: finalizerDeliverables,
@@ -2568,7 +2612,7 @@ export default function AppFlow({
         },
       };
     },
-    [columns, lessonScope.indices, lessonScope.type, selectedFeatures, slideTheme],
+    [columns, expectedSessionMinutes, lessonScope.indices, lessonScope.type, selectedFeatures, slideTheme],
   );
 
   async function onGenerate() {
@@ -2955,9 +2999,7 @@ export default function AppFlow({
   const packageTrustStatus = getPackageTrustStatus({ packageQualityPass });
   const packageReady = packageTrustStatus.canDownload;
   const workspaceCourseTitle =
-    String(courseMap?.courseName || '').trim() ||
-    derivePromptPreviewTitle(promptText) ||
-    'Untitled course';
+    String(courseMap?.courseName || '').trim() || derivePromptPreviewTitle(promptText) || 'Untitled course';
   const workspaceLessonCount = Array.isArray(courseMap?.lessons) ? courseMap.lessons.length : 0;
   const workspaceMappingInProgress = buildRibbonModel?.steps?.some(
     (step) => step.id === 'map' && step.status === 'active',
@@ -4104,6 +4146,7 @@ export default function AppFlow({
                   getQualityContext={() => ({
                     budget: apiCallBudgetRef.current || {},
                     digest: lastRunDigestRef.current,
+                    expectedSessionMinutes,
                   })}
                   reviewQueue={reviewQueue}
                   reviewProgress={reviewProgress}

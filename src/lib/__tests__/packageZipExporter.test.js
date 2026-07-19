@@ -86,6 +86,7 @@ describe('packageZipExporter', () => {
       courseMap: makeCourseMap('Scion Provenance Course'),
       featureIds: ['courseMap'],
       quality: {
+        expectedSessionMinutes: 50,
         digest: {
           appVersion: '0.16.7',
           runId: 'run-provenance',
@@ -117,6 +118,7 @@ describe('packageZipExporter', () => {
         },
       },
       exportVerification: { status: 'passed', checked: 38, failed: 0, warnings: 0 },
+      generationConstraints: { sessionMinutes: 50 },
     });
   });
 
@@ -173,6 +175,34 @@ describe('packageZipExporter', () => {
     expect(buildXlsxBuffer).toHaveBeenCalledOnce();
     expect(buildDeliverableDocxBlob).toHaveBeenCalledTimes(2);
     expect(buildSlideDeckPptxBlob).toHaveBeenCalledTimes(2);
+  });
+
+  it('preserves the source lesson number in focused-workspace paths and manifest scope', async () => {
+    const result = await buildCourseMaterialsZip({
+      courseMap: {
+        courseName: 'Focused Marketing Course',
+        lessons: [
+          {
+            title: 'Lesson 5: Marketing Concept',
+            sourceLessonNumber: 5,
+            sections: [{ learningObjectives: 'Apply the marketing concept.' }],
+          },
+        ],
+      },
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: { lessonPlans: [{ lessonTitle: 'Lesson 5: Marketing Concept', objectives: ['Apply it.'] }] },
+        },
+      },
+      featureIds: ['courseMap', 'lessonPlans'],
+      quality: false,
+    });
+
+    expect(result.files.map((file) => file.path)).toContain(
+      'Lesson Plans/Lesson 05 - Marketing Concept - Lesson Plans.docx',
+    );
+    expect(result.manifest.lessonScope).toEqual([5]);
   });
 
   it('uses precomputed finish quality for ZIP reports instead of requiring a second grade pass', async () => {

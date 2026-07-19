@@ -3,7 +3,9 @@ import {
   analyzeSourceBriefConstraints,
   detectRequestedClassSessionMinutes,
   extractInstructorProvidedFacts,
+  parseClassSessionMinutes,
   requiresInstructorSourcesOnly,
+  resolveRequestedClassSessionMinutes,
 } from '../sourceBriefConstraints';
 
 describe('source brief constraints', () => {
@@ -12,6 +14,28 @@ describe('source brief constraints', () => {
       'Mandarin has four main tones. Build a 50-minute lesson with guided listening and one evidence check.';
     expect(detectRequestedClassSessionMinutes(brief)).toBe(50);
     expect(detectRequestedClassSessionMinutes('Build 15 lessons about four main tones.')).toBeNull();
+  });
+
+  it('parses the compact generation controls and preserves intent precedence', () => {
+    expect(parseClassSessionMinutes('50 min')).toBe(50);
+    expect(parseClassSessionMinutes('2 hr')).toBe(120);
+    expect(parseClassSessionMinutes('3 hours')).toBe(180);
+    expect(parseClassSessionMinutes('15 lessons')).toBeNull();
+
+    expect(
+      resolveRequestedClassSessionMinutes({
+        sourceBrief: 'Build a 50-minute lesson.',
+        explicitSessionLength: '90 min',
+        defaultSessionLength: '75 min',
+      }),
+    ).toBe(90);
+    expect(
+      resolveRequestedClassSessionMinutes({
+        sourceBrief: 'Build a 50-minute lesson.',
+        defaultSessionLength: '75 min',
+      }),
+    ).toBe(50);
+    expect(resolveRequestedClassSessionMinutes({ defaultSessionLength: '75 min' })).toBe(75);
   });
 
   it('recognizes explicit instructor-only evidence boundaries', () => {

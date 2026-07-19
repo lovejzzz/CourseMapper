@@ -12,6 +12,7 @@
 
 import { getArrayKey } from './syncDependencies';
 import { isProvenanceMirrorKey } from './compiledLanguageFinalizer';
+import { parseClassSessionMinutes } from './sourceBriefConstraints';
 import readability from 'text-readability';
 
 // ── Bloom's Taxonomy ─────────────────────────────────────────────────────────
@@ -795,7 +796,10 @@ function validateCourseMapSemanticQuality(courseMap) {
   lessons.forEach((lesson, li) => {
     const title = String(lesson?.title || lesson?.lessonTitle || '');
     const titleNumber = title.match(/\b(?:lesson|week|module)\s*(\d{1,2})\b/i)?.[1];
-    if (titleNumber && Number(titleNumber) > lessonCount) {
+    const sourceLessonNumber = Number(lesson?.sourceLessonNumber);
+    const preservesScopedIdentity =
+      Number.isInteger(sourceLessonNumber) && sourceLessonNumber > 0 && sourceLessonNumber === Number(titleNumber);
+    if (titleNumber && Number(titleNumber) > lessonCount && !preservesScopedIdentity) {
       findings.push({
         id: `semantic-lesson-number-L${li}`,
         severity: 'error',
@@ -1389,9 +1393,63 @@ export async function validateGrammarAsync(courseMap, deliverables) {
   return findings;
 }
 
+// ── Lesson timing fidelity ───────────────────────────────────────────────────
+
+function parseOutlineSegmentMinutes(value) {
+  const numeric = Number(value);
+  if (Number.isFinite(numeric) && numeric > 0 && numeric <= 240) return numeric;
+  const match = String(value || '')
+    .trim()
+    .match(/^(\d{1,3})\s*(?:min|mins|minute|minutes)$/i);
+  const minutes = Number(match?.[1]);
+  return Number.isFinite(minutes) && minutes > 0 && minutes <= 240 ? minutes : null;
+}
+
+export function validateLessonPlanTiming(deliverables, expectedSessionMinutes = null) {
+  const plans = getDelivArray(deliverables, 'lessonPlans');
+  if (!plans?.length) return [];
+  const expected = parseClassSessionMinutes(expectedSessionMinutes);
+  const findings = [];
+
+  plans.forEach((plan, lessonIndex) => {
+    const declared = parseClassSessionMinutes(plan?.duration || plan?.dur);
+    const outline = asArray(plan?.outline || plan?.ol || plan?.sessionOutline);
+    const segmentMinutes = outline
+      .map((segment) => parseOutlineSegmentMinutes(segment?.time || segment?.duration || segment?.tm))
+      .filter(Number.isFinite);
+    const outlineMinutes =
+      segmentMinutes.length === outline.length && outline.length > 0
+        ? segmentMinutes.reduce((sum, minutes) => sum + minutes, 0)
+        : null;
+    const expectedMismatch = expected && (declared !== expected || outlineMinutes !== expected);
+    const internalMismatch = declared && outlineMinutes && declared !== outlineMinutes;
+    if (!expectedMismatch && !internalMismatch) return;
+
+    const actualParts = [
+      declared ? `${declared} minutes declared` : 'no declared duration',
+      outlineMinutes ? `${outlineMinutes} minutes across the outline` : 'outline timing incomplete',
+    ];
+    findings.push({
+      id: `lesson-timing-L${lessonIndex}-${expected || 'internal'}`,
+      severity: 'error',
+      category: 'timing',
+      message: expected
+        ? `Lesson ${lessonIndex + 1} uses ${actualParts.join(' and ')}, but generation settings require ${expected} minutes.`
+        : `Lesson ${lessonIndex + 1} timing disagrees: ${actualParts.join(' and ')}.`,
+      lessonIndex,
+      featureId: 'lessonPlans',
+      suggestedPrompt: expected
+        ? `Rebuild Lesson ${lessonIndex + 1} so its declared duration and every outline segment total exactly ${expected} minutes.`
+        : `Rebuild Lesson ${lessonIndex + 1} so its declared duration matches the sum of its outline segments.`,
+    });
+  });
+
+  return findings;
+}
+
 // ── Orchestrator ─────────────────────────────────────────────────────────────
 
-export function generateCourseHealthReport(courseMap, deliverables) {
+export function generateCourseHealthReport(courseMap, deliverables, { expectedSessionMinutes = null } = {}) {
   if (!courseMap?.lessons?.length) {
     return { findings: [], errorCount: 0, warningCount: 0, infoCount: 0, summary: '' };
   }
@@ -1403,6 +1461,7 @@ export function generateCourseHealthReport(courseMap, deliverables) {
     ...validateDifficultyProgression(deliverables),
     ...validateSemanticContentQuality(courseMap, deliverables),
     ...validateReadability(courseMap, deliverables),
+    ...validateLessonPlanTiming(deliverables, expectedSessionMinutes),
   ];
 
   // Deduplicate by id

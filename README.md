@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.54
+**Current release:** v0.16.55
 
 ---
 
@@ -31,9 +31,15 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.54**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.55**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 ### Living Course Compiler
+
+V0.16.55 makes the visible build contract survive the entire workflow. A focused Lesson 5 build stays Lesson 5 through preview, deterministic finishing, targeted retry, grading, filenames, manifest scope, and ZIP export even though the compact compiler still works on one local item. The selected class duration is likewise authoritative: a 50-minute UI request now reaches compilation, finalization, deep grading, and export as one typed constraint, and the audited lesson phases sum to exactly 50 minutes.
+
+The frame-by-frame UX now separates active build cost from post-build inspection. Running Agent checks or finishing an already materialized package cannot make the completed elapsed time grow. A downloadable package with nonblocking notes says **Work complete**, **Package ready**, and **Ready to download. Review saved notes before publishing.** Amber remains reserved for a blocked or unfinished state. **Check lesson timing** is connected to the active course map and lesson plans rather than auditing unrelated package surfaces.
+
+The real V0.16.55 replay recovered a saved one-lesson Marketing workspace on desktop and a 390×844 phone viewport. Both reached 89/B with zero P0 blockers; the phone retained zero document-level horizontal overflow in light and dark modes. The exported package passed 22/22 file checks, preserved `lessonScope: [5]`, wrote Lesson05 paths, and recorded `sessionMinutes: 50`. One P1 and three P2 review notes remain visible rather than being disguised as success or escalated into a false warning. This is compiler, workflow, and browser-quality evidence—not a trained-adapter win. No hosted adapter is active and no Gemma weight changed.
 
 V0.16.54 aligns what Scion serves, what a future adapter learns, and what the benchmark measures. Browser Scion, the local Crucible server, and adapter evaluation now use the same compact `production-lesson-kernel-prompt-v1` protocol: focused source facts, key terms, one misconception correction, a bounded scenario, and two source-indexed multiple-choice checks. Course-level layout and classroom surfaces remain compiler-owned. A route is adapter-eligible only when both its task family and prompt-protocol identity match; the local server performs the same bounded repair, merge, admission, and option-shuffle path as the browser instead of evaluating richer benchmark-only prompts.
 

@@ -2,7 +2,25 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.54 aligns the browser, local-server, and evaluation lesson-kernel protocol; adds a 148-case production-compatible lesson-kernel campaign; and verifies the unchanged public base through one real source-only browser build. The campaign is a ruler and corpus target, not training evidence. A quality adapter, held-out adapter win, admitted lesson-kernel preference corpus, production-compatible training corpus, the remaining three device profiles, and any production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.55 preserves selected lesson identity and the instructor's class clock through the full compiler and export pipeline, stabilizes completed progress timing, and verifies responsive recovery and export in a real desktop and phone browser. V0.16.54 remains the current 148-case production-compatible lesson-kernel campaign and is a ruler and corpus target, not training evidence. A quality adapter, held-out adapter win, admitted lesson-kernel preference corpus, production-compatible training corpus, the remaining device-performance profiles, and any production promotion still do not exist.
+
+## v0.16.55 — Keep Scope, Time, and Readiness Honest
+
+**Goal:** make every visible setup choice and completed-state claim survive real recovery, retry, grading, and export without changing Gemma weights or disguising retained review work.
+
+**Scope identity:** a focused source lesson now carries an authoritative source number alongside its compact compiler position. Preview, course map, lesson plans, deterministic finishing, targeted recovery, readiness, filenames, manifest scope, and ZIP export agree that a selected Lesson 5 remains Lesson 5.
+
+**Class clock:** the selected 20–240 minute duration becomes one typed compiler constraint shared by generation, finalization, retry, deep grading, and export. Grader 1.10.17 treats a difference between the declared duration, outline total, and UI-selected expectation as a P0 blocker.
+
+**Living completion:** Agent and repeat-finalizer inspection are marked as post-build activity, keeping the completed elapsed time stable. A downloadable package with nonblocking review notes uses calm complete-state language, while amber remains reserved for blocked or unfinished work. The timing command audits the active Course Map and Lesson Plans.
+
+**Browser proof:** a real saved Marketing workspace was imported, recovered, finished, and exported on desktop and a 390×844 phone viewport in light and dark modes. It reached 89/B with zero P0 blockers, retained zero phone-width page overflow, passed 22/22 export checks, preserved Lesson05 paths and `lessonScope: [5]`, and recorded `sessionMinutes: 50`.
+
+**Lane:** v0.16.55 improves shared setup interpretation, source-scope projection, finalization, retry, grading, export, Agent workflow, and browser UX. Paid providers inherit those shared compiler improvements; Scion additionally uses the browser-local runtime and compact-kernel recovery path.
+
+**Next gates:** build and admit genuinely preferred production-protocol lesson-kernel rows, train a validation-selected adapter, and compare exact adapter against exact base-only Scion across the frozen held-out domains without increasing compiler burden or exceeding device budgets.
+
+**Release Boundary:** no adapter is active, no Gemma weight changed, and no paid-reference parity, human preference, instructor approval, classroom outcome, universal quality, or trained-model win is claimed.
 
 ## v0.16.54 — Keep the Brief Intact
 

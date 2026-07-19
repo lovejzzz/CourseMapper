@@ -1,0 +1,132 @@
+{
+  "version": "0.16.55",
+  "date": "July 19, 2026",
+  "title": "Keep Scope, Time, and Readiness Honest",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": ["npm test", "npm run lint", "npm run build", "npm run bundle:check", "npm run audit:release-history"],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rerun the release ledger, complete suite, lint, and production build after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter-versus-base promotion result is claimed by this browser and compiler release."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of merge and remote verification."
+    },
+    "liveProvider": {
+      "status": "not-applicable",
+      "note": "The audit restored and finished a real saved Scion workspace without redownloading or claiming a new model result."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human, instructor, classroom, or independent multi-judge validation is claimed."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "note": "Production-bundle desktop and 390x844 phone replays covered landing, import recovery, content, Agent, finish, light and dark modes, and real ZIP export with zero phone-width page overflow."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-and-browser-quality-only",
+      "note": "The recovered Marketing package reached 89/B with zero P0 findings and 22/22 clean export checks while preserving Lesson 5 and the requested 50-minute clock; no trained-model win is claimed."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01655-focused-preview-truth",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Focused setup preview reports the selected source lesson and exact singular item count.",
+      "anchors": [
+        "src/lib/promptAwarePreview.js",
+        "src/screens/Config.jsx",
+        "src/lib/__tests__/promptAwarePreview.test.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/promptAwarePreview.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01655-authoritative-session-clock",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "The selected session duration reaches compilation, finalization, grading, and export as an enforceable constraint.",
+      "anchors": [
+        "src/lib/sourceBriefConstraints.js",
+        "src/lib/pedagogicalValidator.js",
+        "src/lib/quality/deepQualityGrader.js",
+        "src/lib/packageZipExporter.js",
+        "evaluation/scion-adapters/held-out-course-benchmark-v7.json"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/sourceBriefConstraints.test.js src/lib/__tests__/pedagogicalValidator.test.js src/lib/quality/__tests__/deepQualityStructure.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v01655-materialized-source-identity",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Compact materialization preserves authoritative source lesson identity through retry, finalization, readiness, filenames, manifest, and export.",
+      "anchors": [
+        "src/lib/materializedLessonScope.js",
+        "src/hooks/useDeliverables.js",
+        "src/lib/packageFinalizer.js",
+        "src/lib/packageZipExporter.js"
+      ],
+      "proofCommands": [
+        "npx vitest run src/lib/__tests__/materializedLessonScope.test.js src/lib/__tests__/packageFinalizer.test.js src/lib/__tests__/packageZipExporter.test.js"
+      ],
+      "proofScopes": ["unit", "compiled-output", "browser-live"]
+    },
+    {
+      "id": "v01655-stable-completed-clock",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Post-build inspection does not inflate the Living Course Compiler build clock.",
+      "anchors": [
+        "src/lib/apiCallBudget.js",
+        "src/hooks/useDeliverables.js",
+        "src/lib/__tests__/apiCallBudget.test.js"
+      ],
+      "proofCommands": ["npx vitest run src/lib/__tests__/apiCallBudget.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01655-calm-agent-completion",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "Downloadable packages use calm completion language and lesson timing checks inspect the active map and plans.",
+      "anchors": [
+        "src/components/chat/AgentProgressCard.jsx",
+        "src/components/chat/ChatPanel.jsx",
+        "src/components/ExportSidePanel.jsx"
+      ],
+      "proofCommands": [
+        "npx vitest run src/components/chat/__tests__/AgentProgressCard.test.jsx src/components/chat/__tests__/ChatPanel.agentCommands.test.jsx"
+      ],
+      "proofScopes": ["unit", "browser-live", "browser-smoke"]
+    },
+    {
+      "id": "v01655-responsive-export-proof",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Real desktop and phone replays preserve Lesson 5, the 50-minute clock, zero blockers, responsive layout, and clean export evidence.",
+      "anchors": ["src/lib/packageExportVerifier.js", "src/lib/packageZipExporter.js", "README.md"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["browser-live", "compiled-output", "static-audit"]
+    },
+    {
+      "id": "v01655-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "No adapter or Gemma weight changed; shared compiler improvements benefit paid routes without claiming a trained-model win.",
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "src/lib/scionBrowserWllama.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

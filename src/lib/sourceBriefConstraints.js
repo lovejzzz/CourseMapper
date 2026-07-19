@@ -8,12 +8,32 @@ function normalizeMinutes(value) {
 }
 
 /**
+ * Parse the compact values used by the generation UI (for example `50 min`
+ * and `2 hr`) without treating unrelated numbers as a class duration.
+ */
+export function parseClassSessionMinutes(value) {
+  const numeric = normalizeMinutes(value);
+  if (numeric) return numeric;
+  const text = String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return null;
+  const minuteMatch = text.match(/^(\d{2,3})\s*(?:min|mins|minute|minutes)$/i);
+  if (minuteMatch) return normalizeMinutes(minuteMatch[1]);
+  const hourMatch = text.match(/^(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hour|hours)$/i);
+  if (!hourMatch) return null;
+  return normalizeMinutes(Number(hourMatch[1]) * 60);
+}
+
+/**
  * Read only explicit class-session durations from the instructor's brief.
  * The patterns stay deliberately narrow so a phrase such as "four main
  * tones" or "15 lessons" can never silently become the class length.
  */
 export function detectRequestedClassSessionMinutes(sourceBrief = '') {
-  const text = String(sourceBrief || '').replace(/\s+/g, ' ').trim();
+  const text = String(sourceBrief || '')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (!text) return null;
   const patterns = [
     /\b(\d{2,3})\s*[-–—]?\s*minute\s+(?:lesson|class|session|workshop)\b/i,
@@ -29,12 +49,32 @@ export function detectRequestedClassSessionMinutes(sourceBrief = '') {
 }
 
 /**
+ * Resolve the classroom clock in user-intent order. A value explicitly
+ * chosen in Configure generation wins; otherwise an explicit brief wins over
+ * the visible model default. Keeping this policy in one helper prevents the
+ * UI, compiler, finalizer, and package grader from using different clocks.
+ */
+export function resolveRequestedClassSessionMinutes({
+  sourceBrief = '',
+  explicitSessionLength = null,
+  defaultSessionLength = null,
+} = {}) {
+  return (
+    parseClassSessionMinutes(explicitSessionLength) ??
+    detectRequestedClassSessionMinutes(sourceBrief) ??
+    parseClassSessionMinutes(defaultSessionLength)
+  );
+}
+
+/**
  * Detect the instructor's explicit evidence boundary. When this is true,
  * CurriculumOS and public-source retrieval must not append outside facts or
  * readings; the supplied brief and files are the complete evidence packet.
  */
 export function requiresInstructorSourcesOnly(sourceBrief = '') {
-  const text = String(sourceBrief || '').replace(/\s+/g, ' ').trim();
+  const text = String(sourceBrief || '')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (!text) return false;
   return (
     /\buse only (?:these|the following|the) instructor[- ]provided facts?\b/i.test(text) ||
@@ -57,7 +97,9 @@ const INSTRUCTION_SENTENCE_RE =
  */
 export function extractInstructorProvidedFacts(sourceBrief = '') {
   if (!requiresInstructorSourcesOnly(sourceBrief)) return [];
-  const text = String(sourceBrief || '').replace(/\s+/g, ' ').trim();
+  const text = String(sourceBrief || '')
+    .replace(/\s+/g, ' ')
+    .trim();
   const marker = text.match(/\b(?:instructor[- ]provided|following|these) facts?\s*:\s*/i);
   if (!marker?.[0]) return [];
   const tail = text.slice((marker.index || 0) + marker[0].length);

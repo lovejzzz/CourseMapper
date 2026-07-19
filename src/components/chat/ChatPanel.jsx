@@ -248,6 +248,11 @@ function summarizeDirectPackageFinish(result) {
     }. Check the receipt before downloading.`;
   }
   if (trustStatus.review) {
+    if (trustStatus.canDownload) {
+      return `Package is ready to download. ${trustStatus.warningCount} review note${
+        trustStatus.warningCount === 1 ? ' is' : 's are'
+      } saved in the Agent panel and package report for publishing.`;
+    }
     return 'Package notes saved. Review them in the Agent panel or package report before publishing.';
   }
   return 'Package pass complete. Check the export panel for the latest status.';
@@ -648,14 +653,30 @@ function buildPackageAuditReceipt(summary = {}) {
 
 function buildPackageFinishReceipt(result = {}) {
   const summary = normalizePackageSummary(result);
-  const status = packageReceiptStatus({
+  const trustStatus = getPackageTrustStatus({
+    packageQualityPass: {
+      status: result?.packageQualityStatus || result?.status || (summary.ready ? 'ready' : 'blocked'),
+      blockers: summary.blockerCount,
+      warnings: summary.warningCount,
+      receipt: result?.receipt || {
+        exportFailed: summary.exportFailed,
+        exportWarningCount: summary.exportWarningCount,
+        topIssues: summary.topIssues,
+      },
+      quality: result?.quality || null,
+    },
+  });
+  const fallbackStatus = packageReceiptStatus({
     ...summary,
     ready: result?.ready === true && packageReceiptStatus(summary) === 'done',
     packageQualityStatus: result?.packageQualityStatus || result?.status,
   });
+  const status = trustStatus.blocked ? 'blocked' : trustStatus.canDownload ? 'done' : fallbackStatus;
+  const readyWithNotes = status === 'done' && trustStatus.warningCount > 0;
   const repairsApplied = Number(summary.repairsApplied || 0);
   return buildAgentReceiptMessage({
-    title: status === 'done' ? 'Package finished' : 'Finish needs review',
+    title:
+      status === 'done' ? (readyWithNotes ? 'Package finished with notes' : 'Package finished') : 'Finish needs review',
     status,
     badge: status === 'done' ? 'Ready' : status === 'blocked' ? 'Blocked' : 'Review',
     mode: 'Package finish',
@@ -667,7 +688,12 @@ function buildPackageFinishReceipt(result = {}) {
     checked: ['Readiness', 'Classroom fit', 'Content validation', 'Export files'],
     issues: extractSummaryIssues(summary),
     stateDiffs: buildPackageRepairReceiptDiffs(result),
-    next: status === 'done' ? 'Download anytime.' : 'Review the remaining package issues before export.',
+    next:
+      status === 'done'
+        ? readyWithNotes
+          ? 'Ready to download. Review the saved notes before publishing.'
+          : 'Download anytime.'
+        : 'Review the remaining package issues before export.',
   });
 }
 
@@ -941,12 +967,16 @@ function buildPackageFinishProgressSteps(result = {}) {
     ? 'done'
     : trustStatus.blocked
       ? 'error'
-      : trustStatus.review
-        ? 'partial'
-        : classifyFinalizePackageStepStatus(result);
+      : trustStatus.canDownload
+        ? 'done'
+        : trustStatus.review
+          ? 'partial'
+          : classifyFinalizePackageStepStatus(result);
   const finishSummary =
     finalStatus === 'done'
-      ? 'Safe checks passed'
+      ? trustStatus.warningCount > 0
+        ? `Safe checks passed · ${trustStatus.warningCount} review note${trustStatus.warningCount === 1 ? '' : 's'} saved`
+        : 'Safe checks passed'
       : finalStatus === 'error'
         ? `${trustStatus.blockerCount || summary.exportFailed || 1} blocker${
             (trustStatus.blockerCount || summary.exportFailed || 1) === 1 ? '' : 's'
@@ -2614,8 +2644,14 @@ export default function ChatPanel({
         }
         runDirectPackageAudit({
           displayText: starter.text || 'Run local audit',
-          selectedFeatureIds: selectedFeatures,
-          introText: 'Checking the package.',
+          selectedFeatureIds:
+            starter.featureId && starter.featureId !== 'courseMap'
+              ? ['courseMap', starter.featureId]
+              : selectedFeatures,
+          introText:
+            starter.featureId && starter.featureId !== 'courseMap'
+              ? `Checking ${activeTabLabel(starter.featureId)}.`
+              : 'Checking the package.',
         });
         return true;
       }

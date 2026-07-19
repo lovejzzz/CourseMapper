@@ -33,7 +33,7 @@ export const SCION_ADAPTER_DEFAULT_SOURCES = [
 ];
 const DEFAULT_OUTPUT = 'trellis/tendril/distill/data-g4-orpo/curated';
 const DEFAULT_DOMAIN_MAP = 'evaluation/scion-course-domain-map.json';
-export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v6.json';
+export const SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK = 'evaluation/scion-adapters/held-out-course-benchmark-v7.json';
 const DEFAULT_SOURCES = SCION_ADAPTER_DEFAULT_SOURCES;
 const DEFAULT_HELDOUT_BENCHMARK = SCION_ADAPTER_DEFAULT_HELDOUT_BENCHMARK;
 export const SCION_ADAPTER_DATASET_PROFILES = Object.freeze({
@@ -375,9 +375,7 @@ export function toScionOrpoTrainingRow(entry, { sourceBoundPrompt = true } = {})
   const prompt = boundPrompt?.text || trainingText(row?.prompt);
   const winnerRole = normalize(row?.winnerRole || row?.preferenceEvidence?.winnerRole);
   const rejectedRole = normalize(row?.rejectedRole || row?.preferenceEvidence?.rejectedRole);
-  const teacherRevisionLineageSha256 = normalize(
-    row?.preferenceEvidence?.teacherRevisionLineage?.lineageSha256,
-  );
+  const teacherRevisionLineageSha256 = normalize(row?.preferenceEvidence?.teacherRevisionLineage?.lineageSha256);
   const sequence = (response) => [
     { role: 'user', content: prompt },
     { role: 'assistant', content: trainingText(response) },
@@ -626,9 +624,7 @@ export async function buildScionAdapterDataset({
   const teacherRevisionLineagePairs = eligible.filter(
     (entry) =>
       normalize(entry.row?.winnerRole || entry.row?.preferenceEvidence?.winnerRole) === 'teacher-revision' &&
-      /^[a-f0-9]{64}$/.test(
-        normalize(entry.row?.preferenceEvidence?.teacherRevisionLineage?.lineageSha256),
-      ),
+      /^[a-f0-9]{64}$/.test(normalize(entry.row?.preferenceEvidence?.teacherRevisionLineage?.lineageSha256)),
   ).length;
   const modelJudgeLicenses = eligible
     .filter((entry) => normalize(entry.row?.preferenceEvidence?.kind) === 'single-model-judge-preference')
@@ -1039,8 +1035,7 @@ function parseArgs(argv) {
     else if (arg === '--source') {
       if (profile) throw new Error('--source cannot be combined with --profile');
       args.sources.push(argv[++index]);
-    }
-    else if (arg === '--output') args.outputDir = argv[++index];
+    } else if (arg === '--output') args.outputDir = argv[++index];
     else if (arg === '--minimum-pairs') args.minimumPairs = Number(argv[++index]);
     else if (arg === '--minimum-domains') args.minimumDomains = Number(argv[++index]);
     else if (arg === '--minimum-groups-per-domain') args.minimumGroupsPerDomain = Number(argv[++index]);

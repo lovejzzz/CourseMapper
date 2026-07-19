@@ -108,6 +108,13 @@ describe('AgentProgressCard', () => {
     ).toEqual({ label: 'Workspace updated', tone: 'emerald' });
 
     expect(
+      buildAgentRunOutcome([{ tool: 'finalize_package', status: 'done' }], {
+        status: 'complete',
+        mode: 'Package finish',
+      }),
+    ).toEqual({ label: 'Package ready', tone: 'emerald' });
+
+    expect(
       buildAgentRunOutcome([{ tool: 'edit_course_map', status: 'error' }], {
         status: 'error',
         mode: 'Auto-fix',

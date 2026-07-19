@@ -393,6 +393,14 @@ function getLessonIndicesForZip(courseMap, lessonFilter) {
   return lessons.map((_, index) => index);
 }
 
+function materializedLessonNumber(courseMap, lessonIndex) {
+  const lesson = Array.isArray(courseMap?.lessons) ? courseMap.lessons[lessonIndex] : null;
+  const sourceNumber = Number(lesson?.sourceLessonNumber);
+  if (Number.isInteger(sourceNumber) && sourceNumber > 0) return sourceNumber;
+  const titleNumber = Number(String(lesson?.title || '').match(/^(?:lesson|week|module)\s*(\d{1,3})\b/i)?.[1]);
+  return Number.isInteger(titleNumber) && titleNumber > 0 ? titleNumber : lessonIndex + 1;
+}
+
 function lessonFileStem(courseMap, lessonIndex) {
   const lesson = Array.isArray(courseMap?.lessons) ? courseMap.lessons[lessonIndex] : null;
   const title = lesson?.title || lesson?.lessonTitle || lesson?.lt || `Lesson ${lessonIndex + 1}`;
@@ -400,7 +408,7 @@ function lessonFileStem(courseMap, lessonIndex) {
     .replace(/^(?:lesson|week)\s*\d+\s*[:.-]?\s*/i, '')
     .trim();
   const safeTitle = truncateFilePart(withoutPrefix || title || `Lesson ${lessonIndex + 1}`);
-  return `Lesson ${String(lessonIndex + 1).padStart(2, '0')} - ${safeTitle}`;
+  return `Lesson ${String(materializedLessonNumber(courseMap, lessonIndex)).padStart(2, '0')} - ${safeTitle}`;
 }
 
 // v0.16.1: the manifest's weights must MATCH the compile. The compiler's
@@ -1422,6 +1430,7 @@ function qualityIssueFromManifestQuality(qualityBlock) {
 function buildManifest({
   courseName,
   lessonFilter,
+  lessonNumbers = null,
   readiness,
   files,
   requestedFeatureIds,
@@ -1439,6 +1448,7 @@ function buildManifest({
   sourceRefCoverage = null,
   voicePass = null,
   digest = null,
+  generationConstraints = null,
 }) {
   const courseIR = buildManifestCourseIRProof(courseGraph, { sourceRefCoverage });
   const exportVerification = buildManifestExportVerification(digest);
@@ -1448,7 +1458,11 @@ function buildManifest({
     generatedAt,
     generator: buildManifestGenerator(digest, pipelineState),
     ...(exportVerification ? { exportVerification } : {}),
-    lessonScope: Array.isArray(lessonFilter) ? lessonFilter.map((index) => index + 1) : 'all',
+    lessonScope:
+      Array.isArray(lessonFilter) || lessonNumbers?.some((number, index) => number !== index + 1)
+        ? lessonNumbers || lessonFilter.map((index) => index + 1)
+        : 'all',
+    ...(generationConstraints ? { generationConstraints } : {}),
     // v0.12.1: how the content was produced (enrichment / genome linker /
     // plan health) so downloaded packages are auditable without console logs.
     ...(pipelineState ? { pipeline: pipelineState } : {}),
@@ -1530,6 +1544,7 @@ export async function buildCourseMaterialsZip({
   const requestedFeatureIds = getRequestedFeatureIds(featureIds, deliverables);
   const requestedDeliverableIds = requestedFeatureIds.filter((featureId) => featureId !== 'courseMap');
   const lessonIndices = getLessonIndicesForZip(courseMap, lessonFilter);
+  const lessonNumbers = lessonIndices.map((index) => materializedLessonNumber(courseMap, index));
   const files = [];
   const failures = [];
   const qualityOptions = quality && typeof quality === 'object' ? quality : {};
@@ -1555,7 +1570,7 @@ export async function buildCourseMaterialsZip({
       packageLinks: {
         courseGraph,
         featureIds: requestedDeliverableIds,
-        lessonNumbers: lessonIndices.map((index) => index + 1),
+        lessonNumbers,
       },
     });
     await addRequiredOfficeFile(zip, files, failures, `Course Map/${safeCourseName} - Course Map.xlsx`, buffer, {
@@ -1588,13 +1603,13 @@ export async function buildCourseMaterialsZip({
       ? lessonIndices.map((lessonIndex) => ({
           lessonIndex,
           fileStem: lessonFileStem(courseMap, lessonIndex),
-          data: scopeDeliverableDataToLessons(featureId, entry.data, [lessonIndex]),
+          data: scopeDeliverableDataToLessons(featureId, entry.data, [lessonIndex], courseMap),
         }))
       : [
           {
             lessonIndex: null,
             fileStem: safeCourseName,
-            data: scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter),
+            data: scopeDeliverableDataToLessons(featureId, entry.data, lessonFilter, courseMap),
           },
         ];
 
@@ -1837,11 +1852,12 @@ export async function buildCourseMaterialsZip({
     registry: assessmentRegistry,
     files,
     // v0.16.1: the bridge scopes to the same lessons the compile used.
-    lessonNumbers: lessonIndices.map((index) => index + 1),
+    lessonNumbers,
   });
   const manifest = buildManifest({
     courseName: safeCourseName,
     lessonFilter,
+    lessonNumbers,
     readiness: effectiveReadiness,
     files,
     requestedFeatureIds,
@@ -1861,6 +1877,9 @@ export async function buildCourseMaterialsZip({
     // the generation run's single-run stash discloses it (cleared each compile).
     voicePass: finalPipelineState?.voicePass || peekVoicePassOutcome(),
     digest: qualityOptions.digest || null,
+    generationConstraints: Number.isFinite(Number(qualityOptions.expectedSessionMinutes))
+      ? { sessionMinutes: Number(qualityOptions.expectedSessionMinutes) }
+      : null,
   });
 
   // ── v0.14.3 WS-A A2/A3: the package grades itself ─────────────────────────
@@ -1913,6 +1932,7 @@ export async function buildCourseMaterialsZip({
             title: safeCourseName,
             prompt: qualityOptions.coursePrompt || '',
             featureIds: requestedFeatureIds,
+            expectedSessionMinutes: qualityOptions.expectedSessionMinutes || null,
           },
         });
         const raced = await new Promise((resolve) => {

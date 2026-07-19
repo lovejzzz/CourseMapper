@@ -8,7 +8,11 @@ import LessonScopeSelector from '../components/config/LessonScopeSelector';
 import SetupProgress from '../components/SetupProgress';
 import SetupHelpDialog from '../components/SetupHelpDialog';
 import { getCustomDeliverable, listCustomDeliverables, toFeatureEntry } from '../lib/customDeliverableLibrary';
-import { buildPromptAwarePreview } from '../lib/promptAwarePreview';
+import {
+  buildPromptAwarePreview,
+  resolvePreviewLessonCount,
+  scopePromptAwarePreviewItems,
+} from '../lib/promptAwarePreview';
 import { useAuth } from '../contexts/AuthContext';
 import { useCourse } from '../contexts/CourseContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
@@ -531,7 +535,7 @@ const FEATURE_LABELS = {
   syllabus: 'Syllabus',
 };
 
-function DeliverablePreview({ featureId, delivData, courseMap, columns, promptText, lessonCount }) {
+function DeliverablePreview({ featureId, delivData, courseMap, columns, promptText, lessonCount, lessonTitles = [] }) {
   const [fullscreen, setFullscreen] = useState(false);
   const label = FEATURE_LABELS[featureId] || featureId;
 
@@ -606,9 +610,13 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
     }
 
     // Fall back to sample content that demonstrates structure only.
-    const example = buildPromptAwarePreview(featureId, { promptText, lessonCount, columns });
+    const example = scopePromptAwarePreviewItems(
+      buildPromptAwarePreview(featureId, { promptText, lessonCount, columns }),
+      lessonCount,
+      lessonTitles,
+    );
     return example ? { content: example, isExample: true } : { content: null, isExample: true };
-  }, [featureId, delivData, courseMap, columns, promptText, lessonCount]);
+  }, [featureId, delivData, courseMap, columns, promptText, lessonCount, lessonTitles]);
 
   if (!realContent) return null;
 
@@ -1286,7 +1294,13 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
         <div className="px-3 py-1.5 bg-slate-50/60 border-b border-slate-200/40 flex items-center justify-between">
           <p className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 pr-1 text-xs font-semibold text-slate-500">
             {label} — {realContent.total || realContent.items?.length || 0}{' '}
-            {featureId === 'courseMap' ? 'lessons' : 'items'}
+            {featureId === 'courseMap'
+              ? (realContent.total || realContent.items?.length || 0) === 1
+                ? 'lesson'
+                : 'lessons'
+              : (realContent.total || realContent.items?.length || 0) === 1
+                ? 'item'
+                : 'items'}
             {isExample && (
               <span className="rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-200">
                 Sample layout
@@ -1351,7 +1365,8 @@ function DeliverablePreview({ featureId, delivData, courseMap, columns, promptTe
                     id={`deliverable-preview-title-${featureId}`}
                     className="flex min-w-0 items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100"
                   >
-                    {label} — {realContent.total || realContent.items?.length || 0} items
+                    {label} — {realContent.total || realContent.items?.length || 0}{' '}
+                    {(realContent.total || realContent.items?.length || 0) === 1 ? 'item' : 'items'}
                     {isExample && (
                       <span className="shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-200">
                         Sample layout
@@ -1403,6 +1418,7 @@ function DeliverableConfigContent({
   courseMap,
   promptText,
   lessonCount,
+  lessonTitles,
   provider,
   apiKey,
   modelConfigPlan,
@@ -1428,6 +1444,7 @@ function DeliverableConfigContent({
             columns={columns}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           <p className="text-xs text-slate-500">
             View settings for the Course Map grid and XLSX export — click to enable/disable, drag to reorder,
@@ -1453,6 +1470,7 @@ function DeliverableConfigContent({
             delivData={delivData}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           {/* Basic settings — always visible */}
           <Select
@@ -1505,6 +1523,7 @@ function DeliverableConfigContent({
             delivData={delivData}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           {/* Basic */}
           <NumberInput
@@ -1578,6 +1597,7 @@ function DeliverableConfigContent({
             delivData={delivData}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           {/* Basic */}
           <NumberInput
@@ -1621,6 +1641,7 @@ function DeliverableConfigContent({
             delivData={delivData}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           {/* Basic */}
           <NumberInput
@@ -1675,6 +1696,7 @@ function DeliverableConfigContent({
             delivData={delivData}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           {/* Basic */}
           <Select
@@ -1714,6 +1736,7 @@ function DeliverableConfigContent({
             delivData={delivData}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           {/* Basic */}
           <MultiToggle
@@ -1763,6 +1786,7 @@ function DeliverableConfigContent({
             delivData={delivData}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           {/* Basic */}
           <NumberInput
@@ -1808,6 +1832,7 @@ function DeliverableConfigContent({
             delivData={delivData}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           {/* Basic */}
           <NumberInput
@@ -1864,6 +1889,7 @@ function DeliverableConfigContent({
             delivData={delivData}
             promptText={promptText}
             lessonCount={lessonCount}
+            lessonTitles={lessonTitles}
           />
           {/* Basic */}
           <Select
@@ -1966,6 +1992,11 @@ export default function Config({
   })();
 
   const scopeValid = lessonScope.type === 'all' || lessonScope.indices?.length > 0;
+  const previewLessonCount = resolvePreviewLessonCount({ lessonScope, courseMap, lessonCount });
+  const previewLessonTitles =
+    lessonScope.type === 'specific'
+      ? (lessonScope.indices || []).map((index) => courseMap?.lessons?.[index]?.title || `Lesson ${Number(index) + 1}`)
+      : [];
 
   const generationAction = (
     <div
@@ -2121,7 +2152,8 @@ export default function Config({
                           delivData={delivData}
                           courseMap={courseMap}
                           promptText={promptText}
-                          lessonCount={lessonCount}
+                          lessonCount={previewLessonCount}
+                          lessonTitles={previewLessonTitles}
                           provider={provider}
                           apiKey={apiKey}
                           modelConfigPlan={modelConfigPlan}

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildPromptAwarePreview, derivePromptPreviewTitle } from '../promptAwarePreview';
+import {
+  buildPromptAwarePreview,
+  derivePromptPreviewTitle,
+  resolvePreviewLessonCount,
+  scopePromptAwarePreviewItems,
+} from '../promptAwarePreview';
 
 describe('prompt-aware setup previews', () => {
   it('extracts a compact course identity from common course briefs', () => {
@@ -61,5 +66,23 @@ describe('prompt-aware setup previews', () => {
     expect(preview.lessons).toHaveLength(3);
     expect(preview.cols.map((column) => column.key)).toEqual(['topics', 'assessment']);
     expect(preview.lessons[0].sections[0].assessment).toContain('Lesson 1');
+  });
+
+  it('scopes setup previews to the lessons the user actually selected', () => {
+    const count = resolvePreviewLessonCount({
+      lessonScope: { type: 'specific', indices: [4] },
+      courseMap: { lessons: Array.from({ length: 15 }, (_, index) => ({ title: `Lesson ${index + 1}` })) },
+      lessonCount: 15,
+    });
+    const preview = scopePromptAwarePreviewItems(
+      buildPromptAwarePreview('lessonPlans', { promptText: 'Data Structures', lessonCount: count }),
+      count,
+      ['Lesson 5: Information Architecture'],
+    );
+
+    expect(count).toBe(1);
+    expect(preview.total).toBe(1);
+    expect(preview.items).toHaveLength(1);
+    expect(preview.items[0].lessonTitle).toBe('Lesson 5: Information Architecture');
   });
 });

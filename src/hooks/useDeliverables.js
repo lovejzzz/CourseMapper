@@ -82,7 +82,12 @@ import {
   PUBLIC_SCION_PROVIDER_ID,
   publicScionEnrichmentRecoveryCallLimit,
 } from '../lib/publicScionProvider';
-import { analyzeSourceBriefConstraints } from '../lib/sourceBriefConstraints';
+import { analyzeSourceBriefConstraints, resolveRequestedClassSessionMinutes } from '../lib/sourceBriefConstraints';
+import {
+  inferMaterializedSourceLessonFilter,
+  preserveDeliverableLessonNumbers,
+  resolveMaterializedSourceLessonFilter,
+} from '../lib/materializedLessonScope';
 
 const PROVIDER_CALL_EVENT_TYPES = new Set([
   'deliverableChunkCall',
@@ -126,44 +131,10 @@ async function loadInstructorPreferenceProfile() {
 // still label it as "Week 1" / "Lesson 1" because it's the first item in its output.
 // This function patches each item to use the correct original lesson numbers.
 function patchScopeNumbering(parsed, featureId, scopeIndices, courseMap) {
-  if (!Array.isArray(scopeIndices) || scopeIndices.length === 0) return parsed;
   const k = getArrayKey(featureId, parsed);
-  const arr = k ? parsed[k] || [] : [];
-  if (arr.length === 0) return parsed;
-
-  const allLessons = courseMap?.lessons || [];
-
-  // Same pattern as condenseCourseMap / buildScopePreamble:
-  // When the course map was already scoped (e.g., only 1 lesson for scope index 4),
-  // origIdx will be >= allLessons.length.  In that case, the lesson at array position i
-  // corresponds to scopeIndices[i], and we can still correct its week/lesson number
-  // even though the courseMap only has the scoped subset.
-  const alreadyScoped = scopeIndices.every((i) => i >= allLessons.length);
-
-  const patched = arr.map((item, i) => {
-    const origIdx = scopeIndices[i];
-    if (origIdx == null) return item;
-
-    const weekLabel = `Week ${origIdx + 1}`;
-    const updates = {};
-
-    // Fix weekNumber (lessonPlans, etc.)
-    if ('weekNumber' in item) updates.weekNumber = weekLabel;
-
-    // Fix lessonTitle — use the original course map title if available
-    if ('lessonTitle' in item) {
-      if (!alreadyScoped && origIdx < allLessons.length && allLessons[origIdx]?.title) {
-        updates.lessonTitle = allLessons[origIdx].title;
-      } else if (alreadyScoped && i < allLessons.length && allLessons[i]?.title) {
-        // Already-scoped: lesson at position i in the scoped map
-        updates.lessonTitle = allLessons[i].title;
-      }
-    }
-
-    return Object.keys(updates).length > 0 ? { ...item, ...updates } : item;
-  });
-
-  return { ...parsed, [k]: patched };
+  const inferredSourceScope = inferMaterializedSourceLessonFilter(courseMap, {}, null);
+  const sourceScope = resolveMaterializedSourceLessonFilter(courseMap, scopeIndices, inferredSourceScope);
+  return preserveDeliverableLessonNumbers(parsed, k, sourceScope, courseMap);
 }
 
 // v0.14.1 round 2 (Crucible Round-2): the single-lesson merge — and its
@@ -553,13 +524,21 @@ export default function useDeliverables({
       const hasProviderCallBudget = (count = 1) => getRemainingProviderCalls() >= count;
       const recordGenerationApiCallEvent = (event) => {
         providerCallsUsed += getProviderCallEventCount(event);
-        recordApiCallEvent(event);
+        recordApiCallEvent({
+          ...event,
+          ...(costMode === 'finalizerRetry' ? { postBuildActivity: true } : {}),
+        });
       };
       const getAllowedStreamRetries = (requested) =>
         maxProviderCalls === null ? requested : Math.max(0, Math.min(requested, getRemainingProviderCalls()));
       const requestedFeatures = features.filter((f) => f && f !== 'courseMap');
       if (requestedFeatures.length === 0 || !courseMap) return;
       const sourceBriefConstraints = analyzeSourceBriefConstraints(sourceBrief);
+      const requestedSessionMinutes = resolveRequestedClassSessionMinutes({
+        sourceBrief,
+        explicitSessionLength: deliverableConfigRef.current?.lessonPlans?.sessionLength,
+        defaultSessionLength: getGenerationConfig('lessonPlans')?.sessionLength,
+      });
       const blueprintCompilerEnabled =
         generationOptions.useBlueprintCompiler !== false && generationPlan?.blueprintCompiler !== false;
       const blueprintCompiler = blueprintCompilerEnabled ? await import('../lib/courseBlueprintCompiler') : null;
@@ -746,6 +725,7 @@ export default function useDeliverables({
         hardCallLimit: cappedCostPlan.hardCallLimit,
         maxProviderCalls,
         blueprintEnrichmentRequested,
+        requestedSessionMinutes,
       });
       traceGenerationTable(
         generationRunId,
@@ -1029,196 +1009,199 @@ export default function useDeliverables({
             detail: 'Skipped because the instructor limited the course to the supplied facts and sources.',
             featureId: 'blueprintEnrichment',
           });
-          appendLog('Instructor source boundary active — no library facts or outside sources will be added', 'progress');
+          appendLog(
+            'Instructor source boundary active — no library facts or outside sources will be added',
+            'progress',
+          );
         } else {
           try {
-          const [
-            { getKernelLibrary },
-            { hydrateLibraryForDisciplines, inferCourseDisciplines },
-            { createLessonKernelCache },
-            { runGenomeLinker, describeGenomeLinkTelemetry },
-            { buildQuizItemPlan },
-          ] = await Promise.all([
-            import('../lib/genome/kernelLibrary'),
-            import('../lib/genome/libraryShardLoader'),
-            import('../lib/genome/lessonKernelCache'),
-            import('../lib/genome/runGenomeLinker'),
-            import('../lib/blueprintEnrichmentPass'),
-          ]);
-          const library = getKernelLibrary();
-          const hydration = await hydrateLibraryForDisciplines(library, inferCourseDisciplines(blueprintCourseMap), {
-            signal: controller.signal,
-          });
-          lessonKernelCache = createLessonKernelCache({
-            courseMap: blueprintCourseMap,
-            provider,
-            modelId,
-          });
-          const linked = runGenomeLinker({
-            courseMap: blueprintCourseMap,
-            lessonIndices: allLessonIndices,
-            library,
-            cache: lessonKernelCache,
-            itemPlan: buildQuizItemPlan(getGenerationConfig('quizBank')?.questionsPerLesson),
-            // v0.14.1 P2.7: inferred disciplines with no shard ride into the
-            // linker telemetry so the budget event can explain a 0-link run.
-            uncoveredDisciplines: hydration.uncoveredDisciplines || [],
-            sourceReferences: hydration.references || {},
-          });
-          genomeLink = {
-            lessonContent: linked.lessonContent,
-            // v0.14.1 P4.5: thin genome matches — these lessons also run the
-            // model; the merge below folds the cited genome terms back in.
-            partialOverlays: linked.partialOverlays || {},
-            telemetry: {
-              ...linked.telemetry,
-              shardIds: hydration.shardIds,
-              rejectedShards: hydration.rejectedShards || [],
-              archetypesLoaded: hydration.archetypesAdded || 0,
-            },
-            powers: {
-              prerequisiteFindings: linked.prerequisiteFindings || [],
-              prerequisitePrimers: linked.prerequisitePrimers || [],
-              prerequisiteJudgment: linked.prerequisiteJudgment || null,
-              glossary: linked.glossary || [],
-              spiralReferences: linked.spiralReferences || {},
-              bridges: linked.bridges || [],
-              bridgeObservations: linked.bridgeObservations || [],
-              structureFindings: linked.structureFindings || [],
-            },
-          };
-          const t = linked.telemetry;
-          recordGenerationApiCallEvent({
-            type: 'genomeLink',
-            label: 'CurriculumOS linker',
-            detail: describeGenomeLinkTelemetry(t, allLessonIndices.length, hydration.shardIds || []),
-            featureId: 'blueprintEnrichment',
-          });
-          // v0.14 P3: the judgment surface — what the genome reasoned about
-          // this course (prerequisite gaps found, bridged, or flagged).
-          // v0.14.1 P2.4: ALWAYS emitted once the linker ran — "ran clean"
-          // and "found nothing to evaluate" are reportable states, not
-          // silence (the v0.14 audit's judgment layer never spoke).
-          recordGenerationApiCallEvent(
-            buildJudgmentStageEvent({
-              judgment: linked.prerequisiteJudgment,
-              linkedConceptCount: t.conceptHits || 0,
-              genomeLinkedLessons: linked.genomeBackedLessonCount,
-            }),
-          );
-          // ── v0.14.9 A3: on-miss extraction — the flywheel's first live
-          // turn. Flag-gated (GENOME_EXTRACTION_FLAG, default OFF), exactly
-          // ONE low-cost model call per run (≤8 concepts, 1600-token cap —
-          // worst case well under the $0.05 disclosure ceiling); every
-          // citation is provider-verified (OpenAlex / Open Library), and a
-          // candidate with ZERO verified citations is rejected outright.
-          // Admitted kernels persist to the local kernel cache, so the SAME
-          // course's next compile links them at $0. Failure never blocks —
-          // the model path runs for the missed lessons either way.
-          try {
-            const extraction = await import('../lib/knowledge/genomeExtraction');
-            const flagValue =
-              typeof localStorage !== 'undefined' ? localStorage.getItem(extraction.GENOME_EXTRACTION_FLAG) : null;
-            if (extraction.shouldOfferExtraction({ flagValue, linkResult: linked }) && apiKey) {
-              const providers = await import('../lib/knowledge/providers');
-              const missedNames = (linked.missingIndices || [])
-                .map((lessonIdx) => blueprintCourseMap.lessons?.[lessonIdx]?.title || '')
-                .filter(Boolean);
-              const disciplineHint = (inferCourseDisciplines(blueprintCourseMap)[0] || '').toLowerCase();
-              const callModel = async (prompt) => {
-                const result = await streamProvider(
-                  provider,
-                  apiKey,
-                  modelId,
-                  'You are a precise curriculum knowledge engineer. Reply with a JSON array only.',
-                  prompt,
-                  {
-                    // Sized for the prompt's 8-candidate cap (~350 tokens per
-                    // full candidate shape). The first live run used 1600 and
-                    // TRUNCATED — the reply parsed to 0/0 candidates, the
-                    // same output-cap failure class as voice v1. Still well
-                    // under the $0.05 ceiling on every supported tier.
-                    maxOutputTokens: 4000,
-                    modelCapabilities,
-                    featureId: 'blueprintEnrichment',
-                    task: 'genomeExtract',
-                    onApiCallEvent: recordGenerationApiCallEvent,
-                    signal: controller.signal,
-                  },
-                );
-                return result?.fullText || '';
-              };
-              const extracted = await extraction.runOnMissGenomeExtraction({
-                flagValue,
-                linkResult: linked,
-                conceptNames: missedNames,
-                courseTitle: blueprintCourseMap.courseName || '',
-                discipline: disciplineHint,
-                callModel,
-                providers,
-              });
-              if (extracted.offered) {
-                const admittedCount = extracted.entries.length;
-                if (admittedCount > 0) library.persistLocalKernels(extracted.entries);
-                stageDecisions.genomeExtraction = `ran (${admittedCount}/${extracted.candidateCount} admitted)`;
-                recordGenerationApiCallEvent({
-                  type: 'pipelineDecision',
-                  stage: 'genomeExtraction',
-                  label: 'On-miss kernel extraction',
-                  detail: `${admittedCount}/${extracted.candidateCount} candidates admitted, ${extracted.rejected.length} rejected${
-                    extracted.rejected.length > 0
-                      ? ` (${extracted.rejected
-                          .map((entry) => `${entry.id}: ${entry.reasons.join('/')}`)
-                          .join('; ')
-                          .slice(0, 200)})`
-                      : ''
-                  } — citations provider-verified, admitted kernels cached locally for the next run`,
-                  featureId: 'blueprintEnrichment',
+            const [
+              { getKernelLibrary },
+              { hydrateLibraryForDisciplines, inferCourseDisciplines },
+              { createLessonKernelCache },
+              { runGenomeLinker, describeGenomeLinkTelemetry },
+              { buildQuizItemPlan },
+            ] = await Promise.all([
+              import('../lib/genome/kernelLibrary'),
+              import('../lib/genome/libraryShardLoader'),
+              import('../lib/genome/lessonKernelCache'),
+              import('../lib/genome/runGenomeLinker'),
+              import('../lib/blueprintEnrichmentPass'),
+            ]);
+            const library = getKernelLibrary();
+            const hydration = await hydrateLibraryForDisciplines(library, inferCourseDisciplines(blueprintCourseMap), {
+              signal: controller.signal,
+            });
+            lessonKernelCache = createLessonKernelCache({
+              courseMap: blueprintCourseMap,
+              provider,
+              modelId,
+            });
+            const linked = runGenomeLinker({
+              courseMap: blueprintCourseMap,
+              lessonIndices: allLessonIndices,
+              library,
+              cache: lessonKernelCache,
+              itemPlan: buildQuizItemPlan(getGenerationConfig('quizBank')?.questionsPerLesson),
+              // v0.14.1 P2.7: inferred disciplines with no shard ride into the
+              // linker telemetry so the budget event can explain a 0-link run.
+              uncoveredDisciplines: hydration.uncoveredDisciplines || [],
+              sourceReferences: hydration.references || {},
+            });
+            genomeLink = {
+              lessonContent: linked.lessonContent,
+              // v0.14.1 P4.5: thin genome matches — these lessons also run the
+              // model; the merge below folds the cited genome terms back in.
+              partialOverlays: linked.partialOverlays || {},
+              telemetry: {
+                ...linked.telemetry,
+                shardIds: hydration.shardIds,
+                rejectedShards: hydration.rejectedShards || [],
+                archetypesLoaded: hydration.archetypesAdded || 0,
+              },
+              powers: {
+                prerequisiteFindings: linked.prerequisiteFindings || [],
+                prerequisitePrimers: linked.prerequisitePrimers || [],
+                prerequisiteJudgment: linked.prerequisiteJudgment || null,
+                glossary: linked.glossary || [],
+                spiralReferences: linked.spiralReferences || {},
+                bridges: linked.bridges || [],
+                bridgeObservations: linked.bridgeObservations || [],
+                structureFindings: linked.structureFindings || [],
+              },
+            };
+            const t = linked.telemetry;
+            recordGenerationApiCallEvent({
+              type: 'genomeLink',
+              label: 'CurriculumOS linker',
+              detail: describeGenomeLinkTelemetry(t, allLessonIndices.length, hydration.shardIds || []),
+              featureId: 'blueprintEnrichment',
+            });
+            // v0.14 P3: the judgment surface — what the genome reasoned about
+            // this course (prerequisite gaps found, bridged, or flagged).
+            // v0.14.1 P2.4: ALWAYS emitted once the linker ran — "ran clean"
+            // and "found nothing to evaluate" are reportable states, not
+            // silence (the v0.14 audit's judgment layer never spoke).
+            recordGenerationApiCallEvent(
+              buildJudgmentStageEvent({
+                judgment: linked.prerequisiteJudgment,
+                linkedConceptCount: t.conceptHits || 0,
+                genomeLinkedLessons: linked.genomeBackedLessonCount,
+              }),
+            );
+            // ── v0.14.9 A3: on-miss extraction — the flywheel's first live
+            // turn. Flag-gated (GENOME_EXTRACTION_FLAG, default OFF), exactly
+            // ONE low-cost model call per run (≤8 concepts, 1600-token cap —
+            // worst case well under the $0.05 disclosure ceiling); every
+            // citation is provider-verified (OpenAlex / Open Library), and a
+            // candidate with ZERO verified citations is rejected outright.
+            // Admitted kernels persist to the local kernel cache, so the SAME
+            // course's next compile links them at $0. Failure never blocks —
+            // the model path runs for the missed lessons either way.
+            try {
+              const extraction = await import('../lib/knowledge/genomeExtraction');
+              const flagValue =
+                typeof localStorage !== 'undefined' ? localStorage.getItem(extraction.GENOME_EXTRACTION_FLAG) : null;
+              if (extraction.shouldOfferExtraction({ flagValue, linkResult: linked }) && apiKey) {
+                const providers = await import('../lib/knowledge/providers');
+                const missedNames = (linked.missingIndices || [])
+                  .map((lessonIdx) => blueprintCourseMap.lessons?.[lessonIdx]?.title || '')
+                  .filter(Boolean);
+                const disciplineHint = (inferCourseDisciplines(blueprintCourseMap)[0] || '').toLowerCase();
+                const callModel = async (prompt) => {
+                  const result = await streamProvider(
+                    provider,
+                    apiKey,
+                    modelId,
+                    'You are a precise curriculum knowledge engineer. Reply with a JSON array only.',
+                    prompt,
+                    {
+                      // Sized for the prompt's 8-candidate cap (~350 tokens per
+                      // full candidate shape). The first live run used 1600 and
+                      // TRUNCATED — the reply parsed to 0/0 candidates, the
+                      // same output-cap failure class as voice v1. Still well
+                      // under the $0.05 ceiling on every supported tier.
+                      maxOutputTokens: 4000,
+                      modelCapabilities,
+                      featureId: 'blueprintEnrichment',
+                      task: 'genomeExtract',
+                      onApiCallEvent: recordGenerationApiCallEvent,
+                      signal: controller.signal,
+                    },
+                  );
+                  return result?.fullText || '';
+                };
+                const extracted = await extraction.runOnMissGenomeExtraction({
+                  flagValue,
+                  linkResult: linked,
+                  conceptNames: missedNames,
+                  courseTitle: blueprintCourseMap.courseName || '',
+                  discipline: disciplineHint,
+                  callModel,
+                  providers,
                 });
-                appendLog(
-                  admittedCount > 0
-                    ? `✓ Extracted ${admittedCount} verified concept kernel${admittedCount === 1 ? '' : 's'} for this course — cached locally, so the next run links them at no cost`
-                    : extracted.candidateCount === 0
-                      ? 'Extraction returned no parseable candidates — nothing was kept'
-                      : `Extraction proposed ${extracted.candidateCount} candidate${extracted.candidateCount === 1 ? '' : 's'} but none passed citation verification — nothing model-invented was kept`,
-                  admittedCount > 0 ? 'done' : 'warn',
-                );
+                if (extracted.offered) {
+                  const admittedCount = extracted.entries.length;
+                  if (admittedCount > 0) library.persistLocalKernels(extracted.entries);
+                  stageDecisions.genomeExtraction = `ran (${admittedCount}/${extracted.candidateCount} admitted)`;
+                  recordGenerationApiCallEvent({
+                    type: 'pipelineDecision',
+                    stage: 'genomeExtraction',
+                    label: 'On-miss kernel extraction',
+                    detail: `${admittedCount}/${extracted.candidateCount} candidates admitted, ${extracted.rejected.length} rejected${
+                      extracted.rejected.length > 0
+                        ? ` (${extracted.rejected
+                            .map((entry) => `${entry.id}: ${entry.reasons.join('/')}`)
+                            .join('; ')
+                            .slice(0, 200)})`
+                        : ''
+                    } — citations provider-verified, admitted kernels cached locally for the next run`,
+                    featureId: 'blueprintEnrichment',
+                  });
+                  appendLog(
+                    admittedCount > 0
+                      ? `✓ Extracted ${admittedCount} verified concept kernel${admittedCount === 1 ? '' : 's'} for this course — cached locally, so the next run links them at no cost`
+                      : extracted.candidateCount === 0
+                        ? 'Extraction returned no parseable candidates — nothing was kept'
+                        : `Extraction proposed ${extracted.candidateCount} candidate${extracted.candidateCount === 1 ? '' : 's'} but none passed citation verification — nothing model-invented was kept`,
+                    admittedCount > 0 ? 'done' : 'warn',
+                  );
+                }
+              } else if (extraction.isExtractionFlagEnabled(flagValue)) {
+                stageDecisions.genomeExtraction = 'flag on, no linker misses';
               }
-            } else if (extraction.isExtractionFlagEnabled(flagValue)) {
-              stageDecisions.genomeExtraction = 'flag on, no linker misses';
+            } catch (extractErr) {
+              // Diagnostics only — extraction may never block the compile.
+              stageDecisions.genomeExtraction = `failed: ${extractErr?.message || 'unknown'}`;
             }
-          } catch (extractErr) {
-            // Diagnostics only — extraction may never block the compile.
-            stageDecisions.genomeExtraction = `failed: ${extractErr?.message || 'unknown'}`;
-          }
-          if ((linked.bridges || []).length > 0) {
-            appendLog(
-              `✓ Drew ${linked.bridges.length} structural bridge${linked.bridges.length === 1 ? '' : 's'} between concepts sharing a deep structure (transfer learning)`,
-              'done',
-            );
-          }
-          if (linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache > 0) {
-            // v0.14.1 P4.5: partial links still run the model for
-            // augmentation, so they are not "no AI cost" — say so.
-            const partialCount = linked.telemetry.partialFromGenome || 0;
-            appendLog(
-              `✓ Linked ${linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache}/${allLessonIndices.length} lesson(s) from the curriculum library — no AI cost (${linked.telemetry.conceptHits} concept${linked.telemetry.conceptHits === 1 ? '' : 's'}, ${linked.telemetry.citationsRendered} citation${linked.telemetry.citationsRendered === 1 ? '' : 's'})${partialCount > 0 ? ` — ${partialCount} thin match${partialCount === 1 ? '' : 'es'} will be model-augmented` : ''}`,
-              'done',
-            );
-          }
-          if (linked.prerequisiteFindings?.length > 0) {
-            // v0.14 P1: detection → judgment. Report what the genome can fill
-            // (cited primers) vs. what it can only flag (assumed background).
-            const j = linked.prerequisiteJudgment;
-            appendLog(
-              `⚑ Curriculum check: ${linked.prerequisiteFindings.length} prerequisite gap${linked.prerequisiteFindings.length === 1 ? '' : 's'} detected${
-                j
-                  ? ` — ${j.primersBuilt} bridged with cited primers, ${j.assumedBackground} flagged as assumed background`
-                  : ''
-              } — ${linked.prerequisiteFindings[0].message}`,
-              'progress',
-            );
-          }
+            if ((linked.bridges || []).length > 0) {
+              appendLog(
+                `✓ Drew ${linked.bridges.length} structural bridge${linked.bridges.length === 1 ? '' : 's'} between concepts sharing a deep structure (transfer learning)`,
+                'done',
+              );
+            }
+            if (linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache > 0) {
+              // v0.14.1 P4.5: partial links still run the model for
+              // augmentation, so they are not "no AI cost" — say so.
+              const partialCount = linked.telemetry.partialFromGenome || 0;
+              appendLog(
+                `✓ Linked ${linked.telemetry.resolvedFromGenome + linked.telemetry.resolvedFromCache}/${allLessonIndices.length} lesson(s) from the curriculum library — no AI cost (${linked.telemetry.conceptHits} concept${linked.telemetry.conceptHits === 1 ? '' : 's'}, ${linked.telemetry.citationsRendered} citation${linked.telemetry.citationsRendered === 1 ? '' : 's'})${partialCount > 0 ? ` — ${partialCount} thin match${partialCount === 1 ? '' : 'es'} will be model-augmented` : ''}`,
+                'done',
+              );
+            }
+            if (linked.prerequisiteFindings?.length > 0) {
+              // v0.14 P1: detection → judgment. Report what the genome can fill
+              // (cited primers) vs. what it can only flag (assumed background).
+              const j = linked.prerequisiteJudgment;
+              appendLog(
+                `⚑ Curriculum check: ${linked.prerequisiteFindings.length} prerequisite gap${linked.prerequisiteFindings.length === 1 ? '' : 's'} detected${
+                  j
+                    ? ` — ${j.primersBuilt} bridged with cited primers, ${j.assumedBackground} flagged as assumed background`
+                    : ''
+                } — ${linked.prerequisiteFindings[0].message}`,
+                'progress',
+              );
+            }
           } catch (linkErr) {
             if (linkErr?.name === 'AbortError') {
               abortMapRef.current.delete(abortKey);
@@ -2409,7 +2392,8 @@ export default function useDeliverables({
             type: 'pipelineDecision',
             stage: 'knowledgeBackbone',
             label: 'Knowledge backbone',
-            detail: 'Skipped external readings and source finder because the instructor limited the course to supplied facts.',
+            detail:
+              'Skipped external readings and source finder because the instructor limited the course to supplied facts.',
           });
         } else {
           try {
@@ -2548,9 +2532,7 @@ export default function useDeliverables({
             localization: (await import('../lib/professorProfile')).getProfile(),
             ...(courseMapAssessmentRegistry ? { assessmentRegistry: courseMapAssessmentRegistry } : {}),
             ...(courseMapReadingsRegistry ? { readingsRegistry: courseMapReadingsRegistry } : {}),
-            ...(sourceBriefConstraints.sessionMinutes
-              ? { sessionMinutes: sourceBriefConstraints.sessionMinutes }
-              : {}),
+            ...(requestedSessionMinutes ? { sessionMinutes: requestedSessionMinutes } : {}),
             ...(sourceBriefConstraints.instructorProvidedFacts.length > 0
               ? { instructorProvidedFacts: sourceBriefConstraints.instructorProvidedFacts }
               : {}),
@@ -4671,10 +4653,7 @@ export default function useDeliverables({
           }
         }
 
-        let finalData =
-          fid === 'rubrics' || fid === 'assignments'
-            ? merged
-            : patchScopeNumbering(merged, fid, scopeIndices, courseMap);
+        let finalData = fid === 'assignments' ? merged : patchScopeNumbering(merged, fid, scopeIndices, courseMap);
 
         const config = getGenerationConfig(fid);
         const finalValidation = validateDeliverableGeneration(fid, finalData, {

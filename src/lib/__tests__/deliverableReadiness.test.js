@@ -4,6 +4,7 @@ import {
   evaluateWorkspaceReadiness,
   repairCourseMapReadiness,
   repairWorkspaceReadiness,
+  scopeDeliverableDataToLessons,
 } from '../deliverableReadiness';
 
 const courseMap = {
@@ -419,6 +420,27 @@ describe('evaluateWorkspaceReadiness', () => {
     );
   });
 
+  it('scopes registry items by preserved source lesson identity in a compact workspace', () => {
+    const compactCourseMap = {
+      courseName: 'Focused Course',
+      lessons: [{ title: 'Lesson 5: Marketing Concept', sourceLessonNumber: 5, sections: [] }],
+    };
+    const data = {
+      quizzes: [{ lessonTitle: 'Lesson 5: Marketing Concept', lessonNumber: 5, questions: makeQuestions(5) }],
+    };
+
+    expect(scopeDeliverableDataToLessons('quizBank', data, [0], compactCourseMap).quizzes).toHaveLength(1);
+    const readiness = evaluateWorkspaceReadiness({
+      courseMap: compactCourseMap,
+      selectedFeatures: ['quizBank'],
+      lessonFilter: [0],
+      deliverables: { quizBank: { status: 'done', data } },
+    });
+    expect(readiness.blockers.map((issue) => issue.message).join(' ')).not.toContain(
+      'Quiz & Exam Bank has no generated lesson items.',
+    );
+  });
+
   it('warns on syllabus exports that still contain unresolved publishability placeholders', () => {
     const readiness = evaluateWorkspaceReadiness({
       courseMap,
@@ -648,6 +670,30 @@ describe('repairCourseMapReadiness', () => {
     expect(second.weeklyAssessments).toMatch(/dimension/i);
     expect(second.supportingResources).toMatch(/dimension/i);
     expect(second.learningObjectives).not.toMatch(/bases/i);
+  });
+
+  it('preserves source lesson numbering in a materialized scoped Course Map', () => {
+    const result = repairCourseMapReadiness({
+      courseMap: {
+        courseName: 'Principles of Marketing',
+        lessons: [
+          {
+            title: 'Lesson 5: Marketing Concept',
+            sourceLessonNumber: 5,
+            sections: [
+              {
+                topicSection: 'Marketing Concept',
+                learningObjectives: 'Apply the marketing concept to a named case.',
+                weeklyAssessments: 'Submit a case analysis.',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(result.courseMap.lessons[0].title).toBe('Lesson 5: Marketing Concept');
+    expect(result.courseMap.lessons[0].sourceLessonNumber).toBe(5);
   });
 
   // v0.16.1 regression: the CS/Python course-map profile fired on generic

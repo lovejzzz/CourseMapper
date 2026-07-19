@@ -389,6 +389,7 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
     eventMetadata.usageEstimated = eventMetadata.usageEstimated ?? Boolean(usage.estimated);
   }
   const postBuildActivity =
+    event.postBuildActivity === true ||
     event.type === 'agentLoopCall' ||
     event.type === 'imageGenerationCall' ||
     (event.type === 'apiUsage' && /^(?:agent|chat|research|image)/i.test(String(event.task || event.featureId || '')));

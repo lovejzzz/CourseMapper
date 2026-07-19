@@ -516,8 +516,11 @@ describe('Scion adapter tooling', () => {
     const taskScopedBenchmark = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v5.json', 'utf8'),
     );
-    const currentGraderBenchmark = JSON.parse(
+    const priorGraderBenchmark = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v6.json', 'utf8'),
+    );
+    const currentGraderBenchmark = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v7.json', 'utf8'),
     );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
@@ -526,6 +529,7 @@ describe('Scion adapter tooling', () => {
     });
     expect(validateScionHeldoutBenchmark(transitivelyBoundBenchmark)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(taskScopedBenchmark)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmark)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(currentGraderBenchmark)).toMatchObject({ valid: true, issues: [] });
 
     const cleanDataset = {
@@ -657,7 +661,7 @@ describe('Scion adapter tooling', () => {
 
   it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
-    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v6.json');
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v7.json');
     const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
     const benchmarkSha256 = await sha256File(benchmarkPath);
     const datasetDir = path.join(root, 'dataset');

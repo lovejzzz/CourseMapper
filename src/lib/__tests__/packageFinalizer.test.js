@@ -171,6 +171,45 @@ describe('packageFinalizer', () => {
     );
   });
 
+  it('blocks final package readiness when a lesson misses the configured classroom clock', () => {
+    const result = runDeterministicPackageFinalizer({
+      courseMap: makeCourseMap(1),
+      selectedFeatures: ['lessonPlans'],
+      expectedSessionMinutes: 50,
+      includeClassroomReadiness: false,
+      retryWarnings: false,
+      deliverables: {
+        lessonPlans: {
+          status: 'done',
+          data: {
+            plans: [
+              {
+                title: 'Lesson 1: Research Topic 1',
+                duration: '110 minutes',
+                outline: [
+                  { time: '30 minutes', activity: 'Frame the problem.' },
+                  { time: '40 minutes', activity: 'Analyze evidence.' },
+                  { time: '40 minutes', activity: 'Synthesize findings.' },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    expect(result.readiness.isBlocked).toBe(true);
+    expect(result.readiness.blockers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          featureId: 'lessonPlans',
+          classroomCriterion: 'timing',
+          source: 'validation',
+        }),
+      ]),
+    );
+  });
+
   it('can include classroom-readiness warnings in strict export readiness', () => {
     const repeated =
       'Students will participate in a generic discussion and complete a short reflection that connects to the topic.';

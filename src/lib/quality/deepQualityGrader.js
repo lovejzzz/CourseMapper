@@ -75,10 +75,8 @@ import {
 // V0.14.7 WS-D D1 introduced the texture metric; v0.15.6 makes it score-bearing.
 import { computeTexture, textureDocsFromFiles, buildTextureAdvisories, TEXTURE_VERSION } from './textureMetric.js';
 import { addPackageQuizDepthFindings } from './quizItemDepth.js';
-import {
-  detectForeignLanguageTeachingContent,
-  mandarinTargetLanguageRequirements,
-} from '../languageIdentityGuard.js';
+import { detectForeignLanguageTeachingContent, mandarinTargetLanguageRequirements } from '../languageIdentityGuard.js';
+import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 
 // v0.14.3 WS-A A3: the grader version stamped into manifest.quality. Bump on
 // any change to checks, weights, or severity penalties so a package's quality
@@ -151,7 +149,9 @@ import {
 // 1.10.14 — concrete pitch pairs and named interval transformations count as
 // applied MC cases; the depth gate no longer demotes a rigorous notation bank
 // merely because its evidence is musical rather than prose/data.
-export const GRADER_VERSION = '1.10.16';
+// 1.10.17 — the package's requested classroom clock is now auditable. A
+// lesson plan whose declared/outlined minutes violate that constraint is a P0.
+export const GRADER_VERSION = '1.10.17';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -976,6 +976,43 @@ function checkConsistency(findings, { files }) {
     }
   }
   return byLesson;
+}
+
+function checkRequestedLessonTiming(findings, { files, manifest }, course = {}) {
+  const expected = parseClassSessionMinutes(
+    course?.expectedSessionMinutes || manifest?.generationConstraints?.sessionMinutes,
+  );
+  if (!expected) return;
+
+  for (const file of files.filter((entry) => entry.featureId === 'lessonPlans')) {
+    const paragraphs = Array.isArray(file.paragraphs) ? file.paragraphs.map((line) => String(line).trim()) : [];
+    const declaredLine = paragraphs.find((line) => /^(\d{2,3})\s+minutes\b/i.test(line));
+    const declared = parseClassSessionMinutes(declaredLine?.match(/^(\d{2,3})\s+minutes\b/i)?.[1]);
+    const outlineStart = paragraphs.findIndex((line) => /^session outline$/i.test(line));
+    const outlineEnd = paragraphs.findIndex(
+      (line, index) =>
+        index > outlineStart && /^(?:why this works|formative assessment|udl notes|homework)\b/i.test(line),
+    );
+    const outlineWindow =
+      outlineStart >= 0
+        ? paragraphs.slice(outlineStart + 1, outlineEnd > outlineStart ? outlineEnd : paragraphs.length)
+        : [];
+    const outlineMinutes = outlineWindow
+      .map((line) => line.match(/^(\d{1,3})\s+minutes$/i)?.[1])
+      .filter(Boolean)
+      .map(Number)
+      .reduce((sum, minutes) => sum + minutes, 0);
+    if (declared === expected && outlineMinutes === expected) continue;
+    findings.add({
+      severity: 'P0',
+      dimension: 'consistency',
+      file: file.path,
+      detail: `lesson timing violates the requested ${expected}-minute classroom clock`,
+      evidence: quote(
+        `${declared ? `${declared} minutes declared` : 'duration missing'}; ${outlineMinutes || 0} minutes in session outline`,
+      ),
+    });
+  }
 }
 
 function contextAround(text, index, span = 90) {
@@ -3449,6 +3486,7 @@ export async function grade({
     }
   }
   const lessonTitles = checkConsistency(findings, pkg);
+  checkRequestedLessonTiming(findings, pkg, course);
   {
     const { checkExplicitLessonSequenceReuse } = await import('./lessonSequenceQualityChecks.js');
     checkExplicitLessonSequenceReuse(findings, lessonTitles, course);
