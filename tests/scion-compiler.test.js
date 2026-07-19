@@ -2,7 +2,7 @@
 // D1 contract handoff (declared json_schema, per-lesson chunks, pinned
 // skeleton), D2 time-planner (CourseIR skip, greedy-first retry temperature),
 // D3 quality passes in the compiler, D4 the on-device flywheel.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import fs from 'node:fs';
 import {
   isScionProvider,
@@ -13,7 +13,16 @@ import {
   scionFlywheelEnabled,
 } from '../src/lib/scionContracts';
 import { applyScionKernelPasses, SCION_PASS_CALL_BUDGET_PER_LESSON } from '../src/lib/scionPasses';
-import { scionCallOpts } from '../src/lib/scionPassB';
+import {
+  buildScionGroundedRefinementPrompt,
+  runScionPasses,
+  scionCallOpts,
+  shouldRunScionGroundedAdapterStage,
+} from '../src/lib/scionPassB';
+import {
+  SCION_LESSON_KERNEL_PILOT_PROMPT,
+  SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE,
+} from './fixtures/scionLessonKernelAdmissionV01654';
 import { getAdaptiveNativePassBBatchSize } from '../src/lib/adaptiveProviderBatching';
 import { buildProviderTextRequest } from '../src/lib/modelRequestBuilders';
 import { isAppliedQuizStem } from '../src/lib/quality/quizItemDepth';
@@ -69,7 +78,7 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
     const lesson = options.schema.schema.properties.lessons.items;
     expect(options.schema.name).toBe('scion_compact_lesson_kernel_v1');
-    expect(options.promptProtocol).toBe('production-lesson-kernel-prompt-v1');
+    expect(options.promptProtocol).toBe('production-lesson-kernel-synthesis-prompt-v1');
     expect(lesson.required).toEqual(['lessonId', 'facts', 'keyTerms', 'scenario', 'mc']);
     expect(lesson.properties.keyTerms).toMatchObject({ minItems: 3, maxItems: 3 });
     expect(lesson.properties.mc).toMatchObject({ minItems: 2, maxItems: 2 });
@@ -99,7 +108,117 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     });
 
     expect(options.maxRetries).toBe(0);
+    expect(options.promptProtocol).toBe('production-lesson-kernel-prompt-v1');
     expect(options.schema.schema.properties.lessons.items.properties.facts).toMatchObject({ minItems: 3, maxItems: 3 });
+  });
+
+  it('D1: stages only an installed out-of-scope adapter after freezing valid synthesized facts', () => {
+    expect(
+      shouldRunScionGroundedAdapterStage([
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'task-family-out-of-scope',
+          adapterId: 'scion-source-grounded',
+        },
+      ]),
+    ).toBe(true);
+    expect(
+      shouldRunScionGroundedAdapterStage([
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'no-adapter-installed',
+          adapterId: null,
+        },
+      ]),
+    ).toBe(false);
+
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const grounded = buildScionGroundedRefinementPrompt({
+      rawText: JSON.stringify(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+    });
+    expect(grounded).toMatchObject({
+      lessons: [
+        expect.objectContaining({
+          lessonId: 'lesson-3',
+          sourceFactPolicy: 'numbered-source-ledger-v1',
+          sourceFacts: SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts,
+        }),
+      ],
+    });
+    expect(grounded.userPrompt).toContain('"sourceFactPolicy":"numbered-source-ledger-v1"');
+    expect(scionCallOpts({ prompt: grounded, expectedLessonIds: ['lesson-3'], recoveryAttempt: 0 })).toMatchObject({
+      promptProtocol: 'production-lesson-kernel-prompt-v1',
+      maxRetries: 0,
+    });
+  });
+
+  it('D1: admits a proven source-grounded adapter stage and keeps its frozen fact ledger', async () => {
+    const lessons = JSON.parse(SCION_LESSON_KERNEL_PILOT_PROMPT.match(/Lessons:\n(\[.*\])\nReturn/s)[1]);
+    const prompt = {
+      courseName: 'Geology Inference and Feedback Audit',
+      lessons,
+      userPrompt: SCION_LESSON_KERNEL_PILOT_PROMPT,
+      systemPrompt: 'Write a compact knowledge kernel.',
+    };
+    const response = JSON.stringify(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE);
+    const events = [];
+    const streamProvider = vi.fn().mockResolvedValue({
+      fullText: response,
+      adapterRoutes: [
+        {
+          taskFamily: 'source-grounded-lesson-kernel',
+          routeMode: 'adapter',
+          nativeAdapterActive: true,
+        },
+      ],
+    });
+    const result = await runScionPasses({
+      rawText: response,
+      streamProvider,
+      provider: 'local',
+      apiKey: '',
+      modelId: 'scion-1',
+      modelCapabilities: {},
+      generationPlan: {},
+      recordEvent: (event) => events.push(event),
+      prompt,
+      expectedLessonIds: ['lesson-3'],
+      contentSourcedLessonIds: [],
+      courseName: prompt.courseName,
+      runtimeRoutes: [
+        {
+          taskFamily: 'lesson-kernel-synthesis',
+          routeMode: 'base-only',
+          routeReason: 'task-family-out-of-scope',
+          adapterId: 'scion-source-grounded',
+        },
+      ],
+    });
+    expect(streamProvider).toHaveBeenCalledWith(
+      'local',
+      '',
+      'scion-1',
+      prompt.systemPrompt,
+      expect.stringContaining('"sourceFactPolicy":"numbered-source-ledger-v1"'),
+      expect.objectContaining({ promptProtocol: 'production-lesson-kernel-prompt-v1', maxRetries: 0 }),
+    );
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        label: 'Scion staged adapter refinement',
+        detail: expect.stringContaining('admitted'),
+      }),
+    );
+    expect(JSON.parse(result).lessons[0].facts).toEqual(SCION_LESSON_KERNEL_REFERENCE_PILOT_RESPONSE.lessons[0].facts);
   });
 
   it('D1: content-sourced lessons get the session-only variant', () => {

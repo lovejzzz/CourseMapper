@@ -33,6 +33,14 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.61**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
+### Adapter work in progress
+
+The V0.16.62 research corpus has crossed its first real training threshold: 102 qualified source-grounded preferences rebuild into 100 usable production rows, split by complete course group across seven domains. One 200-iteration adapter training run completed against the pinned Gemma base, reduced validation loss from 1.555 to 1.089, and produced a 105 MB learned delta. That artifact is **not** a quality win and is not active on the website.
+
+The first live held-out attempt found an evaluation error before a score could be claimed. Every training row transformed a supplied three-to-five-fact source ledger, while the old broad `lesson-kernel` route also asked the adapter to invent the initial facts. The run was stopped: ten lesson requests expanded into 52 native generations, and the adapter repeatedly produced truncated or conflicting kernels outside its learned distribution. Scion now records that attempt as a failed diagnostic rather than a benchmark result.
+
+The replacement pipeline uses exact task boundaries. Base Gemma performs `lesson-kernel-synthesis`; the compiler admits and freezes its facts; the adapter is eligible only for `source-grounded-lesson-kernel`; and only a fully admitted adapter result may replace the base draft. The legacy broad family is blocked. Route receipts retain every native model attempt—including hidden server retries—and the promotion gate compares total native inference rather than only browser transport requests. A fresh adapter must be retrained with this exact lineage and beat base-only Scion on the frozen V11 multi-domain ruler before activation.
+
 ### Living Course Compiler
 
 V0.16.61 scales Scion's teaching loop without lowering its gate. A cumulative selector chose 28 unseen production-protocol lessons—four per domain, 17 course groups, 28 source kernels, and all nine diagnosed failure families. Across every selected campaign wave, the measured surface now contains 49 cases, 25 course groups, and 47 source kernels. Reference work still uses isolated, resumable sessions; the browser-local base stays serial around its one shared runtime.

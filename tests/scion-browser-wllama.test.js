@@ -259,7 +259,8 @@ describe('Scion WebGPU GGUF runtime', () => {
     ).resolves.toBe('Adapter decision-focused answer.');
     await expect(
       completeScionBrowserWllama('Write a full lesson.', {
-        taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL,
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL,
+        promptProtocol: 'production-lesson-kernel-prompt-v1',
         onAdapterRoute: (route) => routes.push(route),
       }),
     ).resolves.toBe('Base general answer.');
@@ -279,7 +280,7 @@ describe('Scion WebGPU GGUF runtime', () => {
       }),
       expect.objectContaining({
         mode: 'base-only',
-        taskFamily: 'lesson-kernel',
+        taskFamily: 'source-grounded-lesson-kernel',
         reason: 'task-family-out-of-scope',
         nativeAdapterActive: false,
       }),

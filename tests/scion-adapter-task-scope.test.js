@@ -5,6 +5,7 @@ import {
   SCION_ADAPTER_TASK_SCOPE_IDENTITY_ALGORITHM,
   SCION_ADAPTER_TASK_SCOPE_PROTOCOL,
   SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+  SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
   resolveScionAdapterTaskRoute,
   normalizeScionAdapterTaskFamily,
   scionAdapterTaskFamilyForPairKind,
@@ -32,8 +33,18 @@ describe('Scion adapter task scope', () => {
   it('maps training atoms and runtime calls to explicit, non-interchangeable families', () => {
     expect(scionAdapterTaskFamilyForPairKind('key-term')).toBe('source-key-term-atom');
     expect(scionAdapterTaskFamilyForPairKind('mc-item')).toBe('source-mc-item-atom');
-    expect(scionAdapterTaskFamilyForPairKind('lesson-kernel')).toBe('lesson-kernel');
-    expect(scionAdapterTaskFamilyForProviderTask('blueprintEnrichment')).toBe('lesson-kernel');
+    expect(scionAdapterTaskFamilyForPairKind('lesson-kernel')).toBe('source-grounded-lesson-kernel');
+    expect(
+      scionAdapterTaskFamilyForProviderTask('blueprintEnrichment', {
+        promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+      }),
+    ).toBe('source-grounded-lesson-kernel');
+    expect(
+      scionAdapterTaskFamilyForProviderTask('blueprintEnrichment', {
+        promptProtocol: SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
+      }),
+    ).toBe('lesson-kernel-synthesis');
+    expect(scionAdapterTaskFamilyForProviderTask('blueprintEnrichment')).toBe('lesson-kernel-synthesis');
     expect(scionAdapterTaskFamilyForProviderTask('scionPass')).toBe('compiler-repair');
     expect(scionAdapterTaskFamilyForProviderTask('course-map')).toBe('course-map');
     expect(scionAdapterTaskFamilyForProviderTask('chat')).toBe('agent-advisory');
@@ -57,7 +68,7 @@ describe('Scion adapter task scope', () => {
     ).toMatchObject({ mode: 'adapter', adapterActive: true, reason: 'exact-task-family-match' });
     expect(
       resolveScionAdapterTaskRoute({ manifest, taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL }),
-    ).toMatchObject({ mode: 'base-only', adapterActive: false, reason: 'task-family-out-of-scope' });
+    ).toMatchObject({ mode: 'base-only', adapterActive: false, reason: 'legacy-task-family-too-broad' });
     expect(resolveScionAdapterTaskRoute({ manifest, taskFamily: 'made-up' })).toMatchObject({
       mode: 'base-only',
       adapterActive: false,
@@ -68,10 +79,13 @@ describe('Scion adapter task scope', () => {
 
   it('fails a lesson-kernel adapter closed unless the serving prompt protocol is exact', () => {
     const lessonScope = scope();
-    lessonScope.families = [{ id: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL, rows: 143 }];
+    lessonScope.families = [{ id: SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL, rows: 143 }];
     const manifest = { training: { pairCount: 143, taskScope: lessonScope } };
     expect(
-      resolveScionAdapterTaskRoute({ manifest, taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL }),
+      resolveScionAdapterTaskRoute({
+        manifest,
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL,
+      }),
     ).toMatchObject({
       mode: 'base-only',
       reason: 'prompt-protocol-mismatch',
@@ -80,7 +94,7 @@ describe('Scion adapter task scope', () => {
     expect(
       resolveScionAdapterTaskRoute({
         manifest,
-        taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL,
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL,
         promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
       }),
     ).toMatchObject({
@@ -88,6 +102,13 @@ describe('Scion adapter task scope', () => {
       reason: 'exact-task-family-match',
       promptProtocol: SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
     });
+    expect(
+      resolveScionAdapterTaskRoute({
+        manifest,
+        taskFamily: SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS,
+        promptProtocol: SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
+      }),
+    ).toMatchObject({ mode: 'base-only', reason: 'task-family-out-of-scope' });
   });
 
   it('fails closed when row totals or identity fields are invalid', () => {

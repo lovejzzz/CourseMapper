@@ -301,7 +301,7 @@ describe('Scion lesson-kernel paired-order judge', () => {
     expect(trainingRow.rejected[0].content).toBe(trainingRow.chosen[0].content);
     expect(trainingRow.provenance).toMatchObject({
       pairKind: 'lesson-kernel',
-      taskFamily: 'lesson-kernel',
+      taskFamily: 'source-grounded-lesson-kernel',
       promptProtocol: 'production-lesson-kernel-prompt-v1',
       sourceContextSha256: preferences[0].preferenceEvidence.sourceContextSha256,
     });

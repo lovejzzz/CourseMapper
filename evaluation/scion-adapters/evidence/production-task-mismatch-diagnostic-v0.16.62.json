@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-production-task-mismatch-diagnostic-v1",
+  "release": "v0.16.62",
+  "observedAt": "2026-07-19T23:35:38.653Z",
+  "status": "stopped-invalid-evaluation",
+  "claimBoundary": "This is a stopped diagnostic, not paired evidence, a benchmark score, an adapter win, or promotion evidence. It records why the run was invalid and what the compiler changed before any fresh comparison.",
+  "candidate": {
+    "adapterId": "scion-g4e2b-production-aa26a2137a5f5b4d",
+    "manifestSha256": "a676c049025e801768c510e629784298d479c23bda26d3f5c8ece3186c8480ee",
+    "trainingRows": 100,
+    "trainingPromptShape": "numbered-source-ledger-only",
+    "trainingFactCounts": [3, 4, 5],
+    "trainingTaskFamilyBeforeCorrection": "lesson-kernel"
+  },
+  "run": {
+    "round": "round-2026-07-19T23-19-35-841Z",
+    "courseId": "mandarin",
+    "domain": "world-languages",
+    "requestedLessons": 15,
+    "lessonRequestsStartedBeforeStop": 10,
+    "providerRequestStarts": 32,
+    "compilerPassCalls": 21,
+    "routeReceipts": 29,
+    "consoleBytes": 122629,
+    "consoleSha256": "75e40e95b89b2985a32e4889804d8aaeca0d5cf7698c4af7d2cb0b00f0a0e6d6",
+    "runtimePromptShape": "authored-five-fact synthesis",
+    "runtimeFactCount": 5,
+    "completedPackage": false,
+    "scoreProduced": false
+  },
+  "findings": [
+    {
+      "severity": "P0",
+      "code": "adapter-task-family-too-broad",
+      "detail": "The router treated source-ledger transformation and open five-fact synthesis as one lesson-kernel family even though every admitted training row used the source-ledger contract."
+    },
+    {
+      "severity": "P0",
+      "code": "native-inference-attempts-undercounted",
+      "detail": "The local server returned modelCalls per route, but apiTraceSummary dropped that field; the retained browser log therefore counted transport requests rather than all native generations."
+    },
+    {
+      "severity": "P1",
+      "code": "production-distribution-mismatch",
+      "detail": "The adapter repeatedly produced truncated facts, duplicate options, source-answer conflicts, and incomplete kernels when used outside its learned source-grounded task."
+    }
+  ],
+  "resolution": {
+    "taskFamilies": {
+      "sharedBase": "lesson-kernel-synthesis",
+      "adapter": "source-grounded-lesson-kernel",
+      "legacyBlocked": "lesson-kernel"
+    },
+    "pipeline": "Base Gemma synthesizes facts; the compiler freezes valid facts; the adapter authors a source-grounded teaching kernel; only a proven, fully admitted adapter result replaces the base draft.",
+    "evaluation": "Native model calls are retained in route traces, persisted in run receipts, emitted in paired evidence, and used by promotion efficiency gates.",
+    "replacementBenchmark": "evaluation/scion-adapters/held-out-course-benchmark-v11.json",
+    "replacementDatasetManifestSha256": "08b813f2b1e557cd433aa27f8900858c19a5d0594ab2f64848a1108fd65ac7ac",
+    "replacementDatasetIdentitySha256": "cbb4629d9bebe2da46ed09cbe509b65700cba883397aedbdb8e937efb11585a1",
+    "replacementTaskScopeIdentitySha256": "553f2d6a9c4f34cd543c22c02e7a0b8c9c7a2f36fe77b5d8e2a30604fd8c98f3"
+  }
+}

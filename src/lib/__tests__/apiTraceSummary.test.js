@@ -95,4 +95,29 @@ describe('buildApiTraceSummary', () => {
     });
     expect(JSON.stringify(payload)).not.toMatch(/prompt|generated prose/i);
   });
+
+  it('retains bounded adapter-route and native-attempt evidence', () => {
+    const payload = buildApiTraceSummary(
+      {
+        type: 'scionAdapterRoute',
+        routeProtocol: 'scion-adapter-runtime-route-v1',
+        routeMode: 'adapter',
+        taskFamily: 'source-grounded-lesson-kernel',
+        routeReason: 'exact-task-family-match',
+        adapterId: 'scion-test',
+        nativeAdapterActive: true,
+        adapterScale: 1,
+        routeModelCalls: 3,
+        execution: 'local-server',
+      },
+      { runId: 'run-route', modelRequestStarts: 3, tokenUsage: {} },
+    );
+    expect(payload).toMatchObject({
+      routeMode: 'adapter',
+      taskFamily: 'source-grounded-lesson-kernel',
+      routeModelCalls: 3,
+      modelRequests: 3,
+      execution: 'local-server',
+    });
+  });
 });

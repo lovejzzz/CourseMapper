@@ -182,6 +182,7 @@ export default function useStreamReader() {
     const recordApiCallEvent = (event) => {
       if (typeof onApiCallEvent === 'function') onApiCallEvent(event);
     };
+    const observedAdapterRoutes = [];
     const retryLimit = maxRetries;
     const recordUsage = (reportedUsage, outputText, label = 'API usage') => {
       const usageEvent = buildApiUsageEvent({
@@ -209,7 +210,7 @@ export default function useStreamReader() {
     });
     const recordLocalAdapterRoute = (payload) => {
       if (provider !== 'local' || !payload || typeof payload !== 'object') return;
-      recordApiCallEvent({
+      const routeEvent = {
         type: 'scionAdapterRoute',
         label: payload.mode === 'adapter' ? 'Scion adapter used' : 'Scion base used',
         detail: `${payload.taskFamily || 'unclassified'} · ${payload.reason || 'unknown route'}`,
@@ -226,7 +227,9 @@ export default function useStreamReader() {
         adapterScale: Number.isFinite(Number(payload.adapterScale)) ? Number(payload.adapterScale) : null,
         routeModelCalls: Number(payload.modelCalls) || 0,
         execution: 'local-server',
-      });
+      };
+      observedAdapterRoutes.push(routeEvent);
+      recordApiCallEvent(routeEvent);
     };
 
     // Scion: pinned Gemma 4 GGUF inference in this browser. This branch must
@@ -263,7 +266,7 @@ export default function useStreamReader() {
             });
           },
           onAdapterRoute: (route) => {
-            recordApiCallEvent({
+            const routeEvent = {
               type: 'scionAdapterRoute',
               label: route?.mode === 'adapter' ? 'Scion adapter used' : 'Scion base used',
               detail: `${route?.taskFamily || 'unclassified'} · ${route?.reason || 'unknown route'}`,
@@ -277,8 +280,11 @@ export default function useStreamReader() {
               adapterManifestSha256: route?.manifestSha256 || null,
               adapterScopeIdentitySha256: route?.scopeIdentitySha256 || null,
               nativeAdapterActive: route?.nativeAdapterActive === true,
+              routeModelCalls: 1,
               execution: 'browser-local',
-            });
+            };
+            observedAdapterRoutes.push(routeEvent);
+            recordApiCallEvent(routeEvent);
           },
           onAttemptStart: ({ attempt, maxAttempts, temperature }) => {
             recordApiCallEvent({
@@ -380,7 +386,7 @@ export default function useStreamReader() {
           result.fullText,
           'Scion local usage',
         );
-        return { fullText, finishReason: 'stop' };
+        return { fullText, finishReason: 'stop', adapterRoutes: observedAdapterRoutes };
       } catch (rawError) {
         if (rawError?.name === 'AbortError') throw rawError;
         const error = toClassifiedError(rawError, { provider, modelId, task });
@@ -585,6 +591,7 @@ export default function useStreamReader() {
               generationPlan,
               task,
               schema,
+              promptProtocol,
               temperatureOverride: requestTemperature,
             }));
             continue;
@@ -641,7 +648,7 @@ export default function useStreamReader() {
             finishReason: 'stop',
           });
           recordUsage(usage, outputText, 'API usage');
-          return { fullText, finishReason: 'stop' };
+          return { fullText, finishReason: 'stop', adapterRoutes: observedAdapterRoutes };
         }
 
         if (typeof parseJsonResponse === 'function') {
@@ -676,7 +683,11 @@ export default function useStreamReader() {
             finishReason: data?.choices?.[0]?.finish_reason || 'stop',
           });
           recordUsage(usage, outputText, 'API usage');
-          return { fullText, finishReason: data?.choices?.[0]?.finish_reason || 'stop' };
+          return {
+            fullText,
+            finishReason: data?.choices?.[0]?.finish_reason || 'stop',
+            adapterRoutes: observedAdapterRoutes,
+          };
         }
 
         const reader = response.body.getReader();
@@ -736,7 +747,7 @@ export default function useStreamReader() {
           streamChunkCount: chunkCount,
         });
         recordUsage(reportedUsage, outputText, 'API usage');
-        return { fullText };
+        return { fullText, adapterRoutes: observedAdapterRoutes };
       } catch (rawErr) {
         if (inactivityTimer) clearTimeout(inactivityTimer);
         let err = rawErr;
@@ -767,6 +778,7 @@ export default function useStreamReader() {
             generationPlan,
             task,
             schema,
+            promptProtocol,
             temperatureOverride: requestTemperature,
           }));
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);

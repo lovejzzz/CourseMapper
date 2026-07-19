@@ -144,7 +144,7 @@ export async function runScionLocalCompletion({
     ),
   );
   const retryLimit = Math.max(0, Math.min(SCION_LOCAL_MAX_GENERATION_RETRIES, Math.floor(Number(maxRetries) || 0)));
-  const taskFamily = scionAdapterTaskFamilyForProviderTask(task);
+  const taskFamily = scionAdapterTaskFamilyForProviderTask(task, { promptProtocol });
 
   await runtimeApi.loadScionBrowserWllama({ onProgress, signal });
 

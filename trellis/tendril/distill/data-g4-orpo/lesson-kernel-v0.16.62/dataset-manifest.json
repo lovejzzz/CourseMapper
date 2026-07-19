@@ -23,10 +23,10 @@
   "holdoutBoundary": {
     "protocol": "scion-training-holdout-firewall-v1",
     "status": "pass",
-    "manifestPath": "evaluation/scion-adapters/held-out-course-benchmark-v10.json",
-    "manifestSha256": "435f154d9aae4b42b4e5f47216890decf5c7c908e83174e7e5825e94bd0dd338",
-    "benchmarkId": "scion-held-out-course-benchmark-v10",
-    "frozenAt": "2026-07-19T18:00:00Z",
+    "manifestPath": "evaluation/scion-adapters/held-out-course-benchmark-v11.json",
+    "manifestSha256": "315c1068b0588e2938c33ee1e3cdbde9992d6cee3bd7d0eecb4374cc05de2f8a",
+    "benchmarkId": "scion-held-out-course-benchmark-v11",
+    "frozenAt": "2026-07-19T23:50:00Z",
     "domainDisjointRequired": true,
     "courseGroupDisjointRequired": true,
     "domains": [
@@ -128,7 +128,7 @@
     "mode": "allowlist",
     "families": [
       {
-        "id": "lesson-kernel",
+        "id": "source-grounded-lesson-kernel",
         "rows": 100
       }
     ],
@@ -136,7 +136,7 @@
     "compositePolicy": "exact-family-only",
     "identity": {
       "algorithm": "sha256-canonical-scion-adapter-task-scope-v1",
-      "sha256": "7e58f39d6ae2a76b21e0a2d488bb4f03b1c47b982b63ed00a9af921791290510"
+      "sha256": "553f2d6a9c4f34cd543c22c02e7a0b8c9c7a2f36fe77b5d8e2a30604fd8c98f3"
     }
   },
   "groupIdentity": {
@@ -544,20 +544,20 @@
   "files": {
     "train": {
       "path": "train.jsonl",
-      "bytes": 2056685,
-      "sha256": "f68d5f67e082e33e154d7038f5fa53b6293273453deffa5e3435ebeba1f27d14",
+      "bytes": 2057949,
+      "sha256": "579faf993192215f31c17d84ea449e18d76963763f9459b98c8abd6eea582b1f",
       "rows": 79
     },
     "valid": {
       "path": "valid.jsonl",
-      "bytes": 261493,
-      "sha256": "ea739ec55f6873828ad24e66be23abfa1746c3b4b39d9f0ce04410f1eafee67e",
+      "bytes": 261653,
+      "sha256": "cbb5f19af177aecb3d412db26d6f39901ec6fddc19515273b0532cf416608273",
       "rows": 10
     },
     "test": {
       "path": "test.jsonl",
-      "bytes": 284430,
-      "sha256": "7057d109cbd32005edabee170fb1f5b704719ba918793a43948fd056f0502ca0",
+      "bytes": 284606,
+      "sha256": "414fd8a89684cef8f12c9a2720f0c7b1773853c2e7e57cd1561d2e373419562d",
       "rows": 11
     }
   },
@@ -579,6 +579,6 @@
   ],
   "identity": {
     "protocol": "scion-adapter-dataset-identity-v2",
-    "sha256": "cb9d2eced559725b48e897d8f2f485dc5f8b306c9bbd23b6ef5b6de1fa78311a"
+    "sha256": "cbb4629d9bebe2da46ed09cbe509b65700cba883397aedbdb8e937efb11585a1"
   }
 }

@@ -54,6 +54,20 @@ export function summarizeScionCompilerBurden(events, { lessonCount = 0 } = {}) {
   const taskCalls = {};
   for (const event of providerRequests) increment(taskCalls, clean(event.task) || 'unknown');
   const scionCalls = taskCalls.scionPass || 0;
+  const routeReceipts = events.filter((event) => event?.type === 'scionAdapterRoute');
+  const routeModelCalls = (event) => {
+    const reported = Math.max(0, Math.floor(Number(event?.routeModelCalls) || 0));
+    if (reported > 0) return reported;
+    return event?.execution === 'browser-local' ? 1 : 0;
+  };
+  const nativeInferenceAttempts = routeReceipts.reduce((sum, event) => sum + routeModelCalls(event), 0);
+  const nativeInferenceByTaskFamily = {};
+  const nativeInferenceByRouteMode = {};
+  for (const event of routeReceipts) {
+    const attempts = routeModelCalls(event);
+    increment(nativeInferenceByTaskFamily, clean(event.taskFamily) || 'unclassified', attempts);
+    increment(nativeInferenceByRouteMode, clean(event.routeMode) || 'unknown', attempts);
+  }
   const instrumentedCalls = events.filter((event) => event?.label === 'Scion pass call');
   const byCallType = {};
   for (const event of instrumentedCalls) increment(byCallType, clean(event.detail) || 'unknown');
@@ -77,7 +91,7 @@ export function summarizeScionCompilerBurden(events, { lessonCount = 0 } = {}) {
     (action) => action.pass === 'mcVerify' && action.action === 'regenerated',
   ).length;
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     lessonCount: lessons,
     provider: {
       requests: providerRequests.length,
@@ -86,6 +100,14 @@ export function summarizeScionCompilerBurden(events, { lessonCount = 0 } = {}) {
       retries: providerRequests.filter((event) => Number(event.attempt) > 1).length,
       unpairedRequests: Math.max(0, providerRequests.length - providerResponses.length),
       taskCalls,
+    },
+    nativeInference: {
+      attempts: nativeInferenceAttempts,
+      attemptsPerLesson: lessons ? Number((nativeInferenceAttempts / lessons).toFixed(2)) : null,
+      routeReceipts: routeReceipts.length,
+      uncountedRouteReceipts: routeReceipts.filter((event) => routeModelCalls(event) === 0).length,
+      byTaskFamily: nativeInferenceByTaskFamily,
+      byRouteMode: nativeInferenceByRouteMode,
     },
     scion: {
       calls: scionCalls,
@@ -115,6 +137,10 @@ export function compareScionCompilerBurden(candidate, control) {
   const candidateCalls = Number(candidate?.scion?.calls) || 0;
   const controlCalls = Number(control?.scion?.calls) || 0;
   const callAmplification = controlCalls > 0 ? Number((candidateCalls / controlCalls).toFixed(3)) : null;
+  const candidateInferenceAttempts = Number(candidate?.nativeInference?.attempts) || 0;
+  const controlInferenceAttempts = Number(control?.nativeInference?.attempts) || 0;
+  const inferenceAmplification =
+    controlInferenceAttempts > 0 ? Number((candidateInferenceAttempts / controlInferenceAttempts).toFixed(3)) : null;
   const candidateRejected = Number(candidate?.scion?.byAction?.rejected) || 0;
   const controlRejected = Number(control?.scion?.byAction?.rejected) || 0;
   const findings = [];
@@ -123,6 +149,13 @@ export function compareScionCompilerBurden(candidate, control) {
       severity: 'P1',
       code: 'candidate-call-amplification',
       detail: `Candidate required ${callAmplification.toFixed(2)}x the control's Scion quality-pass calls.`,
+    });
+  }
+  if (inferenceAmplification !== null && inferenceAmplification > 1.05) {
+    findings.push({
+      severity: 'P1',
+      code: 'candidate-native-inference-amplification',
+      detail: `Candidate required ${inferenceAmplification.toFixed(2)}x the control's native inference attempts.`,
     });
   }
   const combinedNotApplied =
@@ -160,9 +193,11 @@ export function compareScionCompilerBurden(candidate, control) {
     }
   }
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     callAmplification,
+    inferenceAmplification,
     candidateCallDelta: candidateCalls - controlCalls,
+    candidateInferenceAttemptDelta: candidateInferenceAttempts - controlInferenceAttempts,
     rejectedActionDelta: candidateRejected - controlRejected,
     findings,
   };

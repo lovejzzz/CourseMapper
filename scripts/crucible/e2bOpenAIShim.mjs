@@ -21,6 +21,7 @@ import {
   resolveScionAdapterTaskRoute,
   SCION_ADAPTER_TASK_FAMILIES,
   SCION_LESSON_KERNEL_PROMPT_PROTOCOL,
+  SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL,
 } from '../../src/lib/scionAdapterTaskScope.js';
 import {
   assessPublicScionKernelResponse,
@@ -1455,8 +1456,15 @@ const server = http.createServer(async (req, res) => {
   let contract = extractJsonContract(body, isResponsesShape);
   const originalCompilerUser = user;
   const compactLessonKernelRequest =
-    adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
-    promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL;
+    (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.SOURCE_GROUNDED_LESSON_KERNEL &&
+      promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL) ||
+    (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL_SYNTHESIS &&
+      promptProtocol === SCION_LESSON_KERNEL_SYNTHESIS_PROMPT_PROTOCOL) ||
+    // Replay-only compatibility for frozen pre-split benchmark requests. The
+    // resolver keeps this broad family base-only, so it cannot activate an
+    // adapter even though the compact response contract remains executable.
+    (adapterRoute.taskFamily === SCION_ADAPTER_TASK_FAMILIES.LESSON_KERNEL &&
+      promptProtocol === SCION_LESSON_KERNEL_PROMPT_PROTOCOL);
   if (compactLessonKernelRequest) {
     // Match the production browser boundary exactly. The public provider
     // converts the rich compiler prompt into the compact protocol used by the

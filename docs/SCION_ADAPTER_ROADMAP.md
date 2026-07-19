@@ -2,7 +2,25 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.61 adds cumulative diversity selection, deeper role-aware source admission, and 27 qualified rows from a new 28-case wave. The corpus now contains 47 unique source-ledger full-lesson preferences across all seven training domains. This is 47% of the minimum corpus gate and still only training evidence: no quality adapter is trained or active, no Gemma weight changed, and no candidate has earned a held-out adapter win. The remaining 53 qualified rows, corpus freeze and license audit, training, device profiles, base comparison, and production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. The V0.16.62 corpus contains 102 qualified source-grounded preferences; 100 usable production rows rebuild into course-group-isolated train, validation, and test splits across seven domains. One real 200-iteration adapter run completed and improved validation loss from 1.555 to 1.089, but its first held-out attempt exposed that the old `lesson-kernel` family combined two different tasks. The run was stopped without a score or win. Scion now separates base `lesson-kernel-synthesis` from adapter-eligible `source-grounded-lesson-kernel`, preserves total native-generation receipts, and requires a fresh exact-lineage candidate on frozen V11. No adapter is active on the website and no candidate has earned a held-out win.
+
+## V0.16.62 — Split Synthesis From Grounded Refinement
+
+**Goal:** train and evaluate only the transformation represented by the admitted corpus, while counting every native generation the system spends.
+
+**Corpus and first training:** 102 qualified preferences yield 100 usable production rows across seven domains and 24 course groups. The first real adapter trained for 200 iterations, reduced validation loss from 1.555 to 1.089, and wrote a roughly 105 MB delta. The weights remain external to Git. Lower validation loss proves that the adapter learned the training objective; it does not prove better courses.
+
+**Stopped diagnostic:** every admitted row starts from a fixed three-to-five-fact source ledger. The old umbrella route also activated that adapter for open lesson-fact synthesis. In the partial Mandarin run, 32 outer requests expanded into 52 native generations, and out-of-distribution adapter output included truncated facts, duplicate choices, source/key conflicts, and incomplete kernels. The run was deliberately stopped and retained only as `production-task-mismatch-diagnostic-v0.16.62.json`—not scored, paired, or promoted.
+
+**Staged architecture:** base Gemma first performs `lesson-kernel-synthesis`. The compiler may freeze only a fact set that passes the source-fact contract. The adapter then receives the exact numbered ledger under `source-grounded-lesson-kernel`; its result replaces the base draft only when route identity and the complete grounded assessment both pass. Otherwise the compiler keeps the base draft. The legacy broad family is base-only.
+
+**Honest efficiency:** route traces retain server-side `routeModelCalls`. Budget summaries, compiler-burden reports, paired evidence, and promotion gates compare total native inference attempts, while preserving compiler-pass counts as a separate diagnostic. A candidate cannot appear efficient because its retries happened inside one HTTP request.
+
+**Frozen ruler V11:** V11 preserves the five disjoint held-out courses and grader from V10 while requiring split task routes and native-attempt evidence. Both arms prove base-only course-map and synthesis work; only the candidate may prove an active adapter on source-grounded refinement. V11 inherits no V10 score or promotion result.
+
+**Next gates:** retrain the exact-scope adapter from a clean commit; run one bounded V11 canary to verify the staged route; only then run all five candidate and base arms, package and device checks, and the frozen anonymous quality comparison. Promote nothing unless the exact candidate improves held-out quality without unacceptable native-inference, download, memory, or runtime cost.
+
+**Release Boundary:** the initial weights are a rejected diagnostic artifact, not a production adapter. No adapter is active on the hosted site, no held-out win exists, and no paid-reference parity, human preference, instructor approval, classroom outcome, or general model-superiority claim is made.
 
 ## v0.16.61 — Make Every Preference Earn Its Place
 

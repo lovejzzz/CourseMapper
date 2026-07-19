@@ -1448,6 +1448,7 @@ export default function useDeliverables({
                   expectedLessonIds,
                   contentSourcedLessonIds: scionProvider ? [] : contentSourcedLessonIds,
                   courseName: blueprintCourseMap?.courseName || '',
+                  runtimeRoutes: result?.adapterRoutes || [],
                 });
               }
               const parsed = parseNativePassBResponse(passBText, {
