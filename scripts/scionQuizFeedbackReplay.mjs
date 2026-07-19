@@ -1,13 +1,22 @@
 #!/usr/bin/env node
 
+// Run with vite-node because the production compiler uses browser-compatible
+// extensionless imports: npx vite-node scripts/scionQuizFeedbackReplay.mjs --project <path>
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
 import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 import {
-  hasGenerationMarkerResidue,
-  hasRepetitiveExplanation,
+  lintItemAdmission,
 } from '../src/lib/itemAdmissionLint.js';
+
+const FEEDBACK_ISSUES = new Set([
+  'generation-marker-residue',
+  'answer-position-residue',
+  'claim-marker-residue',
+  'repetitive-explanation',
+]);
 
 function valueAfter(flag) {
   const index = process.argv.indexOf(flag);
@@ -15,10 +24,7 @@ function valueAfter(flag) {
 }
 
 function feedbackIssues(item) {
-  return [
-    ...(hasGenerationMarkerResidue(item) ? ['generation-marker-residue'] : []),
-    ...(hasRepetitiveExplanation(item) ? ['repetitive-explanation'] : []),
-  ];
+  return lintItemAdmission(item).filter((issue) => FEEDBACK_ISSUES.has(issue));
 }
 
 function collectCompiledFeedbackDefects(value, currentPath = [], rows = []) {
@@ -41,7 +47,7 @@ function collectCompiledFeedbackDefects(value, currentPath = [], rows = []) {
 
 const projectPath = valueAfter('--project') || process.argv[2];
 if (!projectPath) {
-  console.error('Usage: node scripts/scionQuizFeedbackReplay.mjs --project /path/to/project.json');
+  console.error('Usage: npx vite-node scripts/scionQuizFeedbackReplay.mjs --project /path/to/project.json');
   process.exitCode = 2;
 } else {
   const absolutePath = path.resolve(projectPath);
@@ -68,7 +74,7 @@ if (!projectPath) {
   const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], { skipLanguageFinalizer: true });
   const compiledDefects = collectCompiledFeedbackDefects(compiled);
   const report = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     projectPath: absolutePath,
     courseName: blueprint.courseName || graph.course?.name || '',
     sourceFeedbackDefects: sourceDefects.length,

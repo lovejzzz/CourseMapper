@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  hasAnswerPositionResidue,
   hasClangAssociationCue,
   hasGenerationMarkerResidue,
   hasGrammaticalCue,
+  hasInternalSourceIndexResidue,
   hasLongestOptionCue,
   hasRepetitiveExplanation,
   hasUnsupportedAbsenceInference,
@@ -48,6 +50,34 @@ describe('itemAdmissionLint (test-wiseness battery)', () => {
       explanation: 'Check the evidence, compare the alternatives, and check the final claim against the source.',
     };
     expect(hasRepetitiveExplanation(legitimateEmphasis)).toBe(false);
+  });
+
+  it('quarantines answer positions and compact source indexes from learner feedback', () => {
+    const positionLeak = {
+      ...CLEAN_ITEM,
+      explanation: 'This supports option 3 because greenhouse gases absorb outgoing longwave radiation.',
+    };
+    expect(hasAnswerPositionResidue(positionLeak)).toBe(true);
+    expect(lintItemAdmission(positionLeak)).toContain('answer-position-residue');
+    expect(lintEnrichedQuizItem(positionLeak, { groundingText: '' })).toContain('answer-position-residue');
+
+    expect(
+      hasAnswerPositionResidue({ ...CLEAN_ITEM, explanation: 'Option 0 is correct because the aperture is wider.' }),
+    ).toBe(true);
+
+    const sourceIndexLeak = {
+      ...CLEAN_ITEM,
+      explanation: 'This is supported by fact 5 in the compact lesson kernel.',
+    };
+    expect(hasInternalSourceIndexResidue(sourceIndexLeak)).toBe(true);
+    expect(lintItemAdmission(sourceIndexLeak)).toContain('claim-marker-residue');
+
+    const naturalFeedback = {
+      ...CLEAN_ITEM,
+      explanation: 'The greenhouse effect follows from the first law of thermodynamics and the evidence provided.',
+    };
+    expect(hasAnswerPositionResidue(naturalFeedback)).toBe(false);
+    expect(hasInternalSourceIndexResidue(naturalFeedback)).toBe(false);
   });
 
   it('flags clang association when the key echoes the stem and distractors do not', () => {

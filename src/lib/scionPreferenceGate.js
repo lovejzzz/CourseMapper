@@ -59,14 +59,14 @@ const TRAINABLE_PREFERENCE_EVIDENCE_KINDS = new Set([
   'blind-instructor-preference',
   'single-model-judge-preference',
 ]);
-export const SCION_PREFERENCE_GATE_VERSION = '1.0.1';
+export const SCION_PREFERENCE_GATE_VERSION = '1.0.2';
 
 // These checks describe form, contract completeness, or answer-cue hygiene.
 // They do not claim that either side is factually correct. A deterministic
 // training pair is admitted only when the chosen side clears the whole gate
 // and the rejected side fails exclusively inside this non-semantic set.
 const DETERMINISTIC_CONTRACT_ISSUE_RE =
-  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|truncated-option|option-label-suffixes|explanation-length|explanation-repeats-answer|truncated-explanation|process-leakage|meta-surface|template-residue|generation-marker-residue|repetitive-explanation|all-none-of-above|longest-option-cue|clang-association-cue))$/;
+  /^(?:facts-count|fact-length|key-terms-count|mc-count|discussion-(?:prompt|tension|positions)|assignment-(?:task|parameters)|study-guide-(?:summary|strategy)|scenario:scenario-(?:missing-decision|missing-tension|missing-evidence-packet)|(?:key-term-\d+:)?(?:tr|df|eg|mi|cx)-length|(?:key-term-\d+:)?(?:term-is-lesson-title|circular-definition|meta-definition|correction-repeats-definition)|(?:mc-\d+:)?(?:stem-length|option-count|option-length|option-homogeneity|duplicate-options|placeholder-options|truncated-option|option-label-suffixes|explanation-length|explanation-repeats-answer|truncated-explanation|process-leakage|meta-surface|template-residue|generation-marker-residue|answer-position-residue|claim-marker-residue|repetitive-explanation|all-none-of-above|longest-option-cue|clang-association-cue))$/;
 
 function clean(value) {
   return String(value ?? '')

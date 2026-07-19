@@ -88,6 +88,9 @@ function wordCount(text) {
 }
 
 const GENERATION_MARKER_RE = /(?:^|\s)(?:ex[_-]?reason|reasoning)(?:[_-][a-z0-9]+){2,}/i;
+const ANSWER_POSITION_RE =
+  /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)\s+(?:option|choice|answer)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
+const INTERNAL_SOURCE_INDEX_RE = /\b(?:fact|claim|source(?:Fact)?Index)\s*#?\s*\d+\b/i;
 
 /**
  * Detect a leaked compact-schema key or generation scratch marker. These are
@@ -96,6 +99,27 @@ const GENERATION_MARKER_RE = /(?:^|\s)(?:ex[_-]?reason|reasoning)(?:[_-][a-z0-9]
  */
 export function hasGenerationMarkerResidue(item) {
   return GENERATION_MARKER_RE.test(String(item?.explanation ?? ''));
+}
+
+/**
+ * Reject feedback that identifies an answer by its temporary display
+ * position. The compiler is allowed to shuffle options, so even a position
+ * that was once correct becomes misleading learner-facing feedback.
+ */
+export function hasAnswerPositionResidue(item) {
+  return ANSWER_POSITION_RE.test(String(item?.explanation ?? ''));
+}
+
+/**
+ * Reject compact-contract indexes that escaped into learner-facing prose.
+ * Source indexes are useful provenance metadata, never instructional copy.
+ */
+export function hasInternalSourceIndexResidue(item) {
+  return INTERNAL_SOURCE_INDEX_RE.test(
+    [item?.question, ...(Array.isArray(item?.options) ? item.options : []), item?.explanation]
+      .filter(Boolean)
+      .join(' '),
+  );
 }
 
 /**
@@ -250,6 +274,8 @@ export function hasLongestOptionCue(item) {
 export function lintItemAdmission(item) {
   const issues = [];
   if (hasGenerationMarkerResidue(item)) issues.push('generation-marker-residue');
+  if (hasAnswerPositionResidue(item)) issues.push('answer-position-residue');
+  if (hasInternalSourceIndexResidue(item)) issues.push('claim-marker-residue');
   if (hasRepetitiveExplanation(item)) issues.push('repetitive-explanation');
   if (hasClangAssociationCue(item)) issues.push('clang-association-cue');
   if (hasGrammaticalCue(item)) issues.push('grammatical-cue');

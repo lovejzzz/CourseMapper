@@ -23,7 +23,7 @@ const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
 const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
   /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|at|by|each|every|for|from|in|of|on|or|the|to|with|without))$/i;
 const PUBLIC_SCION_ANSWER_POSITION_RE =
-  /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:first|second|third|fourth)\s+(?:option|choice|answer)\b|\b(?:option|choice|answer)\s*(?:[A-D1-4]|one|two|three|four|first|second|third|fourth)\b/i;
+  /\b(?:the\s+)?key\s+(?:wins?|fits?|is|because)|\b(?:zero(?:th)?|first|second|third|fourth)\s+(?:option|choice|answer)\b|\b(?:option|choice|answer)\s*(?:[A-D0-4]|zero|one|two|three|four|zeroth|first|second|third|fourth)\b/i;
 const PUBLIC_SCION_INTERNAL_INDEX_RE = /\b(?:fact|claim|source(?:Fact)?Index)\s*#?\s*\d+\b/i;
 const PUBLIC_SCION_ABSOLUTE_OPTION_RE = /\b(?:always|never|all|none)\b/i;
 const PUBLIC_SCION_NAMED_PHRASE_RE =
