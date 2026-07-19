@@ -119,8 +119,8 @@
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 23158,
-        "sha256": "917ddfb145c49b6dd7dcc9d9c779c56a083e288220fa66cd588e1efda0980dda"
+        "bytes": 23207,
+        "sha256": "e1485227f0806503c7e982188ae801a2b234da94c8984035699e7a186e8c1084"
       },
       {
         "path": "src/lib/scionKeyTermContract.js",

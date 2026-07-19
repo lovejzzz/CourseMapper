@@ -154,23 +154,31 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
   const LENGTH_OPTS = ['Brief', 'Standard', 'Detailed', 'Comprehensive'];
 
   return (
-    <FocusTrap focusTrapOptions={{ clickOutsideDeactivates: true }}>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md">
+    <FocusTrap focusTrapOptions={{ escapeDeactivates: false }}>
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) onClose();
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') onClose();
+        }}
+      >
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="custom-deliverable-dialog-title"
-          className="bg-white rounded-2xl border border-slate-200/60 shadow-2xl max-w-lg w-full mx-4 animate-spring-scale max-h-[90vh] overflow-hidden flex flex-col"
+          className="flex max-h-[90vh] w-full max-w-lg animate-spring-scale flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-2xl mx-4 dark:border-slate-700 dark:bg-slate-950"
         >
           {/* Header */}
-          <div className="shrink-0 px-6 pt-5 pb-3 border-b border-slate-100/60">
+          <div className="shrink-0 border-b border-slate-100/60 px-6 pb-3 pt-5 dark:border-slate-800">
             <div className="flex items-center justify-between">
-              <h2 id="custom-deliverable-dialog-title" className="text-lg font-bold text-slate-800">
+              <h2 id="custom-deliverable-dialog-title" className="text-lg font-bold text-slate-800 dark:text-slate-100">
                 {editDef?.id ? 'Edit Custom Deliverable' : 'Create Custom Deliverable'}
               </h2>
               <button
                 onClick={onClose}
-                className="-mr-2 rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                className="-mr-2 rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                 aria-label="Close dialog"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,24 +187,34 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
               </button>
             </div>
             {/* Step tabs */}
-            <div className="flex gap-2 mt-3">
+            <div className="mt-3 flex gap-2" role="tablist" aria-label="Custom deliverable setup">
               <button
+                type="button"
+                role="tab"
+                aria-selected={step === 1}
+                aria-controls="custom-deliverable-basics-panel"
                 onClick={() => setStep(1)}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                  step === 1 ? 'bg-indigo-500 text-white' : 'text-slate-500 hover:bg-slate-100'
+                  step === 1
+                    ? 'bg-indigo-500 text-white'
+                    : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
                 }`}
               >
                 1. Basics
               </button>
               <button
+                type="button"
+                role="tab"
+                aria-selected={step === 2}
+                aria-controls="custom-deliverable-settings-panel"
                 onClick={() => canSave && setStep(2)}
                 disabled={!canSave}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
                   step === 2
                     ? 'bg-indigo-500 text-white'
                     : canSave
-                      ? 'text-slate-500 hover:bg-slate-100'
-                      : 'text-slate-300 cursor-not-allowed'
+                      ? 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+                      : 'text-slate-300 cursor-not-allowed dark:text-slate-600'
                 }`}
               >
                 2. Prompt & Settings
@@ -207,11 +225,14 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
           {/* Body */}
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-5">
             {step === 1 && (
-              <>
+              <div id="custom-deliverable-basics-panel" role="tabpanel" className="space-y-5">
                 {/* Name */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label htmlFor="custom-deliverable-name" className="text-xs font-semibold text-slate-700">
+                    <label
+                      htmlFor="custom-deliverable-name"
+                      className="text-xs font-semibold text-slate-700 dark:text-slate-200"
+                    >
                       Name *
                     </label>
                     {hasModelConfig && (
@@ -220,8 +241,8 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                         disabled={!name.trim() || isAutoFilling}
                         className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold transition-all ${
                           name.trim() && !isAutoFilling
-                            ? 'text-violet-600 hover:bg-violet-50 hover:text-violet-700'
-                            : 'text-slate-300 cursor-not-allowed'
+                            ? 'text-violet-600 hover:bg-violet-50 hover:text-violet-700 dark:text-violet-300 dark:hover:bg-violet-400/10 dark:hover:text-violet-200'
+                            : 'text-slate-300 cursor-not-allowed dark:text-slate-600'
                         }`}
                         title="AI auto-fill all fields from the name"
                       >
@@ -268,11 +289,11 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                     onChange={(e) => setName(e.target.value)}
                     aria-describedby={!canSave ? 'custom-deliverable-name-hint' : undefined}
                     placeholder="e.g. Student Feedback Forms, Lab Reports, Weekly Reflections..."
-                    className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all"
+                    className="w-full rounded-lg border border-slate-200/60 bg-white/60 px-3 py-2.5 text-sm text-slate-700 transition-all placeholder:text-slate-300 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
                     autoFocus
                   />
                   {!canSave && (
-                    <p id="custom-deliverable-name-hint" className="mt-1.5 text-xs text-slate-500">
+                    <p id="custom-deliverable-name-hint" className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                       Add a name to continue.
                     </p>
                   )}
@@ -280,19 +301,25 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
 
                 {/* Description */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">Description</label>
+                  <label
+                    htmlFor="custom-deliverable-description"
+                    className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200"
+                  >
+                    Description
+                  </label>
                   <textarea
+                    id="custom-deliverable-description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="What does this deliverable contain? What will the AI generate?"
                     rows={2}
-                    className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-sm text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all"
+                    className="w-full resize-none rounded-lg border border-slate-200/60 bg-white/60 px-3 py-2 text-sm text-slate-700 transition-all placeholder:text-slate-300 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
                   />
                 </div>
 
                 {/* Color */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1.5">Color</label>
+                  <span className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-200">Color</span>
                   <div className="flex flex-wrap gap-2">
                     {CUSTOM_COLOR_CHOICES.map((c) => {
                       const cm = COLOR_MAP[c];
@@ -316,7 +343,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
 
                 {/* Icon */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1.5">Icon</label>
+                  <span className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-200">Icon</span>
                   <div className="flex flex-wrap gap-2">
                     {CUSTOM_ICON_CHOICES.map((ic, i) => {
                       const cm = COLOR_MAP[color];
@@ -346,23 +373,24 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                     })}
                   </div>
                 </div>
-              </>
+              </div>
             )}
 
             {step === 2 && (
-              <>
+              <div id="custom-deliverable-settings-panel" role="tabpanel" className="space-y-5">
                 {/* Tone */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1.5">Default Tone</label>
+                  <span className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-200">Default Tone</span>
                   <div className="flex flex-wrap gap-1.5">
                     {TONE_OPTS.map((opt) => (
                       <button
                         key={opt}
                         onClick={() => setTone(tone === opt ? '' : opt)}
+                        aria-pressed={tone === opt}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                           tone === opt
                             ? 'bg-indigo-500 text-white shadow-sm'
-                            : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                            : 'border border-slate-200/60 bg-white/60 text-slate-600 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
                         }`}
                       >
                         {opt}
@@ -373,16 +401,19 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
 
                 {/* Style */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1.5">Default Style & Format</label>
+                  <span className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    Default Style & Format
+                  </span>
                   <div className="flex flex-wrap gap-1.5">
                     {STYLE_OPTS.map((opt) => (
                       <button
                         key={opt}
                         onClick={() => setStyle(style === opt ? '' : opt)}
+                        aria-pressed={style === opt}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                           style === opt
                             ? 'bg-indigo-500 text-white shadow-sm'
-                            : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                            : 'border border-slate-200/60 bg-white/60 text-slate-600 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
                         }`}
                       >
                         {opt}
@@ -393,16 +424,19 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
 
                 {/* Length */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1.5">Default Output Length</label>
+                  <span className="mb-1.5 block text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    Default Output Length
+                  </span>
                   <div className="flex flex-wrap gap-1.5">
                     {LENGTH_OPTS.map((opt) => (
                       <button
                         key={opt}
                         onClick={() => setLength(length === opt ? '' : opt)}
+                        aria-pressed={length === opt}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                           length === opt
                             ? 'bg-indigo-500 text-white shadow-sm'
-                            : 'bg-white/60 text-slate-600 border border-slate-200/60 hover:bg-white/90'
+                            : 'border border-slate-200/60 bg-white/60 text-slate-600 hover:bg-white/90 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
                         }`}
                       >
                         {opt}
@@ -413,46 +447,54 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
 
                 {/* System Prompt */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">
-                    System Prompt <span className="font-normal text-slate-400">(optional)</span>
+                  <label
+                    htmlFor="custom-deliverable-system-prompt"
+                    className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200"
+                  >
+                    System Prompt <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
                   </label>
                   <textarea
+                    id="custom-deliverable-system-prompt"
                     value={systemPrompt}
                     onChange={(e) => setSystemPrompt(e.target.value)}
                     placeholder="You are an expert instructional designer. Generate the requested deliverable..."
                     rows={3}
-                    className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
+                    className="w-full resize-none rounded-lg border border-slate-200/60 bg-white/60 px-3 py-2 font-mono text-xs text-slate-700 transition-all placeholder:text-slate-300 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
                   />
                 </div>
 
                 {/* User Prompt Template */}
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 block mb-1">
-                    User Prompt Template <span className="font-normal text-slate-400">(optional)</span>
+                  <label
+                    htmlFor="custom-deliverable-user-prompt"
+                    className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-200"
+                  >
+                    User Prompt Template <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span>
                   </label>
-                  <p className="text-xs text-slate-400 mb-1">
-                    Use <code className="text-[10px] bg-slate-100 px-1 py-0.5 rounded">{'{{courseMap}}'}</code> where
+                  <p className="mb-1 text-xs text-slate-400 dark:text-slate-500">
+                    Use <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px] dark:bg-slate-800">{'{{courseMap}}'}</code> where
                     course data should be inserted.
                   </p>
                   <textarea
+                    id="custom-deliverable-user-prompt"
                     value={userPromptTemplate}
                     onChange={(e) => setUserPromptTemplate(e.target.value)}
                     placeholder={`Generate [deliverable type] for this course:\n\n{{courseMap}}\n\nReturn ONLY valid JSON.`}
                     rows={5}
-                    className="w-full bg-white/60 border border-slate-200/60 rounded-lg px-3 py-2 text-xs text-slate-700 placeholder:text-slate-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all font-mono"
+                    className="w-full resize-none rounded-lg border border-slate-200/60 bg-white/60 px-3 py-2 font-mono text-xs text-slate-700 transition-all placeholder:text-slate-300 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-600"
                   />
                 </div>
-              </>
+              </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="shrink-0 px-6 py-4 border-t border-slate-100/60 flex items-center justify-between">
+          <div className="flex shrink-0 items-center justify-between border-t border-slate-100/60 bg-white px-6 py-4 shadow-[0_-8px_18px_-16px_rgba(15,23,42,0.45)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex gap-2">
               {step > 1 && (
                 <button
                   onClick={() => setStep((s) => s - 1)}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-all"
+                  className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-500 transition-all hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                 >
                   Back
                 </button>
@@ -461,7 +503,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
             <div className="flex gap-2">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-all"
+                className="rounded-lg px-4 py-2 text-xs font-semibold text-slate-500 transition-all hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               >
                 Cancel
               </button>
@@ -472,7 +514,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                   className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
                     canSave
                       ? 'text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm'
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:text-slate-600'
                   }`}
                 >
                   Next
@@ -484,7 +526,7 @@ export function CustomDeliverableBuilder({ isOpen, onClose, onSave, editDef }) {
                   className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
                     canSave
                       ? 'text-white bg-indigo-500 hover:bg-indigo-600 shadow-sm'
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:text-slate-600'
                   }`}
                 >
                   {editDef?.id ? 'Save Changes' : 'Create Deliverable'}
@@ -939,15 +981,17 @@ export default function FeatureSelect({
         </div>
       </footer>
       {/* Custom Deliverable Builder Modal */}
-      <CustomDeliverableBuilder
-        isOpen={showBuilder}
-        onClose={() => {
-          setShowBuilder(false);
-          setEditingCustom(null);
-        }}
-        onSave={handleSaveCustom}
-        editDef={editingCustom}
-      />
+      {showBuilder && (
+        <CustomDeliverableBuilder
+          isOpen
+          onClose={() => {
+            setShowBuilder(false);
+            setEditingCustom(null);
+          }}
+          onSave={handleSaveCustom}
+          editDef={editingCustom}
+        />
+      )}
       {setupHelpOpen && <SetupHelpDialog onClose={() => setSetupHelpOpen(false)} />}
     </div>
   );

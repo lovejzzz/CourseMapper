@@ -80,7 +80,7 @@ describe('v0.16.3 first-five-minutes UX contract', () => {
     const features = read('src/screens/FeatureSelect.jsx');
     expect(config).toContain('useState(null)');
     expect(config).toContain('data-testid="scion-generation-boundary"');
-    expect(config).toContain('sticky top-3');
+    expect(config).toContain('sm:sticky sm:top-3');
     expect(features).toContain('data-testid="feature-select-recommended"');
     expect(features).toContain('line-clamp-2');
     expect(features).toContain('Review generation');

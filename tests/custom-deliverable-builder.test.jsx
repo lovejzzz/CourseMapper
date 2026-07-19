@@ -14,11 +14,13 @@ import { CustomDeliverableBuilder } from '../src/screens/FeatureSelect.jsx';
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const mounted = [];
 
-function renderBuilder() {
+function renderBuilder(props = {}) {
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root = createRoot(container);
-  act(() => root.render(<CustomDeliverableBuilder isOpen onClose={() => {}} onSave={() => {}} />));
+  act(() =>
+    root.render(<CustomDeliverableBuilder isOpen onClose={() => {}} onSave={() => {}} {...props} />),
+  );
   mounted.push({ root, container });
   return { container, root };
 }
@@ -44,6 +46,7 @@ describe('custom deliverable builder', () => {
 
     expect(dialog?.getAttribute('aria-labelledby')).toBe('custom-deliverable-dialog-title');
     expect(dialog?.className).toContain('overflow-hidden');
+    expect(dialog?.className).toContain('dark:bg-slate-950');
     expect(dialog?.querySelector('.overflow-y-auto')).toBeTruthy();
     expect(name?.labels?.[0]?.textContent).toContain('Name');
     expect(name?.getAttribute('aria-describedby')).toBe('custom-deliverable-name-hint');
@@ -68,5 +71,18 @@ describe('custom deliverable builder', () => {
     expect(container.textContent).toContain('Add a name to continue.');
     expect(container.textContent).not.toContain('Default Tone');
     expect(container.querySelector('#custom-deliverable-name')?.value).toBe('');
+  });
+
+  it('closes explicitly from Escape or the backdrop without sacrificing the focus trap', () => {
+    const onClose = vi.fn();
+    const { container } = renderBuilder({ onClose });
+    const dialog = container.querySelector('[role="dialog"]');
+    const backdrop = dialog?.parentElement;
+
+    act(() => dialog?.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    act(() => backdrop?.dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true })));
+    expect(onClose).toHaveBeenCalledTimes(2);
   });
 });

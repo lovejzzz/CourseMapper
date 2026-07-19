@@ -99,7 +99,7 @@ test('keeps custom-material orientation and actions fixed while its phone form s
   await expect(close).toBeVisible();
   await expect(name).toHaveAttribute('aria-describedby', 'custom-deliverable-name-hint');
   await expect(next).toBeDisabled();
-  await expect(dialog.getByRole('button', { name: '2. Prompt & Settings' })).toBeDisabled();
+  await expect(dialog.getByRole('tab', { name: '2. Prompt & Settings' })).toBeDisabled();
 
   const dialogBox = await dialog.boundingBox();
   expect(dialogBox.x).toBeGreaterThanOrEqual(8);
