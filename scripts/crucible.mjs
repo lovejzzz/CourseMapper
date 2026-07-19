@@ -411,7 +411,7 @@ function formatCourseReportMd({ course, runResult, gradeResult }) {
   const digest = runResult?.digest || gradeResult?.digest || null;
   if (digest) {
     lines.push(
-      `- Digest: app v${digest.appVersion}, ${digest.run?.lessonCount} lessons, ${digest.run?.providerCalls} provider calls, cost ${digest.cost?.totalDisplay || 'n/a'}`,
+      `- Digest: app v${digest.appVersion}, ${digest.run?.lessonCount} lessons, ${digest.run?.providerCalls} model requests, ${digest.run?.pipelineCalls ?? digest.run?.providerCalls} pipeline calls, cost ${digest.cost?.totalDisplay || 'n/a'}`,
     );
   }
   // WS-C C4: the legacy-branch hit line — the live half of the deletion proof.

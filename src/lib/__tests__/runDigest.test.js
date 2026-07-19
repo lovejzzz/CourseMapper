@@ -48,6 +48,20 @@ describe('runDigest', () => {
     expect(digest.cost.byTask[0].task).toBe('course-map');
   });
 
+  it('reports real model attempts separately from outer pipeline call units', () => {
+    let budget = budgetWithCourseMapCall('gpt-5.4-mini');
+    budget = applyApiCallBudgetEvent(budget, { type: 'providerRequestStart', task: 'course-map' });
+    budget = applyApiCallBudgetEvent(budget, { type: 'providerRequestStart', task: 'semantic-repair' });
+
+    const digest = buildRunDigest({ budget });
+    const text = formatRunDigest(digest);
+
+    expect(digest.run.providerCalls).toBe(2);
+    expect(digest.run.pipelineCalls).toBe(1);
+    expect(text).toContain('model requests: 2');
+    expect(text).toContain('pipeline calls: 1');
+  });
+
   // v0.16.1 regression: a READY run with a readiness warning must report the
   // real warning count in the digest. The Linear Algebra run zeroed warnings
   // on ready (UI calm pass) so the digest claimed "0 warnings" while its own

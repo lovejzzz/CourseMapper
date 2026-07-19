@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { formatDeveloperDiffItem } from '../../lib/developerIdeDiagnostics.js';
 import { searchDeveloperHistory } from '../../lib/developerIdeHistory.js';
-import { getApiCallBudgetTotal } from '../../lib/apiCallBudget.js';
+import { getApiCallBudgetTotal, getModelRequestTotal } from '../../lib/apiCallBudget.js';
 import {
   summarizeApiFeatureUsageBudget,
   summarizeApiUsageBudget,
@@ -67,6 +67,7 @@ function formatCostStatus(value) {
 function ApiCallBudgetCard({ budget }) {
   if (!budget) return null;
   const total = getApiCallBudgetTotal(budget);
+  const modelRequests = getModelRequestTotal(budget);
   const costControl = budget.costControl || {};
   const costPlan = budget.costPlan || {};
   const usageSummary = summarizeApiUsageBudget(budget);
@@ -110,7 +111,12 @@ function ApiCallBudgetCard({ budget }) {
           <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 dark:text-indigo-300">
             API call budget
           </p>
-          <p className="mt-0.5 text-[11px] font-semibold">Current run: {total} provider calls</p>
+          <p className="mt-0.5 text-[11px] font-semibold">Current run: {total} pipeline calls</p>
+          {modelRequests > 0 && (
+            <p className="mt-0.5 text-[10px] text-indigo-600 dark:text-indigo-300">
+              {modelRequests} model request{modelRequests === 1 ? '' : 's'} observed
+            </p>
+          )}
         </div>
         {budget.skippedExamineCalls > 0 && (
           <span className="rounded-full bg-white/70 px-2 py-0.5 text-2xs font-bold text-emerald-600 dark:bg-slate-900/70 dark:text-emerald-300">

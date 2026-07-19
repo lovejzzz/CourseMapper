@@ -5,6 +5,7 @@ import {
   createApiCallBudget,
   createApiCallBudgetFromReceipt,
   getApiCallBudgetTotal,
+  getModelRequestTotal,
   recordPendingApiCallEvent,
 } from '../apiCallBudget';
 
@@ -74,7 +75,7 @@ describe('apiCallBudget', () => {
     expect(JSON.stringify(receipt)).not.toContain('private-model-row');
   });
 
-  it('counts actual provider attempts across the expanded schema', () => {
+  it('keeps pipeline call units separate from actual model attempts', () => {
     let budget = createApiCallBudget();
     budget = applyApiCallBudgetEvent(budget, { type: 'courseMapCall' });
     budget = applyApiCallBudgetEvent(budget, { type: 'courseIRCall' });
@@ -85,6 +86,8 @@ describe('apiCallBudget', () => {
     budget = applyApiCallBudgetEvent(budget, { type: 'providerFallbackCall' });
     budget = applyApiCallBudgetEvent(budget, { type: 'agentLoopCall' });
     budget = applyApiCallBudgetEvent(budget, { type: 'imageGenerationCall', count: 2 });
+    budget = applyApiCallBudgetEvent(budget, { type: 'providerRequestStart' });
+    budget = applyApiCallBudgetEvent(budget, { type: 'providerRequestStart' });
 
     expect(budget).toMatchObject({
       courseMapCalls: 1,
@@ -97,8 +100,26 @@ describe('apiCallBudget', () => {
       providerFallbackCalls: 1,
       agentLoopCalls: 1,
       imageGenerationCalls: 2,
+      modelRequestStarts: 2,
     });
     expect(getApiCallBudgetTotal(budget)).toBe(12);
+    expect(getModelRequestTotal(budget)).toBe(2);
+  });
+
+  it('persists the aggregate request count without retaining request content', () => {
+    let budget = createApiCallBudget({ runId: 'request-proof' });
+    budget = applyApiCallBudgetEvent(budget, {
+      type: 'providerRequestStart',
+      task: 'scionPass',
+      detail: 'do not retain this request detail',
+    });
+
+    const receipt = buildApiCallBudgetReceipt(budget);
+    const restored = createApiCallBudgetFromReceipt(receipt);
+
+    expect(receipt.modelRequestStarts).toBe(1);
+    expect(getModelRequestTotal(restored)).toBe(1);
+    expect(JSON.stringify(receipt)).not.toContain('do not retain');
   });
 
   it('drains model setup calls into the next generation run', () => {

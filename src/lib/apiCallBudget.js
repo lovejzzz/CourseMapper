@@ -31,6 +31,11 @@ const PROVIDER_CALL_COUNTERS = [
 
 const PERSISTED_BUDGET_COUNTERS = [
   ...PROVIDER_CALL_COUNTERS,
+  // A providerRequestStart is the one unambiguous record of a real model
+  // attempt. Keep it separate from the pipeline-call counters above: one
+  // Scion lesson batch can legitimately make several bounded semantic-pass
+  // requests, while cost planning still reasons about the outer batch.
+  'modelRequestStarts',
   'genomeLinkEvents',
   'failedCalls',
   'retriedCalls',
@@ -163,6 +168,7 @@ export function createApiCallBudget(overrides = {}) {
     providerFallbackCalls: overrides.providerFallbackCalls || 0,
     agentLoopCalls: overrides.agentLoopCalls || 0,
     imageGenerationCalls: overrides.imageGenerationCalls || 0,
+    modelRequestStarts: overrides.modelRequestStarts || 0,
     failedCalls: overrides.failedCalls || 0,
     failureClasses: { ...(overrides.failureClasses || {}) },
     // Backward-compatible alias for older UI/tests.
@@ -297,6 +303,8 @@ function counterForType(type) {
       return 'agentLoopCalls';
     case 'imageGenerationCall':
       return 'imageGenerationCalls';
+    case 'providerRequestStart':
+      return 'modelRequestStarts';
     case 'failedCall':
       return 'failedCalls';
     case 'skippedExamine':
@@ -536,6 +544,15 @@ export function applyApiCallBudgetEvent(currentBudget, event = {}) {
 
 export function getApiCallBudgetTotal(budget = {}) {
   return PROVIDER_CALL_COUNTERS.reduce((total, counter) => total + (budget[counter] || 0), 0);
+}
+
+/**
+ * Actual low-level model attempts observed for this run. This intentionally
+ * does not feed the outer pipeline call budget: doing so would double-count
+ * the batch event and each semantic sub-pass that batch orchestrates.
+ */
+export function getModelRequestTotal(budget = {}) {
+  return Math.max(0, Number(budget.modelRequestStarts) || 0);
 }
 
 /**

@@ -230,6 +230,7 @@ describe('Developer Mode path controls', () => {
         apiCallBudget={{
           runId: 'run-test',
           deliverableChunkCalls: 12,
+          modelRequestStarts: 15,
           providerFallbackCalls: 1,
           failedCalls: 2,
           failureClasses: { provider_unavailable: 1, model_unsupported: 1 },
@@ -270,6 +271,8 @@ describe('Developer Mode path controls', () => {
     expect(container.querySelector('[data-testid="developer-api-failure-breakdown"]')).not.toBeNull();
     expect(container.querySelectorAll('[data-testid="developer-api-failure-class"]')).toHaveLength(2);
     expect(container.textContent).toContain('Failure Spike');
+    expect(container.textContent).toContain('13 pipeline calls');
+    expect(container.textContent).toContain('15 model requests observed');
     expect(container.textContent).toContain('Too many provider calls are failing.');
     expect(container.textContent).toContain('Provider Unavailable 1');
     expect(container.textContent).toContain('Model Unsupported 1');

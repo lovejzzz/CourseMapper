@@ -1,4 +1,4 @@
-import { getApiCallBudgetTotal } from './apiCallBudget';
+import { getApiCallBudgetTotal, getModelRequestTotal } from './apiCallBudget';
 
 const EVENT_STAGE = {
   costPlan: 'planning',
@@ -125,7 +125,11 @@ export function buildApiTraceSummary(event = {}, budget = {}, { verbose = false 
     outputChars: Number.isFinite(event.outputChars) ? event.outputChars : undefined,
     streamChunkCount: Number.isFinite(event.streamChunkCount) ? event.streamChunkCount : undefined,
     hasSchema: event.hasSchema,
-    calls: getApiCallBudgetTotal(budget),
+    // Distinguish the compiler's outer work units from real provider/model
+    // attempts. Scion can run several bounded semantic checks inside one
+    // lesson batch, so calling both numbers simply "calls" hid real burden.
+    pipelineCalls: getApiCallBudgetTotal(budget),
+    modelRequests: getModelRequestTotal(budget),
     counters: apiCounters(budget),
     spendUsd: roundMoney(budget.tokenUsage?.costUsd || event.costUsd || 0),
     costPlan: costPlanSummary(event.costPlan || budget.costPlan),

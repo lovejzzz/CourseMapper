@@ -12,6 +12,7 @@
  */
 
 import { buildGenerationCostReport, formatGenerationCostReport, formatUsd } from './apiUsageCost';
+import { getApiCallBudgetTotal, getModelRequestTotal } from './apiCallBudget';
 import { APP_VERSION } from './appVersion';
 
 function pricingAccuracy(ledger = []) {
@@ -183,7 +184,11 @@ export function buildRunDigest({ budget = {}, exportVerification = null, finish 
       models,
       lessonCount: generation.lessonCount ?? null,
       features: generation.featureIds || [],
-      providerCalls: ledger.length,
+      // providerCalls remains for report compatibility, but its value is now
+      // explicitly the actual request-attempt count when request-start
+      // telemetry is available. Older saved runs fall back to usage rows.
+      providerCalls: getModelRequestTotal(budget) || ledger.length,
+      pipelineCalls: getApiCallBudgetTotal(budget),
     },
     pipeline: { ...(budget.pipeline || {}) },
     compilerSavings: budget.compilerSavings || null,
@@ -268,7 +273,7 @@ export function formatRunDigest(digest) {
       (digest.elapsedMs ? ` (${Math.round(digest.elapsedMs / 1000)}s)` : ''),
   );
   lines.push(
-    `model: ${digest.run.provider}/${digest.run.models.join(',') || '(none)'} · lessons: ${digest.run.lessonCount ?? '?'} · provider calls: ${digest.run.providerCalls}`,
+    `model: ${digest.run.provider}/${digest.run.models.join(',') || '(none)'} · lessons: ${digest.run.lessonCount ?? '?'} · model requests: ${digest.run.providerCalls} · pipeline calls: ${digest.run.pipelineCalls ?? digest.run.providerCalls}`,
   );
   if (Object.keys(digest.pipeline).length > 0) {
     lines.push('pipeline:');
