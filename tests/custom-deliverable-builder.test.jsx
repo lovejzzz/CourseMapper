@@ -64,6 +64,9 @@ describe('custom deliverable builder', () => {
 
     act(() => next.click());
     expect(container.textContent).toContain('Default Tone');
+    expect(container.textContent).toContain(
+      'Optional: leave tone, format, or length unselected and Scion will match them to the course and deliverable.',
+    );
     expect(container.textContent).not.toContain('Add a name to continue.');
 
     act(() => root.render(<CustomDeliverableBuilder isOpen={false} onClose={() => {}} onSave={() => {}} />));
