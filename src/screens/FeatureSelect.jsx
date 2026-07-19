@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAIConfig } from '../contexts/AIConfigContext';
-import { useUI } from '../contexts/UIContext';
 import { useCourse } from '../contexts/CourseContext';
 import {
   listCustomDeliverables,
@@ -14,6 +13,7 @@ import {
 import { FEATURES, COLOR_MAP } from '../lib/featureCatalog';
 import { APP_VERSION } from '../lib/appVersion';
 import SetupProgress from '../components/SetupProgress';
+import SetupHelpDialog from '../components/SetupHelpDialog';
 
 export const RECOMMENDED_FEATURE_IDS = ['courseMap', 'syllabus', 'lessonPlans', 'assignments', 'rubrics', 'quizBank'];
 
@@ -463,7 +463,7 @@ export default function FeatureSelect({
   onApplyDeveloperTemplate,
 }) {
   const { user } = useAuth();
-  const { setShowHelp } = useUI();
+  const [setupHelpOpen, setSetupHelpOpen] = useState(false);
   const { selectedFeatures: selected, setSelectedFeatures: setSelected } = useCourse();
   const [hoveredId, setHoveredId] = useState(null);
   const [showBuilder, setShowBuilder] = useState(false);
@@ -585,7 +585,7 @@ export default function FeatureSelect({
             Back
           </button>
           <button
-            onClick={() => setShowHelp(true)}
+            onClick={() => setSetupHelpOpen(true)}
             className="tactile flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-slate-500 transition-colors hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-200"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -904,6 +904,7 @@ export default function FeatureSelect({
         onSave={handleSaveCustom}
         editDef={editingCustom}
       />
+      {setupHelpOpen && <SetupHelpDialog onClose={() => setSetupHelpOpen(false)} />}
     </div>
   );
 }

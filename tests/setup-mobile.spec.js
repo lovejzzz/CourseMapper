@@ -9,9 +9,11 @@ test('keeps the setup journey readable at the 320px minimum width', async ({ pag
   });
   await page.reload();
 
-  await page.getByRole('textbox', { name: 'Describe your course' }).fill(
-    'Design a 6-week introductory user experience research course with interviews, usability testing, synthesis, and a portfolio-ready final study.',
-  );
+  await page
+    .getByRole('textbox', { name: 'Describe your course' })
+    .fill(
+      'Design a 6-week introductory user experience research course with interviews, usability testing, synthesis, and a portfolio-ready final study.',
+    );
   await page.getByRole('button', { name: 'Customize package' }).click();
   await expect(page.getByRole('heading', { name: 'Choose materials' })).toBeVisible();
 
@@ -37,7 +39,22 @@ test('keeps the setup journey readable at the 320px minimum width', async ({ pag
   await expect(page.getByRole('heading', { name: 'Configure generation' })).toBeVisible();
   await expect(page.getByText('Scion runs locally in this browser and needs no API key.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Generate workspace' })).toBeVisible();
+  await expect(page.getByText('Generation settings', { exact: true })).toBeVisible();
+  await expect(page.getByText('Course Map + 5 materials selected.', { exact: true })).toBeVisible();
   await expect(page.getByTestId('config-sticky-action')).toHaveCSS('position', 'static');
+
+  await page.getByRole('button', { name: 'Help' }).click();
+  const setupHelp = page.getByTestId('setup-help-dialog');
+  await expect(setupHelp).toBeVisible();
+  await expect(setupHelp.getByRole('heading', { name: 'From brief to teachable package' })).toBeVisible();
+  await expect(setupHelp.getByText('Generate, watch, and review')).toBeVisible();
+  const setupHelpBox = await setupHelp.boundingBox();
+  expect(setupHelpBox.x).toBeGreaterThanOrEqual(8);
+  expect(setupHelpBox.x + setupHelpBox.width).toBeLessThanOrEqual(page.viewportSize().width - 8);
+  expect(setupHelpBox.y).toBeGreaterThanOrEqual(8);
+  expect(setupHelpBox.y + setupHelpBox.height).toBeLessThanOrEqual(page.viewportSize().height - 8);
+  await setupHelp.getByRole('button', { name: 'Got it' }).click();
+  await expect(setupHelp).toBeHidden();
 
   const lessonPlanSettings = page.getByRole('button', { name: 'Expand Lesson Plans settings' });
   await lessonPlanSettings.click();

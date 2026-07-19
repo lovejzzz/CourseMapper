@@ -25,9 +25,6 @@ export function UIProvider({ children }) {
     } catch {}
   }, []);
 
-  // ── Help modal ──
-  const [showHelp, setShowHelp] = useState(false);
-
   // ── Diff toggle ──
   const [showDiff, setShowDiff] = useState(false);
 
@@ -91,8 +88,6 @@ export function UIProvider({ children }) {
     setActiveTab,
     chatWidth,
     setChatWidth,
-    showHelp,
-    setShowHelp,
     showDiff,
     setShowDiff,
     showAddDeliverable,

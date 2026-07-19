@@ -493,8 +493,6 @@ export default function AppFlow({
     setActiveTab,
     chatWidth,
     setChatWidth,
-    showHelp,
-    setShowHelp,
     showDiff,
     setShowDiff,
     showAddDeliverable,
