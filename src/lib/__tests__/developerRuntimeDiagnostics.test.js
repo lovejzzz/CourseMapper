@@ -70,6 +70,42 @@ describe('developerRuntimeDiagnostics', () => {
     );
   });
 
+  it('surfaces partial semantic admission and local model recovery in runtime risk', () => {
+    const diagnostics = getDeveloperRuntimeDiagnostics(
+      snapshot({
+        apiCallBudgetReceipt: {
+          streamRetryCalls: 4,
+          failedCalls: 1,
+          enrichmentOutcome: {
+            modelStage: 'ran',
+            requestedLessons: 2,
+            enrichedLessons: 1,
+            missingLessons: [2],
+          },
+        },
+      }),
+    );
+
+    expect(diagnostics.counts).toEqual(
+      expect.objectContaining({
+        knowledgeRequested: 2,
+        knowledgeEnriched: 1,
+        streamRetries: 4,
+        failedRequests: 1,
+      }),
+    );
+    expect(diagnostics.risks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ level: 'warning', title: 'Knowledge Coverage Gap' }),
+        expect.objectContaining({ level: 'warning', title: 'Model Requests Failed' }),
+        expect.objectContaining({ level: 'info', title: 'Model Retries' }),
+      ]),
+    );
+    expect(diagnostics.risks.find((risk) => risk.title === 'Knowledge Coverage Gap')?.message).toContain(
+      'Lessons 2 used compiler fallback',
+    );
+  });
+
   it('formats byte counts for compact display', () => {
     expect(formatBytes(0)).toBe('0 KB');
     expect(formatBytes(999)).toBe('1 KB');

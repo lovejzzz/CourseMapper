@@ -88,6 +88,12 @@ export default function QuizBankView({
           .filter(Boolean)
           .join(' · ');
         const isExam = baseQuiz.kind === 'exam';
+        const courseLessonIndex = Math.max(0, quizLessonNumber(baseQuiz, i) - 1);
+        const regenerationTarget = {
+          deliverableItemIndex: i,
+          targetKind: isExam ? 'exam' : 'lesson',
+          ...(isExam ? { assessmentId: baseQuiz.assessmentId || baseQuiz.registryId || '' } : {}),
+        };
         const card = (
           <CollapsibleCard
             viewportIndex={i}
@@ -99,7 +105,11 @@ export default function QuizBankView({
             streaming={isStreaming && i === quizzes.length - 1}
             regenerating={regeneratingIndex === i}
             fresh={!!freshLessonIndices?.has(i)}
-            onRegenerate={onRegenerateLesson && !isStreaming ? () => onRegenerateLesson(i) : undefined}
+            onRegenerate={
+              onRegenerateLesson && !isStreaming
+                ? () => onRegenerateLesson(courseLessonIndex, regenerationTarget)
+                : undefined
+            }
             onTitleEdit={
               onEdit ? (newTitle) => onEdit([key, i, ownField(quiz, 'lessonTitle', 'lt')], newTitle) : undefined
             }

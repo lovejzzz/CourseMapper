@@ -259,14 +259,17 @@ describe('enriched compile (end to end with mock payload)', () => {
     const first = questions[0];
     expect(first.question).toContain('atmospheric CO2');
     expect(first.enrichmentSource).toBe('lesson-content-enrichment');
+    expect(first.misconceptionSourced).toBeUndefined();
     // Frame survives: id, points, plan metadata, rotated answer letter.
     expect(first.id).toBe('lesson-1-q1');
     expect(first.points).toBe(2);
     expect(['A', 'B', 'C', 'D']).toContain(first.answer);
     const keyOption = first.options.find((option) => option.startsWith(`${first.answer}.`));
     expect(keyOption).toContain('longwave radiation');
-    // Non-enriched items keep the compiled fallback.
-    expect(questions[1].enrichmentSource).toBeUndefined();
+    // The next frame stays compiler-authored, but it truthfully records that
+    // its distractor came from the documented kernel misconception.
+    expect(questions[1].misconceptionSourced).toBe(true);
+    expect(questions[1].enrichmentSource).toBe('lesson-content-enrichment');
   });
 
   it('study guide consumes enriched key terms and misconceptions', () => {

@@ -1169,6 +1169,19 @@ function inferDisciplineLens(courseName, concepts = []) {
       'behavioral case',
     );
   }
+  if (
+    /\b(international relations|political science|realism|liberalism|constructivism|security dilemma|balance of power|international institutions?|state system|foreign policy)\b/.test(
+      text,
+    )
+  ) {
+    return disciplineLens(
+      'international relations analysis',
+      'case and source evidence',
+      'interpretive judgment',
+      'international relations analyst',
+      'state-action or institution case',
+    );
+  }
   if (/\b(nutrition|nutrients?|dietary|carbohydrates?|proteins?|lipids?|vitamins?|minerals?)\b/.test(text)) {
     return disciplineLens(
       'human nutrition science',
@@ -5316,6 +5329,21 @@ function lessonFocusFallback(lesson = {}) {
 }
 
 function safeLessonConcepts(lesson = {}, { limit = 8 } = {}) {
+  // Admitted lesson-kernel terms are the most precise concept source the
+  // compiler owns. Prefer them to broad map labels such as "Introduction to
+  // IR" or "Course Overview" so fallback questions teach the model's
+  // verified disciplinary content instead of turning a lesson title into a
+  // pseudo-concept.
+  const enrichedConcepts = normalizeConceptCandidates(
+    (lesson?.enrichment?.keyTerms || [])
+      .filter((entry) => cleanText(entry?.term) && cleanText(entry?.definition))
+      .map((entry) => entry.term),
+    { title: lesson?.title, limit },
+  ).filter(
+    (concept) =>
+      !isUnsafeLessonConceptPhrase(concept) && !isUnsafeLessonArtifactPhrase(concept) && !genericLessonPhrase(concept),
+  );
+  if (enrichedConcepts.length > 0) return enrichedConcepts.slice(0, limit);
   const concepts = normalizeConceptCandidates(lesson?.keyConcepts || [], { title: lesson?.title, limit }).filter(
     (concept) => !isUnsafeLessonConceptPhrase(concept),
   );
@@ -17706,8 +17734,7 @@ function admittedLanguagePairTerm(lesson = {}) {
 function hasVisibleLanguagePair(terms = []) {
   return terms.some((term) => {
     const name = cleanText(term?.term);
-    return CJK_SCRIPT_RE.test(name) &&
-      TONE_MARKED_PINYIN_TOKEN_RE.test(`${name} ${cleanText(term?.romanization)}`);
+    return CJK_SCRIPT_RE.test(name) && TONE_MARKED_PINYIN_TOKEN_RE.test(`${name} ${cleanText(term?.romanization)}`);
   });
 }
 
@@ -18654,10 +18681,10 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
     `This item checks whether students can move from ${concept} recall into evidence-backed reasoning for ${artifact}.`,
   ]);
   const scoringGuidance = lessonVariant(lesson, [
-    `Full credit requires accurate use of ${concept}, one concrete evidence source, and a decision implication. Partial credit is appropriate when the answer names ${concept} but omits the evidence or the implication. Flag answers that summarize ${stripLessonPrefix(lesson.title)} without applying it.`,
-    `Award full credit when the response uses ${concept} accurately, cites a source detail, and explains the effect on ${artifact}. Give partial credit for accurate concept language without enough evidence or decision logic.`,
-    `Full-credit responses name the evidence, explain how ${concept} works, and state what changes for ${artifact}. Responses that only summarize ${lessonFocus} need revision or partial credit.`,
-    `Score for concept accuracy, evidence grounding, and decision use: the response should show what ${sourceCue} adds to ${artifact}, not only mention ${concept}.`,
+    `Full credit requires accurate use of ${concept}, one concrete evidence source, a decision implication, and a limitation or next evidence need. Partial credit is appropriate when the answer names ${concept} but omits the evidence, implication, or boundary. Flag answers that summarize ${stripLessonPrefix(lesson.title)} without applying it.`,
+    `Award full credit when the response uses ${concept} accurately, cites a source detail, explains the effect on ${artifact}, and states what the evidence cannot establish. Give partial credit for accurate concept language without enough evidence or decision logic.`,
+    `Full-credit responses name the evidence, explain how ${concept} works, state what changes for ${artifact}, and identify one limitation or next source to inspect. Responses that only summarize ${lessonFocus} need revision or partial credit.`,
+    `Score for concept accuracy, evidence grounding, decision use, and a bounded claim: the response should show what ${sourceCue} adds to ${artifact} and what still needs confirmation, not only mention ${concept}.`,
   ]);
   return withQuizPlan(
     {
@@ -18669,9 +18696,9 @@ function buildShortAnswerQuestion({ lesson, index, bloom, objective, concept, le
       points: 4,
       objectiveAligned: objective,
       intendedUse: `Formative written check after ${lesson.title}; use responses to identify review needs before ${artifact}.`,
-      question: `In 2-3 sentences, explain how ${concept} should shape ${artifact} and name one source or evidence detail from ${sourceCue} students should use.`,
+      question: `In 2-3 sentences, explain which course concept or method should shape ${artifact}. Name that concept or method, cite one evidence detail from ${sourceCue} to support your claim, then state one limitation or next piece of evidence.`,
       answer: answerGuidance,
-      sampleAnswer: `For ${lessonFocus}, I would use ${concept} to choose evidence from ${sourceCue} that directly supports ${artifact}. I would cite the exact source detail that shows what that evidence changes about ${artifact} and the ${lens.decisionNoun}.`,
+      sampleAnswer: `For ${lessonFocus}, I would select ${concept} because one exact source detail from ${sourceCue} supports the change I propose for ${artifact}. That detail supports the ${lens.decisionNoun}, but it does not establish a broader conclusion; I would inspect one additional source before extending the claim.`,
       explanation,
       scoringGuidance,
       tags: quizTags(lesson, 'short_answer', bloom, 'formative check'),
@@ -18737,44 +18764,67 @@ function buildEssayQuestion({ lesson, index, bloom, objective, concept, lens, pl
   );
 }
 
-function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concept, secondary, targetCount }) {
+function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concept, targetCount }) {
   const evidenceCue = humanizeClassroomSourceCue(
     lesson.evidencePlan?.sourceCue,
     safeLessonEvidenceCue(lesson, blueprintLens(blueprint)),
   );
-  const objective = (plan) =>
-    stripTerminalPunctuation(
-      cleanText(plan?.objective || lesson.outcomes?.[0] || `Apply ${concept} to a named example`),
-    );
+  const compositeConcept = /\b(?:and|versus|vs\.?)\b/i.test(concept);
+  const conceptLensCue = compositeConcept ? `${concept} as contrasting lenses` : concept;
   const prompts = [
-    (plan) =>
-      `Demonstrate this objective with one named example from ${evidenceCue}: ${objective(plan)}. Identify the observable detail that supports your answer.`,
-    () =>
-      `Compare two examples from ${evidenceCue} using ${concept}. Name one meaningful similarity, one difference, and the evidence for each.`,
-    () =>
-      `Analyze one named example from ${evidenceCue} using ${secondary}. Point to the feature that determines the interpretation.`,
-    () =>
-      `Diagnose a plausible error when applying ${concept} to one named example from ${evidenceCue}. Explain how the evidence reveals the error and how to correct it.`,
-    () =>
-      `Evaluate two possible explanations of one named example from ${evidenceCue} using ${concept}. Defend the stronger explanation and state what the example cannot establish.`,
-    () =>
-      `Create a new example that demonstrates ${concept}. Annotate the feature another learner should inspect, then explain how the example differs from one in ${evidenceCue}.`,
+    {
+      bloom: 'Apply',
+      make: () =>
+        `Apply the course concept, method, or rule that best explains one named example from ${evidenceCue}. Identify that concept independently, cite the observable detail supporting your claim, then state one limitation or next piece of evidence.`,
+    },
+    {
+      bloom: 'Analyze',
+      make: () =>
+        `Compare two examples from ${evidenceCue} using ${conceptLensCue}. Name one meaningful similarity, one difference, and the evidence for each.`,
+    },
+    {
+      bloom: 'Analyze',
+      make: () =>
+        `Analyze a classmate's interpretation of one named example from ${evidenceCue}. Select the course principle or lens you would use to test that interpretation, point to the decisive case detail, and state what the example does not prove.`,
+    },
+    {
+      bloom: 'Analyze',
+      make: () =>
+        `Analyze and diagnose a plausible error in one named example from ${evidenceCue}. Name the course concept or method that exposes the error, cite the case detail that contradicts it, explain the correction, and state one limitation or next evidence need.`,
+    },
+    {
+      bloom: 'Evaluate',
+      make: () =>
+        `Evaluate two plausible explanations of one named example from ${evidenceCue}. Choose the course framework that best distinguishes them, cite the detail supporting the stronger claim, name an alternative, and identify additional evidence that would resolve it.`,
+    },
+    {
+      bloom: 'Create',
+      make: () =>
+        `Create a new example that ${compositeConcept ? `distinguishes ${concept}` : `demonstrates ${concept}`}. Annotate the feature another learner should inspect, then explain how the example differs from one in ${evidenceCue}.`,
+    },
   ];
 
   return quizPlan.slice(0, Math.min(targetCount, prompts.length)).map((plan, index) => {
     const type = index === prompts.length - 1 ? 'essay' : 'short_answer';
+    const promptPlan = prompts[index];
+    const alignedPlan = {
+      ...plan,
+      bloom: promptPlan.bloom,
+      role: `source-bound-${promptPlan.bloom.toLowerCase()}`,
+      bloomSource: 'source-bound recovery task demand',
+    };
     const scoringGuidance = `Award full credit only when the response uses ${concept} accurately, names or creates a specific example, points to an observable feature, and keeps the conclusion within that evidence. Verify factual claims against ${evidenceCue}.`;
     return withQuizPlan(
       {
         id: quizQuestionId(lesson, index),
         type,
-        bloomsLevel: plan.bloom,
+        bloomsLevel: promptPlan.bloom,
         difficulty: plan.difficulty,
         estimatedMinutes: type === 'essay' ? 12 : 5,
         points: type === 'essay' ? 8 : 4,
         objectiveAligned: plan.objective,
         intendedUse: `Instructor-scored source application for ${lesson.title}; factual claims require confirmation against ${evidenceCue}.`,
-        question: humanizeQuizText(prompts[index](plan)),
+        question: humanizeQuizText(promptPlan.make()),
         answer:
           'Responses vary. Accept only a response whose claim is supported by a named or created example and an inspectable feature.',
         sampleAnswer:
@@ -18783,11 +18833,11 @@ function buildSourceBoundRecoveryQuizAtoms({ lesson, blueprint, quizPlan, concep
           'This recovery item assesses source use without fabricating a disciplinary answer key after the local knowledge kernel failed admission.',
         scoringGuidance,
         ...(type === 'essay' ? { rubricHints: [scoringGuidance] } : {}),
-        tags: quizTags(lesson, type, plan.bloom, 'source-bound recovery'),
+        tags: quizTags(lesson, type, promptPlan.bloom, 'source-bound recovery'),
         enrichmentSource: 'source-bound-recovery',
         sourceReviewRequired: true,
       },
-      plan,
+      alignedPlan,
     );
   });
 }
@@ -18837,7 +18887,6 @@ export function buildQuizAtomsForLesson(lesson, blueprint, options = {}) {
           blueprint,
           quizPlan,
           concept,
-          secondary,
           targetCount,
         })
       : hasBayesianDecisionEvidence(
@@ -19133,8 +19182,9 @@ function enrichedItemIsCompleteMC(item) {
 }
 
 function overlayCompleteMCItem(atom, enriched) {
+  const { misconceptionSourced: _discardedFrameProvenance, ...frame } = atom;
   const next = {
-    ...atom,
+    ...frame,
     question: humanizeQuizText(enriched.question),
     enrichmentSource: 'lesson-content-enrichment',
   };
@@ -19185,9 +19235,7 @@ function overlayEnrichedQuizItems(framedAtoms, lesson, { itemFilter = () => true
   const reservedFrames = new Set(
     framedAtoms
       .map((atom, index) =>
-        atom.type === 'multiple_choice' &&
-        byIndexMC.has(index) &&
-        authoredMcFitsQuizFrame(byIndexMC.get(index), atom)
+        atom.type === 'multiple_choice' && byIndexMC.has(index) && authoredMcFitsQuizFrame(byIndexMC.get(index), atom)
           ? index
           : -1,
       )
@@ -19196,10 +19244,7 @@ function overlayEnrichedQuizItems(framedAtoms, lesson, { itemFilter = () => true
   for (const index of reservedFrames) usedMC.add(byIndexMC.get(index));
   const constructed = new Map(
     admittedItems
-      .filter(
-        (item) =>
-          (item?.type || 'multiple_choice') !== 'multiple_choice' && cleanText(item?.question).length > 0,
-      )
+      .filter((item) => (item?.type || 'multiple_choice') !== 'multiple_choice' && cleanText(item?.question).length > 0)
       .map((item) => [Number(item.index), item]),
   );
   return framedAtoms.map((atom, index) => {
@@ -19262,6 +19307,27 @@ function examLessonTerm(lesson) {
   return (lesson?.enrichment?.keyTerms || []).find((term) => cleanText(term?.term) && cleanText(term?.definition));
 }
 
+function examLessonTerms(lesson) {
+  const seen = new Set();
+  return (lesson?.enrichment?.keyTerms || []).filter((term) => {
+    const key = cleanText(term?.term).toLowerCase();
+    if (!key || !cleanText(term?.definition) || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function splitCompositeExamConcept(value = '') {
+  const parts = cleanText(value)
+    .split(/\s+(?:and|versus|vs\.?)\s+/i)
+    .map((part) => cleanText(part))
+    .filter(Boolean);
+  if (parts.length !== 2) return [];
+  if (parts.some((part) => part.split(/\s+/).length > 6)) return [];
+  if (parts[0].toLowerCase() === parts[1].toLowerCase()) return [];
+  return parts;
+}
+
 // "The warming that results…" reads wrong mid-sentence; lowercase the lead
 // unless it opens with an acronym/proper token (CO2, DNA, Bayesian…).
 function lowercaseSentenceLead(value) {
@@ -19292,12 +19358,60 @@ function examLessonFact(lesson) {
 function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSlug, ordinal }) {
   const first = covered[0];
   const last = covered[covered.length - 1];
-  const termA = examLessonTerm(first);
-  const termB = examLessonTerm(last);
-  const conceptA = cleanText(termA?.term) || first.keyConcepts?.[0] || stripLessonPrefix(first.title);
-  const conceptB = cleanText(termB?.term) || last.keyConcepts?.[0] || stripLessonPrefix(last.title);
-  const grounded = Boolean(termA && termB && conceptA.toLowerCase() !== conceptB.toLowerCase());
+  const sameLesson = Number(first.lessonNumber) === Number(last.lessonNumber);
+  const firstTerms = examLessonTerms(first);
+  const lastTerms = sameLesson ? firstTerms : examLessonTerms(last);
+  const termA = firstTerms[0] || examLessonTerm(first);
+  const termB = sameLesson
+    ? firstTerms.find((term) => cleanText(term.term).toLowerCase() !== cleanText(termA?.term).toLowerCase())
+    : lastTerms[0] || examLessonTerm(last);
+  const firstFallbackConcepts = safeLessonConcepts(first, { limit: 8 });
+  const compositePair = splitCompositeExamConcept(
+    cleanText(termA?.term) || firstFallbackConcepts[0] || safeLessonPrimaryConcept(first),
+  );
+  const usesCompositePair = sameLesson && compositePair.length === 2;
+  const conceptA =
+    (usesCompositePair ? compositePair[0] : '') ||
+    cleanText(termA?.term) ||
+    firstFallbackConcepts[0] ||
+    safeLessonPrimaryConcept(first);
+  const conceptB =
+    (usesCompositePair ? compositePair[1] : '') ||
+    cleanText(termB?.term) ||
+    safeLessonConcepts(last, { limit: 8 }).find(
+      (candidate) => cleanText(candidate).toLowerCase() !== conceptA.toLowerCase(),
+    ) ||
+    conceptA;
+  const distinctConcepts = conceptA.toLowerCase() !== conceptB.toLowerCase();
+  const compositeDefinition = cleanText(termA?.definition);
+  const compositeGrounded = Boolean(
+    usesCompositePair &&
+      compositeDefinition &&
+      compositePair.every((member) => compositeDefinition.toLowerCase().includes(member.toLowerCase())),
+  );
+  const grounded = Boolean(
+    distinctConcepts && (compositeGrounded || (!usesCompositePair && termA && termB)),
+  );
   const anchorFact = examLessonFact(last) || examLessonFact(first);
+  const firstTitle = stripLessonPrefix(first.title);
+  const normalizedPairTitle = cleanText(firstTitle).toLowerCase();
+  const titleIsConceptPair = [
+    `${conceptA} and ${conceptB}`,
+    `${conceptB} and ${conceptA}`,
+    `${conceptA} versus ${conceptB}`,
+    `${conceptB} versus ${conceptA}`,
+  ]
+    .map((value) => value.toLowerCase())
+    .includes(normalizedPairTitle);
+  const comparisonPrompt = sameLesson
+    ? titleIsConceptPair
+      ? `${conceptA} and ${conceptB} as contrasting explanatory lenses`
+      : `${conceptA} and ${conceptB} in ${firstTitle}`
+    : `${conceptA} (${stripLessonPrefix(first.title)}) with ${conceptB} (${stripLessonPrefix(last.title)})`;
+  const singleConceptPrompt =
+    cleanText(firstTitle).toLowerCase() === conceptA.toLowerCase()
+      ? `${conceptA} as a course lens`
+      : `${conceptA} in ${firstTitle}`;
   return withQuizPlan(
     {
       id: `${examSlug}-q${ordinal}`,
@@ -19308,21 +19422,39 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
       points: 4,
       objectiveAligned: last.outcomes?.[0] || '',
       intendedUse: `Summative item on ${assessment.title}; score against the answer guide below.`,
-      question: `In 3-4 sentences, compare ${conceptA} (${stripLessonPrefix(first.title)}) with ${conceptB} (${stripLessonPrefix(last.title)}): explain one way they connect and one decision each one supports in ${blueprint.courseName}.`,
-      answer: grounded
-        ? `A complete answer uses both definitions accurately — ${joinTermDefinition(conceptA, termA.definition)}; ${joinTermDefinition(conceptB, termB.definition)} — names a concrete connection, and states one decision each supports.`
-        : `A complete answer defines both concepts accurately, names a concrete connection between ${conceptA} and ${conceptB}, and states one decision each supports — with at least one specific course example rather than generic phrasing.`,
-      sampleAnswer: grounded
-        ? `${sentenceCase(joinTermDefinition(conceptA, termA.definition, { separator: ' means ', lowercaseTail: true }))}, while ${joinTermDefinition(conceptB, termB.definition, { separator: ' means ', lowercaseTail: true })}. They connect because the second concept operates on what the first establishes.${
-            anchorFact
-              ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
-              : ''
-          }`
-        : `${sentenceCase(conceptA)} and ${conceptB} connect because the second builds on evidence the first establishes. ${sentenceCase(conceptA)} supports decisions in ${stripLessonPrefix(first.title)}, while ${conceptB} drives the choices in ${stripLessonPrefix(last.title)}.`,
+      question: distinctConcepts
+        ? `In 3-4 sentences, compare ${comparisonPrompt}: explain one way they differ or connect, cite one course detail, and state one decision each supports in ${blueprint.courseName}.`
+        : `In 3-4 sentences, analyze ${singleConceptPrompt}: cite one course detail, explain two different decisions it could support, and state one limitation.`,
+      answer: distinctConcepts
+        ? grounded
+          ? compositeGrounded
+            ? `A complete answer accurately distinguishes ${conceptA} and ${conceptB} using the authored course definition — ${stripTerminalPunctuation(compositeDefinition)} — cites a course detail, names a concrete relationship, and states one decision each supports.`
+            : `A complete answer uses both definitions accurately — ${joinTermDefinition(conceptA, termA.definition)}; ${joinTermDefinition(conceptB, termB.definition)} — cites a course detail, names a concrete relationship, and states one decision each supports.`
+          : `A complete answer defines both concepts accurately, cites a course detail, names a concrete relationship between ${conceptA} and ${conceptB}, and states one decision each supports.`
+        : `A complete answer defines ${conceptA} accurately, cites a specific course detail, explains two genuinely different decisions the evidence could support, and states one limitation.`,
+      sampleAnswer: distinctConcepts
+        ? grounded
+          ? compositeGrounded
+            ? `${sentenceCase(compositeDefinition)} The response should then identify the concepts' different explanatory roles and one decision each supports.${
+                anchorFact
+                  ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
+                  : ''
+              }`
+            : `${sentenceCase(joinTermDefinition(conceptA, termA.definition, { separator: ' means ', lowercaseTail: true }))}, while ${joinTermDefinition(conceptB, termB.definition, { separator: ' means ', lowercaseTail: true })}. The concepts differ in what they explain, and each supports a different course decision.${
+                anchorFact
+                  ? ` Key supporting evidence: ${lowercaseSentenceLead(stripTerminalPunctuation(anchorFact))}.`
+                  : ''
+              }`
+          : `${sentenceCase(conceptA)} and ${conceptB} differ in what each explains. A specific course detail should show why each concept supports a different decision.`
+        : `${sentenceCase(conceptA)} can support two different decisions when the response ties each decision to a specific course detail and marks what that evidence cannot establish.`,
       ...(grounded ? { enrichmentSource: 'lesson-content-enrichment' } : {}),
-      explanation: `Cross-lesson synthesis: the item checks whether students can relate ${conceptA} to ${conceptB} instead of recalling each in isolation.`,
-      scoringGuidance: `Full credit requires both concepts used accurately, one explicit connection, and one decision per concept. Partial credit when only one concept is applied with evidence. Flag answers that define terms without connecting them.`,
-      tags: ['exam', 'short answer', conceptA, conceptB].filter(Boolean),
+      explanation: distinctConcepts
+        ? `Exam synthesis: the item checks whether students can distinguish and relate ${conceptA} and ${conceptB} instead of recalling each in isolation.`
+        : `Exam application: the item checks whether students can use ${conceptA} with evidence across two decisions and keep the claim bounded.`,
+      scoringGuidance: distinctConcepts
+        ? `Full credit requires both concepts used accurately, one course detail, one explicit relationship, and one decision per concept. Partial credit when only one concept is applied with evidence.`
+        : `Full credit requires accurate ${conceptA} use, one course detail, two distinct decisions, and a limitation. Partial credit when only one decision is supported.`,
+      tags: unique(['exam', 'short answer', conceptA, conceptB].filter(Boolean), 8),
     },
     {
       source: 'source-grounded-quiz-plan',
@@ -19332,7 +19464,9 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
       use: 'summative exam synthesis',
       questionIndex: ordinal - 1,
       bloomSource: 'exam covered-lesson synthesis',
-      sourceSignal: `${stripLessonPrefix(first.title)} through ${stripLessonPrefix(last.title)} exam coverage`,
+      sourceSignal: sameLesson
+        ? `${stripLessonPrefix(first.title)} exam coverage`
+        : `${stripLessonPrefix(first.title)} through ${stripLessonPrefix(last.title)} exam coverage`,
       objectiveAlignmentStrategy: 'covered-lesson-objective',
       objectiveAlignmentRationale: `Constructed-response exam item aligns to the covered lesson objective from ${last.title}.`,
     },
@@ -19341,8 +19475,17 @@ function buildExamShortAnswerItem({ blueprint, assessment, covered, lens, examSl
 
 function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, ordinal }) {
   const last = covered[covered.length - 1];
+  const singleLesson = covered.length === 1;
   const concept = last.keyConcepts?.[0] || stripLessonPrefix(last.title);
-  const span = `${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(last.title)}`;
+  const lessonConcepts = safeLessonConcepts(last, { limit: 4 });
+  const compositePair = splitCompositeExamConcept(lessonConcepts[0] || concept);
+  const exampleConcepts = unique([...compositePair, ...lessonConcepts], 2);
+  const span = singleLesson
+    ? stripLessonPrefix(last.title)
+    : `${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(last.title)}`;
+  const decisionFocus = /\bdecision$/i.test(cleanText(lens.decisionNoun))
+    ? cleanText(lens.decisionNoun).replace(/\bdecision$/i, 'decision-making')
+    : cleanText(lens.decisionNoun);
   return withQuizPlan(
     {
       id: `${examSlug}-q${ordinal}`,
@@ -19353,11 +19496,19 @@ function buildExamEssayItem({ blueprint, assessment, covered, lens, examSlug, or
       points: 10,
       objectiveAligned: last.outcomes?.[0] || '',
       intendedUse: `Summative synthesis for ${assessment.title}; score with the rubric hints below.`,
-      question: `Synthesize the covered material (${span}): choose the two concepts that most changed how you make ${lens.decisionNoun} decisions in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
-      rubricHints: `Strong responses pick two concepts from different covered lessons, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`,
-      sampleAnswer: `A strong response selects two covered concepts (for example, ${concept} and one earlier idea), shows with concrete source evidence how each changes a decision, connects the two, and closes with one limitation per concept.`,
-      explanation: `The essay is scored for synthesis across the covered range, not for restating any single lesson.`,
-      scoringGuidance: `Full credit requires two accurately used concepts from different lessons, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`,
+      question: `Synthesize the covered material (${span}): choose the two concepts that most changed your approach to ${decisionFocus} in ${blueprint.courseName}, justify the choice with course ${lens.evidenceNoun}, and name one limitation of each.`,
+      rubricHints: singleLesson
+        ? `Strong responses distinguish two concepts from the covered lesson, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`
+        : `Strong responses pick two concepts from different covered lessons, support each with specific ${lens.evidenceNoun}, connect them, and name a real limitation for each.`,
+      sampleAnswer: singleLesson
+        ? `A strong response selects two covered concepts${exampleConcepts.length === 2 ? `, such as ${exampleConcepts[0]} and ${exampleConcepts[1]},` : ''} shows with concrete source evidence how each changes an interpretation, connects the two, and closes with one limitation per concept.`
+        : `A strong response selects two covered concepts (for example, ${concept} and one earlier idea), shows with concrete source evidence how each changes a decision, connects the two, and closes with one limitation per concept.`,
+      explanation: singleLesson
+        ? `The essay is scored for synthesis within the covered lesson, not for listing its vocabulary.`
+        : `The essay is scored for synthesis across the covered range, not for restating any single lesson.`,
+      scoringGuidance: singleLesson
+        ? `Full credit requires two accurately distinguished concepts from the lesson, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`
+        : `Full credit requires two accurately used concepts from different lessons, evidence for each, an explicit connection, and two limitations. Partial credit when concepts are accurate but unconnected.`,
       tags: ['exam', 'essay', concept].filter(Boolean),
     },
     {
@@ -19740,7 +19891,10 @@ function buildRegistryExamEntry(blueprint, assessment, examOrdinal) {
     kind: 'exam',
     assessmentId: assessment.registryId || assessment.id,
     lessonNumber: assessment.lessonNumbers?.[0] || lastLesson,
-    examScope: `Covers Lessons ${firstLesson}–${lastLesson}: ${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(covered[covered.length - 1].title)}.`,
+    examScope:
+      firstLesson === lastLesson
+        ? `Covers Lesson ${firstLesson}: ${stripLessonPrefix(covered[0].title)}.`
+        : `Covers Lessons ${firstLesson}–${lastLesson}: ${stripLessonPrefix(covered[0].title)} through ${stripLessonPrefix(covered[covered.length - 1].title)}.`,
     totalQuestions: renumbered.length,
     totalPoints,
     bloomsCoverage: sortBloomLevels(renumbered.map((question) => question.bloomsLevel)),

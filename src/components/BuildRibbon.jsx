@@ -123,6 +123,14 @@ export default function BuildRibbon({ model }) {
       : compilerState === 'review'
         ? 'Review the highlighted notes before export.'
         : 'Preparing the next course material…');
+  const compactStepLabels = {
+    model: 'AI',
+    map: 'Map',
+    enrich: 'Enrich',
+    compile: 'Build',
+    verify: 'Check',
+    grade: 'Grade',
+  };
 
   return (
     <div
@@ -130,7 +138,7 @@ export default function BuildRibbon({ model }) {
       className="w-full overflow-hidden rounded-lg border border-slate-200/70 bg-white/80 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/70"
     >
       <div className="flex min-h-10 flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5 sm:flex-nowrap">
-        <div className="flex flex-shrink-0 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
           <span
             data-testid="living-compiler-signal"
             data-state={compilerState}
@@ -143,8 +151,12 @@ export default function BuildRibbon({ model }) {
                   : 'animate-pulse bg-indigo-500 shadow-[0_0_0_4px_rgba(99,102,241,0.10)] motion-reduce:animate-none dark:bg-indigo-300'
             }`}
           />
-          <span className="whitespace-nowrap text-[12px] font-bold tracking-tight text-slate-600 dark:text-slate-300">
-            Living Course Compiler
+          <span
+            className="min-w-0 truncate whitespace-nowrap text-[12px] font-bold tracking-tight text-slate-600 dark:text-slate-300"
+            title="Living Course Compiler"
+          >
+            <span className="min-[360px]:hidden">Living Compiler</span>
+            <span className="hidden min-[360px]:inline">Living Course Compiler</span>
           </span>
         </div>
 
@@ -158,7 +170,7 @@ export default function BuildRibbon({ model }) {
 
         <span
           data-testid="ribbon-progress-label"
-          className="ml-auto shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
+          className="ml-2 shrink-0 text-[12px] font-bold tabular-nums text-indigo-600 sm:ml-0 dark:text-indigo-300"
         >
           {visibleProgress >= 100
             ? compilerState === 'review'
@@ -177,7 +189,7 @@ export default function BuildRibbon({ model }) {
       <div className="flex items-center gap-3 border-t border-slate-100/80 px-3 py-1.5 dark:border-slate-800/80">
         <ol
           aria-label="Build stages"
-          className="grid min-w-0 flex-1 auto-cols-fr grid-flow-col gap-1 sm:flex sm:flex-none sm:items-center sm:gap-2.5"
+          className="grid min-w-0 flex-1 auto-cols-fr grid-flow-col gap-1.5 sm:flex sm:flex-none sm:items-center sm:gap-2.5"
         >
           {model.steps.map((step) => (
             <li
@@ -217,7 +229,8 @@ export default function BuildRibbon({ model }) {
                           : 'text-slate-400 dark:text-slate-500'
                 }`}
               >
-                {step.label}
+                <span className="min-[360px]:hidden">{compactStepLabels[step.id] || step.label}</span>
+                <span className="hidden min-[360px]:inline">{step.label}</span>
               </span>
             </li>
           ))}

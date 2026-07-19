@@ -4911,6 +4911,9 @@ export default function useDeliverables({
       const regenerationOptions =
         syncGenOrOptions && typeof syncGenOrOptions === 'object' ? syncGenOrOptions : { syncGenId: syncGenOrOptions };
       const syncGenId = regenerationOptions.syncGenId ?? null;
+      const deliverableItemIndex = Number.isInteger(regenerationOptions.deliverableItemIndex)
+        ? regenerationOptions.deliverableItemIndex
+        : lessonIndex;
       const rawMaxProviderCalls = Number(regenerationOptions.maxProviderCalls);
       const maxProviderCalls = Number.isFinite(rawMaxProviderCalls)
         ? Math.max(0, Math.floor(rawMaxProviderCalls))
@@ -4971,23 +4974,23 @@ export default function useDeliverables({
         );
       };
 
-      dispatch({ type: 'MARK_LESSON_REGENERATING', featureId, lessonIndex });
+      dispatch({ type: 'MARK_LESSON_REGENERATING', featureId, lessonIndex: deliverableItemIndex });
 
       appendLog(`Regenerating Lesson ${lessonIndex + 1} in ${label}...`, 'progress');
 
       const markFreshLesson = () => {
         setFreshLessons((prev) => ({
           ...prev,
-          [featureId]: new Set([...(prev[featureId] || []), lessonIndex]),
+          [featureId]: new Set([...(prev[featureId] || []), deliverableItemIndex]),
         }));
-        const freshKey = `${featureId}:${lessonIndex}`;
+        const freshKey = `${featureId}:${deliverableItemIndex}`;
         if (freshTimersRef.current.has(freshKey)) {
           clearTimeout(freshTimersRef.current.get(freshKey));
         }
         const freshTimer = setTimeout(() => {
           setFreshLessons((prev) => {
             const s = new Set(prev[featureId] || []);
-            s.delete(lessonIndex);
+            s.delete(deliverableItemIndex);
             return { ...prev, [featureId]: s };
           });
           freshTimersRef.current.delete(freshKey);
@@ -5038,6 +5041,19 @@ export default function useDeliverables({
                   ),
               });
             let compileResult = compilePatch();
+            const revalidation = compileResult?.admissionRevalidation;
+            if (revalidation?.rejectedKeyTerms > 0) {
+              appendLog(
+                `Rechecked saved knowledge: removed ${revalidation.rejectedKeyTerms} outdated term${revalidation.rejectedKeyTerms === 1 ? '' : 's'} and ${revalidation.removedQuizItems || 0} dependent quiz item${revalidation.removedQuizItems === 1 ? '' : 's'}`,
+                'progress',
+              );
+              traceGeneration(
+                regenerationRunId,
+                'lesson_regen_saved_knowledge_revalidated',
+                { featureId, lessonIndex, ...revalidation },
+                'warn',
+              );
+            }
             let kernelRefreshCalls = 0;
             if (compileResult && !compileResult.lessonEnriched && hasProviderCallBudget()) {
               // Kernel refresh: ONE low-cost enrichment call for this lesson,
@@ -5108,6 +5124,9 @@ export default function useDeliverables({
                 const newArr = (newKey ? finalParsed[newKey] : null) || [];
                 const merged = mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap, {
                   onReject: onLessonMergeReject,
+                  targetKind: regenerationOptions.targetKind,
+                  assessmentId: regenerationOptions.assessmentId,
+                  deliverableItemIndex,
                 });
                 nextData = { ...existingDataSnapshot, [existingKey]: merged };
               }
@@ -5328,6 +5347,9 @@ export default function useDeliverables({
             const newArr = (newKey ? finalParsed[newKey] : null) || [];
             const merged = mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap, {
               onReject: onLessonMergeReject,
+              targetKind: regenerationOptions.targetKind,
+              assessmentId: regenerationOptions.assessmentId,
+              deliverableItemIndex,
             });
             nextData = { ...existingDataSnapshot, [existingKey]: merged };
             dispatch(actions.setDeliverableDone(featureId, nextData));

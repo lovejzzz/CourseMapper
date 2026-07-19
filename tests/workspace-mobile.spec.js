@@ -155,6 +155,16 @@ test.describe('Generated workspace mobile layout', () => {
       })
       .toBe(true);
 
+    const previousMaterials = page.getByRole('button', { name: 'Show previous materials' });
+    await expect(previousMaterials).toBeVisible();
+    const restoredScrollLeft = await tabStrip.evaluate((element) => element.scrollLeft);
+    expect(restoredScrollLeft).toBeGreaterThan(0);
+    await previousMaterials.click();
+    await expect
+      .poll(() => tabStrip.evaluate((element) => element.scrollLeft), { timeout: 2000 })
+      .toBeLessThan(restoredScrollLeft);
+    await expect(page.getByRole('button', { name: 'Show more materials' })).toBeVisible();
+
     await page.getByTestId('workspace-more-menu-trigger').click();
     const projectMenu = page.getByTestId('workspace-more-menu');
     await expect(projectMenu).toBeVisible();

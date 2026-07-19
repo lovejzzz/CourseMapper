@@ -5,7 +5,11 @@ import path from 'node:path';
 import { buildBlueprintFromGraph } from '../src/lib/courseGraph/blueprintFromGraph.js';
 import { compileBlueprintDeliverables } from '../src/lib/courseBlueprintCompiler.js';
 import { lintItemAdmission } from '../src/lib/itemAdmissionLint.js';
-import { isAppliedQuizStem } from '../src/lib/quality/quizItemDepth.js';
+import {
+  isAppliedQuizStem,
+  isClaimEvidenceBoundaryShortAnswer,
+  isConceptCuedCompilerShortAnswer,
+} from '../src/lib/quality/quizItemDepth.js';
 
 function valueAfter(flag) {
   const index = process.argv.indexOf(flag);
@@ -18,6 +22,17 @@ function summarize(items) {
     total: items.length,
     applied: appliedItems.length,
     appliedShare: items.length > 0 ? Number((appliedItems.length / items.length).toFixed(3)) : 0,
+  };
+}
+
+function summarizeConstructed(items) {
+  const conceptCued = items.filter((item) => isConceptCuedCompilerShortAnswer(item.question)).length;
+  const claimEvidenceBoundary = items.filter((item) => isClaimEvidenceBoundaryShortAnswer(item.question)).length;
+  return {
+    total: items.length,
+    conceptCued,
+    claimEvidenceBoundary,
+    claimEvidenceBoundaryShare: items.length > 0 ? Number((claimEvidenceBoundary / items.length).toFixed(3)) : 0,
   };
 }
 
@@ -46,7 +61,13 @@ if (!projectPath) {
       .map((item) => ({ ...item, lessonNumber: quiz.lessonNumber ?? null })),
   );
   const compiledAuthoredItems = compiledItems.filter(
-    (item) => item.enrichmentSource === 'lesson-content-enrichment' || item.enrichmentSource === 'kernel-bank-extension',
+    (item) =>
+      item.enrichmentSource === 'lesson-content-enrichment' || item.enrichmentSource === 'kernel-bank-extension',
+  );
+  const compiledConstructedItems = weeklyQuizzes.flatMap((quiz) =>
+    (quiz.questions || [])
+      .filter((item) => item?.type === 'short_answer')
+      .map((item) => ({ ...item, lessonNumber: quiz.lessonNumber ?? null })),
   );
   const byLesson = weeklyQuizzes.map((quiz) => {
     const items = (quiz.questions || []).filter((item) => item?.type === 'multiple_choice');
@@ -69,6 +90,7 @@ if (!projectPath) {
           })),
         compiledItems: summarize(compiledItems),
         compiledAuthoredItems: summarize(compiledAuthoredItems),
+        compiledConstructedItems: summarizeConstructed(compiledConstructedItems),
         byLesson,
       },
       null,

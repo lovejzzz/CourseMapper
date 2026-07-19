@@ -17,7 +17,11 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 
-import { buildCompiledLessonPatchData, compileBlueprintLessonPatch } from '../src/lib/compiledLessonSync.js';
+import {
+  buildCompiledLessonPatchData,
+  compileBlueprintLessonPatch,
+  revalidatePersistedLessonContent,
+} from '../src/lib/compiledLessonSync.js';
 import { computeSyncBlastRadius, diffCompiledFeature } from '../src/lib/syncBlastRadius.js';
 import { buildReviewQueue } from '../src/lib/reviewQueueModel.js';
 import {
@@ -54,13 +58,51 @@ const overlayFor = (lessonNumber) => ({
   lessonContent: {
     [`lesson-${lessonNumber}`]: {
       enrichmentSource: 'lesson-content-enrichment',
-      keyTerms: [{ term: FIXTURE_TERM, definition: 'a cited fixture definition', source: 'OpenStax fixture §2.1' }],
+      keyTerms: [
+        {
+          term: FIXTURE_TERM,
+          definition: 'Isostasy explains how the lithosphere reaches gravitational balance over the mantle.',
+          example: 'A geologist compares crustal thickness before interpreting regional elevation patterns.',
+          misconception: 'Students may assume that equal surface height proves equal crustal thickness.',
+          correction: 'The correction is to compare density and thickness evidence before drawing that conclusion.',
+          source: 'OpenStax fixture §2.1',
+        },
+      ],
       quizItems: [],
     },
   },
 });
 
 describe('G1 — the sync compile keeps its subject matter', () => {
+  it('revalidates saved kernels and removes quiz atoms that depend on a newly rejected term', () => {
+    const validTerm = overlayFor(2).lessonContent['lesson-2'].keyTerms[0];
+    const persisted = {
+      'lesson-2': {
+        keyTerms: [
+          {
+            term: 'Realism and Liberalism',
+            definition: 'Realism emphasizes power and security under anarchy in international politics.',
+            example: 'An analyst interprets a military buildup as a response to insecurity.',
+            misconception: 'Students may assume that every international outcome has one cause.',
+            correction: 'The correction is to compare the explanation with the available case evidence.',
+          },
+          validTerm,
+        ],
+        quizItems: [
+          { index: 0, question: 'Which definition describes Realism and Liberalism?' },
+          { index: 1, question: `Which claim best applies ${FIXTURE_TERM}?` },
+        ],
+      },
+    };
+
+    const result = revalidatePersistedLessonContent(persisted, geologyMap());
+
+    expect(result.lessonContent['lesson-2'].keyTerms.map((term) => term.term)).toEqual([FIXTURE_TERM]);
+    expect(result.lessonContent['lesson-2'].quizItems).toHaveLength(1);
+    expect(result.lessonContent['lesson-2'].quizItems[0].index).toBe(1);
+    expect(result.receipt).toMatchObject({ rejectedKeyTerms: 1, removedQuizItems: 1 });
+  });
+
   it('with the stored overlay, the synced lesson compiles enriched and carries the kernel term', () => {
     const result = compileBlueprintLessonPatch({
       featureId: 'studyGuides',

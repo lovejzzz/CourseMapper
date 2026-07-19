@@ -29,6 +29,7 @@ import {
 } from '../src/lib/courseBlueprintCompiler.js';
 import { finalizeCompiledDeliverableLanguage } from '../src/lib/compiledLanguageFinalizer.js';
 import { buildSlideDeckPptxBlob } from '../src/lib/exporters/pptxExporter.js';
+import { isAppliedQuizStem } from '../src/lib/quality/quizItemDepth.js';
 
 const BACKTICK_EXAMPLE = "`{'name': 'Ava', 'age': 19}` maps labels to data values";
 
@@ -414,7 +415,7 @@ describe("5.4 — Bloom's tags follow the stem verb; coverage states only what's
     expect(quiz.bloomsCoverage.length).toBe(itemLevels.size);
   });
 
-  it('never tags a recall-stem item Analyze/Evaluate/Create, even on a high-demand frame', () => {
+  it('rejects a recall-only model item from a high-demand frame instead of relabeling it', () => {
     const blueprint = JSON.parse(
       JSON.stringify(
         buildCourseBlueprint(programmingCourseMap(), {
@@ -453,10 +454,11 @@ describe("5.4 — Bloom's tags follow the stem verb; coverage states only what's
     );
     const lesson = blueprint.lessons[0];
     const atoms = buildQuizAtomsForLesson(lesson, blueprint, { assessment: {} });
-    expect(atoms[4].question).toContain('Identify the statement');
-    expect(atoms[4].bloomsLevel).toBe('Remember');
-    expect(['Analyze', 'Evaluate', 'Create']).not.toContain(atoms[4].bloomsLevel);
-    // The planned level survives as provenance only.
+    expect(atoms[4].question).not.toContain('Identify the statement');
+    expect(atoms[4].enrichmentSource).not.toBe('lesson-content-enrichment');
+    expect(isAppliedQuizStem(atoms[4].question)).toBe(true);
+    expect(atoms[4].bloomsLevel).not.toBe('Remember');
+    // The planned level remains honest because the retained frame earns it.
     expect(atoms[4].quizPlan.bloom).toBe('Evaluate');
   });
 

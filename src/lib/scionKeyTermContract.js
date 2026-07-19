@@ -1,7 +1,8 @@
 // Lightweight, model-neutral key-term admission shared by the production
 // parser, browser-local retry loop, and Scion preference gate. Passing this
-// contract proves structural completeness only; factual correctness remains a
-// separate benchmark/judge responsibility.
+// contract proves structural completeness plus a few bounded surface-semantic
+// invariants. Factual correctness remains a separate benchmark/judge
+// responsibility.
 
 const META_SURFACE_RE =
   /\b(?:evidence move|success criteri\w*|course evidence|lesson evidence|rubric|the (?:Week\s*\d+|weekly) \w+|this (?:course|lesson)|the lesson|artifact|submission|checkpoint)\b/i;
@@ -206,6 +207,23 @@ function sourceSemanticTokens(value) {
 
 function sourceSemanticTokenSet(value) {
   return new Set(sourceSemanticTokens(value));
+}
+
+function definitionOmitsCompositeMember(term, definition) {
+  const match = cleanScionKeyTermText(term).match(/^(.+?)\s+(?:and|versus|vs\.?)\s+(.+)$/i);
+  if (!match) return false;
+
+  const leftTokens = sourceSemanticTokenSet(match[1]);
+  const rightTokens = sourceSemanticTokenSet(match[2]);
+  const leftDistinct = [...leftTokens].filter((token) => !rightTokens.has(token));
+  const rightDistinct = [...rightTokens].filter((token) => !leftTokens.has(token));
+  if (leftDistinct.length === 0 || rightDistinct.length === 0) return false;
+
+  const definitionTokens = sourceSemanticTokenSet(definition);
+  return (
+    !leftDistinct.some((token) => definitionTokens.has(token)) ||
+    !rightDistinct.some((token) => definitionTokens.has(token))
+  );
 }
 
 function sourceSemanticMatch(value, fact) {
@@ -519,6 +537,12 @@ export function assessScionKeyTermContract(
     const completeDefinitionSentences = normalized.definition.match(/[^.!?]+[.!?]+/g) || [];
     if (!/[.!?][\])}"']?$/.test(normalized.definition)) issues.push('truncated-definition');
     if (completeDefinitionSentences.length > 1) issues.push('definition-multiple-sentences');
+  }
+  if (
+    canonicalLessonTitleAdmission &&
+    definitionOmitsCompositeMember(normalized.term, normalized.definition)
+  ) {
+    issues.push('definition-omits-composite-member');
   }
   if (META_SURFACE_RE.test(`${normalized.definition} ${normalized.example}`)) issues.push('meta-definition');
   const instructionalFields = [

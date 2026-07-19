@@ -37,4 +37,16 @@ describe('BuildRibbon', () => {
     expect(html).not.toContain('text-[10px]');
     for (const label of STEP_LABELS) expect(html).toContain(`>${label}</span>`);
   });
+
+  it('uses compact, readable labels below 360px without shrinking the type floor', () => {
+    const html = renderToStaticMarkup(<BuildRibbon model={makeModel()} />);
+
+    expect(html).toContain('Living Compiler');
+    expect(html).toContain('Living Course Compiler');
+    for (const label of ['AI', 'Map', 'Enrich', 'Build', 'Check', 'Grade']) {
+      expect(html).toContain(`>${label}</span>`);
+    }
+    expect(html).toContain('min-[360px]:hidden');
+    expect(html).not.toContain('text-[11px]');
+  });
 });

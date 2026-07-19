@@ -241,10 +241,14 @@ describe('iteration 2 — sparse mcBank composition', () => {
     const compiled = compileBlueprintDeliverables(blueprint, ['quizBank'], {});
     const questions = compiled.quizBank.quizzes[0].questions;
     expect(questions.length).toBeGreaterThanOrEqual(5);
-    // The genome fills the MC slot and the fact-grounded short answer; the
-    // compiler frames still own every remaining slot.
-    expect(questions.filter((question) => question.enrichmentSource).length).toBe(2);
-    expect(questions.filter((question) => !question.enrichmentSource).length).toBeGreaterThanOrEqual(3);
+    // The genome fills exactly the authored MC and short-answer slots. Two
+    // additional compiler frames reuse the documented misconception as a
+    // distractor and therefore carry truthful provenance without becoming
+    // authored questions; the remaining frames stay compiler-only.
+    const authoredQuestions = new Set(payload.quizItems.map((item) => item.question));
+    expect(questions.filter((question) => authoredQuestions.has(question.question))).toHaveLength(2);
+    expect(questions.filter((question) => question.misconceptionSourced)).toHaveLength(2);
+    expect(questions.filter((question) => !question.enrichmentSource).length).toBeGreaterThanOrEqual(2);
   });
 });
 

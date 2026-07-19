@@ -243,6 +243,14 @@ export default function DeveloperDiagnosticsPanel({
               'Generated',
               `${runtimeDiagnostics.counts.generatedSelected}/${runtimeDiagnostics.counts.selectedDeliverables}`,
             ],
+            [
+              'Knowledge',
+              runtimeDiagnostics.counts.knowledgeRequested > 0
+                ? `${runtimeDiagnostics.counts.knowledgeEnriched}/${runtimeDiagnostics.counts.knowledgeRequested}`
+                : '—',
+            ],
+            ['Retries', runtimeDiagnostics.counts.streamRetries],
+            ['Failed Requests', runtimeDiagnostics.counts.failedRequests],
             ['Stale', runtimeDiagnostics.counts.stale],
             ['Errors', runtimeDiagnostics.counts.errors],
             ['Prompt Overrides', runtimeDiagnostics.counts.promptOverrides],

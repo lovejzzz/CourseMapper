@@ -186,12 +186,60 @@ function mergeQuizBankLessonEntry(existing, incoming, lessonIndex, courseMap, op
   return merged;
 }
 
+/**
+ * Exam cards have their own Regen control. They share a lessonNumber with a
+ * weekly quiz, so lesson identity alone is not enough: replace the exact
+ * registry assessment and preserve every weekly entry and sibling exam.
+ */
+function mergeQuizBankExamEntry(existing, incoming, lessonIndex, options = {}) {
+  const reject = (reason) => {
+    if (typeof options.onReject === 'function') options.onReject(reason);
+    return existing;
+  };
+  const lessonNumber = lessonIndex + 1;
+  const assessmentId = String(options.assessmentId || '').trim();
+  const examCandidates = incoming.filter(isExamQuizEntry);
+  const replacement =
+    (assessmentId &&
+      examCandidates.find((item) => String(item?.assessmentId || item?.registryId || '').trim() === assessmentId)) ||
+    examCandidates.find((item) => Number(item?.lessonNumber) === lessonNumber) ||
+    examCandidates[0];
+  if (!replacement) return reject('regenerated result contained no exam entry');
+  if (!isRenderableQuizEntry(replacement)) {
+    return reject(`regenerated exam entry is not renderable — keeping the original entry`);
+  }
+
+  let targetIndex = assessmentId
+    ? existing.findIndex(
+        (item) => isExamQuizEntry(item) && String(item?.assessmentId || item?.registryId || '').trim() === assessmentId,
+      )
+    : -1;
+  if (
+    targetIndex < 0 &&
+    Number.isInteger(options.deliverableItemIndex) &&
+    isExamQuizEntry(existing[options.deliverableItemIndex])
+  ) {
+    targetIndex = options.deliverableItemIndex;
+  }
+  if (targetIndex < 0) {
+    targetIndex = existing.findIndex((item) => isExamQuizEntry(item) && Number(item?.lessonNumber) === lessonNumber);
+  }
+  if (targetIndex < 0) return reject('could not locate the target exam entry in the current quiz bank');
+
+  const merged = [...existing];
+  merged[targetIndex] = { ...replacement, lessonNumber };
+  return merged;
+}
+
 export function mergeRegeneratedLessonItems(featureId, existingArr, newArr, lessonIndex, courseMap, options = {}) {
   const incoming = Array.isArray(newArr) ? newArr.filter(Boolean) : [];
   const existing = Array.isArray(existingArr) ? [...existingArr] : [];
   if (incoming.length === 0) return existing;
 
   if (featureId === 'quizBank') {
+    if (options.targetKind === 'exam') {
+      return mergeQuizBankExamEntry(existing, incoming, lessonIndex, options);
+    }
     return mergeQuizBankLessonEntry(existing, incoming, lessonIndex, courseMap, options);
   }
 

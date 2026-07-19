@@ -1146,6 +1146,27 @@ describe('fix 9 — a lesson regen merges into the bank without destroying exams
     expect(merged[2]).toBe(examB);
   });
 
+  it('replaces the exact exam entry when its own Regen control is used', () => {
+    const existing = [weeklyEleven, examEntry, examB];
+    const regeneratedExam = {
+      ...examEntry,
+      regenerated: true,
+      questions: examEntry.questions.map((question) => ({ ...question })),
+      answerKey: examEntry.answerKey.map((entry) => ({ ...entry })),
+    };
+    const merged = mergeRegeneratedLessonItems('quizBank', existing, [validRegen, regeneratedExam], 10, courseMap, {
+      targetKind: 'exam',
+      assessmentId: examEntry.assessmentId,
+      deliverableItemIndex: 1,
+    });
+
+    expect(merged).toHaveLength(3);
+    expect(merged[0]).toBe(weeklyEleven);
+    expect(merged[1].regenerated).toBe(true);
+    expect(merged[1].assessmentId).toBe(examEntry.assessmentId);
+    expect(merged[2]).toBe(examB);
+  });
+
   it('replaces the weekly entry inside the FULL 17-entry live bank shape without touching anything else', () => {
     const existing = [...bank, examB];
     const merged = mergeRegeneratedLessonItems('quizBank', existing, [validRegen], 10, courseMap);

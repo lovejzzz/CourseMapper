@@ -7,6 +7,7 @@ import {
 } from './courseBlueprintCompiler';
 import { attachEnrichmentToGraph, buildBlueprintFromGraph, deriveCourseGraphFromCourseMap } from './courseGraph';
 import { applyLessonDepthToConfigMap } from './lessonDepth';
+import { assessScionKeyTermContract } from './scionKeyTermContract';
 
 function cleanText(value, fallback = '') {
   return String(value ?? fallback)
@@ -27,6 +28,77 @@ function getCourseLessonTitle(courseMap, lessonIndex) {
   return cleanText(
     lesson.title || lesson.lessonTitle || lesson.topicSection || lesson.topic || `Lesson ${lessonIndex + 1}`,
   );
+}
+
+function persistedTermAssessment(term, lesson, payload) {
+  return assessScionKeyTermContract(term, {
+    lessonTitle: cleanText(lesson?.title || lesson?.lessonTitle || lesson?.topicSection),
+    knownFacts: Array.isArray(payload?.kernel?.facts) ? payload.kernel.facts : [],
+    definitionMin: 40,
+    semanticProfile: 'strict-v6',
+  });
+}
+
+function payloadReferencesAnyTerm(value, rejectedTerms) {
+  const text = JSON.stringify(value || '').toLowerCase();
+  return rejectedTerms.some((term) => term && text.includes(term));
+}
+
+export function revalidatePersistedLessonContent(lessonContent = {}, courseMap = {}) {
+  const receipt = {
+    policy: 'strict-v6',
+    lessonsChecked: 0,
+    rejectedKeyTerms: 0,
+    removedQuizItems: 0,
+    removedSlides: 0,
+    removedWalkthroughs: 0,
+    droppedLessonIds: [],
+  };
+  const sanitized = {};
+
+  for (const [lessonId, payload] of Object.entries(lessonContent || {})) {
+    if (!payload || typeof payload !== 'object') continue;
+    const lessonNumber = Number(String(lessonId).match(/^lesson-(\d+)$/)?.[1]);
+    const lesson = Number.isFinite(lessonNumber) ? courseMap?.lessons?.[lessonNumber - 1] : null;
+    receipt.lessonsChecked += 1;
+
+    const rejectedTerms = [];
+    const keyTerms = (Array.isArray(payload.keyTerms) ? payload.keyTerms : []).filter((term) => {
+      const assessment = persistedTermAssessment(term, lesson, payload);
+      if (assessment.eligible) return true;
+      const termName = cleanText(term?.term || term?.tr).toLowerCase();
+      if (termName) rejectedTerms.push(termName);
+      receipt.rejectedKeyTerms += 1;
+      return false;
+    });
+    if (rejectedTerms.length === 0) {
+      sanitized[lessonId] = payload;
+      continue;
+    }
+
+    const originalQuizItems = Array.isArray(payload.quizItems) ? payload.quizItems : [];
+    const quizItems = originalQuizItems.filter((item) => !payloadReferencesAnyTerm(item, rejectedTerms));
+    receipt.removedQuizItems += originalQuizItems.length - quizItems.length;
+
+    const originalSlides = Array.isArray(payload.slideContent) ? payload.slideContent : [];
+    const slideContent = originalSlides.filter((slide) => !payloadReferencesAnyTerm(slide, rejectedTerms));
+    receipt.removedSlides += originalSlides.length - slideContent.length;
+
+    const nextPayload = { ...payload, keyTerms, quizItems };
+    if (originalSlides.length > 0) nextPayload.slideContent = slideContent;
+    if (payload.mcWalkthrough && payloadReferencesAnyTerm(payload.mcWalkthrough, rejectedTerms)) {
+      delete nextPayload.mcWalkthrough;
+      receipt.removedWalkthroughs += 1;
+    }
+
+    if (keyTerms.length === 0 && quizItems.length === 0) {
+      receipt.droppedLessonIds.push(lessonId);
+      continue;
+    }
+    sanitized[lessonId] = nextPayload;
+  }
+
+  return { lessonContent: sanitized, receipt };
 }
 
 /**
@@ -140,15 +212,19 @@ export function compileBlueprintLessonPatch({
 }) {
   if (!isBlueprintCompiledFeature(featureId)) return null;
 
-  const lessonContent = { ...(enrichmentOverlay?.lessonContent || {}) };
+  const restoredLessonContent = { ...(enrichmentOverlay?.lessonContent || {}) };
   if (kernelCache) {
     (courseMap?.lessons || []).forEach((lesson, idx) => {
       const lessonId = `lesson-${idx + 1}`;
-      if (lessonContent[lessonId]) return;
+      if (restoredLessonContent[lessonId]) return;
       const cached = typeof kernelCache.get === 'function' ? kernelCache.get(lesson) : null;
-      if (cached) lessonContent[lessonId] = cached;
+      if (cached) restoredLessonContent[lessonId] = cached;
     });
   }
+  const { lessonContent, receipt: admissionRevalidation } = revalidatePersistedLessonContent(
+    restoredLessonContent,
+    courseMap,
+  );
   const enrichedLessonIds = Object.keys(lessonContent).sort();
   const enrichedLessonCount = enrichedLessonIds.length;
   const lessonEnriched = Boolean(lessonContent[`lesson-${lessonIndex + 1}`]);
@@ -173,5 +249,5 @@ export function compileBlueprintLessonPatch({
     onTextTierMatch,
   });
   if (!data) return null;
-  return { data, lessonEnriched, enrichedLessonCount, enrichedLessonIds };
+  return { data, lessonEnriched, enrichedLessonCount, enrichedLessonIds, admissionRevalidation };
 }

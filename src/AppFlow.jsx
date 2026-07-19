@@ -790,6 +790,29 @@ export default function AppFlow({
   const [lessonCount, setLessonCount] = useState(0);
   const [isDetectingLessons, setIsDetectingLessons] = useState(false);
   const workspaceTabsContainerRef = useRef(null);
+  const [workspaceTabScrollCues, setWorkspaceTabScrollCues] = useState({
+    backward: false,
+    forward: false,
+  });
+  const updateWorkspaceTabScrollCues = useCallback(() => {
+    const container = workspaceTabsContainerRef.current;
+    if (!container) return;
+    const next = {
+      backward: container.scrollLeft > 4,
+      forward: container.scrollLeft + container.clientWidth < container.scrollWidth - 4,
+    };
+    setWorkspaceTabScrollCues((previous) =>
+      previous.backward === next.backward && previous.forward === next.forward ? previous : next,
+    );
+  }, []);
+  const scrollWorkspaceTabs = useCallback((direction) => {
+    const container = workspaceTabsContainerRef.current;
+    if (!container) return;
+    container.scrollBy({
+      left: direction * Math.max(180, Math.round(container.clientWidth * 0.68)),
+      behavior: 'smooth',
+    });
+  }, []);
   const tabButtonRefs = useRef(new Map());
   const tabButtonRefCallbacks = useRef(new Map());
   const activeTabRef = useRef(activeTab);
@@ -838,19 +861,35 @@ export default function AppFlow({
   useEffect(() => {
     if (screen !== 'workspace') return undefined;
 
+    let cueFrame;
+    const container = workspaceTabsContainerRef.current;
+    updateWorkspaceTabScrollCues();
+    const resizeObserver =
+      container && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateWorkspaceTabScrollCues) : null;
+    resizeObserver?.observe(container);
     const revealActiveTab = () => {
       const button = tabButtonRefs.current.get(activeTab);
-      if (!workspaceTabsContainerRef.current || !button) return;
+      if (!container || !button) {
+        updateWorkspaceTabScrollCues();
+        return;
+      }
       button.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' });
+      cueFrame = window.requestAnimationFrame(updateWorkspaceTabScrollCues);
     };
 
     const frame = window.requestAnimationFrame(revealActiveTab);
-    window.addEventListener('resize', revealActiveTab);
+    const handleResize = () => {
+      revealActiveTab();
+      updateWorkspaceTabScrollCues();
+    };
+    window.addEventListener('resize', handleResize);
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener('resize', revealActiveTab);
+      if (cueFrame) window.cancelAnimationFrame(cueFrame);
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', handleResize);
     };
-  }, [activeTab, screen]);
+  }, [activeTab, screen, selectedFeatures, updateWorkspaceTabScrollCues]);
 
   // ── AI Context Menu (inline AI editing) ──
   const chatSendRef = useRef(null);
@@ -3160,245 +3199,281 @@ export default function AppFlow({
               drag-trash zone floats as a fixed pill during a drag, returning
               a full row of vertical rhythm. */}
           {workspaceTabs.length > 0 && (
-            <div
-              ref={workspaceTabsContainerRef}
-              data-testid="workspace-deliverable-tabs"
-              className="flex items-center gap-1 overflow-x-auto rounded-lg border border-slate-200/70 bg-white/76 p-1 shadow-sm scrollbar-hide"
-            >
-              {workspaceTabs.map((feature, tabIdx) => {
-                const isActive = activeTab === feature.id;
-                const delivState = deliv.deliverables[feature.id];
-                const isDone = delivState?.status === 'done';
-                const isError = delivState?.status === 'error';
-                const hasRepairNeededCoverage = buildRibbonModel?.pipelineChips?.some(
-                  (chip) => chip?.id === 'coverage' && chip?.warn,
-                );
-                const isCourseMapDone =
-                  feature.id === 'courseMap' &&
-                  packageReady &&
-                  buildRibbonModel?.stage === 'ready' &&
-                  !hasRepairNeededCoverage;
+            <div className="relative min-w-0">
+              <div
+                ref={workspaceTabsContainerRef}
+                data-testid="workspace-deliverable-tabs"
+                onScroll={updateWorkspaceTabScrollCues}
+                className="scrollbar-none flex items-center gap-1 overflow-x-auto rounded-lg border border-slate-200/70 bg-white/76 p-1 shadow-sm"
+              >
+                {workspaceTabs.map((feature, tabIdx) => {
+                  const isActive = activeTab === feature.id;
+                  const delivState = deliv.deliverables[feature.id];
+                  const isDone = delivState?.status === 'done';
+                  const isError = delivState?.status === 'error';
+                  const hasRepairNeededCoverage = buildRibbonModel?.pipelineChips?.some(
+                    (chip) => chip?.id === 'coverage' && chip?.warn,
+                  );
+                  const isCourseMapDone =
+                    feature.id === 'courseMap' &&
+                    packageReady &&
+                    buildRibbonModel?.stage === 'ready' &&
+                    !hasRepairNeededCoverage;
 
-                // Cascade sync badges
-                const hasUnseen = unseenChanges.has(feature.id);
-                const isStaleTab = deliv.deliverables[feature.id]?.stale === true;
-                const staleConf = deliv.deliverables[feature.id]?.staleConfidence;
-                // isSyncingThis: either regenerateLesson set currentFeature, or
-                // the latest syncLog entry for this feature is a pending 'start'
-                const lastSyncEntry =
-                  smartSync.isSyncing && smartSync.syncLog.length > 0
-                    ? [...smartSync.syncLog].reverse().find((e) => e.featureId === feature.id)
-                    : null;
-                // Change #1: Use syncingFeatures set for parallel-aware badge
-                const isSyncingThis =
-                  smartSync.syncingFeatures?.has(feature.id) ||
-                  (smartSync.isSyncing && (deliv.currentFeatures?.has(feature.id) || lastSyncEntry?.type === 'start'));
+                  // Cascade sync badges
+                  const hasUnseen = unseenChanges.has(feature.id);
+                  const isStaleTab = deliv.deliverables[feature.id]?.stale === true;
+                  const staleConf = deliv.deliverables[feature.id]?.staleConfidence;
+                  // isSyncingThis: either regenerateLesson set currentFeature, or
+                  // the latest syncLog entry for this feature is a pending 'start'
+                  const lastSyncEntry =
+                    smartSync.isSyncing && smartSync.syncLog.length > 0
+                      ? [...smartSync.syncLog].reverse().find((e) => e.featureId === feature.id)
+                      : null;
+                  // Change #1: Use syncingFeatures set for parallel-aware badge
+                  const isSyncingThis =
+                    smartSync.syncingFeatures?.has(feature.id) ||
+                    (smartSync.isSyncing &&
+                      (deliv.currentFeatures?.has(feature.id) || lastSyncEntry?.type === 'start'));
 
-                const isDraggingThis = tabDrag?.id === feature.id;
-                const isDropTarget =
-                  tabDrag?.moved && !tabDrag?.overDelete && tabDrag?.overIndex === tabIdx && !isDraggingThis;
-                const markerAfter = isDropTarget && tabDrag.index < tabIdx;
-                const insertionMarker = (
-                  <span
-                    aria-hidden="true"
-                    className="mx-0.5 h-7 w-1 flex-shrink-0 rounded-full bg-indigo-400 shadow-[0_0_0_4px_rgba(99,102,241,0.16)] animate-spring-in"
-                  />
-                );
+                  const isDraggingThis = tabDrag?.id === feature.id;
+                  const isDropTarget =
+                    tabDrag?.moved && !tabDrag?.overDelete && tabDrag?.overIndex === tabIdx && !isDraggingThis;
+                  const markerAfter = isDropTarget && tabDrag.index < tabIdx;
+                  const insertionMarker = (
+                    <span
+                      aria-hidden="true"
+                      className="mx-0.5 h-7 w-1 flex-shrink-0 rounded-full bg-indigo-400 shadow-[0_0_0_4px_rgba(99,102,241,0.16)] animate-spring-in"
+                    />
+                  );
 
-                return (
-                  <React.Fragment key={feature.id}>
-                    {isDropTarget && !markerAfter && insertionMarker}
-                    <button
-                      ref={getTabButtonRef(feature.id)}
-                      onPointerDown={handleTabPointerDown(feature, tabIdx)}
-                      onPointerMove={handleTabPointerMove(feature.id)}
-                      onPointerUp={handleTabPointerUp(feature.id)}
-                      onPointerCancel={handleTabPointerCancel(feature.id)}
-                      onMouseEnter={(e) => {
-                        if (tabDrag || feature.id === 'courseMap') return;
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        handleCascadeHover({
-                          featureId: feature.id,
-                          fieldKey: null,
-                          position: { x: rect.left, y: rect.bottom + 8 },
-                        });
-                      }}
-                      onMouseLeave={() => handleCascadeHover(null)}
-                      onClick={() => {
-                        if (suppressTabClickRef.current) return;
-                        setActiveTab(feature.id);
-                        // Clear unseen badge when user clicks the tab
-                        if (hasUnseen) {
-                          setUnseenChanges((prev) => {
-                            const next = new Set(prev);
-                            next.delete(feature.id);
-                            return next;
+                  return (
+                    <React.Fragment key={feature.id}>
+                      {isDropTarget && !markerAfter && insertionMarker}
+                      <button
+                        ref={getTabButtonRef(feature.id)}
+                        onPointerDown={handleTabPointerDown(feature, tabIdx)}
+                        onPointerMove={handleTabPointerMove(feature.id)}
+                        onPointerUp={handleTabPointerUp(feature.id)}
+                        onPointerCancel={handleTabPointerCancel(feature.id)}
+                        onMouseEnter={(e) => {
+                          if (tabDrag || feature.id === 'courseMap') return;
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          handleCascadeHover({
+                            featureId: feature.id,
+                            fieldKey: null,
+                            position: { x: rect.left, y: rect.bottom + 8 },
                           });
-                        }
-                      }}
-                      aria-pressed={isActive}
-                      className={`tactile flex min-h-11 flex-shrink-0 cursor-grab touch-none select-none items-center gap-2 whitespace-nowrap rounded-md px-3 text-xs font-semibold transition-all duration-200 active:cursor-grabbing lg:min-h-0 lg:py-1.5 ${
-                        isDraggingThis
-                          ? 'opacity-20 scale-95'
-                          : isDropTarget
-                            ? 'scale-[1.03] -translate-y-0.5 bg-indigo-50 text-indigo-600'
-                            : isActive
-                              ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
-                              : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'
-                      }`}
-                    >
-                      {/* v0.14.4 WS-B3: rainbow status dots removed — build
+                        }}
+                        onMouseLeave={() => handleCascadeHover(null)}
+                        onClick={() => {
+                          if (suppressTabClickRef.current) return;
+                          setActiveTab(feature.id);
+                          // Clear unseen badge when user clicks the tab
+                          if (hasUnseen) {
+                            setUnseenChanges((prev) => {
+                              const next = new Set(prev);
+                              next.delete(feature.id);
+                              return next;
+                            });
+                          }
+                        }}
+                        aria-pressed={isActive}
+                        className={`tactile flex min-h-11 flex-shrink-0 cursor-grab touch-none select-none items-center gap-2 whitespace-nowrap rounded-md px-3 text-xs font-semibold transition-all duration-200 active:cursor-grabbing lg:min-h-0 lg:py-1.5 ${
+                          isDraggingThis
+                            ? 'opacity-20 scale-95'
+                            : isDropTarget
+                              ? 'scale-[1.03] -translate-y-0.5 bg-indigo-50 text-indigo-600'
+                              : isActive
+                                ? 'bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950'
+                                : 'text-slate-500 hover:bg-slate-100/80 hover:text-slate-700'
+                        }`}
+                      >
+                        {/* v0.14.4 WS-B3: rainbow status dots removed — build
                           progress lives in the ribbon. Tabs keep only a
                           per-tab ready tick (and a red cross on failure);
                           stale/unseen still use the text suffixes below. */}
-                      <TabReadyTick
-                        status={
-                          feature.id === 'courseMap'
-                            ? isCourseMapDone
-                              ? 'done'
-                              : null
-                            : isDone
-                              ? 'done'
-                              : isError
-                                ? 'error'
+                        <TabReadyTick
+                          status={
+                            feature.id === 'courseMap'
+                              ? isCourseMapDone
+                                ? 'done'
                                 : null
-                        }
-                      />
-                      {feature.label}
-                      {isStaleTab && !isSyncingThis
-                        ? staleConf?.level === 'high'
-                          ? ' ⚠'
-                          : ' ~'
-                        : hasUnseen
-                          ? ' *'
-                          : ''}
-                    </button>
-                    {isDropTarget && markerAfter && insertionMarker}
-                  </React.Fragment>
-                );
-              })}
-
-              {/* ── + Add deliverable button ── */}
-              {gen.progressStep === 'done' &&
-                (() => {
-                  const allFeatsForAdd = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
-                  const unselected = allFeatsForAdd.filter(
-                    (f) => f.id !== 'courseMap' && !selectedFeatures.includes(f.id),
+                              : isDone
+                                ? 'done'
+                                : isError
+                                  ? 'error'
+                                  : null
+                          }
+                        />
+                        {feature.label}
+                        {isStaleTab && !isSyncingThis
+                          ? staleConf?.level === 'high'
+                            ? ' ⚠'
+                            : ' ~'
+                          : hasUnseen
+                            ? ' *'
+                            : ''}
+                      </button>
+                      {isDropTarget && markerAfter && insertionMarker}
+                    </React.Fragment>
                   );
+                })}
+
+                {/* ── + Add deliverable button ── */}
+                {gen.progressStep === 'done' &&
+                  (() => {
+                    const allFeatsForAdd = [...FEATURES, ...listCustomDeliverables().map(toFeatureEntry)];
+                    const unselected = allFeatsForAdd.filter(
+                      (f) => f.id !== 'courseMap' && !selectedFeatures.includes(f.id),
+                    );
+                    return (
+                      <AddDeliverableButton
+                        unselected={unselected}
+                        showAddDeliverable={showAddDeliverable}
+                        setShowAddDeliverable={setShowAddDeliverable}
+                        onAdd={(feature) => {
+                          setSelectedFeatures((prev) => [...prev, feature.id]);
+                          setActiveTab(feature.id);
+                          setShowAddDeliverable(false);
+                          const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                          deliv.generateAll(courseMap, [feature.id], scopeIndices);
+                        }}
+                        onCreateCustom={() => setShowCustomBuilder(true)}
+                      />
+                    );
+                  })()}
+
+                {/* v0.14.4 WS-B3: the "Generating 0/9…" counter moved into the
+                  build ribbon's compile stage label. */}
+
+                {/* Sync All Stale button — appears when any deliverable is stale */}
+                {(() => {
+                  const staleCount = selectedFeatures.filter(
+                    (f) => f !== 'courseMap' && deliv.deliverables[f]?.stale === true,
+                  ).length;
+                  if (staleCount === 0 || deliv.isGenerating || smartSync.isSyncing) return null;
                   return (
-                    <AddDeliverableButton
-                      unselected={unselected}
-                      showAddDeliverable={showAddDeliverable}
-                      setShowAddDeliverable={setShowAddDeliverable}
-                      onAdd={(feature) => {
-                        setSelectedFeatures((prev) => [...prev, feature.id]);
-                        setActiveTab(feature.id);
-                        setShowAddDeliverable(false);
-                        const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                        deliv.generateAll(courseMap, [feature.id], scopeIndices);
+                    <button
+                      onClick={() => {
+                        const staleIds = selectedFeatures.filter(
+                          (f) => f !== 'courseMap' && deliv.deliverables[f]?.stale === true,
+                        );
+                        for (const fid of staleIds) {
+                          const se = deliv.deliverables[fid]?.staleEdits;
+                          if (se?.lessonIndices?.length > 0) {
+                            for (const idx of se.lessonIndices) {
+                              deliv.regenerateLesson(fid, courseMap, idx);
+                            }
+                          } else {
+                            const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
+                            deliv.generateAll(courseMap, [fid], scopeIndices);
+                          }
+                        }
                       }}
-                      onCreateCustom={() => setShowCustomBuilder(true)}
-                    />
+                      className="tactile flex items-center gap-1.5 ml-2 px-3 py-1.5 rounded-pill text-xs font-semibold text-amber-700 bg-amber-50/70 border border-amber-200/60 hover:bg-amber-100 transition-all duration-200 whitespace-nowrap flex-shrink-0"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                      Sync all stale ({staleCount})
+                    </button>
                   );
                 })()}
 
-              {/* v0.14.4 WS-B3: the "Generating 0/9…" counter moved into the
-                  build ribbon's compile stage label. */}
+                {/* Deliverable undo/redo — appears when deliverable edits have been made */}
+                {(delivUndo.canUndo || delivUndo.canRedo) && !gen.isStreaming && (
+                  <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                    <button
+                      onClick={() => delivUndo.undo(deliv.setDeliverables)}
+                      disabled={!delivUndo.canUndo}
+                      className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canUndo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
+                      title="Undo deliverable edit"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => delivUndo.redo(deliv.setDeliverables)}
+                      disabled={!delivUndo.canRedo}
+                      className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canRedo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
+                      title="Redo deliverable edit"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
 
-              {/* Sync All Stale button — appears when any deliverable is stale */}
-              {(() => {
-                const staleCount = selectedFeatures.filter(
-                  (f) => f !== 'courseMap' && deliv.deliverables[f]?.stale === true,
-                ).length;
-                if (staleCount === 0 || deliv.isGenerating || smartSync.isSyncing) return null;
-                return (
+                {/* v0.14.9 B3: the dependency-map control, folded in from its
+                  deleted standalone row. ml-auto keeps it at the right edge
+                  whenever the tabs leave room. */}
+                {workspaceTabs.length > 1 && (
                   <button
-                    onClick={() => {
-                      const staleIds = selectedFeatures.filter(
-                        (f) => f !== 'courseMap' && deliv.deliverables[f]?.stale === true,
-                      );
-                      for (const fid of staleIds) {
-                        const se = deliv.deliverables[fid]?.staleEdits;
-                        if (se?.lessonIndices?.length > 0) {
-                          for (const idx of se.lessonIndices) {
-                            deliv.regenerateLesson(fid, courseMap, idx);
-                          }
-                        } else {
-                          const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
-                          deliv.generateAll(courseMap, [fid], scopeIndices);
-                        }
-                      }
-                    }}
-                    className="tactile flex items-center gap-1.5 ml-2 px-3 py-1.5 rounded-pill text-xs font-semibold text-amber-700 bg-amber-50/70 border border-amber-200/60 hover:bg-amber-100 transition-all duration-200 whitespace-nowrap flex-shrink-0"
-                  >
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    Sync all stale ({staleCount})
-                  </button>
-                );
-              })()}
-
-              {/* Deliverable undo/redo — appears when deliverable edits have been made */}
-              {(delivUndo.canUndo || delivUndo.canRedo) && !gen.isStreaming && (
-                <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                  <button
-                    onClick={() => delivUndo.undo(deliv.setDeliverables)}
-                    disabled={!delivUndo.canUndo}
-                    className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canUndo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
-                    title="Undo deliverable edit"
+                    onClick={() => setShowDepMap(true)}
+                    className="tactile ml-auto flex-shrink-0 p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200"
+                    title="Dependency Map — see how deliverables connect"
+                    aria-label="Open dependency map"
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4"
+                        d="M4 6h16M4 12h8m-8 6h16M16 12l4-4m0 0l-4-4m4 4H12"
                       />
                     </svg>
                   </button>
+                )}
+              </div>
+              {workspaceTabScrollCues.backward && (
+                <div className="pointer-events-none absolute inset-y-1 left-1 z-20 flex items-center bg-gradient-to-r from-white via-white/95 to-transparent pr-5 dark:from-slate-950 dark:via-slate-950/95 lg:hidden">
                   <button
-                    onClick={() => delivUndo.redo(deliv.setDeliverables)}
-                    disabled={!delivUndo.canRedo}
-                    className={`tactile p-1.5 rounded-full transition-all duration-200 ${delivUndo.canRedo ? 'text-slate-500 hover:bg-white/60 hover:text-indigo-500' : 'text-slate-300 cursor-not-allowed'}`}
-                    title="Redo deliverable edit"
+                    type="button"
+                    data-testid="workspace-materials-previous"
+                    onClick={() => scrollWorkspaceTabs(-1)}
+                    className="pointer-events-auto tactile flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                    aria-label="Show previous materials"
+                    title="Show previous materials"
                   >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4"
-                      />
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
                 </div>
               )}
-
-              {/* v0.14.9 B3: the dependency-map control, folded in from its
-                  deleted standalone row. ml-auto keeps it at the right edge
-                  whenever the tabs leave room. */}
-              {workspaceTabs.length > 1 && (
-                <button
-                  onClick={() => setShowDepMap(true)}
-                  className="tactile ml-auto flex-shrink-0 p-1.5 rounded-full text-slate-400 hover:bg-white/60 hover:text-indigo-500 transition-all duration-200"
-                  title="Dependency Map — see how deliverables connect"
-                  aria-label="Open dependency map"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h8m-8 6h16M16 12l4-4m0 0l-4-4m4 4H12"
-                    />
-                  </svg>
-                </button>
+              {workspaceTabScrollCues.forward && (
+                <div className="pointer-events-none absolute inset-y-1 right-1 z-20 flex items-center bg-gradient-to-l from-white via-white/95 to-transparent pl-5 dark:from-slate-950 dark:via-slate-950/95 lg:hidden">
+                  <button
+                    type="button"
+                    data-testid="workspace-materials-next"
+                    onClick={() => scrollWorkspaceTabs(1)}
+                    className="pointer-events-auto tactile flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md hover:border-indigo-200 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                    aria-label="Show more materials"
+                    title="Show more materials"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               )}
             </div>
           )}
@@ -3889,8 +3964,8 @@ export default function AppFlow({
                       const scopeIndices = lessonScope.type === 'specific' ? lessonScope.indices : null;
                       deliv.generateAll(courseMap, [activeTab], scopeIndices);
                     }}
-                    onRegenerateLesson={(lessonIndex) => {
-                      deliv.regenerateLesson(activeTab, courseMap, lessonIndex);
+                    onRegenerateLesson={(lessonIndex, regenerationOptions) => {
+                      deliv.regenerateLesson(activeTab, courseMap, lessonIndex, regenerationOptions);
                     }}
                     onDataChange={(newData, editPath) => {
                       const oldData = deliv.deliverables[activeTab]?.data;

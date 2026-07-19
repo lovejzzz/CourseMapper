@@ -52,6 +52,8 @@ export function getDeveloperRuntimeDiagnostics(snapshot = {}, dirtyCount = 0) {
   const deliverables = isPlainObject(snapshot.deliverables) ? snapshot.deliverables : {};
   const deliverableConfig = isPlainObject(snapshot.deliverableConfig) ? snapshot.deliverableConfig : {};
   const columns = Array.isArray(snapshot.columns) ? snapshot.columns : [];
+  const runReceipt = isPlainObject(snapshot.apiCallBudgetReceipt) ? snapshot.apiCallBudgetReceipt : {};
+  const enrichmentOutcome = isPlainObject(runReceipt.enrichmentOutcome) ? runReceipt.enrichmentOutcome : {};
   const selectedDeliverables = selectedFeatures.filter((feature) => feature !== 'courseMap');
   const deliverableEntries = Object.entries(deliverables);
   const statusCounts = deliverableEntries.reduce((counts, [, output]) => {
@@ -78,6 +80,16 @@ export function getDeveloperRuntimeDiagnostics(snapshot = {}, dirtyCount = 0) {
     .map(([featureId]) => featureId);
   const snapshotBytes = byteSize(snapshot);
   const enabledColumns = columns.filter((column) => column?.enabled !== false).length;
+  const knowledgeRequested = Math.max(0, Number(enrichmentOutcome.requestedLessons) || 0);
+  const knowledgeEnriched = Math.max(
+    0,
+    Math.min(knowledgeRequested || Infinity, Number(enrichmentOutcome.enrichedLessons) || 0),
+  );
+  const missingKnowledgeLessons = Array.isArray(enrichmentOutcome.missingLessons)
+    ? enrichmentOutcome.missingLessons.map(Number).filter((lesson) => Number.isSafeInteger(lesson) && lesson > 0)
+    : [];
+  const streamRetries = Math.max(0, Number(runReceipt.streamRetryCalls) || 0);
+  const failedRequests = Math.max(0, Number(runReceipt.failedCalls) || 0);
   const risks = [];
 
   if (!snapshot.provider) {
@@ -120,6 +132,37 @@ export function getDeveloperRuntimeDiagnostics(snapshot = {}, dirtyCount = 0) {
       'Missing Outputs',
       `${missingSelectedIds.map(titleFromId).join(', ')} selected but not generated.`,
       'deliverables',
+    );
+  }
+  if (knowledgeRequested > knowledgeEnriched) {
+    const lessonCue =
+      missingKnowledgeLessons.length > 0
+        ? ` Lessons ${missingKnowledgeLessons.join(', ')} used compiler fallback.`
+        : '';
+    addRisk(
+      risks,
+      'warning',
+      'Knowledge Coverage Gap',
+      `${knowledgeEnriched}/${knowledgeRequested} lesson kernels passed semantic admission.${lessonCue}`,
+      'apiCallBudgetReceipt.enrichmentOutcome',
+    );
+  }
+  if (failedRequests > 0) {
+    addRisk(
+      risks,
+      'warning',
+      'Model Requests Failed',
+      `${failedRequests} model request${failedRequests === 1 ? '' : 's'} failed in the latest build; inspect the fallback output before publishing.`,
+      'apiCallBudgetReceipt.failedCalls',
+    );
+  }
+  if (streamRetries > 0) {
+    addRisk(
+      risks,
+      'info',
+      'Model Retries',
+      `${streamRetries} local retry attempt${streamRetries === 1 ? '' : 's'} were needed in the latest build.`,
+      'apiCallBudgetReceipt.streamRetryCalls',
     );
   }
   if (promptRiskIds.length > 0) {
@@ -175,6 +218,10 @@ export function getDeveloperRuntimeDiagnostics(snapshot = {}, dirtyCount = 0) {
       missingSelected: missingSelectedIds.length,
       promptOverrides: promptOverrideIds.length,
       promptRisks: promptRiskIds.length,
+      knowledgeRequested,
+      knowledgeEnriched,
+      streamRetries,
+      failedRequests,
       enabledColumns,
       columns: columns.length,
       snapshotBytes,
