@@ -107,7 +107,7 @@ BASE_PATH=$(
     --revision "$BASE_REVISION" \
     --cache-dir "$MODEL_CACHE"
 )
-TOOLCHAIN_RECEIPT=$(mktemp "${TMPDIR:-/tmp}/scion-toolchain.XXXXXX.json")
+TOOLCHAIN_RECEIPT=$(mktemp "${TMPDIR:-/tmp}/scion-toolchain.XXXXXX")
 trap 'rm -f "$TOOLCHAIN_RECEIPT"' EXIT
 "$PYTHON" trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py --inspect-toolchain > "$TOOLCHAIN_RECEIPT"
 "$PYTHON" trellis/tendril/distill/scion_seeded_mlx_vlm_lora.py --mlx-self-test
