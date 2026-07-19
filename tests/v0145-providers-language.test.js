@@ -426,6 +426,81 @@ describe('F2 — compiled render sites (lesson plan practice block + study guide
     expect(term.romanization).toBe('nǐ hǎo');
   });
 
+  it('projects an admitted Hanzi-Pinyin fact when the model key terms are Latin-only', () => {
+    const blueprint = buildCourseBlueprint(mandarinCourseMap(), {
+      enrichment: {
+        source: 'test-enrichment',
+        lessonContent: {
+          'lesson-1': {
+            quizItems: [],
+            keyTerms: [
+              {
+                term: 'Tone contour',
+                definition: 'A pitch movement that distinguishes lexical meaning.',
+                example: 'Learners compare the four Mandarin tones.',
+              },
+            ],
+            kernel: { facts: ['妈 (mā) means mother.'] },
+          },
+        },
+      },
+    });
+
+    const guide = compileBlueprintDeliverable('studyGuides', blueprint, { skipLanguageFinalizer: true })
+      .studyGuides[0];
+    expect(guide.keyTerms).toContainEqual(
+      expect.objectContaining({
+        term: '妈 (mā)',
+        scriptTerm: '妈',
+        romanization: 'mā',
+        definition: '妈 means mother.',
+        enrichmentSource: 'admitted-language-pair',
+      }),
+    );
+  });
+
+  it('keeps an admitted language pair in a cumulative exam-day guide', () => {
+    const courseMap = mandarinCourseMap();
+    courseMap.lessons.push({
+      title: 'Lesson 2: Final exam',
+      sections: [
+        {
+          topicSection: 'cumulative Mandarin review',
+          learningObjectives: 'Demonstrate cumulative beginner Mandarin proficiency.',
+          weeklyAssessments: 'Final exam (40%)',
+          asyncActivities: 'Review the course study guides.',
+          syncActivities: 'Complete the final exam.',
+          supportingResources: 'Course study guides',
+        },
+      ],
+    });
+    const blueprint = buildCourseBlueprint(courseMap, {
+      enrichment: {
+        source: 'test-enrichment',
+        lessonContent: {
+          'lesson-1': {
+            quizItems: [],
+            keyTerms: [
+              {
+                term: 'Tone contour',
+                definition: 'A pitch movement that distinguishes lexical meaning.',
+                example: 'Learners compare the four Mandarin tones.',
+              },
+            ],
+            kernel: { facts: ['妈 (mā) means mother.'] },
+          },
+        },
+      },
+    });
+
+    const examGuide = compileBlueprintDeliverable('studyGuides', blueprint, { skipLanguageFinalizer: true })
+      .studyGuides[1];
+    expect(examGuide.examDay).toBe(true);
+    expect(examGuide.keyTerms).toContainEqual(
+      expect.objectContaining({ term: '妈 (mā)', romanization: 'mā', enrichmentSource: 'admitted-language-pair' }),
+    );
+  });
+
   it('no dialogue → no block; non-language courses are untouched', () => {
     const noDialogue = compileBlueprintDeliverable('lessonPlans', mandarinBlueprint({ dialogue: null }), {
       skipLanguageFinalizer: true,

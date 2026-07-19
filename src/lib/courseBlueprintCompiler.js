@@ -17627,6 +17627,48 @@ function displayKeyTermName(term) {
   return romanization && !name.includes(romanization) ? `${name} (${romanization})` : name;
 }
 
+const CJK_PINYIN_PAIR_RE =
+  /([\u3400-\u4dbf\u4e00-\u9fff]{1,12})\s*[（(]([^（）()]{1,64})[）)]\s+means\s+([^.;]{1,120})/i;
+const CJK_SCRIPT_RE = /[\u3400-\u4dbf\u4e00-\u9fff]/;
+const TONE_MARKED_PINYIN_TOKEN_RE = /[a-zü]*[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/i;
+
+/**
+ * Recover one already-admitted learner-language pair from the lesson kernel.
+ * Scion's Mandarin contract guarantees facts in the form
+ * "你好 (nǐ hǎo) means hello.". Some valid kernels use Latin-script key
+ * terms, though, so the study-guide projection used to hide that pair. This
+ * parser never transliterates or supplies a meaning; it only republishes
+ * evidence that already cleared kernel admission.
+ */
+function admittedLanguagePairTerm(lesson = {}) {
+  const facts = Array.isArray(lesson?.enrichment?.kernel?.facts) ? lesson.enrichment.kernel.facts : [];
+  for (const fact of facts) {
+    const match = cleanText(fact).match(CJK_PINYIN_PAIR_RE);
+    if (!match || !TONE_MARKED_PINYIN_TOKEN_RE.test(match[2])) continue;
+    const scriptTerm = cleanText(match[1]);
+    const romanization = cleanText(match[2]);
+    const meaning = cleanText(match[3]);
+    if (!scriptTerm || !romanization || !meaning) continue;
+    return {
+      term: `${scriptTerm} (${romanization})`,
+      scriptTerm,
+      romanization,
+      definition: `${scriptTerm} means ${meaning}.`,
+      example: cleanText(fact),
+      enrichmentSource: 'admitted-language-pair',
+    };
+  }
+  return null;
+}
+
+function hasVisibleLanguagePair(terms = []) {
+  return terms.some((term) => {
+    const name = cleanText(term?.term);
+    return CJK_SCRIPT_RE.test(name) &&
+      TONE_MARKED_PINYIN_TOKEN_RE.test(`${name} ${cleanText(term?.romanization)}`);
+  });
+}
+
 function enrichedKeyTermsForLesson(lesson, { fallback }) {
   const enriched = lesson?.enrichment?.keyTerms;
   if (!Array.isArray(enriched) || enriched.length === 0) return fallback();
@@ -17638,7 +17680,7 @@ function enrichedKeyTermsForLesson(lesson, { fallback }) {
   // CurriculumOS V1: a genome-linked term carries a source citation; surface it
   // so the study guide can render "Source: …". Compiler-only terms have none.
   const linked = lesson?.enrichment?.conceptProvenance?.source === 'genome-linked';
-  return safeEnriched.map((term) => ({
+  const projected = safeEnriched.map((term) => ({
     term: displayKeyTermName(term),
     // v0.14.5 (F1): keep the STRUCTURED script/romanization pair alongside the
     // display form so package-time consumers (the generated pronunciation
@@ -17652,6 +17694,8 @@ function enrichedKeyTermsForLesson(lesson, { fallback }) {
     ...(term.source ? { source: term.source } : {}),
     enrichmentSource: linked ? 'genome-linked' : 'lesson-content-enrichment',
   }));
+  const admittedPair = admittedLanguagePairTerm(lesson);
+  return admittedPair && !hasVisibleLanguagePair(projected) ? [...projected, admittedPair] : projected;
 }
 
 /**
@@ -20055,6 +20099,13 @@ function buildExamDayStudyGuide(blueprint, lesson) {
         })),
     )
     .slice(0, 10);
+  const admittedPair = covered.map((coveredLesson) => admittedLanguagePairTerm(coveredLesson)).find(Boolean) || null;
+  if (admittedPair && !hasVisibleLanguagePair(keyTerms)) {
+    // Preserve the ten-term reading measure while ensuring the cumulative
+    // guide visibly rehearses at least one already-taught language pair.
+    if (keyTerms.length >= 10) keyTerms.pop();
+    keyTerms.push(admittedPair);
+  }
   const misconceptions = covered
     .flatMap((coveredLesson) =>
       (coveredLesson?.enrichment?.keyTerms || [])
