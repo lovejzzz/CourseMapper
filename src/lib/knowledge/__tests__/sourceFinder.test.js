@@ -103,7 +103,7 @@ describe('source finder mini-shard', () => {
     });
 
     expect(first.temporary).toBe(true);
-    expect(first.id).toContain('source-finder-v4');
+    expect(first.id).toContain('source-finder-v5');
     expect(first.stats).toMatchObject({ topics: 2, topicsWithSources: 2, sources: 4, cacheHits: 0 });
     expect(second.stats.cacheHits).toBe(2);
     expect(providers.searchScholarlyReadings).toHaveBeenCalledTimes(2);
@@ -600,6 +600,69 @@ describe('source finder mini-shard', () => {
     const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
     expect(titles).toContain('Risk management in software projects: registers, controls, and stakeholder review');
     expect(titles).not.toContain('Global Burden of Cardiovascular Diseases and Risk Factors, 1990-2019');
+  }, 15000);
+
+  it('rejects Japanese writing-system false friends for a Mandarin character lesson', async () => {
+    const graph = createEmptyCourseGraph({ courseName: 'Elementary Mandarin Chinese I' });
+    graph.sessions = [
+      {
+        id: 's8',
+        number: 8,
+        title: 'Lesson 8: Basic Characters and Reading',
+        sections: [{ topic: '8.1: Basic Characters' }],
+      },
+    ];
+    graph.concepts = [{ id: 'c8', term: 'Basic Characters' }];
+    graph.edges.teaches = [{ from: 's8', to: 'c8' }];
+
+    const miniShard = await findCourseSources(graph, {
+      storage: memoryStorage(),
+      maxTopics: 1,
+      limitPerTopic: 2,
+      minUsefulSources: 1,
+      providers: {
+        searchScholarlyReadings: vi.fn(async () => []),
+        searchCrossrefWorks: vi.fn(async () => [
+          source('crossref', 'Basic Chinese characters for beginning Mandarin reading', {
+            abstract:
+              'A Mandarin reading study about basic Chinese characters, character recognition, and beginner vocabulary.',
+          }),
+        ]),
+        searchWikipediaPages: vi.fn(async () => [
+          source('wikipedia', 'Kanji', {
+            abstract:
+              'Kanji are logographic characters used in Japanese writing alongside hiragana and katakana.',
+          }),
+        ]),
+      },
+    });
+
+    const titles = miniShard.topics.flatMap((topic) => topic.sources.map((item) => item.title));
+    expect(titles).toContain('Basic Chinese characters for beginning Mandarin reading');
+    expect(titles).not.toContain('Kanji');
+
+    // The attach boundary re-checks legacy/cached shards too; a stale v4
+    // packet cannot reintroduce the same foreign-language citation.
+    const staleShard = {
+      ...miniShard,
+      topics: [
+        {
+          ...miniShard.topics[0],
+          sources: [
+            source('wikipedia', 'Kanji', {
+              abstract:
+                'Kanji are logographic characters used in Japanese writing alongside hiragana and katakana.',
+            }),
+            ...miniShard.topics[0].sources,
+          ],
+        },
+      ],
+    };
+    const attached = attachSourceFinderResources(graph, staleShard, { maxSourcesPerTopic: 2 });
+    expect(attached).toBe(1);
+    expect(graph.resources.map((resource) => resource.title)).toEqual([
+      'Basic Chinese characters for beginning Mandarin reading',
+    ]);
   }, 15000);
 
   it('rejects temporal and biomedical interval false friends for an abstractly titled music course', async () => {

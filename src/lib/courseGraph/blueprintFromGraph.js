@@ -13,6 +13,7 @@
  */
 
 import { buildCourseBlueprint } from '../courseBlueprintCompiler.js';
+import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.js';
 import { repairScionEnrichmentAnswerKeys } from '../scionAnswerKeyAlignment.js';
 import { renderCourseMapFromGraph } from './renderCourseMap.js';
 
@@ -128,13 +129,44 @@ const KNOWLEDGE_BACKBONE_ORIGINS = new Set([
   'source-finder',
 ]);
 
+function compilerSafeKnowledgeGraph(graph) {
+  const courseIdentity = graph?.course?.name || graph?.courseName || graph?.title || '';
+  const rejectedIds = new Set(
+    (graph?.resources || [])
+      .filter((resource) => KNOWLEDGE_BACKBONE_ORIGINS.has(resource?.origin))
+      .filter((resource) =>
+        detectForeignLanguageTeachingContent({
+          courseIdentity,
+          text: `${resource?.title || ''} ${resource?.citation || ''} ${resource?.snippet || ''} ${
+            resource?.evidence || ''
+          }`,
+        }),
+      )
+      .map((resource) => resource.id)
+      .filter(Boolean),
+  );
+  if (rejectedIds.size === 0) return graph;
+  return {
+    ...graph,
+    resources: (graph.resources || []).filter((resource) => !rejectedIds.has(resource?.id)),
+    sessions: (graph.sessions || []).map((session) => ({
+      ...session,
+      sections: (session.sections || []).map((section) => ({
+        ...section,
+        resourceRefs: (section.resourceRefs || []).filter((id) => !rejectedIds.has(id)),
+      })),
+    })),
+  };
+}
+
 /** Compile a course blueprint from the graph (render + enrichment overlay). */
 export function buildBlueprintFromGraph(graph, options = {}) {
+  const safeGraph = compilerSafeKnowledgeGraph(graph);
   // The compile render is CANONICAL (no display reference suffixes) — the
   // registry, not cell text, carries assessment identity into the compiler.
-  const courseMap = renderCourseMapFromGraph(graph);
+  const courseMap = renderCourseMapFromGraph(safeGraph);
   const graphEnrichment = enrichmentFromGraph(graph);
-  const knowledgeResources = (graph?.resources || []).filter((resource) =>
+  const knowledgeResources = (safeGraph?.resources || []).filter((resource) =>
     KNOWLEDGE_BACKBONE_ORIGINS.has(resource?.origin),
   );
   // v0.14.1 (3.2): the assessment registry IS the blueprint's assessment

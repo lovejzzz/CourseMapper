@@ -20,6 +20,7 @@ import {
 } from './providers.js';
 import { isCourseAwareWeakSource, isLicenseAmbiguous } from './sourceLedger.js';
 import { isMusicIntervalWeakSource } from './musicSourceRelevance.js';
+import { detectForeignLanguageTeachingContent } from '../languageIdentityGuard.js';
 
 export const SOURCE_FINDER_ORIGIN = 'source-finder';
 
@@ -27,7 +28,7 @@ export const SOURCE_FINDER_ORIGIN = 'source-finder';
 // Cached sources are already ranked/filtered, so reusing a v2 shard would
 // keep known homonym failures (for example "Staff (military)" in music
 // theory) even after the live filter became stricter.
-const SOURCE_FINDER_VERSION = 'source-finder-v4';
+const SOURCE_FINDER_VERSION = 'source-finder-v5';
 const CACHE_PREFIX = 'cm-source-finder:';
 const SNIPPET_LIMIT = 320;
 const DEFAULT_MAX_TOPICS = 8;
@@ -204,7 +205,7 @@ function topicContext(topic) {
 
 function sourceContext(source) {
   return cleanText(
-    `${source?.title || ''} ${source?.snippet || ''} ${source?.primaryTopic?.name || ''} ${
+    `${source?.title || ''} ${source?.snippet || source?.abstract || source?.description || ''} ${source?.primaryTopic?.name || ''} ${
       source?.primaryTopic?.field || ''
     } ${source?.primaryTopic?.domain || ''} ${(source?.topics || []).map((topic) => topic?.name || '').join(' ')}`,
   ).toLowerCase();
@@ -278,6 +279,14 @@ function sourcePassesDisciplineAnchor(source, topic) {
   const topicText = topicContext(topic);
   const sourceText = sourceContext(source);
   if (isMusicIntervalWeakSource(sourceText, topicText, topic?.query || topic?.topic || '')) return false;
+  if (
+    detectForeignLanguageTeachingContent({
+      courseIdentity: topic?.courseName || '',
+      text: sourceText,
+    })
+  ) {
+    return false;
+  }
   for (const gate of DISCIPLINE_ANCHOR_GATES) {
     if (gate.applies.test(topicText) && gate.unlessTopic?.test(topicText)) continue;
     if (gate.applies.test(topicText) && !gate.source.test(sourceText)) return false;
@@ -671,6 +680,10 @@ function attachableTopicSources(graph, miniShard, topic) {
     (source) =>
       (source?.url || source?.doi) &&
       !isLicenseAmbiguous(source?.license) &&
+      !detectForeignLanguageTeachingContent({
+        courseIdentity: miniShard?.courseName || topic?.courseName || '',
+        text: sourceContext(source),
+      }) &&
       !isCourseAwareWeakSource(sourceFinderCandidateForReview(source, topic), courseContext),
   );
 }
