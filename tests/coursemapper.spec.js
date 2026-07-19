@@ -700,7 +700,7 @@ test.describe('Configure Generation', () => {
     await expect(page.getByTestId('deliverable-preview-courseMap')).not.toContainText('Machine Learning');
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.getByTestId('deliverable-preview-courseMap').getByRole('button', { name: 'Full screen' }).click();
+    await page.getByRole('button', { name: 'Open Course Map full-screen preview' }).click();
     const previewDialog = page.getByRole('dialog', { name: /Course Map — 8 items/ });
     await expect(previewDialog).toBeVisible();
     await expect

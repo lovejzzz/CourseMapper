@@ -70,13 +70,13 @@
   "compilerSources": [
     {
       "path": "src/lib/scionAnswerKeyAlignment.js",
-      "bytes": 43218,
-      "sha256": "2c6875437268444536de651f3ffbddf6368e2667c823ad0827a4245f86ebefa7"
+      "bytes": 56318,
+      "sha256": "87effc6a3dce3027faa292c111f138d903b5ed2a31f3270f0b8e151428b182c5"
     },
     {
       "path": "src/lib/scionPreferenceGate.js",
-      "bytes": 23813,
-      "sha256": "3b9eb6f5614beeb1ea399f48b2e08d69d184e18d1342cfbf2116cb435356648e"
+      "bytes": 24245,
+      "sha256": "ddbf8bd03e9f111c82c2ad2c4e8b4ce3c1acb1c20112a386642a809640c4bcb7"
     },
     {
       "path": "scripts/lib/scionSourceCapture.mjs",
@@ -96,8 +96,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/python-control-flow-workshop-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-control-flow-workshop-local.json",
       "bytes": 76765,
-      "sha256": "ca3850d3a2b09796dbe72bb7b5911b842bce970a226d4d2aa15c4e863013b9f7",
-      "replayIdentitySha256": "273490214e6691720c6ba5348f0ee37225d49c2abd99fd18598ff89292f8ccbc",
+      "sha256": "71bb1402f780d9a7a3d50f1f2a3bba0917c43379ebc838c58ffbfdf72733d049",
+      "replayIdentitySha256": "3bdf72a3c5dd27c5a5281a6a0f7d37f5d786bcb91ffe71bacffffc2c109bcff5",
       "repairCounts": {
         "total": 4,
         "incompleteExplanationTail": 2,
@@ -110,9 +110,9 @@
       "courseGroupId": "python-data-structures-lab",
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/python-data-structures-lab-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-data-structures-lab-local.json",
-      "bytes": 73354,
-      "sha256": "d2730658deb2fd5117fe68a8f931a8a33e51c81385ae84c9e04eebc835c91a28",
-      "replayIdentitySha256": "a099c78ee35cc83a5e91348be92c12798adcb9615fe98fa0342a06fe6a8e9c9a",
+      "bytes": 73594,
+      "sha256": "bc07769897eee53214d67a38023ce27e3c1cb50707f54bfed11b9e04f8c11b58",
+      "replayIdentitySha256": "3d4e0b961c3bf8b636f051386b37df0a3a11146bc755985a6bf2d747b7868adc",
       "repairCounts": {
         "total": 4,
         "incompleteExplanationTail": 0,
@@ -126,8 +126,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/python-program-architecture-studio-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-program-architecture-studio-local.json",
       "bytes": 136462,
-      "sha256": "3fa2b29880fe6c0c2a16ed15976c560fafbaf482113453dc4b52b64be85be799",
-      "replayIdentitySha256": "951cab2a567cdac8539aab9621ec8c0eeed1dfe48f726cafd08a53e12e2c8b8b",
+      "sha256": "abaacd3f35a7426b618080a69a7d5c3948c91a629257a477273cee411b765c06",
+      "replayIdentitySha256": "975388d0a8a75b573e5e64b47ac17f37cda15dea31c3094de584d5ba506199fa",
       "repairCounts": {
         "total": 7,
         "incompleteExplanationTail": 2,
@@ -140,9 +140,9 @@
       "courseGroupId": "earth-materials-history-lab",
       "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/earth-materials-history-lab-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/earth-materials-history-lab-local.json",
-      "bytes": 138166,
-      "sha256": "cab524acfafc30ed51e9ff81b2e81589c5eb0746953ac486c0019e2747d20f9e",
-      "replayIdentitySha256": "dc3eee7f363856776149344cfa6a21671ea40e4a4a01307686aa6bdcb1c3cf0e",
+      "bytes": 138406,
+      "sha256": "d0639856c0e0f221c8b31edf0c5e3828a0891895bc35d31b9017e3ffb2161f20",
+      "replayIdentitySha256": "a09a7f1c279fcdc9cc77e083dccbcb7dd98f8273955425f7584b48d0ca331ebc",
       "repairCounts": {
         "total": 7,
         "incompleteExplanationTail": 0,
@@ -156,8 +156,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/igneous-volcanic-processes-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/igneous-volcanic-processes-local.json",
       "bytes": 46619,
-      "sha256": "b355c6c6655007cc78585bb113e0b02c30e62adf945c8ede8323c3810ba28ec3",
-      "replayIdentitySha256": "a080e482b0205cf796c40dd7ae573088923af7468d5b938efd01d6ca7417fbb7",
+      "sha256": "3d10f9d6fc2839eb859ef7825426d913dcb4d222e405e2fb9da762e30f3af70e",
+      "replayIdentitySha256": "566d5f347268985da50cef1e640ea4e5c624b7788cd4580438b2dc9cfd7b8737",
       "repairCounts": {
         "total": 1,
         "incompleteExplanationTail": 0,
@@ -171,8 +171,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/tectonics-seismology-field-lab-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/tectonics-seismology-field-lab-local.json",
       "bytes": 85118,
-      "sha256": "20530f1cfe7d74df5d64acba91bb1e79bcf821cbf8cbdd0b2d402632a8d97c2b",
-      "replayIdentitySha256": "966049cdc3f1bcbecd20633cc81772d13694bb2313cd072a8acd967307d7704f",
+      "sha256": "b626dc8bea3fa328d52252b3721486074767bbb6907b4dc3935ddfa752e80c04",
+      "replayIdentitySha256": "7f760cfc7c4141bc1f9a7a89321d4a8b30f95a16d33d743a1ba9e2c93db4de23",
       "repairCounts": {
         "total": 7,
         "incompleteExplanationTail": 2,
@@ -186,8 +186,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/harmony-form-analysis-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/harmony-form-analysis-local.json",
       "bytes": 82397,
-      "sha256": "c5c509bcedde313a8987296b256d0bedd3980cca84cfd64c1922f5daae388110",
-      "replayIdentitySha256": "63b6acd56d8935421b5be2f36c7a35b50fa245a75cce9f0a425ff072c33ff137",
+      "sha256": "9d12373fbd514e85926663da719444c968dd85ddb85972413ee3b1ddf83ccd67",
+      "replayIdentitySha256": "58900d67bc403a4e8ea34eabb81e777477365e4f8cc2a7698e7762642459a2e3",
       "repairCounts": {
         "total": 6,
         "incompleteExplanationTail": 2,
@@ -201,8 +201,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/music-notation-ear-training-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/music-notation-ear-training-local.json",
       "bytes": 53563,
-      "sha256": "9a074e513e71a3e655f06f9917ff45b54a0d5dcc4cb82ca1e1e69064ef24033a",
-      "replayIdentitySha256": "037b4075493d3b2c527cbb81266a4a5c22b968acb9345d3d8dfe9be6242ea229",
+      "sha256": "6e9e492fea77e15409fe26e30ec2dcf98c10cf66ce89e0ccbf8264370e010f0f",
+      "replayIdentitySha256": "63337a01662fc90475496d45d8d6088c055d324186c4580acdac1e7c4644f78b",
       "repairCounts": {
         "total": 2,
         "incompleteExplanationTail": 0,
@@ -216,8 +216,8 @@
       "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/tonal-analysis-integration-studio-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/tonal-analysis-integration-studio-local.json",
       "bytes": 139227,
-      "sha256": "712e4688548ea0ad164b0c7b1d7d417e364e3b02c595359cf146ae33bf2508d9",
-      "replayIdentitySha256": "1a6b0e28e0bcdc9ffbfc7735a8c2c555db95e9198d987ff274112711bc5cff85",
+      "sha256": "60b5dd83e74f49e1360bde31fbf7b6f5db953aa4c14c7d7f03642401228cd6be",
+      "replayIdentitySha256": "e980c060eb5130b0b5b79778a82ad550919a10e34656472fe346b4088e4d0e3d",
       "repairCounts": {
         "total": 9,
         "incompleteExplanationTail": 4,
@@ -230,9 +230,9 @@
       "courseGroupId": "ux-evidence-to-prototype-capstone",
       "sourceProjectPath": "evaluation/scion-source-capture-expansion-evidence/ux-evidence-to-prototype-capstone-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-evidence-to-prototype-capstone-local.json",
-      "bytes": 164155,
-      "sha256": "6519a427e2a3663536c5edb8ef1e242e0570a02f25eac4eefa4fa965abcd287d",
-      "replayIdentitySha256": "70cfee70c28ae7b148eb88ddad91e113118b30e68eaf342ed5d96a03086de7bd",
+      "bytes": 164395,
+      "sha256": "9d2dfcedb90a0d6996f7e04ec8266d757fbf2796367fcf4a3dd53c6fbc9c148d",
+      "replayIdentitySha256": "47312cbb3cad7326ed513f90c2e3a4407fd1e683691273796d1a6178f07d4c0e",
       "repairCounts": {
         "total": 13,
         "incompleteExplanationTail": 8,
@@ -245,9 +245,9 @@
       "courseGroupId": "ux-prototyping-accessibility-lab",
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/ux-prototyping-accessibility-lab-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-prototyping-accessibility-lab-local.json",
-      "bytes": 62280,
-      "sha256": "e183f37dbc987be52ffe7c537b142bf4823805013e38e1fcd94950527e339519",
-      "replayIdentitySha256": "13dac500f1fcbbed2cf69c71214029fb0d265104c4a47f52e5a5a31221b34227",
+      "bytes": 62400,
+      "sha256": "ca4afa5eef3fdba1798dc8daab58b06302cd2eff8ca3c77efe8ffbc8f7a851a2",
+      "replayIdentitySha256": "7d83143a82f6ff78c8bdec42235c4f6787d11cbc9adcff766c26a46bc48f5ca6",
       "repairCounts": {
         "total": 1,
         "incompleteExplanationTail": 0,
@@ -260,9 +260,9 @@
       "courseGroupId": "ux-research-synthesis-studio",
       "sourceProjectPath": "evaluation/scion-source-capture-evidence/ux-research-synthesis-studio-local.json",
       "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-research-synthesis-studio-local.json",
-      "bytes": 72065,
-      "sha256": "1062f3dd48825f6d9b8f673dfb9a0aa7da2bf7da7da7869e087796daab1762d1",
-      "replayIdentitySha256": "be558e60ffd4dc72f0ea486bbb9cb85f9209bf5eb4b807464c5129b10566a23c",
+      "bytes": 72425,
+      "sha256": "ee513fb64c66d7b1a5d63e1e6078b58c2481765a0f99a5503a4aab571c041c82",
+      "replayIdentitySha256": "795a84acfcd468cb8ab1592f0e2549d37470e48a57f0d99c0da8a503095dc887",
       "repairCounts": {
         "total": 3,
         "incompleteExplanationTail": 0,
@@ -470,6 +470,6 @@
   },
   "identity": {
     "algorithm": "sha256-canonical-source-compiler-replay-receipt-v1",
-    "sha256": "df49ea3b30486bbc1688655a9fb393002bd06971b120dfdb50e40d6bff5d4be5"
+    "sha256": "5e262d56c6d5aa3b3009d962a86e365bf39985a673e75597f86013e86058f296"
   }
 }

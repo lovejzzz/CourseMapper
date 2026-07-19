@@ -784,6 +784,18 @@ function semanticOptionTokens(value) {
   return tokens;
 }
 
+function orderedSemanticTokenCoverage(optionTokens, clause) {
+  const expected = [...optionTokens];
+  if (expected.length === 0) return 0;
+  const observed = [...semanticOptionTokens(clause)];
+  let expectedIndex = 0;
+  for (const token of observed) {
+    if (token === expected[expectedIndex]) expectedIndex += 1;
+    if (expectedIndex === expected.length) break;
+  }
+  return expectedIndex / expected.length;
+}
+
 /**
  * Detect when the affirmative first sentence clearly supports a different
  * displayed option. This is deliberately narrower than open-ended semantic
@@ -1032,7 +1044,9 @@ export function findScionMultipleExplanationSupportedOptions(item = {}) {
       let best = { score: 0, containment: 0, clause: '', exactPhrase: false };
       for (const clause of clauses) {
         if (
-          /\b(?:incorrect|wrong|distractor|does not|do not|cannot|can't|fails?|breaks?|rather than)\b/i.test(clause)
+          /\b(?:incorrect|wrong|distractor|does not|do not|cannot|can't|fails?|breaks?|revers(?:e|es|ed|ing)|swaps?|rather than)\b/i.test(
+            clause,
+          )
         ) {
           continue;
         }
@@ -1055,6 +1069,7 @@ export function findScionMultipleExplanationSupportedOptions(item = {}) {
           best.exactPhrase ||
           (best.score >= 4 &&
             best.containment >= 0.8 &&
+            orderedSemanticTokenCoverage(optionTokens, best.clause) >= 0.8 &&
             distinctTokens.some((token) => semanticOptionTokens(best.clause).has(token))),
       };
     })

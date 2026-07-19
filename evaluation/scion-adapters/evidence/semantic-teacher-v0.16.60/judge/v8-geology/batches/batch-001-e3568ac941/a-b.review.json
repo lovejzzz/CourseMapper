@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "6ecafe228f756a150d2c72c5e35aec4029e0a579b9574b6f253ac3a8d3d81300",
+  "sessionId": "scion-v01654-batch-001-e3568ac941-a-b-7f86e097-337c-4145-a9fe-e3856f2a8659",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-018581469357c98b43195802",
+      "pairId": "scion-kernel-pair-e77a2c86a5c2fea24fea3141",
+      "artifactSha256": {
+        "A": "a6b085731aec31e67977ac00ac8feb3f77d8c15ed24238a3045709f3401013e5",
+        "B": "55f94039e4ccdd2360c0445935c7561829889a861d70f4d5abd9cbbf4854f99b"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The core facts match the ledger, but named examples involving sandstone, shale, limestone, a fault, a dike, and igneous fragments are not supplied by the source claims."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Superposition and cross-cutting are accurately defined, but the inclusion treatment is vague and never states a supported relative-age direction."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario supplies observations and an undisturbed-sequence constraint, but it asks only for a comparison and does not specify a usable relative-age decision."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared answer indices are incorrect: the first selects younger-below-older, and the second selects the cutting feature as older."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first question repeats the same reversed relationship as both younger-below-older and older-above-younger; the second set is more distinct."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Each explanation contradicts its declared answer index, and the second explanation refers to the answer by position without repairing distractor reasoning."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "Facts and term definitions mostly agree, but both answer keys conflict with their explanations and the scenario introduces a dike absent from its setup."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, definitions, generic examples, scenario evidence, questions, and conclusions remain within the three supplied relative-dating claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Relative dating, superposition, and cross-cutting are accurately distinguished, with false misconceptions followed by direct and precise corrections."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must decide whether the break formed before or after deposition using an inspectable cross-cutting trace, bed order, and the undisturbed constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared indices uniquely identify the supported conclusions: the cutter is younger and the lower undisturbed layer is older."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each question offers four parallel and mutually distinct age-order conclusions without duplication or giveaway phrasing."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation connects the observed relationship to the governing claim and explicitly explains why the closest reversed-order misconception fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, terms, scenario evidence, cited fact indices, declared answers, and explanations consistently express the same relative-age rules."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both multiple-choice questions declare incorrect answers, and each declared answer contradicts its explanation.",
+          "The artifact invents unsupported named examples and details, including sandstone, shale, limestone, a fault, a dike, and igneous fragments.",
+          "The scenario does not present a usable disciplinary decision; it only directs the learner to compare observations."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "Artifact B is fully source-bound, presents an evidence-based relative-age decision, and has two correct, coherent assessments with discriminating choices and instructional feedback. Artifact A contains two incorrect answer keys, explanation-key contradictions, unsupported named examples, duplicated distractor meaning, and no clearly specified scenario decision."
+    }
+  ]
+}

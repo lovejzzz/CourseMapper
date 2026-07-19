@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T18:30:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-001-e3568ac941-a-b-7f86e097-337c-4145-a9fe-e3856f2a8659",
+    "B/A": "scion-v01654-batch-001-e3568ac941-b-a-36b0c2ad-5b17-441e-aa77-f6fbe6688f4a"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "6ecafe228f756a150d2c72c5e35aec4029e0a579b9574b6f253ac3a8d3d81300",
+      "B/A": "5c1e0132f3e9fe19fb015dd53bd491fc546dd6528c5f1565e23fc250189db0ad"
+    },
+    "reviews": {
+      "A/B": "626809e8b8cde6e36168ec117b1a9ddbd64a515a4025c81e83052544b16dfa5d",
+      "B/A": "70f9db4d9db787d594916c98dcdd0753bf4d761ed32df0b0835ab9714fe3c524"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-018581469357c98b43195802",
+      "pairId": "scion-kernel-pair-e77a2c86a5c2fea24fea3141",
+      "winners": {
+        "A/B": "55f94039e4ccdd2360c0445935c7561829889a861d70f4d5abd9cbbf4854f99b",
+        "B/A": "55f94039e4ccdd2360c0445935c7561829889a861d70f4d5abd9cbbf4854f99b"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 21,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 21,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both multiple-choice questions declare incorrect answers, and each declared answer contradicts its explanation.",
+              "The artifact invents unsupported named examples and details, including sandstone, shale, limestone, a fault, a dike, and igneous fragments.",
+              "The scenario does not present a usable disciplinary decision; it only directs the learner to compare observations."
+            ],
+            "rationale": "Artifact B is fully source-bound, presents an evidence-based relative-age decision, and has two correct, coherent assessments with discriminating choices and instructional feedback. Artifact A contains two incorrect answer keys, explanation-key contradictions, unsupported named examples, duplicated distractor meaning, and no clearly specified scenario decision.",
+            "decisionSha256": "45b2bb6eddfeaf1c9a1eff48f7f86fae2dd8dee414e0624406eb7b26539e7d3e"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 21,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both declared answers are incorrect: MC1 ai 0 reverses superposition, and MC2 ai 0 reverses cross-cutting.",
+              "Both explanations contradict their declared answers; the second explicitly supports the second option while ai is 0.",
+              "The artifact invents named examples and details absent from the source, including sandstone, shale, limestone, a fault line, igneous rock, and a dike.",
+              "MC1 contains duplicate alternatives: younger-below-older and older-above-younger express the same relationship.",
+              "The scenario provides observations to compare but no usable disciplinary decision.",
+              "The statement that an undisturbed sequence is required for “the relative dating rules” overextends a condition supplied only for superposition."
+            ],
+            "rationale": "Artifact A is source-bound, instructionally precise, internally coherent, and has two uniquely correct assessments with discriminating choices and useful feedback. Artifact B has multiple critical defects, most decisively two incorrect declared answers that contradict its own explanations, along with duplicated alternatives, unsupported named examples, an overgeneralized condition, and no usable scenario decision.",
+            "decisionSha256": "0031bf0c25c7d03ee8334ec83d03f15a8d5064f19c1da155d31a564c11d8e4a4"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 1,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 0,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "85af2a626dd2c5f0346ac20dcb93e1337ec010e48fb42c4d7b3cbb3d081dd95e"
+  }
+}

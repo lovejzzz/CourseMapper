@@ -962,7 +962,7 @@
                 "answerIndex": 0,
                 "explanation": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones."
               },
-              "trainingEligible": true,
+              "trainingEligible": false,
               "preferenceEvidence": {
                 "kind": "deterministic-source-answer-conflict",
                 "verified": true,
@@ -981,6 +981,7 @@
                   0
                 ],
                 "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "default-source",
                 "relevantSourceClaimIndexes": [
                   0
                 ],
@@ -1528,7 +1529,7 @@
                 "answerIndex": 0,
                 "explanation": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages."
               },
-              "trainingEligible": true,
+              "trainingEligible": false,
               "preferenceEvidence": {
                 "kind": "deterministic-source-answer-conflict",
                 "verified": true,
@@ -1547,6 +1548,7 @@
                   0
                 ],
                 "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "default-source",
                 "relevantSourceClaimIndexes": [
                   0
                 ],
@@ -2197,7 +2199,7 @@
               "answerIndex": 0,
               "explanation": "Clastic sedimentary rocks are made of pieces of preexisting weathered rock because they are composed of fragments of older material. Metamorphic minerals are incorrect because they are characteristic of metamorphic rocks, not clastic ones."
             },
-            "trainingEligible": true,
+            "trainingEligible": false,
             "preferenceEvidence": {
               "kind": "deterministic-source-answer-conflict",
               "verified": true,
@@ -2216,6 +2218,7 @@
                 0
               ],
               "supportMethod": "source-question-option-alignment",
+              "sourceAlignmentProfile": "default-source",
               "relevantSourceClaimIndexes": [
                 0
               ],
@@ -2763,7 +2766,7 @@
               "answerIndex": 0,
               "explanation": "Absolute dating assigns specific ages in years to mineral grains within a rock. Misconception: Relative dating only orders events by which is older or younger, not by assigning numerical ages."
             },
-            "trainingEligible": true,
+            "trainingEligible": false,
             "preferenceEvidence": {
               "kind": "deterministic-source-answer-conflict",
               "verified": true,
@@ -2782,6 +2785,7 @@
                 0
               ],
               "supportMethod": "source-question-option-alignment",
+              "sourceAlignmentProfile": "default-source",
               "relevantSourceClaimIndexes": [
                 0
               ],
@@ -2823,13 +2827,13 @@
     "compilerSources": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 43218,
-        "sha256": "2c6875437268444536de651f3ffbddf6368e2667c823ad0827a4245f86ebefa7"
+        "bytes": 56318,
+        "sha256": "87effc6a3dce3027faa292c111f138d903b5ed2a31f3270f0b8e151428b182c5"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 23813,
-        "sha256": "3b9eb6f5614beeb1ea399f48b2e08d69d184e18d1342cfbf2116cb435356648e"
+        "bytes": 24245,
+        "sha256": "ddbf8bd03e9f111c82c2ad2c4e8b4ce3c1acb1c20112a386642a809640c4bcb7"
       },
       {
         "path": "scripts/lib/scionSourceCapture.mjs",
@@ -2854,7 +2858,7 @@
           "explanationKeyAlignment": 0,
           "sourceAnswerAlignment": 1
         },
-        "repairsSha256": "88c251577eebcdeb7da5fffa8607a8c91460e85115c328eee28f636d76e6e370"
+        "repairsSha256": "b44a2bf46f93bb9deed7d3b1011c1ae6d6f3cee85879a4150394e24481e7b167"
       },
       {
         "promptId": "earth-materials-history-lab:geo/metamorphic-rocks",
@@ -2902,7 +2906,7 @@
           "explanationKeyAlignment": 1,
           "sourceAnswerAlignment": 1
         },
-        "repairsSha256": "89e907017a3587dba5f534071c07c44ab38aea055bf035f996a0d0ad971011ef"
+        "repairsSha256": "d6d53ec03899ccd7af371265bb9b01bb69eff03e36aa8fd450674675d32c06a4"
       },
       {
         "promptId": "earth-materials-history-lab:geo/weathering-erosion",
@@ -2926,7 +2930,7 @@
     "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
     "identity": {
       "algorithm": "sha256-canonical-source-compiler-replay-v1",
-      "sha256": "dc3eee7f363856776149344cfa6a21671ea40e4a4a01307686aa6bdcb1c3cf0e"
+      "sha256": "a09a7f1c279fcdc9cc77e083dccbcb7dd98f8273955425f7584b48d0ca331ebc"
     }
   }
 }

@@ -15,6 +15,7 @@ import {
 } from '../scripts/scionAdapterDataset.mjs';
 import { getCourseById } from '../scripts/crucible/courses.mjs';
 import { computeScionAdapterPackageIdentity } from '../scripts/lib/scionBrowserDeviceMatrix.mjs';
+import { captureModuleImplementationReceipt } from '../scripts/lib/moduleImplementationReceipt.mjs';
 import { buildScionAdapterManifest, sha256File, verifyScionAdapterPackage } from '../scripts/scionAdapterPackage.mjs';
 import { assessScionAdapterPromotion } from '../scripts/scionAdapterPromotionAudit.mjs';
 import { auditScionAdapterTaskScope } from '../scripts/scionAdapterTaskScopeAudit.mjs';
@@ -525,8 +526,11 @@ describe('Scion adapter tooling', () => {
     const priorGraderBenchmarkV8 = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v8.json', 'utf8'),
     );
-    const currentGraderBenchmark = JSON.parse(
+    const priorGraderBenchmarkV9 = JSON.parse(
       await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v9.json', 'utf8'),
+    );
+    const currentGraderBenchmark = JSON.parse(
+      await fs.readFile('evaluation/scion-adapters/held-out-course-benchmark-v10.json', 'utf8'),
     );
     expect(validateScionHeldoutBenchmark(benchmark)).toMatchObject({
       valid: true,
@@ -538,7 +542,17 @@ describe('Scion adapter tooling', () => {
     expect(validateScionHeldoutBenchmark(priorGraderBenchmark)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(sessionClockBenchmark)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV8)).toMatchObject({ valid: true, issues: [] });
+    expect(validateScionHeldoutBenchmark(priorGraderBenchmarkV9)).toMatchObject({ valid: true, issues: [] });
     expect(validateScionHeldoutBenchmark(currentGraderBenchmark)).toMatchObject({ valid: true, issues: [] });
+    const currentGraderReceipt = await captureModuleImplementationReceipt({
+      root: process.cwd(),
+      entryPath: currentGraderBenchmark.grader.path,
+    });
+    expect(currentGraderReceipt).toMatchObject({
+      protocol: currentGraderBenchmark.grader.implementationReceiptProtocol,
+      fileCount: currentGraderBenchmark.grader.implementationFileCount,
+      implementationSha256: currentGraderBenchmark.grader.implementationSha256,
+    });
 
     const cleanDataset = {
       domains: ['computer-science', 'geology', 'business-ethics'],
@@ -669,7 +683,7 @@ describe('Scion adapter tooling', () => {
 
   it('derives promotion evidence from two hash-bound Crucible rounds', async () => {
     root = await fs.mkdtemp(path.join(os.tmpdir(), 'scion-paired-evidence-'));
-    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v9.json');
+    const benchmarkPath = path.resolve('evaluation/scion-adapters/held-out-course-benchmark-v10.json');
     const benchmark = JSON.parse(await fs.readFile(benchmarkPath, 'utf8'));
     const benchmarkSha256 = await sha256File(benchmarkPath);
     const datasetDir = path.join(root, 'dataset');

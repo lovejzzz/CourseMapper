@@ -1,0 +1,341 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "5d115bdf28f329971e91f269fc3254b5f2f8561806456623822e7c7a718c842b",
+  "sessionId": "scion-v01654-batch-003-0eb8978cca-a-b-90d472ee-988d-4d82-83a5-e76e8a6c33b2",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T17:02:04Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-6e2d8185c8de7f4e09c89f85",
+      "pairId": "scion-kernel-pair-773826c2dd81f6a8fde9936f",
+      "artifactSha256": {
+        "A": "80137e9e7a8cdef370132bb62385cbf1f5f01840b1a4fa0da6deaad94f8fcde3",
+        "B": "9a391d5f34e60bd597062864ac96c3c119e8a89a3cd2ffee90dbc46515b84c01"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The first answer adds an upward shift not stated by the source, and quantity supplied is described as goods produced rather than amounts offered."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The terms cover the three claims, but the produced-versus-supplied wording and fixed-amount correction blur important distinctions."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The raw-material price is ambiguous between the good's own price and an input cost, and the scenario supplies no real constraint."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "The second item is correctly keyed, but the first keys an unsupported upward shift while another option states the sourced own-price rule."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "In the first item, both the input-cost shift statement and the own-price movement statement can answer the comparison."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The explanations restate the source rules, but the first never justifies upward and neither develops the closest distractor fully."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first key selects upward although its explanation supports only a whole-curve shift and also affirms another listed option."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, definitions, examples, scenario evidence, answers, and explanations remain within all three supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Own-price movement, technology shifts, upward slope, and per-period quantity supplied are stated accurately and distinctly."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The analyst must classify recorded own-price and technology changes before a deadline using explicit labels as evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported by the cited facts and agree with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item offers four distinct, parallel classifications covering plausible movement, shift, direction, and stock misconceptions."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the governing rule and directly rejects the closest competing interpretation without positional wording."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, terms, scenario records, question keys, fact indices, and explanations agree throughout."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first question declares an unsupported upward shift as the answer while another option correctly states the sourced own-price movement, so the item is not uniquely keyed.",
+          "The quantity-supplied definition substitutes goods produced for the sourced amount producers are willing to supply."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B faithfully covers all three claims with an actionable classification scenario and two coherent assessments. A introduces unsupported wording and has an ambiguous, inadequately supported first answer."
+    },
+    {
+      "caseId": "scion-kernel-70fb5514bdf10f3cc0f09893",
+      "pairId": "scion-kernel-pair-d68b532dadb6f3acb4c0a3d8",
+      "artifactSha256": {
+        "A": "d05e704d8385acd304a595d9867a5fec4b99034b77eb43998d34e00e53425036",
+        "B": "74904ef9981d971e7e6f03d667ebfcc0ed8e14d6855d29a45d4dca3c688df897"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The scenario invents C major and incorrectly names D as its seventh degree, a named detail absent from the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Several term entries are sound, but the false C-major degree claim and both erroneous keys undermine the core distinctions."
+          },
+          "scenarioReadiness": {
+            "score": 0,
+            "evidence": "The composer is already writing in C major yet must decide between major and minor, and the offered seventh-degree evidence is false."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first key selects the wrong major pattern, and the second selects half step even though the source and explanations require whole step."
+          },
+          "choiceDiscriminability": {
+            "score": 0,
+            "evidence": "The second item repeats the same whole-step answer twice and the same half-step answer twice, preventing a unique choice."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Both explanations state the sourced correct relation but directly contradict their respective declared answers."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The scenario contains a false named degree, both keys conflict with explanations, and the second option set contains duplicates."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every instructional statement stays within ordered step patterns, the stated major sequence, and the natural-minor subtonic relation."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Ordered patterns, the major sequence, and the seventh-degree subtonic are accurate, distinct, and corrected with genuine misconceptions."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "An editor must label two inspectable notations before a deadline using their explicitly supplied interval evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are unique, match their fact support, and are accurately explained."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Both items provide four distinct and plausible labels or conclusions without duplicate alternatives or answer-position clues."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations apply the exact interval rules and directly repair reversal and tonic-label misconceptions."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The terms, notation scenario, keys, cited facts, and explanations consistently implement the three source claims."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The scenario invents a named C-major example and falsely states that D is the seventh degree of C major.",
+          "The scenario offers no usable tonality decision because it already specifies C major and relies on false seventh-degree evidence.",
+          "Both declared answers are incorrect and each explanation contradicts its declared answer.",
+          "The second question duplicates both the correct whole-step alternative and the incorrect half-step alternative, making the item ambiguous."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is source-bound, actionable, uniquely keyed, and instructionally coherent. A contains a false named example, an unusable scenario, two incorrect keys, explanation-key contradictions, and duplicated alternatives."
+    },
+    {
+      "caseId": "scion-kernel-baa05f5de10fcd2648f81671",
+      "pairId": "scion-kernel-pair-2f6ee823b88ead811f58442b",
+      "artifactSha256": {
+        "A": "a4dff452b4a6c574e6ede732d1f2f5cacdfb07faaf9464d50e4d5a1f12289041",
+        "B": "0206d91ac7c883aacf447c631b9a6c81d8110ffb8537538a940245da9546a4ab"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The facts track the source, but the open() example changes returns a file object to creates a file object."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "File I/O, open(), and read() are mostly precise, though readline() and readlines() are omitted from the key-term treatment."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The script has a single-block constraint and a three-line file to inspect, though its main activity only loosely frames the required choice."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared answers select the first option, while the explanations identify the third option in item one and the second in item two."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives distinguish the operations, but the first stem asks for a data structure while its correct option omits single string."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations state the correct operations, but they support different options than the declared answers and barely analyze misconceptions."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Each answer key conflicts directly with both the sourced fact and its accompanying explanation."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, term entries, scenario labels, questions, and explanations use only the four supplied file-I/O claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The file object and the distinct results of read(), readline(), and readlines() are accurately separated and corrected."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The programmer has inspectable operation results and a clear labeling task, although the preservation requirement supplies only modest tension."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely match the supplied operation-result relationships and remain consistent with the explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each option assigns materially different, parallel result types to the operations, with no duplicates."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations contrast entire contents, next line, and every-line list while explicitly repairing reversed labels."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Definitions, scenario evidence, alternatives, keys, fact indices, and explanations consistently distinguish all three reading operations."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Both questions have incorrect declared answers; each explanation instead supports a different option.",
+          "Both explanations contradict their declared answer keys."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B provides accurate, uniquely keyed comparisons among read(), readline(), and readlines(). A presents generally useful source material but both declared answers are wrong and contradicted by their explanations."
+    },
+    {
+      "caseId": "scion-kernel-cf4f644f00e2a131fe97a9e0",
+      "pairId": "scion-kernel-pair-0bca98a6a42f437bccd0693f",
+      "artifactSha256": {
+        "A": "c8eb79686560fa972297e83a573f1f6d8b62e99da7b7b405a3832f4f519fdc45",
+        "B": "631181f6dfe2ac3ded5b2e143a3e884af90bb3ac651027a1d4a9d37844f4baf2"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 3,
+            "evidence": "The three facts are exact, but the inclusions entry supplies a vague relationship and concrete rock details beyond the stated rules."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Superposition and cross-cutting are defined well, but the inclusions misconception is incoherent and both assessment keys invert the rules."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The outcrop provides observable layer and cutting relationships plus an undisturbed-sequence constraint, though the activity is only to compare them."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both keys say the cutting feature is older, while both explanations correctly state that it is younger."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The first options misattribute cross-cutting claims to superposition, and the second includes equivalent correct statements that sandstone is older and dike younger."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations accurately state the rules but contradict both declared answers and cannot resolve the duplicate correct alternatives."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both keys contradict their explanations, and the second question contains two equivalent correct choices."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The artifact stays within relative ordering, undisturbed superposition, cross-cutting, and the prohibition on numerical ages."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Relative dating, superposition, and cross-cutting are accurately distinguished with direct misconception repairs."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must order inspectable layer positions and a cutting feature while constrained to avoid numerical ages."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "The second key correctly orders all features, but the first key selects the reversed superposition statement despite a correct explanation."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are distinct and the second item is strong, though the first correct role-based alternative is somewhat compressed."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Both explanations teach the rules, but the first explanation contradicts its declared answer while the second repairs a reversal clearly."
+          },
+          "internalCoherence": {
+            "score": 2,
+            "evidence": "The terms, scenario, and second item agree, but the first key conflicts with the facts and explanation."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first question declares a false superposition statement while its explanation supports the cross-cutting alternative.",
+          "The second question declares that the dike is older while its explanation says the dike is younger.",
+          "The second question contains two equivalent correct alternatives: the sandstone is older than the dike and the dike is younger than the sandstone."
+        ],
+        "B": [
+          "The first question declares the false statement that superposition places younger layers below older layers, while its explanation states the opposite."
+        ]
+      },
+      "decision": "B",
+      "rationale": "B has one serious first-question key contradiction but otherwise delivers precise source coverage, a usable scenario, and a correct second assessment. A has two wrong keys, two explanation contradictions, and an ambiguous duplicate-correct item."
+    }
+  ]
+}

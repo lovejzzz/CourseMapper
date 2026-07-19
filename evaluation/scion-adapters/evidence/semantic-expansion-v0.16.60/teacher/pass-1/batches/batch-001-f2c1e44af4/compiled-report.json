@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "8b81ca917a8a4f674c0f26db6e99a85494c7bf6ed16060bb831fe53b76793f82",
+  "resultSha256": "d37e775b7d163e387357099d3db07dc324dd57c059c053e20c2560c317f8800e",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-096132eb8d2e7124522811f0",
+      "caseSha256": "096132eb8d2e7124522811f0262a0245a2ba7701772561aee8fd914dd076c40e",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "3f4fad0c9e80f004348ea059c27886aa2436083a38a1d4d03ac4d9f6c87af9a0",
+      "originalArtifactSha256": "0ed79c46261abdc9349513ae48791398aef0091827d03ebfb3ab2484a7f60f92",
+      "artifact": {
+        "lessonId": "lesson-5",
+        "facts": [
+          "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+          "A capacitor stores energy in the electric field between its conductors.",
+          "For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Capacitance",
+            "df": "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+            "eg": "For a parallel-plate capacitor, increased plate area provides a concrete case of increased capacitance.",
+            "mi": "Capacitance is the energy stored between a capacitor's conductors.",
+            "cx": "Energy is stored in the electric field, whereas capacitance compares stored charge with potential difference."
+          },
+          {
+            "tr": "plate area",
+            "df": "Plate area is a parallel-plate capacitor property whose increase is associated with increased capacitance.",
+            "eg": "Comparing increased plate area with increased separation distinguishes their opposite relations to capacitance.",
+            "mi": "Increasing plate area decreases the capacitance of a parallel-plate capacitor.",
+            "cx": "Greater plate area corresponds to greater capacitance, not decreased capacitance."
+          },
+          {
+            "tr": "separation",
+            "df": "Separation is a parallel-plate capacitor property whose increase is associated with decreased capacitance.",
+            "eg": "A parallel-plate comparison can contrast increased separation with increased plate area when labeling capacitance changes.",
+            "mi": "Increasing separation increases the capacitance of a parallel-plate capacitor.",
+            "cx": "Greater separation corresponds to lower capacitance, reversing that proposed relationship."
+          }
+        ],
+        "scenario": {
+          "su": "A workshop team must label the capacitance direction for two parallel-plate capacitor designs before a deadline. One design records increasing plate area, while the other records increasing separation, so the team must assign opposite labels from these observations.",
+          "ma": "plate-area design notation, separation design notation, capacitance-direction labels"
+        },
+        "mc": [
+          {
+            "q": "A decision must relate energy, the electric field, and a capacitor's conductors. Which statement correctly identifies what the capacitor stores and where it stores it?",
+            "op": [
+              "The capacitor stores conductors in the electric field",
+              "The capacitor stores energy in the electric field",
+              "The capacitor stores potential difference between its conductors",
+              "The capacitor stores energy in its conductors"
+            ],
+            "ai": 1,
+            "fi": [
+              1
+            ],
+            "ex": "A capacitor stores energy in the electric field between its conductors. The capacitor does not store energy in its conductors; the electric field between them is the stated location."
+          },
+          {
+            "q": "A parallel-plate capacitor review compares an increased plate area notation with an increased separation notation, while requiring an increased-capacitance label. Which recorded relation supports that label?",
+            "op": [
+              "Increasing plate area decreases capacitance",
+              "Increasing separation increases capacitance",
+              "Increasing plate area increases capacitance",
+              "Decreasing separation decreases capacitance"
+            ],
+            "ai": 2,
+            "fi": [
+              2
+            ],
+            "ex": "Increasing plate area increases the capacitance of a parallel-plate capacitor. Increasing separation does not support that label because it decreases capacitance."
+          }
+        ]
+      },
+      "artifactSha256": "7bbdbac022ee8ec86bcb1efca05ef4937fa840c1ab4cf22a24f2642c15960585",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-5",
+          "item": 0,
+          "permutation": [
+            1,
+            0,
+            2,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-5",
+          "item": 1,
+          "permutation": [
+            2,
+            1,
+            0,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "8b81ca917a8a4f674c0f26db6e99a85494c7bf6ed16060bb831fe53b76793f82",
+        "sessionId": "scion-v01654-teacher-batch-001-f2c1e44af4-f919831d-398e-4086-9fd6-16626989682d",
+        "changeSummary": [
+          "Re-authored the first multiple-choice item with four distinct, source-bounded options."
+        ],
+        "addressedDiagnoses": [
+          "Resolved the listed duplicate-options compiler issue in the first assessment item."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "ade574dc7d8e7cc33a4cefd62f9667ef8fb0091116b74a288402ef4796b2c4c5"
+  }
+}

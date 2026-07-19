@@ -1,0 +1,385 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T19:05:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-003-0eb8978cca-a-b-90d472ee-988d-4d82-83a5-e76e8a6c33b2",
+    "B/A": "scion-v01654-batch-003-0eb8978cca-b-a-c4c5257d-70a1-4938-aa69-c9744e0a9c2d"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "5d115bdf28f329971e91f269fc3254b5f2f8561806456623822e7c7a718c842b",
+      "B/A": "152837aae0461243e893730d50a6c86b9ffb37a616550281853632f8d62721cf"
+    },
+    "reviews": {
+      "A/B": "94a4b6058885b0b3fa75890c7afac454c48397058e8d7a3cabaec27048665341",
+      "B/A": "2f9a611b526cc208d85cc7d5fafd55353186db832a35a8ace9a4365e8558ebb2"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-6e2d8185c8de7f4e09c89f85",
+      "pairId": "scion-kernel-pair-773826c2dd81f6a8fde9936f",
+      "winners": {
+        "A/B": "9a391d5f34e60bd597062864ac96c3c119e8a89a3cd2ffee90dbc46515b84c01",
+        "B/A": "9a391d5f34e60bd597062864ac96c3c119e8a89a3cd2ffee90dbc46515b84c01"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 14,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question declares an unsupported upward shift as the answer while another option correctly states the sourced own-price movement, so the item is not uniquely keyed.",
+              "The quantity-supplied definition substitutes goods produced for the sourced amount producers are willing to supply."
+            ],
+            "rationale": "B faithfully covers all three claims with an actionable classification scenario and two coherent assessments. A introduces unsupported wording and has an ambiguous, inadequately supported first answer.",
+            "decisionSha256": "a25bb0f028e8cd18f3ee6323d0c3a5465683f7527d6da55cbd84991f6e62c518"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first question's declared answer asserts an unsupported upward direction; the source states only that input costs shift the whole curve.",
+              "The first question is not uniquely answerable because the own-price movement option is also directly supported."
+            ],
+            "rationale": "A fully covers and coherently assesses all supplied distinctions. B introduces an unsupported shift direction, an ambiguous price scenario, and a first question with more than one supported option.",
+            "decisionSha256": "79cead1262ee39433d8d750cf99fd5605978a78fca509b4557638c66cd3f2091"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-70fb5514bdf10f3cc0f09893",
+      "pairId": "scion-kernel-pair-d68b532dadb6f3acb4c0a3d8",
+      "winners": {
+        "A/B": "74904ef9981d971e7e6f03d667ebfcc0ed8e14d6855d29a45d4dca3c688df897",
+        "B/A": "74904ef9981d971e7e6f03d667ebfcc0ed8e14d6855d29a45d4dca3c688df897"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 23,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 0,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 26,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario invents a named C-major example and falsely states that D is the seventh degree of C major.",
+              "The scenario offers no usable tonality decision because it already specifies C major and relies on false seventh-degree evidence.",
+              "Both declared answers are incorrect and each explanation contradicts its declared answer.",
+              "The second question duplicates both the correct whole-step alternative and the incorrect half-step alternative, making the item ambiguous."
+            ],
+            "rationale": "B is source-bound, actionable, uniquely keyed, and instructionally coherent. A contains a false named example, an unusable scenario, two incorrect keys, explanation-key contradictions, and duplicated alternatives.",
+            "decisionSha256": "d9cd143117c540b6a80029823f33346778f6775d1c166a007372fc59acd6f471"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 23,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario invents the named C-major example and incorrectly states that D is its seventh degree.",
+              "The first declared answer selects the wrong major-scale pattern, while its explanation states the supplied correct pattern.",
+              "The second question duplicates both answer relationships, making the alternatives ambiguous.",
+              "The second declared answer selects a half step, while its explanation states that the seventh degree has a whole step to the tonic."
+            ],
+            "rationale": "A is source-bound, actionable, and fully coherent. B contains an invented incorrect named example, two incorrect declared answers, two answer-explanation contradictions, and duplicated alternatives.",
+            "decisionSha256": "f7e54f80472785b008b0f71d2dbf9f6e3bf472c8168d84024b6f1193826df8f9"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-baa05f5de10fcd2648f81671",
+      "pairId": "scion-kernel-pair-2f6ee823b88ead811f58442b",
+      "winners": {
+        "A/B": "0206d91ac7c883aacf447c631b9a6c81d8110ffb8537538a940245da9546a4ab",
+        "B/A": "0206d91ac7c883aacf447c631b9a6c81d8110ffb8537538a940245da9546a4ab"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 12,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 14,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both questions have incorrect declared answers; each explanation instead supports a different option.",
+              "Both explanations contradict their declared answer keys."
+            ],
+            "rationale": "B provides accurate, uniquely keyed comparisons among read(), readline(), and readlines(). A presents generally useful source material but both declared answers are wrong and contradicted by their explanations.",
+            "decisionSha256": "3711c97489b6f169dbc9df440e922b28c9ed608053216f1373aa5d133d22bd30"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 12,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first declared answer selects 'read() returns the next single line,' while the explanation supports the entire-contents option.",
+              "The second declared answer selects read() for obtaining the next line, while the explanation supports readline().",
+              "Both assessment explanations contradict their corresponding declared answers."
+            ],
+            "rationale": "A accurately distinguishes all relevant operations and keys both questions correctly. B has usable content and choices, but both declared answers are incorrect and contradicted by their explanations.",
+            "decisionSha256": "af35a5d3b3ec1cb61c90aec766ed66ac4669bc03e0d0d57a500242e5902f4123"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-cf4f644f00e2a131fe97a9e0",
+      "pairId": "scion-kernel-pair-0bca98a6a42f437bccd0693f",
+      "winners": {
+        "A/B": "631181f6dfe2ac3ded5b2e143a3e884af90bb3ac651027a1d4a9d37844f4baf2",
+        "B/A": "631181f6dfe2ac3ded5b2e143a3e884af90bb3ac651027a1d4a9d37844f4baf2"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 2,
+        "minimumTotalScoreMargin": 11,
+        "winnerCriticalDefects": [
+          "The first question declares the false statement that superposition places younger layers below older layers, while its explanation states the opposite.",
+          "The first question's declared answer reverses superposition by selecting younger layers below older layers; its explanation states the opposite."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 11,
+            "winnerCriticalDefects": [
+              "The first question declares the false statement that superposition places younger layers below older layers, while its explanation states the opposite."
+            ],
+            "loserCriticalDefects": [
+              "The first question declares a false superposition statement while its explanation supports the cross-cutting alternative.",
+              "The second question declares that the dike is older while its explanation says the dike is younger.",
+              "The second question contains two equivalent correct alternatives: the sandstone is older than the dike and the dike is younger than the sandstone."
+            ],
+            "rationale": "B has one serious first-question key contradiction but otherwise delivers precise source coverage, a usable scenario, and a correct second assessment. A has two wrong keys, two explanation contradictions, and an ambiguous duplicate-correct item.",
+            "decisionSha256": "e592dbbac96bd66155de13a7ee6e1fa26a93236263f7872215748f4479e3899f"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 2
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 2,
+            "totalScoreMargin": 13,
+            "winnerCriticalDefects": [
+              "The first question's declared answer reverses superposition by selecting younger layers below older layers; its explanation states the opposite."
+            ],
+            "loserCriticalDefects": [
+              "The inclusions material and named rock-feature examples introduce details and relationships not supported by the supplied claims.",
+              "The first declared answer says the cutting feature is older, while its explanation says the cutting feature is younger.",
+              "The second declared answer says the dike is older, while its explanation says the dike is younger.",
+              "The second question contains two semantically duplicate correct alternatives: sandstone older than dike and dike younger than sandstone."
+            ],
+            "rationale": "A has one serious answer-key contradiction but otherwise provides precise, source-bound instruction and a correct ordering task. B adds unsupported material and has two incorrect keys, two explanation contradictions, and an ambiguous duplicate relation.",
+            "decisionSha256": "d5c509d97101a8d85af7f38601d83a05168fd867eaf5187ee7984ecff469bf89"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 4,
+    "stablePreferences": 2,
+    "localWins": 0,
+    "referenceWins": 4,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 1
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "841017ad3e333483ec778e529c656d3fa881819481ac319ee5a321b9db53aa72"
+  }
+}

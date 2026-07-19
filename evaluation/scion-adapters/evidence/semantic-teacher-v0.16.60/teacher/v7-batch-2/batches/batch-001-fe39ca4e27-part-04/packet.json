@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T17:30:00.000Z",
+  "batchId": "batch-001-fe39ca4e27-part-04",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "1520955eb874726b8789138776ad7f0a046229e3e0c39b57eced61ad5a683928",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v7-v0.16.59.md",
+    "sha256": "9b15caeabcf363266e4b04043701b0d91282ef9d9790e80deb1d1c94ea5f2655"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-0494c3fad7926b80669d4d22",
+      "caseSha256": "0494c3fad7926b80669d4d22ea7dac239ffbf21c80991dccf68bf4396dd6a7e7",
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Sensory receptors and perception",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns. Claim 1: Receptors are cells or structures that detect sensations. Claim 2: Stimuli are changed into electrochemical signals of the nervous system.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "99b636e83ccce56ab48e09397a5c61aecef640f11ce7bc0c3e5c4ff34d84f634",
+        "kernelId": "anatomy/sensory-perception",
+        "term": "Sensory receptors and perception",
+        "claims": [
+          "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns.",
+          "Receptors are cells or structures that detect sensations.",
+          "Stimuli are changed into electrochemical signals of the nervous system."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#14-1",
+            "loc": "14.1",
+            "quote": "Perception is the central processing of sensory stimuli into a meaningful pattern"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#14-1",
+            "loc": "14.1",
+            "quote": "Receptors are the cells or structures that detect sensations"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#14-1",
+            "loc": "14.1",
+            "quote": "Stimuli from varying sources, and of different types, are received and changed into the electrochemical signals of the nervous system"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns.",
+          "Receptors are cells or structures that detect sensations.",
+          "Stimuli are changed into electrochemical signals of the nervous system."
+        ],
+        "keyTerms": [
+          {
+            "tr": "sensory receptors",
+            "df": "Sensory receptors are structures or cells that detect stimuli and pass them into nervous-system signaling.",
+            "eg": "A handout labels a skin sensor as a sensory receptor when it detects a touch stimulus.",
+            "mi": "A student thinks sensory receptors are the same thing as the meaning made from signals.",
+            "cx": "That is not correct because sensory receptors detect stimuli, while perception is the central processing of those signals into meaningful patterns."
+          },
+          {
+            "tr": "perception",
+            "df": "Perception is the central processing step that organizes nervous-system signals into meaningful patterns.",
+            "eg": "A worksheet note says the brain step that makes patterns from signals is perception.",
+            "mi": "A student thinks perception is the structure that detects sensations at the body surface.",
+            "cx": "That is not correct because perception is processing of signals, while receptors are the cells or structures that detect sensations."
+          },
+          {
+            "tr": "electrochemical signals",
+            "df": "Electrochemical signals are the nervous-system signals produced when stimuli are changed into a signal form.",
+            "eg": "A margin note says stimuli are changed into electrochemical signals before later processing.",
+            "mi": "A student thinks electrochemical signals are the original stimuli arriving unchanged.",
+            "cx": "That is not correct because the ledger says stimuli are changed into electrochemical signals of the nervous system."
+          }
+        ],
+        "scenario": {
+          "su": "A student is sorting two notebook passages before a short check-in on body signaling. One passage says a structure detects a stimulus, and the other says signals are processed into meaningful patterns.",
+          "ma": "Passage A: \"detect internal or external stimuli and convert them into nervous-system signals\"; Passage B: \"central processing of those signals into meaningful patterns\"."
+        },
+        "mc": [
+          {
+            "q": "A diagram points to a body structure that detects touch, while a margin note describes the nervous system making meaning from signals. Which pairing matches sensory receptors and perception?",
+            "op": [
+              "Detection by receptors, processing by perception",
+              "Processing by receptors, detection by perception",
+              "Signals become receptors, stimuli become perception",
+              "Meaning-making by receptors, sensation by perception"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The ledger says sensory receptors detect stimuli, and perception is the central processing of those signals into meaningful patterns. The closest distractor swaps those roles, but processing belongs to perception, not receptors."
+          },
+          {
+            "q": "A worksheet shows one line saying sensations are detected by cells or structures, and another saying stimuli are changed into electrochemical signals. Which line should be classified as the signal-conversion step?",
+            "op": [
+              "Stimuli changed into electrochemical signals",
+              "Cells or structures detect sensations",
+              "Meaningful patterns from nervous-system signals",
+              "Internal or external stimuli detected by receptors"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The ledger explicitly states that stimuli are changed into electrochemical signals of the nervous system. The closest distractor names receptor detection, which is a different ledger relation from signal conversion."
+          }
+        ]
+      },
+      "originalArtifactSha256": "2e6fa2839c8db4690b460d3520f0cee38efd5aa52310400a145545e6d96be2ab",
+      "compilerAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-4:scenario:scenario-missing-decision"
+        ]
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 3,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B cleanly and coherently distinguishes detection, conversion, and perception with correct keys and instructive feedback. A declares both answers incorrectly and includes an explanation that reverses its own stated process.",
+          "decisionSha256": "ac614c28dd89773ad3d49031b6f9162c66f112f1a6f10a802e993ccb6d95509e"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 3,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 2,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "Artifact A accurately separates receptor detection, signal conversion, and perception, with correct keys and useful feedback. Artifact B has two incorrect keys, direct explanation-key contradictions, and an unsupported sequence claim.",
+          "decisionSha256": "88af8b6c46471a2227f6c3f776414d44ef4c7f2b93470a1db67b69e3377c032d"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6193df8b849e28fdc8938f9c101a56de5a1cd6c98d1705091dd912ce3ecf3be6"
+  }
+}

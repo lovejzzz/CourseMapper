@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-workbook-v1",
+  "generatedAt": "2026-07-19T17:30:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "judgeWorkbookSha256": "963dc339a3bcff87f055d98052f3e95d5f67d00962f4b39f58579a1e4dd11fd3",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v7-v0.16.59.md",
+    "sha256": "9b15caeabcf363266e4b04043701b0d91282ef9d9790e80deb1d1c94ea5f2655"
+  },
+  "revisionSource": {
+    "path": "evaluation/scion-adapters/evidence/source-ledger-v0.16.59/batch-2/reference-current-replay.json",
+    "reportSha256": "69c0bc50d19c5f33c9fa471655b6719fbbb6190c847d9bc8eaf53384aaa8ed3f",
+    "protocol": "scion-lesson-kernel-admission-replay-v1",
+    "arm": "reference",
+    "fallbackPath": null,
+    "fallbackReportSha256": null
+  },
+  "maxCasesPerBatch": 1,
+  "batches": [
+    {
+      "batchId": "batch-001-fe39ca4e27-part-01",
+      "cases": 1,
+      "packetSha256": "d9ac8238894de83a39ea10b6ce74c49bd57fdeabfaf796c429eb45179b1925fe"
+    },
+    {
+      "batchId": "batch-001-fe39ca4e27-part-02",
+      "cases": 1,
+      "packetSha256": "3151a444330c6af6d23bdcc079803600bbac080eb013d02748395543afac7006"
+    },
+    {
+      "batchId": "batch-001-fe39ca4e27-part-03",
+      "cases": 1,
+      "packetSha256": "fd1bb3b1b22b38e3705e9e679c162b91ebbcdf3c2241e178f4ec8415bd49d7ec"
+    },
+    {
+      "batchId": "batch-001-fe39ca4e27-part-04",
+      "cases": 1,
+      "packetSha256": "6193df8b849e28fdc8938f9c101a56de5a1cd6c98d1705091dd912ce3ecf3be6"
+    }
+  ],
+  "cases": 4,
+  "claimBoundary": "This workbook authorizes source-bound model revision only. Each revised artifact still requires deterministic compiler admission and a fresh anonymous paired-order judgment.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "7828371b8f691199178523586129c0ba3aa724e7f67a7c11131dac1cf08b570a"
+  }
+}

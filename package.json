@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.59",
+  "version": "0.16.60",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -139,6 +139,10 @@
     "audit:scion:lesson-kernel-campaign:v0.16.59": "node scripts/scionLessonKernelCapture.mjs --audit --campaign evaluation/scion-adapters/lesson-kernel-campaign-v0.16.59.json",
     "build:scion:source-ledger-evidence:v0.16.59": "node scripts/scionSourceLedgerV01659Audit.mjs --build",
     "audit:scion:source-ledger-evidence:v0.16.59": "node scripts/scionSourceLedgerV01659Audit.mjs --audit",
+    "build:scion:semantic-teacher-evidence:v0.16.60": "node scripts/scionSemanticTeacherV01660Audit.mjs --build",
+    "audit:scion:semantic-teacher-evidence:v0.16.60": "node scripts/scionSemanticTeacherV01660Audit.mjs --audit",
+    "build:scion:semantic-expansion-evidence:v0.16.60": "node scripts/scionSemanticExpansionV01660Audit.mjs --build",
+    "audit:scion:semantic-expansion-evidence:v0.16.60": "node scripts/scionSemanticExpansionV01660Audit.mjs --audit",
     "capture:scion:lesson-kernel:local:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --capture --arm local",
     "capture:scion:lesson-kernel:reference:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --capture --arm reference",
     "audit:scion:lesson-kernel-capture:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --verify",

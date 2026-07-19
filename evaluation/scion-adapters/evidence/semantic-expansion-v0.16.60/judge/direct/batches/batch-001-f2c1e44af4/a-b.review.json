@@ -1,0 +1,342 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "631b2013f30e29742b4344a3415f7c9de7fb730595436ad112357fb5d5c9b956",
+  "sessionId": "scion-v01654-batch-001-f2c1e44af4-a-b-4d624f23-644c-4859-8c3f-4d94c334a118",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T16:57:35Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-096132eb8d2e7124522811f0",
+      "pairId": "scion-kernel-pair-bff4b4cf905ba128b57300f9",
+      "artifactSha256": {
+        "A": "d33fbd6f19f38f083cf6319dbaff20dc42dd3cf867c2a0aef4b629336bb0ffbb",
+        "B": "0ed79c46261abdc9349513ae48791398aef0091827d03ebfb3ab2484a7f60f92"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The fact list matches the ledger, but the stored-charge definition and repeated fixed-charge causal claims are not supplied."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "The stored-charge example discusses field energy, while the parallel-plate definition and several corrections add unsupported content."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "A technician must increase capacitance using stated dimensions, but the constant-charge constraint does not create a supported or consequential tradeoff."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first key selects decreasing capacitance when the cited fact says increasing area increases it; the second feedback also mislabels its correct choice."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Both questions offer four distinct directional alternatives, though the repeated fixed-charge wording is unsupported and reduces quality."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "The first explanation supports the opposite of its declared answer, and the second calls its own correct answer the closest distractor."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Declared answers and explanations conflict with the supplied area and separation relationships."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Facts, definitions, examples, misconceptions, scenario evidence, and assessments remain within the three supplied capacitance claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Capacitance, plate area, and separation are accurately distinguished, with direct corrections of reversed relationships."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The team must assign opposite capacitance-direction labels from inspectable area and separation records before a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers are uniquely supported by the cited ratio, field-energy, area, and separation facts."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each question presents four distinct and parallel alternatives representing plausible confusions among the supplied relationships."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting relationship and directly repairs the nearest charge, energy, or separation misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, terms, scenario records, keys, citations, and explanations consistently express the same capacitance distinctions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first question declares that increasing plate area decreases capacitance, contradicting the supplied claim.",
+          "The second explanation identifies the correct declared answer as the closest distractor.",
+          "Unsupported factual claims define stored charge as charge held within a conductor or capacitor and attribute area effects to constant stored charge."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is fully source-bounded, scenario-ready, and assessment-correct. A has a wrong first answer, contradictory feedback in both questions, and unsupported instructional claims."
+    },
+    {
+      "caseId": "scion-kernel-0f61417d8992f5f6c04af2fc",
+      "pairId": "scion-kernel-pair-0eb9b1e87310edf6032f72ba",
+      "artifactSha256": {
+        "A": "cb955b94598d7cb3d91246bc80bae08427c1837011db3e0278a911db50ef8824",
+        "B": "bf76251ff1fb7dd492da130634057e0c89ce9a5213d2f031e2d13beed5baf9f0"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The core facts are copied accurately, but references to a solid outer layer, boundary tracking, and immediate mantle melting exceed the supplied claims."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The main plate, convection, and subduction distinctions are accurate, although examples are tautological and some terminology adds unsupported detail."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario reports observations and a consistency condition but gives the geologist no concrete classification or other usable decision."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys select the uniquely supported ridge-formation and convergent-subduction statements and cite the corresponding facts."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The alternatives are distinct, but each correct choice nearly repeats the stem-specific source claim while most distractors concern unrelated settings."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "Each explanation identifies supporting evidence but ends with the unresolved instruction to correct the closest distractor."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Facts, keys, and citations agree, but the decisionless scenario and unfinished feedback weaken the instructional chain."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every definition, contrast, scenario record, option, and explanation stays within the supplied flow, ridge, and convergence claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Slowly flowing solid mantle, ridge lithosphere formation, divergence, convergence, and subduction are accurately separated."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "A mapper must classify two evidence-rich boundary passages with one label each before a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely match the cited slow-flow, ridge-formation, divergence, and subduction facts."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The options form distinct combinations of flow state, ridge formation, divergence, and convergence rather than duplicate alternatives."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation supports the answer and contrasts it with the nearest convergence or subduction confusion."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, scenario passages, questions, keys, citations, and explanations consistently preserve the supplied boundary distinctions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The scenario contains observations but no usable disciplinary decision for the geologist.",
+          "Both explanations end with the unresolved instructional fragment \"then correct the closest distractor.\"",
+          "The key-term material adds unsupported claims about the lithosphere as the solid outer layer and about immediate mantle melting."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B supplies a concrete classification decision, precise source-bounded contrasts, discriminating choices, and complete feedback. A retains correct keys but has no usable scenario decision and contains unfinished feedback and unsupported details."
+    },
+    {
+      "caseId": "scion-kernel-17a6a855c7d1711a85d451cb",
+      "pairId": "scion-kernel-pair-2cc4109bebab781687b3feef",
+      "artifactSha256": {
+        "A": "20bf92c868ea69faa2cf9fec1742e162908ca59ae20553f97b6c8b8d8e5f69d1",
+        "B": "6a7a176f03d17a05fa845084bcfeef8c88cdc90a459e831077afcbeca8327cda"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact invents protein and liver examples, attributes the two-tissue property to organ systems, and claims a cell performs all necessary life functions."
+          },
+          "knowledgePrecision": {
+            "score": 1,
+            "evidence": "Chemical components are defined tautologically, organ systems are confused with organs, and the assessments misuse cell and organ properties."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The student is told to analyze and compare a cell with an unsupported liver example, but no concrete disciplinary decision is specified."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first key relies on an unsupported cell-to-organ claim, while the second keys \"single cell\" even though its explanation identifies an organ."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The options are distinct, but the first item lacks a directly supported answer and the second item is undermined by its incorrect key."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Neither explanation repairs a close misconception; one asserts an unsupported inference and the other contradicts the declared answer."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The organ-system term conflicts with the organ fact, and the second answer key directly conflicts with its explanation."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All definitions, examples, misconceptions, scenario evidence, questions, and explanations remain within the three supplied anatomy claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Cells, organs, and tissue types are accurately distinguished through independent functioning, anatomical distinctness, and composition."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The student must assign cell and organ labels to two inspectable descriptions, though the matching constraint creates only modest tension."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely identify the cell-versus-organ distinction and the structure composed of multiple tissue types."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The alternatives are parallel, distinct assignments of cell, tissue, organ, and organ-system properties."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation cites the defining evidence and corrects the nearest confusion between cells, tissues, and organs."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terminology, scenario descriptions, keys, citations, and feedback consistently preserve the structural hierarchy."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The second question declares \"single cell\" although the cited fact and explanation establish that the structure is an organ.",
+          "The second explanation contradicts its declared answer.",
+          "Unsupported claims transfer the two-or-more-tissue-types property from organs to organ systems and assert that one cell performs all necessary life functions.",
+          "The protein and liver examples introduce named details absent from the supplied claims.",
+          "The scenario supplies no concrete disciplinary decision."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B provides accurate, source-bounded distinctions and coherent assessments. A misdefines organ systems, introduces unsupported examples and claims, lacks a concrete scenario decision, and contains an incorrect key that contradicts its explanation."
+    },
+    {
+      "caseId": "scion-kernel-1e55b5679cb304eac7c659ff",
+      "pairId": "scion-kernel-pair-4ebbf74441bb5a1a6e791efe",
+      "artifactSha256": {
+        "A": "68e28ce8745e62f02bdf544d62b410bcaccf922accec87e2932c08f8da29f13b",
+        "B": "2b1c315e233c606d02c1d043fa7b65105b9d02df319e55acd867a4fd3fc18a18"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 2,
+            "evidence": "The fact list is accurate, but the representative-user correction adds the unsupported claim that representative users' experiences can be generalized."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Conformance checks and usability tests are distinguished, but representative users are imprecisely defined through unsupported generalizability."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "A development team must choose conformance-only review or user testing under a launch deadline and compare inspectable findings."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first key selects \"conformance checks alone reveal all barriers,\" while the cited fact and explanation support representative-user observation."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The options are distinct, but several absolute formulations such as \"all barriers\" and \"sufficient\" make the correct choice conspicuous."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "The second explanation teaches the usability-test distinction, but the first explanation supports the opposite of its declared answer."
+          },
+          "internalCoherence": {
+            "score": 1,
+            "evidence": "The first answer key contradicts its explanation and source fact, and the representative-user correction overstates generalizability."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The artifact confines its facts, term contrasts, scenario records, assessments, and feedback to the five supplied evaluation claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Conformance evaluation, WCAG principles, representative users, usability testing, and limits on generalization are clearly distinguished."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "An evaluator must classify three inspectable evaluation records before a deadline using a defensible distinction."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys uniquely match the combined evaluation description and the thinking-aloud usability-test definition."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item offers four distinct and plausible classification errors involving conformance, WCAG, usability testing, and generalization."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Both explanations cite the defining evidence and distinguish the answer from the nearest conformance or generalization misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, key terms, records, questions, keys, citations, and explanations agree throughout."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The first question declares that conformance checks alone reveal all barriers, directly contradicting the supplied claim.",
+          "The first explanation supports representative-user observation and therefore contradicts its declared answer.",
+          "The representative-user correction makes the unsupported claim that representative users are those whose experiences can be generalized."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is precise, source-bounded, scenario-ready, and internally coherent. A has a strong scenario and one correct item, but its first key is false, its feedback contradicts that key, and its representative-user definition overgeneralizes."
+    }
+  ]
+}

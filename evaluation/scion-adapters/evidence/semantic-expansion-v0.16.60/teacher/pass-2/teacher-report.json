@@ -1,0 +1,438 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "workbookSha256": "611a203c4ec977d6bebe3da87060970ae6d2517dfdf636578348446b82bd9721",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-69836338b8f744019a08ab80",
+      "caseSha256": "69836338b8f744019a08ab80148ef7a77e2cbd1a4a374a04797fa28a1087a1df",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "aed27eaeb062065b0449b4fa38e5701d3157ce5935e637c14a5086780d37ac73",
+      "originalArtifactSha256": "391ade0e720c6edde9a63032232855b2e0681dd7a2dd1f081ec61e40a1c8a28d",
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+          "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+          "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+        ],
+        "keyTerms": [
+          {
+            "tr": "net electric flux",
+            "df": "Net electric flux is the quantity through a closed surface that Gauss's law relates to the net charge enclosed.",
+            "eg": "A closed surface with zero enclosed charge has zero net electric flux.",
+            "mi": "Zero net electric flux means the electric field is zero everywhere on the surface.",
+            "cx": "A vanishing total flux does not require the field to vanish at every surface location."
+          },
+          {
+            "tr": "Gaussian surface",
+            "df": "A Gaussian surface belongs to a field-calculation setting where symmetry can simplify field magnitude or direction.",
+            "eg": "Symmetry makes the field direction simple on a Gaussian surface used for calculating fields.",
+            "mi": "A Gaussian surface is useful when its field magnitude and direction are not simple.",
+            "cx": "Its stated usefulness arises when symmetry simplifies at least one of those field properties."
+          },
+          {
+            "tr": "enclosed charge",
+            "df": "Enclosed charge is the net charge within the closed surface in the relation expressed by Gauss's law.",
+            "eg": "Zero enclosed charge on a closed surface implies zero net flux through it.",
+            "mi": "Zero enclosed charge guarantees zero electric field everywhere on the closed surface.",
+            "cx": "That charge condition determines net flux but does not force every surface field value to vanish."
+          }
+        ],
+        "scenario": {
+          "su": "A student reviews a closed-surface notation showing zero enclosed charge and an observation showing a nonzero electric field at one point on the surface. Before a deadline, the student must label the warranted conclusion while distinguishing net flux from electric field everywhere.",
+          "ma": "closed-surface notation showing zero enclosed charge, surface observation showing a nonzero electric field at one point, conclusion labels comparing zero net flux with zero electric field everywhere"
+        },
+        "mc": [
+          {
+            "q": "A closed surface has zero enclosed charge, while its electric field is not zero everywhere on the surface. Which conclusion correctly identifies what follows from the charge condition?",
+            "op": [
+              "Zero net flux follows from zero enclosed charge",
+              "Zero field everywhere follows from zero net flux",
+              "Simple field direction follows from zero enclosed charge",
+              "Zero enclosed charge follows from simple field magnitude"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Zero enclosed charge implies zero net flux, so the stated conclusion follows. Zero net flux does not require zero electric field everywhere, so the field-zero conclusion is not supported."
+          },
+          {
+            "q": "Symmetry makes the field direction simple on a proposed Gaussian surface, but time permits one decision about calculating fields; which action follows from the observation?",
+            "op": [
+              "Use the Gaussian surface for field calculation",
+              "Treat symmetry as making net flux zero",
+              "Treat simple direction as zero electric field",
+              "Reject the Gaussian surface despite symmetry"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "Symmetry making the field direction simple makes the Gaussian surface useful for calculating fields. The surface should not be rejected when the stated symmetry condition is present."
+          }
+        ]
+      },
+      "artifactSha256": "c70d21438b82547a01791739d23ddaf7995239238cf1ef2192172b496d76a6bc",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 0,
+          "permutation": [
+            0,
+            1,
+            3,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 0,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 1,
+          "permutation": [
+            0,
+            2,
+            3,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 0,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "ee1c63f730028d88ff3417ecfe7c8a314728c2e0d5952efa197e2ecf72c0e382",
+        "sessionId": "scion-v01654-teacher-batch-002-3b8b4cc660-part-02-269679c4-4382-4a69-a61a-cabc04fb9328",
+        "changeSummary": [
+          "Re-authored the complete first multiple-choice item to remove duplicate options and leave one source-supported answer."
+        ],
+        "addressedDiagnoses": [
+          "Resolved lesson-3:mc-0:duplicate-options.",
+          "Resolved lesson-3:mc-0:multiple-source-supported-options."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-cf4f644f00e2a131fe97a9e0",
+      "caseSha256": "cf4f644f00e2a131fe97a9e06e8c07b8fa79ca05594ef2315d8bf081edb09730",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "939d9ca6f5316a34fc05843cc19b3240b0b6a8f68607f0b4adaf1b5f58ec25d2",
+      "originalArtifactSha256": "a465095ef77887fe447edd8f92e6e713968ff9f295aa88357e0ad77fd69c6cc6",
+      "artifact": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "Relative dating orders geological events by interpreting relationships such as superposition, inclusions, and cross-cutting without assigning numerical ages.",
+          "In an undisturbed sedimentary sequence, superposition places older layers below younger layers.",
+          "A feature that cuts across or disrupts another geological feature must be younger than the feature it disrupts."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Relative dating",
+            "df": "Relative dating orders geological events through their interpreted relationships rather than numerical ages.",
+            "eg": "Relative dating can order an older layer, a younger layer, and a feature that disrupts them.",
+            "mi": "Inclusions supply numerical ages during relative dating.",
+            "cx": "It establishes an order from geological relationships without assigning numerical ages."
+          },
+          {
+            "tr": "superposition",
+            "df": "Superposition is the relationship placing older layers below younger layers in an undisturbed sedimentary sequence.",
+            "eg": "In an undisturbed sedimentary sequence, an older layer lies below a younger layer.",
+            "mi": "Using superposition in relative dating assigns numerical ages to layers.",
+            "cx": "Relative dating interprets superposition while leaving numerical ages unassigned."
+          },
+          {
+            "tr": "cross-cutting",
+            "df": "Cross-cutting distinguishes a disrupting feature as younger than the geological feature it disrupts.",
+            "eg": "A feature cutting across another geological feature is younger than the disrupted feature.",
+            "mi": "Cross-cutting makes a disrupted geological feature younger than the feature cutting it.",
+            "cx": "The cutting feature is younger, while the feature it disrupts is older."
+          }
+        ],
+        "scenario": {
+          "su": "A student must label the relative order represented by an undisturbed sedimentary sequence and a feature cutting across another geological feature. The decision must use the observed relationships without assigning numerical ages.",
+          "ma": "layer-position observations recording older layers below younger layers, cross-cutting notations recording the disrupting feature and disrupted geological feature"
+        },
+        "mc": [
+          {
+            "q": "A student applies relative dating to an undisturbed sedimentary sequence and must decide which description follows superposition while numerical ages are not assigned; which choice fits?",
+            "op": [
+              "Older layers lie above younger layers; numerical ages unassigned",
+              "Older layers cut across younger layers; numerical ages unassigned",
+              "Older layers lie below younger layers; numerical ages unassigned",
+              "Older layers lie below younger layers; numerical ages assigned"
+            ],
+            "ai": 2,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "Relative dating does not assign numerical ages, and superposition places older layers below younger layers in an undisturbed sequence. The claim that older layers lie above younger layers reverses superposition."
+          },
+          {
+            "q": "A student observes one geological feature cutting across another and must determine their relative order; which description follows from that observed relationship?",
+            "op": [
+              "Cutting feature below disrupted feature",
+              "Cutting feature older than disrupted feature",
+              "Cutting feature younger than disrupted feature",
+              "Cutting feature above disrupted feature"
+            ],
+            "ai": 2,
+            "fi": [
+              2
+            ],
+            "ex": "A feature that cuts across or disrupts another geological feature must be younger than the feature it disrupts. Calling the cutting feature older reverses that relationship."
+          }
+        ]
+      },
+      "artifactSha256": "b6b8afb9edeb54732f1943d9c0d41590aecde4c89c3b13ca45ce427f8cb93db0",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-6",
+          "item": 0,
+          "permutation": [
+            1,
+            3,
+            0,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-6",
+          "item": 1,
+          "permutation": [
+            2,
+            1,
+            0,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "367c4c64326242637cdb266582f97d24945e2126602d779fee8605ba2176b516",
+        "sessionId": "scion-v01654-teacher-batch-003-0eb8978cca-85abee13-221b-47af-8725-b0f7b08c6064",
+        "changeSummary": [
+          "Changed the superposition misconception and correction to separate relative ordering from numerical-age assignment.",
+          "Re-authored both multiple-choice items, including their stems, options, fact indexes, and explanations."
+        ],
+        "addressedDiagnoses": [
+          "Resolved lesson-6:key-term-1:misconception-repeats-definition by separating the false belief from the definition and example.",
+          "Resolved lesson-6:mc-0:multiple-source-supported-options with one uniquely supported first option.",
+          "Resolved lesson-6:mc-1:source-fact-key-mismatch by aligning the first option and fact index with cross-cutting.",
+          "Corrected the diagnosed first-question reversal so its declared answer and explanation both follow superposition."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-ec108bb13f794a1f68365314",
+      "caseSha256": "ec108bb13f794a1f68365314f8959364debe6b177f5de2577d89038a168067f7",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "766275dd0385ee32fecbc01f1d2f1ff3842f71be4c8e7bc1e72fee411bb60970",
+      "originalArtifactSha256": "6422f33c58a93386763927df385c0b90475738e50fc171b70065624a33a1b5fd",
+      "artifact": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "A seventh chord adds a seventh above a triad, and its function depends on its scale degree and its pull within a tonal progression.",
+          "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant.",
+          "Adding a seventh to the dominant increases the chord's pull toward the tonic."
+        ],
+        "keyTerms": [
+          {
+            "tr": "seventh chord",
+            "df": "A seventh chord is a chord formed by adding a seventh above a triad.",
+            "eg": "A seventh above a triad provides a concrete instance of a seventh chord.",
+            "mi": "Adding the seventh fixes the chord's function regardless of its tonal setting.",
+            "cx": "Scale degree and pull within a tonal progression determine the function instead."
+          },
+          {
+            "tr": "supertonic seventh chord",
+            "df": "The supertonic seventh chord has a terminal pre-dominant function and strongly pulls toward the dominant.",
+            "eg": "A tonal progression containing this chord presents an instance of strong pull toward the dominant.",
+            "mi": "The supertonic seventh chord increases the dominant's pull toward the tonic.",
+            "cx": "That increased tonic pull belongs to adding a seventh to the dominant; the supertonic chord pulls toward the dominant."
+          },
+          {
+            "tr": "dominant",
+            "df": "In a tonal progression, the supertonic seventh chord pulls strongly toward the dominant, while adding a seventh to the dominant increases its pull toward the tonic.",
+            "eg": "Compare the two stated pulls and identify the dominant as the destination of the supertonic seventh chord's pull.",
+            "mi": "Adding a seventh to the dominant creates a terminal pre-dominant that pulls toward the dominant.",
+            "cx": "The added seventh strengthens movement from the dominant toward the tonic, while the terminal pre-dominant description applies to the supertonic seventh chord."
+          }
+        ],
+        "scenario": {
+          "su": "An analyst must distinguish the functions shown in a tonal progression containing a supertonic seventh chord and a dominant with an added seventh. The classification must account for each recorded scale degree and pull while preserving the different destinations shown.",
+          "ma": "supertonic seventh-chord notation, dominant-with-added-seventh notation, scale-degree record, tonal-progression pull observations"
+        },
+        "mc": [
+          {
+            "q": "A tonal progression records a terminal pre-dominant supertonic seventh chord and a dominant whose added seventh increases tonic pull; which comparison identifies the destination of each chord's stated pull?",
+            "op": [
+              "Supertonic pulls toward tonic; dominant pulls toward supertonic",
+              "Supertonic pulls toward triad; dominant pulls toward scale degree",
+              "Supertonic pulls toward tonal progression; dominant pulls toward triad",
+              "Supertonic pulls toward dominant; dominant pulls toward tonic"
+            ],
+            "ai": 3,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "The supertonic seventh chord has a strong pull toward the dominant, and adding a seventh to the dominant increases that chord's pull toward the tonic. The supertonic does not instead take the tonic-directed pull stated for the dominant."
+          },
+          {
+            "q": "An analyst sees a seventh added above a triad and records its scale degree and pull within a tonal progression; under the stated constraint, how should the analyst assign function?",
+            "op": [
+              "Scale degree depends on function and pull",
+              "Function adds the seventh above the triad",
+              "Pull depends on function and scale degree",
+              "Function depends on scale degree and pull"
+            ],
+            "ai": 3,
+            "fi": [
+              0
+            ],
+            "ex": "A seventh chord's function depends on its scale degree and its pull within a tonal progression. Scale degree is not presented as depending on function and pull."
+          }
+        ]
+      },
+      "artifactSha256": "258d9bec65569a7346ae74f6d04ac9465f61064e5d7e13cdf776b767901675b3",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-6",
+          "item": 0,
+          "permutation": [
+            1,
+            2,
+            3,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-6",
+          "item": 1,
+          "permutation": [
+            1,
+            3,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "8384cb4350253c8c8210fecdbbb1f939f285e617cc525eafbff318a2e67ce285",
+        "sessionId": "scion-v01654-teacher-batch-004-23931d1f63-6ed531f5-5d1d-4f0c-8b91-e42151ce715b",
+        "changeSummary": [
+          "Revised the dominant definition to state the source-backed pull relationships without characterizing the dominant as a scale degree.",
+          "Re-authored the dominant example as a bounded comparison instead of repeating the definition."
+        ],
+        "addressedDiagnoses": [
+          "Addressed lesson-6:key-term-2:example-repeats-definition with a visibly distinct application.",
+          "Removed the diagnosed unsupported scale-degree characterization from the dominant definition."
+        ]
+      }
+    }
+  ],
+  "batchReports": [
+    {
+      "batchId": "batch-002-3b8b4cc660-part-02",
+      "packetSha256": "ee1c63f730028d88ff3417ecfe7c8a314728c2e0d5952efa197e2ecf72c0e382",
+      "resultSha256": "2f02dd9f589c35bf09f3df9cbae6ac06d7a22eda08c4f9c7ed2a3780f3b64db5",
+      "reportSha256": "2ae8728c10089e5b16b3be3e36a48a42c4c574f77d3f5d56aa46ebb964cb2b2c",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-003-0eb8978cca",
+      "packetSha256": "367c4c64326242637cdb266582f97d24945e2126602d779fee8605ba2176b516",
+      "resultSha256": "557d4ba27b3c8ce544df1236dc2b27b0119ac350a9acf546a49e4f76d66ad1cd",
+      "reportSha256": "59b5d5f5fa623170df97918feb38ab30c62041d5a62858586ba4f67668e3cafc",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-004-23931d1f63",
+      "packetSha256": "8384cb4350253c8c8210fecdbbb1f939f285e617cc525eafbff318a2e67ce285",
+      "resultSha256": "9dd52f1ba7156e3044ff80410fd41f69246ce077ec0ae918e074c8ca54273e7f",
+      "reportSha256": "e31aa388e9cfc81021937e4e1a0ac6ca21992ceb863f9fbe5fc98c2f352759e3",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    }
+  ],
+  "summary": {
+    "cases": 3,
+    "compilerAdmitted": 3,
+    "compilerRejected": 0,
+    "completedBatches": 3,
+    "pendingBatches": 0
+  },
+  "claimBoundary": "These source-constrained model revisions are compiler candidates only. They are not human evidence, judge preferences, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "825a1365e320cb16b1991f121d90bbec2d15df13ba599ad420be07d722e4d55f"
+  }
+}

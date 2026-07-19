@@ -130,6 +130,8 @@ scripts/scionLessonKernelJudgeBatches.mjs
 docs/evidence/SCION_V01656_EXPERIENCE_AUDIT.json
 evaluation/scion-adapters/evidence/browser-scion-v0.16.54.json
 evaluation/scion-adapters/evidence/lesson-kernel-pilot-v0.16.56
+evaluation/scion-adapters/evidence/semantic-teacher-v0.16.60
+evaluation/scion-adapters/evidence/semantic-expansion-v0.16.60
 evaluation/scion-adapters/lesson-kernel-campaign-v0.16.54.json
 evaluation/scion-adapters/lesson-kernel-campaign-v0.16.56.json
 release-contracts/v0.16.54.json

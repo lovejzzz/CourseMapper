@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-workbook-result-v1",
+  "generatedAt": "2026-07-19T19:05:00.000Z",
+  "status": "paired-orders-complete",
+  "workbookSha256": "f6606ae5d7b78f1900de5526d07fa5e00a7802edb0a6531d17f71dfd41a73bce",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "batchResults": [
+    {
+      "batchId": "batch-001-f2c1e44af4",
+      "aggregateSha256": "af89a59a1ace77dde458da6d646fde822fed172033ddfbbf9b7257f933c18d05",
+      "sessions": {
+        "A/B": "scion-v01654-batch-001-f2c1e44af4-a-b-4d624f23-644c-4859-8c3f-4d94c334a118",
+        "B/A": "scion-v01654-batch-001-f2c1e44af4-b-a-5f0a3956-610a-46fb-8680-c3c1ae124243"
+      },
+      "summary": {
+        "pairs": 4,
+        "stablePreferences": 3,
+        "localWins": 0,
+        "referenceWins": 4,
+        "unstable": 0,
+        "scoreRejected": 0,
+        "compilerRejected": 1
+      }
+    },
+    {
+      "batchId": "batch-002-3b8b4cc660",
+      "aggregateSha256": "fc7fd889beb8219f70a2fc7561ea1eacd55cc17fd8c5dea8ab8ebc8e7eb10a46",
+      "sessions": {
+        "A/B": "scion-v01654-batch-002-3b8b4cc660-a-b-31c7bfd2-c485-48be-a714-4a006b6f75ae",
+        "B/A": "scion-v01654-batch-002-3b8b4cc660-b-a-2939500a-1b09-4a1f-b01e-edc75104fefb"
+      },
+      "summary": {
+        "pairs": 4,
+        "stablePreferences": 1,
+        "localWins": 0,
+        "referenceWins": 3,
+        "unstable": 1,
+        "scoreRejected": 1,
+        "compilerRejected": 1
+      }
+    },
+    {
+      "batchId": "batch-003-0eb8978cca",
+      "aggregateSha256": "841017ad3e333483ec778e529c656d3fa881819481ac319ee5a321b9db53aa72",
+      "sessions": {
+        "A/B": "scion-v01654-batch-003-0eb8978cca-a-b-90d472ee-988d-4d82-83a5-e76e8a6c33b2",
+        "B/A": "scion-v01654-batch-003-0eb8978cca-b-a-c4c5257d-70a1-4938-aa69-c9744e0a9c2d"
+      },
+      "summary": {
+        "pairs": 4,
+        "stablePreferences": 2,
+        "localWins": 0,
+        "referenceWins": 4,
+        "unstable": 0,
+        "scoreRejected": 1,
+        "compilerRejected": 1
+      }
+    },
+    {
+      "batchId": "batch-004-23931d1f63",
+      "aggregateSha256": "be10a73314b8fa098f621e267aea75c03f907d8eab8c5cd934b47d85a173a481",
+      "sessions": {
+        "A/B": "scion-v01654-batch-004-23931d1f63-a-b-e5ca4183-be13-42f9-b7ad-3ea8b0fdc607",
+        "B/A": "scion-v01654-batch-004-23931d1f63-b-a-2d591ce8-d006-4fa4-a373-6942e6208782"
+      },
+      "summary": {
+        "pairs": 2,
+        "stablePreferences": 1,
+        "localWins": 0,
+        "referenceWins": 2,
+        "unstable": 0,
+        "scoreRejected": 1,
+        "compilerRejected": 0
+      }
+    }
+  ],
+  "reviewedBatches": 4,
+  "pendingBatches": 0,
+  "sealedBatches": 4,
+  "evaluatedCases": 14,
+  "availableCases": 14,
+  "campaignCases": 148,
+  "summary": {
+    "pairs": 14,
+    "stablePreferences": 7,
+    "localWins": 0,
+    "referenceWins": 13,
+    "unstable": 1,
+    "scoreRejected": 3,
+    "compilerRejected": 3
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated bounded A/B and B/A sessions. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "de67f892b21ffce1f4a02e56e8b4fde4df46dfbe93361dfe0b6c9cf16efbebc4"
+  }
+}

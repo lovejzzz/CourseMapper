@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "ee1c63f730028d88ff3417ecfe7c8a314728c2e0d5952efa197e2ecf72c0e382",
+  "resultSha256": "2f02dd9f589c35bf09f3df9cbae6ac06d7a22eda08c4f9c7ed2a3780f3b64db5",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-69836338b8f744019a08ab80",
+      "caseSha256": "69836338b8f744019a08ab80148ef7a77e2cbd1a4a374a04797fa28a1087a1df",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "aed27eaeb062065b0449b4fa38e5701d3157ce5935e637c14a5086780d37ac73",
+      "originalArtifactSha256": "391ade0e720c6edde9a63032232855b2e0681dd7a2dd1f081ec61e40a1c8a28d",
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+          "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+          "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+        ],
+        "keyTerms": [
+          {
+            "tr": "net electric flux",
+            "df": "Net electric flux is the quantity through a closed surface that Gauss's law relates to the net charge enclosed.",
+            "eg": "A closed surface with zero enclosed charge has zero net electric flux.",
+            "mi": "Zero net electric flux means the electric field is zero everywhere on the surface.",
+            "cx": "A vanishing total flux does not require the field to vanish at every surface location."
+          },
+          {
+            "tr": "Gaussian surface",
+            "df": "A Gaussian surface belongs to a field-calculation setting where symmetry can simplify field magnitude or direction.",
+            "eg": "Symmetry makes the field direction simple on a Gaussian surface used for calculating fields.",
+            "mi": "A Gaussian surface is useful when its field magnitude and direction are not simple.",
+            "cx": "Its stated usefulness arises when symmetry simplifies at least one of those field properties."
+          },
+          {
+            "tr": "enclosed charge",
+            "df": "Enclosed charge is the net charge within the closed surface in the relation expressed by Gauss's law.",
+            "eg": "Zero enclosed charge on a closed surface implies zero net flux through it.",
+            "mi": "Zero enclosed charge guarantees zero electric field everywhere on the closed surface.",
+            "cx": "That charge condition determines net flux but does not force every surface field value to vanish."
+          }
+        ],
+        "scenario": {
+          "su": "A student reviews a closed-surface notation showing zero enclosed charge and an observation showing a nonzero electric field at one point on the surface. Before a deadline, the student must label the warranted conclusion while distinguishing net flux from electric field everywhere.",
+          "ma": "closed-surface notation showing zero enclosed charge, surface observation showing a nonzero electric field at one point, conclusion labels comparing zero net flux with zero electric field everywhere"
+        },
+        "mc": [
+          {
+            "q": "A closed surface has zero enclosed charge, while its electric field is not zero everywhere on the surface. Which conclusion correctly identifies what follows from the charge condition?",
+            "op": [
+              "Zero net flux follows from zero enclosed charge",
+              "Zero field everywhere follows from zero net flux",
+              "Simple field direction follows from zero enclosed charge",
+              "Zero enclosed charge follows from simple field magnitude"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Zero enclosed charge implies zero net flux, so the stated conclusion follows. Zero net flux does not require zero electric field everywhere, so the field-zero conclusion is not supported."
+          },
+          {
+            "q": "Symmetry makes the field direction simple on a proposed Gaussian surface, but time permits one decision about calculating fields; which action follows from the observation?",
+            "op": [
+              "Use the Gaussian surface for field calculation",
+              "Treat symmetry as making net flux zero",
+              "Treat simple direction as zero electric field",
+              "Reject the Gaussian surface despite symmetry"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "Symmetry making the field direction simple makes the Gaussian surface useful for calculating fields. The surface should not be rejected when the stated symmetry condition is present."
+          }
+        ]
+      },
+      "artifactSha256": "c70d21438b82547a01791739d23ddaf7995239238cf1ef2192172b496d76a6bc",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 0,
+          "permutation": [
+            0,
+            1,
+            3,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 0,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 1,
+          "permutation": [
+            0,
+            2,
+            3,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 0,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "ee1c63f730028d88ff3417ecfe7c8a314728c2e0d5952efa197e2ecf72c0e382",
+        "sessionId": "scion-v01654-teacher-batch-002-3b8b4cc660-part-02-269679c4-4382-4a69-a61a-cabc04fb9328",
+        "changeSummary": [
+          "Re-authored the complete first multiple-choice item to remove duplicate options and leave one source-supported answer."
+        ],
+        "addressedDiagnoses": [
+          "Resolved lesson-3:mc-0:duplicate-options.",
+          "Resolved lesson-3:mc-0:multiple-source-supported-options."
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "2ae8728c10089e5b16b3be3e36a48a42c4c574f77d3f5d56aa46ebb964cb2b2c"
+  }
+}

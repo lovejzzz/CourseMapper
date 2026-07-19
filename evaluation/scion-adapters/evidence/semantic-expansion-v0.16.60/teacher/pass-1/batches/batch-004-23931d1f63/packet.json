@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T19:20:00.000Z",
+  "batchId": "batch-004-23931d1f63",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "be10a73314b8fa098f621e267aea75c03f907d8eab8c5cd934b47d85a173a481",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-ec108bb13f794a1f68365314",
+      "caseSha256": "ec108bb13f794a1f68365314f8959364debe6b177f5de2577d89038a168067f7",
+      "lessonInput": {
+        "lessonId": "lesson-6",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Seventh-chord functions",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A seventh chord adds a seventh above a triad, and its function depends on its scale degree and its pull within a tonal progression. Claim 1: The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant. Claim 2: Adding a seventh to the dominant increases the chord's pull toward the tonic.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/seventh-chord-functions",
+        "term": "Seventh-chord functions",
+        "claims": [
+          "A seventh chord adds a seventh above a triad, and its function depends on its scale degree and its pull within a tonal progression.",
+          "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant.",
+          "Adding a seventh to the dominant increases the chord's pull toward the tonic."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Seventh Chords",
+            "quote": "any triad can have a seventh added"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Seventh Chords",
+            "quote": "the ii7 functions as a terminal pre-dominant chord"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Seventh Chords",
+            "quote": "increases the force of the chord towards the tonic"
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "A seventh chord adds a seventh above a triad, and its function depends on its scale degree and its pull within a tonal progression.",
+          "The supertonic seventh chord functions as a terminal pre-dominant with a strong pull toward the dominant.",
+          "Adding a seventh to the dominant increases the chord's pull toward the tonic."
+        ],
+        "keyTerms": [
+          {
+            "tr": "seventh chord",
+            "df": "A seventh chord is a chord formed by adding a seventh above a triad.",
+            "eg": "A seventh above a triad provides a concrete instance of a seventh chord.",
+            "mi": "Adding the seventh fixes the chord's function regardless of its tonal setting.",
+            "cx": "Scale degree and pull within a tonal progression determine the function instead."
+          },
+          {
+            "tr": "supertonic seventh chord",
+            "df": "The supertonic seventh chord has a terminal pre-dominant function and strongly pulls toward the dominant.",
+            "eg": "A tonal progression containing this chord presents an instance of strong pull toward the dominant.",
+            "mi": "The supertonic seventh chord increases the dominant's pull toward the tonic.",
+            "cx": "That increased tonic pull belongs to adding a seventh to the dominant; the supertonic chord pulls toward the dominant."
+          },
+          {
+            "tr": "dominant",
+            "df": "The dominant is a scale degree whose chord gains greater tonic pull when a seventh is added.",
+            "eg": "Adding a seventh to the dominant exemplifies an increase in the chord's pull toward the tonic.",
+            "mi": "Adding a seventh to the dominant creates a terminal pre-dominant that pulls toward the dominant.",
+            "cx": "The added seventh strengthens movement from the dominant toward the tonic, while the terminal pre-dominant description applies to the supertonic seventh chord."
+          }
+        ],
+        "scenario": {
+          "su": "An analyst must distinguish the functions shown in a tonal progression containing a supertonic seventh chord and a dominant with an added seventh. The classification must account for each recorded scale degree and pull while preserving the different destinations shown.",
+          "ma": "supertonic seventh-chord notation, dominant-with-added-seventh notation, scale-degree record, tonal-progression pull observations"
+        },
+        "mc": [
+          {
+            "q": "A tonal progression shows a supertonic seventh chord pulling toward the dominant, while adding a seventh to the dominant strengthens movement toward the tonic; which distinction matches these observations?",
+            "op": [
+              "Supertonic targets dominant; dominant targets tonic",
+              "Supertonic targets tonic; dominant targets dominant",
+              "Dominant targets supertonic; tonic targets dominant",
+              "Supertonic increases tonic pull; dominant is pre-dominant"
+            ],
+            "ai": 0,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "The supertonic seventh chord pulls toward the dominant, whereas adding a seventh to the dominant increases its pull toward the tonic. The supertonic therefore does not take the tonic-directed relation supplied for the dominant."
+          },
+          {
+            "q": "An analyst sees a seventh added above a triad and records its scale degree and pull within a tonal progression; under the stated constraint, how should the analyst assign function?",
+            "op": [
+              "Function depends on scale degree and pull",
+              "Scale degree depends on function and pull",
+              "Pull depends on function and scale degree",
+              "Function adds the seventh above the triad"
+            ],
+            "ai": 0,
+            "fi": [
+              0
+            ],
+            "ex": "A seventh chord's function depends on its scale degree and its pull within a tonal progression. Scale degree is not presented as depending on function and pull."
+          }
+        ]
+      },
+      "originalArtifactSha256": "20167213c1a7df8e3394124ad26405957daea0e09023053ade83a166dec1e795",
+      "compilerAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-6:mc-0:explanation-key-conflict"
+        ]
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 3,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B provides stronger scenario evidence, complete claim citations, distinct choices, and feedback that repairs the nearest misconception. A is factually accurate, but its materials are less inspectable, both assessments omit a necessary citation, one choice set duplicates a distractor, and its feedback relies on answer-position wording.",
+          "decisionSha256": "4d34a0422a296e7efe0fbfa3e2bfef65525ff0f3c9641809241f65277abc0e01"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 3,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [
+            "The dominant key-term definition adds the unsupported claim that the dominant itself is a scale degree."
+          ],
+          "rationale": "A has one localized source-boundary overreach but otherwise supplies stronger evidence, complete citations, discriminating choices, and misconception-repairing feedback. B is faithful at the fact level, yet its sparse scenario, incomplete citations, duplicate distractors, and position-referencing feedback make it materially weaker.",
+          "decisionSha256": "798d4676dc21e5e4752318684f3e66c241430120de27bbd0a53d6e2350916a38"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "36f2268ca483974586f3c7e5c532e5becbc959084c345cf6e6132ab76637b816"
+  }
+}

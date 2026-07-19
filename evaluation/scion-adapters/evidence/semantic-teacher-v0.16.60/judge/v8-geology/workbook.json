@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-workbook-v1",
+  "generatedAt": "2026-07-19T18:30:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "chunkSize": 4,
+  "campaignCaseCount": 148,
+  "caseCount": 1,
+  "captureComplete": false,
+  "sparseComplete": true,
+  "batches": [
+    {
+      "batchId": "batch-001-e3568ac941",
+      "index": 1,
+      "caseIds": [
+        "scion-kernel-018581469357c98b43195802"
+      ],
+      "sealed": true,
+      "packetSha256": {
+        "A/B": "6ecafe228f756a150d2c72c5e35aec4029e0a579b9574b6f253ac3a8d3d81300",
+        "B/A": "5c1e0132f3e9fe19fb015dd53bd491fc546dd6528c5f1565e23fc250189db0ad"
+      }
+    }
+  ],
+  "claimBoundary": "Each batch is judged in two isolated sessions with exact reversed artifact order. The workbook contains no organizer mapping, provider identity, model route, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "5ec4f769b549b280fb9454691b2d9743c11d4a751255bdbd205eb8042f522fd9"
+  }
+}

@@ -17,6 +17,7 @@ import {
 } from '../src/lib/publicScionProvider.js';
 import { resolveItemsRuntime, sGenerate, stopS } from '../trellis/tendril/sModel.mjs';
 import { loadApiKey } from './lib/crucibleBrowser.mjs';
+import { runSettledPool } from './lib/scionBatchRunnerPool.mjs';
 import { scionFactContractForLesson } from '../src/lib/scionEvidenceContract.js';
 import {
   SCION_LESSON_KERNEL_CAMPAIGN_PROTOCOL,
@@ -55,6 +56,7 @@ export function parseArgs(argv) {
     fresh: false,
     arm: '',
     limit: 0,
+    concurrency: 1,
     caseIds: [],
     campaign: DEFAULT_CAMPAIGN,
     checkpointDir: DEFAULT_CHECKPOINT_DIR,
@@ -72,6 +74,7 @@ export function parseArgs(argv) {
     else if (token === '--fresh') args.fresh = true;
     else if (token === '--arm') args.arm = argv[++index] || '';
     else if (token === '--limit') args.limit = Number(argv[++index] || 0);
+    else if (token === '--concurrency') args.concurrency = Number(argv[++index] || 0);
     else if (token === '--case-id') {
       args.caseIds.push(
         ...(argv[++index] || '')
@@ -94,6 +97,12 @@ export function parseArgs(argv) {
   }
   if (args.capture && !args.arm) throw new Error('--capture requires --arm local or --arm reference');
   if (!Number.isInteger(args.limit) || args.limit < 0) throw new Error('--limit must be a non-negative integer');
+  if (!Number.isInteger(args.concurrency) || args.concurrency < 1 || args.concurrency > 4) {
+    throw new Error('--concurrency must be an integer from 1 through 4');
+  }
+  if (args.arm === 'local' && args.concurrency !== 1) {
+    throw new Error('Local capture supports concurrency 1 because it uses one shared browser-model runtime');
+  }
   if (![args.build, args.audit, args.capture, args.verify].some(Boolean) && !args.help) args.audit = true;
   return args;
 }
@@ -595,7 +604,6 @@ async function captureArm(args, campaign) {
   if (checkpoint.identitySha256 !== identitySha256) {
     throw new Error(`Lesson-kernel ${args.arm} checkpoint identity mismatch; use --fresh only for a new campaign`);
   }
-  let newCalls = 0;
   const requestedCaseIds = new Set(args.caseIds);
   const selectedCases = requestedCaseIds.size
     ? campaign.cases.filter((entry) => requestedCaseIds.has(entry.caseId))
@@ -605,20 +613,41 @@ async function captureArm(args, campaign) {
     const missing = [...requestedCaseIds].filter((caseId) => !found.has(caseId));
     throw new Error(`Unknown lesson-kernel case${missing.length === 1 ? '' : 's'}: ${missing.join(', ')}`);
   }
-  for (const entry of selectedCases) {
+  let pendingCases = selectedCases.filter((entry) => {
     const existing = checkpoint.calls.find((call) => call.caseId === entry.caseId);
-    if (existing && verifyCapturedCall(existing, entry, args.arm, model).valid) continue;
-    if (args.limit > 0 && newCalls >= args.limit) break;
-    const call = await captureCase(entry, args.arm, model);
-    checkpoint.calls = checkpoint.calls.filter((candidate) => candidate.caseId !== entry.caseId);
-    checkpoint.calls.push(call);
-    checkpoint.calls.sort((left, right) => left.caseId.localeCompare(right.caseId));
-    checkpoint.updatedAt = new Date().toISOString();
-    await atomicWrite(checkpointPath, checkpoint);
-    newCalls += 1;
-    console.log(
-      `[scion-lesson-kernel] ${args.arm} ${entry.caseId}: ${call.artifact ? (call.admission.needsRetry ? `retained with ${call.admission.issues.length} issue(s)` : 'admitted') : 'no artifact'} in ${Math.round(call.durationMs / 1000)}s`,
-    );
+    return !(existing && verifyCapturedCall(existing, entry, args.arm, model).valid);
+  });
+  if (args.limit > 0) pendingCases = pendingCases.slice(0, args.limit);
+  let persist = Promise.resolve();
+  const results = await runSettledPool(
+    pendingCases,
+    args.concurrency,
+    async (entry) => {
+      const call = await captureCase(entry, args.arm, model);
+      persist = persist.then(async () => {
+        checkpoint.calls = checkpoint.calls.filter((candidate) => candidate.caseId !== entry.caseId);
+        checkpoint.calls.push(call);
+        checkpoint.calls.sort((left, right) => left.caseId.localeCompare(right.caseId));
+        checkpoint.updatedAt = new Date().toISOString();
+        await atomicWrite(checkpointPath, checkpoint);
+      });
+      await persist;
+      console.log(
+        `[scion-lesson-kernel] ${args.arm} ${entry.caseId}: ${call.artifact ? (call.admission.needsRetry ? `retained with ${call.admission.issues.length} issue(s)` : 'admitted') : 'no artifact'} in ${Math.round(call.durationMs / 1000)}s`,
+      );
+      return call;
+    },
+    {
+      onFailure: ({ task, error }) => {
+        console.error(`[scion-lesson-kernel] ${args.arm} ${task.caseId}: failed — ${error.message}`);
+      },
+    },
+  );
+  await persist;
+  const newCalls = results.filter((result) => result.status === 'completed').length;
+  const failedCalls = results.filter((result) => result.status === 'failed').length;
+  if (failedCalls > 0) {
+    throw new Error(`Lesson-kernel ${args.arm} capture failed for ${failedCalls}/${pendingCases.length} cases`);
   }
   return { checkpointPath, checkpoint, newCalls };
 }
@@ -678,7 +707,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(
-      'Usage: node scripts/scionLessonKernelCapture.mjs [--build|--audit|--capture --arm local|reference|--verify] [--reference-runtime api|codex-cli] [--limit N] [--case-id ID] [--fresh]',
+      'Usage: node scripts/scionLessonKernelCapture.mjs [--build|--audit|--capture --arm local|reference|--verify] [--reference-runtime api|codex-cli] [--concurrency 1..4] [--limit N] [--case-id ID] [--fresh]',
     );
     return;
   }

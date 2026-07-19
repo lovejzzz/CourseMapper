@@ -30,7 +30,15 @@ export function buildScionLessonKernelTeacherRevisionPacket({
   const campaignCases = new Map((campaign?.cases || []).map((entry) => [entry.caseId, entry]));
   const reference = reportCalls(referenceReport);
   const cases = (aggregate?.results || [])
-    .filter((result) => result.stable && result.stableWinner === 'reference' && !result.trainingEligible)
+    .filter((result) => {
+      if (!result.stable || result.stableWinner !== 'reference') return false;
+      // A paired result records the compiler boundary that existed when the
+      // judgment was sealed. Later semantic gates may correctly quarantine
+      // that same frozen winner. Repair it when the current replay rejects it
+      // even if the historical aggregate once labeled it training-eligible.
+      const currentCall = reference.get(result.caseId);
+      return !result.trainingEligible || currentCall?.admission?.needsRetry === true;
+    })
     .map((result) => {
       const entry = campaignCases.get(result.caseId);
       const call = reference.get(result.caseId);
@@ -96,11 +104,39 @@ export function validateScionLessonKernelTeacherRevisionPacket(packet = {}) {
 }
 
 export function buildScionLessonKernelTeacherRevisionSchema(packet = {}) {
-  const lessonSchema = structuredClone(
-    buildScionLessonKernelResponseSchema(packet?.cases?.[0]?.lessonInput?.lessonId || 'lesson').properties.lessons
-      .items,
-  );
-  lessonSchema.properties.lessonId = { type: 'string', minLength: 1 };
+  const revisionSchema = (entry = {}) => {
+    const sourceClaims = Array.isArray(entry.sourceContext?.claims) ? entry.sourceContext.claims : [];
+    const sourceLedger = entry.lessonInput?.sourceFactPolicy === 'numbered-source-ledger-v1';
+    const lessonSchema = structuredClone(
+      buildScionLessonKernelResponseSchema(entry.lessonInput?.lessonId || 'lesson', {
+        factCount: sourceLedger ? sourceClaims.length : 5,
+      }).properties.lessons.items,
+    );
+    lessonSchema.properties.lessonId = { type: 'string', const: entry.lessonInput?.lessonId || 'lesson' };
+    if (sourceLedger) {
+      lessonSchema.properties.facts = {
+        type: 'array',
+        prefixItems: sourceClaims.map((claim) => ({ type: 'string', const: claim })),
+        // The Codex structured-output subset requires `items` to be a schema
+        // object. `maxItems` still closes the tuple after the pinned claims.
+        items: { type: 'string' },
+        minItems: sourceClaims.length,
+        maxItems: sourceClaims.length,
+      };
+    }
+    return {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        caseId: { type: 'string', const: entry.caseId },
+        originalArtifactSha256: { type: 'string', const: entry.originalArtifactSha256 },
+        lessonKernel: lessonSchema,
+        changeSummary: { type: 'array', minItems: 1, items: { type: 'string', minLength: 12 } },
+        addressedDiagnoses: { type: 'array', minItems: 1, items: { type: 'string', minLength: 12 } },
+      },
+      required: ['caseId', 'originalArtifactSha256', 'lessonKernel', 'changeSummary', 'addressedDiagnoses'],
+    };
+  };
   const schema = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     type: 'object',
@@ -135,18 +171,11 @@ export function buildScionLessonKernelTeacherRevisionSchema(packet = {}) {
         type: 'array',
         minItems: packet.cases?.length || 1,
         maxItems: packet.cases?.length || 1,
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          properties: {
-            caseId: { type: 'string', minLength: 1 },
-            originalArtifactSha256: { type: 'string', pattern: '^[a-f0-9]{64}$' },
-            lessonKernel: lessonSchema,
-            changeSummary: { type: 'array', minItems: 1, items: { type: 'string', minLength: 12 } },
-            addressedDiagnoses: { type: 'array', minItems: 1, items: { type: 'string', minLength: 12 } },
-          },
-          required: ['caseId', 'originalArtifactSha256', 'lessonKernel', 'changeSummary', 'addressedDiagnoses'],
-        },
+        prefixItems: (packet.cases || []).map(revisionSchema),
+        // Keep this compatible with structured-output validators that reject
+        // boolean array schemas. The exact tuple is still pinned by
+        // `prefixItems`, and result validation binds every case again.
+        items: { anyOf: (packet.cases || []).map(revisionSchema) },
       },
     },
     required: [

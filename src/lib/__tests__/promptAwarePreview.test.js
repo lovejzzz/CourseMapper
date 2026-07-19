@@ -21,6 +21,10 @@ describe('prompt-aware setup previews', () => {
     expect(derivePromptPreviewTitle('Build a course on Intro to Psychology with 15 lessons.')).toBe(
       'Intro to Psychology',
     );
+    expect(derivePromptPreviewTitle('Build an 8-lesson Spanish for Healthcare Professionals course.')).toBe(
+      'Spanish for Healthcare Professionals',
+    );
+    expect(derivePromptPreviewTitle('Design a Writing with AI seminar.')).toBe('Writing with AI');
     expect(
       derivePromptPreviewTitle(
         'Elementary Mandarin — one lesson: Pinyin and Tones for adult beginners. Use only these instructor-provided facts: Pinyin uses Latin letters.',

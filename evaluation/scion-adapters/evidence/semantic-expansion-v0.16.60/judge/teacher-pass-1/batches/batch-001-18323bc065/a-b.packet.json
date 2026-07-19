@@ -1,0 +1,829 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "A/B",
+  "generatedAt": "2026-07-19T19:30:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-096132eb8d2e7124522811f0",
+      "pairId": "scion-kernel-pair-cee39d9cc363bbce38decc4c",
+      "domain": "physics",
+      "failureFamilies": [
+        "answer-key-correctness"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-5",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Capacitance",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor. Claim 1: A capacitor stores energy in the electric field between its conductors. Claim 2: For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 8"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "3b263333e49bb33f83e6d019fd7e157fd10c684598ac03a65955ba0733dc0e6f",
+        "kernelId": "physics/capacitance",
+        "term": "Capacitance",
+        "claims": [
+          "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+          "A capacitor stores energy in the electric field between its conductors.",
+          "For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#8",
+            "loc": "8.1",
+            "quote": "capacitance is the amount of charge stored per volt"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#8",
+            "loc": "8.3",
+            "quote": "energy stored in a capacitor"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#8",
+            "loc": "8.2",
+            "quote": "capacitance is directly proportional to the area and inversely proportional to the separation"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 8"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "d33fbd6f19f38f083cf6319dbaff20dc42dd3cf867c2a0aef4b629336bb0ffbb",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor. ",
+              "A capacitor stores energy in the electric field between its conductors. ",
+              "For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Capacitance",
+                "df": "Capacitance is defined as the ratio of stored charge to potential difference for a conductor or capacitor. ",
+                "eg": "A capacitor stores energy in the electric field between its conductors. ",
+                "mi": "Capacitance is simply the total amount of charge that can be stored on a conductor. ",
+                "cx": "Capacitance is a ratio involving stored charge and potential difference, not just the total charge stored on a conductor."
+              },
+              {
+                "tr": "Stored charge",
+                "df": "Stored charge is the quantity of charge that is held within a conductor or capacitor. ",
+                "eg": "A capacitor stores energy in the electric field between its conductors. ",
+                "mi": "Stored charge is the total charge that flows through a conductor when a voltage is applied. ",
+                "cx": "Stored charge is the charge that is held within a conductor or capacitor, not the charge that flows through it during application of voltage."
+              },
+              {
+                "tr": "Parallel-plate capacitor",
+                "df": "A parallel-plate capacitor is a specific configuration where the plates are parallel to each other. ",
+                "eg": "For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance. ",
+                "mi": "A parallel-plate capacitor is any device where two conductive plates are placed near each other. ",
+                "cx": "A parallel-plate capacitor is a specific configuration where the plates are parallel to each other, not just any device with two plates."
+              }
+            ],
+            "scenario": {
+              "su": "A parallel-plate capacitor has plates with an area of 10 square meters and a separation of 2 centimeters. A technician wants to increase the capacitance by changing the physical dimensions of the capacitor. The constraint is that the total amount of charge stored must remain constant during the change.",
+              "ma": "Plate area of 10 square meters, separation of 2 centimeters"
+            },
+            "mc": [
+              {
+                "q": "When analyzing a parallel-plate capacitor, how does increasing the plate area affect the capacitance relative to the stored charge and potential difference?",
+                "op": [
+                  "Increasing plate area decreases capacitance because the stored charge remains constant.",
+                  "Increasing plate area increases capacitance because the stored charge remains constant.",
+                  "Increasing plate area decreases the potential difference because the stored charge remains constant.",
+                  "Increasing plate area has no effect on capacitance because the stored charge remains constant."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  2
+                ],
+                "ex": "The subject evidence supporting the answer is that for a parallel-plate capacitor, increasing plate area increases capacitance. The closest distractor is that increasing plate area decreases capacitance because the stored charge remains constant."
+              },
+              {
+                "q": "A student observes that for a parallel-plate capacitor, decreasing the separation distance results in a change in capacitance. What is the relationship between separation and capacitance?",
+                "op": [
+                  "Decreasing separation increases capacitance because the stored charge remains constant.",
+                  "Decreasing separation decreases capacitance because the stored charge remains constant.",
+                  "Decreasing separation increases the potential difference because the stored charge remains constant.",
+                  "Decreasing separation has no effect on capacitance because the stored charge remains constant."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The subject evidence supporting the answer is that for a parallel-plate capacitor, increasing separation decreases capacitance. The closest distractor is that decreasing separation increases capacitance because the stored charge remains constant."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "7bbdbac022ee8ec86bcb1efca05ef4937fa840c1ab4cf22a24f2642c15960585",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+              "A capacitor stores energy in the electric field between its conductors.",
+              "For a parallel-plate capacitor, increasing plate area increases capacitance and increasing separation decreases capacitance."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Capacitance",
+                "df": "Capacitance is the ratio of stored charge to potential difference for a conductor or capacitor.",
+                "eg": "For a parallel-plate capacitor, increased plate area provides a concrete case of increased capacitance.",
+                "mi": "Capacitance is the energy stored between a capacitor's conductors.",
+                "cx": "Energy is stored in the electric field, whereas capacitance compares stored charge with potential difference."
+              },
+              {
+                "tr": "plate area",
+                "df": "Plate area is a parallel-plate capacitor property whose increase is associated with increased capacitance.",
+                "eg": "Comparing increased plate area with increased separation distinguishes their opposite relations to capacitance.",
+                "mi": "Increasing plate area decreases the capacitance of a parallel-plate capacitor.",
+                "cx": "Greater plate area corresponds to greater capacitance, not decreased capacitance."
+              },
+              {
+                "tr": "separation",
+                "df": "Separation is a parallel-plate capacitor property whose increase is associated with decreased capacitance.",
+                "eg": "A parallel-plate comparison can contrast increased separation with increased plate area when labeling capacitance changes.",
+                "mi": "Increasing separation increases the capacitance of a parallel-plate capacitor.",
+                "cx": "Greater separation corresponds to lower capacitance, reversing that proposed relationship."
+              }
+            ],
+            "scenario": {
+              "su": "A workshop team must label the capacitance direction for two parallel-plate capacitor designs before a deadline. One design records increasing plate area, while the other records increasing separation, so the team must assign opposite labels from these observations.",
+              "ma": "plate-area design notation, separation design notation, capacitance-direction labels"
+            },
+            "mc": [
+              {
+                "q": "A decision must relate energy, the electric field, and a capacitor's conductors. Which statement correctly identifies what the capacitor stores and where it stores it?",
+                "op": [
+                  "The capacitor stores conductors in the electric field",
+                  "The capacitor stores energy in the electric field",
+                  "The capacitor stores potential difference between its conductors",
+                  "The capacitor stores energy in its conductors"
+                ],
+                "ai": 1,
+                "fi": [
+                  1
+                ],
+                "ex": "A capacitor stores energy in the electric field between its conductors. The capacitor does not store energy in its conductors; the electric field between them is the stated location."
+              },
+              {
+                "q": "A parallel-plate capacitor review compares an increased plate area notation with an increased separation notation, while requiring an increased-capacitance label. Which recorded relation supports that label?",
+                "op": [
+                  "Increasing plate area decreases capacitance",
+                  "Increasing separation increases capacitance",
+                  "Increasing plate area increases capacitance",
+                  "Decreasing separation decreases capacitance"
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "Increasing plate area increases the capacitance of a parallel-plate capacitor. Increasing separation does not support that label because it decreases capacitance."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-096132eb8d2e7124522811f0",
+        "pairId": "scion-kernel-pair-cee39d9cc363bbce38decc4c",
+        "artifactSha256": {
+          "A": "d33fbd6f19f38f083cf6319dbaff20dc42dd3cf867c2a0aef4b629336bb0ffbb",
+          "B": "7bbdbac022ee8ec86bcb1efca05ef4937fa840c1ab4cf22a24f2642c15960585"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-3edf7a765ba59181da78537e",
+      "pairId": "scion-kernel-pair-3a161a5c58faec2082f52777",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-5",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Skeletal system functions",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat. Claim 1: Bone is hard, dense connective tissue that forms most of the adult skeleton. Claim 2: Bones facilitate movement by providing attachment points for muscles.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "term": "Skeletal system functions",
+        "claims": [
+          "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+          "Bones facilitate movement by providing attachment points for muscles."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "supports the body, facilitates movement, protects internal organs, produces blood cells, stores and releases minerals and fat"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "Bone, or osseous tissue, is a hard, dense connective tissue"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "Bones also facilitate movement by serving as points of attachment for your muscles"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "d3ec490850feef3d525529154dbf492fae6f1b8caea457ad7271796a83f2a49f",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat. ",
+              "Bone is hard, dense connective tissue that forms most of the adult skeleton. ",
+              "Bones facilitate movement by providing attachment points for muscles."
+            ],
+            "keyTerms": [
+              {
+                "tr": "skeletal system",
+                "df": "The skeletal system is composed of bones and cartilage which serve multiple vital functions for the body. ",
+                "eg": "The skeletal system supports the body and enables movement. ",
+                "mi": "The skeletal system is only made of hard bones that provide rigid structure for the body. ",
+                "cx": "The skeletal system is made of bones and cartilage, which is a broader composition than just hard bones."
+              },
+              {
+                "tr": "bone",
+                "df": "Bone is defined as hard, dense connective tissue that constitutes the majority of the adult skeleton. ",
+                "eg": "Bone is hard, dense connective tissue that forms most of the adult skeleton. ",
+                "mi": "Bone is a soft tissue that is primarily responsible for storing minerals and fat. ",
+                "cx": "Bone is hard, dense connective tissue, not a soft tissue primarily responsible for storing minerals and fat."
+              },
+              {
+                "tr": "facilitate movement",
+                "df": "Bones facilitate movement by providing specific attachment points for muscles to exert force. ",
+                "eg": "Bones facilitate movement by providing attachment points for muscles. ",
+                "mi": "Bones facilitate movement by directly causing the body to move through skeletal action. ",
+                "cx": "Bones facilitate movement by providing attachment points for muscles, not by directly causing the body to move."
+              }
+            ],
+            "scenario": {
+              "su": "A patient presents with a fracture in the femur, indicating a failure in structural support. The physical examination reveals that the bone exhibits high density and forms the majority of the adult skeleton. ",
+              "ma": "Compare the structural properties of the femur to the general composition of the adult skeleton and determine the primary role of the bone in this context."
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes the primary structural composition of the skeletal system from the specific nature of bone tissue? ",
+                "op": [
+                  "The skeletal system is only made of hard bones that provide rigid structure.",
+                  "Bone is a soft tissue that is primarily responsible for storing minerals and fat.",
+                  "The skeletal system is made of bones and cartilage which serve multiple vital functions.",
+                  "Bone is a hard, dense connective tissue that forms most of the adult skeleton."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The skeletal system is made of bones and cartilage which serve multiple vital functions, and bone is hard, dense connective tissue that forms most of the adult skeleton, which supports the answer, then correct the closest distractor."
+              },
+              {
+                "q": "A physical therapist is assessing a patient's gait, noting that the femur provides attachment points for muscles during walking. Which observation best supports this functional role? ",
+                "op": [
+                  "The femur is a soft tissue that is primarily responsible for storing minerals and fat.",
+                  "The femur is hard, dense connective tissue that forms most of the adult skeleton.",
+                  "The femur facilitates movement by providing attachment points for muscles.",
+                  "The femur is composed only of cartilage and supports the body."
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "Bones facilitate movement by providing attachment points for muscles, and the femur facilitates movement by providing attachment points for muscles, then correct the closest distractor."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "68fc9f532ac3e2d690f0e1c4c3ccbacb0f20d7f896b792256a79a34eb4cb11d7",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+              "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+              "Bones facilitate movement by providing attachment points for muscles."
+            ],
+            "keyTerms": [
+              {
+                "tr": "skeletal system",
+                "df": "The skeletal system is made of bones and cartilage and has several stated body functions.",
+                "eg": "Bones and cartilage together exemplify the skeletal system.",
+                "mi": "The skeletal system is the hard, dense connective tissue forming most of the adult skeleton.",
+                "cx": "Hardness and density characterize Bone rather than the skeletal system."
+              },
+              {
+                "tr": "Bone",
+                "df": "Bone is connective tissue distinguished as hard and dense and forming most of the adult skeleton.",
+                "eg": "Bone forms most of the adult skeleton.",
+                "mi": "Bone is made of bones and cartilage and performs the listed skeletal system functions.",
+                "cx": "The bones-and-cartilage composition belongs to the skeletal system, not to Bone."
+              },
+              {
+                "tr": "attachment points",
+                "df": "Attachment points are provided by bones for muscles as part of facilitating movement.",
+                "eg": "Movement facilitated by bones is the relevant context for attachment points.",
+                "mi": "Attachment points are provided by muscles for bones.",
+                "cx": "The provider is bones, not muscles; the points are for muscles."
+              }
+            ],
+            "scenario": {
+              "su": "A student must classify two notes before a deadline: one lists bones and cartilage with body functions, while the other describes hard, dense connective tissue forming most of the adult skeleton. Because one label is allowed for each note, the student must distinguish skeletal system from Bone using the recorded properties.",
+              "ma": "skeletal system notation listing bones, cartilage, and body functions, Bone observation recording hard and dense connective tissue, adult skeleton passage describing what Bone forms"
+            },
+            "mc": [
+              {
+                "q": "A description identifies bones and cartilage with several body functions, while another identifies hard, dense connective tissue forming most of the adult skeleton. Which comparison matches these descriptions?",
+                "op": [
+                  "Skeletal system: connective tissue; Bone: bones and cartilage",
+                  "Skeletal system: hard and dense; Bone: cartilage",
+                  "Skeletal system: bones and cartilage; Bone: connective tissue",
+                  "Skeletal system: adult skeleton; Bone: body functions"
+                ],
+                "ai": 2,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The skeletal system is made of bones and cartilage, whereas Bone is hard, dense connective tissue forming most of the adult skeleton. The reversed mapping is incorrect because the bones-and-cartilage description belongs to the skeletal system, not Bone."
+              },
+              {
+                "q": "A movement notation states that bones provide attachment points for muscles, but space permits recording one relation. Which compact statement preserves the supported relation?",
+                "op": [
+                  "Bones facilitate movement by producing blood cells",
+                  "Bones facilitate movement by storing minerals and fat",
+                  "Bones facilitate movement through muscle attachment points",
+                  "Muscles facilitate movement through bone attachment points"
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "Bones facilitate movement by providing attachment points for muscles. Reversing that relation incorrectly makes muscles the providers of attachment points for bones."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-3edf7a765ba59181da78537e",
+        "pairId": "scion-kernel-pair-3a161a5c58faec2082f52777",
+        "artifactSha256": {
+          "A": "d3ec490850feef3d525529154dbf492fae6f1b8caea457ad7271796a83f2a49f",
+          "B": "68fc9f532ac3e2d690f0e1c4c3ccbacb0f20d7f896b792256a79a34eb4cb11d7"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-baa05f5de10fcd2648f81671",
+      "pairId": "scion-kernel-pair-a5c49cf7ce71d87bf5f70231",
+      "domain": "computer-science",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "answer-key-correctness",
+        "feedback-instructionality",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "File input and output",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it. Claim 1: open() returns a file object that the program then reads from or writes to. Claim 2: read() reads the entire contents of a file and returns a single string. Claim 3: readline() returns the next single line, while readlines() returns a list with every line of the file.",
+        "readings": "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "2735bbd307dd162ce4336e81a60168cee98878533740af1ebd8430e0efec45ea",
+        "kernelId": "cs/file-io",
+        "term": "File input and output",
+        "claims": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "The read() function reads the contents of a file and returns a string"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "The readlines() function reads the individual lines of a file and returns a string list containing all the lines of the file in order"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "a4dff452b4a6c574e6ede732d1f2f5cacdfb07faaf9464d50e4d5a1f12289041",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it. ",
+              "open() returns a file object that the program then reads from or writes to. ",
+              "read() reads the entire contents of a file and returns a single string. ",
+              "readline() returns the next single line, while readlines() returns a list with every line of the file."
+            ],
+            "keyTerms": [
+              {
+                "tr": "File I/O",
+                "df": "File I/O is the capability that allows a program to read information from and write information into files.",
+                "eg": "A program uses File I/O to save user data to a text file.",
+                "mi": "File I/O is only for reading data from a file.",
+                "cx": "File I/O lets a program read information from and write information into files."
+              },
+              {
+                "tr": "open()",
+                "df": "The open() function returns a file object that the program then reads from or writes to.",
+                "eg": "Calling open() creates a file object used for subsequent file operations.",
+                "mi": "open() directly reads the file contents into a string.",
+                "cx": "open() returns a file object that the program then reads from or writes to."
+              },
+              {
+                "tr": "read()",
+                "df": "The read() function reads the entire contents of a file and returns a single string.",
+                "eg": "Using read() retrieves all text from a file as one continuous string.",
+                "mi": "read() returns a list containing every line of the file.",
+                "cx": "read() reads the entire contents of a file and returns a single string."
+              }
+            ],
+            "scenario": {
+              "su": "A data processing script needs to ingest a configuration file containing settings for a new system. The script must first open the file to access its contents and then close it after processing all settings. The constraint is that the script must handle the file contents as a single block of text before proceeding.",
+              "ma": "Compare the behavior of read() and readline() when processing a configuration file containing three distinct lines of settings."
+            },
+            "mc": [
+              {
+                "q": "When a program uses read() on a file, what is the resulting data structure returned to the program?",
+                "op": [
+                  "read() returns the next single line.",
+                  "read() returns a list with every line of the file.",
+                  "read() returns the entire contents of a file.",
+                  "read() returns a file object for writing."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "The read() function reads the entire contents of a file and returns a single string, which supports the option stating it returns the entire contents of a file."
+              },
+              {
+                "q": "A developer needs to retrieve each line from a file sequentially for individual parsing. Which function should be used to obtain the next line?",
+                "op": [
+                  "read() reads the entire contents of a file.",
+                  "readline() returns the next single line.",
+                  "readlines() returns a list with every line of the file.",
+                  "open() returns a file object for writing."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "readline() returns the next single line, which supports the option stating it returns the next single line."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "bf35c75ee83304176ec26c9dc5fc9249921824a0953cd7a2ba30c7d6e19829e9",
+          "lessonKernel": {
+            "lessonId": "lesson-4",
+            "facts": [
+              "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+              "open() returns a file object that the program then reads from or writes to.",
+              "read() reads the entire contents of a file and returns a single string.",
+              "readline() returns the next single line, while readlines() returns a list with every line of the file."
+            ],
+            "keyTerms": [
+              {
+                "tr": "file object",
+                "df": "A file object is what open() returns for a program to read from or write to.",
+                "eg": "open() returns a file object that the program reads from.",
+                "mi": "read() returns the file object produced by open().",
+                "cx": "Instead, open() returns the file object, and read() returns a single string."
+              },
+              {
+                "tr": "read()",
+                "df": "read() is a file operation that returns the entire contents as a single string.",
+                "eg": "read() reads the entire contents of a file.",
+                "mi": "read() returns the next single line from a file.",
+                "cx": "The next single line comes from readline(); read() returns the entire contents."
+              },
+              {
+                "tr": "readlines()",
+                "df": "readlines() is a file operation whose result is a list with every line of the file.",
+                "eg": "readlines() returns a list with every line of the file.",
+                "mi": "readlines() returns a single string containing the entire contents.",
+                "cx": "Its result is a list with every line, whereas read() returns a single string."
+              }
+            ],
+            "scenario": {
+              "su": "A programmer reviews results from read(), readline(), and readlines() after opening a file. The programmer must label each result while preserving the distinction among the entire contents, the next single line, and a list with every line.",
+              "ma": "read() notation paired with a single string containing the entire contents, readline() notation paired with the next single line, readlines() notation paired with a list containing every line"
+            },
+            "mc": [
+              {
+                "q": "When comparing observed results, read() produces a single string holding the entire contents, while readline() produces the next single line. Which pairing matches these operations?",
+                "op": [
+                  "read(): next single line; readline(): entire contents",
+                  "read(): every-line list; readline(): entire contents",
+                  "read(): entire contents; readline(): next single line",
+                  "read(): next single line; readline(): every-line list"
+                ],
+                "ai": 2,
+                "fi": [
+                  2,
+                  3
+                ],
+                "ex": "read() returns the entire contents as a single string, whereas readline() returns the next single line. Assigning the next single line to read() reverses these supplied relations."
+              },
+              {
+                "q": "A program has opened a file and must identify the form returned by readlines() while working with the file's contents. Which result should the program choose?",
+                "op": [
+                  "readlines() returns the file object",
+                  "readlines() returns the next single line",
+                  "readlines() returns a list with every line",
+                  "readlines() returns the entire contents as one string"
+                ],
+                "ai": 2,
+                "fi": [
+                  3
+                ],
+                "ex": "readlines() returns a list with every line of the file, which matches the requested form. The next single line is returned by readline(), not readlines()."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-baa05f5de10fcd2648f81671",
+        "pairId": "scion-kernel-pair-a5c49cf7ce71d87bf5f70231",
+        "artifactSha256": {
+          "A": "a4dff452b4a6c574e6ede732d1f2f5cacdfb07faaf9464d50e4d5a1f12289041",
+          "B": "bf35c75ee83304176ec26c9dc5fc9249921824a0953cd7a2ba30c7d6e19829e9"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "47371e7f21f3d78ebfab8c8fa9efe45085880c1645fe7d6933510e2eacd08eac"
+  }
+}

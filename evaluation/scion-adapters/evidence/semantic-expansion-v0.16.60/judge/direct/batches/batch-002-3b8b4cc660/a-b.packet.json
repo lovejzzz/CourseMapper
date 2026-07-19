@@ -1,0 +1,1109 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-packet-v1",
+  "order": "A/B",
+  "generatedAt": "2026-07-19T19:05:00.000Z",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+    "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+  },
+  "dimensions": [
+    "sourceFidelity",
+    "knowledgePrecision",
+    "scenarioReadiness",
+    "assessmentCorrectness",
+    "choiceDiscriminability",
+    "feedbackInstructionality",
+    "internalCoherence"
+  ],
+  "cases": [
+    {
+      "caseId": "scion-kernel-25bc83b68703532aa5564e43",
+      "pairId": "scion-kernel-pair-57a1fdeecde4c05a4fdcae54",
+      "domain": "user-experience-design",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Journey mapping",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities. Claim 1: A journey map should start from research about the steps users actually take and the transactions involved. Claim 2: An experience map should make struggle points and candidate improvement areas visible. Claim 3: A map can reveal dead ends where the user cannot continue toward the larger goal. Claim 4: Journey analysis should include gaps between online and offline parts of a service.",
+        "readings": "UK Government Service Manual"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "55810138f44b132a506c48e324abae61faab42bb035796fd7728e36106eaf51e",
+        "kernelId": "ux/journey-mapping",
+        "term": "Journey mapping",
+        "claims": [
+          "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+          "A journey map should start from research about the steps users actually take and the transactions involved.",
+          "An experience map should make struggle points and candidate improvement areas visible.",
+          "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+          "Journey analysis should include gaps between online and offline parts of a service."
+        ],
+        "anchors": [
+          {
+            "src": "govuk:whole-journey",
+            "loc": "Whole problem",
+            "quote": "It's important for teams to make sure the thing they're building forms a coherent part of a user's wider journey."
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "User point of view",
+            "quote": "Start by talking to your users to learn more about the steps they have to take and the transactions involved."
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "User point of view",
+            "quote": "The map should show which bits of the journey users are struggling with and the areas you might want to focus on improving."
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "What to change",
+            "quote": "dead ends in the user journey"
+          },
+          {
+            "src": "govuk:whole-journey",
+            "loc": "What to change",
+            "quote": "online and offline elements of the transaction not joining up in an intuitive way"
+          }
+        ],
+        "attribution": [
+          "UK Government Service Manual"
+        ],
+        "license": "Open Government Licence v3.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "32c1fd14f7838c42bc80ca850bd283166b4c21d250e6200f691a2b9632ed01a6",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+              "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "An experience map should make struggle points and candidate improvement areas visible.",
+              "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "Journey analysis should include gaps between online and offline parts of a service."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "Journey mapping is an end-to-end experience from the user's perspective allowing a team to see connected steps, boundaries, breakdowns, and opportunities.",
+                "eg": "A team uses a journey map to visualize the entire process a user goes through from start to finish.",
+                "mi": "Journey mapping is just a simple list of steps a user takes without showing how they connect or where problems occur.",
+                "cx": "Journey mapping shows connected steps, boundaries, breakdowns, and opportunities across the entire experience."
+              },
+              {
+                "tr": "Experience map",
+                "df": "An experience map is a tool designed to make struggle points and candidate improvement areas visible within a service.",
+                "eg": "An experience map highlights specific moments where users encounter difficulty or where improvements are needed.",
+                "mi": "An experience map is only used to list every single step a user takes without focusing on the difficulties encountered.",
+                "cx": "An experience map specifically makes struggle points and candidate improvement areas visible, unlike a simple step list."
+              },
+              {
+                "tr": "Journey analysis",
+                "df": "Journey analysis involves examining gaps between online and offline parts of a service to identify areas for improvement.",
+                "eg": "Journey analysis looks at the disconnect between a digital service and the physical interaction a user has.",
+                "mi": "Journey analysis is the same as journey mapping and only focuses on the steps taken online without considering offline interactions.",
+                "cx": "Journey analysis specifically includes gaps between online and offline parts of a service, which is a distinct analytical focus."
+              }
+            ],
+            "scenario": {
+              "su": "A team is designing a new mobile banking feature and needs to understand the user's entire interaction with the service. The actionable problem is that the team cannot see where users drop off during the process. A real constraint is that the team only has access to recorded online usage data.",
+              "ma": "Compare the journey map showing the user's path through the mobile app interface with the experience map highlighting the points where users express frustration during the transaction."
+            },
+            "mc": [
+              {
+                "q": "When a team reviews a map, what is the primary purpose of using a journey map versus an experience map?",
+                "op": [
+                  "To see connected steps and boundaries",
+                  "To list every single step taken",
+                  "To highlight only online interactions",
+                  "To identify only offline interactions"
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities, while an experience map makes struggle points and candidate improvement areas visible."
+              },
+              {
+                "q": "A service designer is creating a map to reveal where a user cannot continue toward the larger goal; which concept is this?",
+                "op": [
+                  "Journey mapping",
+                  "Experience map",
+                  "Journey analysis",
+                  "Online interaction study"
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "A map can reveal dead ends where the user cannot continue toward the larger goal, which is a property of a journey map."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "cd1eb456b3ea3848e1113c890ed4f4b2372bc41abaf34a941ea2eff08e989b36",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Journey mapping represents an end-to-end experience from the user's perspective so a team can see connected steps, boundaries, breakdowns, and opportunities.",
+              "A journey map should start from research about the steps users actually take and the transactions involved.",
+              "An experience map should make struggle points and candidate improvement areas visible.",
+              "A map can reveal dead ends where the user cannot continue toward the larger goal.",
+              "Journey analysis should include gaps between online and offline parts of a service."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Journey mapping",
+                "df": "Journey mapping represents an end-to-end experience from the user's perspective.",
+                "eg": "Journey mapping shows connected steps, boundaries, breakdowns, and opportunities.",
+                "mi": "Journey mapping represents transactions from the team's perspective.",
+                "cx": "The represented experience is viewed from the user's perspective."
+              },
+              {
+                "tr": "experience map",
+                "df": "An experience map is distinguished by visible struggle points and candidate improvement areas.",
+                "eg": "An experience map makes a struggle point and a candidate improvement area visible.",
+                "mi": "An experience map should make transactions and connected steps visible.",
+                "cx": "Its stated visible elements are struggle points and candidate improvement areas."
+              },
+              {
+                "tr": "dead ends",
+                "df": "Dead ends are points where the user cannot continue toward the larger goal.",
+                "eg": "A map shows a dead end between connected steps toward the larger goal.",
+                "mi": "Dead ends are opportunities where the user continues toward the larger goal.",
+                "cx": "At a dead end, the user cannot continue toward that goal."
+              }
+            ],
+            "scenario": {
+              "su": "A team must classify what its map needs to show before a deadline. The research record includes actual user steps and transactions, while the service review notes a dead end and a gap between online and offline parts.",
+              "ma": "research record of actual user steps, transaction record, dead-end notation toward the larger goal, service-review observation of an online-offline gap"
+            },
+            "mc": [
+              {
+                "q": "One map draft begins with researched user steps and transactions, while another highlights struggle points and candidate improvement areas; which distinction matches these observations?",
+                "op": [
+                  "Journey map struggle points; experience map research",
+                  "Journey map steps; experience map improvement areas",
+                  "Journey map research; experience map transactions",
+                  "Journey map research; experience map struggle points"
+                ],
+                "ai": 3,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "A journey map starts from research about actual user steps and transactions, while an experience map makes struggle points and candidate improvement areas visible. Assigning struggle points to the journey map and research to the experience map reverses those relations."
+              },
+              {
+                "q": "Under a deadline, a service review records a blocked continuation toward the larger goal and a gap between online and offline parts; what should journey analysis include?",
+                "op": [
+                  "Mark dead end and connected steps",
+                  "Mark dead end and online-offline gap",
+                  "Mark online and offline parts",
+                  "Mark opportunity and online-offline gap"
+                ],
+                "ai": 1,
+                "fi": [
+                  3,
+                  4
+                ],
+                "ex": "The blocked continuation is a dead end, and journey analysis includes gaps between online and offline service parts. Connected steps do not replace the recorded online-offline gap."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-25bc83b68703532aa5564e43",
+        "pairId": "scion-kernel-pair-57a1fdeecde4c05a4fdcae54",
+        "artifactSha256": {
+          "A": "32c1fd14f7838c42bc80ca850bd283166b4c21d250e6200f691a2b9632ed01a6",
+          "B": "cd1eb456b3ea3848e1113c890ed4f4b2372bc41abaf34a941ea2eff08e989b36"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-3edf7a765ba59181da78537e",
+      "pairId": "scion-kernel-pair-7dae568c9250e6ff2fcbee5d",
+      "domain": "anatomy",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-5",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Skeletal system functions",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat. Claim 1: Bone is hard, dense connective tissue that forms most of the adult skeleton. Claim 2: Bones facilitate movement by providing attachment points for muscles.",
+        "readings": "OpenStax Anatomy and Physiology 2e"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "5de1767fd84c6475a8dd2cfc2ac561e6c1c4968635c80e4858b0321d4163e8ce",
+        "kernelId": "anatomy/skeletal-system-functions",
+        "term": "Skeletal system functions",
+        "claims": [
+          "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+          "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+          "Bones facilitate movement by providing attachment points for muscles."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "supports the body, facilitates movement, protects internal organs, produces blood cells, stores and releases minerals and fat"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "Bone, or osseous tissue, is a hard, dense connective tissue"
+          },
+          {
+            "src": "openstax:anatomy-and-physiology-2e#6-1",
+            "loc": "6.1",
+            "quote": "Bones also facilitate movement by serving as points of attachment for your muscles"
+          }
+        ],
+        "attribution": [
+          "OpenStax Anatomy and Physiology 2e"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "d3ec490850feef3d525529154dbf492fae6f1b8caea457ad7271796a83f2a49f",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat. ",
+              "Bone is hard, dense connective tissue that forms most of the adult skeleton. ",
+              "Bones facilitate movement by providing attachment points for muscles."
+            ],
+            "keyTerms": [
+              {
+                "tr": "skeletal system",
+                "df": "The skeletal system is composed of bones and cartilage which serve multiple vital functions for the body. ",
+                "eg": "The skeletal system supports the body and enables movement. ",
+                "mi": "The skeletal system is only made of hard bones that provide rigid structure for the body. ",
+                "cx": "The skeletal system is made of bones and cartilage, which is a broader composition than just hard bones."
+              },
+              {
+                "tr": "bone",
+                "df": "Bone is defined as hard, dense connective tissue that constitutes the majority of the adult skeleton. ",
+                "eg": "Bone is hard, dense connective tissue that forms most of the adult skeleton. ",
+                "mi": "Bone is a soft tissue that is primarily responsible for storing minerals and fat. ",
+                "cx": "Bone is hard, dense connective tissue, not a soft tissue primarily responsible for storing minerals and fat."
+              },
+              {
+                "tr": "facilitate movement",
+                "df": "Bones facilitate movement by providing specific attachment points for muscles to exert force. ",
+                "eg": "Bones facilitate movement by providing attachment points for muscles. ",
+                "mi": "Bones facilitate movement by directly causing the body to move through skeletal action. ",
+                "cx": "Bones facilitate movement by providing attachment points for muscles, not by directly causing the body to move."
+              }
+            ],
+            "scenario": {
+              "su": "A patient presents with a fracture in the femur, indicating a failure in structural support. The physical examination reveals that the bone exhibits high density and forms the majority of the adult skeleton. ",
+              "ma": "Compare the structural properties of the femur to the general composition of the adult skeleton and determine the primary role of the bone in this context."
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes the primary structural composition of the skeletal system from the specific nature of bone tissue? ",
+                "op": [
+                  "The skeletal system is only made of hard bones that provide rigid structure.",
+                  "Bone is a soft tissue that is primarily responsible for storing minerals and fat.",
+                  "The skeletal system is made of bones and cartilage which serve multiple vital functions.",
+                  "Bone is a hard, dense connective tissue that forms most of the adult skeleton."
+                ],
+                "ai": 0,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The skeletal system is made of bones and cartilage which serve multiple vital functions, and bone is hard, dense connective tissue that forms most of the adult skeleton, which supports the answer, then correct the closest distractor."
+              },
+              {
+                "q": "A physical therapist is assessing a patient's gait, noting that the femur provides attachment points for muscles during walking. Which observation best supports this functional role? ",
+                "op": [
+                  "The femur is a soft tissue that is primarily responsible for storing minerals and fat.",
+                  "The femur is hard, dense connective tissue that forms most of the adult skeleton.",
+                  "The femur facilitates movement by providing attachment points for muscles.",
+                  "The femur is composed only of cartilage and supports the body."
+                ],
+                "ai": 2,
+                "fi": [
+                  2
+                ],
+                "ex": "Bones facilitate movement by providing attachment points for muscles, and the femur facilitates movement by providing attachment points for muscles, then correct the closest distractor."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "ce511e44e07c921c24e1a54400b0eb761274b778a98500d43f4736b4d03d8c42",
+          "lessonKernel": {
+            "lessonId": "lesson-5",
+            "facts": [
+              "The skeletal system is made of bones and cartilage and supports the body, enables movement, protects organs, produces blood cells, and stores minerals and fat.",
+              "Bone is hard, dense connective tissue that forms most of the adult skeleton.",
+              "Bones facilitate movement by providing attachment points for muscles."
+            ],
+            "keyTerms": [
+              {
+                "tr": "skeletal system",
+                "df": "The skeletal system is made of bones and cartilage and has several stated body functions.",
+                "eg": "Bones and cartilage together exemplify the skeletal system.",
+                "mi": "The skeletal system is the hard, dense connective tissue forming most of the adult skeleton.",
+                "cx": "Hardness and density characterize Bone rather than the skeletal system."
+              },
+              {
+                "tr": "Bone",
+                "df": "Bone is connective tissue distinguished as hard and dense and forming most of the adult skeleton.",
+                "eg": "Bone forms most of the adult skeleton.",
+                "mi": "Bone is made of bones and cartilage and performs the listed skeletal system functions.",
+                "cx": "The bones-and-cartilage composition belongs to the skeletal system, not to Bone."
+              },
+              {
+                "tr": "attachment points",
+                "df": "Attachment points are provided by bones for muscles as part of facilitating movement.",
+                "eg": "Movement facilitated by bones is the relevant context for attachment points.",
+                "mi": "Attachment points are provided by muscles for bones.",
+                "cx": "The provider is bones, not muscles; the points are for muscles."
+              }
+            ],
+            "scenario": {
+              "su": "A student must classify two notes before a deadline: one lists bones and cartilage with body functions, while the other describes hard, dense connective tissue forming most of the adult skeleton. Because one label is allowed for each note, the student must distinguish skeletal system from Bone using the recorded properties.",
+              "ma": "skeletal system notation listing bones, cartilage, and body functions, Bone observation recording hard and dense connective tissue, adult skeleton passage describing what Bone forms"
+            },
+            "mc": [
+              {
+                "q": "When comparing the skeletal system with Bone, one description lists bones, cartilage, and body functions, while another identifies hard, dense connective tissue forming most of the adult skeleton. Which distinction is supported?",
+                "op": [
+                  "System combines structures; Bone identifies connective tissue",
+                  "Bone combines structures; system identifies connective tissue",
+                  "Adult skeleton forms most hard, dense Bone",
+                  "System combines bones while omitting cartilage"
+                ],
+                "ai": 2,
+                "fi": [
+                  0,
+                  1
+                ],
+                "ex": "The skeletal system consists of bones and cartilage and performs listed functions, whereas Bone is hard, dense connective tissue forming most of the adult skeleton. Bone does not combine bones and cartilage as a system."
+              },
+              {
+                "q": "A movement notation states that bones provide attachment points for muscles, but space permits recording one relation. Which compact statement preserves the supported relation?",
+                "op": [
+                  "Bones facilitate movement through muscle attachment points",
+                  "Muscles facilitate movement through bone attachment points",
+                  "Bones facilitate movement by storing minerals and fat",
+                  "Bones facilitate movement by producing blood cells"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Bones facilitate movement by providing attachment points for muscles. Reversing that relation incorrectly makes muscles the providers of attachment points for bones."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-3edf7a765ba59181da78537e",
+        "pairId": "scion-kernel-pair-7dae568c9250e6ff2fcbee5d",
+        "artifactSha256": {
+          "A": "d3ec490850feef3d525529154dbf492fae6f1b8caea457ad7271796a83f2a49f",
+          "B": "ce511e44e07c921c24e1a54400b0eb761274b778a98500d43f4736b4d03d8c42"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-5c45e4f9cb097bcb4e88b6a8",
+      "pairId": "scion-kernel-pair-29896e3bd232d9d9c7d78199",
+      "domain": "economics",
+      "failureFamilies": [
+        "choice-discriminability",
+        "source-fidelity"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-1",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Price elasticity of demand",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Price elasticity of demand is the percentage change in quantity demanded divided by the percentage change in price. Claim 1: Demand is elastic when the absolute value of the elasticity is greater than one. Claim 2: Necessities tend to have inelastic demand because consumers have few substitutes. Claim 3: The availability of close substitutes is a primary determinant of elasticity.",
+        "readings": "OpenStax Principles of Microeconomics 3e, Ch. 5"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "13a691e562b5c8e8cd8780917c95852a4fc9041b68384de9a7efc063d90a6f05",
+        "kernelId": "econ/price-elasticity-of-demand",
+        "term": "Price elasticity of demand",
+        "claims": [
+          "Price elasticity of demand is the percentage change in quantity demanded divided by the percentage change in price.",
+          "Demand is elastic when the absolute value of the elasticity is greater than one.",
+          "Necessities tend to have inelastic demand because consumers have few substitutes.",
+          "The availability of close substitutes is a primary determinant of elasticity."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:microeconomics-3e#5",
+            "loc": "5.1",
+            "quote": "the percentage change in quantity demanded divided by the percentage change in price"
+          },
+          {
+            "src": "openstax:microeconomics-3e#5",
+            "loc": "5.1",
+            "quote": "Demand is described as elastic when the absolute value of the elasticity is greater than one"
+          },
+          {
+            "src": "openstax:microeconomics-3e#5",
+            "loc": "5.2",
+            "quote": "Necessities tend to have inelastic demand because consumers have few substitutes"
+          },
+          {
+            "src": "openstax:microeconomics-3e#5",
+            "loc": "5.2",
+            "quote": "The availability of close substitutes is a primary determinant of elasticity"
+          }
+        ],
+        "attribution": [
+          "OpenStax Principles of Microeconomics 3e, Ch. 5"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "ba88a04dd15ae36da98708348a61267c0bd8ed84153a0d9adceb0dcc3441f99e",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "Price elasticity of demand is the percentage change in quantity demanded divided by the percentage change in price. ",
+              "Demand is elastic when the absolute value of the elasticity is greater than one. ",
+              "Necessities tend to have inelastic demand because consumers have few substitutes. ",
+              "The availability of close substitutes is a primary determinant of elasticity."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Price elasticity of demand",
+                "df": "This is defined as the percentage change in quantity demanded divided by the percentage change in price. ",
+                "eg": "Calculating the elasticity when the price of a luxury car increases by 10% and quantity demanded drops by 20%. ",
+                "mi": "Price elasticity of demand is simply the total change in quantity demanded divided by the total change in price. ",
+                "cx": "Price elasticity of demand is specifically the percentage change in quantity demanded divided by the percentage change in price. "
+              },
+              {
+                "tr": "Demand is elastic",
+                "df": "Demand is classified as elastic when the absolute value of the calculated elasticity is greater than one. ",
+                "eg": "If the absolute value of the elasticity is 1.5, the demand is elastic because 1.5 is greater than one. ",
+                "mi": "Demand is elastic if the calculated elasticity is greater than one, regardless of whether it is positive or negative. ",
+                "cx": "Demand is elastic when the absolute value of the elasticity is greater than one, which includes negative values greater than one in magnitude. "
+              },
+              {
+                "tr": "Availability of close substitutes",
+                "df": "The presence of close substitutes is identified as a primary determinant influencing the elasticity of demand. ",
+                "eg": "If a consumer can easily switch from Brand A to Brand B, the availability of close substitutes increases elasticity. ",
+                "mi": "The availability of close substitutes is the only factor that determines whether demand is elastic or inelastic. ",
+                "cx": "The availability of close substitutes is a primary determinant of elasticity, meaning it is a major factor but not the sole determinant. "
+              }
+            ],
+            "scenario": {
+              "su": "A consumer is evaluating the demand for a specific brand of essential medication. The price of the medication increases by 5%, and the quantity demanded decreases by 10%. The consumer must decide whether to switch to a generic alternative. ",
+              "ma": "Compare the elasticity calculation for the essential medication against the elasticity calculation for a non-essential cosmetic item. The essential medication shows a demand change of -0.5, while the cosmetic item shows a demand change of -2.0."
+            },
+            "mc": [
+              {
+                "q": "Which statement correctly distinguishes between elastic and inelastic demand based on the absolute value of elasticity?",
+                "op": [
+                  "Demand is elastic if the elasticity is greater than one.",
+                  "Demand is elastic if the absolute value of the elasticity is greater than one.",
+                  "Demand is elastic if the elasticity is less than one.",
+                  "Demand is elastic if the elasticity is exactly equal to one."
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Demand is elastic when the absolute value of the elasticity is greater than one, which is supported by the fact that demand is elastic when the absolute value of the elasticity is greater than one."
+              },
+              {
+                "q": "A retailer observes that a consumer can easily switch from Product X to Product Y, which is a close substitute. How does this observation relate to the elasticity of demand?",
+                "op": [
+                  "The availability of close substitutes makes demand more inelastic.",
+                  "The availability of close substitutes makes demand more elastic.",
+                  "The availability of close substitutes has no effect on elasticity.",
+                  "The availability of close substitutes only affects the price change."
+                ],
+                "ai": 0,
+                "fi": [
+                  3
+                ],
+                "ex": "The availability of close substitutes is a primary determinant of elasticity, which supports the idea that the availability of close substitutes makes demand more elastic."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "d06c4fc95b62458fb75ea4dae1ddb3a336dc723e599b018ce22ad9a2c779a063",
+          "lessonKernel": {
+            "lessonId": "lesson-1",
+            "facts": [
+              "Price elasticity of demand is the percentage change in quantity demanded divided by the percentage change in price.",
+              "Demand is elastic when the absolute value of the elasticity is greater than one.",
+              "Necessities tend to have inelastic demand because consumers have few substitutes.",
+              "The availability of close substitutes is a primary determinant of elasticity."
+            ],
+            "keyTerms": [
+              {
+                "tr": "elasticity",
+                "df": "Elasticity is a ratio of the percentage change in quantity demanded to the percentage change in price.",
+                "eg": "A demand record can show percentage changes for quantity demanded and price as a division notation.",
+                "mi": "Elasticity is classified as elastic whenever its absolute value is less than one.",
+                "cx": "The elastic classification requires an absolute value greater than one, not less than one."
+              },
+              {
+                "tr": "necessities",
+                "df": "Necessities are a demand category that tends to be inelastic because consumers have few substitutes.",
+                "eg": "A comparison can pair necessities with a record noting that consumers have few substitutes.",
+                "mi": "Necessities tend to have elastic demand because consumers have few substitutes.",
+                "cx": "Few substitutes support the stated tendency toward inelastic demand for necessities."
+              },
+              {
+                "tr": "close substitutes",
+                "df": "Close substitutes have an availability that is a primary determinant of elasticity.",
+                "eg": "An elasticity comparison can inspect a notation recording the availability of close substitutes.",
+                "mi": "The availability of close substitutes is unrelated to determining elasticity.",
+                "cx": "That availability is identified as a primary determinant, so it is relevant to elasticity."
+              }
+            ],
+            "scenario": {
+              "su": "An analyst must classify demand as elastic while checking a recorded elasticity whose absolute value is greater than one. The decision must also distinguish that classification from a record showing necessities, few substitutes, and inelastic demand.",
+              "ma": "absolute-value notation greater than one, necessities observation, few-substitutes record, inelastic-demand label"
+            },
+            "mc": [
+              {
+                "q": "A record shows an absolute elasticity greater than one, while another notes necessities with few substitutes; which distinction matches these observations?",
+                "op": [
+                  "First is inelastic; necessities tend toward elastic demand",
+                  "Both observations indicate elastic demand",
+                  "First is elastic; necessities tend toward inelastic demand",
+                  "Both observations indicate inelastic demand"
+                ],
+                "ai": 2,
+                "fi": [
+                  1,
+                  2
+                ],
+                "ex": "An absolute elasticity greater than one identifies elastic demand, whereas necessities tend to have inelastic demand because consumers have few substitutes. Treating both observations as elastic reverses the stated relation for necessities."
+              },
+              {
+                "q": "An analyst sees close substitutes available and must identify what that observation directly determines; which decision is supported by the recorded detail?",
+                "op": [
+                  "Classify availability as elastic demand itself",
+                  "Classify availability as a primary elasticity determinant",
+                  "Classify close substitutes as necessities",
+                  "Classify elasticity as determining close-substitute availability"
+                ],
+                "ai": 1,
+                "fi": [
+                  3
+                ],
+                "ex": "The availability of close substitutes is a primary determinant of elasticity. Calling availability elastic demand confuses a determinant with the demand classification."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-5c45e4f9cb097bcb4e88b6a8",
+        "pairId": "scion-kernel-pair-29896e3bd232d9d9c7d78199",
+        "artifactSha256": {
+          "A": "ba88a04dd15ae36da98708348a61267c0bd8ed84153a0d9adceb0dcc3441f99e",
+          "B": "d06c4fc95b62458fb75ea4dae1ddb3a336dc723e599b018ce22ad9a2c779a063"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    },
+    {
+      "caseId": "scion-kernel-69836338b8f744019a08ab80",
+      "pairId": "scion-kernel-pair-a6988f2f68ecdc031be3e991",
+      "domain": "physics",
+      "failureFamilies": [
+        "key-term-precision"
+      ],
+      "lessonInput": {
+        "lessonId": "lesson-3",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Gauss's law",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface. Claim 1: A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface. Claim 2: Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface.",
+        "readings": "OpenStax University Physics Volume 2, Ch. 6"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "bde05b7b9582176e048e9e0ae8a40e052a003910ab430c42b50031727a58cd48",
+        "kernelId": "physics/gausss-law",
+        "term": "Gauss's law",
+        "claims": [
+          "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+          "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+          "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:university-physics-volume-2#6",
+            "loc": "6.3",
+            "quote": "electric flux through any closed surface is proportional to the enclosed electric charge"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#6",
+            "loc": "6.4",
+            "quote": "Use symmetry to determine the electric field"
+          },
+          {
+            "src": "openstax:university-physics-volume-2#6",
+            "loc": "6.3",
+            "quote": "the net flux depends only on the charge enclosed"
+          }
+        ],
+        "attribution": [
+          "OpenStax University Physics Volume 2, Ch. 6"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "artifacts": {
+        "A": {
+          "artifactSha256": "a122657bf57ca8f7c241ee11104148a50a4c87eb6cd01f30a4686003a5c1bfdd",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+              "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+              "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+            ],
+            "keyTerms": [
+              {
+                "tr": "Gauss's law",
+                "df": "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface. ",
+                "eg": "Calculating the total electric flux passing through a sphere enclosing a point charge. ",
+                "mi": "Gauss's law means the electric field must be zero everywhere inside a closed surface.",
+                "cx": "Gauss's law only relates net flux to net charge, not the field's value at every point inside the surface."
+              },
+              {
+                "tr": "Gaussian surface",
+                "df": "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface. ",
+                "eg": "Using a cylinder to find the electric field magnitude due to a line charge because of symmetry. ",
+                "mi": "A Gaussian surface is a specific shape that always results in a zero electric field inside it.",
+                "cx": "A Gaussian surface is a useful shape only when symmetry simplifies the field's magnitude or direction on the surface."
+              },
+              {
+                "tr": "enclosed charge",
+                "df": "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface. ",
+                "eg": "If a closed surface contains no charge, the total flux through it is zero, even if the field is non-zero on the surface. ",
+                "mi": "If the enclosed charge is zero, the electric field must be zero at every point on the surface.",
+                "cx": "Zero enclosed charge only guarantees zero net flux, not that the electric field is zero at every point on the surface."
+              }
+            ],
+            "scenario": {
+              "su": "A closed spherical surface encloses a point charge $Q$ and a region of zero charge. You are tasked with determining the net electric flux through this surface. The constraint is that the surface is perfectly spherical, ensuring symmetry for calculation. ",
+              "ma": "Compare the result obtained when the enclosed charge is $Q$ versus the result when the enclosed charge is zero, using the provided records: Record A shows flux is proportional to $Q$, and Record B shows flux is zero when the enclosed charge is zero."
+            },
+            "mc": [
+              {
+                "q": "When a Gaussian surface encloses a net charge, what is the relationship between the net electric flux and the enclosed charge?",
+                "op": [
+                  "Net flux is zero if the enclosed charge is non-zero.",
+                  "Net flux is proportional to the enclosed charge.",
+                  "Net flux is zero if the enclosed charge is zero.",
+                  "Net flux is independent of the enclosed charge value."
+                ],
+                "ai": 0,
+                "fi": [
+                  0
+                ],
+                "ex": "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface, then net flux is proportional to the enclosed charge."
+              },
+              {
+                "q": "If a Gaussian surface has zero net charge enclosed, what must be true about the electric field on the surface?",
+                "op": [
+                  "The electric field must be zero everywhere on the surface.",
+                  "The electric field must be non-zero on the surface.",
+                  "The electric field must be zero only at the center.",
+                  "The electric field must be non-zero everywhere on the surface."
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface, then the electric field must be non-zero on the surface."
+              }
+            ]
+          }
+        },
+        "B": {
+          "artifactSha256": "cee0143f516d688b0ecd9defe5fe5fb23a0bff0191cd741aefdbc2f937abf981",
+          "lessonKernel": {
+            "lessonId": "lesson-3",
+            "facts": [
+              "Gauss's law relates the net electric flux through a closed surface to the net charge enclosed by that surface.",
+              "A Gaussian surface is useful for calculating fields when symmetry makes the field magnitude or direction simple on the surface.",
+              "Zero enclosed charge implies zero net flux, not necessarily zero electric field everywhere on the surface."
+            ],
+            "keyTerms": [
+              {
+                "tr": "net electric flux",
+                "df": "Net electric flux is the quantity through a closed surface that Gauss's law relates to the net charge enclosed.",
+                "eg": "A closed surface with zero enclosed charge has zero net electric flux.",
+                "mi": "Zero net electric flux means the electric field is zero everywhere on the surface.",
+                "cx": "A vanishing total flux does not require the field to vanish at every surface location."
+              },
+              {
+                "tr": "Gaussian surface",
+                "df": "A Gaussian surface belongs to a field-calculation setting where symmetry can simplify field magnitude or direction.",
+                "eg": "Symmetry makes the field direction simple on a Gaussian surface used for calculating fields.",
+                "mi": "A Gaussian surface is useful when its field magnitude and direction are not simple.",
+                "cx": "Its stated usefulness arises when symmetry simplifies at least one of those field properties."
+              },
+              {
+                "tr": "enclosed charge",
+                "df": "Enclosed charge is the net charge within the closed surface in the relation expressed by Gauss's law.",
+                "eg": "Zero enclosed charge on a closed surface implies zero net flux through it.",
+                "mi": "Zero enclosed charge guarantees zero electric field everywhere on the closed surface.",
+                "cx": "That charge condition determines net flux but does not force every surface field value to vanish."
+              }
+            ],
+            "scenario": {
+              "su": "A student reviews a closed-surface notation showing zero enclosed charge and an observation showing a nonzero electric field at one point on the surface. Before a deadline, the student must label the warranted conclusion while distinguishing net flux from electric field everywhere.",
+              "ma": "closed-surface notation showing zero enclosed charge, surface observation showing a nonzero electric field at one point, conclusion labels comparing zero net flux with zero electric field everywhere"
+            },
+            "mc": [
+              {
+                "q": "A closed surface has zero enclosed charge, while an observation shows a nonzero electric field at one surface point; which distinction is supported by these details?",
+                "op": [
+                  "Zero net flux can coexist with surface fields",
+                  "Zero net flux requires zero surface field",
+                  "Zero enclosed charge requires nonzero net flux",
+                  "Zero net flux implies nonzero enclosed charge"
+                ],
+                "ai": 0,
+                "fi": [
+                  2
+                ],
+                "ex": "Zero enclosed charge implies zero net flux without requiring zero electric field everywhere on the surface. Therefore, zero net flux does not require the surface field to vanish."
+              },
+              {
+                "q": "Symmetry makes the field direction simple on a proposed Gaussian surface, but time permits one decision about calculating fields; which action follows from the observation?",
+                "op": [
+                  "Use the Gaussian surface for field calculation",
+                  "Reject the Gaussian surface despite symmetry",
+                  "Treat symmetry as making net flux zero",
+                  "Treat simple direction as zero electric field"
+                ],
+                "ai": 0,
+                "fi": [
+                  1
+                ],
+                "ex": "Symmetry making the field direction simple makes the Gaussian surface useful for calculating fields. The surface should not be rejected when the stated symmetry condition is present."
+              }
+            ]
+          }
+        }
+      },
+      "decisionSkeleton": {
+        "caseId": "scion-kernel-69836338b8f744019a08ab80",
+        "pairId": "scion-kernel-pair-a6988f2f68ecdc031be3e991",
+        "artifactSha256": {
+          "A": "a122657bf57ca8f7c241ee11104148a50a4c87eb6cd01f30a4686003a5c1bfdd",
+          "B": "cee0143f516d688b0ecd9defe5fe5fb23a0bff0191cd741aefdbc2f937abf981"
+        },
+        "scores": {
+          "A": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          },
+          "B": {
+            "sourceFidelity": {
+              "score": null,
+              "evidence": ""
+            },
+            "knowledgePrecision": {
+              "score": null,
+              "evidence": ""
+            },
+            "scenarioReadiness": {
+              "score": null,
+              "evidence": ""
+            },
+            "assessmentCorrectness": {
+              "score": null,
+              "evidence": ""
+            },
+            "choiceDiscriminability": {
+              "score": null,
+              "evidence": ""
+            },
+            "feedbackInstructionality": {
+              "score": null,
+              "evidence": ""
+            },
+            "internalCoherence": {
+              "score": null,
+              "evidence": ""
+            }
+          }
+        },
+        "criticalDefects": {
+          "A": [],
+          "B": []
+        },
+        "decision": null,
+        "rationale": ""
+      }
+    }
+  ],
+  "claimBoundary": "This packet contains anonymous source-bound artifacts only. It contains no provider identity, model identity, route, admission outcome, retry history, compiler receipt, preference, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "7ac96f07d86282a7c8c5860a5a52126dd27f3a9ef86a050f146fc7ad49bb4bcd"
+  }
+}

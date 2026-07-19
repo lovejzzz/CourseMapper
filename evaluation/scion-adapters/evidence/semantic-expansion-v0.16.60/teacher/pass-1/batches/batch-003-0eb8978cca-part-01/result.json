@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "40b3b4b5ae0758fa86d030ffa1ed55c951b768e26bb3f0a2be1cad2cff3e6a4e",
+  "sessionId": "scion-v01654-teacher-batch-003-0eb8978cca-part-01-d20b694f-c2c6-4a6a-893c-947458ce483f",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19T19:20:00.000Z",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-baa05f5de10fcd2648f81671",
+      "originalArtifactSha256": "0206d91ac7c883aacf447c631b9a6c81d8110ffb8537538a940245da9546a4ab",
+      "lessonKernel": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "keyTerms": [
+          {
+            "tr": "file object",
+            "df": "A file object is what open() returns for a program to read from or write to.",
+            "eg": "open() returns a file object that the program reads from.",
+            "mi": "read() returns the file object produced by open().",
+            "cx": "Instead, open() returns the file object, and read() returns a single string."
+          },
+          {
+            "tr": "read()",
+            "df": "read() is a file operation that returns the entire contents as a single string.",
+            "eg": "read() reads the entire contents of a file.",
+            "mi": "read() returns the next single line from a file.",
+            "cx": "The next single line comes from readline(); read() returns the entire contents."
+          },
+          {
+            "tr": "readlines()",
+            "df": "readlines() is a file operation whose result is a list with every line of the file.",
+            "eg": "readlines() returns a list with every line of the file.",
+            "mi": "readlines() returns a single string containing the entire contents.",
+            "cx": "Its result is a list with every line, whereas read() returns a single string."
+          }
+        ],
+        "scenario": {
+          "su": "A programmer reviews results from read(), readline(), and readlines() after opening a file. The programmer must label each result while preserving the distinction among the entire contents, the next single line, and a list with every line.",
+          "ma": "read() notation paired with a single string containing the entire contents, readline() notation paired with the next single line, readlines() notation paired with a list containing every line"
+        },
+        "mc": [
+          {
+            "q": "When comparing observed results, read() produces a single string holding the entire contents, while readline() produces the next single line. Which pairing matches these operations?",
+            "op": [
+              "read(): entire contents; readline(): next single line",
+              "read(): next single line; readline(): entire contents",
+              "read(): every-line list; readline(): entire contents",
+              "read(): next single line; readline(): every-line list"
+            ],
+            "ai": 0,
+            "fi": [
+              2,
+              3
+            ],
+            "ex": "read() returns the entire contents as a single string, whereas readline() returns the next single line. Assigning the next single line to read() reverses these supplied relations."
+          },
+          {
+            "q": "A program has opened a file and must identify the form returned by readlines() while working with the file's contents. Which result should the program choose?",
+            "op": [
+              "readlines() returns a list with every line",
+              "readlines() returns the next single line",
+              "readlines() returns the entire contents as one string",
+              "readlines() returns the file object"
+            ],
+            "ai": 0,
+            "fi": [
+              3
+            ],
+            "ex": "readlines() returns a list with every line of the file, which matches the requested form. The next single line is returned by readline(), not readlines()."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Re-authored mc-1 with four distinct parallel options that separate the supplied return forms."
+      ],
+      "addressedDiagnoses": [
+        "Resolved the compiler-reported lesson-4:mc-1:duplicate-options issue; no winner critical defects were listed."
+      ]
+    }
+  ]
+}

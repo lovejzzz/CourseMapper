@@ -2,7 +2,35 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.59 makes an explicit instructor fact ledger authoritative, aligns the early and canonical semantic gates, removes futile exact-ledger recovery, and admits the first two score-qualified full lesson-kernel preference rows. Seven fresh domain comparisons still give the paid reference seven wins and base Scion zero current admissions, so the measured gap remains large. This is compiler, recovery, evaluation, and browser-workflow progress—not an adapter or model-weight win. A quality adapter, held-out adapter win, at least 100 admitted lesson-kernel preferences, the remaining device-performance profiles, and production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.60 adds a source-only semantic teacher, corrects two compiler false positives, repairs five diagnosed gaps, and qualifies thirteen of fourteen balanced expansion cases. The corpus now contains twenty unique source-ledger full-lesson preferences across all seven training domains. This is 20% of the minimum corpus gate and still only training evidence: no quality adapter is trained or active, no Gemma weight changed, and no candidate has earned a held-out adapter win. The remaining eighty qualified rows, corpus freeze and license audit, training, device profiles, base comparison, and production promotion still do not exist.
+
+## v0.16.60 — Teach the Gap, Keep the Gate
+
+**Goal:** turn measured base/reference defects into exact, source-grounded full-lesson preferences without weakening compiler admission, crossing the held-out firewall, or claiming a trained-model improvement before one exists.
+
+**Source-only teacher:** each candidate is generated in an ephemeral read-only cleanroom from its immutable instructor source packet, anonymous failure diagnoses, prompt, and structured schema. The schema pins the exact lesson id, original artifact hash, and every numbered source fact. A candidate must then pass the current production compiler before it can enter judgment. The teacher never edits the source ledger or the gate that evaluates its output.
+
+**Compiler precision:** explanations that negate or reverse a distractor are no longer counted as affirmatively supporting it. Non-exact relation matches must preserve semantic-token order, preventing scattered vocabulary from inventing a second valid answer. Regression tests still reject explanations that genuinely support two options.
+
+**Diagnosed repair wave:** five previously stable reference winners were repaired from their exact sources. All five pass current compiler admission, win anonymous A/B and B/A review, clear every score floor, and carry zero winner critical defects. The first pass exposed one unsupported named geology example; V8 removed it and the candidate was recompiled and rejudged in fresh sessions.
+
+**Balanced expansion:** fourteen unseen lessons span two cases per training domain, fourteen distinct course groups and source kernels, and all nine failure families. Frozen base Scion admits 1/14 raw artifacts; the paid reference admits 8/14. Seven reference winners qualify directly, six stable-but-ineligible winners qualify after targeted repair, and one order-unstable User Experience Design pair remains quarantined. No unstable pair is repaired or forced into training.
+
+**Efficient capture:** reference generation uses up to four isolated sessions concurrently. A serialized atomic persistence queue checkpoints completed results, so an interrupted batch remains resumable. Browser-local capture intentionally rejects concurrency above one because all requests share one local model runtime.
+
+**Current ruler:** the five repaired gaps and thirteen qualified expansion cases join the two V0.16.59 rows. The result is twenty unique source-ledger full-lesson preferences across all seven domains. Each row binds its source, chosen and rejected artifacts, compiler reports, paired-order packets and judgments, exact implementation hashes, and claim boundary. The remaining eighty rows must preserve domain, group, kernel, failure-family, and license diversity.
+
+**Browser and grader integrity:** frame-by-frame replay exposed two product-trust defects. Prompt preview treated the word `for` as a generic delimiter and shortened **Spanish for Healthcare Professionals**; it now preserves meaningful `for` and `with` title phrases. Exported lesson plans used ordinary `min` timing labels, but grader 1.10.18 counted only the word `minutes` and produced false zero-minute P0 blockers. Grader 1.10.20 accepts all four normal minute forms, and representative current-tab and ZIP downloads pass again.
+
+**Frozen ruler V10:** the timing parser changes the transitive grade and invalidates V9 for a new comparison. V10 keeps the same five disjoint Crucible courses and runtime-task boundary, binds grader 1.10.20 plus its twelve-file implementation receipt, and inherits no previous score, adapter result, or promotion decision.
+
+**CI receipt closure:** GitHub Fast verification run `29694477954` passed formatting, lint, and the V0.16.59 release ledger before the source-compiler replay audit caught stale derived bytes. Rebuilding from exact retained responses preserves 121 admitted atoms, 71 retry seats, 10 source-grounded answer repairs, and zero response mutations. The complete evidence sequence now passes locally.
+
+**Lane:** answer alignment, semantic admission, canonical compilation, deterministic recovery, grading, evaluation receipts, and export are model-neutral and benefit compatible paid-provider output. The pinned WebGPU runtime, cache, compact local retry policy, and future adapter activation are Scion-specific.
+
+**Next gates:** qualify at least eighty more diverse full-lesson preferences; freeze the complete corpus and licenses; train one task-matched adapter; select it without touching V10 holdout answers; then require an implementation-bound multi-domain win over exact base-only Scion with equal or lower compiler repair burden and acceptable download, memory, and runtime cost.
+
+**Release Boundary:** no adapter is trained or active, no Gemma weight changed, and no held-out adapter comparison, paid-reference parity, human preference, independent-model judgment, instructor approval, classroom outcome, statistical significance, or production adapter win is claimed. Teacher and judge use distinct cleanroom sessions but the same GPT-5.6-sol identity.
 
 ## v0.16.59 — Keep the Instructor’s Facts in Charge
 

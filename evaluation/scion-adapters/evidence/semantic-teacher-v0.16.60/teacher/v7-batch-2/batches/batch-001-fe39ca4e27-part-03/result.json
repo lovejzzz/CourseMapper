@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "fd1bb3b1b22b38e3705e9e679c162b91ebbcdf3c2241e178f4ec8415bd49d7ec",
+  "sessionId": "scion-v01654-teacher-batch-001-fe39ca4e27-part-03-96e618f3-02bf-4385-80cf-350c7ce7c999",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19T17:30:00.000Z",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-028dfdedf45bc1b561d64193",
+      "originalArtifactSha256": "c128bc3f34f1b52d484089585c1d39a7a71f12d586960bfa53a11ae2ee8c968e",
+      "lessonKernel": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "The capital stock is the total quantity of equipment, structures, and tools available for production; it rises through gross investment and falls through depreciation.",
+          "Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period.",
+          "The capital stock grows only when net investment is positive."
+        ],
+        "keyTerms": [
+          {
+            "tr": "capital stock",
+            "df": "The capital stock is the production-side collection of equipment, structures, and tools described by the ledger.",
+            "eg": "An inventory of equipment, structures, and tools is the capital stock in this context.",
+            "mi": "The capital stock means only money held for production decisions.",
+            "cx": "That reading fails because the ledger defines it as equipment, structures, and tools available for production."
+          },
+          {
+            "tr": "gross investment",
+            "df": "Gross investment is the addition-side flow paired with depreciation when describing how the capital stock changes.",
+            "eg": "A record showing gross investment beside depreciation uses the term in the ledger's setup.",
+            "mi": "Gross investment is the same thing as the net change in capital stock.",
+            "cx": "That is incorrect because the ledger separates gross investment from net investment and defines the latter as the change."
+          },
+          {
+            "tr": "net investment",
+            "df": "Net investment is the difference between gross investment and depreciation, and it tracks the change in capital stock over a period.",
+            "eg": "A worksheet that subtracts depreciation from gross investment is using net investment exactly as stated.",
+            "mi": "Net investment is simply another name for gross investment.",
+            "cx": "That does not fit because the ledger defines net investment as gross investment minus depreciation."
+          }
+        ],
+        "scenario": {
+          "su": "A production manager reviews a period record listing equipment, structures, and tools available for production; the record also shows gross investment greater than depreciation and labels net investment as positive. The manager must decide whether the capital stock grows, with the constraint that the decision agree with both the positive net investment notation and the stated growth condition.",
+          "ma": "Inspect the equipment, structures, and tools entry, the gross-investment and depreciation comparison, the positive net-investment notation, and the passage stating the growth condition."
+        },
+        "mc": [
+          {
+            "q": "A period record lists gross investment, depreciation, capital stock, and a change in capital stock. Which statement correctly distinguishes net investment from the other listed terms?",
+            "op": [
+              "Net investment is gross investment minus depreciation.",
+              "Gross investment is the capital stock change.",
+              "Capital stock is gross investment minus depreciation.",
+              "Depreciation is the total production equipment quantity."
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "Net investment is gross investment minus depreciation and is the change in capital stock over a period. The gross-investment distractor is incorrect because the stated change is net investment, not gross investment."
+          },
+          {
+            "q": "A period record marks net investment as positive after listing gross investment and depreciation. Which statement is supported when the record is compared with the stated condition for capital-stock growth?",
+            "op": [
+              "The capital stock grows when net investment is positive.",
+              "The capital stock grows when depreciation is present.",
+              "The capital stock grows when gross investment is positive.",
+              "The capital stock falls when net investment is positive."
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "Positive net investment meets the stated condition for capital-stock growth. The closest distractor cites positive gross investment, but the growth condition is stated in terms of net investment."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Re-authored the first assessment item to remove algebraically equivalent choices and place the uniquely supported option first.",
+        "Re-authored the second assessment item to place the uniquely supported option first while keeping its distinction source-bound.",
+        "Revised the scenario to supply an inspectable comparison, positive net-investment notation, and a source-grounded decision constraint."
+      ],
+      "addressedDiagnoses": [
+        "Resolved the first assessment item's algebraically equivalent equation choices.",
+        "Resolved the underdetermined scenario by supplying a sign comparison and positive net-investment notation."
+      ]
+    }
+  ]
+}

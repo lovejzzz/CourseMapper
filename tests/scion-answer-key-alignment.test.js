@@ -270,6 +270,38 @@ describe('Scion MC contract recovery', () => {
     ).toBeNull();
   });
 
+  it('does not treat a reversed comparison named as a correction as affirmative support', () => {
+    expect(
+      findScionMultipleExplanationSupportedOptions({
+        q: 'Using superposition, which relative-age conclusion is supported for the lower layer?',
+        op: [
+          'The lower layer is older',
+          'The lower layer is younger',
+          'The two layers have equal ages',
+          'The layer order leaves ages undecided',
+        ],
+        ai: 0,
+        ex: 'Superposition places the older layer below the younger layer, so the lower layer is older. Saying the lower layer is younger reverses that supported order.',
+      }),
+    ).toBeNull();
+  });
+
+  it('does not infer a second relation from scattered explanation vocabulary', () => {
+    expect(
+      findScionMultipleExplanationSupportedOptions({
+        q: 'Which statement correctly distinguishes net investment from the listed terms?',
+        op: [
+          'Net investment is gross investment minus depreciation.',
+          'Gross investment is the capital stock change.',
+          'Capital stock is gross investment minus depreciation.',
+          'Depreciation is the total production equipment quantity.',
+        ],
+        ai: 0,
+        ex: 'Net investment is gross investment minus depreciation and is the change in capital stock over a period. The gross-investment distractor is incorrect because the stated change is net investment.',
+      }),
+    ).toBeNull();
+  });
+
   it('retains only complete model-authored sentences without trusting lexical key overlap', () => {
     const repaired = repairScionMcItem(TRUNCATED_CONFLICT, { lessonId: 'lesson-2', itemIndex: 1 });
     expect(repaired.item).toMatchObject({

@@ -1,0 +1,310 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-expansion-batch-v1",
+  "generatedAt": "2026-07-19T18:45:00.000Z",
+  "status": "capture-ready",
+  "campaign": {
+    "path": "evaluation/scion-adapters/lesson-kernel-campaign-v0.16.59.json",
+    "fileSha256": "fdb3899e882070b0fa9b80d8ed5a40a57d82812505628b870181d93680afa2bf",
+    "identitySha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0",
+    "caseCount": 148
+  },
+  "selectionPolicy": {
+    "name": "domain-balanced-defect-directed-greedy-v1",
+    "batchSize": 14,
+    "domainQuotas": {
+      "anatomy": 2,
+      "computer-science": 2,
+      "economics": 2,
+      "geology": 2,
+      "music-theory": 2,
+      "physics": 2,
+      "user-experience-design": 2
+    },
+    "heldoutDomainFirewall": "enforced",
+    "modelPromptUse": "forbidden",
+    "priorities": [
+      "uncovered-failure-family",
+      "uncovered-primary-failure-family",
+      "new-course-group",
+      "new-source-kernel",
+      "rare-primary-family",
+      "rare-family-set",
+      "source-claim-breadth",
+      "case-id-stability"
+    ],
+    "selectorImplementationSha256": "8283e813d03f9322b1614610037f26fd829284862ac6ca800135252229b37af2"
+  },
+  "exclusions": {
+    "caseCount": 10,
+    "caseIds": [
+      "scion-kernel-018581469357c98b43195802",
+      "scion-kernel-026cdf7c7d8f6f200d68e4d5",
+      "scion-kernel-028dfdedf45bc1b561d64193",
+      "scion-kernel-0494c3fad7926b80669d4d22",
+      "scion-kernel-089f3bd62b1608632e6b4a56",
+      "scion-kernel-08c18044f316721811371af4",
+      "scion-kernel-233f463069b39ef1df0a8f93",
+      "scion-kernel-5b8e35ceea940785ee50820d",
+      "scion-kernel-870455b05f9328a256598934",
+      "scion-kernel-c543fc4eb1b368a67de008db"
+    ],
+    "sources": [
+      {
+        "path": "evaluation/scion-adapters/evidence/lesson-kernel-pilot-v0.16.56/current/local-capture.json",
+        "fileSha256": "4a4aa86014bcb328b655c01e40ff58cecf5b43a5d433b012340d5d196fedff1c"
+      },
+      {
+        "path": "evaluation/scion-adapters/evidence/lesson-kernel-pilot-v0.16.56/current/reference-capture.json",
+        "fileSha256": "7acf400225aa9017bf69e585229a960c85178501333598c807fcb5cdbec88d02"
+      },
+      {
+        "path": "evaluation/scion-adapters/evidence/source-ledger-v0.16.59/batch-1/local-capture.json",
+        "fileSha256": "0de38f37582addfe71391232276d2beefceed89f665ad024f71183e696472843"
+      },
+      {
+        "path": "evaluation/scion-adapters/evidence/source-ledger-v0.16.59/batch-2/local-capture.json",
+        "fileSha256": "660bfbc0b42a672f89e808009b785e21f96ad2acb126136f4c61933305f3416c"
+      }
+    ]
+  },
+  "summary": {
+    "cases": 14,
+    "domains": {
+      "anatomy": 2,
+      "computer-science": 2,
+      "economics": 2,
+      "geology": 2,
+      "music-theory": 2,
+      "physics": 2,
+      "user-experience-design": 2
+    },
+    "courseGroups": 14,
+    "sourceKernels": 14,
+    "primaryFailureFamilies": {
+      "answer-feedback-consistency": 2,
+      "answer-key-correctness": 3,
+      "choice-discriminability": 2,
+      "feedback-instructionality": 1,
+      "key-term-precision": 1,
+      "misconception-validity": 1,
+      "scenario-evidence-sufficiency": 1,
+      "source-coverage": 2,
+      "source-fidelity": 1
+    },
+    "failureFamilies": {
+      "answer-key-correctness": 5,
+      "answer-feedback-consistency": 4,
+      "choice-discriminability": 5,
+      "source-fidelity": 8,
+      "source-coverage": 4,
+      "key-term-precision": 2,
+      "misconception-validity": 4,
+      "feedback-instructionality": 9,
+      "scenario-evidence-sufficiency": 4
+    },
+    "allFailureFamiliesCovered": true
+  },
+  "cases": [
+    {
+      "ordinal": 1,
+      "caseId": "scion-kernel-17a6a855c7d1711a85d451cb",
+      "caseSha256": "17a6a855c7d1711a85d451cb0ac58d8411acfe330f624a60842432ddeb8fe412",
+      "domain": "anatomy",
+      "courseGroupId": "anatomy-structure-regulation-systems-studio",
+      "sourceKernelId": "anatomy/levels-of-organization",
+      "sourceClaimCount": 3,
+      "primaryFailureFamily": "misconception-validity",
+      "failureFamilies": ["feedback-instructionality", "misconception-validity", "source-fidelity"]
+    },
+    {
+      "ordinal": 2,
+      "caseId": "scion-kernel-baa05f5de10fcd2648f81671",
+      "caseSha256": "baa05f5de10fcd2648f816719696b416e34e8ec63593a1df7da1e9f4580644e8",
+      "domain": "computer-science",
+      "courseGroupId": "python-data-boundary-design-lab",
+      "sourceKernelId": "cs/file-io",
+      "sourceClaimCount": 4,
+      "primaryFailureFamily": "answer-key-correctness",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "answer-key-correctness",
+        "feedback-instructionality",
+        "source-fidelity"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "caseId": "scion-kernel-6e2d8185c8de7f4e09c89f85",
+      "caseSha256": "6e2d8185c8de7f4e09c89f85e06a19c635ff0ef5f2055e700bd593cc86dd8201",
+      "domain": "economics",
+      "courseGroupId": "economics-market-structure-policy-clinic",
+      "sourceKernelId": "econ/supply-curve",
+      "sourceClaimCount": 3,
+      "primaryFailureFamily": "source-coverage",
+      "failureFamilies": ["source-coverage"]
+    },
+    {
+      "ordinal": 4,
+      "caseId": "scion-kernel-cf4f644f00e2a131fe97a9e0",
+      "caseSha256": "cf4f644f00e2a131fe97a9e06e8c07b8fa79ca05594ef2315d8bf081edb09730",
+      "domain": "geology",
+      "courseGroupId": "geology-inference-and-feedback-audit-v01654",
+      "sourceKernelId": "geology-ccby/relative-dating-rules",
+      "sourceClaimCount": 3,
+      "primaryFailureFamily": "choice-discriminability",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "misconception-validity",
+        "scenario-evidence-sufficiency",
+        "source-coverage",
+        "source-fidelity"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "caseId": "scion-kernel-70fb5514bdf10f3cc0f09893",
+      "caseSha256": "70fb5514bdf10f3cc0f09893e904f4c0850c623c285c5625f1ca79a4c4d4360f",
+      "domain": "music-theory",
+      "courseGroupId": "music-theory-notation-function-diagnosis-v01654",
+      "sourceKernelId": "music-ccby/major-natural-minor-scales",
+      "sourceClaimCount": 3,
+      "primaryFailureFamily": "answer-feedback-consistency",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "answer-key-correctness",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "misconception-validity"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "caseId": "scion-kernel-69836338b8f744019a08ab80",
+      "caseSha256": "69836338b8f744019a08ab80148ef7a77e2cbd1a4a374a04797fa28a1087a1df",
+      "domain": "physics",
+      "courseGroupId": "physics-fields-circuits-induction-workshop",
+      "sourceKernelId": "physics/gausss-law",
+      "sourceClaimCount": 3,
+      "primaryFailureFamily": "key-term-precision",
+      "failureFamilies": ["key-term-precision"]
+    },
+    {
+      "ordinal": 7,
+      "caseId": "scion-kernel-1e55b5679cb304eac7c659ff",
+      "caseSha256": "1e55b5679cb304eac7c659ff147b34865b4d90ea561fd3e367c33ab99629eabb",
+      "domain": "user-experience-design",
+      "courseGroupId": "ux-evidence-claim-audit",
+      "sourceKernelId": "ux/accessibility-usability-evaluation",
+      "sourceClaimCount": 5,
+      "primaryFailureFamily": "scenario-evidence-sufficiency",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "key-term-precision",
+        "misconception-validity",
+        "scenario-evidence-sufficiency",
+        "source-coverage"
+      ]
+    },
+    {
+      "ordinal": 8,
+      "caseId": "scion-kernel-3edf7a765ba59181da78537e",
+      "caseSha256": "3edf7a765ba59181da78537ed7fd92e64506ae1c289767a556ed1c3dbc14f59b",
+      "domain": "anatomy",
+      "courseGroupId": "anatomy-homeostasis-tissues-diagnostic-lab",
+      "sourceKernelId": "anatomy/skeletal-system-functions",
+      "sourceClaimCount": 3,
+      "primaryFailureFamily": "source-fidelity",
+      "failureFamilies": ["feedback-instructionality", "source-fidelity"]
+    },
+    {
+      "ordinal": 9,
+      "caseId": "scion-kernel-dab2c9f9b9271ef7e38c3ee1",
+      "caseSha256": "dab2c9f9b9271ef7e38c3ee1aa691aa8813602bc0c2f6f44019f31a3e15ed141",
+      "domain": "computer-science",
+      "courseGroupId": "python-debugging-evidence-clinic",
+      "sourceKernelId": "cs/functions",
+      "sourceClaimCount": 5,
+      "primaryFailureFamily": "feedback-instructionality",
+      "failureFamilies": ["answer-key-correctness", "choice-discriminability", "feedback-instructionality"]
+    },
+    {
+      "ordinal": 10,
+      "caseId": "scion-kernel-5c45e4f9cb097bcb4e88b6a8",
+      "caseSha256": "5c45e4f9cb097bcb4e88b6a842b11b0472a95aaf1f61cb6496d8e8cb563babfb",
+      "domain": "economics",
+      "courseGroupId": "economics-models-markets-evidence-lab",
+      "sourceKernelId": "econ/price-elasticity-of-demand",
+      "sourceClaimCount": 4,
+      "primaryFailureFamily": "choice-discriminability",
+      "failureFamilies": ["choice-discriminability", "source-fidelity"]
+    },
+    {
+      "ordinal": 11,
+      "caseId": "scion-kernel-0f61417d8992f5f6c04af2fc",
+      "caseSha256": "0f61417d8992f5f6c04af2fc04e17a4d362214860fdb2151d8b9e6d6a0a0d3e6",
+      "domain": "geology",
+      "courseGroupId": "geology-process-evidence-diagnosis-v01654",
+      "sourceKernelId": "geology-ccby/lithosphere-and-convection",
+      "sourceClaimCount": 3,
+      "primaryFailureFamily": "answer-key-correctness",
+      "failureFamilies": ["answer-key-correctness", "scenario-evidence-sufficiency", "source-fidelity"]
+    },
+    {
+      "ordinal": 12,
+      "caseId": "scion-kernel-ec108bb13f794a1f68365314",
+      "caseSha256": "ec108bb13f794a1f68365314f8959364debe6b177f5de2577d89038a168067f7",
+      "domain": "music-theory",
+      "courseGroupId": "music-theory-evidence-boundary-studio-v01654",
+      "sourceKernelId": "music-ccby/seventh-chord-functions",
+      "sourceClaimCount": 3,
+      "primaryFailureFamily": "source-coverage",
+      "failureFamilies": [
+        "feedback-instructionality",
+        "scenario-evidence-sufficiency",
+        "source-coverage",
+        "source-fidelity"
+      ]
+    },
+    {
+      "ordinal": 13,
+      "caseId": "scion-kernel-096132eb8d2e7124522811f0",
+      "caseSha256": "096132eb8d2e7124522811f0262a0245a2ba7701772561aee8fd914dd076c40e",
+      "domain": "physics",
+      "courseGroupId": "physics-charge-fields-potential-workshop",
+      "sourceKernelId": "physics/capacitance",
+      "sourceClaimCount": 3,
+      "primaryFailureFamily": "answer-key-correctness",
+      "failureFamilies": ["answer-key-correctness"]
+    },
+    {
+      "ordinal": 14,
+      "caseId": "scion-kernel-25bc83b68703532aa5564e43",
+      "caseSha256": "25bc83b68703532aa5564e431cac0c3d8cf7263b9c7418b5ab294091a9e394c2",
+      "domain": "user-experience-design",
+      "courseGroupId": "ux-method-selection-clinic",
+      "sourceKernelId": "ux/journey-mapping",
+      "sourceClaimCount": 5,
+      "primaryFailureFamily": "answer-feedback-consistency",
+      "failureFamilies": [
+        "answer-feedback-consistency",
+        "choice-discriminability",
+        "feedback-instructionality",
+        "source-fidelity"
+      ]
+    }
+  ],
+  "claimBoundary": {
+    "selectionOnly": true,
+    "preferenceWins": 0,
+    "trainingRows": 0,
+    "adapterEvidence": false,
+    "statement": "This manifest selects uncaptured training-domain cases. It does not claim model quality, a preference win, or adapter readiness."
+  },
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "8586f744bb1aabc7cb917864783107648a9e1b4cf53955d993cdfbbbf10f1e8a"
+  }
+}

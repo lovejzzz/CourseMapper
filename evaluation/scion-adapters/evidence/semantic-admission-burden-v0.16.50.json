@@ -20,7 +20,7 @@
       "sourceCompilerReceipt": {
         "path": "evaluation/scion-adapters/evidence/source-compiler-replay-v0.16.47.json",
         "bytes": 19998,
-        "sha256": "ad176a0f9d2d10dccecbdafbfc4c8e6adb2982e17eab9d59cda8dd789a2b17f9",
+        "sha256": "eb22466f9e0fc56540aea21b726a76e5efcb40152b6d26cdebf432a504f06ccc",
         "release": "v0.16.47",
         "projectCount": 12
       },
@@ -28,84 +28,84 @@
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-control-flow-workshop-local.json",
           "bytes": 76765,
-          "sha256": "ca3850d3a2b09796dbe72bb7b5911b842bce970a226d4d2aa15c4e863013b9f7",
+          "sha256": "71bb1402f780d9a7a3d50f1f2a3bba0917c43379ebc838c58ffbfdf72733d049",
           "courseGroupId": "python-control-flow-workshop",
           "domain": "computer-science"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-data-structures-lab-local.json",
-          "bytes": 73354,
-          "sha256": "d2730658deb2fd5117fe68a8f931a8a33e51c81385ae84c9e04eebc835c91a28",
+          "bytes": 73594,
+          "sha256": "bc07769897eee53214d67a38023ce27e3c1cb50707f54bfed11b9e04f8c11b58",
           "courseGroupId": "python-data-structures-lab",
           "domain": "computer-science"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/igneous-volcanic-processes-local.json",
           "bytes": 46619,
-          "sha256": "b355c6c6655007cc78585bb113e0b02c30e62adf945c8ede8323c3810ba28ec3",
+          "sha256": "3d10f9d6fc2839eb859ef7825426d913dcb4d222e405e2fb9da762e30f3af70e",
           "courseGroupId": "igneous-volcanic-processes",
           "domain": "geology"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/tectonics-seismology-field-lab-local.json",
           "bytes": 85118,
-          "sha256": "20530f1cfe7d74df5d64acba91bb1e79bcf821cbf8cbdd0b2d402632a8d97c2b",
+          "sha256": "b626dc8bea3fa328d52252b3721486074767bbb6907b4dc3935ddfa752e80c04",
           "courseGroupId": "tectonics-seismology-field-lab",
           "domain": "geology"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/music-notation-ear-training-local.json",
           "bytes": 53563,
-          "sha256": "9a074e513e71a3e655f06f9917ff45b54a0d5dcc4cb82ca1e1e69064ef24033a",
+          "sha256": "6e9e492fea77e15409fe26e30ec2dcf98c10cf66ce89e0ccbf8264370e010f0f",
           "courseGroupId": "music-notation-ear-training",
           "domain": "music-theory"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/harmony-form-analysis-local.json",
           "bytes": 82397,
-          "sha256": "c5c509bcedde313a8987296b256d0bedd3980cca84cfd64c1922f5daae388110",
+          "sha256": "9d12373fbd514e85926663da719444c968dd85ddb85972413ee3b1ddf83ccd67",
           "courseGroupId": "harmony-form-analysis",
           "domain": "music-theory"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-research-synthesis-studio-local.json",
-          "bytes": 72065,
-          "sha256": "1062f3dd48825f6d9b8f673dfb9a0aa7da2bf7da7da7869e087796daab1762d1",
+          "bytes": 72425,
+          "sha256": "ee513fb64c66d7b1a5d63e1e6078b58c2481765a0f99a5503a4aab571c041c82",
           "courseGroupId": "ux-research-synthesis-studio",
           "domain": "user-experience-design"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-prototyping-accessibility-lab-local.json",
-          "bytes": 62280,
-          "sha256": "e183f37dbc987be52ffe7c537b142bf4823805013e38e1fcd94950527e339519",
+          "bytes": 62400,
+          "sha256": "ca4afa5eef3fdba1798dc8daab58b06302cd2eff8ca3c77efe8ffbc8f7a851a2",
           "courseGroupId": "ux-prototyping-accessibility-lab",
           "domain": "user-experience-design"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/python-program-architecture-studio-local.json",
           "bytes": 136462,
-          "sha256": "3fa2b29880fe6c0c2a16ed15976c560fafbaf482113453dc4b52b64be85be799",
+          "sha256": "abaacd3f35a7426b618080a69a7d5c3948c91a629257a477273cee411b765c06",
           "courseGroupId": "python-program-architecture-studio",
           "domain": "computer-science"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/earth-materials-history-lab-local.json",
-          "bytes": 138166,
-          "sha256": "cab524acfafc30ed51e9ff81b2e81589c5eb0746953ac486c0019e2747d20f9e",
+          "bytes": 138406,
+          "sha256": "d0639856c0e0f221c8b31edf0c5e3828a0891895bc35d31b9017e3ffb2161f20",
           "courseGroupId": "earth-materials-history-lab",
           "domain": "geology"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/tonal-analysis-integration-studio-local.json",
           "bytes": 139227,
-          "sha256": "712e4688548ea0ad164b0c7b1d7d417e364e3b02c595359cf146ae33bf2508d9",
+          "sha256": "60b5dd83e74f49e1360bde31fbf7b6f5db953aa4c14c7d7f03642401228cd6be",
           "courseGroupId": "tonal-analysis-integration-studio",
           "domain": "music-theory"
         },
         {
           "path": "evaluation/scion-source-compiler-replay-v0.16.47/ux-evidence-to-prototype-capstone-local.json",
-          "bytes": 164155,
-          "sha256": "6519a427e2a3663536c5edb8ef1e242e0570a02f25eac4eefa4fa965abcd287d",
+          "bytes": 164395,
+          "sha256": "9d2dfcedb90a0d6996f7e04ec8266d757fbf2796367fcf4a3dd53c6fbc9c148d",
           "courseGroupId": "ux-evidence-to-prototype-capstone",
           "domain": "user-experience-design"
         }
@@ -114,8 +114,8 @@
     "implementation": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 55772,
-        "sha256": "18f318acb487acd3b32b449ee25833947d39fa732308698c2d4867c17197ca24"
+        "bytes": 56318,
+        "sha256": "87effc6a3dce3027faa292c111f138d903b5ed2a31f3270f0b8e151428b182c5"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",

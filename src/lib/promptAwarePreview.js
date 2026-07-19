@@ -5,6 +5,18 @@ const clean = (value) =>
     .replace(/\s+/g, ' ')
     .trim();
 
+const removeBriefQualifiers = (value) =>
+  String(value || '')
+    // A title can legitimately contain “for” or “with” (Spanish for
+    // Healthcare Professionals, Writing with AI). Only treat those words as
+    // brief boundaries when syntax makes the boundary explicit.
+    .replace(/\s+(?:course|class|seminar|workshop)\s+(?:with|for|that|where|covering|including)\b.*$/i, '')
+    .replace(/\s+(?:course|class|seminar|workshop)$/i, '')
+    .replace(/,\s*(?:with|for|that|where|covering|including)\b.*$/i, '')
+    .replace(/\s+(?:with|in)\s+\d+\s+(?:lessons?|weeks?|modules?|sessions?)\b.*$/i, '')
+    .replace(/\s+(?:that|where|covering|including)\b.*$/i, '')
+    .trim();
+
 export function derivePromptPreviewTitle(promptText) {
   const text = clean(promptText);
   if (!text) return 'Your course';
@@ -19,10 +31,7 @@ export function derivePromptPreviewTitle(promptText) {
     /\b(?:course|class|seminar|workshop)\s+(?:called|titled|named|on|about)\s+([^,.;!?]{4,90})/i,
   );
   if (namedCourse?.[1]) {
-    return namedCourse[1]
-      .replace(/\s+(?:with|for|that|where|covering|including)\b.*$/i, '')
-      .replace(/\s+in\s+\d+\s+(?:lessons?|weeks?|modules?|sessions?)\b.*$/i, '')
-      .trim();
+    return removeBriefQualifiers(namedCourse[1]);
   }
 
   // A compact course identity is often followed by an em-dash and the
@@ -40,15 +49,15 @@ export function derivePromptPreviewTitle(promptText) {
   );
   if (beforeCourseShape?.[1]) return beforeCourseShape[1].trim();
 
-  const cleaned = text
-    .replace(/^(?:build|create|generate|design|make|draft|prepare)\s+(?:an?\s+)?/i, '')
-    .replace(/^\d+(?:[-\s](?:lesson|week|module|session))?s?\s+/i, '')
-    .replace(/^(?:an?|the)\s+/i, '')
-    .replace(/^(?:course|class|seminar|workshop)\s+(?:on|about)\s+/i, '')
-    .replace(/\s+(?:with|for|that|where|covering|including)\b.*$/i, '')
-    .replace(/\s+(?:course|class|seminar|workshop)$/i, '')
-    .replace(/[.?!:;]+$/g, '')
-    .trim();
+  const cleaned = removeBriefQualifiers(
+    text
+      .replace(/^(?:build|create|generate|design|make|draft|prepare)\s+(?:an?\s+)?/i, '')
+      .replace(/^\d+(?:[-\s](?:lesson|week|module|session))?s?\s+/i, '')
+      .replace(/^(?:an?|the)\s+/i, '')
+      .replace(/^(?:course|class|seminar|workshop)\s+(?:on|about)\s+/i, '')
+      .replace(/[.?!:;]+$/g, '')
+      .trim(),
+  );
 
   if (!cleaned) return 'Your course';
   return cleaned.length > 72 ? `${cleaned.slice(0, 69).trim()}...` : cleaned;

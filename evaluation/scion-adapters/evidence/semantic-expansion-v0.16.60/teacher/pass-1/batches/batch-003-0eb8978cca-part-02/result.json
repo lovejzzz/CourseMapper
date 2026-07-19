@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-result-v1",
+  "packetSha256": "a94857be2bb48397e9ed681556ca88852aa31a36ad5778bcf1727dc0565499cd",
+  "sessionId": "scion-v01654-teacher-batch-003-0eb8978cca-part-02-8988d882-3d85-4b81-8844-3fe52aa33ad8",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "completedAt": "2026-07-19T19:20:00.000Z",
+  "attestations": {
+    "suppliedClaimsOnly": true,
+    "noExternalFacts": true,
+    "noTrainingAuthorization": true
+  },
+  "revisions": [
+    {
+      "caseId": "scion-kernel-cf4f644f00e2a131fe97a9e0",
+      "originalArtifactSha256": "631181f6dfe2ac3ded5b2e143a3e884af90bb3ac651027a1d4a9d37844f4baf2",
+      "lessonKernel": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "Relative dating orders geological events by interpreting relationships such as superposition, inclusions, and cross-cutting without assigning numerical ages.",
+          "In an undisturbed sedimentary sequence, superposition places older layers below younger layers.",
+          "A feature that cuts across or disrupts another geological feature must be younger than the feature it disrupts."
+        ],
+        "keyTerms": [
+          {
+            "tr": "Relative dating",
+            "df": "Relative dating orders geological events through their interpreted relationships rather than numerical ages.",
+            "eg": "Relative dating can order an older layer, a younger layer, and a feature that disrupts them.",
+            "mi": "Inclusions supply numerical ages during relative dating.",
+            "cx": "It establishes an order from geological relationships without assigning numerical ages."
+          },
+          {
+            "tr": "superposition",
+            "df": "Superposition is the relationship placing older layers below younger layers in an undisturbed sedimentary sequence.",
+            "eg": "In an undisturbed sedimentary sequence, an older layer lies below a younger layer.",
+            "mi": "Superposition places younger layers below older layers in an undisturbed sedimentary sequence.",
+            "cx": "The lower layer is older and the higher layer is younger in that sequence."
+          },
+          {
+            "tr": "cross-cutting",
+            "df": "Cross-cutting distinguishes a disrupting feature as younger than the geological feature it disrupts.",
+            "eg": "A feature cutting across another geological feature is younger than the disrupted feature.",
+            "mi": "Cross-cutting makes a disrupted geological feature younger than the feature cutting it.",
+            "cx": "The cutting feature is younger, while the feature it disrupts is older."
+          }
+        ],
+        "scenario": {
+          "su": "A student must label the relative order represented by an undisturbed sedimentary sequence and a feature cutting across another geological feature. The decision must use the observed relationships without assigning numerical ages.",
+          "ma": "layer-position observations recording older layers below younger layers, cross-cutting notations recording the disrupting feature and disrupted geological feature"
+        },
+        "mc": [
+          {
+            "q": "A student examines an undisturbed sedimentary sequence with one layer below another and must decide which relative ordering follows from superposition; which statement is supported?",
+            "op": [
+              "The lower layer is older",
+              "The lower layer is younger",
+              "The layers receive numerical ages",
+              "The sequence identifies a cutting feature"
+            ],
+            "ai": 0,
+            "fi": [
+              1
+            ],
+            "ex": "Superposition places older layers below younger layers in an undisturbed sedimentary sequence. The claim that the lower layer is younger reverses that relationship."
+          },
+          {
+            "q": "An undisturbed sequence has a lower layer and an upper layer, and one feature cuts across both; which oldest-to-youngest order fits the observations without numerical ages?",
+            "op": [
+              "Oldest to youngest: lower, upper, cutting feature",
+              "Oldest to youngest: upper, lower, cutting feature",
+              "Oldest to youngest: cutting feature, lower, upper",
+              "Oldest to youngest: lower, cutting feature, upper"
+            ],
+            "ai": 0,
+            "fi": [
+              1,
+              2
+            ],
+            "ex": "Superposition makes the lower layer older than the upper layer, and the cutting feature is younger than both disrupted layers. Placing the upper layer first reverses the layer relationship."
+          }
+        ]
+      },
+      "changeSummary": [
+        "Replaced the first key term's misconception with a distinct source-bound false belief about inclusions and numerical ages.",
+        "Re-authored the first multiple-choice item so its first-position key, citation, options, and explanation consistently apply superposition."
+      ],
+      "addressedDiagnoses": [
+        "Resolved lesson-6:key-term-1:misconception-repeats-definition by changing the affected misconception.",
+        "Resolved lesson-6:mc-1:source-fact-key-mismatch and the diagnosed contradiction between the declared answer and its explanation."
+      ]
+    }
+  ]
+}

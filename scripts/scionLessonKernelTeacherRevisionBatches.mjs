@@ -22,7 +22,7 @@ const OUTPUT_DIR = 'verification-output/scion-lesson-kernel-teacher-revision-v0.
 const PROMPT = 'evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v0.16.54.md';
 const MANIFEST_PROTOCOL = 'scion-lesson-kernel-teacher-revision-workbook-v1';
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const args = {
     campaign: CAMPAIGN,
     referenceReport: REFERENCE_REPORT,
@@ -39,8 +39,10 @@ function parseArgs(argv) {
     const token = argv[index];
     if (token === '--build') args.build = true;
     else if (token === '--ingest') args.ingest = true;
+    else if (token === '--campaign') args.campaign = argv[++index] || args.campaign;
     else if (token === '--reference-report') args.referenceReport = argv[++index] || '';
     else if (token === '--fallback-reference-report') args.fallbackReferenceReport = argv[++index] || '';
+    else if (token === '--judge-dir') args.judgeDir = argv[++index] || args.judgeDir;
     else if (token === '--output') args.output = argv[++index] || args.output;
     else if (token === '--prompt') args.prompt = argv[++index] || args.prompt;
     else if (token === '--exclude-admitted-report') {
@@ -92,7 +94,7 @@ export function composeScionTeacherRevisionSource(primary = {}, fallback = null)
 }
 
 function reportIdentitySha256(report = {}) {
-  return report.identity?.sha256 || report.identitySha256 || null;
+  return report?.identity?.sha256 || report?.identitySha256 || null;
 }
 
 async function atomicWriteJson(file, value) {
@@ -303,7 +305,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(
-      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--reference-report file] [--fallback-reference-report file] [--prompt file] [--exclude-admitted-report file] [--exclude-qualified-result file] [--max-cases N]',
+      'Usage: node scripts/scionLessonKernelTeacherRevisionBatches.mjs [--build|--ingest] [--campaign file] [--reference-report file] [--fallback-reference-report file] [--judge-dir directory] [--prompt file] [--exclude-admitted-report file] [--exclude-qualified-result file] [--max-cases N]',
     );
     return;
   }

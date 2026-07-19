@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T18:10:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-001-fe39ca4e27-a-b-5b652fab-0f78-4515-822b-964afcd68595",
+    "B/A": "scion-v01654-batch-001-fe39ca4e27-b-a-3cadcfb4-8081-404a-9eaf-e8cc0a60a30f"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "3e4559b51fe5f64542769ade5f96af68cf309c1a2799369a148bd11c651b7aa3",
+      "B/A": "30cda021ccbcc3c1e72cbc5f9bd00eb73ca6dc743dee13aba05052896bbf8196"
+    },
+    "reviews": {
+      "A/B": "cfbba678ae416d0855a1da968bfa19a356b87d4352b8a4d12e2a2ae4417d892d",
+      "B/A": "d60c4e41012cfec50e022e8e551ef9bedc6212b374a75428058d1e1b62dfb773"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-018581469357c98b43195802",
+      "pairId": "scion-kernel-pair-7055476a3be817de3d0db85b",
+      "winners": {
+        "A/B": "dfbab0c76763063770049b9285efe3f754aee61326095e0c5d4c82cfc1a86376",
+        "B/A": "dfbab0c76763063770049b9285efe3f754aee61326095e0c5d4c82cfc1a86376"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 19,
+        "winnerCriticalDefects": [
+          "The cross-cutting example introduces a fault, a named geological feature not supplied by the source ledger."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 21,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both declared answer indices are incorrect and each explanation supports a different option.",
+              "The inclusions definition and correction assert an age-evidence rule not provided by the supplied claims.",
+              "The scenario supplies observations but no explicit relative-age decision to make."
+            ],
+            "rationale": "B is decisively stronger because it stays within the supplied rules, presents a usable evidence-based field decision, and has two correct, coherent assessments. A contains unsupported elaboration, lacks an explicit scenario decision, and miskeys both questions.",
+            "decisionSha256": "7189ceac96415a7a952b965a0dd7d5c62711d4b4b73fc4fd1546c6e3421dfba8"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 19,
+            "winnerCriticalDefects": [
+              "The cross-cutting example introduces a fault, a named geological feature not supplied by the source ledger."
+            ],
+            "loserCriticalDefects": [
+              "Both declared answer indices are incorrect and contradict their explanations.",
+              "The artifact invents multiple named geological examples, including sandstone, shale, limestone, igneous fragments, a fault, and a dike.",
+              "The scenario supplies observations but no usable disciplinary decision."
+            ],
+            "rationale": "A has correct, well-supported assessments and a usable evidence-based scenario. B has two incorrect answer keys, key-explanation contradictions, extensive unsupplied named detail, and no explicit scenario decision.",
+            "decisionSha256": "11787d1d893328c2526f4c95cd14e9b20204856cdf987096c32438b8e92d4b62"
+          }
+        ]
+      },
+      "trainingEligible": false
+    },
+    {
+      "caseId": "scion-kernel-026cdf7c7d8f6f200d68e4d5",
+      "pairId": "scion-kernel-pair-bea2ff6b826b2f3db36105d6",
+      "winners": {
+        "A/B": "fe98a24d981158744655299db1978891cf6c7cd32ed82211d9b28dcd9acab474",
+        "B/A": "fe98a24d981158744655299db1978891cf6c7cd32ed82211d9b28dcd9acab474"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 18,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 19,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The magnetic-field correction makes the unsupported and self-contradictory claim that force applies regardless of whether a charge is stationary or moving.",
+              "The 30-degree assessment is non-unique because both option 0 and keyed option 3 are supported by the supplied facts."
+            ],
+            "rationale": "B cleanly distinguishes magnetic-force dependence, direction, and the parallel zero-force case, then assesses each with unique answers and corrective feedback. A introduces a contradictory stationary-charge claim and an ambiguous assessment.",
+            "decisionSha256": "688f5b3d80ac862a6adba95256e0280b4de67320312e4084789a10a9492e8994"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The magnetic-field correction contains the unsupported, self-contradictory claim that a moving charge is affected regardless of whether it is stationary or moving.",
+              "Q2 is not uniquely answerable because both perpendicularity and dependence on angle are supported for the described motion.",
+              "The scenario asks for a resulting force at 30 degrees without supplying a rule sufficient to determine that result."
+            ],
+            "rationale": "A is precise, actionable, and fully coherent. B contains a self-contradictory correction, unsupported details, weak feedback, and a second assessment with more than one supported alternative.",
+            "decisionSha256": "ef1518eab8bc533c6d285bca644a3f409fe7eceb6810eed33e7e93e7922aea59"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-028dfdedf45bc1b561d64193",
+      "pairId": "scion-kernel-pair-20d4a3522faf0521d09f7880",
+      "winners": {
+        "A/B": "de77a963160defe89642e7bdf1638c6cbe1cdb98ad52533722d782797f960ae2",
+        "B/A": "de77a963160defe89642e7bdf1638c6cbe1cdb98ad52533722d782797f960ae2"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 16,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 16,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first answer index selects addition, while its explanation supports gross investment minus depreciation in option 1.",
+              "The second answer index selects gross investment alone, while its explanation supports positive net investment in option 1.",
+              "The second question is ambiguous because options 1 and 2 express equivalent sufficient conditions for positive net investment.",
+              "The scenario invents an unsupported regulatory requirement."
+            ],
+            "rationale": "B preserves the supplied accounting relationships and provides correct, coherent assessments with useful corrections. A miskeys both questions, contradicts its explanations, duplicates the growth condition, and adds an unsupported regulatory claim.",
+            "decisionSha256": "be11dcf074fcd5d8fa773ffc40ae22222de5a1fe4a99a03c0682104a72ecacd2"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 19,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both declared answer indices are incorrect and directly contradict their explanations.",
+              "The regulatory requirement is an unsupported invented constraint absent from the source packet.",
+              "Q2 is ambiguous because positive net investment and depreciation being less than gross investment are equivalent supported reasons."
+            ],
+            "rationale": "A is source-bounded, precise, and correct across both assessments. B invents a regulatory constraint and has two incorrect answer keys that contradict otherwise mostly correct explanatory prose.",
+            "decisionSha256": "d950503218cfb853cf0f7abb95a5c45790d1319845d450e30e0ff5ecc4879554"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-0494c3fad7926b80669d4d22",
+      "pairId": "scion-kernel-pair-a9a1c0ec3a786510c9915588",
+      "winners": {
+        "A/B": "11799bb71b9145d2b55b40ccaa95872f333f5c837f02469fbccb8cbb7aab9e00",
+        "B/A": "11799bb71b9145d2b55b40ccaa95872f333f5c837f02469fbccb8cbb7aab9e00"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 17,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The first declared answer is incorrect: option 0 assigns meaningful-pattern formation to receptors, while the explanation points toward signal conversion.",
+              "The second declared answer is incorrect: option 0 assigns central processing to receptors, while the explanation supports option 1.",
+              "The first explanation reverses the supplied relationship by placing conversion before receptor detection."
+            ],
+            "rationale": "B gives a precise, source-bound distinction among detection, conversion, and perception, with usable passage evidence and correct assessments. A miskeys both questions and includes an explanation that reverses the supplied receptor process.",
+            "decisionSha256": "83de748b29229856a5bfa71f8d11a308be7aec6c3d94fb2096421fbc54af5c50"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 0,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 17,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Both declared answer indices are incorrect and contradict the relationships stated in their explanations.",
+              "Q1's explanation invents a reversed temporal sequence in which conversion occurs before receptors detect sensations.",
+              "The artifact invents named examples involving heat, pain, a patient, a technician, and a nerve ending."
+            ],
+            "rationale": "A cleanly distinguishes receptor detection, signal conversion, and perception with correct assessments. B adds unsupported examples, reverses the process in feedback, and declares the wrong answer for both questions.",
+            "decisionSha256": "5f791edd018512f4684d9d8acaa9e381fd9a2350850898f8bb85a1ae03339c68"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 4,
+    "stablePreferences": 3,
+    "localWins": 0,
+    "referenceWins": 4,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "cacef2bf9be1dcbb486d1fb9f5685bb569d9a8409fa6f0c6e3364495f523a002"
+  }
+}

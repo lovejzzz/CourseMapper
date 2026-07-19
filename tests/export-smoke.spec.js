@@ -92,6 +92,11 @@ function exportFixture() {
                   activity: 'Export lab',
                   description: 'Download and inspect representative generated materials.',
                 },
+                {
+                  time: '15 min',
+                  activity: 'Handoff synthesis',
+                  description: 'Document one export risk, one verification step, and the next handoff action.',
+                },
               ],
               closingActivity: 'Name one export failure a smoke test should catch.',
             },
@@ -110,6 +115,11 @@ function exportFixture() {
                   time: '30 min',
                   activity: 'Format comparison',
                   description: 'Compare CSV, DOCX, PDF, XLSX, and PPTX outputs.',
+                },
+                {
+                  time: '45 min',
+                  activity: 'Workflow decision lab',
+                  description: 'Select a format for a named reviewer workflow and defend the maintenance tradeoff.',
                 },
               ],
               closingActivity: 'Pick a default format for a teaching team handoff.',
@@ -594,6 +604,18 @@ test.describe('Export smoke', () => {
                   in: 'Confirm objectives, warm-up, and homework survived.',
                   gr: 'Pairs',
                   bl: lessonIndex === 0 ? 'Analyze' : 'Apply',
+                },
+                {
+                  tm: '55 min',
+                  ac: lessonIndex === 0 ? 'Handoff verification' : 'Portable workflow decision',
+                  ty: 'Workshop',
+                  de:
+                    lessonIndex === 0
+                      ? 'Trace objectives, activities, and homework through both export formats, then document the handoff result.'
+                      : 'Select a portable format for a named reviewer workflow and justify the decision with export evidence.',
+                  in: 'Record the artifact checked, the evidence found, and one revision or release decision.',
+                  gr: 'Pairs',
+                  bl: lessonIndex === 0 ? 'Evaluate' : 'Apply',
                 },
               ],
               fc: {

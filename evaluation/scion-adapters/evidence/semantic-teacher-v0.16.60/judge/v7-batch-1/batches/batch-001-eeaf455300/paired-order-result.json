@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T18:10:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-001-eeaf455300-a-b-e2b642cd-bc77-41ab-9c90-28fb220e3fff",
+    "B/A": "scion-v01654-batch-001-eeaf455300-b-a-e7fe10a3-287c-459d-9422-6cf54f2eb1c2"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "38d1e398a7b0e3d83158c6cb60f5b3661295c3f56ebb26c769acd43512e7bb9f",
+      "B/A": "bc80a1a17f6df355a8977f4f95e9747950cfe9491d8767bd389c21648af4cb25"
+    },
+    "reviews": {
+      "A/B": "3df111a6be4ac57ef70235a0c69cd1efe3b4b1c010495d186af72ef99d2a9366",
+      "B/A": "471cb7b75f9f6d54928adf6d0885c72be430a4f15ada066d98ded44bffabd31c"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-233f463069b39ef1df0a8f93",
+      "pairId": "scion-kernel-pair-efa61b9c302a231c969f0ed1",
+      "winners": {
+        "A/B": "7acb2c87420c5d451c53964cb6ce71432614639f94b6696ab58357b9ef179edb",
+        "B/A": "7acb2c87420c5d451c53964cb6ce71432614639f94b6696ab58357b9ef179edb"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 15,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 3,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 15,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario states that both intervals span four semitones while proposing a major-third/minor-third distinction that the supplied claim defines as four versus three semitones.",
+              "The second declared answer incorrectly treats augmented fourth and diminished fifth as examples of resolutions; the source identifies them as tritone spellings that may imply different resolutions.",
+              "The diatonic-span correction unsupportedly states that diatonic span itself is determined by both written span and semitone distance, conflating span with interval-label determination."
+            ],
+            "rationale": "B is the clear winner because it preserves the source's distinctions, provides uniquely correct keys, and gives explanations that actually repair the nearest misconceptions. A contains a scenario contradiction, an incorrect tritone answer, and repeated confusion between interval spellings and resolutions.",
+            "decisionSha256": "78e1fe004db02df47c9bdcd3fbd7b97d7baf64b6030337e43c873960573ceeee"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 1,
+              "scenarioReadiness": 1,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 18,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario contains an unsupported contradictory premise: it says both intervals span four semitones while directing comparison of a major third with a minor third, which the source defines as three semitones.",
+              "The second declared answer is factually malformed because it names augmented fourth and diminished fifth as examples of different resolutions, although the source identifies them as tritone spellings.",
+              "The scenario provides no usable disciplinary decision: its evidence conflicts with its proposed comparison, and its materials-to-act field only requests broad comparisons.",
+              "The diatonic-span correction makes an unsupported claim that span is determined by both written span and distance, while its supposed misconception that span is determined by scale-step count is not genuinely false."
+            ],
+            "rationale": "Artifact A is fully source-bound, gives a workable evidence-based labeling scenario, and supplies two uniquely correct assessments with explanations that repair nearby misconceptions. Artifact B preserves the source facts but introduces a contradictory scenario, imprecise and circular term instruction, a malformed second keyed answer that confuses spellings with resolutions, and unfinished feedback prompts. These defects materially reduce its precision, readiness, correctness, and coherence, so A is the clear relative winner.",
+            "decisionSha256": "90758497de5fa4d996051933a4b337e33f19ab5d3c15244089a4ef771c4ed308"
+          }
+        ]
+      },
+      "trainingEligible": true
+    }
+  ],
+  "summary": {
+    "pairs": 1,
+    "stablePreferences": 1,
+    "localWins": 0,
+    "referenceWins": 1,
+    "unstable": 0,
+    "scoreRejected": 0,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "c262466556789a6cd19ce2aed701a6463cfe723554019da7f03cc0687489c785"
+  }
+}

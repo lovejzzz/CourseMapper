@@ -1,0 +1,568 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "workbookSha256": "7828371b8f691199178523586129c0ba3aa724e7f67a7c11131dac1cf08b570a",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-018581469357c98b43195802",
+      "caseSha256": "018581469357c98b4319580225f39bcff8ad039b7766a446b0b6df24945d0f99",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "939d9ca6f5316a34fc05843cc19b3240b0b6a8f68607f0b4adaf1b5f58ec25d2",
+      "originalArtifactSha256": "64e8c11a8cc40730b74e7942202f205a97c152bfe036944187424937bb8defed",
+      "artifact": {
+        "lessonId": "lesson-6",
+        "facts": [
+          "Relative dating orders geological events by interpreting relationships such as superposition, inclusions, and cross-cutting without assigning numerical ages.",
+          "In an undisturbed sedimentary sequence, superposition places older layers below younger layers.",
+          "A feature that cuts across or disrupts another geological feature must be younger than the feature it disrupts."
+        ],
+        "keyTerms": [
+          {
+            "tr": "relative dating",
+            "df": "Relative dating is a way to place geological events in sequence by comparing how features relate to one another.",
+            "eg": "A geologist orders two rock units by their relationship instead of a number.",
+            "mi": "Relative dating gives each rock a numerical age.",
+            "cx": "It compares event order from relationships and does not supply numerical ages."
+          },
+          {
+            "tr": "superposition",
+            "df": "Superposition is the rule for an undisturbed sedimentary sequence in which lower layers are older than layers above them.",
+            "eg": "A lower sedimentary bed is matched with the older part of the stack.",
+            "mi": "Superposition makes upper layers older in a layered sequence.",
+            "cx": "The rule places older layers below younger layers in an undisturbed sequence."
+          },
+          {
+            "tr": "cross-cutting",
+            "df": "Cross-cutting is a relationship in which a feature that cuts or disrupts another feature is placed later in time than the feature it affects.",
+            "eg": "A fault that slices through a rock layer is younger than that layer.",
+            "mi": "A cutting feature must be older than the rocks it crosses.",
+            "cx": "A feature that disrupts another feature is younger than the feature disrupted."
+          }
+        ],
+        "scenario": {
+          "su": "A field team is mapping a cliff face where a narrow break slices through several sedimentary layers. They must decide whether the break formed before or after the layered sequence was deposited.",
+          "ma": "The layered outcrop shows lower beds beneath higher beds, a narrow break that crosses multiple layers, and a note that the sequence is undisturbed; the cross-cutting trace and the bed order are the records to compare."
+        },
+        "mc": [
+          {
+            "q": "A mapped feature cuts across another geological feature, visibly disrupting it. Which relative-age conclusion is supported by the observed relationship between the cutting feature and the disrupted feature?",
+            "op": [
+              "The features share the same age",
+              "The relationship leaves their order undecided",
+              "The cutting feature is younger",
+              "The cutting feature is older"
+            ],
+            "ai": 2,
+            "fi": [
+              2
+            ],
+            "ex": "Because the mapped feature cuts across and disrupts the other feature, it must be younger than the disrupted feature. Calling the cutting feature older reverses the relationship stated in the claim."
+          },
+          {
+            "q": "An undisturbed sedimentary sequence shows one layer below a second layer. Using superposition, which relative-age conclusion is supported for the lower layer compared with the upper layer?",
+            "op": [
+              "The lower layer is younger",
+              "The layer order leaves ages undecided",
+              "The two layers have equal ages",
+              "The lower layer is older"
+            ],
+            "ai": 3,
+            "fi": [
+              1
+            ],
+            "ex": "In an undisturbed sedimentary sequence, superposition places the older layer below the younger layer, so the lower layer is older. Saying the lower layer is younger reverses that supported order."
+          }
+        ]
+      },
+      "artifactSha256": "dfbab0c76763063770049b9285efe3f754aee61326095e0c5d4c82cfc1a86376",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-6",
+          "item": 0,
+          "permutation": [
+            2,
+            3,
+            0,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-6",
+          "item": 1,
+          "permutation": [
+            1,
+            3,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "d9ac8238894de83a39ea10b6ce74c49bd57fdeabfaf796c429eb45179b1925fe",
+        "sessionId": "scion-v01654-teacher-batch-001-fe39ca4e27-part-01-33ff547e-adb6-4dae-82a7-b3072fa89748",
+        "changeSummary": [
+          "Re-authored both multiple-choice items to remove equivalent comparisons, absolute wording, and unsupported scope while preserving the supplied relationships."
+        ],
+        "addressedDiagnoses": [
+          "Improved the choice discriminability identified by the anonymous judge diagnoses while preserving source fidelity, assessment correctness, feedback instructionality, and internal coherence."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-026cdf7c7d8f6f200d68e4d5",
+      "caseSha256": "026cdf7c7d8f6f200d68e4d591ecdcd103f1d07b058d631c83f9e8b79be801b2",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "5fba521c7cbe23b35ba980d76c782492fcf331f994650e80bf8d11ae66101024",
+      "originalArtifactSha256": "bb90993335f554731ccff84e4b1a416d8b085ca16f7e151b46b5a6a12bc9a7f8",
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "Magnetic force on a moving charge depends on charge, velocity, magnetic field, and the angle between velocity and field.",
+          "The magnetic force is perpendicular to both the velocity and the magnetic field.",
+          "A charge moving parallel to a magnetic field experiences no magnetic force."
+        ],
+        "keyTerms": [
+          {
+            "tr": "magnetic force",
+            "df": "Magnetic force is the interaction on a moving charge that varies with charge, velocity, magnetic field, and the angle between velocity and field.",
+            "eg": "A charge crossing a magnetic field can have a magnetic force that changes when its velocity direction changes.",
+            "mi": "Magnetic force points along the velocity of the charge.",
+            "cx": "The force is not along the velocity; it is perpendicular to both the velocity and the magnetic field."
+          },
+          {
+            "tr": "moving charge",
+            "df": "A moving charge is a charged object with velocity, so its magnetic force depends on that velocity and its direction relative to the magnetic field.",
+            "eg": "A moving charge with velocity parallel to the field is a case with no magnetic force.",
+            "mi": "Any charge must feel magnetic force whether it is moving or not.",
+            "cx": "The dependence is on a moving charge, so the velocity and its angle to the field matter."
+          },
+          {
+            "tr": "magnetic field",
+            "df": "A magnetic field is the field in this relation that sets the direction and orientation used to determine the magnetic force on a moving charge.",
+            "eg": "A magnetic field compared with a charge's velocity helps determine whether the force is present and how it is oriented.",
+            "mi": "A magnetic field can only be compared by its strength, not by its direction.",
+            "cx": "Direction matters because the force depends on the angle between velocity and field and is perpendicular to both."
+          }
+        ],
+        "scenario": {
+          "su": "A student records a charge moving through a magnetic field and needs to decide whether the magnetic force is present. The lab note says the velocity is parallel to the magnetic field, and the setup must be judged before the next run.",
+          "ma": "Notebook entry: velocity parallel to magnetic field; diagram sketch: arrows drawn in the same direction; observation log: no magnetic force marker; comparison card: a perpendicular setup shown beside the parallel setup."
+        },
+        "mc": [
+          {
+            "q": "A diagram records a moving charge with labeled velocity and magnetic-field arrows. To complete the diagram, which force-arrow relationship should a student choose?",
+            "op": [
+              "Along velocity and perpendicular to magnetic-field arrow",
+              "Perpendicular to both velocity and magnetic-field arrows",
+              "Perpendicular to velocity and along magnetic-field arrow",
+              "Along both velocity and magnetic-field arrows"
+            ],
+            "ai": 1,
+            "fi": [
+              1
+            ],
+            "ex": "The magnetic force is perpendicular to both the velocity and the magnetic field, which matches a force arrow perpendicular to both recorded arrows. The choice combining alignment with velocity and perpendicularity to the field conflicts with the required perpendicular relationship to velocity."
+          },
+          {
+            "q": "A test-run record says a charge moves parallel to the magnetic-field arrow. Which interpretation should the student choose when labeling the magnetic-force observation?",
+            "op": [
+              "Experiences force perpendicular to its velocity",
+              "Experiences force in its velocity direction",
+              "Experiences no magnetic force",
+              "Experiences force opposite its velocity direction"
+            ],
+            "ai": 2,
+            "fi": [
+              2
+            ],
+            "ex": "Because the charge moves parallel to the magnetic field, it experiences no magnetic force, which matches the no-force interpretation. The perpendicular-to-velocity choice incorrectly applies a force direction to this parallel-motion case, where no magnetic force is experienced."
+          }
+        ]
+      },
+      "artifactSha256": "fe98a24d981158744655299db1978891cf6c7cd32ed82211d9b28dcd9acab474",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 0,
+          "permutation": [
+            1,
+            0,
+            2,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "permutation": [
+            2,
+            1,
+            0,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "3151a444330c6af6d23bdcc079803600bbac080eb013d02748395543afac7006",
+        "sessionId": "scion-v01654-teacher-batch-001-fe39ca4e27-part-02-f5bf4489-f37d-49fb-978a-bbc2fdf87578",
+        "changeSummary": [
+          "Re-authored both compiler-rejected MC items as complete semantic units while preserving every other lesson-kernel field.",
+          "Placed each uniquely supported option first, narrowed citations to the proving claim, and replaced unsupported-scope distractors with mutually distinct source-contradicted relationships."
+        ],
+        "addressedDiagnoses": [
+          "Resolved the unsupported-scope-option issue in both multiple-choice items.",
+          "Aligned the force-direction stem with its options and made the parallel-motion decision unambiguous."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-028dfdedf45bc1b561d64193",
+      "caseSha256": "028dfdedf45bc1b561d64193ffbaec7476f34518bd660945040371cd7ea3abf3",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "bc3216bf84fcf09a882445b95bec5ddd3642a2f5835b1fe70624b0c9ef8da5cb",
+      "originalArtifactSha256": "c128bc3f34f1b52d484089585c1d39a7a71f12d586960bfa53a11ae2ee8c968e",
+      "artifact": {
+        "lessonId": "lesson-3",
+        "facts": [
+          "The capital stock is the total quantity of equipment, structures, and tools available for production; it rises through gross investment and falls through depreciation.",
+          "Net investment, which is gross investment minus depreciation, is the change in the capital stock over a period.",
+          "The capital stock grows only when net investment is positive."
+        ],
+        "keyTerms": [
+          {
+            "tr": "capital stock",
+            "df": "The capital stock is the production-side collection of equipment, structures, and tools described by the ledger.",
+            "eg": "An inventory of equipment, structures, and tools is the capital stock in this context.",
+            "mi": "The capital stock means only money held for production decisions.",
+            "cx": "That reading fails because the ledger defines it as equipment, structures, and tools available for production."
+          },
+          {
+            "tr": "gross investment",
+            "df": "Gross investment is the addition-side flow paired with depreciation when describing how the capital stock changes.",
+            "eg": "A record showing gross investment beside depreciation uses the term in the ledger's setup.",
+            "mi": "Gross investment is the same thing as the net change in capital stock.",
+            "cx": "That is incorrect because the ledger separates gross investment from net investment and defines the latter as the change."
+          },
+          {
+            "tr": "net investment",
+            "df": "Net investment is the difference between gross investment and depreciation, and it tracks the change in capital stock over a period.",
+            "eg": "A worksheet that subtracts depreciation from gross investment is using net investment exactly as stated.",
+            "mi": "Net investment is simply another name for gross investment.",
+            "cx": "That does not fit because the ledger defines net investment as gross investment minus depreciation."
+          }
+        ],
+        "scenario": {
+          "su": "A production manager reviews a period record listing equipment, structures, and tools available for production; the record also shows gross investment greater than depreciation and labels net investment as positive. The manager must decide whether the capital stock grows, with the constraint that the decision agree with both the positive net investment notation and the stated growth condition.",
+          "ma": "Inspect the equipment, structures, and tools entry, the gross-investment and depreciation comparison, the positive net-investment notation, and the passage stating the growth condition."
+        },
+        "mc": [
+          {
+            "q": "A period record lists gross investment, depreciation, capital stock, and a change in capital stock. Which statement correctly distinguishes net investment from the other listed terms?",
+            "op": [
+              "Depreciation is the total production equipment quantity.",
+              "Net investment is gross investment minus depreciation.",
+              "Gross investment is the capital stock change.",
+              "Capital stock is gross investment minus depreciation."
+            ],
+            "ai": 1,
+            "fi": [
+              1
+            ],
+            "ex": "Net investment is gross investment minus depreciation and is the change in capital stock over a period. The gross-investment distractor is incorrect because the stated change is net investment, not gross investment."
+          },
+          {
+            "q": "A period record marks net investment as positive after listing gross investment and depreciation. Which statement is supported when the record is compared with the stated condition for capital-stock growth?",
+            "op": [
+              "The capital stock grows when gross investment is positive.",
+              "The capital stock grows when net investment is positive.",
+              "The capital stock falls when net investment is positive.",
+              "The capital stock grows when depreciation is present."
+            ],
+            "ai": 1,
+            "fi": [
+              2
+            ],
+            "ex": "Positive net investment meets the stated condition for capital-stock growth. The closest distractor cites positive gross investment, but the growth condition is stated in terms of net investment."
+          }
+        ]
+      },
+      "artifactSha256": "de77a963160defe89642e7bdf1638c6cbe1cdb98ad52533722d782797f960ae2",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 0,
+          "permutation": [
+            3,
+            0,
+            1,
+            2
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-3",
+          "item": 1,
+          "permutation": [
+            2,
+            0,
+            3,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 1,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "fd1bb3b1b22b38e3705e9e679c162b91ebbcdf3c2241e178f4ec8415bd49d7ec",
+        "sessionId": "scion-v01654-teacher-batch-001-fe39ca4e27-part-03-96e618f3-02bf-4385-80cf-350c7ce7c999",
+        "changeSummary": [
+          "Re-authored the first assessment item to remove algebraically equivalent choices and place the uniquely supported option first.",
+          "Re-authored the second assessment item to place the uniquely supported option first while keeping its distinction source-bound.",
+          "Revised the scenario to supply an inspectable comparison, positive net-investment notation, and a source-grounded decision constraint."
+        ],
+        "addressedDiagnoses": [
+          "Resolved the first assessment item's algebraically equivalent equation choices.",
+          "Resolved the underdetermined scenario by supplying a sign comparison and positive net-investment notation."
+        ]
+      }
+    },
+    {
+      "caseId": "scion-kernel-0494c3fad7926b80669d4d22",
+      "caseSha256": "0494c3fad7926b80669d4d22ea7dac239ffbf21c80991dccf68bf4396dd6a7e7",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "d0e48c8e37b8cca9d7c43f63d86949a2038ef4858375a7e47c86f23837837a19",
+      "originalArtifactSha256": "2e6fa2839c8db4690b460d3520f0cee38efd5aa52310400a145545e6d96be2ab",
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "Sensory receptors detect internal or external stimuli and convert them into nervous-system signals; perception is the central processing of those signals into meaningful patterns.",
+          "Receptors are cells or structures that detect sensations.",
+          "Stimuli are changed into electrochemical signals of the nervous system."
+        ],
+        "keyTerms": [
+          {
+            "tr": "sensory receptors",
+            "df": "Sensory receptors are structures or cells that detect stimuli and pass them into nervous-system signaling.",
+            "eg": "A handout labels a skin sensor as a sensory receptor when it detects a touch stimulus.",
+            "mi": "A student thinks sensory receptors are the same thing as the meaning made from signals.",
+            "cx": "That is not correct because sensory receptors detect stimuli, while perception is the central processing of those signals into meaningful patterns."
+          },
+          {
+            "tr": "perception",
+            "df": "Perception is the central processing step that organizes nervous-system signals into meaningful patterns.",
+            "eg": "A worksheet note says the brain step that makes patterns from signals is perception.",
+            "mi": "A student thinks perception is the structure that detects sensations at the body surface.",
+            "cx": "That is not correct because perception is processing of signals, while receptors are the cells or structures that detect sensations."
+          },
+          {
+            "tr": "electrochemical signals",
+            "df": "Electrochemical signals are the nervous-system signals produced when stimuli are changed into a signal form.",
+            "eg": "A margin note says stimuli are changed into electrochemical signals before later processing.",
+            "mi": "A student thinks electrochemical signals are the original stimuli arriving unchanged.",
+            "cx": "That is not correct because the ledger says stimuli are changed into electrochemical signals of the nervous system."
+          }
+        ],
+        "scenario": {
+          "su": "A student must decide whether each of two notebook passages describes sensory receptors or perception, and each label must be justified by wording in its passage. One passage says a structure detects a stimulus and converts it into a nervous-system signal; the other says those signals are centrally processed into meaningful patterns.",
+          "ma": "Passage A: \"detect internal or external stimuli and convert them into nervous-system signals\"; Passage B: \"central processing of those signals into meaningful patterns\"."
+        },
+        "mc": [
+          {
+            "q": "A diagram points to a body structure that detects touch, while a margin note describes the nervous system making meaning from signals. Which pairing matches sensory receptors and perception?",
+            "op": [
+              "Signals become receptors, stimuli become perception",
+              "Processing by receptors, detection by perception",
+              "Detection by receptors, processing by perception",
+              "Meaning-making by receptors, sensation by perception"
+            ],
+            "ai": 2,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The ledger says sensory receptors detect stimuli, and perception is the central processing of those signals into meaningful patterns. The closest distractor swaps those roles, but processing belongs to perception, not receptors."
+          },
+          {
+            "q": "A worksheet shows one line saying sensations are detected by cells or structures, and another saying stimuli are changed into electrochemical signals. Which line should be classified as the signal-conversion step?",
+            "op": [
+              "Cells or structures detect sensations",
+              "Internal or external stimuli detected by receptors",
+              "Meaningful patterns from nervous-system signals",
+              "Stimuli changed into electrochemical signals"
+            ],
+            "ai": 3,
+            "fi": [
+              2
+            ],
+            "ex": "The ledger explicitly states that stimuli are changed into electrochemical signals of the nervous system. The closest distractor names receptor detection, which is a different ledger relation from signal conversion."
+          }
+        ]
+      },
+      "artifactSha256": "11799bb71b9145d2b55b40ccaa95872f333f5c837f02469fbccb8cbb7aab9e00",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 0,
+          "permutation": [
+            2,
+            1,
+            0,
+            3
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "permutation": [
+            1,
+            3,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "6193df8b849e28fdc8938f9c101a56de5a1cd6c98d1705091dd912ce3ecf3be6",
+        "sessionId": "scion-v01654-teacher-batch-001-fe39ca4e27-part-04-23e20396-27f8-44e7-94e3-a14074e0418e",
+        "changeSummary": [
+          "Added an explicit decision and a justification constraint to the two-sentence scenario while preserving its inspectable passage details."
+        ],
+        "addressedDiagnoses": [
+          "Resolved lesson-4:scenario:scenario-missing-decision."
+        ]
+      }
+    }
+  ],
+  "batchReports": [
+    {
+      "batchId": "batch-001-fe39ca4e27-part-01",
+      "packetSha256": "d9ac8238894de83a39ea10b6ce74c49bd57fdeabfaf796c429eb45179b1925fe",
+      "resultSha256": "3ebd02a0b1482e348fb96a9a4853c776bfd2ca3ea4c754a8dd55aaa990041a3a",
+      "reportSha256": "cf52c61d7d12cff8fe4ccbf3c5558784bce29d4dd7eb3978bb5130228bdc6667",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-001-fe39ca4e27-part-02",
+      "packetSha256": "3151a444330c6af6d23bdcc079803600bbac080eb013d02748395543afac7006",
+      "resultSha256": "08b970e21859512ceb93a8fa3f7be3f789f46865a356a2dd22830c21b8b4e468",
+      "reportSha256": "4682af12bf4da897c6ada9dbd64749863456d83958d7371e77723da12b80960f",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-001-fe39ca4e27-part-03",
+      "packetSha256": "fd1bb3b1b22b38e3705e9e679c162b91ebbcdf3c2241e178f4ec8415bd49d7ec",
+      "resultSha256": "90c773619a74a265f5623daa76b51837f856a021d7817b19518771d69eeb74d9",
+      "reportSha256": "c3929dfd63541ad9f6e916e7e117d35b81406a1abd7c59f8ad8f9e1785dedcb4",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    },
+    {
+      "batchId": "batch-001-fe39ca4e27-part-04",
+      "packetSha256": "6193df8b849e28fdc8938f9c101a56de5a1cd6c98d1705091dd912ce3ecf3be6",
+      "resultSha256": "771df69f6692f1f39e0f05d2f5e51aa25b03dedd1bbb6c8d6f3348456f41961a",
+      "reportSha256": "14861cd1dfd469a70b1ba5df255ff143e26a7b5df89276d699ca5be05c50ac97",
+      "summary": {
+        "cases": 1,
+        "compilerAdmitted": 1,
+        "compilerRejected": 0
+      }
+    }
+  ],
+  "summary": {
+    "cases": 4,
+    "compilerAdmitted": 4,
+    "compilerRejected": 0,
+    "completedBatches": 4,
+    "pendingBatches": 0
+  },
+  "claimBoundary": "These source-constrained model revisions are compiler candidates only. They are not human evidence, judge preferences, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "a236dd5e73fe975d32b1230768f86adb284040a13b9b7bb89cdc76f434c15faa"
+  }
+}

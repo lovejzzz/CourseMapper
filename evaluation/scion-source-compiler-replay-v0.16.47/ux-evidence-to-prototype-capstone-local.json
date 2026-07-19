@@ -714,7 +714,7 @@
                 "answerIndex": 1,
                 "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings."
               },
-              "trainingEligible": true,
+              "trainingEligible": false,
               "preferenceEvidence": {
                 "kind": "deterministic-source-answer-conflict",
                 "verified": true,
@@ -733,6 +733,7 @@
                   0
                 ],
                 "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "default-source",
                 "relevantSourceClaimIndexes": [
                   0
                 ],
@@ -1380,7 +1381,7 @@
                 "answerIndex": 1,
                 "explanation": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0)."
               },
-              "trainingEligible": true,
+              "trainingEligible": false,
               "preferenceEvidence": {
                 "kind": "deterministic-source-answer-conflict",
                 "verified": true,
@@ -1399,6 +1400,7 @@
                   0
                 ],
                 "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "default-source",
                 "relevantSourceClaimIndexes": [
                   1
                 ],
@@ -2092,7 +2094,7 @@
               "answerIndex": 1,
               "explanation": "Option 3 is correct because teams turn user needs into user stories that describe features and content intended to meet those needs. Option 1 is a misconception because user stories are a feature description, not the presentation of research findings."
             },
-            "trainingEligible": true,
+            "trainingEligible": false,
             "preferenceEvidence": {
               "kind": "deterministic-source-answer-conflict",
               "verified": true,
@@ -2111,6 +2113,7 @@
                 0
               ],
               "supportMethod": "source-question-option-alignment",
+              "sourceAlignmentProfile": "default-source",
               "relevantSourceClaimIndexes": [
                 0
               ],
@@ -2758,7 +2761,7 @@
               "answerIndex": 1,
               "explanation": "The correct choice is that prototypes should be inexpensive enough to discard after learning from them (Claim 4). The misconception is that prototypes must require every production detail (Claim 0)."
             },
-            "trainingEligible": true,
+            "trainingEligible": false,
             "preferenceEvidence": {
               "kind": "deterministic-source-answer-conflict",
               "verified": true,
@@ -2777,6 +2780,7 @@
                 0
               ],
               "supportMethod": "source-question-option-alignment",
+              "sourceAlignmentProfile": "default-source",
               "relevantSourceClaimIndexes": [
                 1
               ],
@@ -3137,13 +3141,13 @@
     "compilerSources": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 43218,
-        "sha256": "2c6875437268444536de651f3ffbddf6368e2667c823ad0827a4245f86ebefa7"
+        "bytes": 56318,
+        "sha256": "87effc6a3dce3027faa292c111f138d903b5ed2a31f3270f0b8e151428b182c5"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 23813,
-        "sha256": "3b9eb6f5614beeb1ea399f48b2e08d69d184e18d1342cfbf2116cb435356648e"
+        "bytes": 24245,
+        "sha256": "ddbf8bd03e9f111c82c2ad2c4e8b4ce3c1acb1c20112a386642a809640c4bcb7"
       },
       {
         "path": "scripts/lib/scionSourceCapture.mjs",
@@ -3180,7 +3184,7 @@
           "explanationKeyAlignment": 0,
           "sourceAnswerAlignment": 1
         },
-        "repairsSha256": "a9bff16d7f649a8e1febbec0a52f6efcbb9c4711aa920081da4f91c5d87296e7"
+        "repairsSha256": "fba9a7d71e3529b72f8f465cfe73a9afa82dc33569892a0c00bb96d5bd15da3c"
       },
       {
         "promptId": "ux-evidence-to-prototype-capstone:ux/interactive-prototyping",
@@ -3192,7 +3196,7 @@
           "explanationKeyAlignment": 0,
           "sourceAnswerAlignment": 1
         },
-        "repairsSha256": "a29e73de7c3603bde906b9df1ddc2e519592da4ff88773a803881f45dafa19ae"
+        "repairsSha256": "2cdd512b7b0a042a0a589984f1ed36b3cf3c46c77b3727ee102194bb77b20931"
       },
       {
         "promptId": "ux-evidence-to-prototype-capstone:ux/journey-mapping",
@@ -3228,7 +3232,7 @@
     "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
     "identity": {
       "algorithm": "sha256-canonical-source-compiler-replay-v1",
-      "sha256": "70cfee70c28ae7b148eb88ddad91e113118b30e68eaf342ed5d96a03086de7bd"
+      "sha256": "47312cbb3cad7326ed513f90c2e3a4407fd1e683691273796d1a6178f07d4c0e"
     }
   }
 }

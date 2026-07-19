@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { grade } from '../deepQualityGrader.js';
+import { GRADER_VERSION, grade } from '../deepQualityGrader.js';
 import { createMemoryFileProvider } from '../fileProviders.js';
 
 describe('deep quality package structure', () => {
@@ -81,9 +81,9 @@ describe('deep quality package structure', () => {
           'Lesson 1: Evidence',
           '50 MINUTES · WEEK 1',
           'SESSION OUTLINE',
-          '10 minutes',
+          '10 min',
           'Guided model',
-          '15 minutes',
+          '15 mins',
           'Application',
           '25 minutes',
           'Closure',
@@ -95,5 +95,6 @@ describe('deep quality package structure', () => {
     });
 
     expect(result.findings.some((finding) => /classroom clock/i.test(finding.detail))).toBe(false);
+    expect(GRADER_VERSION).toBe('1.10.20');
   });
 });

@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "A/B",
+  "packetSha256": "9577efe0cd9dabe18760c820d16e488e6ac4f48b4839642923768dadc4b62c47",
+  "sessionId": "scion-v01654-batch-004-23931d1f63-a-b-e5ca4183-be13-42f9-b7ad-3ea8b0fdc607",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T19:06:00.000Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-dab2c9f9b9271ef7e38c3ee1",
+      "pairId": "scion-kernel-pair-852380f04d54755ca2e3da04",
+      "artifactSha256": {
+        "A": "2939a06e44db7e71670edacdd2c07149739b746651b8ac1e6ff0400d4f8a99df",
+        "B": "e23103a20eae4bb6bd5b602599a7a44364eff73ff5c40a646fda8a26fd492b72"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The copied facts match the ledger, but the scenario says an outside-created variable is inaccessible, contradicting the supplied global-scope claim."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The scope definitions are accurate, but the scenario reverses global accessibility and the second item keys a local-scope statement for an outside-created variable."
+          },
+          "scenarioReadiness": {
+            "score": 0,
+            "evidence": "The setup provides no coherent decision: it describes an inaccessible outside-created variable while its snippets instead show x created locally in a different function."
+          },
+          "assessmentCorrectness": {
+            "score": 1,
+            "evidence": "Question 1 is keyed correctly, but question 2 declares option 0 even though option 1 and its own explanation give the supported global-scope answer."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "Question 1 repeats the same global-scope alternative verbatim in options 0 and 2; only the second question has four distinct alternatives."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Both explanations append the unfulfilled instruction to correct a closest distractor, and the second explanation directly conflicts with its declared key."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "The scenario conflicts with the global-scope fact, question 2's key conflicts with its explanation, and question 1 contains duplicate alternatives."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, term entries, scenario classifications, questions, and explanations remain within the five supplied claims without adding unsupported factual detail."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Function definition, scope, and local scope are accurately distinguished, and each misconception is directly repaired with the supplied inside-versus-outside or definition-versus-call relation."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "A reviewer must label two variables, can inspect their inside-function and outside-function creation records, and must complete the classification under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Question 1 correctly keys the inside-local/outside-global distinction with claims 3 and 4, while question 2 correctly keys the definition form with claim 1."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "The first item supplies four distinct and parallel scope combinations, and the second supplies four distinct classifications of the observed code structure."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting relation and explicitly repairs the closest reversal or the confusion between defining structure and calling behavior."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, terms, creation-location scenario, keys, cited claims, and explanations consistently preserve the same function and scope distinctions."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "The scenario claims that a variable initialized outside the function is inaccessible inside it, contradicting the supplied global-scope claim.",
+          "The scenario and materials introduce the named examples calculate_total, my_func, and another_func beyond the supplied source.",
+          "Question 2 declares option 0 even though option 1 is correct and the explanation states option 1's content.",
+          "The scenario does not present a coherent usable decision because its situation and evidence describe different variable-creation locations."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B is source-faithful, scenario-ready, and fully coherent, with correct keys, complete citations, discriminating choices, and instructional feedback. A contains a source contradiction in its scenario, an incorrect answer key that conflicts with its explanation, duplicate alternatives, and unusable placeholder-like feedback."
+    },
+    {
+      "caseId": "scion-kernel-ec108bb13f794a1f68365314",
+      "pairId": "scion-kernel-pair-9b0377d326d5fa03e073002e",
+      "artifactSha256": {
+        "A": "8dc407d4fa2f967ee71baca018f145feb436078ff8e6c7be1b957f3b00b847b3",
+        "B": "20167213c1a7df8e3394124ad26405957daea0e09023053ade83a166dec1e795"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts, term definitions, scenario, answer content, and explanations all stay within the three supplied seventh-chord claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The entries accurately distinguish a general seventh chord, the supertonic seventh's pre-dominant role, and the added seventh's effect on dominant-to-tonic pull."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "The composer has a classification decision and a stated progression constraint, but the material is an instruction to compare functions rather than concrete inspectable evidence."
+          },
+          "assessmentCorrectness": {
+            "score": 2,
+            "evidence": "Both declared answers are substantively correct, but their cited facts omit claim 2, which is required to support the dominant chord's increased pull toward the tonic."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "Question 1's options 1 and 3 express the same reversed assignment in different word order, while question 2 has four distinct alternatives."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Both explanations restate the correct comparison but refer to the answer as the first option and do not explicitly repair the closest misconception."
+          },
+          "internalCoherence": {
+            "score": 3,
+            "evidence": "Facts, terms, keys, and explanation content agree, but the incomplete citations and semantically duplicated alternatives weaken end-to-end coherence."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every factual statement about chord construction, scale degree, and tonal pull is traceable to the supplied claims, with no invented named example."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The term entries distinctly and accurately connect seventh-chord construction, supertonic pre-dominant function, and strengthened dominant-to-tonic pull."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The analyst must distinguish two functions using chord notation, scale-degree records, and pull observations while preserving their different destinations."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Question 1's key is supported by claims 1 and 2, and question 2's key is supported by claim 0; both explanations agree with their keys."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "All alternatives are distinct, though question 1's third option changes the compared subjects and question 2's distractors are relatively transparent reversals."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation gives the supporting dependency or tonal-pull distinction and directly explains why the closest reversed relation fails."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, terms, scenario evidence, questions, keys, citations, and explanations consistently preserve the two tonal destinations and the function dependency."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [
+          "Question 1 contains semantically duplicate alternatives: options 1 and 3 both assign tonic pull to the supertonic and terminal pre-dominant function to the dominant."
+        ],
+        "B": []
+      },
+      "decision": "B",
+      "rationale": "B provides stronger scenario evidence, complete claim citations, distinct choices, and feedback that repairs the nearest misconception. A is factually accurate, but its materials are less inspectable, both assessments omit a necessary citation, one choice set duplicates a distractor, and its feedback relies on answer-position wording."
+    }
+  ]
+}

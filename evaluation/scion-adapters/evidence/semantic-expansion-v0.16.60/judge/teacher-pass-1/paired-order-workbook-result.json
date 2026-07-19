@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-workbook-result-v1",
+  "generatedAt": "2026-07-19T19:30:00.000Z",
+  "status": "paired-orders-complete",
+  "workbookSha256": "145414de7be86a0594eccb4aeaf81f0266a9b4d7db5cc7d6a155d34c809dc31e",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "batchResults": [
+    {
+      "batchId": "batch-001-18323bc065",
+      "aggregateSha256": "976359711e1d680226f8c7c881545229be55f7f94f6d89b3313959767351ddea",
+      "sessions": {
+        "A/B": "scion-v01654-batch-001-18323bc065-a-b-eb3cd56b-372d-4568-8f15-1e276fefa15b",
+        "B/A": "scion-v01654-batch-001-18323bc065-b-a-084ab712-d114-4b31-833a-c45340259b59"
+      },
+      "summary": {
+        "pairs": 3,
+        "stablePreferences": 3,
+        "localWins": 0,
+        "referenceWins": 3,
+        "unstable": 0,
+        "scoreRejected": 0,
+        "compilerRejected": 0
+      }
+    }
+  ],
+  "reviewedBatches": 1,
+  "pendingBatches": 0,
+  "sealedBatches": 1,
+  "evaluatedCases": 3,
+  "availableCases": 3,
+  "campaignCases": 148,
+  "summary": {
+    "pairs": 3,
+    "stablePreferences": 3,
+    "localWins": 0,
+    "referenceWins": 3,
+    "unstable": 0,
+    "scoreRejected": 0,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated bounded A/B and B/A sessions. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "1814142fa97c6687ffa5f7c232026f6896d4788674a5e420aa01a1227ea9e729"
+  }
+}

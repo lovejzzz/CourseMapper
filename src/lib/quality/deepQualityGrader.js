@@ -153,7 +153,11 @@ import { parseClassSessionMinutes } from '../sourceBriefConstraints.js';
 // lesson plan whose declared/outlined minutes violate that constraint is a P0.
 // 1.10.18 — source-bound quiz recovery is an explicit substance P1. A
 // structurally useful recovery seat cannot masquerade as verified knowledge.
-export const GRADER_VERSION = '1.10.18';
+// 1.10.19 — source-ledger compilation is bound as a new transitive package
+// surface before any adapter comparison.
+// 1.10.20 — session-outline timing accepts the ordinary min/mins abbreviations
+// emitted by lesson-plan exporters instead of falsely reading them as 0 min.
+export const GRADER_VERSION = '1.10.20';
 
 // ── Dimension weights & letter bands (documented in the module header) ──────
 // v0.15.186: texture weight 10 → 25. At 10/120 a fully templated package
@@ -1000,7 +1004,7 @@ function checkRequestedLessonTiming(findings, { files, manifest }, course = {}) 
         ? paragraphs.slice(outlineStart + 1, outlineEnd > outlineStart ? outlineEnd : paragraphs.length)
         : [];
     const outlineMinutes = outlineWindow
-      .map((line) => line.match(/^(\d{1,3})\s+minutes$/i)?.[1])
+      .map((line) => line.match(/^(\d{1,3})\s+min(?:ute)?s?$/i)?.[1])
       .filter(Boolean)
       .map(Number)
       .reduce((sum, minutes) => sum + minutes, 0);

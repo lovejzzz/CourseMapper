@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-paired-order-result-v1",
+  "generatedAt": "2026-07-19T19:05:00.000Z",
+  "status": "paired-orders-complete",
+  "requiredOrders": [
+    "A/B",
+    "B/A"
+  ],
+  "sessions": {
+    "A/B": "scion-v01654-batch-004-23931d1f63-a-b-e5ca4183-be13-42f9-b7ad-3ea8b0fdc607",
+    "B/A": "scion-v01654-batch-004-23931d1f63-b-a-2d591ce8-d006-4fa4-a373-6942e6208782"
+  },
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "evidence": {
+    "prompt": {
+      "path": "evaluation/scion-adapters/lesson-kernel-judge-prompt-v0.16.54.md",
+      "sha256": "37844b86736335db54b561d8c031660ef71679c55ae1108e2e999e746f2a1c96"
+    },
+    "packets": {
+      "A/B": "9577efe0cd9dabe18760c820d16e488e6ac4f48b4839642923768dadc4b62c47",
+      "B/A": "2ac22e5969596fcf89dcfc52c82e63945595e8bd7fcdb9435dbdb6a4f201f100"
+    },
+    "reviews": {
+      "A/B": "7fc176479c2067c9ceb6e3195129cb107ff40de61a20cdc901946457c2abcd9b",
+      "B/A": "23598020c2933980d29634f06c1f9038acfa24599ed5a18509665252fb430f1e"
+    }
+  },
+  "issues": [],
+  "results": [
+    {
+      "caseId": "scion-kernel-dab2c9f9b9271ef7e38c3ee1",
+      "pairId": "scion-kernel-pair-852380f04d54755ca2e3da04",
+      "winners": {
+        "A/B": "e23103a20eae4bb6bd5b602599a7a44364eff73ff5c40a646fda8a26fd492b72",
+        "B/A": "e23103a20eae4bb6bd5b602599a7a44364eff73ff5c40a646fda8a26fd492b72"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": true,
+      "scoreQualification": {
+        "qualified": true,
+        "winnerMinimumScore": 4,
+        "minimumTotalScoreMargin": 19,
+        "winnerCriticalDefects": [],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 1,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 1,
+              "feedbackInstructionality": 0,
+              "internalCoherence": 0
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 23,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario claims that a variable initialized outside the function is inaccessible inside it, contradicting the supplied global-scope claim.",
+              "The scenario and materials introduce the named examples calculate_total, my_func, and another_func beyond the supplied source.",
+              "Question 2 declares option 0 even though option 1 is correct and the explanation states option 1's content.",
+              "The scenario does not present a coherent usable decision because its situation and evidence describe different variable-creation locations."
+            ],
+            "rationale": "B is source-faithful, scenario-ready, and fully coherent, with correct keys, complete citations, discriminating choices, and instructional feedback. A contains a source contradiction in its scenario, an incorrect answer key that conflicts with its explanation, duplicate alternatives, and unusable placeholder-like feedback.",
+            "decisionSha256": "ac7884c577fcb50c5e52cd86c74e49761eb5e9834d108190ed5c3990c1ef2387"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 2,
+              "knowledgePrecision": 2,
+              "scenarioReadiness": 0,
+              "assessmentCorrectness": 1,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 1
+            },
+            "winnerMinimumScore": 4,
+            "totalScoreMargin": 19,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "The scenario claims that a variable initialized outside a function is inaccessible inside it, contradicting the supplied global-scope claim.",
+              "The scenario materials create x inside my_func even though the setup describes the inaccessible variable as initialized outside a function.",
+              "The first assessment repeats the identical global-scope alternative at options 0 and 2.",
+              "The second assessment declares option 0, but option 1 is correct and the explanation supports option 1.",
+              "Both assessment explanations contain truncated template text: \"then correct the closest distractor.\""
+            ],
+            "rationale": "A is fully source-bound, coherent, and assessment-ready. B contains a false and internally inconsistent scenario, a duplicated alternative, an incorrect declared answer, and truncated feedback, so A is decisively stronger.",
+            "decisionSha256": "bc64ad682e541a87cae63916d373dca011e0d359432b73438f0b67c0f1f0da13"
+          }
+        ]
+      },
+      "trainingEligible": true
+    },
+    {
+      "caseId": "scion-kernel-ec108bb13f794a1f68365314",
+      "pairId": "scion-kernel-pair-9b0377d326d5fa03e073002e",
+      "winners": {
+        "A/B": "20167213c1a7df8e3394124ad26405957daea0e09023053ade83a166dec1e795",
+        "B/A": "20167213c1a7df8e3394124ad26405957daea0e09023053ade83a166dec1e795"
+      },
+      "stable": true,
+      "stableWinner": "reference",
+      "compilerAdmitted": false,
+      "scoreQualification": {
+        "qualified": false,
+        "winnerMinimumScore": 3,
+        "minimumTotalScoreMargin": 8,
+        "winnerCriticalDefects": [
+          "The dominant key-term definition adds the unsupported claim that the dominant itself is a scale degree."
+        ],
+        "orders": [
+          {
+            "winnerLabel": "B",
+            "winnerScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 3,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 2,
+              "internalCoherence": 3
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 8,
+            "winnerCriticalDefects": [],
+            "loserCriticalDefects": [
+              "Question 1 contains semantically duplicate alternatives: options 1 and 3 both assign tonic pull to the supertonic and terminal pre-dominant function to the dominant."
+            ],
+            "rationale": "B provides stronger scenario evidence, complete claim citations, distinct choices, and feedback that repairs the nearest misconception. A is factually accurate, but its materials are less inspectable, both assessments omit a necessary citation, one choice set duplicates a distractor, and its feedback relies on answer-position wording.",
+            "decisionSha256": "4d34a0422a296e7efe0fbfa3e2bfef65525ff0f3c9641809241f65277abc0e01"
+          },
+          {
+            "winnerLabel": "A",
+            "winnerScores": {
+              "sourceFidelity": 3,
+              "knowledgePrecision": 4,
+              "scenarioReadiness": 4,
+              "assessmentCorrectness": 4,
+              "choiceDiscriminability": 4,
+              "feedbackInstructionality": 4,
+              "internalCoherence": 4
+            },
+            "loserScores": {
+              "sourceFidelity": 4,
+              "knowledgePrecision": 3,
+              "scenarioReadiness": 2,
+              "assessmentCorrectness": 2,
+              "choiceDiscriminability": 2,
+              "feedbackInstructionality": 1,
+              "internalCoherence": 3
+            },
+            "winnerMinimumScore": 3,
+            "totalScoreMargin": 10,
+            "winnerCriticalDefects": [
+              "The dominant key-term definition adds the unsupported claim that the dominant itself is a scale degree."
+            ],
+            "loserCriticalDefects": [
+              "The first assessment contains semantically duplicate alternatives at options 1 and 3, both assigning tonic pull to the supertonic and pre-dominant function to the dominant."
+            ],
+            "rationale": "A has one localized source-boundary overreach but otherwise supplies stronger evidence, complete citations, discriminating choices, and misconception-repairing feedback. B is faithful at the fact level, yet its sparse scenario, incomplete citations, duplicate distractors, and position-referencing feedback make it materially weaker.",
+            "decisionSha256": "798d4676dc21e5e4752318684f3e66c241430120de27bbd0a53d6e2350916a38"
+          }
+        ]
+      },
+      "trainingEligible": false
+    }
+  ],
+  "summary": {
+    "pairs": 2,
+    "stablePreferences": 1,
+    "localWins": 0,
+    "referenceWins": 2,
+    "unstable": 0,
+    "scoreRejected": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These are same-identity model-judge preferences from isolated A/B and B/A orders. They are not human, instructor, independent, classroom, heldout-adapter, or production-win evidence.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "be10a73314b8fa098f621e267aea75c03f907d8eab8c5cd934b47d85a173a481"
+  }
+}

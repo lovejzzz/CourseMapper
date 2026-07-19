@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T17:30:00.000Z",
+  "batchId": "batch-001-bf5ef77abb-part-03",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "4c2afc96645b797cc1632b8e17abc38624e1cad7d387a86698085f0ab684337a",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v7-v0.16.59.md",
+    "sha256": "9b15caeabcf363266e4b04043701b0d91282ef9d9790e80deb1d1c94ea5f2655"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-233f463069b39ef1df0a8f93",
+      "caseSha256": "233f463069b39ef1df0a8f9383d0df0553a4591c393a62bc7e8ed0ca56d6ba4e",
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "Interval number and quality",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished. Claim 1: Four semitones form a major third, while three semitones form a minor third when each spans three scale steps. Claim 2: A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions.",
+        "readings": "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "ffabcbcf6dc1ecf2545741964b1895f8405b48fa982afc1b44b4166d1a25d025",
+        "kernelId": "music-ccby/interval-number-quality",
+        "term": "Interval number and quality",
+        "claims": [
+          "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+          "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+          "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+        ],
+        "anchors": [
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Intervals",
+            "quote": "Intervals were assigned labels based on the scale from which they arose."
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Intervals",
+            "quote": "four diatonic half-steps is referred to as a major third, while that of three half-steps is a minor third"
+          },
+          {
+            "src": "https://open.lib.umn.edu/musiccomposition/chapter/common-practice-era-scales-intervals-and-chord-functions/",
+            "loc": "25 Common Practice Era Scales, Other Interval Names",
+            "quote": "their specific spellings can indicate different contexts and possible resolutions"
+          }
+        ],
+        "attribution": [
+          "Justin Rubin, Music Composition & Theory (2024), chapter 25, University of Minnesota Libraries Publishing"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+          "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+          "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+        ],
+        "keyTerms": [
+          {
+            "tr": "diatonic span",
+            "df": "The diatonic span is the written scale-step count that helps identify an interval together with its semitone distance.",
+            "eg": "A written interval with three scale steps uses its diatonic span in the label.",
+            "mi": "A written interval is identified by semitone distance alone.",
+            "cx": "The written span and the semitone count work together, so the label cannot come from pitch distance by itself."
+          },
+          {
+            "tr": "major third",
+            "df": "A major third is a written interval class tied to four semitones when the span covers three scale steps.",
+            "eg": "Four semitones and three scale steps name a major third.",
+            "mi": "Any interval with three scale steps must be minor.",
+            "cx": "Three scale steps can match either four semitones or three semitones, so the label depends on the semitone count too."
+          },
+          {
+            "tr": "tritone",
+            "df": "A tritone is a written interval that can appear as augmented fourth or diminished fifth, with spelling affecting the implied resolution.",
+            "eg": "An augmented fourth spelling and a diminished fifth spelling both name a tritone.",
+            "mi": "A tritone has only one spelling and one resolution.",
+            "cx": "The same tritone may be spelled two ways, and the spelling can imply different resolutions."
+          }
+        ],
+        "scenario": {
+          "su": "A student is labeling two written intervals from a harmony worksheet before class starts. One entry shows three scale steps with four semitones, and another shows three scale steps with three semitones.",
+          "ma": "the interval marked three scale steps with four semitones, the interval marked three scale steps with three semitones"
+        },
+        "mc": [
+          {
+            "q": "A worksheet shows two written intervals with three scale steps each. One has four semitones and the other has three semitones. Which labels match those observations?",
+            "op": [
+              "major third and minor third",
+              "minor third and major third",
+              "augmented fourth and diminished fifth",
+              "diminished fifth and augmented fourth"
+            ],
+            "ai": 0,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The span and semitone count together identify the labels: four semitones with three scale steps is a major third, and three semitones with three scale steps is a minor third. Swapping the labels reverses that relation."
+          },
+          {
+            "q": "Two notations are compared in a grading key: one is written as an augmented fourth, the other as a diminished fifth. Which description fits the shared interval and its spelling?",
+            "op": [
+              "a tritone with different implied resolutions",
+              "a major third with different scale steps",
+              "a minor third with identical spellings",
+              "a written interval with no semitone distance"
+            ],
+            "ai": 0,
+            "fi": [
+              2
+            ],
+            "ex": "The same interval can be spelled as an augmented fourth or diminished fifth, and that spelling can imply different resolutions. The third and fourth options break the ledger relation between spelling and interval class."
+          }
+        ]
+      },
+      "originalArtifactSha256": "ff5c1cc7dc5bf49f5742950267a76f40f1644a16ca1a53fd74bfb1de3390fe87",
+      "compilerAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-4:mc-1:answer-position-residue",
+          "lesson-4:mc-1:multiple-source-supported-options"
+        ]
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 4,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 3,
+            "feedbackInstructionality": 3,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B accurately coordinates span, semitone distance, interval labels, and tritone spelling in a usable scenario with correct keys. A contains a contradictory scenario, a malformed tritone answer, conceptual conflations, and unfinished feedback text.",
+          "decisionSha256": "a796887920d9fb36a08d5e954c2f38a0b9369466381dd58ba1b35eb4d008b073"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 3,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "A precisely applies span, semitone count, and tritone spelling to concrete observations with correct keys and explanations. B contains a source-conflicting scenario, invalid term instruction, a malformed keyed answer, and unfinished feedback text.",
+          "decisionSha256": "ae16cc6a621c3831614937260875137edc819889ad9ac556807dbbce75db89e5"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "c690d1b7b747dcf4b3adb0dbf584b34085106d7234759ff0b3a0fa8fd55f4d33"
+  }
+}

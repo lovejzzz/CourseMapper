@@ -10,9 +10,16 @@ describe('Scion lesson-kernel reference capture', () => {
     });
     expect(parseArgs(['--capture', '--arm', 'reference', '--reference-runtime', 'codex-cli'])).toMatchObject({
       referenceRuntime: 'codex-cli',
+      concurrency: 1,
     });
+    expect(
+      parseArgs(['--capture', '--arm', 'reference', '--reference-runtime', 'codex-cli', '--concurrency', '4']),
+    ).toMatchObject({ concurrency: 4 });
     expect(() => parseArgs(['--capture', '--arm', 'reference', '--reference-runtime', 'browser'])).toThrow(
       '--reference-runtime must be api or codex-cli',
+    );
+    expect(() => parseArgs(['--capture', '--arm', 'local', '--concurrency', '2'])).toThrow(
+      'Local capture supports concurrency 1',
     );
   });
 

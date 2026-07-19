@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-revision-packet-v1",
+  "generatedAt": "2026-07-19T19:20:00.000Z",
+  "batchId": "batch-003-0eb8978cca-part-01",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "aggregateSha256": "841017ad3e333483ec778e529c656d3fa881819481ac319ee5a321b9db53aa72",
+  "prompt": {
+    "path": "evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md",
+    "sha256": "505aff4b87a07aa0d7d9d7d7b6d40bb268f654439a4b8e06f1d1efda53327eb1"
+  },
+  "cases": [
+    {
+      "caseId": "scion-kernel-baa05f5de10fcd2648f81671",
+      "caseSha256": "baa05f5de10fcd2648f816719696b416e34e8ec63593a1df7da1e9f4580644e8",
+      "lessonInput": {
+        "lessonId": "lesson-4",
+        "sourceFactPolicy": "numbered-source-ledger-v1",
+        "title": "File input and output",
+        "objectives": "Use only the supplied claims to make a defensible distinction without adding outside facts.",
+        "topics": "Claim 0: File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it. Claim 1: open() returns a file object that the program then reads from or writes to. Claim 2: read() reads the entire contents of a file and returns a single string. Claim 3: readline() returns the next single line, while readlines() returns a list with every line of the file.",
+        "readings": "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+      },
+      "sourceContext": {
+        "sourcePacketSha256": "2735bbd307dd162ce4336e81a60168cee98878533740af1ebd8430e0efec45ea",
+        "kernelId": "cs/file-io",
+        "term": "File input and output",
+        "claims": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "anchors": [
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "Python supports the opening of a file using the open() function"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "The read() function reads the contents of a file and returns a string"
+          },
+          {
+            "src": "openstax:introduction-python-programming#14.1",
+            "loc": "14.1",
+            "quote": "The readlines() function reads the individual lines of a file and returns a string list containing all the lines of the file in order"
+          }
+        ],
+        "attribution": [
+          "OpenStax Introduction to Python Programming, §14.1 Reading from files"
+        ],
+        "license": "CC-BY-4.0"
+      },
+      "originalArtifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "File I/O lets a program read information from and write information into files; a file is accessed by opening it, working with its contents, and closing it.",
+          "open() returns a file object that the program then reads from or writes to.",
+          "read() reads the entire contents of a file and returns a single string.",
+          "readline() returns the next single line, while readlines() returns a list with every line of the file."
+        ],
+        "keyTerms": [
+          {
+            "tr": "file object",
+            "df": "A file object is what open() returns for a program to read from or write to.",
+            "eg": "open() returns a file object that the program reads from.",
+            "mi": "read() returns the file object produced by open().",
+            "cx": "Instead, open() returns the file object, and read() returns a single string."
+          },
+          {
+            "tr": "read()",
+            "df": "read() is a file operation that returns the entire contents as a single string.",
+            "eg": "read() reads the entire contents of a file.",
+            "mi": "read() returns the next single line from a file.",
+            "cx": "The next single line comes from readline(); read() returns the entire contents."
+          },
+          {
+            "tr": "readlines()",
+            "df": "readlines() is a file operation whose result is a list with every line of the file.",
+            "eg": "readlines() returns a list with every line of the file.",
+            "mi": "readlines() returns a single string containing the entire contents.",
+            "cx": "Its result is a list with every line, whereas read() returns a single string."
+          }
+        ],
+        "scenario": {
+          "su": "A programmer reviews results from read(), readline(), and readlines() after opening a file. The programmer must label each result while preserving the distinction among the entire contents, the next single line, and a list with every line.",
+          "ma": "read() notation paired with a single string containing the entire contents, readline() notation paired with the next single line, readlines() notation paired with a list containing every line"
+        },
+        "mc": [
+          {
+            "q": "When comparing observed results, read() produces a single string holding the entire contents, while readline() produces the next single line. Which pairing matches these operations?",
+            "op": [
+              "read(): entire contents; readline(): next single line",
+              "read(): next single line; readline(): entire contents",
+              "read(): every-line list; readline(): entire contents",
+              "read(): next single line; readline(): every-line list"
+            ],
+            "ai": 0,
+            "fi": [
+              2,
+              3
+            ],
+            "ex": "read() returns the entire contents as a single string, whereas readline() returns the next single line. Assigning the next single line to read() reverses these supplied relations."
+          },
+          {
+            "q": "A program records the next single line from one operation and a list with every line from another. Which labels correctly classify the observed results?",
+            "op": [
+              "Next single line: readline(); every-line list: readlines()",
+              "Next single line: readlines(); every-line list: readline()",
+              "Next single line: read(); every-line list: readlines()",
+              "Next single line: readline(); every-line list: read()"
+            ],
+            "ai": 0,
+            "fi": [
+              3
+            ],
+            "ex": "readline() returns the next single line, while readlines() returns a list with every line. Reversing those labels assigns each operation the other operation's result."
+          }
+        ]
+      },
+      "originalArtifactSha256": "0206d91ac7c883aacf447c631b9a6c81d8110ffb8537538a940245da9546a4ab",
+      "compilerAdmission": {
+        "needsRetry": true,
+        "issues": [
+          "lesson-4:mc-1:duplicate-options"
+        ]
+      },
+      "diagnoses": [
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 3,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "B provides accurate, uniquely keyed comparisons among read(), readline(), and readlines(). A presents generally useful source material but both declared answers are wrong and contradicted by their explanations.",
+          "decisionSha256": "3711c97489b6f169dbc9df440e922b28c9ed608053216f1373aa5d133d22bd30"
+        },
+        {
+          "winnerScores": {
+            "sourceFidelity": 4,
+            "knowledgePrecision": 4,
+            "scenarioReadiness": 3,
+            "assessmentCorrectness": 4,
+            "choiceDiscriminability": 4,
+            "feedbackInstructionality": 4,
+            "internalCoherence": 4
+          },
+          "criticalDefects": [],
+          "rationale": "A accurately distinguishes all relevant operations and keys both questions correctly. B has usable content and choices, but both declared answers are incorrect and contradicted by their explanations.",
+          "decisionSha256": "af35a5d3b3ec1cb61c90aec766ed66ac4669bc03e0d0d57a500242e5902f4123"
+        }
+      ]
+    }
+  ],
+  "claimBoundary": "These are source packets, diagnosed reference artifacts, and compiler outcomes only. No local artifact, provider route, organizer preference, or training authorization is included.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "40b3b4b5ae0758fa86d030ffa1ed55c951b768e26bb3f0a2be1cad2cff3e6a4e"
+  }
+}

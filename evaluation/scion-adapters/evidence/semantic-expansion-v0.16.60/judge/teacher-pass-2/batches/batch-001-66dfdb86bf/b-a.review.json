@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "86750cccfe1418f518c94e4fee173f1f85bf51aff86db4a3ec5bb723d60fabe5",
+  "sessionId": "scion-v01654-batch-001-66dfdb86bf-b-a-e26c5384-0ad6-45ba-83d2-5aeb676beddd",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T17:25:00Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-69836338b8f744019a08ab80",
+      "pairId": "scion-kernel-pair-90cf499b6815d2ed2e8d0734",
+      "artifactSha256": {
+        "A": "c70d21438b82547a01791739d23ddaf7995239238cf1ef2192172b496d76a6bc",
+        "B": "a122657bf57ca8f7c241ee11104148a50a4c87eb6cd01f30a4686003a5c1bfdd"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All facts, examples, corrections, and assessment claims remain within the three supplied Gauss's-law claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The terms clearly distinguish enclosed charge, net flux, and pointwise electric field while correcting the central misconception."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must choose a warranted conclusion from zero-charge notation and a nonzero field observation under a deadline."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely follow from the cited zero-flux and symmetry claims and agree with their explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "Each item has four distinct alternatives, though several reversed-causality distractors are less plausible than the correct choice."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting rule and directly rejects the nearest field-zero or surface-rejection misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, term corrections, scenario evidence, answer keys, fact indices, and explanations consistently reinforce the same distinctions."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "The artifact adds unsupported sphere, point-charge, cylinder, and line-charge examples and shifts some claims from the surface to its interior."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The copied core facts are accurate, but several definitions are examples rather than definitions and the field conclusions become imprecise."
+          },
+          "scenarioReadiness": {
+            "score": 2,
+            "evidence": "It supplies a flux-comparison task and records, but the single surface is described as enclosing both a point charge Q and a zero-charge region."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "The first key selects zero flux for nonzero charge instead of proportionality, and the second selects a field-zero claim explicitly denied by the source."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "The second question has no source-supported must-be-true option, while its alternatives assert unsupported zero or nonzero field locations."
+          },
+          "feedbackInstructionality": {
+            "score": 0,
+            "evidence": "Both explanations contradict their declared answers, and the second improperly turns 'not necessarily zero' into 'must be non-zero.'"
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer keys conflict with their explanations and facts; the second explanation also conflicts with its own stated qualifier."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "Unsupported named examples introduce a sphere with a point charge and a cylinder with a line charge beyond the supplied claims.",
+          "The first assessment declares option 0, although option 1 is supported and the explanation states proportionality.",
+          "The second assessment declares that the field must be zero everywhere, contradicting both the source and its explanation.",
+          "The second question has no uniquely correct option supported by the claim that zero net flux does not determine the field everywhere.",
+          "The second explanation incorrectly concludes that the field must be nonzero from a claim saying only that it is not necessarily zero."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A is source-bound, precise, actionable, and fully consistent across its keys and feedback. Artifact B invents examples and contains incorrect declared answers, explanation contradictions, and an unanswerable field question."
+    },
+    {
+      "caseId": "scion-kernel-cf4f644f00e2a131fe97a9e0",
+      "pairId": "scion-kernel-pair-2f4b3cab24bd569f300e3bad",
+      "artifactSha256": {
+        "A": "b6b8afb9edeb54732f1943d9c0d41590aecde4c89c3b13ca45ce427f8cb93db0",
+        "B": "c8eb79686560fa972297e83a573f1f6d8b62e99da7b7b405a3832f4f519fdc45"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "Every fact, example, misconception, scenario observation, and answer is a direct application of the three supplied relative-dating claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Relative dating, superposition, and cross-cutting are accurately distinguished, including the no-numerical-age constraint and younger cutting feature."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The student must order layers and a cutting feature using inspectable position and disruption observations without assigning numerical ages."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely express the supplied superposition and cross-cutting rules and match the explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The options are distinct and parallel, though the vertical-position distractors in the cross-cutting item are comparatively weak."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "The explanations give the governing rule and explicitly repair the closest reversals of older-above and cutting-feature-older."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Terms, scenario evidence, options, keys, cited fact indices, and explanations agree on event order and the absence of numerical ages."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "It adds unsupported sandstone, shale, limestone, fault, dike, and igneous-fragment examples plus inclusion details absent from the claims."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "The core superposition and cross-cutting statements are accurate, but the inclusions treatment is unsupported and both assessment keys misstate the relationships."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The outcrop, undisturbed-sequence constraint, and cutting comparison provide usable evidence, although the dike appears only in the measurement description."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both keys select 'older' claims contradicted by their explanations; the second item also has two equivalent younger-dike answers."
+          },
+          "choiceDiscriminability": {
+            "score": 0,
+            "evidence": "The first item lacks an option describing both requested relationships, and the second duplicates 'sandstone older' and 'dike younger.'"
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The feedback states the correct rules, but it contradicts each declared key and does not resolve the duplicated correct alternatives."
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Each explanation says the cutting feature is younger while each declared answer says it is older; the second item is also internally ambiguous."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "Unsupported named geological examples include sandstone, shale, limestone, a fault, a dike, and igneous fragments.",
+          "The first assessment declares option 0 even though the explanation supports option 1 and contradicts the key.",
+          "The second assessment declares the dike older even though its explanation says the dike is younger.",
+          "The second assessment contains duplicate correct alternatives: 'sandstone older than dike' and 'dike younger than sandstone.'",
+          "The first question asks for both superposition and cross-cutting relationships but offers no option that states both."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A accurately and coherently teaches both ordering rules with usable evidence and correct assessments. Artifact B adds unsupported details and has two wrong keys, feedback contradictions, and ambiguous or incomplete alternatives."
+    },
+    {
+      "caseId": "scion-kernel-ec108bb13f794a1f68365314",
+      "pairId": "scion-kernel-pair-71926ed59aea3a73129d6fee",
+      "artifactSha256": {
+        "A": "258d9bec65569a7346ae74f6d04ac9465f61064e5d7e13cdf776b767901675b3",
+        "B": "8dc407d4fa2f967ee71baca018f145feb436078ff8e6c7be1b957f3b00b847b3"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "All definitions, examples, corrections, scenario details, and answers are constrained to the supplied seventh-chord claims."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "The artifact precisely separates chord construction, function determinants, supertonic-to-dominant pull, and dominant-to-tonic pull."
+          },
+          "scenarioReadiness": {
+            "score": 4,
+            "evidence": "The analyst must classify two notated chords using scale-degree and pull observations while preserving their different destinations."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely restate the supplied functional dependencies and tonal pulls and agree with the explanations."
+          },
+          "choiceDiscriminability": {
+            "score": 3,
+            "evidence": "The alternatives are distinct, but several destinations such as 'triad' and 'scale degree' are conspicuously implausible."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation states the supporting relationship and contrasts it with the closest swapped-pull or reversed-dependency misconception."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The key terms, scenario records, questions, answer indices, fact indices, and explanations use the same functional distinctions throughout."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The artifact stays within the three supplied claims and introduces no unsupported named examples or causal details."
+          },
+          "knowledgePrecision": {
+            "score": 3,
+            "evidence": "The definitions and misconceptions are accurate, but every example merely repeats its definition instead of providing a concrete application."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The composer has a role-classification decision and a source-bound constraint, but the evidence is a general comparison rather than inspectable records."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both declared answers uniquely and accurately distinguish the supertonic pull toward dominant from the dominant's increased tonic pull."
+          },
+          "choiceDiscriminability": {
+            "score": 2,
+            "evidence": "The first item's second and fourth alternatives express the same swapped functions, and the two questions test nearly the same comparison."
+          },
+          "feedbackInstructionality": {
+            "score": 2,
+            "evidence": "Both explanations repeat the source facts but do not analyze the nearest misconception and explicitly refer to the 'first option.'"
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "Facts, terms, scenario, keys, and explanations consistently assign pre-dominant function and the two tonal-pull destinations."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": []
+      },
+      "decision": "A",
+      "rationale": "Both artifacts are accurate and coherent, but A provides more concrete evidence, more useful examples and corrections, and feedback that repairs misconceptions without answer-position references. B is repetitive and includes duplicate distractor content."
+    }
+  ]
+}

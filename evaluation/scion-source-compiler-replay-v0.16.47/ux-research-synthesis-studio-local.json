@@ -371,7 +371,7 @@
                 "answerIndex": 2,
                 "explanation": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems."
               },
-              "trainingEligible": true,
+              "trainingEligible": false,
               "preferenceEvidence": {
                 "kind": "deterministic-source-answer-conflict",
                 "verified": true,
@@ -390,6 +390,7 @@
                   0
                 ],
                 "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "default-source",
                 "relevantSourceClaimIndexes": [
                   1
                 ],
@@ -563,7 +564,7 @@
                 "answerIndex": 3,
                 "explanation": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function."
               },
-              "trainingEligible": true,
+              "trainingEligible": false,
               "preferenceEvidence": {
                 "kind": "deterministic-source-answer-conflict",
                 "verified": true,
@@ -582,6 +583,7 @@
                   1
                 ],
                 "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "default-source",
                 "relevantSourceClaimIndexes": [
                   0
                 ],
@@ -749,7 +751,7 @@
                 "answerIndex": 1,
                 "explanation": "The correct choice highlights the need to identify areas for enhancement, unlike the misconception that the map only focuses on successful paths."
               },
-              "trainingEligible": true,
+              "trainingEligible": false,
               "preferenceEvidence": {
                 "kind": "deterministic-source-answer-conflict",
                 "verified": true,
@@ -768,6 +770,7 @@
                   0
                 ],
                 "supportMethod": "source-question-option-alignment",
+                "sourceAlignmentProfile": "default-source",
                 "relevantSourceClaimIndexes": [
                   0
                 ],
@@ -959,7 +962,7 @@
               "answerIndex": 2,
               "explanation": "Running through tasks on the day is incorrect because researchers should run through them the day before. The correct choice involves a practice session to expose procedure problems."
             },
-            "trainingEligible": true,
+            "trainingEligible": false,
             "preferenceEvidence": {
               "kind": "deterministic-source-answer-conflict",
               "verified": true,
@@ -978,6 +981,7 @@
                 0
               ],
               "supportMethod": "source-question-option-alignment",
+              "sourceAlignmentProfile": "default-source",
               "relevantSourceClaimIndexes": [
                 1
               ],
@@ -1151,7 +1155,7 @@
               "answerIndex": 3,
               "explanation": "The correct choice is 'To keep design choices connected to evidence' because a research-based persona is a shareable profile used to link design decisions to evidence. The misconception is that the persona is primarily for sharing findings, which is a secondary function."
             },
-            "trainingEligible": true,
+            "trainingEligible": false,
             "preferenceEvidence": {
               "kind": "deterministic-source-answer-conflict",
               "verified": true,
@@ -1170,6 +1174,7 @@
                 1
               ],
               "supportMethod": "source-question-option-alignment",
+              "sourceAlignmentProfile": "default-source",
               "relevantSourceClaimIndexes": [
                 0
               ],
@@ -1337,7 +1342,7 @@
               "answerIndex": 1,
               "explanation": "The correct choice highlights the need to identify areas for enhancement, unlike the misconception that the map only focuses on successful paths."
             },
-            "trainingEligible": true,
+            "trainingEligible": false,
             "preferenceEvidence": {
               "kind": "deterministic-source-answer-conflict",
               "verified": true,
@@ -1356,6 +1361,7 @@
                 0
               ],
               "supportMethod": "source-question-option-alignment",
+              "sourceAlignmentProfile": "default-source",
               "relevantSourceClaimIndexes": [
                 0
               ],
@@ -1397,13 +1403,13 @@
     "compilerSources": [
       {
         "path": "src/lib/scionAnswerKeyAlignment.js",
-        "bytes": 43218,
-        "sha256": "2c6875437268444536de651f3ffbddf6368e2667c823ad0827a4245f86ebefa7"
+        "bytes": 56318,
+        "sha256": "87effc6a3dce3027faa292c111f138d903b5ed2a31f3270f0b8e151428b182c5"
       },
       {
         "path": "src/lib/scionPreferenceGate.js",
-        "bytes": 23813,
-        "sha256": "3b9eb6f5614beeb1ea399f48b2e08d69d184e18d1342cfbf2116cb435356648e"
+        "bytes": 24245,
+        "sha256": "ddbf8bd03e9f111c82c2ad2c4e8b4ce3c1acb1c20112a386642a809640c4bcb7"
       },
       {
         "path": "scripts/lib/scionSourceCapture.mjs",
@@ -1428,7 +1434,7 @@
           "explanationKeyAlignment": 0,
           "sourceAnswerAlignment": 1
         },
-        "repairsSha256": "5b6ca0106698fae7f86f47c3d888978dc744adb921b004ef8d41d231ebffe63c"
+        "repairsSha256": "84d804fc97bb8f1236fdb55df5d62d808d94263f5ddadc715a9ab3327ba2e5f4"
       },
       {
         "promptId": "ux-research-synthesis-studio:ux/journey-mapping",
@@ -1440,7 +1446,7 @@
           "explanationKeyAlignment": 0,
           "sourceAnswerAlignment": 1
         },
-        "repairsSha256": "434a64a27cb6509c885c0021ff512c0868999462dbbf8332c270e0d6aadd3b91"
+        "repairsSha256": "5f50a6771a5dff4d16a15b7246fad5744a41f5c8a29580bece31c2fec7b5b66b"
       },
       {
         "promptId": "ux-research-synthesis-studio:ux/research-planning",
@@ -1452,7 +1458,7 @@
           "explanationKeyAlignment": 0,
           "sourceAnswerAlignment": 1
         },
-        "repairsSha256": "9157610f585eb5447acde996bfe73d2748a8adf91faa0b2f2477fabcb13f1e0e"
+        "repairsSha256": "5a3bd06d0f428a6b53c17ce3c7bfd23b904503a2ae90fa67ca4673498538de87"
       }
     ],
     "repairCounts": {
@@ -1464,7 +1470,7 @@
     "claimBoundary": "This derived project replays exact retained local response bytes through conservative compiler repairs. It adds no model text, supplies no preference label, and proves no adapter or paid-reference quality win.",
     "identity": {
       "algorithm": "sha256-canonical-source-compiler-replay-v1",
-      "sha256": "be558e60ffd4dc72f0ea486bbb9cb85f9209bf5eb4b807464c5129b10566a23c"
+      "sha256": "795a84acfcd468cb8ab1592f0e2549d37470e48a57f0d99c0da8a503095dc887"
     }
   }
 }

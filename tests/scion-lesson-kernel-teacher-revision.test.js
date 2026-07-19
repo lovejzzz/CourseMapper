@@ -14,6 +14,7 @@ import {
 import {
   chunkScionTeacherRevisionResults,
   composeScionTeacherRevisionSource,
+  parseArgs,
 } from '../scripts/scionLessonKernelTeacherRevisionBatches.mjs';
 import { scionLessonKernelSha256 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
 import {
@@ -83,7 +84,7 @@ function fixture() {
     prompt: { path: 'teacher.md', sha256: 'd'.repeat(64) },
     generatedAt: '2026-07-18T10:00:00.000Z',
   });
-  return { artifact, campaign, packet };
+  return { aggregate, artifact, call, campaign, packet };
 }
 
 function resultFor(packet, artifact) {
@@ -108,6 +109,25 @@ function resultFor(packet, artifact) {
 }
 
 describe('Scion lesson-kernel teacher revision', () => {
+  it('accepts explicit current campaign and judge inputs for new evidence cycles', () => {
+    expect(
+      parseArgs([
+        '--build',
+        '--campaign',
+        'campaign-v59.json',
+        '--judge-dir',
+        'judge-v59',
+        '--reference-report',
+        'reference-v59.json',
+      ]),
+    ).toMatchObject({
+      build: true,
+      campaign: 'campaign-v59.json',
+      judgeDir: 'judge-v59',
+      referenceReport: 'reference-v59.json',
+    });
+  });
+
   it('splits large cleanroom packets without reordering or duplicating cases', () => {
     const results = Array.from({ length: 7 }, (_, index) => ({ caseId: `case-${index + 1}` }));
     expect(chunkScionTeacherRevisionResults(results, 3)).toEqual([
@@ -192,6 +212,23 @@ describe('Scion lesson-kernel teacher revision', () => {
     expect(promptV6).toContain('Do not mention, quote, negate, or correct any distractor');
     expect(promptV6).toContain('End `q`, every option, and `ex` with terminal punctuation');
     expect(promptV6).toContain('share no three consecutive content words with `df`');
+    const promptV7 = fs.readFileSync(
+      path.resolve(here, '../evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v7-v0.16.59.md'),
+      'utf8',
+    );
+    expect(promptV7).toContain('source ledger is immutable');
+    expect(promptV7).toContain('re-author that complete item');
+    expect(promptV7).toContain('algebraically, logically, or comparatively equivalent');
+    expect(promptV7).toContain('must not affirm, permit, or partially support a second option');
+    expect(promptV7).toContain('Add no unsupported quantity or disciplinary fact');
+    const promptV8 = fs.readFileSync(
+      path.resolve(here, '../evaluation/scion-adapters/lesson-kernel-teacher-revision-prompt-v8-v0.16.60.md'),
+      'utf8',
+    );
+    expect(promptV8).toContain('compiler-rejected or judge-rejected');
+    expect(promptV8).toContain('complete factual and vocabulary universe');
+    expect(promptV8).toContain('every subject and object it names must occur in the supplied claims');
+    expect(promptV8).toContain('every winner critical defect');
   });
 
   it('builds a source-only packet without exposing the local artifact or provider route', () => {
@@ -200,10 +237,33 @@ describe('Scion lesson-kernel teacher revision', () => {
     expect(JSON.stringify(packet)).not.toMatch(/"(?:localArtifact|localReport|provider|route|trainingEligible)"\s*:/);
     const schema = buildScionLessonKernelTeacherRevisionSchema(packet);
     expect(schema.properties.revisions.minItems).toBe(1);
-    expect(schema.properties.revisions.items.properties.lessonKernel.properties.lessonId).toEqual({
+    expect(schema.properties.revisions.prefixItems[0].properties.lessonKernel.properties.lessonId).toEqual({
       type: 'string',
-      minLength: 1,
+      const: 'lesson-3',
     });
+  });
+
+  it('reopens a historically qualified winner when the current compiler rejects it', () => {
+    const { aggregate, call, campaign } = fixture();
+    aggregate.results[0].trainingEligible = true;
+    const packet = buildScionLessonKernelTeacherRevisionPacket({
+      batchId: 'batch-current-reject',
+      campaign,
+      aggregate,
+      referenceReport: { calls: [call] },
+      prompt: { path: 'teacher-v7.md', sha256: 'e'.repeat(64) },
+      generatedAt: '2026-07-19T17:00:00.000Z',
+    });
+    expect(packet.cases.map((entry) => entry.caseId)).toEqual(['scion-kernel-teacher-test']);
+  });
+
+  it('pins every numbered source-ledger fact exactly in the per-case output schema', () => {
+    const { packet } = fixture();
+    packet.cases[0].lessonInput.sourceFactPolicy = 'numbered-source-ledger-v1';
+    const schema = buildScionLessonKernelTeacherRevisionSchema(packet);
+    const facts = schema.properties.revisions.prefixItems[0].properties.lessonKernel.properties.facts;
+    expect(facts).toMatchObject({ minItems: 3, maxItems: 3, items: { type: 'string' } });
+    expect(facts.prefixItems.map((entry) => entry.const)).toEqual(packet.cases[0].sourceContext.claims);
   });
 
   it('binds the revision to the packet and replays exact production compiler admission', () => {

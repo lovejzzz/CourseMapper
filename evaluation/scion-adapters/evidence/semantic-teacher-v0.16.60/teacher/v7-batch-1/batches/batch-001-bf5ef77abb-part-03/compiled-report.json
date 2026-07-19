@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-teacher-capture-v1",
+  "campaignIdentity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "6a5a6bb8679b012986f068bfbf599b87e1ed99cc21cfe308f9df19db677b57b0"
+  },
+  "packetSha256": "c690d1b7b747dcf4b3adb0dbf584b34085106d7234759ff0b3a0fa8fd55f4d33",
+  "resultSha256": "e5207785d19f53674ba61575b1ef28d031d88e244567ebbcf6f5d7f39be30bdc",
+  "reviser": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-source-cleanroom"
+  },
+  "calls": [
+    {
+      "caseId": "scion-kernel-233f463069b39ef1df0a8f93",
+      "caseSha256": "233f463069b39ef1df0a8f9383d0df0553a4591c393a62bc7e8ed0ca56d6ba4e",
+      "arm": "teacher-revision",
+      "model": {
+        "model": "gpt-5.6-sol",
+        "revision": "codex-cli 0.144.5",
+        "runtime": "codex-cli-ephemeral-source-cleanroom"
+      },
+      "sourceContextSha256": "0f89398e62592cf92b2f3eab525244a85903707daea0a2a5856963e2eaa6afc4",
+      "originalArtifactSha256": "ff5c1cc7dc5bf49f5742950267a76f40f1644a16ca1a53fd74bfb1de3390fe87",
+      "artifact": {
+        "lessonId": "lesson-4",
+        "facts": [
+          "A written interval is identified by its diatonic span and semitone distance, which together determine labels such as major, minor, augmented, or diminished.",
+          "Four semitones form a major third, while three semitones form a minor third when each spans three scale steps.",
+          "A tritone can be spelled as an augmented fourth or diminished fifth, and the spelling can imply different resolutions."
+        ],
+        "keyTerms": [
+          {
+            "tr": "diatonic span",
+            "df": "The diatonic span is the written scale-step count that helps identify an interval together with its semitone distance.",
+            "eg": "A written interval with three scale steps uses its diatonic span in the label.",
+            "mi": "A written interval is identified by semitone distance alone.",
+            "cx": "The written span and the semitone count work together, so the label cannot come from pitch distance by itself."
+          },
+          {
+            "tr": "major third",
+            "df": "A major third is a written interval class tied to four semitones when the span covers three scale steps.",
+            "eg": "Four semitones and three scale steps name a major third.",
+            "mi": "Any interval with three scale steps must be minor.",
+            "cx": "Three scale steps can match either four semitones or three semitones, so the label depends on the semitone count too."
+          },
+          {
+            "tr": "tritone",
+            "df": "A tritone is a written interval that can appear as augmented fourth or diminished fifth, with spelling affecting the implied resolution.",
+            "eg": "An augmented fourth spelling and a diminished fifth spelling both name a tritone.",
+            "mi": "A tritone has only one spelling and one resolution.",
+            "cx": "The same tritone may be spelled two ways, and the spelling can imply different resolutions."
+          }
+        ],
+        "scenario": {
+          "su": "A student is labeling two written intervals from a harmony worksheet before class starts. One entry shows three scale steps with four semitones, and another shows three scale steps with three semitones.",
+          "ma": "the interval marked three scale steps with four semitones, the interval marked three scale steps with three semitones"
+        },
+        "mc": [
+          {
+            "q": "A worksheet shows two written intervals with three scale steps each. One has four semitones and the other has three semitones. Which labels match those observations?",
+            "op": [
+              "diminished fifth and augmented fourth",
+              "minor third and major third",
+              "augmented fourth and diminished fifth",
+              "major third and minor third"
+            ],
+            "ai": 3,
+            "fi": [
+              0,
+              1
+            ],
+            "ex": "The span and semitone count together identify the labels: four semitones with three scale steps is a major third, and three semitones with three scale steps is a minor third. Swapping the labels reverses that relation."
+          },
+          {
+            "q": "A notation uses an augmented fourth, while another uses a diminished fifth. Based on their spellings, which comparison identifies the shared interval and possible resolution implication?",
+            "op": [
+              "They spell a tritone with one implied resolution",
+              "They spell a minor third with different resolutions",
+              "They spell a tritone with potentially different resolutions",
+              "They spell a major third with different resolutions"
+            ],
+            "ai": 2,
+            "fi": [
+              2
+            ],
+            "ex": "An augmented fourth and diminished fifth can spell a tritone, and the spelling can imply different resolutions. Treating both spellings as implying one resolution misses the stated difference."
+          }
+        ]
+      },
+      "artifactSha256": "7acb2c87420c5d451c53964cb6ce71432614639f94b6696ab58357b9ef179edb",
+      "admission": {
+        "needsRetry": false,
+        "issues": []
+      },
+      "compilerRepairs": [
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 0,
+          "permutation": [
+            3,
+            1,
+            2,
+            0
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 3,
+          "trainingEligible": false
+        },
+        {
+          "pass": "deterministicOptionShuffle",
+          "lessonId": "lesson-4",
+          "item": 1,
+          "permutation": [
+            3,
+            2,
+            0,
+            1
+          ],
+          "answerIndexBefore": 0,
+          "answerIndexAfter": 2,
+          "trainingEligible": false
+        }
+      ],
+      "revisionEvidence": {
+        "packetSha256": "c690d1b7b747dcf4b3adb0dbf584b34085106d7234759ff0b3a0fa8fd55f4d33",
+        "sessionId": "scion-v01654-teacher-batch-001-bf5ef77abb-part-03-397e4fbd-a7a4-4a87-a3ea-6022e14a1980",
+        "changeSummary": [
+          "Re-authored the second multiple-choice item to remove answer-position wording and make the source-supported tritone comparison unique."
+        ],
+        "addressedDiagnoses": [
+          "lesson-4:mc-1:answer-position-residue",
+          "lesson-4:mc-1:multiple-source-supported-options"
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "compilerAdmitted": 1,
+    "compilerRejected": 0
+  },
+  "claimBoundary": "These source-constrained model revisions cleared only deterministic compiler admission where stated. They are not judge preferences, human evidence, adapter wins, or training authorization.",
+  "identity": {
+    "algorithm": "sha256-canonical-json",
+    "sha256": "575f71feaaf3a06f615b4dd4b9e7508c89f3d378d88e8fb767f72927c21e695b"
+  }
+}

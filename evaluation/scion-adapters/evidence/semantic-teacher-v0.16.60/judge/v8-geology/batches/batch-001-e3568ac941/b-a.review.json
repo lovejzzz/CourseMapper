@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-lesson-kernel-blind-review-v1",
+  "order": "B/A",
+  "packetSha256": "5c1e0132f3e9fe19fb015dd53bd491fc546dd6528c5f1565e23fc250189db0ad",
+  "sessionId": "scion-v01654-batch-001-e3568ac941-b-a-36b0c2ad-5b17-441e-aa77-f6fbe6688f4a",
+  "judge": {
+    "model": "gpt-5.6-sol",
+    "revision": "codex-cli 0.144.5",
+    "runtime": "codex-cli-ephemeral-isolated-cleanroom"
+  },
+  "completedAt": "2026-07-19T16:41:50.319Z",
+  "attestations": {
+    "anonymousArtifactsOnly": true,
+    "otherOrderUnavailable": true,
+    "organizerMappingUnavailable": true
+  },
+  "decisions": [
+    {
+      "caseId": "scion-kernel-018581469357c98b43195802",
+      "pairId": "scion-kernel-pair-e77a2c86a5c2fea24fea3141",
+      "artifactSha256": {
+        "A": "55f94039e4ccdd2360c0445935c7561829889a861d70f4d5abd9cbbf4854f99b",
+        "B": "a6b085731aec31e67977ac00ac8feb3f77d8c15ed24238a3045709f3401013e5"
+      },
+      "scores": {
+        "A": {
+          "sourceFidelity": {
+            "score": 4,
+            "evidence": "The facts reproduce the three supplied claims, and the definitions, examples, scenario, and answers stay within relative ordering, superposition, and cross-cutting."
+          },
+          "knowledgePrecision": {
+            "score": 4,
+            "evidence": "Relative dating, superposition, and cross-cutting are accurately distinguished, with genuinely false misconceptions and direct corrections."
+          },
+          "scenarioReadiness": {
+            "score": 3,
+            "evidence": "The team must decide whether the break formed before or after the layers, using an inspectable cross-cutting trace and an undisturbed bed sequence, though the tension is modest."
+          },
+          "assessmentCorrectness": {
+            "score": 4,
+            "evidence": "Both keys are uniquely correct: ai 2 identifies the cutting feature as younger, and ai 1 identifies the lower undisturbed layer as older; each fi cites the supporting fact."
+          },
+          "choiceDiscriminability": {
+            "score": 4,
+            "evidence": "Each item has four distinct and parallel relative-age conclusions, with no duplicated alternatives or answer-revealing wording."
+          },
+          "feedbackInstructionality": {
+            "score": 4,
+            "evidence": "Each explanation applies the relevant rule and explicitly repairs the closest reversal misconception without relying on answer position."
+          },
+          "internalCoherence": {
+            "score": 4,
+            "evidence": "The facts, term definitions, scenario evidence, question keys, fact citations, and explanations consistently express the same relative-age rules."
+          }
+        },
+        "B": {
+          "sourceFidelity": {
+            "score": 1,
+            "evidence": "Although the fact list matches the source, the artifact adds unsupported named materials and features such as sandstone, shale, limestone, a fault line, igneous rock, and a dike, and both declared answers reverse supplied rules."
+          },
+          "knowledgePrecision": {
+            "score": 2,
+            "evidence": "Superposition and cross-cutting corrections are accurate, but the inclusions treatment never states a useful age ordering and the scenario overextends the undisturbed condition to all relative-dating rules."
+          },
+          "scenarioReadiness": {
+            "score": 1,
+            "evidence": "The scenario provides observable layer and cutting relationships but merely directs a comparison; it never states a disciplinary decision the geologist must make."
+          },
+          "assessmentCorrectness": {
+            "score": 0,
+            "evidence": "Both declared keys are wrong: MC1 ai 0 selects younger layers below older layers, and MC2 ai 0 selects the cutting feature as older, while the supplied claims support indices 2 and 1 respectively."
+          },
+          "choiceDiscriminability": {
+            "score": 1,
+            "evidence": "In MC1, “Younger layers are always found below older layers” and “Older layers are always found above younger layers” are semantic duplicates, and the question omits the required undisturbed condition."
+          },
+          "feedbackInstructionality": {
+            "score": 1,
+            "evidence": "The explanations state the correct rules but do not diagnose the closest misconception, conflict with both declared keys, and the second refers to “the second option.”"
+          },
+          "internalCoherence": {
+            "score": 0,
+            "evidence": "Both answer indices contradict their explanations and cited facts, while the scenario's blanket undisturbed requirement conflicts with the narrower condition in the supplied superposition claim."
+          }
+        }
+      },
+      "criticalDefects": {
+        "A": [],
+        "B": [
+          "Both declared answers are incorrect: MC1 ai 0 reverses superposition, and MC2 ai 0 reverses cross-cutting.",
+          "Both explanations contradict their declared answers; the second explicitly supports the second option while ai is 0.",
+          "The artifact invents named examples and details absent from the source, including sandstone, shale, limestone, a fault line, igneous rock, and a dike.",
+          "MC1 contains duplicate alternatives: younger-below-older and older-above-younger express the same relationship.",
+          "The scenario provides observations to compare but no usable disciplinary decision.",
+          "The statement that an undisturbed sequence is required for “the relative dating rules” overextends a condition supplied only for superposition."
+        ]
+      },
+      "decision": "A",
+      "rationale": "Artifact A is source-bound, instructionally precise, internally coherent, and has two uniquely correct assessments with discriminating choices and useful feedback. Artifact B has multiple critical defects, most decisively two incorrect declared answers that contradict its own explanations, along with duplicated alternatives, unsupported named examples, an overgeneralized condition, and no usable scenario decision."
+    }
+  ]
+}
