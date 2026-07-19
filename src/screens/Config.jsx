@@ -386,7 +386,7 @@ function ModelTuningSummary({ modelLabel, plan }) {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-semibold text-slate-500">Model-tuned defaults</p>
-          <p className="mt-0.5 truncate text-xs font-medium text-slate-700">
+          <p className="mt-0.5 text-xs font-medium leading-5 text-slate-700 sm:truncate sm:leading-normal">
             {modelLabel || 'Selected model'} uses {plan.label.toLowerCase()}.
           </p>
         </div>

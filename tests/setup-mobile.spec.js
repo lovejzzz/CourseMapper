@@ -56,6 +56,10 @@ test('keeps the setup journey readable at the 320px minimum width', async ({ pag
   await setupHelp.getByRole('button', { name: 'Got it' }).click();
   await expect(setupHelp).toBeHidden();
 
+  await page.getByRole('button', { name: 'Course defaults' }).click();
+  await expect(page.getByText(/uses compact defaults\./)).toHaveCSS('text-overflow', 'clip');
+  await expect(page.getByText('Reusable classroom policies and logistics')).toHaveCSS('text-overflow', 'clip');
+
   const lessonPlanSettings = page.getByRole('button', { name: 'Expand Lesson Plans settings' });
   await lessonPlanSettings.click();
   const expandedLessonPlanSettings = page.getByRole('button', { name: 'Collapse Lesson Plans settings' });

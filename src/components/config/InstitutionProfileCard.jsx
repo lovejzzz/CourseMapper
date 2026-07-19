@@ -171,7 +171,9 @@ export default function InstitutionProfileCard({ uid = null }) {
               {completeness.completed}/{completeness.total} set
             </span>
           </div>
-          <p className="mt-0.5 truncate text-[11px] font-medium text-slate-500">{summary}</p>
+          <p className="mt-0.5 text-[11px] font-medium leading-4 text-slate-500 sm:truncate sm:leading-normal">
+            {summary}
+          </p>
         </div>
         <div className="hidden sm:block text-[10px] font-semibold text-slate-400">{statusText}</div>
         <svg
