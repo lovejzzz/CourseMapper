@@ -724,6 +724,41 @@ describe('kernel parse → project → compile (end to end)', () => {
     expect(parsed.issues.some((issue) => issue.surface === 'mc')).toBe(true);
   });
 
+  it('quarantines a degenerate explanation when bounded Scion repair cannot replace it', () => {
+    const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
+    const response = JSON.parse(shortKeyResponse);
+    const corruptedQuestion = 'Which record best explains the observed rise in atmospheric carbon dioxide?';
+    response.lessons[0].mc = [
+      response.lessons[0].mc[0],
+      {
+        q: corruptedQuestion,
+        op: [
+          'The long-running atmospheric measurement record',
+          'A single neighborhood temperature observation',
+          'One short-term weather forecast for the city',
+          'An unrelated ultraviolet radiation measurement',
+        ],
+        ai: 0,
+        ex: `ex_reason_0_correct_key_ ${'reasoning_0_correct_key_ '.repeat(40)}`,
+      },
+    ];
+
+    const parsed = parseLessonKernelResponse(JSON.stringify(response), { prompt });
+
+    expect(parsed.lessons['lesson-1']).toBeTruthy();
+    expect(parsed.lessons['lesson-1'].quizItems).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ question: corruptedQuestion })]),
+    );
+    expect(parsed.issues).toContainEqual(
+      expect.objectContaining({
+        lessonId: 'lesson-1',
+        surface: 'mc',
+        index: 1,
+        problems: expect.arrayContaining(['generation-marker-residue', 'repetitive-explanation']),
+      }),
+    );
+  });
+
   it('keeps a rich lesson when the verifier quarantines one MC seat as null', () => {
     const prompt = buildLessonKernelPrompt(COURSE_MAP, [0]);
     const withQuarantinedSeat = JSON.parse(shortKeyResponse);

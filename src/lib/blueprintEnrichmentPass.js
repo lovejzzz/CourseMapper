@@ -1044,7 +1044,7 @@ export function lintEnrichedQuizItem(item, { groundingText = '', sourceClaims = 
   if (/\bp\.\s*\d+|\bpp\.\s*\d+/i.test(itemText) && !/\bp\.\s*\d+|\bpp\.\s*\d+/i.test(groundingText)) {
     issues.push('ungrounded-page-citation');
   }
-  return issues;
+  return [...new Set(issues)];
 }
 
 export function lintEnrichedKeyTerm(term, { lessonTitle = '', knownFacts = [] } = {}) {

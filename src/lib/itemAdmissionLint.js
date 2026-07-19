@@ -87,6 +87,43 @@ function wordCount(text) {
   return cleanText(text).split(/\s+/).filter(Boolean).length;
 }
 
+const GENERATION_MARKER_RE = /(?:^|\s)(?:ex[_-]?reason|reasoning)(?:[_-][a-z0-9]+){2,}/i;
+
+/**
+ * Detect a leaked compact-schema key or generation scratch marker. These are
+ * never learner-facing prose; accepting them can turn an otherwise valid MC
+ * unit into a page of internal field names after export humanization.
+ */
+export function hasGenerationMarkerResidue(item) {
+  return GENERATION_MARKER_RE.test(String(item?.explanation ?? ''));
+}
+
+/**
+ * Detect a phrase loop in answer feedback. Four consecutive copies of a
+ * 2-8-token phrase is far outside normal instructional emphasis but matches
+ * the bounded local-model degeneration seen in real package output.
+ */
+export function hasRepetitiveExplanation(item) {
+  const words = String(item?.explanation ?? '')
+    .toLowerCase()
+    .match(/[\p{L}\p{N}]+/gu) || [];
+  for (let width = 2; width <= 8; width += 1) {
+    const span = width * 4;
+    for (let start = 0; start + span <= words.length; start += 1) {
+      const phrase = words.slice(start, start + width).join(' ');
+      let repeated = true;
+      for (let copy = 1; copy < 4; copy += 1) {
+        if (words.slice(start + copy * width, start + (copy + 1) * width).join(' ') !== phrase) {
+          repeated = false;
+          break;
+        }
+      }
+      if (repeated) return true;
+    }
+  }
+  return false;
+}
+
 const BEHAVIOR_INFERENCE_STEM_RE =
   /\b(?:which interpretation|what does this suggest|what (?:does this )?indicate|what likely explains|which (?:factor|reason) most likely explains|which (?:evidence(?: type)?|observation|factor|reason) (?:best|most likely) explains)\b/i;
 const AMBIGUOUS_BEHAVIOR_RE =
@@ -212,6 +249,8 @@ export function hasLongestOptionCue(item) {
  */
 export function lintItemAdmission(item) {
   const issues = [];
+  if (hasGenerationMarkerResidue(item)) issues.push('generation-marker-residue');
+  if (hasRepetitiveExplanation(item)) issues.push('repetitive-explanation');
   if (hasClangAssociationCue(item)) issues.push('clang-association-cue');
   if (hasGrammaticalCue(item)) issues.push('grammatical-cue');
   if (hasLongestOptionCue(item)) issues.push('longest-option-cue');

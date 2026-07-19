@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   hasClangAssociationCue,
+  hasGenerationMarkerResidue,
   hasGrammaticalCue,
   hasLongestOptionCue,
+  hasRepetitiveExplanation,
   hasUnsupportedAbsenceInference,
   hasUnsupportedBehaviorInference,
   hasUnsupportedCausalInference,
@@ -25,6 +27,27 @@ const CLEAN_ITEM = {
 describe('itemAdmissionLint (test-wiseness battery)', () => {
   it('passes a clean, homogeneous item', () => {
     expect(lintItemAdmission(CLEAN_ITEM)).toEqual([]);
+  });
+
+  it('quarantines leaked generation markers and phrase loops in learner feedback', () => {
+    const corrupt = {
+      ...CLEAN_ITEM,
+      explanation: `ex_reason_1_correct_key_ ${'reasoning_1_correct_key_ '.repeat(8)}`,
+    };
+    expect(hasGenerationMarkerResidue(corrupt)).toBe(true);
+    expect(hasRepetitiveExplanation(corrupt)).toBe(true);
+    expect(lintItemAdmission(corrupt)).toEqual(
+      expect.arrayContaining(['generation-marker-residue', 'repetitive-explanation']),
+    );
+    expect(lintEnrichedQuizItem(corrupt, { groundingText: '' })).toEqual(
+      expect.arrayContaining(['generation-marker-residue', 'repetitive-explanation']),
+    );
+
+    const legitimateEmphasis = {
+      ...CLEAN_ITEM,
+      explanation: 'Check the evidence, compare the alternatives, and check the final claim against the source.',
+    };
+    expect(hasRepetitiveExplanation(legitimateEmphasis)).toBe(false);
   });
 
   it('flags clang association when the key echoes the stem and distractors do not', () => {

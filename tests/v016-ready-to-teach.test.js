@@ -137,6 +137,30 @@ describe('A1 — unit-integrity, authored-first quiz overlay', () => {
       expect(JSON.stringify([atom.question, atom.options])).not.toMatch(/Autograded quiz|Week\s*1 quiz/i);
     }
   });
+
+  it('re-checks persisted quiz feedback and falls back instead of exporting a generation loop', () => {
+    const badStem = 'Which Python operation executes a saved source file from the command line?';
+    const payload = enrichedLesson();
+    payload.quizItems = [
+      {
+        index: 0,
+        type: 'multiple_choice',
+        question: badStem,
+        options: ['Run python3 file.py', 'Rename the file', 'Open a browser tab', 'Compress the folder'],
+        answerIndex: 0,
+        explanation: `ex_reason_1_correct_key_ ${'reasoning_1_correct_key_ '.repeat(12)}`,
+      },
+    ];
+    const blueprint = buildCourseBlueprint(bigCourse(), {
+      enrichment: { source: 'persisted-graph', lessonContent: { 'lesson-1': payload } },
+    });
+    const atoms = buildQuizAtomsForLesson(blueprint.lessons[0], blueprint, {
+      assessment: { title: 'Autograded quiz' },
+    });
+    const compiledText = JSON.stringify(atoms);
+    expect(compiledText).not.toContain(badStem);
+    expect(compiledText).not.toMatch(/ex_reason|correct_key|reasoning_1/i);
+  });
 });
 
 describe('A1 — subject-safe deterministic fallback', () => {

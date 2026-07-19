@@ -60,6 +60,7 @@ import {
 // manifest so compile-time and manifest-time never disagree about exams.
 import { classifyAssessmentKind } from './courseGraph/deriveFromCourseMap.js';
 import { recordContentFallbackHit } from './contentFallbackTelemetry';
+import { lintItemAdmission } from './itemAdmissionLint';
 import { whyThisWorksNote, buildMethodsStatement } from './knowledge/pedagogyEvidence';
 import { buildCompetencyMap } from './knowledge/competencyMap';
 import {
@@ -18984,6 +18985,7 @@ function appendBankExtensionQuizAtoms(atoms, lesson) {
       (item) =>
         item?.extension === true &&
         (item.type || 'multiple_choice') === 'multiple_choice' &&
+        lintItemAdmission(item).length === 0 &&
         cleanText(item.question).length > 0 &&
         Array.isArray(item.options) &&
         item.options.length === 4,
@@ -19084,6 +19086,7 @@ function enrichedItemIsCompleteMC(item) {
     Number.isInteger(item.answerIndex) &&
     item.answerIndex >= 0 &&
     item.answerIndex < 4 &&
+    lintItemAdmission(item).length === 0 &&
     !OPINION_STEM_RE.test(cleanText(item.question))
   );
 }
@@ -19136,7 +19139,10 @@ function overlayEnrichedQuizItems(framedAtoms, lesson, { itemFilter = () => true
   for (const index of reservedFrames) usedMC.add(byIndexMC.get(index));
   const constructed = new Map(
     admittedItems
-      .filter((item) => !enrichedItemIsCompleteMC(item) && cleanText(item?.question).length > 0)
+      .filter(
+        (item) =>
+          (item?.type || 'multiple_choice') !== 'multiple_choice' && cleanText(item?.question).length > 0,
+      )
       .map((item) => [Number(item.index), item]),
   );
   return framedAtoms.map((atom, index) => {
