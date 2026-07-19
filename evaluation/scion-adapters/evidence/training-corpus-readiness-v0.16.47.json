@@ -19,7 +19,7 @@
   "dataset": {
     "identity": {
       "protocol": "scion-adapter-dataset-identity-v2",
-      "sha256": "f1542e1d3d1d95c25c43820839fd12bfc30488d5d4499133175cd1cda2b7f014"
+      "sha256": "bc28ab4e5deb977f40b1496bdbcd1e746e8b9fe32cc23b79574a1759f18672cc"
     },
     "status": "research-ready",
     "promotable": false,
@@ -41,7 +41,9 @@
       "blindInstructorDomains": 0,
       "singleModelJudgePairs": 143,
       "singleModelJudgeDomains": 7,
-      "sourceBoundModelJudgePairs": 143
+      "sourceBoundModelJudgePairs": 143,
+      "teacherRevisionPairs": 0,
+      "teacherRevisionLineagePairs": 0
     },
     "domains": [
       "anatomy",
@@ -258,7 +260,7 @@
       }
     },
     "trainingFormat": {
-      "protocol": "scion-orpo-conversations-v2",
+      "protocol": "scion-orpo-conversations-v3",
       "columns": [
         "chosen",
         "rejected",
@@ -269,7 +271,8 @@
         "assistant"
       ],
       "promptIncludedInBothSequences": true,
-      "sourceGrounding": "semantic-source-context-in-user-turn",
+      "sourceGrounding": "semantic-source-context-in-production-or-row-user-turn",
+      "lessonKernelServingPrompt": "exact-system-plus-compact-user-prompt",
       "legacyFallback": "row-prompt-only-for-non-source-grounded-evidence"
     },
     "taskScope": {
@@ -371,6 +374,6 @@
   "claimBoundary": "Passing the 100-row count is necessary but not sufficient. This receipt enforces strict semantic admission, source binding, task and kernel diversity, license disclosure, and a frozen holdout firewall. It is single-model-judge evidence and proves no adapter win or production readiness.",
   "identity": {
     "algorithm": "sha256-canonical-scion-adapter-corpus-readiness-v2",
-    "sha256": "40c386895433e1f515a6fed6cfae8573bf53f5c3ed5c7a4ef7b7b00f746ad460"
+    "sha256": "52333fe704ebc37d4c64ac9603373af7bea894e34bb7f349887033da31a82325"
   }
 }
