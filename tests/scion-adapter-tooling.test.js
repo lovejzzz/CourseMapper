@@ -1050,6 +1050,8 @@ describe('Scion adapter tooling', () => {
     expect(wrapper).toContain('SCION_TRAINING_SHAPE_POLICY = "fixed-max-sequence-v1"');
     expect(wrapper).toContain('_pad_training_side_to_fixed_length');
     expect(wrapper).toContain('mx.checkpoint(chunk_logps)');
+    expect(wrapper).toContain('mx.eval(model.trainable_parameters(), optimizer.state)');
+    expect(wrapper).not.toContain('mx.eval(model.state, optimizer.state)');
     expect(wrapper).not.toContain('outputs.logits.astype(mx.float32)');
   });
 

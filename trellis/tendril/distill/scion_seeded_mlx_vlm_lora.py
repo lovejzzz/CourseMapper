@@ -444,6 +444,12 @@ def launch(seed: int, validation_split: str, forwarded: list[str]) -> None:
                 train=True,
             ),
         ):
+            trace_phases = iteration <= 2
+
+            def trace_phase(phase):
+                if trace_phases:
+                    print(f"Iter {iteration}: Phase {phase}", flush=True)
+
             batch = {
                 side: _pad_training_side_to_fixed_length(
                     batch[side], args.max_seq_length, mx
@@ -475,12 +481,16 @@ def launch(seed: int, validation_split: str, forwarded: list[str]) -> None:
                 )
 
             started = time.perf_counter()
+            trace_phase("chosen-gradient-start")
             chosen_logp, chosen_grad = side_value_and_grad(batch["chosen"])
             mx.eval(chosen_logp, chosen_grad)
             mx.clear_cache()
+            trace_phase("chosen-gradient-done")
+            trace_phase("rejected-gradient-start")
             rejected_logp, rejected_grad = side_value_and_grad(batch["rejected"])
             mx.eval(rejected_logp, rejected_grad)
             mx.clear_cache()
+            trace_phase("rejected-gradient-done")
 
             loss_value, chosen_coefficient, rejected_coefficient = (
                 _orpo_scalar_objective_and_coefficients(
@@ -498,17 +508,22 @@ def launch(seed: int, validation_split: str, forwarded: list[str]) -> None:
                 rejected_grad,
             )
             mx.eval(combined_grad)
+            trace_phase("combined-gradient-done")
+            previous_accumulated_grad = accumulated_grad
             accumulated_grad = (
                 combined_grad
-                if accumulated_grad is None
+                if previous_accumulated_grad is None
                 else tree_map(
                     lambda total, current: total + current,
-                    accumulated_grad,
+                    previous_accumulated_grad,
                     combined_grad,
                 )
             )
             accumulated_steps += 1
             mx.eval(accumulated_grad)
+            del chosen_grad, rejected_grad, combined_grad, previous_accumulated_grad
+            mx.clear_cache()
+            trace_phase("accumulated-gradient-done")
 
             should_update = (
                 accumulated_steps == args.gradient_accumulation_steps
@@ -524,11 +539,20 @@ def launch(seed: int, validation_split: str, forwarded: list[str]) -> None:
                         lambda value: mx.clip(value, -args.grad_clip, args.grad_clip),
                         update_grad,
                     )
-                optimizer.update(model, update_grad)
-                mx.eval(model.state, optimizer.state)
+                mx.eval(update_grad)
                 accumulated_grad = None
                 accumulated_steps = 0
                 mx.clear_cache()
+                trace_phase("optimizer-update-start")
+                optimizer.update(model, update_grad)
+                # The pinned 5.1B base is frozen. Evaluating all of
+                # `model.state` here needlessly re-materializes the base at the
+                # optimizer barrier and can exhaust a 48 GiB unified-memory
+                # machine. Only LoRA tensors and optimizer slots can change.
+                mx.eval(model.trainable_parameters(), optimizer.state)
+                del update_grad
+                mx.clear_cache()
+                trace_phase("optimizer-update-done")
 
             token_count = int(
                 np.array(
