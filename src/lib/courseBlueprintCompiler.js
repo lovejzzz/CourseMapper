@@ -4585,13 +4585,18 @@ function lessonStubFromTitle(title, artifact = '') {
   };
 }
 
-function buildEvidencePlan({ title, concepts, resources, activities, artifact }) {
+function buildEvidencePlan({ title, concepts, resources, activities, artifact, protectedSourceCue = '' }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const secondary = concepts[1] || concept;
-  const sourceCue = compactSourceCue(
-    resources[0] || activities[0] || `${stripLessonPrefix(title)} course materials`,
-    `${stripLessonPrefix(title)} materials`,
-  );
+  // Instructor-named works are identity, not disposable summary prose. Keep
+  // their canonical title intact even when it exceeds the ordinary compact
+  // source-cue budget (for example, "selected poems of Li Bai and Du Fu").
+  const sourceCue = protectedSourceCue
+    ? stripTerminalPunctuation(cleanText(protectedSourceCue))
+    : compactSourceCue(
+        resources[0] || activities[0] || `${stripLessonPrefix(title)} course materials`,
+        `${stripLessonPrefix(title)} materials`,
+      );
   const lessonStub = lessonStubFromTitle(title, artifact);
   return {
     sourceCue,
@@ -4611,13 +4616,15 @@ function buildEvidencePlan({ title, concepts, resources, activities, artifact })
   };
 }
 
-function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact }) {
+function buildSourceUsePlan({ title, concepts, resources, evidencePlan, artifact, protectedSourceCue = '' }) {
   const concept = concepts[0] || stripLessonPrefix(title) || 'the lesson focus';
   const artifactName = stripTerminalPunctuation(artifact);
-  const sourceCue = compactSourceCue(
-    evidencePlan?.sourceCue || resources?.[0] || `${stripLessonPrefix(title)} course materials`,
-    `${stripLessonPrefix(title)} materials`,
-  );
+  const sourceCue = protectedSourceCue
+    ? stripTerminalPunctuation(cleanText(protectedSourceCue))
+    : compactSourceCue(
+        evidencePlan?.sourceCue || resources?.[0] || `${stripLessonPrefix(title)} course materials`,
+        `${stripLessonPrefix(title)} materials`,
+      );
   const approvedSources =
     Array.isArray(resources) && resources.length > 0
       ? resources.slice(0, 4)
@@ -4908,9 +4915,13 @@ function buildLessonThroughlineCase(context, lesson) {
           )
       : null;
   const fallbackEvidencePacket = compactFallbackEvidencePacket(lessonTitle, lesson.lessonNumber);
+  const lessonResourceIsNamedReading =
+    Boolean(lessonResource) && registryReadingTitles.has(cleanText(lessonResource).toLowerCase());
   const evidencePacket =
     context.sourceMode === 'instructor-provided'
-      ? compactSourceCue(lessonResource || fallbackEvidencePacket, fallbackEvidencePacket)
+      ? lessonResourceIsNamedReading
+        ? lessonResource
+        : compactSourceCue(lessonResource || fallbackEvidencePacket, fallbackEvidencePacket)
       : `${context.casePacketName}: Lesson ${lesson.lessonNumber} ${lessonTitle}`;
   const isDataScienceCase = /\b(model|analytics|dataset|notebook|data science|machine learning|triage)\b/i.test(
     [context.projectName, context.clientName, context.datasetName, context.casePacketName, context.setting].join(' '),
@@ -5392,6 +5403,7 @@ function safeLessonEvidenceCue(lesson = {}, lens = null) {
   const fallbackFocus = stripLessonPrefix(lesson?.title) || lessonFocusFallback(lesson) || 'lesson';
   const fallback = `${fallbackFocus} source evidence`;
   const candidates = [
+    ...(Array.isArray(lesson?.instructorNamedReadings) ? lesson.instructorNamedReadings : []),
     lesson?.throughlineCase?.evidencePacket,
     lesson?.evidencePlan?.sourceCue,
     ...(Array.isArray(lesson?.readings) ? lesson.readings : []),
@@ -11710,7 +11722,7 @@ function repairDomainAdmittedLessonProvenance({
   };
 }
 
-function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
+function deriveRoutineFieldsForLesson(lesson = {}, index = 0, context = {}) {
   const title = lesson.title || `Lesson ${index + 1}`;
   const concepts = normalizeConceptCandidates(
     Array.isArray(lesson.keyConcepts) && lesson.keyConcepts.length > 0
@@ -11737,6 +11749,13 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
     { ...lesson, title, outcomes, keyConcepts: safeConcepts },
     candidateReadings,
   );
+  const instructorNamedReadings = registryReadingTitlesForLesson(
+    context.readingsRegistry,
+    Number(lesson.lessonNumber) || index + 1,
+  ).filter((title) => readings.some((reading) => cleanText(reading) === cleanText(title)));
+  const protectedSourceCue = instructorNamedReadings[0] || '';
+  const protectedCueNeedsRepair =
+    Boolean(protectedSourceCue) && cleanText(lesson.evidencePlan?.sourceCue) !== cleanText(protectedSourceCue);
   const activityPattern =
     lesson.activityPattern ||
     `Concept model, applied practice, peer discussion, and individual reflection for ${stripLessonPrefix(title)}.`;
@@ -11796,18 +11815,34 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
         });
   const evidencePlan =
     !domainRepairApplied &&
+    !protectedCueNeedsRepair &&
     lesson.evidencePlan?.sourceCue &&
     lesson.evidencePlan?.evidenceRequirement &&
     lesson.evidencePlan?.limitationCue
       ? lesson.evidencePlan
-      : buildEvidencePlan({ title, concepts: safeConcepts, resources: readings, activities, artifact });
+      : buildEvidencePlan({
+          title,
+          concepts: safeConcepts,
+          resources: readings,
+          activities,
+          artifact,
+          protectedSourceCue,
+        });
   const sourceUsePlan =
     !domainRepairApplied &&
+    !protectedCueNeedsRepair &&
     Array.isArray(lesson.sourceUsePlan?.approvedSources) &&
     lesson.sourceUsePlan.approvedSources.length > 0 &&
     lesson.sourceUsePlan?.noInventedSources
       ? lesson.sourceUsePlan
-      : buildSourceUsePlan({ title, concepts: safeConcepts, resources: readings, evidencePlan, artifact });
+      : buildSourceUsePlan({
+          title,
+          concepts: safeConcepts,
+          resources: readings,
+          evidencePlan,
+          artifact,
+          protectedSourceCue,
+        });
   const misconceptionMap =
     !domainRepairApplied && Array.isArray(lesson.misconceptionMap) && lesson.misconceptionMap.length > 0
       ? lesson.misconceptionMap
@@ -11872,6 +11907,7 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
     outcomes,
     keyConcepts: safeConcepts,
     readings,
+    instructorNamedReadings,
     activityPattern,
     studentArtifact: artifact,
     successCriteria:
@@ -11907,7 +11943,7 @@ function deriveRoutineFieldsForLesson(lesson = {}, index = 0) {
 
 function normalizeLessonsForCompiler(blueprint = {}, context = {}) {
   const lessons = Array.isArray(blueprint.lessons) ? blueprint.lessons : [];
-  const routineReadyLessons = lessons.map((lesson, index) => deriveRoutineFieldsForLesson(lesson, index));
+  const routineReadyLessons = lessons.map((lesson, index) => deriveRoutineFieldsForLesson(lesson, index, context));
   return routineReadyLessons.map((lesson) => {
     const modalityDecode =
       lesson.modalityDecode || buildLessonModalityDecode(context.courseModalityProfile || {}, lesson);
@@ -12017,6 +12053,7 @@ function deriveBlueprintForCompiler(blueprint = {}, options = {}) {
     courseModalityProfile,
     learnerContextProfile,
     courseThroughlineContext,
+    readingsRegistry: blueprint.readingsRegistry,
   });
   // Re-run semantic admission on the hydrated lesson payload. Compact
   // storage deliberately keeps large enrichment fields non-enumerable, and
@@ -13444,6 +13481,7 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
     resources: resources.length > 0 ? resources : ['Class notes and assigned source materials'],
     activities,
     artifact: studentArtifact,
+    protectedSourceCue: registryReadingTitles[0] || '',
   });
   const sourceUsePlan = buildSourceUsePlan({
     title,
@@ -13451,6 +13489,7 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
     resources: resources.length > 0 ? resources : ['Class notes and assigned source materials'],
     evidencePlan,
     artifact: studentArtifact,
+    protectedSourceCue: registryReadingTitles[0] || '',
   });
   const misconceptionMap = buildMisconceptionMap({ title, concepts: keyConcepts, artifact: studentArtifact });
   const modelContrast = buildModelContrast({
@@ -13531,6 +13570,7 @@ function extractLessonBlueprint(lesson, originalIndex, assessmentRegistry = null
     outcomes,
     keyConcepts,
     readings,
+    instructorNamedReadings: registryReadingTitles,
     activityPattern,
     assessmentLink,
     assessmentDetails: assessmentText,
