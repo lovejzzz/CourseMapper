@@ -292,6 +292,52 @@ describe('checkCredits', () => {
     container.remove();
   });
 
+  it('keeps an already-connected Scion configuration ready when the editor opens', async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
+    let latestApiStatus = '';
+    let latestModelId = '';
+    function StateProbe() {
+      const { apiStatus, modelId } = useAIConfig();
+      latestApiStatus = apiStatus;
+      latestModelId = modelId;
+      return null;
+    }
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const root = createRoot(container);
+
+    await act(async () => {
+      root.render(
+        <AIConfigProvider>
+          <StateProbe />
+          <ModelConfig />
+        </AIConfigProvider>,
+      );
+      await Promise.resolve();
+    });
+
+    expect(latestApiStatus).toBe('connected');
+    expect(latestModelId).toBe('scion-public');
+    expect(container.textContent).toContain('Connected');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(900);
+    });
+    expect(latestApiStatus).toBe('connected');
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    act(() => {
+      root.unmount();
+    });
+    container.remove();
+  });
+
   it('keeps the saved model choice while reconnecting on a fresh visit', async () => {
     vi.useFakeTimers();
 

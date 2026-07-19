@@ -411,7 +411,7 @@ export default function ModelConfig() {
     const hasSelectableCachedModel =
       !providerChanged &&
       !apiKeyChanged &&
-      trimmedKey.length >= 10 &&
+      (isKeylessProvider(provider) || trimmedKey.length >= 10) &&
       (cachedState.apiStatus === 'connected' || cachedState.apiStatus === 'no_funds') &&
       Boolean(cachedState.modelId) &&
       cachedState.availableModels.some((model) => model.id === cachedState.modelId);
