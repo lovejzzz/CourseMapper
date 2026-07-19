@@ -7,7 +7,7 @@
 #      ≥100-pair, source-grounded semantic admission and held-out firewall.
 #      Research mode is separately labeled and cannot promote.
 #   2. Phase-0 spike green (2026-07-07): ORPO trains/saves/serves on this
-#      stack — mlx_vlm.lora, 13.2M LoRA params, adapter loads via
+#      stack — mlx_vlm.lora, 26.3M rank-16 LoRA params, adapter loads via
 #      load(..., adapter_path).
 #
 # GATES per checkpoint (run each; a seat win that drifts ANY ruler is
@@ -138,7 +138,7 @@ set +e
   --iters "$ITERS" \
   --batch-size 1 \
   --learning-rate 0.00002 \
-  --steps-per-report 20 \
+  --steps-per-report 1 \
   --steps-per-eval 200 \
   --steps-per-save 100 \
   --val-batches 4 \

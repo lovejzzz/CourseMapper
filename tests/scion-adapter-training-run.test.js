@@ -250,6 +250,8 @@ describe('Scion adapter training receipts', () => {
         hyperparameters: {
           trainingMode: 'orpo',
           validationSplit: 'validation',
+          trainingShapePolicy: 'fixed-max-sequence-v1',
+          logitChunkTokens: 128,
           iterations: 10,
           batchSize: 1,
           learningRate: 0.00002,

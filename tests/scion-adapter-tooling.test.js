@@ -1046,7 +1046,9 @@ describe('Scion adapter tooling', () => {
     expect(wrapper).toContain('model.language_model.model.layers');
     expect(wrapper).toContain('grad_checkpoint(decoder_layers[0])');
     expect(wrapper).toContain('args.grad_checkpoint = False');
-    expect(wrapper).toContain('SCION_LOGIT_CHUNK_TOKENS = 32');
+    expect(wrapper).toContain('SCION_LOGIT_CHUNK_TOKENS = 128');
+    expect(wrapper).toContain('SCION_TRAINING_SHAPE_POLICY = "fixed-max-sequence-v1"');
+    expect(wrapper).toContain('_pad_training_side_to_fixed_length');
     expect(wrapper).toContain('mx.checkpoint(chunk_logps)');
     expect(wrapper).not.toContain('outputs.logits.astype(mx.float32)');
   });

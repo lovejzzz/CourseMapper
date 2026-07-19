@@ -40,7 +40,14 @@ MODULE_NAMES = (
     "mlx_vlm.models.gemma4.processing_gemma4",
 )
 GEMMA4_ASSISTANT_HEADER_IDS = (105, 4368, 107)  # <|turn>model\n
-SCION_LOGIT_CHUNK_TOKENS = 32
+# The exact lesson-kernel corpus is already long (1,634-2,575 tokens per
+# preference side).  Using a fixed training shape therefore adds little padded
+# compute while allowing MLX to compile one graph instead of a new graph for
+# every 32-token length bucket.  A 128-token vocabulary projection remains
+# comfortably memory bounded on the 48 GiB reference machine and cuts the
+# number of checkpointed projection nodes by 4x.
+SCION_LOGIT_CHUNK_TOKENS = 128
+SCION_TRAINING_SHAPE_POLICY = "fixed-max-sequence-v1"
 
 
 def _orpo_scalar_objective_and_coefficients(
@@ -193,6 +200,28 @@ def _mlx_completion_prediction_starts(input_ids, mx):
     positions = mx.arange(matches.shape[1])[None, :]
     marker_starts = mx.max(mx.where(matches, positions, -1), axis=1)
     return marker_starts + marker_width - 1
+
+
+def _pad_training_side_to_fixed_length(batch, target_length: int, mx):
+    """Right-pad a token batch so compiled training reuses one exact shape."""
+    input_ids = batch["input_ids"]
+    attention_mask = batch["attention_mask"]
+    if len(input_ids.shape) != 2 or attention_mask.shape != input_ids.shape:
+        raise RuntimeError("Scion ORPO token batch has an invalid input/mask shape")
+    current_length = input_ids.shape[1]
+    if current_length > target_length:
+        raise RuntimeError(
+            f"Scion ORPO batch length {current_length} exceeds fixed training length "
+            f"{target_length}"
+        )
+    if current_length == target_length:
+        return batch
+    pad_width = ((0, 0), (0, target_length - current_length))
+    return {
+        **batch,
+        "input_ids": mx.pad(input_ids, pad_width, constant_values=0),
+        "attention_mask": mx.pad(attention_mask, pad_width, constant_values=0),
+    }
 
 
 def _preflight_dataset_sequences(dataset_path: str, model_path: str, splits, max_sequence_length: int) -> dict:
@@ -374,7 +403,12 @@ def launch(seed: int, validation_split: str, forwarded: list[str]) -> None:
 
         print(
             f"{Colors.HEADER}Starting memory-bounded Scion ORPO..., "
-            f"iterations: {args.iters}{Colors.ENDC}"
+            f"iterations: {args.iters}, "
+            f"shape policy: {SCION_TRAINING_SHAPE_POLICY}, "
+            f"fixed tokens: {args.max_seq_length}, "
+            f"logit chunk: {SCION_LOGIT_CHUNK_TOKENS}, "
+            f"report every: {args.steps_per_report}{Colors.ENDC}",
+            flush=True,
         )
         adapter_file = _resolve_adapter_file(args)
         model_state = [model.state, mx.random.state]
@@ -410,6 +444,12 @@ def launch(seed: int, validation_split: str, forwarded: list[str]) -> None:
                 train=True,
             ),
         ):
+            batch = {
+                side: _pad_training_side_to_fixed_length(
+                    batch[side], args.max_seq_length, mx
+                )
+                for side in ("chosen", "rejected")
+            }
             if val_dataset is not None and (
                 iteration == 1
                 or iteration % args.steps_per_eval == 0
@@ -592,12 +632,24 @@ def main(argv: list[str]) -> None:
         compiled_starts = mx.compile(lambda values: _mlx_completion_prediction_starts(values, mx))(
             mx.array([[2, *GEMMA4_ASSISTANT_HEADER_IDS, 11, 12, 106]])
         )
-        mx.eval(compiled_starts)
+        fixed_batch = _pad_training_side_to_fixed_length(
+            {
+                "input_ids": mx.array([[2, 3, 4, 0]]),
+                "attention_mask": mx.array([[1, 1, 1, 0]]),
+                "pixel_values": None,
+            },
+            8,
+            mx,
+        )
+        mx.eval(compiled_starts, fixed_batch["input_ids"], fixed_batch["attention_mask"])
         print(
             json.dumps(
                 {
                     "assistantHeaderIds": list(GEMMA4_ASSISTANT_HEADER_IDS),
+                    "fixedTrainingBatchShape": list(fixed_batch["input_ids"].shape),
+                    "logitChunkTokens": SCION_LOGIT_CHUNK_TOKENS,
                     "mlxCompiledCompletionPredictionStarts": compiled_starts.tolist(),
+                    "trainingShapePolicy": SCION_TRAINING_SHAPE_POLICY,
                     "status": "pass",
                 },
                 sort_keys=True,

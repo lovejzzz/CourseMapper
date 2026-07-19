@@ -42,10 +42,12 @@ export const SCION_ORPO_DEFAULTS = Object.freeze({
   trainingMode: 'orpo',
   split: 'train',
   validationSplit: 'validation',
+  trainingShapePolicy: 'fixed-max-sequence-v1',
+  logitChunkTokens: 128,
   iterations: 600,
   batchSize: 1,
   learningRate: 0.00002,
-  stepsPerReport: 20,
+  stepsPerReport: 1,
   stepsPerEval: 200,
   stepsPerSave: 100,
   validationBatches: 4,
@@ -366,6 +368,7 @@ function validateHyperparameters(hyperparameters, lane, seed) {
     'stepsPerSave',
     'validationBatches',
     'maxSequenceLength',
+    'logitChunkTokens',
     'gradientAccumulationSteps',
     'loraRank',
   ];
@@ -386,6 +389,9 @@ function validateHyperparameters(hyperparameters, lane, seed) {
   if (hyperparameters?.trainingMode !== 'orpo') issues.push('hyperparameter:trainingMode');
   if (hyperparameters?.split !== 'train') issues.push('hyperparameter:split');
   if (hyperparameters?.validationSplit !== 'validation') issues.push('hyperparameter:validationSplit');
+  if (hyperparameters?.trainingShapePolicy !== 'fixed-max-sequence-v1') {
+    issues.push('hyperparameter:trainingShapePolicy');
+  }
   if (hyperparameters?.gradientCheckpointing !== true) issues.push('hyperparameter:gradientCheckpointing');
   if (hyperparameters?.trainOnCompletions !== true) issues.push('hyperparameter:trainOnCompletions');
   if (hyperparameters?.completionBoundary !== 'gemma4-last-model-turn-header-v1') {
