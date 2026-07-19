@@ -456,10 +456,27 @@ export default function Landing({
   // AND a stored API key ('coursemapper-apikey', surfaced via useAIConfig) —
   // one decision to first value, defaults for everything else.
   const providerIsKeyless = provider === 'local' || provider === PUBLIC_SCION_PROVIDER_ID;
+  const hasCourseInput = files.length > 0 || promptText.trim().length > 0;
   const canQuickStart =
     Boolean(onQuickStart) &&
     promptText.trim().length > 0 &&
     (providerIsKeyless ? apiStatus === 'connected' : Boolean(apiKey?.trim()));
+  const providerLabel =
+    { openai: 'OpenAI', anthropic: 'Anthropic', google: 'Google', deepseek: 'DeepSeek' }[provider] ||
+    'selected provider';
+  const landingRequirement = !hasCourseInput
+    ? 'Describe a course or attach a syllabus to continue.'
+    : !providerIsKeyless && !apiKey?.trim()
+      ? `Add your ${providerLabel} API key to continue.`
+      : apiStatus === 'validating'
+        ? 'Checking the selected AI connection…'
+        : apiStatus === 'no_funds'
+          ? `Add ${providerLabel} credits or choose another provider to continue.`
+          : apiStatus === 'error'
+            ? 'Fix the AI connection above or choose another provider to continue.'
+            : !modelId
+              ? 'Select an AI model to continue.'
+              : 'Finish connecting the selected AI provider to continue.';
 
   // Build a summary label for the collapsed AI config bar
   const configSummaryLabel = (() => {
@@ -832,7 +849,7 @@ export default function Landing({
 
               {!canGenerate && !isGenerating && (
                 <p data-testid="landing-requirement" className="mt-2 text-center text-body text-ink-muted">
-                  Describe a course or attach a syllabus to continue.
+                  {landingRequirement}
                 </p>
               )}
 

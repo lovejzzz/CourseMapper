@@ -175,6 +175,15 @@ test.describe('Landing Page', () => {
     await expect(page.getByLabel('Model').locator('option')).toHaveText(SCION_MODEL_LABEL);
   });
 
+  test('explains missing provider credentials without blaming the course brief', async ({ page }) => {
+    await page.getByLabel('Describe your course').fill('UX Design Studio with critique and usability testing.');
+    await page.getByRole('button', { name: 'Edit' }).click();
+    await page.getByLabel('Provider').selectOption('openai');
+
+    await expect(page.getByTestId('landing-requirement')).toHaveText('Add your OpenAI API key to continue.');
+    await expect(page.getByTestId('landing-requirement')).not.toContainText('Describe a course');
+  });
+
   test('Resume restores the saved project model instead of the landing-page model', async ({ page }) => {
     await page.route('https://api.openai.com/v1/models', async (route) => {
       await route.fulfill({
