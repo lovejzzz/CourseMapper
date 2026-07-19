@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "release": "0.16.58",
+  "date": "2026-07-19",
+  "status": "local-browser-verified",
+  "environment": {
+    "url": "http://127.0.0.1:5173/",
+    "browser": "Codex in-app Chromium",
+    "provider": "Scion",
+    "model": "Scion V0.16.58 release candidate",
+    "baseCache": "warm",
+    "desktopViewport": { "width": 1280 },
+    "phoneViewport": { "width": 390, "height": 844 }
+  },
+  "run": {
+    "name": "one-lesson-five-material-macroeconomics",
+    "observedFrames": [
+      "15% public Gemma base ready and Scion loading",
+      "34% course map visible while lesson enrichment runs",
+      "34% bounded lesson-kernel retry",
+      "45% outer recovery",
+      "48% recovery retry",
+      "100% after compile, verify, and grade"
+    ],
+    "result": {
+      "durationSeconds": 114,
+      "lessonCount": 1,
+      "selectedMaterialCount": 5,
+      "selectedMaterialsReady": 5,
+      "quality": 89,
+      "grade": "B",
+      "texture": 88,
+      "reviewIssueCount": 2,
+      "exportOwners": 1
+    }
+  },
+  "agent": {
+    "deterministicAuditSeconds": 1,
+    "deterministicAuditFound": [
+      "Quiz & Exam Bank readability grade level 15.0",
+      "Rubrics readability grade level 15.0"
+    ],
+    "freeFormScionResponseSecondsApproximate": 46,
+    "freeFormResponseGroundedInPackage": true,
+    "workspaceEditedByReadOnlyQuestion": false,
+    "repeatPlainScionTurnProducedNewConsoleErrors": false,
+    "repeatLocalToolAuditProducedNewConsoleErrors": false,
+    "consoleFollowup": "Two React maximum-depth warnings appeared during the first long-lived development session before a UI hot update. The current plain Scion response and deterministic tool-audit paths were each repeated and produced no new warning."
+  },
+  "interactionFindings": [
+    {
+      "finding": "An ordinary material-tab pointer down briefly rendered the drag ghost and fixed drop target.",
+      "repair": "Both portals now require tabDrag.moved; click and true drag behavior are covered by Playwright."
+    },
+    {
+      "finding": "Before a course map exists, Specific lessons showed only generic Lesson 1…N labels without explaining what the numbers meant.",
+      "repair": "The selector now explains that topics are assigned during map generation and the numbers are provisional slots."
+    }
+  ],
+  "responsive": {
+    "phoneInnerWidth": 385,
+    "phoneDocumentScrollWidth": 385,
+    "documentHorizontalOverflow": false,
+    "verifiedPanels": ["Content", "Agent", "Export"],
+    "singleExportOwner": true,
+    "agentTextWraps": true
+  },
+  "regressionCommands": [
+    "npx vitest run tests/lesson-scope-selector.test.jsx tests/public-scion-provider.test.js tests/scion-compiler.test.js tests/scion-cited-answer-repair-v0.16.58.test.js",
+    "npx playwright test tests/coursemapper.spec.js --grep 'shows trash only while dragging'",
+    "npm run audit:scion:cited-answer-repair:v0.16.58"
+  ],
+  "claimBoundary": "This is local browser evidence for the captured prompt, cached base, release-candidate code, and viewports. It is not a universal speed, factual-correctness, accessibility-conformance, human-validation, classroom-outcome, paid-reference-parity, or adapter-win claim."
+}

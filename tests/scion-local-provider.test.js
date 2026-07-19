@@ -271,7 +271,7 @@ Return ONLY valid JSON.`;
     expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(3);
   });
 
-  it('defers structurally usable residual defects to canonical per-atom admission after one corrective retry', async () => {
+  it('uses the full bounded retry budget before deferring a missing lesson core to per-atom admission', async () => {
     const partial = {
       lessons: [
         {
@@ -316,7 +316,7 @@ Return ONLY valid JSON.`;
       ],
     };
     const response = JSON.stringify(partial);
-    const runtime = runtimeWith([response, response]);
+    const runtime = runtimeWith([response, response, response]);
     const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
 
     const result = await runScionLocalCompletion({
@@ -326,12 +326,12 @@ Return ONLY valid JSON.`;
       sleep: async () => {},
     });
 
-    expect(result).toMatchObject({ attempt: 2, retryCount: 1, contractIncomplete: true });
+    expect(result).toMatchObject({ attempt: 3, retryCount: 2, contractIncomplete: true });
     expect(result.admissionIssues).toContain('lesson-4:key-terms-count:1/3');
     expect(result.kernelShape).toEqual([
       expect.objectContaining({ lessonId: 'lesson-4', facts: 4, keyTerms: 1, mc: 2, hasScenario: false }),
     ]);
-    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(2);
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(3);
   });
 
   it('preserves a grounded facts-plus-key-terms kernel when the model omits the trailing quiz surface', async () => {
@@ -358,7 +358,7 @@ Return ONLY valid JSON.`;
       ],
     };
     const response = JSON.stringify(partial);
-    const runtime = runtimeWith([response, response]);
+    const runtime = runtimeWith([response, response, response]);
     const prompt = `Course: Design\nLessons:\n[{"lessonId":"lesson-4","title":"Affinity Mapping"}]\nReturn ONLY valid JSON.`;
 
     const result = await runScionLocalCompletion({
@@ -368,9 +368,9 @@ Return ONLY valid JSON.`;
       sleep: async () => {},
     });
 
-    expect(result).toMatchObject({ attempt: 2, retryCount: 1, contractIncomplete: true });
+    expect(result).toMatchObject({ attempt: 3, retryCount: 2, contractIncomplete: true });
     expect(result.admissionIssues).toContain('lesson-4:key-terms-count:1/3');
-    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(2);
+    expect(runtime.completeScionBrowserWllama).toHaveBeenCalledTimes(3);
   });
 
   it('returns compiler repair provenance with the repaired browser-local text', async () => {

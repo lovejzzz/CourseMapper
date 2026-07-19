@@ -1027,6 +1027,8 @@ test.describe('Workspace Deliverable Tabs', () => {
 
     const deliverableTabs = page.getByTestId('workspace-deliverable-tabs');
     const slideTab = deliverableTabs.getByRole('button', { name: /Slide Decks/ });
+    await slideTab.click();
+    await expect(page.locator('text=Drop to delete')).not.toBeVisible();
     const tabBox = await slideTab.boundingBox();
     expect(tabBox).not.toBeNull();
     await page.mouse.move(tabBox.x + tabBox.width / 2, tabBox.y + tabBox.height / 2);

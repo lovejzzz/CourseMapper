@@ -3,7 +3,7 @@
 AI-powered instructional design platform running on **CurriculumOS** — a deterministic course compiler linked to a **Curriculum Genome** of source-anchored, citable concept knowledge — with an embedded teaching assistant agent. Upload your syllabus and generate a structured Course Map, lesson plans, slide decks, rubrics, quizzes, assignments, discussion prompts, study guides, and a polished syllabus — all pedagogically aligned, validated, and fully editable. Then use the AI agent to revise, validate, research, and visualize your curriculum through natural conversation.
 
 **Live:** [https://edutool.dev](https://edutool.dev)
-**Current release:** v0.16.57
+**Current release:** v0.16.58
 
 ---
 
@@ -31,9 +31,19 @@ Course Mapper is a **purpose-built instructional design tool**, not a general ch
 
 ### What the website uses
 
-The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.57**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
+The hosted site presents **Provider: Scion**, **API: No API key required**, and the versioned product model **Scion V0.16.58**. Those are intentionally simple product labels for EduTool's customized local course-building system; they are not a claim that EduTool trained or hosts a new foundation model. The website pins the public QAT-derived GGUF `google/gemma-4-E2B-it-qat-q4_0-gguf` at immutable revision `69536a21d70340464240401ba38223d805f6a709`, verifies its recorded identity and metadata, and runs it through the packaged Scion WebGPU runtime. Scion authors compact course and lesson kernels locally, then Course Mapper's compiler turns those kernels into the selected deliverables.
 
 ### Living Course Compiler
+
+V0.16.58 makes source evidence an active safety boundary. When a generated multiple-choice explanation conflicts with its declared answer, the compiler may move only the answer index—and only when the item cites a generated lesson fact, that fact remains anchored to the instructor-supplied source, and strict source support identifies one different option. Four retained answer conflicts are corrected this way. Question, options, explanation, and cited fact indexes do not change; paid-reference artifacts remain byte-identical; compiler-constructed repairs create zero adapter-training rows. Under the stronger current detector, local issue instances move from 78 to 74.
+
+The same pass improves recovery instead of hiding weak drafts. Incomplete or overlong options are explicit admission defects, while missing facts, key terms, scenarios, and quiz seats are critical attempt-selection failures. A fresh exact Economics capture therefore retained a complete three-issue lesson kernel instead of an eight-issue one-fact JSON shell. Facts and their position-indexed quiz citations move as one retry unit; independent key terms may be retained only when the whole artifact improves without a new defect.
+
+Scion no longer asks the browser-local Gemma base to certify its own answer. Production draft cold-solving is disabled. A focused repair is limited to one quiz seat and can ship only when the cited lesson facts deterministically and uniquely confirm its key. Same-model output is never labeled independent verification and never becomes preference evidence. A future adapter still has to earn promotion from source-grounded judged preferences and an implementation-bound held-out win.
+
+The release was tested frame by frame through a real cached-base Macroeconomics build. Model, Map, Enrich, Compile, Verify, and Grade reached a true 100% terminal state in 114 seconds; five selected materials compiled at 89/B with texture 88. The built-in Agent completed a deterministic package audit in one second and answered a package-specific free-form question through local Scion in about 46 seconds without editing the workspace. Desktop and 390×844 layouts kept one ZIP owner and zero phone-width page overflow. An ordinary material-tab click no longer flashes a drag ghost or **Drop to delete**, while real drag-to-delete remains tested. Before a course map exists, **Specific lessons** now explains that numbered slots are provisional and Scion assigns their topics during map generation.
+
+This is measured compiler, recovery, evaluation, and UX progress—not a model-weight win. No hosted adapter is active and the pinned Gemma weights are unchanged. Compatible paid-model routes also benefit from the shared source-admission, retry-selection, merge, compilation, grading, and UX layers; browser WebGPU execution and compact local retry remain Scion-specific.
 
 V0.16.57 turns the live compiler into a safer orchestration layer, not just a progress display. Browser-local completions are serialized; a fatal worker is unloaded, reloaded from the cached pinned base, and retried once; repeated runtime death enters a recovery-required state instead of poisoning later calls. In the real six-lesson replay, all six lesson kernels completed in one browser session without fatal worker, callback-ID, abort-signal, or unreachable errors.
 

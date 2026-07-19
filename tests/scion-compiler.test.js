@@ -603,6 +603,116 @@ describe('Scion-native compiler (V2.1 Workstream D)', () => {
     expect(repairs[0].preferenceEvidence.rejectedIssues).toContain('duplicate-options');
   });
 
+  it('D3: protects admitted siblings when the browser model cannot independently verify itself', async () => {
+    const validItem = {
+      q: 'Which observation shows a movement along the supply curve when all non-price conditions remain unchanged?',
+      op: [
+        'The good’s own price changes and quantity supplied responds',
+        'Input costs change while the good’s own price stays fixed',
+        'Production technology changes at the original market price',
+        'A regulation changes the cost of every unit produced',
+      ],
+      ai: 0,
+      fi: [0],
+      ex: 'A change in the good’s own price moves along the curve; input costs and technology shift the curve.',
+    };
+    const brokenItem = {
+      ...validItem,
+      op: [validItem.op[0], validItem.op[0], validItem.op[2], validItem.op[3]],
+    };
+    const lesson = {
+      lessonId: 'lesson-1',
+      facts: [
+        'A change in the good’s own price moves along the supply curve.',
+        'A change in input costs or technology shifts the whole supply curve.',
+      ],
+      mc: [brokenItem, validItem],
+    };
+    const calls = [];
+    const result = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Supply curve', topics: 'price input costs technology' }],
+      verifyDraftMcWithSameModel: false,
+      maxCallsPerLesson: 1,
+      generateJson: async ({ schemaProfile }) => {
+        calls.push(schemaProfile.name);
+        return JSON.stringify({ repairs: [] });
+      },
+    });
+    const after = JSON.parse(result.text).lessons[0];
+
+    expect(calls).toEqual(['mc_admission_batch']);
+    expect(after.mc[1]).toEqual(validItem);
+    expect(result.events).toContainEqual({
+      pass: 'mcVerify',
+      lessonId: 'lesson-1',
+      action: 'skipped',
+      reason: 'same-model-solver-is-not-an-independent-verifier',
+      trainingEligible: false,
+    });
+  });
+
+  it('D3: accepts one focused local repair only when cited-source alignment confirms its key', async () => {
+    const sourceFact = "A change in a good's own price moves along the supply curve and changes quantity supplied.";
+    const broken = {
+      q: "A market experiences a change only in the good's own price. Which result follows?",
+      op: [
+        'Input costs shift the supply curve',
+        'Input costs shift the supply curve',
+        'Technology shifts the supply curve',
+        'Regulation shifts the supply curve',
+      ],
+      ai: 0,
+      fi: [0],
+      ex: 'A price change moves along the supply curve, while non-price conditions shift the curve.',
+    };
+    const lesson = { lessonId: 'lesson-1', facts: [sourceFact], mc: [broken] };
+    const calls = [];
+    const result = await applyScionKernelPasses(JSON.stringify({ lessons: [lesson] }), {
+      promptLessons: [{ lessonId: 'lesson-1', title: 'Supply curve', topics: 'price supply curve quantity' }],
+      verifyDraftMcWithSameModel: false,
+      verifyRepairMcWithSameModel: false,
+      maxAdmissionRepairsPerCall: 1,
+      maxCallsPerLesson: 1,
+      generateJson: async ({ schemaProfile, user }) => {
+        calls.push({ name: schemaProfile.name, user: JSON.parse(user) });
+        return JSON.stringify({
+          repairs: [
+            {
+              index: 0,
+              q: "A market experiences a change only in the good's own price. Which result follows?",
+              op: [
+                'Quantity supplied adjusts along the curve',
+                'Input costs shift market supply',
+                'Technology shifts market supply',
+                'Regulation shifts market supply',
+              ],
+              ai: 0,
+              fi: [0],
+              ex: 'The own-price change alters quantity supplied along the curve; the other conditions shift the entire curve.',
+            },
+          ],
+        });
+      },
+    });
+    const after = JSON.parse(result.text).lessons[0];
+    const repair = result.events.find((event) => event.pass === 'admissionGate' && event.action === 'regenerated');
+
+    expect(calls.map(({ name }) => name)).toEqual(['mc_admission_batch']);
+    expect(calls[0].user.repairs).toEqual([
+      expect.objectContaining({ index: 0, originalQuestion: broken.q, sourceFactIndexes: [0] }),
+    ]);
+    expect(calls[0].user.repairs[0]).not.toHaveProperty('item');
+    expect(after.mc[0].op[0]).toBe('Quantity supplied adjusts along the curve');
+    expect(repair).toMatchObject({
+      trainingEligible: false,
+      verification: {
+        kind: 'deterministic-cited-source-admission',
+        supportedIndex: 0,
+      },
+    });
+    expect(repair).not.toHaveProperty('preferenceEvidence');
+  });
+
   it('D3: backfills missing MC seats and verifies their keys without inventing rejected preference data', async () => {
     const options = ['Thematic coding', 'Random sampling', 'A/B testing', 'Linear regression'];
     const lesson = {

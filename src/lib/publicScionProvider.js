@@ -23,6 +23,8 @@ const PUBLIC_SCION_TEMPLATE_RESIDUE_RE =
   /\b(?:two lesson concepts?|lesson concept to this concrete case|replace with (?:one complete distinction question|one concrete case question|a plausible subject-specific|a plausible case-specific)|plausible methodological claim or action|plausible case interpretation or action)\b/i;
 const PUBLIC_SCION_TRUNCATED_CLAIM_RE =
   /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|at|by|each|every|for|from|in|of|on|or|the|to|with|without)|\b(?:users?|students?|participants?|customers?|people)\s+(?:actual|specific|respective|relevant|related))\s*[.!?]?$/i;
+const PUBLIC_SCION_TRUNCATED_OPTION_RE =
+  /(?:-[a-z]{1,3}|\b(?:a|an|and|any|as|by|each|every|for|from|in|of|on|or|the|to|with|without))$/i;
 const PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE = /^[\s“"'([{]*[a-z_][a-z0-9_.]*\([^)]*\)\s+\p{L}/iu;
 const PUBLIC_SCION_RELATIVE_PREPOSITION_END_RE = /\b(?:that|which|whom)\b[^.!?]*\b(?:from|to|with)\s*[.!?][\])}"']?$/i;
 const PUBLIC_SCION_ANSWER_POSITION_RE =
@@ -40,6 +42,10 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'invalid-json',
   'empty-response',
   'missing-lesson',
+  'facts-count',
+  'key-terms-count',
+  'mc-count',
+  'scenario:scenario-missing',
   'unexpected-script',
   'fact-length',
   'truncated-fact',
@@ -47,6 +53,8 @@ const PUBLIC_SCION_HIGH_RISK_ISSUE_MARKERS = Object.freeze([
   'unanchored-named',
   'source-unsupported-quantity',
   'scenario-template-residue',
+  'option-length',
+  'truncated-option',
   'duplicate-options',
   'absolute-option',
   'answer-position-residue',
@@ -61,10 +69,15 @@ const PUBLIC_SCION_CRITICAL_ISSUE_MARKERS = Object.freeze([
   'invalid-json',
   'empty-response',
   'missing-lesson',
+  'facts-count',
+  'key-terms-count',
+  'mc-count',
+  'scenario:scenario-missing',
   'unexpected-script',
   'unanchored-named',
   'source-unsupported-quantity',
   'scenario-template-residue',
+  'truncated-option',
   'duplicate-options',
   'absolute-option',
   'answer-position-residue',
@@ -128,13 +141,20 @@ export function isPublicScionProvider(provider) {
 // preference gate. Browser preprocessing and canonical admission share one
 // repair order. Only explicit answer text/labels or uniquely cited source
 // claims may move a key; lexical overlap remains a rejection signal.
-function repairPublicScionMcItems(parsed) {
+function repairPublicScionMcItems(parsed, { userPrompt = '' } = {}) {
   const repairs = [];
   if (!parsed || !Array.isArray(parsed.lessons)) return { parsed, repairs };
+  const sourceTextByLessonId = new Map(
+    extractPublicScionKernelLessons(userPrompt)
+      .filter((lesson) => lesson?.lessonId)
+      .map((lesson) => [lesson.lessonId, publicScionSourceText(lesson)]),
+  );
   for (const lesson of parsed.lessons) {
     if (!Array.isArray(lesson?.mc)) continue;
     const sourceClaims = Array.isArray(lesson?.facts) ? lesson.facts : [];
+    const suppliedSourceText = sourceTextByLessonId.get(lesson?.lessonId) || '';
     lesson.mc = lesson.mc.map((item, itemIndex) => {
+      if (!item || typeof item !== 'object') return item;
       const rawSourceFactIndexes = item?.sourceFactIndexes ?? item?.fi;
       const sourceFactIndexes = Array.isArray(rawSourceFactIndexes)
         ? [...new Set(rawSourceFactIndexes)].filter(
@@ -145,10 +165,20 @@ function repairPublicScionMcItems(parsed) {
         sourceFactIndexes.length === rawSourceFactIndexes?.length
           ? sourceFactIndexes.map((factIndex) => sourceClaims[factIndex]).filter(Boolean)
           : [];
+      // The strict answer repair deliberately trusts only the item's cited
+      // lesson fact, never broad topical overlap. When the original lesson
+      // source is available, also prove that the cited generated fact remains
+      // anchored there before allowing an answer index to move. Otherwise a
+      // locally hallucinated fact could become self-confirming evidence.
+      const sourceLineageVerified =
+        Boolean(suppliedSourceText) &&
+        citedSourceClaims.length > 0 &&
+        citedSourceClaims.every((claim) => publicScionFactHasSourceAnchor(claim, suppliedSourceText));
       const result = repairScionMcItem(item, {
         lessonId: lesson.lessonId,
         itemIndex,
-        sourceClaims: citedSourceClaims,
+        sourceClaims: suppliedSourceText && !sourceLineageVerified ? [] : citedSourceClaims,
+        strictSourceAlignment: sourceLineageVerified,
       });
       repairs.push(...result.repairs);
       return result.item;
@@ -259,7 +289,7 @@ function repairPublicScionDefinitionSentences(parsed) {
  * exposes repair provenance to the local runtime ledger; the text-only
  * wrapper keeps the historical provider interface stable.
  */
-export function repairPublicScionJson(text = '') {
+export function repairPublicScionJson(text = '', { userPrompt = '' } = {}) {
   const raw = String(text || '')
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
@@ -300,15 +330,15 @@ export function repairPublicScionJson(text = '') {
   const lifted = liftNestedPublicScionLessonFields(parsed);
   const factRepair = repairPublicScionFactSentences(lifted);
   const definitionRepair = repairPublicScionDefinitionSentences(factRepair.parsed);
-  const mcRepair = repairPublicScionMcItems(definitionRepair.parsed);
+  const mcRepair = repairPublicScionMcItems(definitionRepair.parsed, { userPrompt });
   return {
     text: JSON.stringify(mcRepair.parsed),
     repairs: [...factRepair.repairs, ...definitionRepair.repairs, ...mcRepair.repairs],
   };
 }
 
-export function repairPublicScionJsonText(text = '') {
-  return repairPublicScionJson(text).text;
+export function repairPublicScionJsonText(text = '', options = {}) {
+  return repairPublicScionJson(text, options).text;
 }
 
 function publicScionShuffleSeed(value = '') {
@@ -393,6 +423,19 @@ function publicScionSourceText(expected = {}) {
     .map((value) => String(value || '').trim())
     .filter(Boolean)
     .join(' ');
+}
+
+function publicScionFactHasSourceAnchor(value, sourceText) {
+  const fact = String(value || '').trim();
+  const source = String(sourceText || '').trim();
+  if (!fact || !source) return false;
+  if (publicScionUnsupportedQuantities(fact, source).length > 0) return false;
+  if (publicScionHasSourceDirectionConflict(fact, source)) return false;
+  const factTokens = publicScionRelationTokens(fact);
+  const sourceTokens = publicScionRelationTokens(source);
+  if (factTokens.size < 4 || sourceTokens.size < 4) return false;
+  const shared = [...factTokens].filter((token) => sourceTokens.has(token)).length;
+  return shared >= 4 && shared / factTokens.size >= 0.7;
 }
 
 function publicScionHasRichSourceEvidence(expected = {}) {
@@ -507,12 +550,17 @@ function publicScionStartsWithLowercaseFragment(value) {
   return /^[\s“"'([{]*[a-z]/.test(text) && !PUBLIC_SCION_CODE_IDENTIFIER_SENTENCE_RE.test(text);
 }
 
-export function assessPublicScionKernelResponse(responseText, userPrompt, task) {
+export function assessPublicScionKernelResponse(responseText, userPrompt, task, { applyCompilerRepairs = true } = {}) {
   if (task !== 'blueprintEnrichment') return { needsRetry: false, issues: [] };
   const expectedLessons = extractPublicScionKernelLessons(userPrompt).filter((lesson) => lesson?.lessonId);
   if (expectedLessons.length === 0) return { needsRetry: false, issues: [] };
   try {
-    const parsed = JSON.parse(repairPublicScionJsonText(responseText));
+    // Audit replays sometimes need the unmodified pre-compiler baseline. Live
+    // callers keep the default and assess exactly what the deterministic
+    // repair boundary would retain.
+    const parsed = JSON.parse(
+      applyCompilerRepairs ? repairPublicScionJsonText(responseText, { userPrompt }) : jsonrepair(responseText),
+    );
     const returned = new Map(
       (Array.isArray(parsed?.lessons) ? parsed.lessons : [])
         .filter((lesson) => lesson?.lessonId)
@@ -598,6 +646,23 @@ export function assessPublicScionKernelResponse(responseText, userPrompt, task) 
         }
         if (!Array.isArray(options) || options.length !== 4) {
           issues.push(`${expected.lessonId}:mc-${index}:option-count`);
+        }
+        if (
+          Array.isArray(options) &&
+          options.some((option) => {
+            const value = String(option ?? '')
+              .replace(/\s+/g, ' ')
+              .trim();
+            return value.length < 5 || value.length > 95;
+          })
+        ) {
+          issues.push(`${expected.lessonId}:mc-${index}:option-length`);
+        }
+        if (
+          Array.isArray(options) &&
+          options.some((option) => PUBLIC_SCION_TRUNCATED_OPTION_RE.test(String(option ?? '').trim()))
+        ) {
+          issues.push(`${expected.lessonId}:mc-${index}:truncated-option`);
         }
         if (
           Array.isArray(options) &&
@@ -716,7 +781,12 @@ export function mergePublicScionKernelAttempts(previousText, currentText, userPr
     const repairs = [];
     const groups = [
       { field: 'scenario', keys: ['scenario'] },
-      { field: 'knowledgeCore', keys: ['facts', 'keyTerms', 'mc'] },
+      // Facts and MC citations are one semantic unit: moving either alone can
+      // silently change what an fi index means. Key terms carry no positional
+      // citation, so they can be retained independently when the complete
+      // response audit proves a strict issue reduction with no new defect.
+      { field: 'assessmentCore', keys: ['facts', 'mc'] },
+      { field: 'keyTerms', keys: ['keyTerms'] },
     ];
 
     for (const lesson of Array.isArray(current?.lessons) ? current.lessons : []) {
@@ -839,6 +909,11 @@ export function buildPublicScionRetryFeedback(assessment = {}) {
       : []),
     ...(allIssues.some((issue) => issue.includes('duplicate-options'))
       ? ['Every MC item needs four meaningfully distinct options; never repeat or pad the same alternative.']
+      : []),
+    ...(allIssues.some((issue) => issue.includes('option-length') || issue.includes('truncated-option'))
+      ? [
+          'Write each option as one complete, parallel 4-10 word proposition under 80 characters. Put reasoning only in ex; never cut an option off or end it with a function word.',
+        ]
       : []),
     ...(allIssues.some((issue) => issue.includes('explanation-key-conflict'))
       ? [
@@ -1151,7 +1226,7 @@ ${
 - Write one decision-ready scenario. Across su and ma, include a concrete context, an actionable subject problem, at least 2 inspectable details, and a real tension or constraint. su has exactly 2 specific sentences. ma directly names the concrete records, observations, passages, notations, measurements, or designs students compare; never call them "source detail one/two", "inspectable details", "evidence packet", "scenario evidence", or "course materials".
 - Write exactly 2 mc items: one concept distinction and one concrete case application.
 - Every mc item includes fi=sourceFactIndexes as exactly [n]: one zero-based integer from 0 through 4 pointing to the single fact that directly supports the first option. Never write a string, more than one index, or an out-of-range index.
-- Options are parallel and plausible; distractors reflect real misconceptions. Every q is 20-45 words and includes a concrete observation or comparison, not a short definition prompt; op has exactly 4 meaningfully distinct options. Put the single supported option first in op and set ai=0; the compiler shuffles answer positions after admission. ex states the subject evidence supporting the answer and then corrects the closest distractor without referring to any position.
+- Options are parallel and plausible; distractors reflect real misconceptions. Every q is 20-45 words and includes a concrete observation or comparison, not a short definition prompt; op has exactly 4 meaningfully distinct 4-10 word options, each under 80 characters. Options are compact propositions, not explanations, and never end mid-thought or on a function word. Put the single supported option first in op and set ai=0; the compiler shuffles answer positions after admission. ex states the subject evidence supporting the answer and then corrects the closest distractor without referring to any position.
 - Never mention "the key", answer positions, option letters or numbers, fact numbers, claim numbers, or source indexes in q, op, or ex.
 - Never infer motive or cause from one ambiguous observation. Include enough context that exactly one option is supported.
 - Never write pure vocabulary recall, tool trivia, NOT/EXCEPT questions, always/never options, or all/none of the above.
@@ -1200,6 +1275,7 @@ Rules:
 export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = null, task = 'generation' } = {}) {
   const kernelTask = task === 'blueprintEnrichment';
   const voiceTask = task === 'voicePass';
+  const compilerRepairTask = task === 'scionPass';
   const conversationalTask = task === 'chat' || task === 'agent';
   if (conversationalTask) {
     const role =
@@ -1223,6 +1299,24 @@ export function buildPublicScionMessages(systemPrompt, userPrompt, { schema = nu
           .join('\n'),
       },
       { role: 'user', content: clip(userPrompt, 4200) },
+    ];
+  }
+  if (compilerRepairTask) {
+    return [
+      {
+        role: 'system',
+        content: [
+          'Reasoning: low.',
+          'You are CourseMapper Scion, a precise browser-local semantic repair worker.',
+          'Perform only the requested repair. Preserve source facts, immutable fields, indexes, and JSON keys exactly.',
+          'Return only the requested valid JSON object with no Markdown, preamble, or trailing commentary.',
+          schema ? 'The response is constrained by the supplied schema; include every required field.' : '',
+          clip(systemPrompt, 4800),
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      },
+      { role: 'user', content: clip(userPrompt, 6200) },
     ];
   }
   const system = [

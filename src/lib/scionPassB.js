@@ -82,6 +82,15 @@ export async function runScionPasses({
       expectedMcCount: 2,
       minimumKeyTermCount: 3,
       courseName,
+      // The browser-local base cannot independently verify its own answer.
+      // Deterministic source admission may reject or repair a faulty seat;
+      // same-model cold solves must never destroy an otherwise admitted item.
+      verifyDraftMcWithSameModel: false,
+      // One repair at a time keeps the 2B model focused. A repair ships only
+      // when deterministic cited-source alignment confirms its key; the same
+      // model never certifies itself or creates adapter evidence.
+      verifyRepairMcWithSameModel: false,
+      maxAdmissionRepairsPerCall: 1,
     });
     if (passOutcome.events.length > 0) {
       recordEvent({

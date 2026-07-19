@@ -13,7 +13,7 @@ import {
 } from '../scripts/lib/scionLessonKernelCampaign.mjs';
 
 const CAMPAIGN_PATH = 'evaluation/scion-adapters/lesson-kernel-campaign-v0.16.54.json';
-const CURRENT_CAMPAIGN_PATH = 'evaluation/scion-adapters/lesson-kernel-campaign-v0.16.56.json';
+const CURRENT_CAMPAIGN_PATH = 'evaluation/scion-adapters/lesson-kernel-campaign-v0.16.58.json';
 
 async function trackedCampaign() {
   return JSON.parse(await fs.readFile(CAMPAIGN_PATH, 'utf8'));

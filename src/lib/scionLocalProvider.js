@@ -183,7 +183,7 @@ export async function runScionLocalCompletion({
         if (typeof onToken === 'function') onToken(currentText, tokenCount, attempt + 1);
       },
     });
-    const repaired = repairPublicScionJson(rawText);
+    const repaired = repairPublicScionJson(rawText, { userPrompt });
     const merged = retainedIncompleteText
       ? mergePublicScionKernelAttempts(retainedIncompleteText, repaired.text, userPrompt)
       : { text: repaired.text, repairs: [] };

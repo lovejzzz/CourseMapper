@@ -1,6 +1,6 @@
 {
   "name": "course-mapper",
-  "version": "0.16.57",
+  "version": "0.16.58",
   "type": "module",
   "description": "AI-powered course syllabus to course map generator",
   "scripts": {
@@ -133,6 +133,8 @@
     "audit:scion:semantic-admission:v0.16.50": "node scripts/scionSemanticAdmissionV2Audit.mjs",
     "build:scion:lesson-kernel-campaign:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --build",
     "audit:scion:lesson-kernel-campaign:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --audit",
+    "build:scion:lesson-kernel-campaign:v0.16.58": "node scripts/scionLessonKernelCapture.mjs --build --campaign evaluation/scion-adapters/lesson-kernel-campaign-v0.16.58.json --generated-at 2026-07-19T13:15:00.000Z",
+    "audit:scion:lesson-kernel-campaign:v0.16.58": "node scripts/scionLessonKernelCapture.mjs --audit --campaign evaluation/scion-adapters/lesson-kernel-campaign-v0.16.58.json",
     "capture:scion:lesson-kernel:local:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --capture --arm local",
     "capture:scion:lesson-kernel:reference:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --capture --arm reference",
     "audit:scion:lesson-kernel-capture:v0.16.54": "node scripts/scionLessonKernelCapture.mjs --verify",
@@ -147,6 +149,8 @@
     "audit:scion:lesson-kernel-expansion:v0.16.57": "node scripts/scionLessonKernelExpansionBatchV01657.mjs --audit",
     "build:scion:lesson-kernel-expansion-evidence:v0.16.57": "node scripts/scionLessonKernelExpansionEvidenceV01657.mjs --build",
     "audit:scion:lesson-kernel-expansion-evidence:v0.16.57": "node scripts/scionLessonKernelExpansionEvidenceV01657.mjs --audit",
+    "build:scion:cited-answer-repair:v0.16.58": "node scripts/scionCitedAnswerRepairV01658Audit.mjs --write",
+    "audit:scion:cited-answer-repair:v0.16.58": "node scripts/scionCitedAnswerRepairV01658Audit.mjs",
     "build:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionBatches.mjs --build",
     "run:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionRunner.mjs",
     "ingest:scion:lesson-kernel-teacher:v0.16.54": "node scripts/scionLessonKernelTeacherRevisionBatches.mjs --ingest",

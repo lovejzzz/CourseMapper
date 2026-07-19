@@ -1,0 +1,143 @@
+{
+  "version": "0.16.58",
+  "date": "July 19, 2026",
+  "title": "Make Evidence Correct the Course",
+  "status": "verified-current",
+  "proofSummary": {
+    "local": [
+      "npm test",
+      "npm run lint",
+      "npm run build",
+      "npm run bundle:check",
+      "npm run audit:release-history",
+      "npm run audit:scion:cited-answer-repair:v0.16.58",
+      "npm run audit:scion:lesson-kernel-campaign:v0.16.58",
+      "npx playwright test tests/coursemapper.spec.js --grep 'shows trash only while dragging'"
+    ],
+    "ciFast": {
+      "status": "pending-push",
+      "note": "Fast verification will rerun the release ledger, suite, lint, and production build after push."
+    },
+    "ciDeep": {
+      "status": "not-current",
+      "note": "No adapter-versus-base promotion run is claimed because no task-matched candidate exists."
+    },
+    "deploy": {
+      "status": "pending-push",
+      "note": "Deployment remains downstream of push and remote verification."
+    },
+    "liveProvider": {
+      "status": "local-only",
+      "note": "The browser proof used the exact pinned public Gemma base through the packaged Scion WebGPU route."
+    },
+    "manualHuman": {
+      "status": "not-applicable",
+      "note": "No human, instructor, classroom, or independent multi-judge validation is claimed."
+    },
+    "manualBrowser": {
+      "status": "success",
+      "url": "http://127.0.0.1:5173/",
+      "note": "A real cached-base build covered setup, every Living Course Compiler stage, selected materials, Agent tools, free-form Scion chat, desktop, phone, and interaction frames."
+    },
+    "strictLayeredEvaluation": {
+      "status": "success",
+      "claimStatus": "compiler-repair-zero-training-rows",
+      "note": "Four source-lineage answer keys are corrected, current local issues move from 78 to 74, reference artifacts remain unchanged, and zero constructed repairs enter training."
+    }
+  },
+  "claims": [
+    {
+      "id": "v01658-source-lineage-answer-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 0,
+      "summary": "Four retained answer indexes are corrected only under strict cited-source lineage, with zero learner-text or paid-reference mutations.",
+      "anchors": [
+        "src/lib/publicScionProvider.js",
+        "src/lib/scionAnswerKeyAlignment.js",
+        "scripts/scionCitedAnswerRepairV01658Audit.mjs",
+        "evaluation/scion-adapters/evidence/cited-answer-repair-v0.16.58.json",
+        "tests/scion-cited-answer-repair-v0.16.58.test.js"
+      ],
+      "proofCommands": ["npm run audit:scion:cited-answer-repair:v0.16.58"],
+      "proofScopes": ["gold-audit", "unit"]
+    },
+    {
+      "id": "v01658-complete-attempt-selection",
+      "status": "verified-current",
+      "changelogHighlightIndex": 1,
+      "summary": "Option fragments and missing lesson cores carry sufficient recovery risk to keep a complete lower-risk attempt over an incomplete shell.",
+      "anchors": [
+        "src/lib/publicScionProvider.js",
+        "scripts/scionLessonKernelCapture.mjs",
+        "evaluation/scion-adapters/lesson-kernel-campaign-v0.16.58.json",
+        "tests/public-scion-provider.test.js",
+        "docs/evidence/SCION_V01658_EXPERIENCE_AUDIT.json"
+      ],
+      "proofCommands": ["npx vitest run tests/public-scion-provider.test.js"],
+      "proofScopes": ["unit", "browser-live"]
+    },
+    {
+      "id": "v01658-no-same-model-self-verification",
+      "status": "verified-current",
+      "changelogHighlightIndex": 2,
+      "summary": "Production Scion skips same-model cold verification and accepts a focused repair only under strict deterministic cited-source support.",
+      "anchors": [
+        "src/lib/scionPassB.js",
+        "src/lib/scionPasses.js",
+        "src/lib/publicScionProvider.js",
+        "tests/scion-compiler.test.js"
+      ],
+      "proofCommands": ["npx vitest run tests/scion-compiler.test.js"],
+      "proofScopes": ["unit", "static-audit"]
+    },
+    {
+      "id": "v01658-citation-safe-retry-merge",
+      "status": "verified-current",
+      "changelogHighlightIndex": 3,
+      "summary": "Retry merging keeps facts and position-indexed MC citations atomic while independently retaining key terms only after whole-artifact improvement.",
+      "anchors": ["src/lib/publicScionProvider.js", "tests/public-scion-provider.test.js"],
+      "proofCommands": ["npx vitest run tests/public-scion-provider.test.js"],
+      "proofScopes": ["unit"]
+    },
+    {
+      "id": "v01658-live-macroeconomics-package",
+      "status": "verified-current",
+      "changelogHighlightIndex": 4,
+      "summary": "A real cached-base one-lesson build completed all compiler stages, five selected materials, grading, deterministic Agent audit, and free-form local Scion chat.",
+      "anchors": [
+        "docs/evidence/SCION_V01658_EXPERIENCE_AUDIT.json",
+        "src/components/chat/ChatPanel.jsx",
+        "src/components/chat/useChatRouter.js"
+      ],
+      "proofCommands": ["npm run build"],
+      "proofScopes": ["browser-live", "build"]
+    },
+    {
+      "id": "v01658-frame-interaction-repair",
+      "status": "verified-current",
+      "changelogHighlightIndex": 5,
+      "summary": "Ordinary tab clicks no longer flash drag UI, provisional lesson slots are explained, export has one owner, and the phone layout has no page overflow.",
+      "anchors": [
+        "src/AppFlow.jsx",
+        "src/components/config/LessonScopeSelector.jsx",
+        "tests/coursemapper.spec.js",
+        "tests/lesson-scope-selector.test.jsx",
+        "docs/evidence/SCION_V01658_EXPERIENCE_AUDIT.json"
+      ],
+      "proofCommands": [
+        "npx vitest run tests/lesson-scope-selector.test.jsx",
+        "npx playwright test tests/coursemapper.spec.js --grep 'shows trash only while dragging'"
+      ],
+      "proofScopes": ["unit", "browser-smoke", "browser-live"]
+    },
+    {
+      "id": "v01658-model-boundary",
+      "status": "verified-current",
+      "changelogHighlightIndex": 6,
+      "summary": "Gemma weights and adapter activation remain unchanged while shared compiler improvements apply to compatible paid-model routes.",
+      "anchors": ["README.md", "docs/SCION_ADAPTER_ROADMAP.md", "src/lib/scionPasses.js"],
+      "proofCommands": ["npm run audit:release-history"],
+      "proofScopes": ["doc", "static-audit"]
+    }
+  ]
+}

@@ -14,6 +14,7 @@ import {
   PUBLIC_SCION_MODEL_NAME,
   PUBLIC_SCION_PROVIDER_ID,
   publicScionEnrichmentRecoveryCallLimit,
+  publicScionAdmissionRisk,
   assessPublicScionKernelResponse,
   buildPublicScionRetryFeedback,
   buildPublicScionMessages,
@@ -103,6 +104,23 @@ describe('Scion Public provider', () => {
     expect([1, 2, 3, 4, 5].map(publicScionRetryDelay)).toEqual([250, 500, 1000, 2000, 2000]);
   });
 
+  it('ranks a missing lesson core as riskier than a complete lesson with bounded option defects', () => {
+    const missingCore = publicScionAdmissionRisk({
+      issues: [
+        'lesson-1:facts-count:1/5',
+        'lesson-1:key-terms-count:0/3',
+        'lesson-1:scenario:scenario-missing',
+        'lesson-1:mc-count:0/2',
+      ],
+    });
+    const completeButDefective = publicScionAdmissionRisk({
+      issues: ['lesson-1:mc-0:option-length', 'lesson-1:mc-0:truncated-option', 'lesson-1:mc-0:duplicate-options'],
+    });
+
+    expect(missingCore.criticalIssues).toBe(4);
+    expect(missingCore.score).toBeGreaterThan(completeButDefective.score);
+  });
+
   it('gives local chat and Agent turns a grounded prose contract instead of the course-map JSON contract', () => {
     const chat = buildPublicScionMessages('Course: Interaction Design', 'How should I improve Lesson 2?', {
       task: 'chat',
@@ -118,6 +136,24 @@ describe('Scion Public provider', () => {
     expect(agent[0].content).toContain('browser-local course workspace agent');
     expect(agent[0].content).toContain('never claim that you changed the workspace');
     expect(agent[1].content).toBe('Audit the activities.');
+  });
+
+  it('preserves Scion semantic-pass repair instructions instead of rewriting them as a course-map task', () => {
+    const system = 'You repair one multiple-choice seat. Keep the facts immutable and return {"repairs":[...]} only.';
+    const user = JSON.stringify({
+      facts: ['A change in input costs shifts the whole supply curve.'],
+      repairs: [{ index: 0, issues: ['explanation-key-conflict'] }],
+    });
+    const messages = buildPublicScionMessages(system, user, {
+      task: 'scionPass',
+      schema: { name: 'mc_admission_batch', schema: { type: 'object' }, strict: true },
+    });
+
+    expect(messages[0].content).toContain('browser-local semantic repair worker');
+    expect(messages[0].content).toContain(system);
+    expect(messages[1].content).toBe(user);
+    expect(messages.map((message) => message.content).join('\n')).not.toContain('compact CourseMapper lesson');
+    expect(messages.map((message) => message.content).join('\n')).not.toContain('SOURCE:');
   });
 
   it('retries incomplete public kernel envelopes instead of accepting cached empty output', () => {
@@ -510,12 +546,41 @@ Return ONLY valid JSON.`;
     expect(merged.repairs).toEqual([
       expect.objectContaining({
         pass: 'crossAttemptAtomicRetention',
-        field: 'knowledgeCore',
+        field: 'assessmentCore',
         issueCountAfter: 0,
         trainingEligible: false,
       }),
     ]);
     expect(publicScionKernelResponseNeedsRetry(merged.text, prompt, 'blueprintEnrichment')).toBe(false);
+  });
+
+  it('retains source-valid key terms independently from the citation-coupled facts and assessments', () => {
+    const prompt = `Course: Interface Design
+Lessons:
+[{"lessonId":"lesson-9","title":"Wireframes"}]
+Return ONLY valid JSON.`;
+    const previous = completeLesson();
+    const current = completeLesson({
+      keyTerms: completeTerms.map((term, index) => (index === 0 ? { ...term, cx: term.df } : term)),
+    });
+
+    const merged = mergePublicScionKernelAttempts(
+      JSON.stringify({ lessons: [previous] }),
+      JSON.stringify({ lessons: [current] }),
+      prompt,
+    );
+
+    expect(JSON.parse(merged.text).lessons[0].keyTerms).toEqual(previous.keyTerms);
+    expect(JSON.parse(merged.text).lessons[0].facts).toEqual(current.facts);
+    expect(JSON.parse(merged.text).lessons[0].mc).toEqual(current.mc);
+    expect(merged.repairs).toEqual([
+      expect.objectContaining({
+        pass: 'crossAttemptAtomicRetention',
+        field: 'keyTerms',
+        issueCountAfter: 0,
+        trainingEligible: false,
+      }),
+    ]);
   });
 
   it('ships a keyless browser-local model option with prompt-only structure support', () => {
@@ -985,7 +1050,7 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
         pass: 'sourceAnswerAlignment',
         lessonId: 'lesson-source-key',
         item: 0,
-        trainingEligible: true,
+        trainingEligible: false,
       }),
     ]);
 
@@ -1002,6 +1067,57 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     expect(buildPublicScionRetryFeedback(assessment)).toContain(
       'sourceFactIndexes is required and may cite only supplied zero-based claim indexes',
     );
+  });
+
+  it('repairs a strict cited-fact key only when that fact has supplied-source lineage', () => {
+    const citedFact =
+      'readline() returns the next single line, while readlines() returns a list with every line of the file.';
+    const lesson = {
+      lessonId: 'lesson-file-io',
+      facts: [citedFact],
+      mc: [
+        {
+          q: 'A developer wants to process a very large data file line by line to conserve memory; which method should they use?',
+          op: [
+            'read() reads the entire contents of a file and returns a single string.',
+            citedFact,
+            'open() returns a file object that the program then reads from or writes to.',
+            'read() reads only the first line of the file and returns that single line as a string.',
+          ],
+          ai: 0,
+          fi: [0],
+          ex: `${citedFact.slice(0, -1)}, which is appropriate for processing a very large data file line by line.`,
+        },
+      ],
+    };
+    const anchoredPrompt = `Course: Python File Processing
+Lessons:
+[{"lessonId":"lesson-file-io","title":"File input","topics":"Claim 0: ${citedFact}"}]
+Return ONLY valid JSON.`;
+    const anchored = repairPublicScionJson(JSON.stringify({ lessons: [lesson] }), { userPrompt: anchoredPrompt });
+
+    expect(JSON.parse(anchored.text).lessons[0].mc[0].ai).toBe(1);
+    expect(anchored.repairs).toEqual([
+      expect.objectContaining({
+        pass: 'sourceAnswerAlignment',
+        trainingEligible: false,
+        preferenceEvidence: expect.objectContaining({
+          sourceAlignmentProfile: 'strict-cited-source',
+          minimumQuestionClaimScore: 2,
+          minimumMargin: 3,
+        }),
+      }),
+    ]);
+
+    const unrelatedPrompt = `Course: Python File Processing
+Lessons:
+[{"lessonId":"lesson-file-io","title":"File input","topics":"Claim 0: open() returns a file object for later operations."}]
+Return ONLY valid JSON.`;
+    const unanchored = repairPublicScionJson(JSON.stringify({ lessons: [lesson] }), {
+      userPrompt: unrelatedPrompt,
+    });
+    expect(JSON.parse(unanchored.text).lessons[0].mc[0].ai).toBe(0);
+    expect(unanchored.repairs).toEqual([]);
   });
 
   it('retries when a valid fact index cites the wrong lesson fact for the key', () => {
@@ -1055,6 +1171,49 @@ Continue generating the REMAINING lessons (Lesson 10 through Lesson 12).`;
     const feedback = buildPublicScionRetryFeedback(assessment);
     expect(feedback).toContain('eliminating distractors alone is incomplete feedback');
     expect(feedback).toContain('exactly one option is supported by the lesson facts');
+  });
+
+  it('reports a quarantined null quiz seat as an item defect instead of misclassifying valid JSON', () => {
+    const lesson = completeLesson({ mc: [completeLesson().mc[0], null] });
+    const prompt = `Course: UX Design
+Lessons:
+[{"lessonId":"lesson-9","title":"Checkout Evidence"}]
+Return ONLY valid JSON.`;
+
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [lesson] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+
+    expect(assessment.issues).not.toContain('invalid-json');
+    expect(assessment.issues).toEqual(
+      expect.arrayContaining([
+        'lesson-9:mc-1:stem-length',
+        'lesson-9:mc-1:option-count',
+        'lesson-9:mc-1:source-fact-index',
+      ]),
+    );
+  });
+
+  it('detects overlong and visibly unfinished browser-model options before retry selection', () => {
+    const lesson = completeLesson();
+    lesson.mc[0].op[1] =
+      'A favorable comment that becomes a long explanation about visual color preferences without establishing task success or';
+    const prompt = `Course: UX Design
+Lessons:
+[{"lessonId":"lesson-9","title":"Checkout Evidence"}]
+Return ONLY valid JSON.`;
+
+    const assessment = assessPublicScionKernelResponse(
+      JSON.stringify({ lessons: [lesson] }),
+      prompt,
+      'blueprintEnrichment',
+    );
+
+    expect(assessment.issues).toContain('lesson-9:mc-0:option-length');
+    expect(assessment.issues).toContain('lesson-9:mc-0:truncated-option');
+    expect(buildPublicScionRetryFeedback(assessment)).toContain('one complete, parallel 4-10 word proposition');
   });
 
   it('retries when the browser model copies an unfilled compact-prompt question', () => {

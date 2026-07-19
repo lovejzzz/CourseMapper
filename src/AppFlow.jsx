@@ -3526,7 +3526,7 @@ export default function AppFlow({
           {/* v0.14.9 B3: the drag-trash zone — a fixed pill at the top of the
               viewport, only while a tab is being dragged. Drop detection is
               rect-based (trashDropRef), so a fixed element works unchanged. */}
-          {tabDrag &&
+          {tabDrag?.moved &&
             typeof document !== 'undefined' &&
             createPortal(
               <div
@@ -3563,7 +3563,7 @@ export default function AppFlow({
               document.body,
             )}
 
-          {tabDrag &&
+          {tabDrag?.moved &&
             typeof document !== 'undefined' &&
             createPortal(
               <div

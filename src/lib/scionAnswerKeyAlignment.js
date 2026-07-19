@@ -255,8 +255,16 @@ export function findScionSourceAnswerSupport(item = {}, { sourceClaims = [], str
     scores,
     containment,
     supportMethod: 'source-question-option-alignment',
+    sourceAlignmentProfile: strict ? 'strict-cited-source' : 'default-source',
     relevantSourceClaimIndexes: relevantClaims.map(({ index }) => index),
     questionClaimScore: bestClaimScore,
+    thresholds: {
+      minimumQuestionClaimScore: strict ? 2 : 3,
+      minimumOptionScore: 3,
+      minimumOptionContainment: 0.6,
+      minimumDeclaredOptionMargin: strict ? 3 : 2,
+      ...(strict ? {} : { maximumDeclaredOptionScore: 1 }),
+    },
   };
 }
 
@@ -548,11 +556,12 @@ function findExplicitExplanationAnswerCue(
 }
 
 export function normalizeScionMcItem(item = {}) {
+  const source = item && typeof item === 'object' ? item : {};
   return {
-    question: clean(item.q ?? item.question),
-    options: Array.isArray(item.op ?? item.options) ? (item.op ?? item.options).map(clean) : [],
-    answerIndex: Number(item.ai ?? item.answerIndex),
-    explanation: clean(item.ex ?? item.explanation),
+    question: clean(source.q ?? source.question),
+    options: Array.isArray(source.op ?? source.options) ? (source.op ?? source.options).map(clean) : [],
+    answerIndex: Number(source.ai ?? source.answerIndex),
+    explanation: clean(source.ex ?? source.explanation),
   };
 }
 
@@ -954,6 +963,7 @@ export function buildScionAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, 
 export function buildScionSourceAnswerKeyRepair({ item, lessonId = '', itemIndex = 0, conflict } = {}) {
   if (!conflict) return null;
   const rejected = normalizeScionMcItem(item);
+  const thresholds = conflict.thresholds || {};
   return {
     kind: 'mc-item',
     pass: 'sourceAnswerAlignment',
@@ -963,7 +973,11 @@ export function buildScionSourceAnswerKeyRepair({ item, lessonId = '', itemIndex
     prompt: 'Choose the answer index uniquely supported by the source claim most relevant to the question.',
     rejected,
     chosen: { ...rejected, answerIndex: conflict.supportedIndex },
-    trainingEligible: true,
+    // A post-generation key move improves the shipped artifact, but is not a
+    // clean model preference: the chosen side was constructed by the
+    // compiler. Keep it out of adapter training even when the evidence is
+    // deterministic.
+    trainingEligible: false,
     preferenceEvidence: {
       kind: 'deterministic-source-answer-conflict',
       verified: true,
@@ -972,13 +986,16 @@ export function buildScionSourceAnswerKeyRepair({ item, lessonId = '', itemIndex
       scores: conflict.scores,
       containment: conflict.containment,
       supportMethod: conflict.supportMethod,
+      sourceAlignmentProfile: conflict.sourceAlignmentProfile || 'default-source',
       relevantSourceClaimIndexes: conflict.relevantSourceClaimIndexes,
       questionClaimScore: conflict.questionClaimScore,
-      minimumQuestionClaimScore: 3,
-      minimumOptionScore: 3,
-      minimumOptionContainment: 0.6,
-      maximumDeclaredOptionScore: 1,
-      minimumMargin: 2,
+      minimumQuestionClaimScore: thresholds.minimumQuestionClaimScore ?? 3,
+      minimumOptionScore: thresholds.minimumOptionScore ?? 3,
+      minimumOptionContainment: thresholds.minimumOptionContainment ?? 0.6,
+      ...(Number.isFinite(thresholds.maximumDeclaredOptionScore)
+        ? { maximumDeclaredOptionScore: thresholds.maximumDeclaredOptionScore }
+        : {}),
+      minimumMargin: thresholds.minimumDeclaredOptionMargin ?? 2,
     },
   };
 }

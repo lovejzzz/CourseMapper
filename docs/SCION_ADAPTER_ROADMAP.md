@@ -2,7 +2,29 @@
 
 **Architecture:** public Gemma 4 E2B base + small Scion adapter + Scion compiler = Scion Vx
 
-**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.57 adds browser-runtime recovery, exact lesson-sequence contracts, duplicate-topic blocking, fail-closed Agent revision safety, and a 14-case seven-domain base/reference diagnostic. The paid reference wins all 14 paired-order comparisons, but every winner fails strict score qualification and zero rows enter training. This is a ruler, compiler, runtime, and workflow audit—not an adapter corpus or model win. A quality adapter, held-out adapter win, at least 100 admitted lesson-kernel preferences, production-compatible training corpus, the remaining device-performance profiles, and production promotion still do not exist.
+**Status:** the exact-QAT base, hash-bound training and conversion chain, browser adapter lifecycle, source-strict semantic compiler gates, frozen holdout firewall, and paired-order preference protocol are implemented. V0.16.58 turns the fourteen judged losses into conservative source-lineage key repair, stricter option-completion admission, safer complete-attempt selection, and a fail-closed same-model verification boundary. Four retained answer conflicts are corrected, current local issue instances move from 78 to 74, reference artifacts remain unchanged, and zero compiler-constructed rows enter training. This is compiler, recovery, evaluation, and browser-workflow progress—not an adapter or model-weight win. A quality adapter, held-out adapter win, at least 100 admitted lesson-kernel preferences, production-compatible training corpus, the remaining device-performance profiles, and production promotion still do not exist.
+
+## v0.16.58 — Make Evidence Correct the Course
+
+**Goal:** use the scored base/reference gap to improve the production lesson-kernel compiler without allowing generated claims, same-model agreement, or incomplete retries to manufacture factual confidence or training data.
+
+**Source-lineage repair:** a cited answer index can move only when the generated cited fact remains anchored to the supplied lesson source and strict support identifies one different option. The repair changes no learner-facing text. Four retained conflicts are corrected; current local issues fall from 78 to 74; paid-reference artifacts remain byte-identical; no compiler-constructed preference row is emitted.
+
+**Completion admission:** answer options must be complete, compact propositions rather than decoder fragments or embedded explanations. Missing facts, key terms, scenarios, and quiz seats become critical recovery failures. A fresh exact Economics replay selected the complete three-issue draft instead of the earlier eight-issue one-fact shell.
+
+**Current campaign identity:** the new option-completion contract is frozen as `lesson-kernel-campaign-v0.16.58.json`. Earlier V0.16.56/V0.16.57 campaign and capture bytes remain historical evidence and are not rewritten to impersonate the current prompt.
+
+**Retry integrity:** facts and their `fi`-indexed quiz items form one merge unit. Key terms can move independently because they carry no positional citations, but a merge is retained only if the complete response has fewer issues and introduces none.
+
+**Verification boundary:** the browser-local base does not independently verify itself. Draft cold-solving is disabled; one focused admission repair may run, and it ships only when deterministic cited-source alignment uniquely confirms its key. These repairs are explicitly training-ineligible.
+
+**Living browser proof:** a real cached-base one-lesson Macroeconomics build reached its terminal Grade frame in 114 seconds with five selected materials, 89/B, and texture 88. Deterministic Agent audit and a free-form package-grounded Scion answer both worked. Desktop and 390×844 layouts kept one ZIP owner and zero page overflow. Ordinary material clicks no longer flash drag affordances, and pre-map focused scope now explains its provisional numbered slots.
+
+**Lane:** V0.16.58 improves shared source admission, answer alignment, retry ranking, merge safety, compilation, evaluation observability, and workflow UX. Compatible paid-model routes inherit those layers; browser WebGPU inference, compact local retries, and model caching remain Scion-specific.
+
+**Next gates:** keep capturing production-protocol lesson kernels, qualify at least 100 stable source-grounded preferences across the required domains and groups, then train one task-matched candidate and compare exact adapter with exact base-only Scion on the frozen five-domain ruler without higher compiler burden or unacceptable device cost.
+
+**Release Boundary:** no adapter is active, no Gemma weight changed, and no paid-reference parity, human preference, instructor approval, classroom outcome, universal course-quality, statistical-significance, or trained-model win is claimed.
 
 ## v0.16.57 — Keep Every Build Alive and Intact
 

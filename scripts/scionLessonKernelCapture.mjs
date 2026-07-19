@@ -243,7 +243,7 @@ async function callReference(messages, model, schema) {
 }
 
 function parseAttempt(result, entry, priorText = '') {
-  const repaired = repairPublicScionJson(result.text);
+  const repaired = repairPublicScionJson(result.text, { userPrompt: entry.userPrompt });
   const merged = priorText ? mergePublicScionKernelAttempts(priorText, repaired.text, entry.userPrompt) : null;
   const text = merged?.text || repaired.text;
   try {
@@ -359,7 +359,7 @@ async function captureCompilerIdentity() {
     campaignPromptPolicy: 'frozen-messages-by-campaign-identity',
     maxAttempts: MAX_ATTEMPTS,
     answerPosition: 'compiler-deterministic-shuffle-after-admission',
-    crossAttemptRetention: 'atomic-groups-only',
+    crossAttemptRetention: 'citation-coupled-assessment-plus-independent-keyterms',
   };
   return {
     policy,

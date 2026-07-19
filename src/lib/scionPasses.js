@@ -15,6 +15,7 @@
 // invalid twice is different: it is repaired or quarantined, never trusted.
 
 import { assessScionKeyTerm, assessScionMcItem } from './scionPreferenceGate.js';
+import { findScionSourceAnswerSupport } from './scionAnswerKeyAlignment.js';
 import { isAppliedQuizStem } from './quality/quizItemDepth.js';
 import { assessTargetLanguagePresence } from './languageIdentityGuard.js';
 
@@ -91,7 +92,10 @@ const MC_ITEM_SCHEMA = {
   additionalProperties: false,
   properties: {
     q: { type: 'string', minLength: 25, maxLength: 300 },
-    op: { type: 'array', items: { type: 'string', minLength: 5, maxLength: 95 }, minItems: 4, maxItems: 4 },
+    // Leave enough grammar headroom for the model to finish a sentence. The
+    // stricter 95-character admission band still rejects verbosity, but the
+    // decoder must not be forced to close a string mid-word at that boundary.
+    op: { type: 'array', items: { type: 'string', minLength: 5, maxLength: 160 }, minItems: 4, maxItems: 4 },
     ai: { type: 'integer', minimum: 0, maximum: 3 },
     fi: {
       type: 'array',
@@ -525,10 +529,19 @@ async function topicGate(lesson, promptLesson, generateJson, events) {
 /**
  * Replace atoms that the canonical admission boundary would otherwise drop.
  * This is a coverage gate, not cosmetic polish: each accepted replacement is
- * contract-clean and independently solved twice before it can occupy a quiz
- * seat or enter the preference corpus.
+ * contract-clean before it can occupy a quiz seat. A genuinely independent
+ * verifier may confirm it twice and create preference evidence. The browser
+ * base model cannot verify itself, so its production path instead requires a
+ * uniquely supported cited-source answer and never creates training evidence.
  */
-async function admissionGate(lesson, promptLesson, generateJson, events, expectedMcCount = 0) {
+async function admissionGate(
+  lesson,
+  promptLesson,
+  generateJson,
+  events,
+  expectedMcCount = 0,
+  { maxRepairs = Number.POSITIVE_INFINITY, verifyRepairsWithSameModel = true } = {},
+) {
   const items = Array.isArray(lesson?.mc) ? lesson.mc : [];
   const topicTokens = topicWords(promptLesson);
   const targets = items
@@ -544,15 +557,21 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
     targets.push({ item: null, index, admission: { eligible: false, issues: ['missing-item'], score: 0 } });
   }
   if (targets.length === 0) return;
-  const indices = targets.map(({ index }) => index);
+  const boundedTargets = targets
+    .sort((left, right) => {
+      if (Boolean(left.item) !== Boolean(right.item)) return left.item ? 1 : -1;
+      return right.admission.issues.length - left.admission.issues.length || left.index - right.index;
+    })
+    .slice(0, Math.max(1, Math.floor(Number(maxRepairs) || 1)));
+  const indices = boundedTargets.map(({ index }) => index);
   const schema = {
     type: 'object',
     additionalProperties: false,
     properties: {
       repairs: {
         type: 'array',
-        minItems: targets.length,
-        maxItems: targets.length,
+        minItems: boundedTargets.length,
+        maxItems: boundedTargets.length,
         items: {
           type: 'object',
           additionalProperties: false,
@@ -567,24 +586,33 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
     required: ['repairs'],
   };
   const system =
-    'You repair or backfill multiple-choice seats that would otherwise be missing after a strict admission gate. Author each complete item from the listed lesson topics; when an original exists, test the same concept at the same cognitive level. Use exactly four parallel, plausible options of 5-80 characters; make one answer uniquely correct; write a complete stem of 50-180 characters and a complete one- or two-sentence explanation of 60-180 characters. Set fi to one or two indexes of the supplied facts that the item tests. Avoid answer cues, meta-language, unsupported inference, ellipses, and trailing fragments. Return only JSON.';
+    'You repair or backfill multiple-choice seats that would otherwise be missing after a strict admission gate. Author each complete item from the listed lesson topics; when an original exists, test the same concept at the same cognitive level. Use exactly four parallel, plausible options. Every option must be one compact 4-10 word proposition of 5-80 characters, never an explanation; put all reasoning in ex. Make one answer uniquely correct. Write a complete stem of 50-180 characters and a complete one- or two-sentence explanation of 60-180 characters. Set fi to one or two indexes of the supplied facts that directly support the keyed option. Avoid answer cues, meta-language, unsupported inference, ellipses, and trailing fragments. Never end an option with a, an, and, as, by, for, from, in, of, on, or, the, to, with, or without. Return only JSON.';
   const user = JSON.stringify({
     lesson: promptLesson || null,
     facts: lesson.facts || [],
-    repairs: targets.map(({ item, index, admission }) => ({ index, issues: admission.issues, item })),
+    repairs: boundedTargets.map(({ item, index, admission }) => ({
+      index,
+      issues: admission.issues,
+      ...(item
+        ? {
+            originalQuestion: item.q ?? item.question ?? '',
+            sourceFactIndexes: item.fi ?? item.sourceFactIndexes ?? [],
+          }
+        : {}),
+    })),
   });
   try {
     const reply = await generateJson({
       system,
       user,
       schemaProfile: { name: 'mc_admission_batch', schema, strict: true },
-      maxOutputTokens: Math.max(1800, targets.length * 650),
+      maxOutputTokens: Math.max(900, boundedTargets.length * 500),
       temperature: 0.4,
     });
     const repairs = JSON.parse(reply)?.repairs;
     if (!Array.isArray(repairs)) return;
     const byIndex = new Map(repairs.map((repair) => [repair?.index, repair]));
-    const candidates = targets
+    const candidates = boundedTargets
       .map(({ item, index, admission: rejectedAdmission }) => {
         const repair = byIndex.get(index);
         if (!repair) {
@@ -616,10 +644,51 @@ async function admissionGate(lesson, promptLesson, generateJson, events, expecte
           });
           return null;
         }
-        return { fresh, item, index, rejectedAdmission };
+        const citedClaims = (Array.isArray(fresh.fi) ? fresh.fi : [])
+          .map((factIndex) => lessonSourceClaims(lesson)[factIndex])
+          .filter(Boolean);
+        const sourceSupport = findScionSourceAnswerSupport(fresh, {
+          sourceClaims: citedClaims,
+          strict: true,
+        });
+        if (!verifyRepairsWithSameModel && (!sourceSupport || sourceSupport.supportedIndex !== Number(fresh.ai))) {
+          events.push({
+            pass: 'admissionGate',
+            lessonId: lesson.lessonId,
+            item: index,
+            action: 'rejected',
+            reason: 'cited-source-does-not-uniquely-confirm-key',
+            draft: fresh,
+          });
+          return null;
+        }
+        return { fresh, item, index, rejectedAdmission, sourceSupport };
       })
       .filter(Boolean);
     if (candidates.length === 0) return;
+    if (!verifyRepairsWithSameModel) {
+      candidates.forEach(({ fresh, item, index, rejectedAdmission, sourceSupport }) => {
+        items[index] = fresh;
+        events.push({
+          pass: 'admissionGate',
+          lessonId: lesson.lessonId,
+          item: index,
+          action: 'regenerated',
+          rejected: item,
+          chosen: fresh,
+          prompt: `System: ${system}\nUser: ${user}`,
+          trainingEligible: false,
+          verification: {
+            kind: 'deterministic-cited-source-admission',
+            rejectedIssues: rejectedAdmission.issues,
+            supportMethod: sourceSupport.supportMethod,
+            supportedIndex: sourceSupport.supportedIndex,
+            relevantSourceClaimIndexes: sourceSupport.relevantSourceClaimIndexes,
+          },
+        });
+      });
+      return;
+    }
     const first = await blindSolve(
       candidates.map(({ fresh }) => fresh),
       generateJson,
@@ -1121,6 +1190,9 @@ export async function applyScionKernelPasses(
     minimumKeyTermCount = 0,
     maxCallsPerLesson = SCION_PASS_CALL_BUDGET_PER_LESSON,
     courseName = '',
+    verifyDraftMcWithSameModel = true,
+    verifyRepairMcWithSameModel = true,
+    maxAdmissionRepairsPerCall = Number.POSITIVE_INFINITY,
   } = {},
 ) {
   let parsed = null;
@@ -1195,9 +1267,22 @@ export async function applyScionKernelPasses(
     await runPass('languageIdentity', () =>
       targetLanguageIdentityGate(lesson, promptLesson, courseName, budgetedGenerateJson, events),
     );
-    await runPass('mcVerify', () => verifyMcAnswers(lesson, promptLesson, budgetedGenerateJson, events));
+    if (verifyDraftMcWithSameModel) {
+      await runPass('mcVerify', () => verifyMcAnswers(lesson, promptLesson, budgetedGenerateJson, events));
+    } else {
+      events.push({
+        pass: 'mcVerify',
+        lessonId: lesson.lessonId,
+        action: 'skipped',
+        reason: 'same-model-solver-is-not-an-independent-verifier',
+        trainingEligible: false,
+      });
+    }
     await runPass('admissionGate', () =>
-      admissionGate(lesson, promptLesson, budgetedGenerateJson, events, expectedMcCount),
+      admissionGate(lesson, promptLesson, budgetedGenerateJson, events, expectedMcCount, {
+        maxRepairs: maxAdmissionRepairsPerCall,
+        verifyRepairsWithSameModel: verifyRepairMcWithSameModel,
+      }),
     );
     await runPass('topicGate', () => topicGate(lesson, promptLesson, budgetedGenerateJson, events));
     await runPass('keyTermAdmission', () =>

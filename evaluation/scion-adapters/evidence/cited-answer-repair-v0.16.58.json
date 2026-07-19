@@ -1,0 +1,981 @@
+{
+  "schemaVersion": 1,
+  "protocol": "scion-source-lineage-cited-answer-repair-replay-v1",
+  "release": "v0.16.58",
+  "generatedAt": "2026-07-19T12:25:00.000Z",
+  "status": "four-source-bound-answer-conflicts-safely-repaired",
+  "evidence": {
+    "campaign": {
+      "path": "evaluation/scion-adapters/lesson-kernel-campaign-v0.16.56.json",
+      "bytes": 1800675,
+      "sha256": "e84db09484a6611c582543be1d5ffba58815bc9b78e9f72f212a3c3a4a880818"
+    },
+    "localReplay": {
+      "path": "evaluation/scion-adapters/evidence/lesson-kernel-expansion-v0.16.57/local-admission-replay.json",
+      "bytes": 116292,
+      "sha256": "8c6e20764d8a8e7a48dde41118315d0d2d05d957201aeb6df3b6d2968193dd6c"
+    },
+    "referenceReplay": {
+      "path": "evaluation/scion-adapters/evidence/lesson-kernel-expansion-v0.16.57/reference-admission-replay.json",
+      "bytes": 87892,
+      "sha256": "dd942458b09d91bb4b07274e692964c79953470a793e1429bfe89d9fffdcfdae"
+    },
+    "implementation": [
+      {
+        "path": "src/lib/scionAnswerKeyAlignment.js",
+        "bytes": 44285,
+        "sha256": "063b473e4cdac3ba4ded1e82bedecbd4b44ed4ca52141b02f4f05681c017732f"
+      },
+      {
+        "path": "src/lib/publicScionProvider.js",
+        "bytes": 64884,
+        "sha256": "4e8f52906331b516a18548622d30b9ebc5aa80b70ce8da736350f9f05352bb8b"
+      },
+      {
+        "path": "src/lib/scionLocalProvider.js",
+        "bytes": 10160,
+        "sha256": "224393575ee4bdfe4326bcb67f3ee719e21426ab96d06dc495de60df1dbd367f"
+      }
+    ]
+  },
+  "local": {
+    "arm": "local-base",
+    "calls": [
+      {
+        "caseId": "scion-kernel-008bab43da5c7cb7977b1891",
+        "caseSha256": "008bab43da5c7cb7977b1891d1d471f722f185114c0e774c8a65431294537b97",
+        "domain": "user-experience-design",
+        "artifactBeforeSha256": "45a4b476659fc45103361b6e4d6f60bd6b50ef161f7415759e8d478a4e49b069",
+        "artifactAfterSha256": "45a4b476659fc45103361b6e4d6f60bd6b50ef161f7415759e8d478a4e49b069",
+        "sourcePromptSha256": "82a40308e440d048e6f7f8f0369b3e0a81e45cbfb1277ea6540a661fefa8f291",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-1:key-term-0:example-repeats-definition",
+            "lesson-1:key-term-0:correction-repeats-definition",
+            "lesson-1:key-term-0:correction-repeats-example",
+            "lesson-1:key-term-1:example-repeats-definition",
+            "lesson-1:key-term-1:correction-repeats-definition",
+            "lesson-1:key-term-1:correction-repeats-example",
+            "lesson-1:key-term-2:example-repeats-definition",
+            "lesson-1:key-term-2:correction-repeats-definition",
+            "lesson-1:key-term-2:correction-repeats-example",
+            "lesson-1:scenario:scenario-missing-evidence-packet",
+            "lesson-1:mc-0:absolute-option"
+          ],
+          "beforeIssues": [
+            "lesson-1:key-term-0:example-repeats-definition",
+            "lesson-1:key-term-0:correction-repeats-definition",
+            "lesson-1:key-term-0:correction-repeats-example",
+            "lesson-1:key-term-1:example-repeats-definition",
+            "lesson-1:key-term-1:correction-repeats-definition",
+            "lesson-1:key-term-1:correction-repeats-example",
+            "lesson-1:key-term-2:example-repeats-definition",
+            "lesson-1:key-term-2:correction-repeats-definition",
+            "lesson-1:key-term-2:correction-repeats-example",
+            "lesson-1:scenario:scenario-missing-evidence-packet",
+            "lesson-1:mc-0:option-length",
+            "lesson-1:mc-0:absolute-option",
+            "lesson-1:mc-1:option-length"
+          ],
+          "afterIssues": [
+            "lesson-1:key-term-0:example-repeats-definition",
+            "lesson-1:key-term-0:correction-repeats-definition",
+            "lesson-1:key-term-0:correction-repeats-example",
+            "lesson-1:key-term-1:example-repeats-definition",
+            "lesson-1:key-term-1:correction-repeats-definition",
+            "lesson-1:key-term-1:correction-repeats-example",
+            "lesson-1:key-term-2:example-repeats-definition",
+            "lesson-1:key-term-2:correction-repeats-definition",
+            "lesson-1:key-term-2:correction-repeats-example",
+            "lesson-1:scenario:scenario-missing-evidence-packet",
+            "lesson-1:mc-0:option-length",
+            "lesson-1:mc-0:absolute-option",
+            "lesson-1:mc-1:option-length"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": [
+            "lesson-1:mc-0:option-length",
+            "lesson-1:mc-1:option-length"
+          ]
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-027513236e6245031d2ac0f2",
+        "caseSha256": "027513236e6245031d2ac0f2d0a86d80081f10e8ae0c3e3a79784d7260429e0a",
+        "domain": "physics",
+        "artifactBeforeSha256": "8ebf95e9f8841b1f49d3f522faf028c373ea14ebab9787b2a5084331e86babe2",
+        "artifactAfterSha256": "8ebf95e9f8841b1f49d3f522faf028c373ea14ebab9787b2a5084331e86babe2",
+        "sourcePromptSha256": "47f4bcaedeabbddb7bf2434b9c6ab081a9c3d974f6e3fba1e6a31309d09be69a",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-4:duplicate-facts",
+            "lesson-4:key-term-2:correction-repeats-misconception",
+            "lesson-4:mc-0:explanation-key-conflict",
+            "lesson-4:mc-1:explanation-key-conflict"
+          ],
+          "beforeIssues": [
+            "lesson-4:duplicate-facts",
+            "lesson-4:key-term-2:correction-repeats-misconception",
+            "lesson-4:mc-0:explanation-key-conflict",
+            "lesson-4:mc-1:explanation-key-conflict"
+          ],
+          "afterIssues": [
+            "lesson-4:duplicate-facts",
+            "lesson-4:key-term-2:correction-repeats-misconception",
+            "lesson-4:mc-0:explanation-key-conflict",
+            "lesson-4:mc-1:explanation-key-conflict"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-304d938d19d4b55acfed37dc",
+        "caseSha256": "304d938d19d4b55acfed37dc618589c5fca97e9ff9b79776fdc3967c23a6a0ce",
+        "domain": "user-experience-design",
+        "artifactBeforeSha256": "2dd5ae45046cf44ac9821842abde67557baf7bcd15c1c67bca4d2f5d2593922a",
+        "artifactAfterSha256": "2dd5ae45046cf44ac9821842abde67557baf7bcd15c1c67bca4d2f5d2593922a",
+        "sourcePromptSha256": "9918d6d1d61586e44f9614b15a4f6ac1961c2a70a3ede339e2f968c3d0849b03",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [],
+          "afterIssues": [],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-3c7d751e58b0007e18cd5b80",
+        "caseSha256": "3c7d751e58b0007e18cd5b809e37cf798afa3f44ebc1810969f364e5fe8b7619",
+        "domain": "anatomy",
+        "artifactBeforeSha256": "12586aae1506fc5c42eee493eeb0425a6ba95187c236aacfa568503bac279f5f",
+        "artifactAfterSha256": "12586aae1506fc5c42eee493eeb0425a6ba95187c236aacfa568503bac279f5f",
+        "sourcePromptSha256": "20ea4403fba5ca5afb86c6aae893c6397d75c65514269a9fa63ce49cfbeb955f",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-2:fact-0:fact-length",
+            "lesson-2:scenario:scenario-missing-decision",
+            "lesson-2:scenario:scenario-missing-tension",
+            "lesson-2:scenario:source-unsupported-quantity"
+          ],
+          "beforeIssues": [
+            "lesson-2:fact-0:fact-length",
+            "lesson-2:scenario:scenario-missing-decision",
+            "lesson-2:scenario:scenario-missing-tension",
+            "lesson-2:scenario:source-unsupported-quantity"
+          ],
+          "afterIssues": [
+            "lesson-2:fact-0:fact-length",
+            "lesson-2:scenario:scenario-missing-decision",
+            "lesson-2:scenario:scenario-missing-tension",
+            "lesson-2:scenario:source-unsupported-quantity"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-4df3ce51c565d84bb8930764",
+        "caseSha256": "4df3ce51c565d84bb8930764053a4ca72418eb9df0d4d5372da209f09e69ad1a",
+        "domain": "computer-science",
+        "artifactBeforeSha256": "5bb26661ff16e3ec302f24f0629ced457ca7e9d4cf5f10f58561bb4eca41b526",
+        "artifactAfterSha256": "0bb5a630c178453e9504f7d5bc2c0bda149f1f01174540298efe6a269fcf1846",
+        "sourcePromptSha256": "72cfd17d45f75b16aae81653f9c8d7888c9371585d95244c7bcac55b5cff7721",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-4:fact-4:truncated-fact",
+            "lesson-4:mc-0:stem-length",
+            "lesson-4:mc-1:explanation-key-conflict"
+          ],
+          "beforeIssues": [
+            "lesson-4:fact-4:truncated-fact",
+            "lesson-4:mc-0:stem-length",
+            "lesson-4:mc-0:option-length",
+            "lesson-4:mc-1:option-length",
+            "lesson-4:mc-1:explanation-key-conflict"
+          ],
+          "afterIssues": [
+            "lesson-4:fact-4:truncated-fact",
+            "lesson-4:mc-0:stem-length",
+            "lesson-4:mc-0:option-length",
+            "lesson-4:mc-1:option-length"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [
+            "lesson-4:mc-1:explanation-key-conflict"
+          ],
+          "newlyDetectedBaselineIssues": [
+            "lesson-4:mc-0:option-length",
+            "lesson-4:mc-1:option-length"
+          ]
+        },
+        "repairs": [
+          {
+            "item": 1,
+            "declaredIndex": 0,
+            "supportedIndex": 1,
+            "sourceAlignmentProfile": "strict-cited-source",
+            "citedFactSha256": [
+              "6bd24b29c48ee972a74f61ba35d91b8965280267695a79fa4b944ca484b37c0f"
+            ],
+            "sourceContextSha256": "2bdcb8342cdabac47634eff422c605bbeea7cf90a587a8755503c5383bd765f5",
+            "onlyAnswerIndexChanged": true,
+            "trainingEligible": false
+          }
+        ],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-560fc51a1b084a9a84a854e1",
+        "caseSha256": "560fc51a1b084a9a84a854e18749face33d7230604b265632b01dceb7d873210",
+        "domain": "computer-science",
+        "artifactBeforeSha256": "f1a15058cd3c40535db45825494149230af3d7dd4940a904753cfc9373d28953",
+        "artifactAfterSha256": "f1a15058cd3c40535db45825494149230af3d7dd4940a904753cfc9373d28953",
+        "sourcePromptSha256": "8ebab7bca0ff331b18091c3ce1f43752b80c96063da67e1ddc8e549489e78559",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-6:facts-count:1/5",
+            "lesson-6:key-terms-count:0/3",
+            "lesson-6:scenario:scenario-missing-evidence-packet",
+            "lesson-6:mc-count:0/2"
+          ],
+          "beforeIssues": [
+            "lesson-6:facts-count:1/5",
+            "lesson-6:key-terms-count:0/3",
+            "lesson-6:scenario:scenario-missing-evidence-packet",
+            "lesson-6:mc-count:0/2"
+          ],
+          "afterIssues": [
+            "lesson-6:facts-count:1/5",
+            "lesson-6:key-terms-count:0/3",
+            "lesson-6:scenario:scenario-missing-evidence-packet",
+            "lesson-6:mc-count:0/2"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-57b7148eae73e0ce43d21a78",
+        "caseSha256": "57b7148eae73e0ce43d21a784315fac8eeb1b3d7531e7c54a8b31a7c3967aeb5",
+        "domain": "geology",
+        "artifactBeforeSha256": "009a5886ead00d2758838799d855df0f79c8dbb3e5b77a6235c52071e2f8b8aa",
+        "artifactAfterSha256": "28b56e25644b8799e0343365b153942cbcb2c3d8ffea952375b4c9c57d359d66",
+        "sourcePromptSha256": "9ea11b342fbfe3bb74ddbc9710b9e0ee9e904b72760124046074f5c23a2e1d7e",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-6:duplicate-facts",
+            "lesson-6:key-term-2:correction-repeats-definition",
+            "lesson-6:mc-1:absolute-option",
+            "lesson-6:mc-1:explanation-key-conflict"
+          ],
+          "beforeIssues": [
+            "lesson-6:duplicate-facts",
+            "lesson-6:key-term-2:correction-repeats-definition",
+            "lesson-6:mc-1:option-length",
+            "lesson-6:mc-1:absolute-option",
+            "lesson-6:mc-1:explanation-key-conflict"
+          ],
+          "afterIssues": [
+            "lesson-6:duplicate-facts",
+            "lesson-6:key-term-2:correction-repeats-definition",
+            "lesson-6:mc-1:option-length",
+            "lesson-6:mc-1:absolute-option"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [
+            "lesson-6:mc-1:explanation-key-conflict"
+          ],
+          "newlyDetectedBaselineIssues": [
+            "lesson-6:mc-1:option-length"
+          ]
+        },
+        "repairs": [
+          {
+            "item": 1,
+            "declaredIndex": 0,
+            "supportedIndex": 1,
+            "sourceAlignmentProfile": "strict-cited-source",
+            "citedFactSha256": [
+              "842478dd8052eca6eab009eb776fc9d3dbdafc434165eece85bf83e4ce5921ba"
+            ],
+            "sourceContextSha256": "939d9ca6f5316a34fc05843cc19b3240b0b6a8f68607f0b4adaf1b5f58ec25d2",
+            "onlyAnswerIndexChanged": true,
+            "trainingEligible": false
+          }
+        ],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-5927960b1d8e077b7f49f8d4",
+        "caseSha256": "5927960b1d8e077b7f49f8d4842db1aa6bafed45141c29c936a5b980ff5943b5",
+        "domain": "physics",
+        "artifactBeforeSha256": "2626885b4508ad125321d097fd9cff440c440b27e206a7d4a101dee7db8395c8",
+        "artifactAfterSha256": "2626885b4508ad125321d097fd9cff440c440b27e206a7d4a101dee7db8395c8",
+        "sourcePromptSha256": "76806a23948325cbe02ae8a65ded8b455e4ebc56b1ef4d87cb8311c378d23e00",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-3:duplicate-facts",
+            "lesson-3:scenario:scenario-missing-evidence-packet",
+            "lesson-3:mc-1:absolute-option",
+            "lesson-3:mc-1:explanation-key-conflict"
+          ],
+          "beforeIssues": [
+            "lesson-3:duplicate-facts",
+            "lesson-3:scenario:scenario-missing-evidence-packet",
+            "lesson-3:mc-1:absolute-option",
+            "lesson-3:mc-1:explanation-key-conflict"
+          ],
+          "afterIssues": [
+            "lesson-3:duplicate-facts",
+            "lesson-3:scenario:scenario-missing-evidence-packet",
+            "lesson-3:mc-1:absolute-option",
+            "lesson-3:mc-1:explanation-key-conflict"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-60e90ca7ff0ef53a48cde334",
+        "caseSha256": "60e90ca7ff0ef53a48cde334aa32ba692282c55c2ef2446a9de4907633380b12",
+        "domain": "geology",
+        "artifactBeforeSha256": "980c17acc0e724a2539fe67ae9dc9e053163cdaa8af980c2ff6cc50c778d194c",
+        "artifactAfterSha256": "980c17acc0e724a2539fe67ae9dc9e053163cdaa8af980c2ff6cc50c778d194c",
+        "sourcePromptSha256": "4ea7a49ae0ec6b8f0abd99bf84e24371f995fdcb3c62cccb5110e4fd3785572e",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-2:key-term-0:correction-repeats-definition",
+            "lesson-2:key-term-1:correction-repeats-definition",
+            "lesson-2:key-term-2:term-not-source-anchored",
+            "lesson-2:mc-0:stem-length",
+            "lesson-2:mc-1:duplicate-options"
+          ],
+          "beforeIssues": [
+            "lesson-2:key-term-0:correction-repeats-definition",
+            "lesson-2:key-term-1:correction-repeats-definition",
+            "lesson-2:key-term-2:term-not-source-anchored",
+            "lesson-2:mc-0:stem-length",
+            "lesson-2:mc-0:option-length",
+            "lesson-2:mc-1:option-length",
+            "lesson-2:mc-1:duplicate-options"
+          ],
+          "afterIssues": [
+            "lesson-2:key-term-0:correction-repeats-definition",
+            "lesson-2:key-term-1:correction-repeats-definition",
+            "lesson-2:key-term-2:term-not-source-anchored",
+            "lesson-2:mc-0:stem-length",
+            "lesson-2:mc-0:option-length",
+            "lesson-2:mc-1:option-length",
+            "lesson-2:mc-1:duplicate-options"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": [
+            "lesson-2:mc-0:option-length",
+            "lesson-2:mc-1:option-length"
+          ]
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-6a7eb3984551193f5fa9199b",
+        "caseSha256": "6a7eb3984551193f5fa9199b774f8f6be74200796568e4fd40bf75fde1eddbe9",
+        "domain": "anatomy",
+        "artifactBeforeSha256": "d2d66957c074be4dda494af05fba4d1d2aadb6d26e4b718193192942ee855d6e",
+        "artifactAfterSha256": "d2d66957c074be4dda494af05fba4d1d2aadb6d26e4b718193192942ee855d6e",
+        "sourcePromptSha256": "75a15b65b1bcce9c95c26884222faa9e8c03cc4641cc95b726313236bbbb5265",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-5:facts-count:1/5",
+            "lesson-5:key-terms-count:0/3",
+            "lesson-5:scenario:scenario-missing",
+            "lesson-5:scenario:scenario-missing-decision",
+            "lesson-5:scenario:scenario-missing-evidence-packet",
+            "lesson-5:scenario:scenario-missing-tension",
+            "lesson-5:scenario:scenario-materials-not-concrete",
+            "lesson-5:mc-count:0/2"
+          ],
+          "beforeIssues": [
+            "lesson-5:facts-count:1/5",
+            "lesson-5:key-terms-count:0/3",
+            "lesson-5:scenario:scenario-missing",
+            "lesson-5:scenario:scenario-missing-decision",
+            "lesson-5:scenario:scenario-missing-evidence-packet",
+            "lesson-5:scenario:scenario-missing-tension",
+            "lesson-5:scenario:scenario-materials-not-concrete",
+            "lesson-5:mc-count:0/2"
+          ],
+          "afterIssues": [
+            "lesson-5:facts-count:1/5",
+            "lesson-5:key-terms-count:0/3",
+            "lesson-5:scenario:scenario-missing",
+            "lesson-5:scenario:scenario-missing-decision",
+            "lesson-5:scenario:scenario-missing-evidence-packet",
+            "lesson-5:scenario:scenario-missing-tension",
+            "lesson-5:scenario:scenario-materials-not-concrete",
+            "lesson-5:mc-count:0/2"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-ae909cd60605841ba0aa3ff6",
+        "caseSha256": "ae909cd60605841ba0aa3ff6b58a09cb23eb17207a881a1a6dcdf758fcdb090c",
+        "domain": "economics",
+        "artifactBeforeSha256": "db7bfb73a3ba897c7f151796b0a671a2170ce023aa9afed077a480dcec4c0836",
+        "artifactAfterSha256": "db7bfb73a3ba897c7f151796b0a671a2170ce023aa9afed077a480dcec4c0836",
+        "sourcePromptSha256": "d09ec5b00c399ea54f00f41343d43b6a6e85a42cc0ade97143d817def37466cc",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-1:key-term-1:correction-repeats-definition",
+            "lesson-1:key-term-2:correction-repeats-definition",
+            "lesson-1:mc-0:stem-length",
+            "lesson-1:mc-1:stem-length",
+            "lesson-1:mc-1:duplicate-options"
+          ],
+          "beforeIssues": [
+            "lesson-1:key-term-1:correction-repeats-definition",
+            "lesson-1:key-term-2:correction-repeats-definition",
+            "lesson-1:mc-0:stem-length",
+            "lesson-1:mc-1:stem-length",
+            "lesson-1:mc-1:duplicate-options"
+          ],
+          "afterIssues": [
+            "lesson-1:key-term-1:correction-repeats-definition",
+            "lesson-1:key-term-2:correction-repeats-definition",
+            "lesson-1:mc-0:stem-length",
+            "lesson-1:mc-1:stem-length",
+            "lesson-1:mc-1:duplicate-options"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-b279df5c81b1997d1067aa07",
+        "caseSha256": "b279df5c81b1997d1067aa07e9493c5b5bfe856ac7faf3f30b5e107b39075dcf",
+        "domain": "economics",
+        "artifactBeforeSha256": "4eaa101c7f99029c0bf790ba6c577ea94713ba8ce1c7c3a02e1893ae7129fc3c",
+        "artifactAfterSha256": "afc768a81e0c0e93e5501e40f19136fbbcf1d52a79dce6b98f87a87dc1c19e35",
+        "sourcePromptSha256": "aea12aaa599baa3244ad7f8cd13d8ac09497d721192af430ccca9e0a5b7f7006",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-1:key-term-1:correction-repeats-example",
+            "lesson-1:key-term-2:correction-repeats-example",
+            "lesson-1:scenario:scenario-missing-evidence-packet",
+            "lesson-1:mc-0:stem-length",
+            "lesson-1:mc-0:explanation-key-conflict",
+            "lesson-1:mc-1:explanation-key-conflict"
+          ],
+          "beforeIssues": [
+            "lesson-1:key-term-1:correction-repeats-example",
+            "lesson-1:key-term-2:correction-repeats-example",
+            "lesson-1:scenario:scenario-missing-evidence-packet",
+            "lesson-1:mc-0:stem-length",
+            "lesson-1:mc-0:explanation-key-conflict",
+            "lesson-1:mc-1:option-length",
+            "lesson-1:mc-1:explanation-key-conflict"
+          ],
+          "afterIssues": [
+            "lesson-1:key-term-1:correction-repeats-example",
+            "lesson-1:key-term-2:correction-repeats-example",
+            "lesson-1:scenario:scenario-missing-evidence-packet",
+            "lesson-1:mc-0:stem-length",
+            "lesson-1:mc-1:option-length",
+            "lesson-1:mc-1:explanation-key-conflict"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [
+            "lesson-1:mc-0:explanation-key-conflict"
+          ],
+          "newlyDetectedBaselineIssues": [
+            "lesson-1:mc-1:option-length"
+          ]
+        },
+        "repairs": [
+          {
+            "item": 0,
+            "declaredIndex": 0,
+            "supportedIndex": 1,
+            "sourceAlignmentProfile": "strict-cited-source",
+            "citedFactSha256": [
+              "e8bcb093959393bca1ad66c9b1d0d20287a0bf68f178ea30b9f4eb07c116ecfc"
+            ],
+            "sourceContextSha256": "21f78b991be661ff89ef0c7829a44226aaec02ec5b660ed2c270329ffd7bac64",
+            "onlyAnswerIndexChanged": true,
+            "trainingEligible": false
+          }
+        ],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-d05624dbac577d9395ba4c43",
+        "caseSha256": "d05624dbac577d9395ba4c438c59d014afcc8e1781a4995c260fce6f953fa172",
+        "domain": "music-theory",
+        "artifactBeforeSha256": "902cba8ba96e878d075233bfdf01703bde4c94ea206d2907c3605cbb9c25e09b",
+        "artifactAfterSha256": "902cba8ba96e878d075233bfdf01703bde4c94ea206d2907c3605cbb9c25e09b",
+        "sourcePromptSha256": "8ee3b871b26c703cbc8c56e7ffea990dedc8dac8aea951ac6ac9dd1a3fd0dfc4",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-6:facts-count:1/5",
+            "lesson-6:key-terms-count:0/3",
+            "lesson-6:scenario:scenario-missing-evidence-packet",
+            "lesson-6:mc-count:0/2"
+          ],
+          "beforeIssues": [
+            "lesson-6:facts-count:1/5",
+            "lesson-6:key-terms-count:0/3",
+            "lesson-6:scenario:scenario-missing-evidence-packet",
+            "lesson-6:mc-count:0/2"
+          ],
+          "afterIssues": [
+            "lesson-6:facts-count:1/5",
+            "lesson-6:key-terms-count:0/3",
+            "lesson-6:scenario:scenario-missing-evidence-packet",
+            "lesson-6:mc-count:0/2"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-e0d838f04c63f6ab675e76f9",
+        "caseSha256": "e0d838f04c63f6ab675e76f981ade02d033926eafe0fef2844c44282e1c6bc55",
+        "domain": "music-theory",
+        "artifactBeforeSha256": "281d11b4fbe2492c68feb948596526e3c7ac90d06929ccda9cb40be9ec491f6b",
+        "artifactAfterSha256": "1322ddbd6acbe36648388554b27a02a674a9502d458f4675f33ad00bc70dc210",
+        "sourcePromptSha256": "95cf366740cea659efce1d5e0e42170780cbba0ea3260909a70dacc7bcc50657",
+        "admission": {
+          "historicalBeforeIssues": [
+            "lesson-2:fact-0:fact-length",
+            "lesson-2:key-term-1:example-repeats-definition",
+            "lesson-2:key-term-1:correction-repeats-definition",
+            "lesson-2:key-term-1:correction-repeats-example",
+            "lesson-2:key-term-2:example-repeats-definition",
+            "lesson-2:key-term-2:correction-repeats-definition",
+            "lesson-2:key-term-2:correction-repeats-example",
+            "lesson-2:mc-0:explanation-key-conflict"
+          ],
+          "beforeIssues": [
+            "lesson-2:fact-0:fact-length",
+            "lesson-2:key-term-1:example-repeats-definition",
+            "lesson-2:key-term-1:correction-repeats-definition",
+            "lesson-2:key-term-1:correction-repeats-example",
+            "lesson-2:key-term-2:example-repeats-definition",
+            "lesson-2:key-term-2:correction-repeats-definition",
+            "lesson-2:key-term-2:correction-repeats-example",
+            "lesson-2:mc-0:explanation-key-conflict"
+          ],
+          "afterIssues": [
+            "lesson-2:fact-0:fact-length",
+            "lesson-2:key-term-1:example-repeats-definition",
+            "lesson-2:key-term-1:correction-repeats-definition",
+            "lesson-2:key-term-1:correction-repeats-example",
+            "lesson-2:key-term-2:example-repeats-definition",
+            "lesson-2:key-term-2:correction-repeats-definition",
+            "lesson-2:key-term-2:correction-repeats-example"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [
+            "lesson-2:mc-0:explanation-key-conflict"
+          ],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [
+          {
+            "item": 0,
+            "declaredIndex": 0,
+            "supportedIndex": 1,
+            "sourceAlignmentProfile": "strict-cited-source",
+            "citedFactSha256": [
+              "3f3f403d0bb058ac7a5585ba9a65674f786eca36eda49c28f29bb8715849a98c"
+            ],
+            "sourceContextSha256": "93f1967ab8d9ef573ce845e9bd5ffd6778ae95c548d7171dbd6902c7d869a8fa",
+            "onlyAnswerIndexChanged": true,
+            "trainingEligible": false
+          }
+        ],
+        "onlyAnswerIndexesChanged": true
+      }
+    ],
+    "summary": {
+      "cases": 14,
+      "admittedHistoricalBefore": 1,
+      "admittedBefore": 1,
+      "admittedAfter": 1,
+      "issueInstancesHistoricalBefore": 70,
+      "issueInstancesBefore": 78,
+      "issueInstancesAfter": 74,
+      "answerFeedbackConflictsHistoricalBefore": 8,
+      "answerFeedbackConflictsBefore": 8,
+      "answerFeedbackConflictsAfter": 4,
+      "answerIndexesRepaired": 4,
+      "introducedIssues": 0,
+      "newlyDetectedBaselineIssues": 8,
+      "nonAnswerMutations": 0,
+      "trainingRowsCreated": 0
+    }
+  },
+  "reference": {
+    "arm": "paid-reference",
+    "calls": [
+      {
+        "caseId": "scion-kernel-008bab43da5c7cb7977b1891",
+        "caseSha256": "008bab43da5c7cb7977b1891d1d471f722f185114c0e774c8a65431294537b97",
+        "domain": "user-experience-design",
+        "artifactBeforeSha256": "b3dde0adc207b4556539f4beda0a91ea0b5f4863f08cf7a4c37e1f31178ad8a7",
+        "artifactAfterSha256": "b3dde0adc207b4556539f4beda0a91ea0b5f4863f08cf7a4c37e1f31178ad8a7",
+        "sourcePromptSha256": "82a40308e440d048e6f7f8f0369b3e0a81e45cbfb1277ea6540a661fefa8f291",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [
+            "lesson-1:mc-0:option-length"
+          ],
+          "afterIssues": [
+            "lesson-1:mc-0:option-length"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": [
+            "lesson-1:mc-0:option-length"
+          ]
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-027513236e6245031d2ac0f2",
+        "caseSha256": "027513236e6245031d2ac0f2d0a86d80081f10e8ae0c3e3a79784d7260429e0a",
+        "domain": "physics",
+        "artifactBeforeSha256": "ee1e1d23294b3ca8f25a85e623c3bc0a944264a10ca098245f31374e3f550b2a",
+        "artifactAfterSha256": "ee1e1d23294b3ca8f25a85e623c3bc0a944264a10ca098245f31374e3f550b2a",
+        "sourcePromptSha256": "47f4bcaedeabbddb7bf2434b9c6ab081a9c3d974f6e3fba1e6a31309d09be69a",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [
+            "lesson-4:mc-0:option-length"
+          ],
+          "afterIssues": [
+            "lesson-4:mc-0:option-length"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": [
+            "lesson-4:mc-0:option-length"
+          ]
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-304d938d19d4b55acfed37dc",
+        "caseSha256": "304d938d19d4b55acfed37dc618589c5fca97e9ff9b79776fdc3967c23a6a0ce",
+        "domain": "user-experience-design",
+        "artifactBeforeSha256": "95576d52079f04731219500e113754d925180a585a769f47f728f5aab2dc1d43",
+        "artifactAfterSha256": "95576d52079f04731219500e113754d925180a585a769f47f728f5aab2dc1d43",
+        "sourcePromptSha256": "9918d6d1d61586e44f9614b15a4f6ac1961c2a70a3ede339e2f968c3d0849b03",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [
+            "lesson-1:mc-0:option-length"
+          ],
+          "afterIssues": [
+            "lesson-1:mc-0:option-length"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": [
+            "lesson-1:mc-0:option-length"
+          ]
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-3c7d751e58b0007e18cd5b80",
+        "caseSha256": "3c7d751e58b0007e18cd5b809e37cf798afa3f44ebc1810969f364e5fe8b7619",
+        "domain": "anatomy",
+        "artifactBeforeSha256": "9837336bcbd28b39e277fb44977cdbfed7b9b9c390ddd6e61141d426a5bab9f3",
+        "artifactAfterSha256": "9837336bcbd28b39e277fb44977cdbfed7b9b9c390ddd6e61141d426a5bab9f3",
+        "sourcePromptSha256": "20ea4403fba5ca5afb86c6aae893c6397d75c65514269a9fa63ce49cfbeb955f",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [
+            "lesson-2:mc-0:option-length"
+          ],
+          "afterIssues": [
+            "lesson-2:mc-0:option-length"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": [
+            "lesson-2:mc-0:option-length"
+          ]
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-4df3ce51c565d84bb8930764",
+        "caseSha256": "4df3ce51c565d84bb8930764053a4ca72418eb9df0d4d5372da209f09e69ad1a",
+        "domain": "computer-science",
+        "artifactBeforeSha256": "ab2c5070ee96e6d71f8129f6aaf0c8748d8cb4f1286a07616539a26466c2cea7",
+        "artifactAfterSha256": "ab2c5070ee96e6d71f8129f6aaf0c8748d8cb4f1286a07616539a26466c2cea7",
+        "sourcePromptSha256": "72cfd17d45f75b16aae81653f9c8d7888c9371585d95244c7bcac55b5cff7721",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [],
+          "afterIssues": [],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-560fc51a1b084a9a84a854e1",
+        "caseSha256": "560fc51a1b084a9a84a854e18749face33d7230604b265632b01dceb7d873210",
+        "domain": "computer-science",
+        "artifactBeforeSha256": "2d63e2d9b9c550a72d5acd6828ccddf1ec7eefe12608f92bb5e56e690b49c491",
+        "artifactAfterSha256": "2d63e2d9b9c550a72d5acd6828ccddf1ec7eefe12608f92bb5e56e690b49c491",
+        "sourcePromptSha256": "8ebab7bca0ff331b18091c3ce1f43752b80c96063da67e1ddc8e549489e78559",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [],
+          "afterIssues": [],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-57b7148eae73e0ce43d21a78",
+        "caseSha256": "57b7148eae73e0ce43d21a784315fac8eeb1b3d7531e7c54a8b31a7c3967aeb5",
+        "domain": "geology",
+        "artifactBeforeSha256": "529c95513f89a042041ac4229cfc69e5555910dc3ae793cca724bf205bc386d5",
+        "artifactAfterSha256": "529c95513f89a042041ac4229cfc69e5555910dc3ae793cca724bf205bc386d5",
+        "sourcePromptSha256": "9ea11b342fbfe3bb74ddbc9710b9e0ee9e904b72760124046074f5c23a2e1d7e",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [
+            "lesson-6:mc-0:option-length"
+          ],
+          "afterIssues": [
+            "lesson-6:mc-0:option-length"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": [
+            "lesson-6:mc-0:option-length"
+          ]
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-5927960b1d8e077b7f49f8d4",
+        "caseSha256": "5927960b1d8e077b7f49f8d4842db1aa6bafed45141c29c936a5b980ff5943b5",
+        "domain": "physics",
+        "artifactBeforeSha256": "06ac205542b0c98ed24b9890e0d8091ec17417d0110c66b30d7b3b44bcf3b079",
+        "artifactAfterSha256": "06ac205542b0c98ed24b9890e0d8091ec17417d0110c66b30d7b3b44bcf3b079",
+        "sourcePromptSha256": "76806a23948325cbe02ae8a65ded8b455e4ebc56b1ef4d87cb8311c378d23e00",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [],
+          "afterIssues": [],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-60e90ca7ff0ef53a48cde334",
+        "caseSha256": "60e90ca7ff0ef53a48cde334aa32ba692282c55c2ef2446a9de4907633380b12",
+        "domain": "geology",
+        "artifactBeforeSha256": "6d4ae025376cd812ba129961d7d19e94267da973f680e709aaf46b93c35b147e",
+        "artifactAfterSha256": "6d4ae025376cd812ba129961d7d19e94267da973f680e709aaf46b93c35b147e",
+        "sourcePromptSha256": "4ea7a49ae0ec6b8f0abd99bf84e24371f995fdcb3c62cccb5110e4fd3785572e",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [],
+          "afterIssues": [],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-6a7eb3984551193f5fa9199b",
+        "caseSha256": "6a7eb3984551193f5fa9199b774f8f6be74200796568e4fd40bf75fde1eddbe9",
+        "domain": "anatomy",
+        "artifactBeforeSha256": "7c90b1fb5a8fb45da65509dbcfe2ef0f316883a489eb5def9d7e200f134fa1ba",
+        "artifactAfterSha256": "7c90b1fb5a8fb45da65509dbcfe2ef0f316883a489eb5def9d7e200f134fa1ba",
+        "sourcePromptSha256": "75a15b65b1bcce9c95c26884222faa9e8c03cc4641cc95b726313236bbbb5265",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [
+            "lesson-5:mc-1:option-length"
+          ],
+          "afterIssues": [
+            "lesson-5:mc-1:option-length"
+          ],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": [
+            "lesson-5:mc-1:option-length"
+          ]
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-ae909cd60605841ba0aa3ff6",
+        "caseSha256": "ae909cd60605841ba0aa3ff6b58a09cb23eb17207a881a1a6dcdf758fcdb090c",
+        "domain": "economics",
+        "artifactBeforeSha256": "ff039bbbd00093df484a2330956a4aee1cf28ba14e42f1b040de4f1d317125fe",
+        "artifactAfterSha256": "ff039bbbd00093df484a2330956a4aee1cf28ba14e42f1b040de4f1d317125fe",
+        "sourcePromptSha256": "d09ec5b00c399ea54f00f41343d43b6a6e85a42cc0ade97143d817def37466cc",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [],
+          "afterIssues": [],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-b279df5c81b1997d1067aa07",
+        "caseSha256": "b279df5c81b1997d1067aa07e9493c5b5bfe856ac7faf3f30b5e107b39075dcf",
+        "domain": "economics",
+        "artifactBeforeSha256": "e44e44b8ef1f9fe431ce0826000a45b03ae1b5835cfaf7869ec734714ca2f7e7",
+        "artifactAfterSha256": "e44e44b8ef1f9fe431ce0826000a45b03ae1b5835cfaf7869ec734714ca2f7e7",
+        "sourcePromptSha256": "aea12aaa599baa3244ad7f8cd13d8ac09497d721192af430ccca9e0a5b7f7006",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [],
+          "afterIssues": [],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-d05624dbac577d9395ba4c43",
+        "caseSha256": "d05624dbac577d9395ba4c438c59d014afcc8e1781a4995c260fce6f953fa172",
+        "domain": "music-theory",
+        "artifactBeforeSha256": "c1991ec21021500a612b2cf84cabd01353ed34ca55780ac1e2d24716b7abf6dc",
+        "artifactAfterSha256": "c1991ec21021500a612b2cf84cabd01353ed34ca55780ac1e2d24716b7abf6dc",
+        "sourcePromptSha256": "8ee3b871b26c703cbc8c56e7ffea990dedc8dac8aea951ac6ac9dd1a3fd0dfc4",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [],
+          "afterIssues": [],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      },
+      {
+        "caseId": "scion-kernel-e0d838f04c63f6ab675e76f9",
+        "caseSha256": "e0d838f04c63f6ab675e76f981ade02d033926eafe0fef2844c44282e1c6bc55",
+        "domain": "music-theory",
+        "artifactBeforeSha256": "ba68de104a61a2925c9e93ad5e84ca5d5e961aa26857f668902b8a905886f33b",
+        "artifactAfterSha256": "ba68de104a61a2925c9e93ad5e84ca5d5e961aa26857f668902b8a905886f33b",
+        "sourcePromptSha256": "95cf366740cea659efce1d5e0e42170780cbba0ea3260909a70dacc7bcc50657",
+        "admission": {
+          "historicalBeforeIssues": [],
+          "beforeIssues": [],
+          "afterIssues": [],
+          "introducedIssues": [],
+          "resolvedIssues": [],
+          "newlyDetectedBaselineIssues": []
+        },
+        "repairs": [],
+        "onlyAnswerIndexesChanged": true
+      }
+    ],
+    "summary": {
+      "cases": 14,
+      "admittedHistoricalBefore": 14,
+      "admittedBefore": 8,
+      "admittedAfter": 8,
+      "issueInstancesHistoricalBefore": 0,
+      "issueInstancesBefore": 6,
+      "issueInstancesAfter": 6,
+      "answerFeedbackConflictsHistoricalBefore": 0,
+      "answerFeedbackConflictsBefore": 0,
+      "answerFeedbackConflictsAfter": 0,
+      "answerIndexesRepaired": 0,
+      "introducedIssues": 0,
+      "newlyDetectedBaselineIssues": 6,
+      "nonAnswerMutations": 0,
+      "trainingRowsCreated": 0
+    }
+  },
+  "burden": {
+    "additionalModelCalls": 0,
+    "additionalDownloads": 0,
+    "changedFields": 4,
+    "algorithm": "bounded lexical comparison over one cited fact, four answer options, and supplied lesson source",
+    "wallClockDelta": "not claimed by this deterministic replay"
+  },
+  "assertions": {
+    "exactExpansionCases": true,
+    "exactRepairSet": true,
+    "fourConflictsSafelyRemoved": true,
+    "exactIssueDelta": true,
+    "strongerOptionDetectorReplayed": true,
+    "noNewAdmissionIssue": true,
+    "noNonAnswerMutation": true,
+    "everyRepairSourceLineageBound": true,
+    "referenceUntouched": true,
+    "noSyntheticTrainingRows": true,
+    "admissionCountHonest": true
+  },
+  "interpretation": "The production compiler now repairs four previously retained answer-feedback conflicts by moving only the declared answer index. Every move is jointly bound to the item citation and the supplied lesson source. Under the current detector, local issue instances fall from 78 to 74. The stronger option-completion checks also reveal 8 historical local defects and 6 paid-reference defects that the frozen v0.16.57 profile did not count; every reference artifact remains byte-identical.",
+  "claimBoundary": "This is retrospective deterministic repair evidence on 14 frozen expansion artifacts. It proves four conservative index corrections, no repair-introduced admission issues, no reference mutation, and no added model calls. The additional option findings are detector expansion, not generation regression. It does not make the remaining 13 rejected local kernels publishable, create training preferences, prove unseen precision, measure wall-clock speed, activate an adapter, or establish paid-reference parity."
+}

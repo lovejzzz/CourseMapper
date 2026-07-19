@@ -7,6 +7,7 @@ export default function LessonScopeSelector({
 }) {
   const generatedLessons = courseMap?.lessons || [];
   const total = generatedLessons.length > 0 ? generatedLessons.length : lessonCount || 0;
+  const usesProvisionalLessonSlots = generatedLessons.length === 0 && total > 0;
   const rows = Array.from({ length: total }, (_, i) => ({
     index: i,
     label: generatedLessons[i]?.title || `Lesson ${i + 1}`,
@@ -81,6 +82,16 @@ export default function LessonScopeSelector({
             )
           ) : (
             <>
+              {usesProvisionalLessonSlots && (
+                <p
+                  role="note"
+                  data-testid="provisional-lesson-scope-note"
+                  className="rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2 text-[11px] leading-relaxed text-blue-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-200"
+                >
+                  Lesson topics are assigned when Scion creates the course map. Choose numbered slots now, or generate
+                  all lessons to review the map first.
+                </p>
+              )}
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider dark:text-slate-400">
                   {lessonScope.indices?.length || 0} of {total} selected
