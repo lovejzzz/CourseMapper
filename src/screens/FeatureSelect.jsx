@@ -554,14 +554,17 @@ export default function FeatureSelect({
             : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
         }`}
       >
-        <span className="flex items-center justify-center gap-2 sm:gap-2.5">
+        <span className="flex flex-col items-center justify-center gap-0.5 min-[360px]:flex-row min-[360px]:gap-2 sm:gap-2.5">
           <span className="whitespace-nowrap">Review generation</span>
-          <span className="whitespace-nowrap text-white/70">
-            · {selectedMaterialCount === 0 ? 'Course Map only' : `${selectedMaterialCount} materials`}
+          <span className="flex items-center gap-2 whitespace-nowrap text-white/70">
+            <span aria-hidden="true" className="hidden min-[360px]:inline">
+              ·
+            </span>
+            {selectedMaterialCount === 0 ? 'Course Map only' : `${selectedMaterialCount} materials`}
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
           </span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-          </svg>
         </span>
       </button>
     </div>
